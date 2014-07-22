@@ -1,0 +1,18 @@
+syntax: regexp
+
+\.pyc$
+\.out$
+\.swp$
+
+# Generated parser database.
+parsetab\.py$
+
+# Generated test files.
+^tests/\.stable[12]$
+
+# Generated C parser input
+^include/isabelle/.*_pp
+
+# Generate docs
+^docs/.*\.html$
+^docs/contents\.js$

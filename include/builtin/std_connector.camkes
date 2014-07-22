@@ -1,0 +1,251 @@
+/*
+ * Copyright 2014, NICTA
+ *
+ * This software may be distributed and modified according to the terms of
+ * the BSD 2-Clause license. Note that NO WARRANTY is provided.
+ * See "LICENSE_BSD2.txt" for details.
+ *
+ * @TAG(NICTA_BSD)
+ */
+
+import "camkes-hardware.idl4";
+
+/**
+ * @file
+ * 
+ * This file defines a list of connectors. A connector is an instance of a
+ * connection, allowing two components communicate with each other. Different
+ * connectors are used for different purposes.
+ * 
+ * In essence, connector defines how exactly a component connects to another
+ * component. There are two parts, from and to. Most of the connectors are
+ * defined such that the "to" component sends data to the "from" component. So
+ * the "to" component is more like a sender and the "from" component is like a
+ * receiver. Having said that, a totally different semantic can be implemented.
+ * It's really up to the programmer to decide it.
+ * 
+ * To use the connector, you define it like this:
+ * 
+ *	connection RPC util_fatfs_FS(from util.fs, to fatfs.fs);
+ * 
+ * where the RPC conenctor is an instance of util_fatfs_FS connection. It
+ * connects util.fs interface to fatfs.fs interface.
+ * 
+ * Please look at fatfs.camkes for more details.
+ */
+
+/**
+ * Asynchronous event connector
+ * 	
+ * Once the connection has been established, the consumer could wait for
+ * asynchronous signal sending from the emitter. The waiting process can be
+ * blocked or non-blocked. The sending process is non-blocked, that is the
+ * emitter can send data at any time and at any rate.
+ * 
+ * One of the advantages of this connector is if the consumer executes much
+ * faster than the emitter. The consumer could do other stuff while waiting for
+ * the asynchronous signal from the emitter. However it's harder to synchronize
+ * the components.
+ * 
+ * In the current implementation, a component can only use at most 32
+ * asynchronous event connectors. Anything more than that may result in
+ * unpredictable behaviour.
+ */
+connector seL4Asynch {
+	from Event emitter_inf;
+	to Event consumer_inf;
+}
+connector seL4AsynchBind {
+	from Event emitter_inf;
+	to Event consumer_inf;
+}
+connector seL4AsynchSpin {
+	from Event emitter_inf;
+	to Event consumer_inf;
+}
+connector seL4AsynchQueue {
+	from Event emitter_inf;
+	to Event consumer_inf;
+}
+connector seL4AsynchNative {
+	from Event emitter_inf;
+	to Event consumer_inf;
+}
+
+/**
+ * Asynchronous RPC event coonnector
+ * 
+ * This connector works exactly the same as the asynchronous event connector.
+ * The consumer and emitter shouldn't notice any difference. But the internal
+ * implementation is different. seL4Asynch uses the asynchronous
+ * mechanism to send signal, whereas seL4RPCEvent uses the regular RPC
+ * to send and imitate the event signal.
+ * 
+ * seL4Asynch only allows up to 32 connectors per component, whereas
+ * there's no limit in seL4RPCEvent.
+ */
+connector seL4RPCEvent {
+	from Event emitter_inf;
+	to Event consumer_inf;
+}
+
+/**
+ * Asynchronous event export connector
+ * 
+ * This connector connects a composite component's internal event interface to
+ * an external event interface. Anything flows through the internal event
+ * interface will also flow through the external event interface.
+ * 
+ * Please look at fatfs.camkes for more details.
+ */
+connector seL4ExportAsynch {
+	from Interface emitter_inf;
+	to Interface exported_inf;
+}
+
+/**
+ * RPC connector
+ * 
+ * Once the connection has been established, the user could wait for regular
+ * RPC signal sending from the provider. The sending and waiting phase are
+ * blocked.
+ */
+connector seL4RPC {
+	from Procedure user_inf;
+	to Procedure provider_inf;
+}
+
+connector seL4RPCCall {
+	from Procedure user_inf;
+	to Procedure provider_inf;
+}
+
+/**
+ * Direct Call connector
+ * 
+ * Hacks both components into the same protection domain, so that interface
+ * calls are backed by function calls, rather than RPCs.
+ */
+connector seL4DirectCall {
+	from Procedure user_inf;
+	to Procedure provider_inf;
+}
+
+/**
+ * RPC export connector
+ * 
+ * This connecor works in same way as the asynchronous event export connector
+ * (seL4ExportAsynch) with the only difference that the two instances are
+ * dedicated for RPC connections.
+ */
+connector seL4ExportRPC {
+	from Interface implemented_inf;
+	to Interface exported_inf;
+}
+
+/**
+ * Dataport connector
+ * 
+ * This connector allows memory sharing between the provider and user. The user
+ * has read/write access to the shared dataport. Data can be stored in the
+ * dataport and passed between the provider and user.
+ *  
+ * The dataport size is not defined in this connector, it's up to the
+ * implementation. This connector is not two way, provider doesn't have access
+ * to any memory region in the user space.
+ */
+connector seL4SharedData {
+	from Dataport user_data;
+	to Dataport provider_data;
+}
+
+/**
+ * Dataport export connector
+ * 
+ * This connector works in same way as the asynchronous event export connector
+ * (seL4ExportAsynch) with the only difference that two two interfaces are
+ * for dataport connections.
+ */
+connector seL4ExportData {
+	from Dataport provider_data;
+	to Dataport exported_data;
+}
+
+/**
+ * Hardware MMIO dataport connector
+ * 
+ * This connector has special behaviour: it designates the component on the
+ * hardware_component_data side as fictitious, and represents a hardware
+ * device. Code will therefore not be generated for that component.
+ * 
+ * It also implies that the backing memory will be mapped uncached.
+ * 
+ * The hardware_component_data dataport's attribute string should consist of
+ * the physical address and size of the memory window, in the following format:
+ * "0x<address>:0x<size>"
+ */
+connector seL4HardwareMMIO {
+	from Dataport software_component_data;
+	to Dataport hardware_component_data;
+}
+
+/**
+ * Hardware interrupt event connector
+ * 
+ * This connector has special behaviour: it designates the component on the
+ * hardware_component_interrupt side as fictitious, and represents a hardware
+ * device. Code will therefore not be generated for that component.
+ * 
+ * The hardware_component_interrupt event's attribute string should consist of
+ * the interrupt number, in either decimal or (with the "0x" prefix)
+ * hexadecimal.
+ */
+connector seL4HardwareInterrupt {
+	from Event hardware_component_interrupt;
+	to Event software_component_interrupt;
+}
+connector seL4IOAPICHardwareInterrupt {
+	from Event hardware_component_interrupt;
+	to Event software_component_interrupt;
+}
+
+/**
+ * Hardware IOPorts connector
+ * 
+ * This connector has special behaviour: it designates the component on the
+ * hardware_component_data side as fictitious, and represents a hardware
+ * device. Code will therefore not be generated for that component.
+ * 
+ * Note that by nature, this connector is ia32-specific.
+ * 
+ * The attribute 'hardware_component_port_attributes' should be set to define the
+ * the IOPort range needed, in the following format: "0x<first_port>:0x<last_port>".
+ * The interface provided should be "IOPort". E.g.
+ *  component foo {
+ *      provides IOPort bar;
+ *  }
+ *  assembly {
+ *      composition {
+ *          component foo f;
+ *          ...
+ *          connection HardwareIOPort moo(from ..., to foo.bar);
+ *      }
+ *      configuration {
+ *          foo.bar_attributes = "0x42:0x84";
+ *      }
+ *  }
+ */
+connector seL4HardwareIOPort {
+	from Procedure software_component_port;
+	to Interface hardware_component_port;
+}
+
+/* This connector is only capable of marshalling primitive values (no arrays,
+ * strings, user-defined types, ...), but is designed to use variable
+ * assignment rather than memcpys so as to be easier to verify.
+ */
+connector seL4RPCSimple {
+	from Procedure user_inf;
+	to Procedure provider_inf;
+}
+

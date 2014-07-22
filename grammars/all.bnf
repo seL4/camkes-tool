@@ -1,0 +1,316 @@
+#
+# Copyright 2014, NICTA
+#
+# This software may be distributed and modified according to the terms of
+# the BSD 2-Clause license. Note that NO WARRANTY is provided.
+# See "LICENSE_BSD2.txt" for details.
+#
+# @TAG(NICTA_BSD)
+#
+
+# BNF grammar generated from:
+#  ./to-bnf.py ../parser/IsabelleKeywords.py ../parser/util.py ../parser/ADLObjects.py ../parser/IDLRules.py ../parser/example-import.py ../parser/IDLKeywords.py ../parser/OutputXML.py ../parser/IsabelleTokens.py ../parser/IDLObjects.py ../parser/camkestr.py ../parser/GenericTokens.py ../parser/OutputCAmkES.py ../parser/ADLRules.py ../parser/OutputIsabelle.py ../parser/ADLKeywords.py ../parser/GenericObjects.py ../parser/CAmkESRules.py ../parser/IsabelleRules.py ../parser/GenericRules.py
+# Generated at 2012-11-22T12:45:40.223152
+
+# Rules
+attribute_defn : type ID SEMI
+               ;
+dataport_statement : dataport ID ID SEMI
+                   ;
+configuration_defn : 
+                   | setting_defn configuration_defn
+                   ;
+emits_statement : emits ID ID SEMI
+                ;
+isa_procedure_keyword : Trait
+                      | Procedure
+                      ;
+isa_continuing_method_list : 
+                           | COMMA isa_method isa_continuing_method_list
+                           ;
+composition_block : composition LBRACE composition_defn RBRACE
+                  ;
+assembly_defn : composition_block configuration_block
+              | composition_block
+              | configuration_block composition_block
+              ;
+camkes : 
+       | adl camkes
+       | idl camkes
+       ;
+relative_import_statement : import STRING SEMI
+                          ;
+instance_defn : component ID ID SEMI
+              ;
+isa_method_list : LSQUARE RSQUARE
+                | LSQUARE isa_method isa_continuing_method_list RSQUARE
+                ;
+setting_defn : ID DOT ID EQUALS STRING SEMI
+             ;
+procedure_defn : method
+               | method procedure_defn
+               | attribute_defn
+               | attribute_defn procedure_defn
+               ;
+component_defn : 
+               | control SEMI component_defn
+               | provides_statement component_defn
+               | uses_statement component_defn
+               | emits_statement component_defn
+               | consumes_statement component_defn
+               | dataport_statement component_defn
+               ;
+composition_defn : 
+                 | instance_defn composition_defn
+                 | connection_defn composition_defn
+                 ;
+isa_parameter : LPARR p_type EQUALS isa_param_type COMMA p_direction EQUALS isa_param_direction COMMA p_name EQUALS ISABELLE_STRING RPARR
+              ;
+isa_param_direction : InParameter
+                    | InOutParameter
+                    | OutParameter
+                    ;
+isa_param_type : Primitive LPAREN isa_primitive RPAREN
+               | Array LPAREN isa_array RPAREN
+               ;
+connection_defn : connection ID ID LPAREN from ID DOT ID COMMA to ID DOT ID RPAREN SEMI
+                ;
+isa_array : SizedArray LPAREN isa_primitive RPAREN
+          | TerminatedArray LPAREN isa_primitive RPAREN
+          ;
+isa_number : UnsignedInteger
+           | Integer
+           | Real
+           | Boolean
+           | uint8_t
+           | uint16_t
+           | uint32_t
+           | uint64_t
+           | int8_t
+           | int16_t
+           | int32_t
+           | int64_t
+           | double
+           | float
+           | Pointer
+           ;
+isa_procedure : isa_method_list
+              ;
+adl : 
+    | import_statement adl
+    | assembly_block adl
+    | component_block adl
+    | SEMI adl
+    ;
+isa_interface_defn : definition ID DOUBLE_COLON interface where ID EQUIV isa_interface
+                   ;
+type : int
+     | integer
+     | signed int
+     | unsigned int
+     | signed integer
+     | unsigned integer
+     | int8_t
+     | int16_t
+     | int32_t
+     | int64_t
+     | uint8_t
+     | uint16_t
+     | uint32_t
+     | uint64_t
+     | real
+     | double
+     | float
+     | pointer
+     | char
+     | character
+     | bool
+     | boolean
+     | string
+     | smallstring
+     ;
+method : void ID LPAREN parameter_list RPAREN SEMI
+       | type ID LPAREN parameter_list RPAREN SEMI
+       ;
+provides_statement : provides ID ID SEMI
+                   ;
+direction : in
+          | inout
+          | out
+          ;
+import_statement : relative_import_statement
+                 | builtin_import_statement
+                 ;
+isa_param_type_option : None
+                      | Some LPAREN isa_param_type
+                      ;
+isa_interface : isa_procedure_keyword LPAREN isa_procedure RPAREN
+              | Event LPAREN isa_event RPAREN
+              | Dataport LPAREN isa_dataport RPAREN
+              ;
+builtin_import_statement : import ANGLE_STRING SEMI
+                         ;
+procedure_keyword : procedure
+                  | trait
+                  | interface
+                  ;
+isa_event : 
+          ;
+isa_textual : Character
+            | String
+            | char
+            ;
+continuing_parameter_list : COMMA parameter continuing_parameter_list
+                          | 
+                          ;
+uses_statement : uses ID ID SEMI
+               ;
+assembly_block : assembly LBRACE assembly_defn RBRACE
+               ;
+isa_method : LPARR m_return_type EQUALS isa_param_type_option COMMA m_name EQUALS ISABELLE_STRING COMMA m_parameters EQUALS isa_parameter_list RPARR
+           ;
+component_block : component ID LBRACE component_defn RBRACE
+                ;
+isa_parameter_list : LSQUARE RSQUARE
+                   | LSQUARE isa_parameter isa_continuing_parameter_list RSQUARE
+                   ;
+parameter_list : 
+               | void
+               | parameter continuing_parameter_list
+               ;
+isabelle : 
+         | isa_interface_defn isabelle
+         ;
+isa_continuing_parameter_list : 
+                              | COMMA isa_parameter isa_continuing_parameter_list
+                              ;
+parameter : direction type ID
+          ;
+consumes_statement : consumes ID ID SEMI
+                   ;
+idl : 
+    | import_statement idl
+    | procedure_block idl
+    | SEMI idl
+    ;
+procedure_block : procedure_keyword ID LBRACE procedure_defn RBRACE
+                ;
+isa_dataport : 
+             ;
+isa_primitive : Numerical isa_number
+              | Textual isa_textual
+              ;
+configuration_block : configuration RBRACE configuration_defn LBRACE
+                    ;
+
+# Tokens
+RSQUARE : "\]";
+COMMENT : "/\*.*\*/";
+ISABELLE_STRING : "\'\'[^\']\'\'";
+LBRACE : "{";
+RPAREN : "\)";
+RPARR : "\\<rparr>";
+SEMI : ";";
+ISABELLE_COMMENT : "\(\*.*\*\)";
+ANGLE_STRING : "<[^>]*>";
+EQUALS : "=";
+LPAREN : "\(";
+RBRACE : "}";
+DOUBLE_COLON : "::";
+COMMA : ",";
+LSQUARE : "\[";
+LPARR : "\\<lparr>";
+STRING : ""[^"]*"";
+ID : "[a-zA-Z_][a-zA-Z0-9_]*";
+DOT : "\.";
+EQUIV : "\\<equiv>";
+
+# Keywords
+AsynchronousEvent : "AsynchronousEvent";
+int32_t : "int32_t";
+float : "float";
+Character : "Character";
+Textual : "Textual";
+p_direction : "p_direction";
+p_type : "p_type";
+boolean : "boolean";
+OutParameter : "OutParameter";
+m_parameters : "m_parameters";
+p_name : "p_name";
+m_return_type : "m_return_type";
+uint8_t : "uint8_t";
+Trait : "Trait";
+character : "character";
+unsigned : "unsigned";
+conn_type : "conn_type";
+to : "to";
+MemoryConnector : "MemoryConnector";
+Integer : "Integer";
+real : "real";
+string : "string";
+trait : "trait";
+void : "void";
+int8_t : "int8_t";
+AsyncConnector : "AsyncConnector";
+integer : "integer";
+Procedure : "Procedure";
+connections : "connections";
+double : "double";
+signed : "signed";
+composition : "composition";
+SharedData : "SharedData";
+dataports : "dataports";
+uint64_t : "uint64_t";
+conn_from : "conn_from";
+Event : "Event";
+procedure : "procedure";
+control : "control";
+Pointer : "Pointer";
+int : "int";
+int64_t : "int64_t";
+SyncConnector : "SyncConnector";
+char : "char";
+InOutParameter : "InOutParameter";
+int16_t : "int16_t";
+in : "in";
+m_name : "m_name";
+Real : "Real";
+InParameter : "InParameter";
+String : "String";
+pointer : "pointer";
+Numerical : "Numerical";
+SizedArray : "SizedArray";
+TerminatedArray : "TerminatedArray";
+RPC : "RPC";
+Boolean : "Boolean";
+bool : "bool";
+provides : "provides";
+dataport : "dataport";
+import : "import";
+out : "out";
+conn_to : "conn_to";
+None : "None";
+assembly : "assembly";
+uint32_t : "uint32_t";
+UnsignedInteger : "UnsignedInteger";
+component : "component";
+uses : "uses";
+interface : "interface";
+from : "from";
+configuration : "configuration";
+emits : "emits";
+definition : "definition";
+Primitive : "Primitive";
+uint16_t : "uint16_t";
+Some : "Some";
+consumes : "consumes";
+where : "where";
+connection : "connection";
+RPCEvent : "RPCEvent";
+components : "components";
+Dataport : "Dataport";
+attributes : "attributes";
+Array : "Array";
+requires : "requires";
+smallstring : "smallstring";
+inout : "inout";

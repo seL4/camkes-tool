@@ -1,0 +1,193 @@
+#
+# Copyright 2014, NICTA
+#
+# This software may be distributed and modified according to the terms of
+# the BSD 2-Clause license. Note that NO WARRANTY is provided.
+# See "LICENSE_BSD2.txt" for details.
+#
+# @TAG(NICTA_BSD)
+#
+
+# BNF grammar generated from:
+#  ./to-bnf.py ../parser/GenericRules.py ../parser/GenericTokens.py ../parser/IDLKeywords.py ../parser/IDLRules.py ../parser/ADLKeywords.py ../parser/ADLRules.py ../parser/CAmkESRules.py
+# Generated at 2012-11-23T08:42:04.678358
+
+# Rules
+attribute_defn : type ID SEMI
+               ;
+dataport_statement : dataport ID ID SEMI
+                   ;
+configuration_defn : 
+                   | setting_defn configuration_defn
+                   ;
+emits_statement : emits ID ID SEMI
+                ;
+composition_block : composition LBRACE composition_defn RBRACE
+                  ;
+assembly_defn : composition_block configuration_block
+              | composition_block
+              | configuration_block composition_block
+              ;
+camkes : 
+       | adl camkes
+       | idl camkes
+       ;
+relative_import_statement : import STRING SEMI
+                          ;
+instance_defn : component ID ID SEMI
+              ;
+setting_defn : ID DOT ID EQUALS STRING SEMI
+             ;
+procedure_defn : method
+               | method procedure_defn
+               | attribute_defn
+               | attribute_defn procedure_defn
+               ;
+component_defn : 
+               | control SEMI component_defn
+               | provides_statement component_defn
+               | uses_statement component_defn
+               | emits_statement component_defn
+               | consumes_statement component_defn
+               | dataport_statement component_defn
+               ;
+composition_defn : 
+                 | instance_defn composition_defn
+                 | connection_defn composition_defn
+                 ;
+adl : 
+    | import_statement adl
+    | assembly_block adl
+    | component_block adl
+    | SEMI adl
+    ;
+parameter : direction type ID
+          ;
+method : void ID LPAREN parameter_list RPAREN SEMI
+       | type ID LPAREN parameter_list RPAREN SEMI
+       ;
+provides_statement : provides ID ID SEMI
+                   ;
+direction : in
+          | inout
+          | out
+          ;
+import_statement : relative_import_statement
+                 | builtin_import_statement
+                 ;
+builtin_import_statement : import ANGLE_STRING SEMI
+                         ;
+procedure_keyword : procedure
+                  | trait
+                  | interface
+                  ;
+continuing_parameter_list : COMMA parameter continuing_parameter_list
+                          | 
+                          ;
+uses_statement : uses ID ID SEMI
+               ;
+assembly_block : assembly LBRACE assembly_defn RBRACE
+               ;
+connection_defn : connection ID ID LPAREN from ID DOT ID COMMA to ID DOT ID RPAREN SEMI
+                ;
+component_block : component ID LBRACE component_defn RBRACE
+                ;
+parameter_list : 
+               | void
+               | parameter continuing_parameter_list
+               ;
+type : int
+     | integer
+     | signed int
+     | unsigned int
+     | signed integer
+     | unsigned integer
+     | int8_t
+     | int16_t
+     | int32_t
+     | int64_t
+     | uint8_t
+     | uint16_t
+     | uint32_t
+     | uint64_t
+     | real
+     | double
+     | float
+     | pointer
+     | char
+     | character
+     | bool
+     | boolean
+     | string
+     | smallstring
+     ;
+consumes_statement : consumes ID ID SEMI
+                   ;
+idl : 
+    | import_statement idl
+    | procedure_block idl
+    | SEMI idl
+    ;
+procedure_block : procedure_keyword ID LBRACE procedure_defn RBRACE
+                ;
+configuration_block : configuration RBRACE configuration_defn LBRACE
+                    ;
+
+# Tokens
+COMMENT : "/\*.*\*/";
+LBRACE : "{";
+RPAREN : "\)";
+STRING : ""[^"]*"";
+SEMI : ";";
+ANGLE_STRING : "<[^>]*>";
+EQUALS : "=";
+COMMA : ",";
+LPAREN : "\(";
+ID : "[a-zA-Z_][a-zA-Z0-9_]*";
+DOT : "\.";
+RBRACE : "}";
+
+# Keywords
+control : "control";
+int : "int";
+int32_t : "int32_t";
+float : "float";
+char : "char";
+boolean : "boolean";
+int16_t : "int16_t";
+int64_t : "int64_t";
+pointer : "pointer";
+out : "out";
+from : "from";
+uint8_t : "uint8_t";
+character : "character";
+unsigned : "unsigned";
+to : "to";
+bool : "bool";
+provides : "provides";
+dataport : "dataport";
+import : "import";
+composition : "composition";
+real : "real";
+assembly : "assembly";
+string : "string";
+trait : "trait";
+void : "void";
+component : "component";
+int8_t : "int8_t";
+uses : "uses";
+interface : "interface";
+integer : "integer";
+configuration : "configuration";
+emits : "emits";
+in : "in";
+double : "double";
+signed : "signed";
+consumes : "consumes";
+connection : "connection";
+inout : "inout";
+uint32_t : "uint32_t";
+uint64_t : "uint64_t";
+uint16_t : "uint16_t";
+smallstring : "smallstring";
+procedure : "procedure";

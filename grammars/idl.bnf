@@ -1,0 +1,127 @@
+#
+# Copyright 2014, NICTA
+#
+# This software may be distributed and modified according to the terms of
+# the BSD 2-Clause license. Note that NO WARRANTY is provided.
+# See "LICENSE_BSD2.txt" for details.
+#
+# @TAG(NICTA_BSD)
+#
+
+# BNF grammar generated from:
+#  ./to-bnf.py ../parser/GenericRules.py ../parser/GenericTokens.py ../parser/IDLKeywords.py ../parser/IDLRules.py
+# Generated at 2012-11-23T08:41:21.145848
+
+# Rules
+direction : in
+          | inout
+          | out
+          ;
+attribute_defn : type ID SEMI
+               ;
+import_statement : relative_import_statement
+                 | builtin_import_statement
+                 ;
+parameter_list : 
+               | void
+               | parameter continuing_parameter_list
+               ;
+parameter : direction type ID
+          ;
+builtin_import_statement : import ANGLE_STRING SEMI
+                         ;
+procedure_keyword : procedure
+                  | trait
+                  | interface
+                  ;
+idl : 
+    | import_statement idl
+    | procedure_block idl
+    | SEMI idl
+    ;
+procedure_block : procedure_keyword ID LBRACE procedure_defn RBRACE
+                ;
+continuing_parameter_list : COMMA parameter continuing_parameter_list
+                          | 
+                          ;
+procedure_defn : method
+               | method procedure_defn
+               | attribute_defn
+               | attribute_defn procedure_defn
+               ;
+type : int
+     | integer
+     | signed int
+     | unsigned int
+     | signed integer
+     | unsigned integer
+     | int8_t
+     | int16_t
+     | int32_t
+     | int64_t
+     | uint8_t
+     | uint16_t
+     | uint32_t
+     | uint64_t
+     | real
+     | double
+     | float
+     | pointer
+     | char
+     | character
+     | bool
+     | boolean
+     | string
+     | smallstring
+     ;
+method : void ID LPAREN parameter_list RPAREN SEMI
+       | type ID LPAREN parameter_list RPAREN SEMI
+       ;
+relative_import_statement : import STRING SEMI
+                          ;
+
+# Tokens
+COMMENT : "/\*.*\*/";
+LBRACE : "{";
+RPAREN : "\)";
+STRING : ""[^"]*"";
+SEMI : ";";
+ANGLE_STRING : "<[^>]*>";
+EQUALS : "=";
+COMMA : ",";
+LPAREN : "\(";
+ID : "[a-zA-Z_][a-zA-Z0-9_]*";
+DOT : "\.";
+RBRACE : "}";
+
+# Keywords
+int : "int";
+int32_t : "int32_t";
+float : "float";
+char : "char";
+boolean : "boolean";
+int16_t : "int16_t";
+int64_t : "int64_t";
+pointer : "pointer";
+out : "out";
+uint8_t : "uint8_t";
+character : "character";
+unsigned : "unsigned";
+bool : "bool";
+import : "import";
+real : "real";
+string : "string";
+trait : "trait";
+void : "void";
+int8_t : "int8_t";
+interface : "interface";
+integer : "integer";
+in : "in";
+double : "double";
+signed : "signed";
+inout : "inout";
+uint32_t : "uint32_t";
+uint64_t : "uint64_t";
+uint16_t : "uint16_t";
+smallstring : "smallstring";
+procedure : "procedure";
