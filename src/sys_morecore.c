@@ -25,7 +25,7 @@
 #include <sel4utils/mapping.h>
 
 /* If we have a nonzero static morecore then we are just doing dodgy hacky morecore */
-#if CONFIG_LIB_SEL4_MUSLC_SYS_MORECORE_BYTES > 0
+#if CONFIG_LIB_SEL4_MUSLC_CAMKES_MORECORE_BYTES > 0
 
 /*
  * Statically allocated morecore area.
@@ -33,11 +33,11 @@
  * This is rather terrible, but is the simplest option without a
  * huge amount of infrastructure.
  */
-char morecore_area[CONFIG_LIB_SEL4_MUSLC_SYS_MORECORE_BYTES];
+char morecore_area[CONFIG_LIB_SEL4_MUSLC_CAMKES_MORECORE_BYTES];
 
 /* Pointer to free space in the morecore area. */
 static uintptr_t morecore_base = (uintptr_t) &morecore_area;
-static uintptr_t morecore_top = (uintptr_t) &morecore_area[CONFIG_LIB_SEL4_MUSLC_SYS_MORECORE_BYTES];
+static uintptr_t morecore_top = (uintptr_t) &morecore_area[CONFIG_LIB_SEL4_MUSLC_CAMKES_MORECORE_BYTES];
 
 /* Actual morecore implementation
    returns 0 if failure, returns newbrk if success.
@@ -52,11 +52,11 @@ sys_brk(va_list ap)
 
     /*if the newbrk is 0, return the bottom of the heap*/
     if (!newbrk) {
-        ret = morecore_base;
+		ret = morecore_base;
     } else if (newbrk < morecore_top && newbrk > (uintptr_t)&morecore_area[0]) {
-        ret = morecore_base = newbrk;
+		ret = morecore_base = newbrk;
     } else {
-        ret = 0;
+		ret = 0;
     }
 
     return ret;
@@ -64,7 +64,7 @@ sys_brk(va_list ap)
 
 /* Large mallocs will result in muslc calling mmap, so we do a minimal implementation
    here to support that. We make a bunch of assumptions in the process */
-long 
+long
 sys_mmap2(va_list ap)
 {
     void *addr = va_arg(ap, void*);
@@ -88,6 +88,16 @@ sys_mmap2(va_list ap)
     }
     assert(!"not implemented");
     return -ENOMEM;
+}
+
+long
+sys_munmap(va_list ap)
+{
+    void *addr = va_arg(ap, void*);
+    size_t length = va_arg(ap, size_t);
+    (void)addr;
+    (void)length;
+    return 0;
 }
 
 long 
@@ -360,5 +370,10 @@ sys_mremap(va_list ap)
     }
 }
 
+long sys_munmap(va_list ap)
+{
+	assert(!"sys_munmap not implemented");
+	return 0;
+}
 
 #endif

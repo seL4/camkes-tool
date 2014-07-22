@@ -8,5 +8,5 @@
 # @TAG(NICTA_BSD)
 #
 
-libs-$(CONFIG_LIB_SEL4_MUSLC_SYS) += libsel4muslcsys
-libsel4muslcsys: libsel4 libmuslc libcpio libsel4vspace libsel4utils common
+libs-$(CONFIG_LIB_SEL4_MUSLC_CAMKES) += libsel4muslccamkes
+libsel4muslccamkes: libsel4 libmuslc common libsel4camkes libcpio libsel4vspace libsel4utils 

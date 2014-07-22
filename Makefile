@@ -9,7 +9,7 @@
 #
 
 # Targets
-TARGETS := libsel4muslcsys.a
+TARGETS := libsel4muslccamkes.a
 
 # Source files required to build the target
 CFILES := $(patsubst $(SOURCE_DIR)/%,%,$(wildcard $(SOURCE_DIR)/src/*.c) $(wildcard $(SOURCE_DIR)/src/arch/${ARCH}/*.c))

@@ -46,7 +46,7 @@
 #define FREE_FD_TABLE_SIZE(x) (sizeof(int) * ((x) - FIRST_USER_FD))
 
 /* We need to wrap this in the config to prevent linker errors */
-#ifdef CONFIG_LIB_SEL4_MUSLC_SYS_CPIO_FS
+#ifdef CONFIG_LIB_SEL4_MUSLC_CAMKES_CPIO_FS
 extern char _cpio_archive[];
 #endif
 
@@ -218,7 +218,7 @@ sys_open(va_list ap)
     long unsigned int size;
     /* wrapped in a config because the _cpio_archive definition is wrapped in a config */
     char *file = NULL;
-#ifdef CONFIG_LIB_SEL4_MUSLC_SYS_CPIO_FS
+#ifdef CONFIG_LIB_SEL4_MUSLC_CAMKES_CPIO_FS
     file = cpio_get_file(_cpio_archive, pathname, &size);
     if (!file && strncmp(pathname, "./", 2) == 0) {
         file = cpio_get_file(_cpio_archive, pathname + 2, &size);

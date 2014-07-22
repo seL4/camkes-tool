@@ -8,20 +8,25 @@
  * @TAG(NICTA_BSD)
  */
 
-#include <autoconf.h>
-#include <stdio.h>
+#include <assert.h>
 #include <sel4/sel4.h>
-#include <stdlib.h>
 #include <stdarg.h>
+#include <stdio.h>
+#include <camkes/tls.h>
+
+/* Implemented in Musl C. */
+void abort(void);
 
 static void
 sel4_abort(void)
 {
-#if defined(CONFIG_DEBUG_BUILD) && defined(CONFIG_LIB_SEL4_MUSLC_SYS_DEBUG_HALT)
-    printf("seL4 root server abort()ed\n");
-    seL4_DebugHalt();
-#endif
-    while (1); /* We don't return after this */
+    /* Suspend ourselves. This will cap fault if a setup routine has not saved
+     * our TCB cap in the TLS region.
+     */
+    seL4_TCB_Suspend(camkes_get_tls()->tcb_cap);
+
+    /* We expect to never be woken up. */
+    while (1); /* Shut the compiler up about noreturn. */
 }
 
 long
@@ -34,28 +39,28 @@ sys_exit(va_list ap)
 long
 sys_rt_sigprocmask(va_list ap)
 {
-    printf("Ignoring call to %s\n", __FUNCTION__);
+    //printf("Ignoring call to %s\n", __FUNCTION__);
     return 0;
 }
 
 long
 sys_gettid(va_list ap)
 {
-    printf("Ignoring call to %s\n", __FUNCTION__);
+    //printf("Ignoring call to %s\n", __FUNCTION__);
     return 0;
 }
 
 long
 sys_getpid(va_list ap)
 {
-    printf("Ignoring call to %s\n", __FUNCTION__);
+    //printf("Ignoring call to %s\n", __FUNCTION__);
     return 0;
 }
 
 long
 sys_tgkill(va_list ap)
 {
-    printf("%s assuming self kill\n", __FUNCTION__);
+    //printf("%s assuming self kill\n", __FUNCTION__);
     sel4_abort();
     return 0;
 }
@@ -63,6 +68,6 @@ sys_tgkill(va_list ap)
 long
 sys_exit_group(va_list ap)
 {
-    printf("Ignoring call to %s\n", __FUNCTION__);
+    //printf("Ignoring call to %s\n", __FUNCTION__);
     return 0;
 }
