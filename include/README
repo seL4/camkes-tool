@@ -14,6 +14,3 @@ environment. For the most part you will need to pay this directory no mind.
 builtin/ - ADL/IDL files that are analogous to the C standard library. You
     should arrange for this to be in the --import-path when runner the tools to
     let users reference files in here with "import <...>" syntax.
-isabelle/ - Theories of various structs and functions in Isabelle. This
-    directory is basically experimentation and most (if not all) of it has been
-    deprecated or migrated to l4.verified.
