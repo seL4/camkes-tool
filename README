@@ -8,4 +8,4 @@
 # @TAG(NICTA_BSD)
 #
 
-Minimal muslc syscall implementation for seL4.
+Minimal muslc backend for CAmkES.
