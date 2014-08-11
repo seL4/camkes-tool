@@ -523,7 +523,7 @@ ADL := helloworld.camkes
 Client_CFILES = components/Client/src/client.c
 Hello_CFILES = components/Hello/src/hello.c
  
-include ${PWD}/tools/common/camkes.mk
+include ${PWD}/tools/camkes/camkes.mk
 </pre>
 
 Create a dependency entry in apps/helloworld/Kbuild for your application:
@@ -1881,7 +1881,7 @@ Echo_CFILES := \
 Echo_ASMFILES := \
     $(patsubst ${SOURCE_DIR}/%,%,$(wildcard ${SOURCE_DIR}/components/Echo/crt/arch-${ARCH}/crt0.S))
 
-include ${PWD}/tools/common/camkes.mk
+include ${PWD}/tools/camkes/camkes.mk
 </pre>
 
 You can also use the variable `TEMPLATES` to pass a list of directories to be
