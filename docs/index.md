@@ -531,7 +531,7 @@ Create a dependency entry in apps/helloworld/Kbuild for your application:
 
 <pre>
 apps-$(CONFIG_APP_HELLOWORLD) += helloworld
-helloworld: libsel4 libmuslc libsel4platsupport libsel4muslccamkes libsel4sync libsel4debug
+helloworld: libsel4 libmuslc libsel4platsupport libsel4muslccamkes libsel4sync libsel4debug libsel4bench
 </pre>
 
 You're now ready to compile and run this application:
