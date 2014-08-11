@@ -516,7 +516,7 @@ apps/helloworld/Makefile from scratch:
 # apps/helloworld/Makefile
 
 TARGETS := helloworld.cdl
-ADL := hellowordl.camkes
+ADL := helloworld.camkes
 
 Client_CFILES = components/Client/src/client.c
 Hello_CFILES = components/Hello/src/hello.c
