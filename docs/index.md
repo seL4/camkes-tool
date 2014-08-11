@@ -481,9 +481,10 @@ they are directly available to it:
 
 #include <Client.h>
 
-void run(void) {
+int run(void) {
     char *s = "hello world";
     iface_print(s);
+    return 0;
 }
 </pre>
 
@@ -604,10 +605,11 @@ for the component that does nothing except emit the event itself:
 #include <stdio.h>
 #include <Emitter.h>
   
-void run(void) {
+int run(void) {
     while (1) {
         e_emit();
     }
+    return 0;
 }
 </pre>
 
@@ -666,7 +668,7 @@ static void handler(void) {
     }
 }
 
-void run(void) {
+int run(void) {
     printf("Registering callback...\n");
     s_reg_callback(&handler);
 
@@ -680,6 +682,8 @@ void run(void) {
     printf("Waiting...\n");
     s_wait();
     printf("Unblocked by an event!\n");
+
+    return 0;
 }
 </pre>
 
@@ -797,7 +801,7 @@ Now we'll create some basic code for each component to use the dataports:
 
 #include <porttype.h>
 
-void run(void) {
+int run(void) {
     char *hello = "hello";
 
     printf("Ping: sending %s...\n", hello);
@@ -806,6 +810,8 @@ void run(void) {
     /* Wait for Pong to reply. We can assume d2_data is zeroed on startup by seL4. */
     while (!d2_data->data[0]);
     printf("Ping: received %s.\n", d2_data->data);
+
+    return 0;
 }
 </pre>
 
@@ -819,7 +825,7 @@ void run(void) {
 
 #include <porttype.h>
 
-void run(void) {
+int run(void) {
     char *world = "world";
 
     /* Wait for Ping to message us. We can assume s1_data is zeroed on startup by seL4. */
@@ -828,6 +834,8 @@ void run(void) {
 
     printf("Pong: sending %s...\n", world);
     strcpy((void*)s2_data->data, world);
+
+    return 0;
 }
 </pre>
 
