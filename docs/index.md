@@ -427,7 +427,7 @@ apps/helloworld/helloworld.camkes.
 <pre>
 /* apps/helloworld/helloworld.camkes */
 
-import <std_connector.camkes>;
+import &lt;std_connector.camkes&gt;;
 import "components/Hello/Hello.camkes";
 import "components/Client/Client.camkes";
 
@@ -630,7 +630,7 @@ instantiate and connect these components together using another ADL file:
 <pre>
 /* apps/helloevent/helloevent.camkes */
     
-import <std_connector.camkes>;
+import &lt;std_connector.camkes&gt;;
 import "components/Emitter/Emitter.camkes";
 import "components/Consumer/Consumer.camkes";
 
@@ -841,7 +841,7 @@ top-level ADL file:
 <pre>
 /* apps/hellodataport/hellodataport.camkes */
 
-import <std_connector.camkes>;
+import &lt;std_connector.camkes&gt;;
 import "components/Ping/Ping.camkes";
 import "components/Pong/Pong.camkes";
 
