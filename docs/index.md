@@ -453,8 +453,8 @@ Hello as apps/helloworld/components/Hello/src/hello.c:
 <pre>
 /* apps/helloworld/components/Hello/src/hello.c */
 
-#include <Hello.h>
-#include <stdio.h>
+#include &lt;Hello.h&gt;
+#include &lt;stdio.h&gt;
  
 void inf__init(void) {
 }
@@ -479,7 +479,7 @@ they are directly available to it:
 <pre>
 /* apps/helloworld/components/Client/src/client.c */
 
-#include <Client.h>
+#include &lt;Client.h&gt;
 
 void run(void) {
     char *s = "hello world";
@@ -601,8 +601,8 @@ for the component that does nothing except emit the event itself:
 <pre>
 /* apps/helloevent/components/Emitter/src/main.c */
  
-#include <stdio.h>
-#include <Emitter.h>
+#include &lt;stdio.h&gt;
+#include &lt;Emitter.h&gt;
   
 void run(void) {
     while (1) {
@@ -654,8 +654,8 @@ received or they can call a polling function that returns whether an event has
 arrived or not. Let's add some source code that uses all three:
 
 <pre>
-#include <stdio.h>
-#include <Consumer.h>
+#include &lt;stdio.h&gt;
+#include &lt;Consumer.h&gt;
 
 static void handler(void) {
     static int fired = 0;
@@ -790,12 +790,12 @@ Now we'll create some basic code for each component to use the dataports:
 <pre>
 /* apps/components/Ping/src/main.c */
 
-#include <stdio.h>
-#include <string.h>
+#include &lt;stdio.h&gt;
+#include &lt;string.h&gt;
 
-#include <Ping.h>
+#include &lt;Ping.h&gt;
 
-#include <porttype.h>
+#include &lt;porttype.h&gt;
 
 void run(void) {
     char *hello = "hello";
@@ -812,12 +812,12 @@ void run(void) {
 <pre>
 /* apps/components/Pong/src/main.c */
 
-#include <stdio.h>
-#include <string.h>
+#include &lt;stdio.h&gt;
+#include &lt;string.h&gt;
 
-#include <Pong.h>
+#include &lt;Pong.h&gt;
 
-#include <porttype.h>
+#include &lt;porttype.h&gt;
 
 void run(void) {
     char *world = "world";
