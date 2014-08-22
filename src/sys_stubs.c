@@ -30,11 +30,6 @@ long sys_fork(va_list ap)
 	assert(!"sys_fork not implemented");
 	return 0;
 }
-long sys_write(va_list ap)
-{
-	assert(!"sys_write not implemented");
-	return 0;
-}
 long sys_waitpid(va_list ap)
 {
     assert(!"sys_waitpid not implemented");
@@ -303,11 +298,6 @@ long sys_getpgrp(va_list ap)
 long sys_setsid(va_list ap)
 {
 	assert(!"sys_setsid not implemented");
-	return 0;
-}
-long sys_sigaction(va_list ap)
-{
-	assert(!"sys_sigaction not implemented");
 	return 0;
 }
 long sys_sgetmask(va_list ap)
@@ -671,11 +661,6 @@ long sys_getdents(va_list ap)
 	assert(!"sys_getdents not implemented");
 	return 0;
 }
-long sys__newselect(va_list ap)
-{
-	assert(!"sys__newselect not implemented");
-	return 0;
-}
 long sys_flock(va_list ap)
 {
 	assert(!"sys_flock not implemented");
@@ -809,11 +794,6 @@ long sys_prctl(va_list ap)
 long sys_rt_sigreturn(va_list ap)
 {
 	assert(!"sys_rt_sigreturn not implemented");
-	return 0;
-}
-long sys_rt_sigaction(va_list ap)
-{
-	assert(!"sys_rt_sigaction not implemented");
 	return 0;
 }
 long sys_rt_sigpending(va_list ap)
@@ -1181,21 +1161,6 @@ long sys_lookup_dcookie(va_list ap)
 	assert(!"sys_lookup_dcookie not implemented");
 	return 0;
 }
-long sys_epoll_create(va_list ap)
-{
-	assert(!"sys_epoll_create not implemented");
-	return 0;
-}
-long sys_epoll_ctl(va_list ap)
-{
-	assert(!"sys_epoll_ctl not implemented");
-	return 0;
-}
-long sys_epoll_wait(va_list ap)
-{
-	assert(!"sys_epoll_wait not implemented");
-	return 0;
-}
 long sys_remap_file_pages(va_list ap)
 {
 	assert(!"sys_remap_file_pages not implemented");
@@ -1234,11 +1199,6 @@ long sys_timer_delete(va_list ap)
 long sys_clock_settime(va_list ap)
 {
 	assert(!"sys_clock_settime not implemented");
-	return 0;
-}
-long sys_clock_gettime(va_list ap)
-{
-	assert(!"sys_clock_gettime not implemented");
 	return 0;
 }
 long sys_clock_getres(va_list ap)
@@ -1651,11 +1611,6 @@ long sys_fork(va_list ap)
     assert(!"sys_fork not implemented");
     return 0;
 }
-long sys_write(va_list ap)
-{
-    assert(!"sys_write not implemented");
-    return 0;
-}
 long sys_creat(va_list ap)
 {
     assert(!"sys_creat not implemented");
@@ -1834,11 +1789,6 @@ long sys_getpgrp(va_list ap)
 long sys_setsid(va_list ap)
 {
     assert(!"sys_setsid not implemented");
-    return 0;
-}
-long sys_sigaction(va_list ap)
-{
-    assert(!"sys_sigaction not implemented");
     return 0;
 }
 long sys_setreuid(va_list ap)
@@ -2106,11 +2056,6 @@ long sys_getdents(va_list ap)
     assert(!"sys_getdents not implemented");
     return 0;
 }
-long sys__newselect(va_list ap)
-{
-    assert(!"sys__newselect not implemented");
-    return 0;
-}
 long sys_flock(va_list ap)
 {
     assert(!"sys_flock not implemented");
@@ -2234,11 +2179,6 @@ long sys_prctl(va_list ap)
 long sys_rt_sigreturn(va_list ap)
 {
     assert(!"sys_rt_sigreturn not implemented");
-    return 0;
-}
-long sys_rt_sigaction(va_list ap)
-{
-    assert(!"sys_rt_sigaction not implemented");
     return 0;
 }
 long sys_rt_sigpending(va_list ap)
@@ -2453,7 +2393,7 @@ long sys_madvise(va_list ap)
 }
 long sys_fcntl64(va_list ap)
 {
-    assert(!"sys_fcntl64 not implemented");
+//    assert(!"sys_fcntl64 not implemented");
     return 0;
 }
 long sys_readahead(va_list ap)
@@ -2576,21 +2516,6 @@ long sys_lookup_dcookie(va_list ap)
     assert(!"sys_lookup_dcookie not implemented");
     return 0;
 }
-long sys_epoll_create(va_list ap)
-{
-    assert(!"sys_epoll_create not implemented");
-    return 0;
-}
-long sys_epoll_ctl(va_list ap)
-{
-    assert(!"sys_epoll_ctl not implemented");
-    return 0;
-}
-long sys_epoll_wait(va_list ap)
-{
-    assert(!"sys_epoll_wait not implemented");
-    return 0;
-}
 long sys_remap_file_pages(va_list ap)
 {
     assert(!"sys_remap_file_pages not implemented");
@@ -2624,11 +2549,6 @@ long sys_timer_delete(va_list ap)
 long sys_clock_settime(va_list ap)
 {
     assert(!"sys_clock_settime not implemented");
-    return 0;
-}
-long sys_clock_gettime(va_list ap)
-{
-    assert(!"sys_clock_gettime not implemented");
     return 0;
 }
 long sys_clock_getres(va_list ap)
@@ -2711,31 +2631,6 @@ long sys_waitid(va_list ap)
     assert(!"sys_waitid not implemented");
     return 0;
 }
-long sys_socket(va_list ap)
-{
-    assert(!"sys_socket not implemented");
-    return 0;
-}
-long sys_bind(va_list ap)
-{
-    assert(!"sys_bind not implemented");
-    return 0;
-}
-long sys_connect(va_list ap)
-{
-    assert(!"sys_connect not implemented");
-    return 0;
-}
-long sys_listen(va_list ap)
-{
-    assert(!"sys_listen not implemented");
-    return 0;
-}
-long sys_accept(va_list ap)
-{
-    assert(!"sys_accept not implemented");
-    return 0;
-}
 long sys_getsockname(va_list ap)
 {
     assert(!"sys_getsockname not implemented");
@@ -2774,11 +2669,6 @@ long sys_recvfrom(va_list ap)
 long sys_shutdown(va_list ap)
 {
     assert(!"sys_shutdown not implemented");
-    return 0;
-}
-long sys_setsockopt(va_list ap)
-{
-    assert(!"sys_setsockopt not implemented");
     return 0;
 }
 long sys_getsockopt(va_list ap)

@@ -34,32 +34,21 @@
 #include <sel4utils/util.h>
 
 #include "arch_stdio.h"
-
-#define STDOUT_FD 1
-#define STDERR_FD 2
-#define FIRST_USER_FD 3
-
-#define FILE_TYPE_CPIO 0
-
-#define FD_TABLE_SIZE(x) (sizeof(muslcsys_fd_t) * (x))
-/* this implementation does not allow users to close STDOUT or STDERR, so they can't be freed */
-#define FREE_FD_TABLE_SIZE(x) (sizeof(int) * ((x) - FIRST_USER_FD))
+#include "sys_io.h"
 
 /* We need to wrap this in the config to prevent linker errors */
 #ifdef CONFIG_LIB_SEL4_MUSLC_CAMKES_CPIO_FS
 extern char _cpio_archive[];
 #endif
 
+/* CAmkES dataport for socket interface. */
+extern volatile char sock_data_data[PAGE_SIZE_4K] __attribute__((weak));
+
 typedef struct cpio_file_data {
     char *start;
     uint32_t size;
     off_t current;
 } cpio_file_data_t;
-
-typedef struct muslcsys_fd {
-    int filetype;
-    void *data;
-} muslcsys_fd_t;
 
 /* file table, indexed by file descriptor */
 static muslcsys_fd_t *fd_table = NULL;
@@ -169,7 +158,7 @@ grow_fds(int how_much)
     return 0;
 }
 
-static int 
+int 
 allocate_fd()
 {
     if (fd_table == NULL) {
@@ -181,7 +170,7 @@ allocate_fd()
     return get_free_fd();
 }
 
-static muslcsys_fd_t *
+muslcsys_fd_t *
 get_fd_struct(int fd)
 {
     assert(fd < num_fds && fd >= FIRST_USER_FD);
@@ -206,6 +195,7 @@ sys_open(va_list ap)
     int flags = va_arg(ap, int);
     mode_t mode = va_arg(ap, mode_t);
     (void) mode;
+
     /* mask out flags we can support */
     flags &= ~O_LARGEFILE;
     /* only support reading in basic modes */
@@ -252,6 +242,7 @@ sys_open(va_list ap)
     return fd;
 }
 
+int sock_close(int fd) __attribute__((weak));
 long
 sys_close(va_list ap)
 {
@@ -269,6 +260,10 @@ sys_close(va_list ap)
     
     if (fds->filetype == FILE_TYPE_CPIO) {
         free(fds->data);
+    } else if (fds->filetype == FILE_TYPE_SOCKET && sock_close) {
+	sock_close(*(int*)fds->data);
+	free(fds->data);
+	fds->data = NULL;
     } else {
         assert(!"not implemented");
     }
@@ -319,6 +314,26 @@ sys_writev(va_list ap)
     return ret;
 }
 
+int sock_write(int sockfd, int count) __attribute__((weak));
+long sys_write(va_list ap)
+{
+    int fd = va_arg(ap, int);
+    void *buf = va_arg(ap, void*);
+    size_t count = va_arg(ap, size_t);
+    /* construct an iovec and call readv */
+    struct iovec iov = {.iov_base = buf, .iov_len = count };
+
+    int sockfd;
+    muslcsys_fd_t *fdt = get_fd_struct(fd);
+    if (fdt->filetype == FILE_TYPE_SOCKET && sock_write && sock_data_data) {
+	    sockfd = *(int*)fdt->data;
+	    memcpy((char*)sock_data_data, buf, count);
+	    return sock_write(sockfd, count);
+    }
+
+    return writev(fd, &iov, 1);
+}
+
 long sys_readv(va_list ap)
 {
     int fd = va_arg(ap, int);
@@ -326,6 +341,7 @@ long sys_readv(va_list ap)
     int iovcnt = va_arg(ap, int);
     int i;
     long read;
+
     if (fd < FIRST_USER_FD) {
         assert(!"not implemented");
         return -EBADF;
@@ -355,6 +371,7 @@ long sys_readv(va_list ap)
     return read;
 }
 
+int sock_read(int sockfd, int count) __attribute__((weak));
 long sys_read(va_list ap)
 {
     int fd = va_arg(ap, int);
@@ -362,6 +379,16 @@ long sys_read(va_list ap)
     size_t count = va_arg(ap, size_t);
     /* construct an iovec and call readv */
     struct iovec iov = {.iov_base = buf, .iov_len = count };
+
+    int ret, sockfd;
+    muslcsys_fd_t *fdt = get_fd_struct(fd);
+    if (fdt->filetype == FILE_TYPE_SOCKET && sock_read && sock_data_data) {
+	    sockfd = *(int*)fdt->data;
+	    ret = sock_read(sockfd, count);
+	    memcpy(buf, (char*)sock_data_data, ret);
+	    return ret;
+    }
+
     return readv(fd, &iov, 1);
 }
 

@@ -77,6 +77,7 @@ sys_mmap2(va_list ap)
     (void)prot;
     (void)fd;
     (void)offset;
+
     if (flags & MAP_ANONYMOUS) {
         /* Steal from the top */
         uintptr_t base = morecore_top - length;
