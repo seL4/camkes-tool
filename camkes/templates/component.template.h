@@ -66,6 +66,7 @@ const char *get_instance_name(void);
 
 /*- for s in me.type.semaphores -*/
     int /*? s.name ?*/_wait(void);
+    int /*? s.name ?*/_trywait(void);
     int /*? s.name ?*/_post(void);
 /*- endfor -*/
 

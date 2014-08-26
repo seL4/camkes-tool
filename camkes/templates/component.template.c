@@ -104,6 +104,10 @@ int /*? s.name ?*/_wait(void) {
     return sync_sem_wait(&/*? semaphore ?*/);
 }
 
+int /*? s.name ?*/_trywait(void) {
+    return sync_sem_trywait(&/*? semaphore ?*/);
+}
+
 int /*? s.name ?*/_post(void) {
     return sync_sem_post(&/*? semaphore ?*/);
 }
