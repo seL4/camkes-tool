@@ -14,6 +14,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+#include <errno.h>
 #include <sys/socket.h>
 
 #include "sys_io.h"
@@ -125,6 +126,12 @@ long sys_accept(va_list ap)
 		memcpy((char*)sock_data_data + sizeof(struct sockaddr), addrlen, sizeof(socklen_t));
 		
 		newsockfd = sock_accept(sockfd);
+
+		/* -1 is returned when the call fails. */
+		if (newsockfd == -1) {
+			errno = *(int*)sock_data_data;
+			return newsockfd;
+		}
 		
 		memcpy(addr, (char*)sock_data_data, sizeof(struct sockaddr));
 		memcpy(addrlen, (char*)sock_data_data + sizeof(struct sockaddr), sizeof(socklen_t));
