@@ -1021,11 +1021,6 @@ long sys_getdents64(va_list ap)
 	assert(!"sys_getdents64 not implemented");
 	return 0;
 }
-long sys_fcntl64(va_list ap)
-{
-	assert(!"sys_fcntl64 not implemented");
-	return 0;
-}
 long sys_readahead(va_list ap)
 {
 	assert(!"sys_readahead not implemented");
@@ -2389,11 +2384,6 @@ long sys_mincore(va_list ap)
 long sys_madvise(va_list ap)
 {
     assert(!"sys_madvise not implemented");
-    return 0;
-}
-long sys_fcntl64(va_list ap)
-{
-//    assert(!"sys_fcntl64 not implemented");
     return 0;
 }
 long sys_readahead(va_list ap)

@@ -549,3 +549,21 @@ long sys_access(va_list ap) {
     LOG_ERROR("Must pass F_OK or R_OK to %s\n", __FUNCTION__);
     return -EACCES;
 }
+
+int sock_fcntl(int sockfd, int cmd, int val) __attribute__((weak));
+long sys_fcntl64(va_list ap)
+{
+    int fd = va_arg(ap, int);
+    int cmd = va_arg(ap, int);
+
+    int sockfd;
+    muslcsys_fd_t *fdt = get_fd_struct(fd);
+    if (fdt->filetype == FILE_TYPE_SOCKET && sock_fcntl) {
+	    sockfd = *(int*)fdt->data;
+	    long val = va_arg(ap, long);
+	    return sock_fcntl(sockfd, cmd, val);
+    }
+
+    assert(!"sys_fcntl64 not implemented");
+    return 0;
+}
