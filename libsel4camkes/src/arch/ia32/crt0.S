@@ -8,13 +8,8 @@
  * @TAG(NICTA_BSD)
  */
 /*
- * A default crt0 for ia32. It does the bare minimum required to get into
- * main() with a sensible C environment.
- *
- * This file will only be linked in if:
- *   - no other file already provides a _start symbol, and
- *   - _start is an undefined external symbol (force this by passing
- *     "-u _start" to ld).
+ * A default seL4 crt0 for ia32. It does the bare minimum required to emulate
+ * a typical startup environment and jump to the regular _start symbol
  */
 
 #define __ASM__
@@ -22,33 +17,54 @@
 
 #include <autoconf.h>
 
-    .global _start
+    .global _camkes_start
+    .extern _start
+    .extern sel4_vsyscall
 
     .text
 
-_start:
+_camkes_start:
 
-#ifdef CONFIG_CAPDL_LOADER_CC_REGISTERS
-    /* If we've been passed the arguments in registers we need to shuffle them
-     * onto the stack now as expected by main.
-     */
-    pushl   %edx
-    pushl   %ecx
-    pushl   %ebx
-    pushl   %eax
+#ifndef CONFIG_CAPDL_LOADER_CC_REGISTERS
+    /* If we've been passed the arguments on the stack we need to shuffle them
+     * into registers for now */
+    popl    %eax
+    popl    %ebx
 #endif
 
-    movw    $IPCBUF_GDT_SELECTOR, %ax
-    movw    %ax, %gs
+    movw    $IPCBUF_GDT_SELECTOR, %cx
+    movw    %cx, %gs
 
-    /* Start main. */
-    call    main
+    /* Null terminate auxillary vector */
+    pushl $0
+    pushl $0
+    /* Set __sysinfo */
+    leal  sel4_vsyscall, %ecx
+    pushl %ecx
+    pushl $32 /* AT_SYSINFO */
+    /* Null terminate environment vector */
+    pushl $0
+    leal  environment_string, %ecx
+    pushl %ecx
+    /* Null terminate argument vector */
+    pushl $0
+    /* Construct arguments */
+    pushl %ebx
+    pushl %eax
+    leal camkes_name, %ecx
+    pushl %ecx
+    /* Push argument count */
+    pushl $3
+    /* No atexit */
+    movl $0, %edx
 
-    /* Call _Exit() to suspend ourselves, as opposed to exit() that assumes we
-     * are exiting the process and does some undesirable things like closing
-     * stdout.
-     */
-    pushl   %eax
-    call    _Exit
+    /* Go to the real start function */
+    jmp _start
 
-1:  jmp     1b
+    .data
+    .align 4
+
+camkes_name:
+    .asciz "camkes"
+environment_string:
+    .asciz "seL4=1"

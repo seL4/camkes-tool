@@ -8,33 +8,52 @@
  * @TAG(NICTA_BSD)
  */
 /*
- * A default crt0 for ARM. It does the bare minimum required to get into
- * main() with a sensible C environment.
- *
- * This file will only be linked in if:
- *   - no other file already provides a _start symbol, and
- *   - _start is an undefined external symbol (force this by passing
- *     "-u _start" to ld).
+ * A default seL4 crt0 for arm. It does the bare minimum required to emulate
+ * a typical startup environment and jump to the regular _start symbol
  */
 
-.text
+    .global _camkes_start
+    .extern _start
+    .extern sel4_vsyscall
 
-/*
- * Image Entry point.
- */
-.global _start
-_start:
-    /* Call main. */
-    bl      main
+    .text
 
-    /* Call _Exit() to suspend ourselves, as opposed to exit() that assumes we
-     * are exiting the process and does some undesirable things like closing
-     * stdout.
-     */
-    bl      _Exit
+_camkes_start:
 
-    /* We do not expect to return from _Exit. */
-1:  b 1b
+    /* null terminate auxv */
+    mov     r5, #0
+    push    {r5}
+    push    {r5}
+    /* give vsyscall location */
+    ldr     r6, =sel4_vsyscall
+    push    {r6}
+    mov     r7, #32
+    push    {r7}
+    /* Null terminate envp */
+    push    {r5}
+    /* Give an environment string */
+    ldr     r6, =environment_string
+    push    {r6}
+    /* Null terminate argument vector */
+    push    {r5}
+    /* Put on arguments */
+    push    {r1}
+    push    {r0}
+    ldr     r6, =camkes_name
+    push    {r6}
+    /* Push argument count */
+    mov     r6, #3
+    push    {r6}
+    /* Now go to actual _start */
+    ldr     pc, =_start
 
 /* .text Literal Pool */
 .pool
+
+    .data
+    .align 4
+
+camkes_name:
+    .asciz "camkes"
+environment_string:
+    .asciz "seL4=1"

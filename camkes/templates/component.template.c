@@ -26,7 +26,6 @@
 #include <camkes/tls.h>
 #include <stdlib.h>
 #include <sync/sem-bare.h>
-#include <syscall_stubs_sel4.h>
 #include <debug/identity.h>
 #include <utils/util.h>
 
@@ -35,8 +34,6 @@
 #include "../../../include//*? me.name ?*//generated//*? me.type.name ?*/.h"
 
 /*? macros.show_includes(me.type.includes) ?*/
-
-MUSLC_SYSCALL_TABLE;
 
 /*- set putchar = c_symbol() -*/
 static void (* /*? putchar ?*/)(int c);
@@ -248,8 +245,6 @@ static void /*? init ?*/(void) {
 
 /*- set p = Perspective(instance=me.name) -*/
 int USED /*? p['entry_symbol'] ?*/(int thread_id) {
-
-    SET_MUSLC_SYSCALL_TABLE;
 
     /*- if options.fsupport_init -*/
         /*# Locks for synchronising init ops. #*/

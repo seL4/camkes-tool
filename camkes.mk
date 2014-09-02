@@ -102,7 +102,7 @@ endif
 # code. Components are forced to link against these. Note sel4camkes needs to
 # come before sel4platsupport to make sure we get the sel4camkes _start, not
 # the sel4platsupport one.
-CAMKES_CORE_LIBS = sel4 sel4debug muslc ${CONFIG_CAMKES_SYSLIB} sel4camkes \
+CAMKES_CORE_LIBS = sel4 sel4debug c ${CONFIG_CAMKES_SYSLIB} sel4camkes \
     sel4sync utils
 
 PRUNER_BLACKLIST = FILE fpos_t opterr optind optopt stderr stdin stdout va_list

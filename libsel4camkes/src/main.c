@@ -12,6 +12,8 @@
  * expecting to be passed a function pointer of the entry point of the
  * component that we (the current thread) are meant to operate within.
  */
-int main(int thread_id, int (*component_main)(int thread_id)) {
+int main(int argc, char *argv[]) {
+    int thread_id = (int)(argv[1]);
+    int (*component_main)(int) = (int (*)(int))(argv[2]);
     return component_main(thread_id);
 }

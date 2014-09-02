@@ -156,7 +156,8 @@ $(/*? i.name ?*/_CFILES:%.c=%.c_pp): ${/*? i.name ?*/_HFILES} ${/*? i.name ?*/_C
     ${LIBGCC} \
     ${ENDGROUP} \
     -static -nostdlib \
-    -u _start
+    -u _camkes_start \
+    -e _camkes_start
 
 /*# Only incrementally link if this instance is going on to become part of a
  *# group.
@@ -171,9 +172,12 @@ ifeq (${CONFIG_CAMKES_DEBUG_MALLOC},y)
 /*? i.name ?*/_instance_LDFLAGS += $(foreach i,malloc free realloc calloc,-Wl,--wrap=$i)
 endif
 
+CRTOBJFILES ?= $(SEL4_LIBDIR)/crt1.o $(SEL4_LIBDIR)/crti.o $(shell $(CC) $(CFLAGS) -print-file-name=crtbegin.o)
+FINOBJFILES ?= $(shell $(CC) $(CFLAGS) -print-file-name=crtend.o) $(SEL4_LIBDIR)/crtn.o
+
 /*? i.name ?*/.instance.bin: $(/*? i.name ?*/_CFILES:%.c=%.o) $(/*? i.name ?*/_ASMFILES:%.S=%.o) $(/*? i.name ?*/_OFILES)
 	@echo " [LD] $(notdir $@)"
-	${Q}${CC} $(filter %.o,$^) ${/*? i.name ?*/_instance_LDFLAGS} -o $@
+	${Q}${CC} $(CRTOBJFILES) $(filter %.o,$^) $(FINOBJFILES) ${/*? i.name ?*/_instance_LDFLAGS} -o $@
 /*- set p = Perspective(group=i.address_space) -*/
 /*? p['elf_name'] ?*/: /*? i.name ?*/.instance-copy.bin
 /*# The actual recipe for the above target is generated below. Remember, groups
@@ -191,7 +195,8 @@ endif
     ${LIBGCC} \
     ${ENDGROUP} \
     -static -nostdlib \
-    -u _start
+    -u _camkes_start \
+    -e _camkes_start
 /*- endfor -*/
 
 # CapDL generation. This assumes that the last element in TARGETS is a CapDL
