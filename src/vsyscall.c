@@ -42,6 +42,8 @@ static long (*syscall_table[])(va_list) = {
     [__NR_brk] = sys_brk,
     [__NR_mmap2] = sys_mmap2,
     [__NR_mremap] = sys_mremap,
+    [__NR_pause] = sys_pause,
+    [__NR_munmap] = sys_munmap,
 };
 
 #ifdef CONFIG_DEBUG_BUILD
