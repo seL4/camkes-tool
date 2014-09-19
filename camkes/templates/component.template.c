@@ -244,6 +244,33 @@ static void /*? init ?*/(void) {
 /*- endif -*/
 
 /*- set p = Perspective(instance=me.name) -*/
+void USED /*? p['tls_symbol'] ?*/(int thread_id) {
+    switch (thread_id) {
+        /*- set tcb_control = alloc('tcb__control', seL4_TCBObject) -*/
+        case /*? tcb_control ?*/ : /* Control thread */
+            /*- set p = Perspective(instance=me.name, control=True) -*/
+            /*? macros.save_ipc_buffer_address(p['ipc_buffer_symbol']) ?*/
+            camkes_get_tls()->tcb_cap = /*? tcb_control ?*/;
+            camkes_get_tls()->thread_index = 1;
+            break;
+
+        /*# Interface threads #*/
+        /*- for index, i in enumerate(all_interfaces) -*/
+            /*- set tcb = alloc('tcb_%s' % i.name, seL4_TCBObject) -*/
+            case /*? tcb ?*/ : { /* Interface /*? i.name ?*/ */
+                /*- set p = Perspective(instance=me.name, interface=i.name) -*/
+                /*? macros.save_ipc_buffer_address(p['ipc_buffer_symbol']) ?*/
+                camkes_get_tls()->tcb_cap = /*? tcb ?*/;
+                camkes_get_tls()->thread_index = /*? index ?*/ + 2;
+                break;
+            }
+        /*- endfor -*/
+        default:
+            assert(!"Unreachable");
+    }
+}
+
+/*- set p = Perspective(instance=me.name) -*/
 int USED /*? p['entry_symbol'] ?*/(int thread_id) {
 
     /*- if options.fsupport_init -*/
@@ -271,10 +298,6 @@ int USED /*? p['entry_symbol'] ?*/(int thread_id) {
 
         /*- set tcb_control = alloc('tcb__control', seL4_TCBObject) -*/
         case /*? tcb_control ?*/ : /* Control thread */
-            /*- set p = Perspective(instance=me.name, control=True) -*/
-            /*? macros.save_ipc_buffer_address(p['ipc_buffer_symbol']) ?*/
-            camkes_get_tls()->tcb_cap = /*? tcb_control ?*/;
-            camkes_get_tls()->thread_index = 1;
             /*? init ?*/();
             /*- if options.fsupport_init -*/
                 if (pre_init) {
@@ -306,10 +329,6 @@ int USED /*? p['entry_symbol'] ?*/(int thread_id) {
         /*- for index, i in enumerate(all_interfaces) -*/
             /*- set tcb = alloc('tcb_%s' % i.name, seL4_TCBObject) -*/
             case /*? tcb ?*/ : { /* Interface /*? i.name ?*/ */
-                /*- set p = Perspective(instance=me.name, interface=i.name) -*/
-                /*? macros.save_ipc_buffer_address(p['ipc_buffer_symbol']) ?*/
-                camkes_get_tls()->tcb_cap = /*? tcb ?*/;
-                camkes_get_tls()->thread_index = /*? index ?*/ + 2;
                 /*- if options.fsupport_init -*/
                     /* Wait for `pre_init` to complete. */
                     sync_sem_bare_wait(/*? pre_init_ep ?*/, &/*? pre_init_lock ?*/);

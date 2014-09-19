@@ -20,6 +20,17 @@
 
 _camkes_start:
 
+    /* Save thread_id and entry_symbol so we can safely call tls_init */
+    push    {r0}
+    push    {r1}
+
+    /* call tls_init with our thread_id (which is already in r0) */
+    blx     r2
+
+    /* Restore registers */
+    pop     {r1}
+    pop     {r0}
+
     /* null terminate auxv */
     mov     r5, #0
     push    {r5}

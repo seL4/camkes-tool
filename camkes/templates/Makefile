@@ -257,6 +257,7 @@ endif
          *# in the runner.
          #*/ \
         --redefine-sym "/*? pre['entry_symbol'] ?*/"="/*? post['entry_symbol'] ?*/" \
+        --redefine-sym "/*? pre['tls_symbol'] ?*/"="/*? post['tls_symbol'] ?*/" \
         \
         /*# Use a dummy impossible symbol of the empty string here, because
          *# marking one symbol as 'keep global' causes all others to be demoted

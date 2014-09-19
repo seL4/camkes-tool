@@ -30,12 +30,27 @@ _camkes_start:
      * into registers for now */
     popl    %eax
     popl    %ebx
+    popl    %ecx
 #endif
 
-    movw    $IPCBUF_GDT_SELECTOR, %cx
-    movw    %cx, %gs
+    movw    $IPCBUF_GDT_SELECTOR, %dx
+    movw    %dx, %gs
 
-    /* Null terminate auxillary vector */
+    /* Save thread_id and entry_point so we can
+     * put them into argv later */
+    pushl %eax
+    pushl %ebx
+
+    /* Setup per thread tls */
+    pushl %eax
+    call *%ecx
+    addl $4, %esp
+
+    /* Restore */
+    popl %ebx
+    popl %eax
+
+    /* Null terminate auxiliary vector */
     pushl $0
     pushl $0
     /* Set __sysinfo */

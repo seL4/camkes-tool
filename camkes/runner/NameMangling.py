@@ -134,6 +134,8 @@ DERIVATIONS = {
         BackwardDeriver(r'^(.+)_group_bin', 'elf_name', 'group'),
         ForwardDeriver('%(instance)s_main', 'entry_symbol'),
         BackwardDeriver(r'^(.+)_main$', 'entry_symbol', 'instance'),
+        ForwardDeriver('%(instance)s_tls_setup', 'tls_symbol'),
+        BackwardDeriver(r'^(.+)_tls_setup$', 'tls_symbol', 'instance'),
     ], FILTERS:[
         ForwardDeriver('%(instance)s_tcb_%(interface)s', 'tcb'),
         FromControlDeriver('%(instance)s_tcb__control', 'tcb'),
@@ -148,6 +150,8 @@ DERIVATIONS = {
         ControlDeriver(r'^_camkes_stack_.+__control$', 'stack_symbol'),
         ForwardDeriver('camkes %(instance)s_main', 'entry_symbol'),
         BackwardDeriver(r'^camkes (.+)_main$', 'entry_symbol', 'instance'),
+        ForwardDeriver('camkes %(instance)s_tls_setup', 'tls_symbol'),
+        BackwardDeriver(r'^camkes (.+)_tls_setup$', 'tls_symbol', 'instance'),
         ForwardDeriver('%(group)s_group_bin', 'elf_name'),
         BackwardDeriver(r'^(.+)_group_bin', 'elf_name', 'group'),
         PoolDeriver(r'.+_tcb_pool_[0-9]+$', 'tcb'),

@@ -134,6 +134,15 @@ def set_tcb_info(ast, obj_space, cspaces, elfs, *_):
                     (component_entry, tcb.name))
             tcb.init.append(vaddr)
 
+            # The group's entry point expects to be passed a function pointer
+            # as the third argument that is a function that will perform
+            # early tls setup
+            tls_setup = perspective['tls_symbol']
+            vaddr = get_symbol_vaddr(elf, tls_setup)
+            if vaddr is None:
+                raise Exception('TLS symbol, %s, of %s not found' % (tls_setup, tcb.name))
+            tcb.init.append(vaddr)
+
 def set_tcb_caps(ast, obj_space, cspaces, elfs, *_):
     for group, space in cspaces.items():
         cnode = space.cnode
