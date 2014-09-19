@@ -26,7 +26,7 @@
 #include <camkes/tls.h>
 #include <stdlib.h>
 #include <sync/sem-bare.h>
-#include <debug/identity.h>
+#include <sel4debug/identity.h>
 #include <utils/util.h>
 
 /*# Include path based on logic in the Makefile template. #*/
