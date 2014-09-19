@@ -82,6 +82,8 @@ endif
 /*- for i in instances if not i.type.hardware -*/
 /*? i.name ?*/_CFILES += \
     $(/*? i.type.name ?*/_CFILES:%=$(abspath ${BUILD_DIR})/src//*? i.name ?*//static/%)
+/*? i.name ?*/_CXXFILES += \
+    $(/*? i.type.name ?*/_CXXFILES:%=$(abspath ${BUILD_DIR})/src//*? i.name ?*//static/%)
 /*? i.name ?*/_OFILES += \
     $(/*? i.type.name ?*/_OFILES:%=$(abspath ${BUILD_DIR})/src//*? i.name ?*//static/%)
 /*? i.name ?*/_ASMFILES += \
@@ -130,6 +132,8 @@ endif
 /*- for i in instances if not i.type.hardware -*/
 $(/*? i.name ?*/_CFILES:%.c=%.o): \
     $(abspath ${BUILD_DIR})/include//*? i.name ?*//generated//*? i.type.name ?*/.h
+$(/*? i.name ?*/_CXXFILES:%.cxx=%.o): \
+    $(abspath ${BUILD_DIR})/include//*? i.name ?*//generated//*? i.type.name ?*/.h
 # In case we are running CPP separately:
 $(/*? i.name ?*/_CFILES:%.c=%.c_pp): \
     $(abspath ${BUILD_DIR})/include//*? i.name ?*//generated//*? i.type.name ?*/.h
@@ -138,7 +142,8 @@ $(/*? i.name ?*/_CFILES:%.c=%.c_pp): \
 # Each (generated or static) component file compilation may depend on the
 # user-provided code.
 /*- for i in instances if not i.type.hardware -*/
-$(/*? i.name ?*/_CFILES:%.c=%.o): ${/*? i.name ?*/_HFILES} ${/*? i.name ?*/_CFILES} ${/*? i.name ?*/_ASMFILES}
+$(/*? i.name ?*/_CFILES:%.c=%.o): ${/*? i.name ?*/_HFILES} ${/*? i.name ?*/_CFILES} ${/*? i.name ?*/_CXXFILES} ${/*? i.name ?*/_ASMFILES}
+$(/*? i.name ?*/_CXXFILES:%.cxx=%.o): ${/*? i.name ?*/_HFILES} ${/*? i.name ?*/_CFILES} ${/*? i.name ?*/_CXXFILES} ${/*? i.name ?*/_ASMFILES}
 # In case we are running CPP separately:
 $(/*? i.name ?*/_CFILES:%.c=%.c_pp): ${/*? i.name ?*/_HFILES} ${/*? i.name ?*/_CFILES} ${/*? i.name ?*/_ASMFILES}
 /*- endfor -*/
@@ -175,7 +180,7 @@ endif
 CRTOBJFILES ?= $(SEL4_LIBDIR)/crt1.o $(SEL4_LIBDIR)/crti.o $(shell $(CC) $(CFLAGS) $(CPPFLAGS)  -print-file-name=crtbegin.o)
 FINOBJFILES ?= $(shell $(CC) $(CFLAGS) $(CPPFLAGS) -print-file-name=crtend.o) $(SEL4_LIBDIR)/crtn.o
 
-/*? i.name ?*/.instance.bin: $(/*? i.name ?*/_CFILES:%.c=%.o) $(/*? i.name ?*/_ASMFILES:%.S=%.o) $(/*? i.name ?*/_OFILES)
+/*? i.name ?*/.instance.bin: $(/*? i.name ?*/_CFILES:%.c=%.o) $(/*? i.name ?*/_CXXFILES:%.cxx=%.o) $(/*? i.name ?*/_ASMFILES:%.S=%.o) $(/*? i.name ?*/_OFILES)
 	@echo " [LD] $(notdir $@)"
 	${Q}${CC} $(CRTOBJFILES) $(filter %.o,$^) $(FINOBJFILES) ${/*? i.name ?*/_instance_LDFLAGS} -o $@
 /*- set p = Perspective(group=i.address_space) -*/

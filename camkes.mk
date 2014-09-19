@@ -79,6 +79,14 @@ else
 	$(Q)$(CC) -x c $(CFLAGS) $(CPPFLAGS) $(foreach v,$(filter-out $<,$^),$(patsubst %,-I%,$(abspath $(dir ${v})))) -c $< -o $@
 endif
 
+%.o: %.cxx $(HFILES) | install-headers
+	@$(if $(filter-out 0,${V}),$(warning Using CAmkES generic .o target),)
+	@echo " [CXX] $(notdir $@)"
+	$(Q)mkdir -p $(dir $@)
+	@# Abuse second parameter of make-depend to extend CXXFLAGS.
+	$(Q)$(call make-cxx-depend,$<,$@ $(foreach v,$(filter-out $<,$^),$(patsubst %,-I%,$(abspath $(dir ${v})))),$(patsubst %.o,%.d,$@))
+	$(Q)$(CXX) -x c++ $(CXXFLAGS) $(CPPFLAGS) $(foreach v,$(filter-out $<,$^),$(patsubst %,-I%,$(abspath $(dir ${v})))) -c $< -o $@
+
 .PRECIOUS: %.c_pp
 %.c_pp: %.c $(HFILES) | install-headers
 	@$(if $(filter-out 0,${V}),$(warning Using CAmkES generic .c_pp target),)
