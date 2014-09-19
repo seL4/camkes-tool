@@ -68,7 +68,7 @@ ifeq (${CONFIG_BUILDSYS_CPP_SEPARATE},y)
 	@$(if $(filter-out 0,${V}),$(warning Using CAmkES generic .o target),)
 	@echo " [CC] $(notdir $@)"
 	$(Q)mkdir -p $(dir $@)
-	$(Q)$(CC) -x c $(CFLAGS) $(foreach v,$(filter-out $<,$^),$(patsubst %,-I%,$(abspath $(dir ${v})))) -c $< -o $@
+	$(Q)$(CC) -x c $(CFLAGS) $(CPPFLAGS) $(foreach v,$(filter-out $<,$^),$(patsubst %,-I%,$(abspath $(dir ${v})))) -c $< -o $@
 else
 %.o: %.c $(HFILES) | install-headers
 	@$(if $(filter-out 0,${V}),$(warning Using CAmkES generic .o target),)
@@ -76,7 +76,7 @@ else
 	$(Q)mkdir -p $(dir $@)
 	@# Abuse second parameter of make-depend to extend CFLAGS.
 	$(Q)$(call make-depend,$<,$@ $(foreach v,$(filter-out $<,$^),$(patsubst %,-I%,$(abspath $(dir ${v})))),$(patsubst %.o,%.d,$@))
-	$(Q)$(CC) -x c $(CFLAGS) $(foreach v,$(filter-out $<,$^),$(patsubst %,-I%,$(abspath $(dir ${v})))) -c $< -o $@
+	$(Q)$(CC) -x c $(CFLAGS) $(CPPFLAGS) $(foreach v,$(filter-out $<,$^),$(patsubst %,-I%,$(abspath $(dir ${v})))) -c $< -o $@
 endif
 
 .PRECIOUS: %.c_pp
@@ -89,14 +89,14 @@ endif
 	$(Q)$(CC) -E \
         $(if ${CONFIG_BUILDSYS_CPP_RETAIN_COMMENTS},-C -CC,) \
         $(if ${CONFIG_BUILDSYS_CPP_LINE_DIRECTIVES},,-P) \
-        $(CFLAGS) $(foreach v,$(filter-out $<,$^),$(patsubst %,-I%,$(abspath $(dir ${v})))) -c $< -o $@
+        $(CFLAGS) $(CPPFLAGS) $(foreach v,$(filter-out $<,$^),$(patsubst %,-I%,$(abspath $(dir ${v})))) -c $< -o $@
 
 %.o: %.S $(HFILES) | install-headers
 	@$(if $(filter-out 0,${V}),$(warning Using CAmkES generic .o target),)
 	@echo " [ASM] $(notdir $@)"
 	$(Q)mkdir -p $(dir $@)
 	$(Q)$(call make-depend,$<,$@ $(foreach v,$(filter-out $<,$^),$(patsubst %,-I%,$(abspath $(dir ${v})))),$(patsubst %.o,%.d,$@))
-	$(Q)$(ASM) $(CFLAGS) $(foreach v,$(filter-out $<,$^),$(patsubst %,-I%,$(abspath $(dir ${v})))) -c $< -o $@
+	$(Q)$(CC) $(ASFLAGS) $(CPPFLAGS) $(foreach v,$(filter-out $<,$^),$(patsubst %,-I%,$(abspath $(dir ${v})))) -c $< -o $@
 
 # Libraries that are utilised or assumed to exist by the CAmkES runtime or glue
 # code. Components are forced to link against these. Note sel4camkes needs to

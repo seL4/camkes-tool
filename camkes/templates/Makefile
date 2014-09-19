@@ -172,8 +172,8 @@ ifeq (${CONFIG_CAMKES_DEBUG_MALLOC},y)
 /*? i.name ?*/_instance_LDFLAGS += $(foreach i,malloc free realloc calloc,-Wl,--wrap=$i)
 endif
 
-CRTOBJFILES ?= $(SEL4_LIBDIR)/crt1.o $(SEL4_LIBDIR)/crti.o $(shell $(CC) $(CFLAGS) -print-file-name=crtbegin.o)
-FINOBJFILES ?= $(shell $(CC) $(CFLAGS) -print-file-name=crtend.o) $(SEL4_LIBDIR)/crtn.o
+CRTOBJFILES ?= $(SEL4_LIBDIR)/crt1.o $(SEL4_LIBDIR)/crti.o $(shell $(CC) $(CFLAGS) $(CPPFLAGS)  -print-file-name=crtbegin.o)
+FINOBJFILES ?= $(shell $(CC) $(CFLAGS) $(CPPFLAGS) -print-file-name=crtend.o) $(SEL4_LIBDIR)/crtn.o
 
 /*? i.name ?*/.instance.bin: $(/*? i.name ?*/_CFILES:%.c=%.o) $(/*? i.name ?*/_ASMFILES:%.S=%.o) $(/*? i.name ?*/_OFILES)
 	@echo " [LD] $(notdir $@)"
