@@ -201,8 +201,7 @@ sys_open(va_list ap)
     /* only support reading in basic modes */
     if (flags != O_RDONLY) {
         LOG_ERROR("Open only supports O_RDONLY, not 0x%x on %s\n", flags, pathname);
-        assert(flags == O_RDONLY);
-        return -EINVAL;
+        flags = O_RDONLY;
     }
     /* as we do not support create, ignore the mode */
     long unsigned int size;

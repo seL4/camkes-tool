@@ -44,6 +44,10 @@ static long (*syscall_table[])(va_list) = {
     [__NR_mremap] = sys_mremap,
     [__NR_pause] = sys_pause,
     [__NR_munmap] = sys_munmap,
+    [__NR_clock_gettime] = sys_clock_gettime,
+    [__NR__newselect] = sys__newselect,
+    [__NR_sigaction] = sys_sigaction,
+    [__NR_rt_sigaction] = sys_rt_sigaction,
 #if !defined(ARCH_IA32)
     [__NR_socket] = sys_socket,
     [__NR_bind] = sys_bind,
@@ -52,6 +56,8 @@ static long (*syscall_table[])(va_list) = {
     [__NR_accept] = sys_accept,
     [__NR_setsockopt] = sys_setsockopt,
 #endif
+    [__NR_fcntl64] = sys_fcntl64,
+    [__NR_write] = sys_write,
 };
 
 #ifdef CONFIG_DEBUG_BUILD
