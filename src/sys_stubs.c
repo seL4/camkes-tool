@@ -1111,11 +1111,6 @@ long sys_sched_getaffinity(va_list ap)
 	assert(!"sys_sched_getaffinity not implemented");
 	return 0;
 }
-long sys_set_thread_area(va_list ap)
-{
-	assert(!"sys_set_thread_area not implemented");
-	return 0;
-}
 long sys_get_thread_area(va_list ap)
 {
 	assert(!"sys_get_thread_area not implemented");
@@ -1159,11 +1154,6 @@ long sys_lookup_dcookie(va_list ap)
 long sys_remap_file_pages(va_list ap)
 {
 	assert(!"sys_remap_file_pages not implemented");
-	return 0;
-}
-long sys_set_tid_address(va_list ap)
-{
-	assert(!"sys_set_tid_address not implemented");
 	return 0;
 }
 long sys_timer_create(va_list ap)
