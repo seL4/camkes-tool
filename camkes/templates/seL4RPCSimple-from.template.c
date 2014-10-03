@@ -121,7 +121,7 @@ int /*? me.from_interface.name ?*/__run(void) {
             /*- endif -*/
         /*- endif -*/
     /*- endfor -*/
-    _Static_assert(/*? mr ?*/ <= seL4_MsgMaxLength,
+    assert(/*? mr ?*/ <= seL4_MsgMaxLength &&
         "IPC buffer length exceeded during argument marshalling");
 
     /* Call the endpoint */
@@ -173,7 +173,7 @@ int /*? me.from_interface.name ?*/__run(void) {
             /*- endif -*/
         /*- endif -*/
     /*- endfor -*/
-    _Static_assert(/*? mr ?*/ <= seL4_MsgMaxLength,
+    assert(/*? mr ?*/ <= seL4_MsgMaxLength &&
         "IPC buffer length exceeded during argument unmarshalling");
 
     /*- if m.return_type -*/
