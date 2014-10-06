@@ -92,7 +92,7 @@ static unsigned int /*? m.name ?*/_internal(void) {
         /*- endif -*/
 
     /*- endfor -*/
-    _Static_assert(/*? mr ?*/ <= seL4_MsgMaxLength,
+    assert(/*? mr ?*/ <= seL4_MsgMaxLength &&
         "IPC buffer length exceeded during argument unmarshalling");
 
     /* Call the implementation */
@@ -184,7 +184,7 @@ static seL4_MessageInfo_t /*? me.to_interface.name ?*/__run_internal(bool /*? fi
             case /*? i ?*/: { /*? '/' + '* ' + m.name + ' *' + '/' ?*/
                 /*- set length = c_symbol('length') -*/
                 unsigned int /*? length ?*/ = /*? m.name ?*/_internal();
-                _Static_assert(/*? length ?*/ <= seL4_MsgMaxLength,
+                assert(/*? length ?*/ <= 120 &&
                     "IPC buffer length exceeded during argument marshalling");
 
                 /* Send the response */
