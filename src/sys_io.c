@@ -261,6 +261,7 @@ sys_close(va_list ap)
         free(fds->data);
     } else if (fds->filetype == FILE_TYPE_SOCKET && sock_close) {
 	sock_close(*(int*)fds->data);
+	fds->filetype = -1;
 	free(fds->data);
 	fds->data = NULL;
     } else {
