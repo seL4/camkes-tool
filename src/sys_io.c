@@ -320,18 +320,31 @@ long sys_write(va_list ap)
     int fd = va_arg(ap, int);
     void *buf = va_arg(ap, void*);
     size_t count = va_arg(ap, size_t);
-    /* construct an iovec and call readv */
-    struct iovec iov = {.iov_base = buf, .iov_len = count };
 
+    ssize_t ret = 0;
+    ssize_t size;
     int sockfd;
     muslcsys_fd_t *fdt = get_fd_struct(fd);
-    if (fdt->filetype == FILE_TYPE_SOCKET && sock_write && sock_data_data) {
-	    sockfd = *(int*)fdt->data;
-	    memcpy((char*)sock_data_data, buf, count);
-	    return sock_write(sockfd, count);
+
+    if (count > SSIZE_MAX) {
+        return -EINVAL;
     }
 
-    return writev(fd, &iov, 1);
+    if (fd == STDOUT_FD || fd == STDERR_FD) {
+            ret = sys_platform_write(buf, count);
+    } else {
+        if (fdt->filetype == FILE_TYPE_SOCKET && sock_write && sock_data_data) {
+            sockfd = *(int*)fdt->data;
+            size = count > PAGE_SIZE_4K ? PAGE_SIZE_4K : count;
+            memcpy((char*)sock_data_data, buf, size);
+            ret = sock_write(sockfd, size);
+        } else {
+	    assert(!"Not implemented");
+	    return -EBADF;
+	}
+    }
+
+    return ret;
 }
 
 long sys_readv(va_list ap)
@@ -380,11 +393,12 @@ long sys_read(va_list ap)
     /* construct an iovec and call readv */
     struct iovec iov = {.iov_base = buf, .iov_len = count };
 
-    int ret, sockfd;
+    int ret, sockfd, size;
     muslcsys_fd_t *fdt = get_fd_struct(fd);
     if (fdt->filetype == FILE_TYPE_SOCKET && sock_read && sock_data_data) {
 	    sockfd = *(int*)fdt->data;
-	    ret = sock_read(sockfd, count);
+	    size = count > PAGE_SIZE_4K ? PAGE_SIZE_4K : count;
+	    ret = sock_read(sockfd, size);
 	    memcpy(buf, (char*)sock_data_data, ret);
 	    return ret;
     }
