@@ -31,6 +31,10 @@ _camkes_start:
     pop     {r1}
     pop     {r0}
 
+    /* To ensure we end up with a correctly 8 byte aligned stack at the end we
+     * need to pad by one word here */
+    push    {r0}
+
     /* null terminate auxv */
     mov     r5, #0
     push    {r5}
