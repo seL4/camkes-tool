@@ -53,6 +53,20 @@ class Composition(ADLObject):
         self.instances = instances or []
         self.connections = connections or []
         self.groups = groups or []
+        # All instance and connection names must be unique within a
+        # composition. We explicitly check for this here because it is a common
+        # user typo.
+        uniq = set()
+        for x in self.instances + self.connections:
+            if x.name in uniq:
+                raise Exception('%(filename)s:%(lineno)d: duplicate identifier ' \
+                    '\'%(identifier)s\' used in composition \'%(composition)s\'' % {
+                        'filename':filename or '<unnamed>',
+                        'lineno':lineno,
+                        'identifier':x.name,
+                        'composition':self.name or '<unnamed>',
+                    })
+            uniq.add(x.name)
 
     def children(self):
         return self.instances + self.connections + self.groups
