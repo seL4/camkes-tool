@@ -10,20 +10,6 @@
 
 /*# Macros for use inside the templates. #*/
 
-/*- macro _parameter_value(param) -*/
-    /*- if param.direction.direction in ['out', 'inout'] -*/
-        *
-    /*- endif -*/
-    /*? param.name ?*/
-/*- endmacro -*/
-
-/*- macro _parameter_address(param) -*/
-    /*- if param.direction.direction == 'in' and param.type.type != 'string' -*/
-        &
-    /*- endif -*/
-    /*? param.name ?*/
-/*- endmacro -*/
-
 /*- macro marshal(buffer, param, size, pointer=False) -*/
     /*? buffer ?*/ = camkes_marshal(/*? buffer ?*/,
     /*- if not pointer -*/
