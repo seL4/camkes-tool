@@ -78,7 +78,6 @@ import_statement : relative_import_statement
 builtin_import_statement : import ANGLE_STRING SEMI
                          ;
 procedure_keyword : procedure
-                  | trait
                   | interface
                   ;
 continuing_parameter_list : COMMA parameter continuing_parameter_list
@@ -171,7 +170,6 @@ composition : "composition";
 real : "real";
 assembly : "assembly";
 string : "string";
-trait : "trait";
 void : "void";
 component : "component";
 int8_t : "int8_t";

@@ -102,7 +102,6 @@ def p_procedure_defn(t):
 
 def p_procedure_keyword(t):
     '''procedure_keyword : procedure
-                         | trait
                          | interface'''
     t[0] = t[1]
 

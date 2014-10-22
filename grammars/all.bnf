@@ -22,8 +22,7 @@ configuration_defn :
                    ;
 emits_statement : emits ID ID SEMI
                 ;
-isa_procedure_keyword : Trait
-                      | Procedure
+isa_procedure_keyword : Procedure
                       ;
 isa_continuing_method_list : 
                            | COMMA isa_method isa_continuing_method_list
@@ -151,7 +150,6 @@ isa_interface : isa_procedure_keyword LPAREN isa_procedure RPAREN
 builtin_import_statement : import ANGLE_STRING SEMI
                          ;
 procedure_keyword : procedure
-                  | trait
                   | interface
                   ;
 isa_event : 
@@ -239,7 +237,6 @@ m_parameters : "m_parameters";
 p_name : "p_name";
 m_return_type : "m_return_type";
 uint8_t : "uint8_t";
-Trait : "Trait";
 character : "character";
 unsigned : "unsigned";
 conn_type : "conn_type";
@@ -248,7 +245,6 @@ MemoryConnector : "MemoryConnector";
 Integer : "Integer";
 real : "real";
 string : "string";
-trait : "trait";
 void : "void";
 int8_t : "int8_t";
 AsyncConnector : "AsyncConnector";

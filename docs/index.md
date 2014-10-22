@@ -151,7 +151,7 @@ of these terms are made explicit below.
 
 **Procedure**
 > An interface with function call semantics. This was previously referred to as
-  'trait' and before that as just 'interface.' This older terminology is
+  just 'interface.' This older terminology is
   deprecated. Procedures consist of a series of methods that can be invoked
   independently.
 

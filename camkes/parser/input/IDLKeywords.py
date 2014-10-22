@@ -20,7 +20,6 @@ keywords = set([
 
     # Interface start keyword
     'interface',
-    'trait',
     'procedure',
     'event',
 

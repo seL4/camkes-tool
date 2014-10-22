@@ -31,7 +31,6 @@ parameter : direction type ID
 builtin_import_statement : import ANGLE_STRING SEMI
                          ;
 procedure_keyword : procedure
-                  | trait
                   | interface
                   ;
 idl : 
@@ -111,7 +110,6 @@ bool : "bool";
 import : "import";
 real : "real";
 string : "string";
-trait : "trait";
 void : "void";
 int8_t : "int8_t";
 interface : "interface";
