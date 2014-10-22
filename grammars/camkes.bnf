@@ -112,7 +112,6 @@ type : int
      | real
      | double
      | float
-     | pointer
      | char
      | character
      | bool
@@ -155,7 +154,6 @@ char : "char";
 boolean : "boolean";
 int16_t : "int16_t";
 int64_t : "int64_t";
-pointer : "pointer";
 out : "out";
 from : "from";
 uint8_t : "uint8_t";

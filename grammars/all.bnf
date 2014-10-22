@@ -91,7 +91,6 @@ isa_number : UnsignedInteger
            | int64_t
            | double
            | float
-           | Pointer
            ;
 isa_procedure : isa_method_list
               ;
@@ -120,7 +119,6 @@ type : int
      | real
      | double
      | float
-     | pointer
      | char
      | character
      | bool
@@ -261,7 +259,6 @@ conn_from : "conn_from";
 Event : "Event";
 procedure : "procedure";
 control : "control";
-Pointer : "Pointer";
 int : "int";
 int64_t : "int64_t";
 SyncConnector : "SyncConnector";
@@ -273,7 +270,6 @@ m_name : "m_name";
 Real : "Real";
 InParameter : "InParameter";
 String : "String";
-pointer : "pointer";
 Numerical : "Numerical";
 SizedArray : "SizedArray";
 TerminatedArray : "TerminatedArray";

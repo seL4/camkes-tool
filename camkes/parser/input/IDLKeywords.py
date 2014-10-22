@@ -46,7 +46,6 @@ keywords = set([
     'real',
     'double',
     'float',
-    'pointer', # deprecated
     'uintptr_t',
     'char',
     'character',

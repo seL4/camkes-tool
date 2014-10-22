@@ -184,7 +184,6 @@ def p_type(t):
             | real
             | double
             | float
-            | pointer
             | uintptr_t
             | char
             | character

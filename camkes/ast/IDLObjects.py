@@ -109,7 +109,6 @@ class Type(IDLObject):
             'real'             : 'real',
             'double'           : 'double',
             'float'            : 'float',
-            'pointer'          : 'uintptr_t', # deprecated
             'uintptr_t'        : 'uintptr_t',
             'char'             : 'char',
             'character'        : 'character',
