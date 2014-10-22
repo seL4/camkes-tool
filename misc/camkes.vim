@@ -21,7 +21,7 @@ syn keyword CamkesKeyword assembly composition from to configuration control
     \ ep_pool aep_pool from_access to_access
 syn match CamkesUntypedPool "untyped[0-9]\+_pool"
 syn keyword CamkesType component connection attribute connector
-syn keyword CamkesCType int string smallstring char character unsigned signed
+syn keyword CamkesCType int string char character unsigned signed
     \ void long in out inout
 syn keyword CamkesDependency uses provides emits consumes
 syn keyword CamkesImport import include

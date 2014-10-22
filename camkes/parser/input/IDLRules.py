@@ -189,6 +189,5 @@ def p_type(t):
             | character
             | bool
             | boolean
-            | string
-            | smallstring'''
+            | string'''
     t[0] = Type(' '.join(t[1:]), filename=t.lexer.filename, lineno=t.lexer.lineno)

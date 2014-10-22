@@ -115,7 +115,6 @@ class Type(IDLObject):
             'boolean'          : 'boolean',
             'bool'             : 'boolean',
             'string'           : 'string',
-            'smallstring'      : 'string', # deprecated
         }
         assert isinstance(type, str)
         assert type in normalisation

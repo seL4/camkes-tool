@@ -124,7 +124,6 @@ type : int
      | bool
      | boolean
      | string
-     | smallstring
      ;
 method : void ID LPAREN parameter_list RPAREN SEMI
        | type ID LPAREN parameter_list RPAREN SEMI
@@ -304,5 +303,4 @@ Dataport : "Dataport";
 attributes : "attributes";
 Array : "Array";
 requires : "requires";
-smallstring : "smallstring";
 inout : "inout";

@@ -52,7 +52,6 @@ keywords = set([
     'boolean',
     'bool',
     'string',
-    'smallstring', # deprecated
 
     'void',
 ])
