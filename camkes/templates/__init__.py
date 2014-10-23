@@ -17,3 +17,4 @@ for the from end of a seL4RPC connector on seL4.
 '''
 
 from Template import Templates, PLATFORMS
+import macros

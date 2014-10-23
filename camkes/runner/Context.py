@@ -29,6 +29,7 @@ from capdl.Allocator import seL4_TCBObject, seL4_EndpointObject, \
 import camkes.ast as AST
 from camkes.internal.DeterministicSet import DeterministicSet
 from camkes.internal.Counter import Counter
+from camkes.templates import macros
 from Joiner import Joiner
 from apply import apply, by, done, oops, sorry
 from NameMangling import TEMPLATES, FILTERS, Perspective
@@ -195,6 +196,9 @@ def new_context(entity, configuration, obj_space, cap_space, shmem, **kwargs):
         # Functional helpers.
         'flatMap':lambda f, xs: list(itertools.chain.from_iterable(map(f, xs))),
         'flatten':lambda xss: list(itertools.chain.from_iterable(xss)),
+
+        # Macros for common operations.
+        'macros':macros,
     }.items() + kwargs.items())
 
 def _assert(condition):

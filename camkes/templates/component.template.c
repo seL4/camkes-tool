@@ -8,8 +8,6 @@
  * @TAG(NICTA_BSD)
  */
 
-/*- import 'macros.jinja' as macros -*/
-
 #include <autoconf.h>
 #include <assert.h>
 #include <sel4/types.h>

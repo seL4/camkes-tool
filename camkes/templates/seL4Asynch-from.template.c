@@ -8,7 +8,6 @@
  * @TAG(NICTA_BSD)
  */
 
-/*- import 'macros.jinja' as macros -*/
 #include <sel4/sel4.h>
 
 /*? macros.show_includes(me.from_instance.type.includes) ?*/

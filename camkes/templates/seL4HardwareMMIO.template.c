@@ -8,8 +8,6 @@
  * @TAG(NICTA_BSD)
  */
 
-/*- import 'macros.jinja' as macros -*/
-
 #include <camkes/dataport.h>
 /*? macros.show_includes(me.from_instance.type.includes) ?*/
 

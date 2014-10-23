@@ -8,7 +8,6 @@
  * @TAG(NICTA_BSD)
  */
 
-/*- import 'macros.jinja' as macros -*/
 #include <sel4/sel4.h>
 
 /*# This value is completely arbitrary as long as it matches the one in the

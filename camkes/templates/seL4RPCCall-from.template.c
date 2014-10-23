@@ -8,8 +8,6 @@
  * @TAG(NICTA_BSD)
  */
 
-/*- import 'macros.jinja' as macros -*/
-
 #define _POSIX_SOURCE /* stpcpy */
 #include <sel4/sel4.h>
 #include <assert.h>

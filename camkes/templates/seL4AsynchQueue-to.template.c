@@ -9,7 +9,6 @@
  */
 
 /*# XXX: The functions here are crying out for some model checking. #*/
-/*- import 'macros.jinja' as macros -*/
 #include <assert.h>
 #include <sel4/sel4.h>
 #include <stdbool.h>

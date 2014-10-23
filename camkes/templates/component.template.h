@@ -8,7 +8,6 @@
  * @TAG(NICTA_BSD)
  */
 
-/*- import 'macros.jinja' as macros -*/
 /*? macros.header_guard(re.sub('[^_a-zA-Z0-9]', '_', options.outfile.name)) ?*/
 #include <camkes/dataport.h>
 #include <stdint.h>
