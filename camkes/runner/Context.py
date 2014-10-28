@@ -199,6 +199,11 @@ def new_context(entity, configuration, obj_space, cap_space, shmem, **kwargs):
 
         # Macros for common operations.
         'macros':macros,
+
+        # Give template authors access to AST types just in case. Templates
+        # should never be constructing objects of these types, but they may
+        # need to do `isinstance` testing.
+        'camkes':collections.namedtuple('camkes', ['ast'])(AST),
     }.items() + kwargs.items())
 
 def _assert(condition):
