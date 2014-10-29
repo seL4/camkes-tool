@@ -30,9 +30,11 @@ static inline camkes_tls_t * UNUSED camkes_get_tls(void) {
      */
     uintptr_t ipc_buffer = (uintptr_t)seL4_GetIPCBuffer();
     /* Normally we would just use MASK here, but the verification C parser
-     * doesn't like the GCC extension used in that macro.
+     * doesn't like the GCC extension used in that macro. The following
+     * assertion could be checked at compile-time, but then it appears in input
+     * to the verification process that causes other problems.
      */
-    _Static_assert(PAGE_BITS_4K <= 31, "mask shift is safe");
+    assert(PAGE_BITS_4K <= 31 && "mask shift is safe");
     uintptr_t tls = ipc_buffer & ~MASK_UNSAFE(PAGE_BITS_4K);
 
     /* We should have enough room for the TLS data preceding the IPC buffer. */
