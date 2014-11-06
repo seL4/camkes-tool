@@ -1,0 +1,14 @@
+/* Example template that reconstructs the IDL of the procedure */
+
+procedure /*? me.name ?*/ {
+    /*- for m in me.methods -*/
+        /*? m.return_type or 'void' ?*/ /*? m.name ?*/(
+        /*- for p in m.parameters -*/
+            /*? p.direction ?*/ /*? p.type ?*/ /*? p.name ?*/
+            /*- if not loop.last -*/
+                ,
+            /*- endif -*/
+        /*- endfor -*/
+        );
+    /*- endfor -*/
+}
