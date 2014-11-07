@@ -50,20 +50,24 @@
 /*- set mmio_regions = [] -*/
 /*- for i in configuration.settings -*/
     /*- if i.instance == me.name and i.attribute == 'mmio' -*/
-        /*- set paddr, size = i.value.strip('"').split(':') -*/
-        /*- do mmio_regions.append( (int(paddr, 16), int(size, 16)) ) -*/
+        /*- set paddr, size, bits = i.value.strip('"').split(':') -*/
+        /*- do mmio_regions.append( (int(paddr, 16), int(size, 16),int(bits, 10)) ) -*/
     /*- endif -*/
 /*- endfor -*/
 
 /*# Allocates capabilities for all the MMIO regions #*/
 /*- set mmio_caps_len = [] -*/
+/*# Map size to seL4 object. The arm HYP kernel has different sizees for
+    some objects. But as they do not overlap we can just include both
+    and rely on the component author to get it right #*/
+/*- set bits_to_frame_type = { 12:seL4_FrameObject, 20:seL4_ARM_SectionObject, 21:seL4_ARM_SectionObject } -*/
 /*- do mmio_caps_len.append(0) -*/
-/*- for paddr, size in mmio_regions -*/
+/*- for paddr, size, bits in mmio_regions -*/
     /*- set mmio_key = '%d%d' % (paddr, size) -*/
     static seL4_CPtr mmio_cap_lookup_/*? mmio_key ?*/[] = {
-    /*- for frame_offset in range(0, size, 4096) -*/
+    /*- for frame_offset in range(0, size, 2 ** bits) -*/
         /*- set frames = paddr + frame_offset -*/
-        /*- set temp_object=alloc_obj('mmio_frame_%d' % frames, seL4_FrameObject, paddr=frames) -*/
+        /*- set temp_object=alloc_obj('mmio_frame_%d' % frames, bits_to_frame_type[bits], paddr=frames) -*/
         /*- set temp_cap = alloc_cap('mmio_frame_%d' % frames, temp_object, read=true, write=true) -*/
         /*? temp_cap ?*/,
         /*- do mmio_caps_len.append(mmio_caps_len.pop() + 1) -*/
@@ -85,6 +89,23 @@
         /*- set iospace_cap = alloc('iospace_%d' % devid, seL4_IA32_IOSpace, domainID=domain, bus=bus, dev=dev, fun=fun) -*/
         /*- do iospaces.append((devid, iospace_cap)) -*/
         /*# do cap_space.cnode[iospace_cap].set_iospace( (domain, bus, dev, fun) ) #*/
+    /*- endif -*/
+/*- endfor -*/
+
+/*# Allocate asid pool cap #*/
+/*- if configuration and filter(lambda('x: x.instance == \'%s\' and x.attribute == \'asid_pool\' and x.value == \'true\'' % (me.name)),  configuration.settings) -*/
+    /*- set asidpool = alloc('asid_pool', seL4_ASID_Pool) -*/
+/*- endif -*/
+
+/*- set irqaep_object = alloc_obj('irq_aep_obj', seL4_AsyncEndpointObject) -*/
+/*- set irqaep = alloc_cap('irq_aep_obj', irqaep_object, read=True) -*/
+/*- set irqs = [] -*/
+/*- for i in configuration.settings -*/
+    /*- if i.instance == me.name and i.attribute == 'irq' -*/
+        /*- set irq = i.value.strip('"') -*/
+        /*- set irq = int(irq, 10) -*/
+        /*- set irq_cap = alloc('irq_%d' % irq, seL4_IRQControl, number=irq, aep=irqaep_object) -*/
+        /*- do irqs.append( (irq, irq_cap) ) -*/
     /*- endif -*/
 /*- endfor -*/
 
@@ -158,10 +179,10 @@ static seL4_CPtr simple_camkes_nth_untyped(void *data, int n, uint32_t *size_bit
 
 static seL4_Error simple_camkes_get_frame_cap(void *data, void *paddr, int size_bits, cspacepath_t *path) {
     /*- if len(mmio_regions) > 0 -*/
-        /*- for paddr, size in mmio_regions -*/
+        /*- for paddr, size, bits in mmio_regions -*/
             /*- set mmio_key = '%d%d' % (paddr, size) -*/
-            if ((uintptr_t)paddr >= (uintptr_t)/*? paddr ?*/ && (uintptr_t)paddr < (uintptr_t)/*? paddr ?*/ + (uintptr_t)/*? size ?*/) {
-                return seL4_CNode_Copy(path->root, path->capPtr, path->capDepth, /*? self_cnode ?*/, mmio_cap_lookup_/*? mmio_key ?*/[((uintptr_t)paddr - (uintptr_t)/*? paddr ?*/) >> 12], 32, seL4_AllRights);
+            if ((uintptr_t)paddr >= (uintptr_t)/*? paddr ?*/ && (uintptr_t)paddr < (uintptr_t)/*? paddr ?*/ + (uintptr_t)/*? size ?*/ && size_bits == /*? bits ?*/) {
+                return seL4_CNode_Copy(path->root, path->capPtr, path->capDepth, /*? self_cnode ?*/, mmio_cap_lookup_/*? mmio_key ?*/[((uintptr_t)paddr - (uintptr_t)/*? paddr ?*/) >> /*? bits ?*/], 32, seL4_AllRights);
             }
         /*- endfor -*/
         return seL4_FailedLookup;
@@ -183,9 +204,9 @@ static seL4_CPtr simple_camkes_nth_cap(void *data, int n) {
     /*- endif -*/
     /*- set mmio_counter = [] -*/
     /*- do mmio_counter.append(0) -*/
-    /*- for paddr, size in mmio_regions -*/
+    /*- for paddr, size, bits in mmio_regions -*/
         /*- set mmio_key = '%d%d' % (paddr, size) -*/
-        /*- set mmio_range_len = len(range(0, size, 4096)) -*/
+        /*- set mmio_range_len = len(range(0, size, 2 ** bits)) -*/
         case /*? 2 + len(untyped_obj_list) + mmio_counter[0] ?*/ ... /*? 2 + len(untyped_obj_list) + mmio_counter[0] + mmio_range_len - 1 ?*/:
             return mmio_cap_lookup_/*? mmio_key ?*/[n - /*? 2 + len(untyped_obj_list) + mmio_counter[0] ?*/];
         /*- do mmio_counter.append(mmio_counter.pop() + mmio_range_len) -*/
@@ -266,13 +287,40 @@ static void simple_camkes_print(void *data) {
     printf("camkes is too cool to print out simple information\n");
 }
 
+static seL4_Error simple_camkes_set_ASID(simple_t *simple, seL4_CPtr vspace) {
+    /*- if configuration and filter(lambda('x: x.instance == \'%s\' and x.attribute == \'asid_pool\' and x.value == \'true\'' % (me.name)),  configuration.settings) -*/
+#ifdef CONFIG_ARCH_IA32
+        return seL4_IA32_ASIDPool_Assign(/*? asidpool ?*/, vspace);
+#elif CONFIG_ARCH_ARM
+        return seL4_ARM_ASIDPool_Assign(/*? asidpool ?*/, vspace);
+#endif
+    /*- else -*/
+        return seL4_FailedLookup;
+    /*- endif -*/
+}
+
+static seL4_Error simple_camkes_get_irq(void *data, int irq, seL4_CNode cnode, seL4_Word index, uint8_t depth) {
+    /*- if len(irqs) > 0 -*/
+        switch(irq) {
+        /*- for irq,cap in irqs -*/
+            case /*? irq ?*/:
+                return seL4_CNode_Copy(cnode, index, depth, /*? self_cnode ?*/, /*? cap ?*/, 32, seL4_AllRights);
+        /*- endfor -*/
+            default:
+                return seL4_FailedLookup;
+        }
+    /*- else -*/
+        return seL4_FailedLookup;
+    /*- endif -*/
+}
+
 static uintptr_t make_frame_get_paddr(seL4_CPtr untyped) {
     int type;
     int error;
     uintptr_t ret;
 #ifdef CONFIG_ARCH_IA32
     type = seL4_IA32_4K;
-#elif CONFIRG_ARCH_ARM
+#elif CONFIG_ARCH_ARM
     type = seL4_ARM_SmallPageObject;
 #endif
 #ifdef CONFIG_KERNEL_STABLE
@@ -315,8 +363,8 @@ void camkes_make_simple(simple_t *simple) {
     simple->frame_info = /*&simple_camkes_get_frame_info*/NULL;
     simple->frame_cap = &simple_camkes_get_frame_cap;
     simple->frame_mapping = /*&simple_camkes_get_frame_mapping*/NULL;
-    simple->irq = /*&simple_camkes_get_irq*/NULL;
-    simple->ASID_assign = /*&simple_camkes_set_ASID*/NULL;
+    simple->irq = &simple_camkes_get_irq;
+    simple->ASID_assign = &simple_camkes_set_ASID;
     simple->IOPort_cap = &simple_camkes_get_IOPort_cap;
     simple->cap_count = &simple_camkes_cap_count;
     simple->nth_cap = &simple_camkes_nth_cap;

@@ -23,7 +23,8 @@ import code, collections, inspect, itertools, math, os, pdb, re
 from capdl.Allocator import seL4_TCBObject, seL4_EndpointObject, \
     seL4_AsyncEndpointObject, seL4_CanRead, seL4_CanWrite, seL4_AllRights, \
     seL4_ARM_SmallPageObject, seL4_FrameObject, seL4_IRQControl, \
-    seL4_UntypedObject, seL4_IA32_IOPort, seL4_IA32_IOSpace
+    seL4_UntypedObject, seL4_IA32_IOPort, seL4_IA32_IOSpace, seL4_ASID_Pool, \
+    seL4_ARM_SectionObject, seL4_ARM_SuperSectionObject
 
 import camkes.ast as AST
 from camkes.internal.DeterministicSet import DeterministicSet
@@ -44,10 +45,13 @@ def new_context(entity, configuration, obj_space, cap_space, shmem, **kwargs):
         'seL4_AsyncEndpointObject':seL4_AsyncEndpointObject,
         'seL4_TCBObject':seL4_TCBObject,
         'seL4_ARM_SmallPageObject':seL4_ARM_SmallPageObject,
+        'seL4_ARM_SectionObject':seL4_ARM_SectionObject,
+        'seL4_ARM_SuperSectionObject':seL4_ARM_SuperSectionObject,
         'seL4_FrameObject':seL4_FrameObject,
         'seL4_UntypedObject':seL4_UntypedObject,
         'seL4_IA32_IOPort':seL4_IA32_IOPort,
         'seL4_IA32_IOSpace':seL4_IA32_IOSpace,
+        'seL4_ASID_Pool':seL4_ASID_Pool,
 
         # Cap allocator
         'alloc_cap':(lambda name, obj, **kwargs: \
