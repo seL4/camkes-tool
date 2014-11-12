@@ -219,6 +219,14 @@ def new_context(entity, configuration, obj_space, cap_space, shmem, **kwargs):
         # proof.
         'assert_current_goal':lambda prop:'apply (subgoal_tac "%s", assumption)' % prop \
             if kwargs['options'].verbosity >= 2 else '',
+
+        # Give the template authors a mechanism for writing C-style include
+        # guards. Use the following idiom to guard an include target:
+        #  /*- if 'template.filename' not in included' -*/
+        #  /*- do included.add('template.filename') -*/
+        #  ... my template ...
+        #  /*- endif -*/
+        'included':set(),
     }.items() + kwargs.items())
 
 def _assert(condition):
