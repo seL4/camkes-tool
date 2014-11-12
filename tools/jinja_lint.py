@@ -90,7 +90,7 @@ def main():
             if 'for' not in stack:
                 raise SyntaxError('%s:%d: continue while not inside a for' % \
                     (sys.argv[1], t.line))
-        elif token in ['do', 'include', 'set']:
+        elif token in ['do', 'import', 'include', 'set']:
             # Ignore; allowable anywhere.
             pass
         else:
