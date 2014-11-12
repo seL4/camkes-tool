@@ -18,6 +18,13 @@
     easy to introduce unreadable code in this context.
 #*/
 
+# FIXME: Move to the common build system.
+SPONGE := $(shell which sponge)
+# If `sponge` is unavailable, emulate it.
+ifeq (${SPONGE},)
+  SPONGE := python -c 'import sys; data = sys.stdin.read(); f = open(sys.argv[1], "w"); f.write(data); f.close()'
+endif
+
 /*# Various macros to make constructing makefile rules easier. #*/
 /*- macro rule_cp(target, dependencies) -*/
 /*? target ?*/: /*? dependencies ?*/
@@ -46,6 +53,8 @@
 	@echo " [PP] $(notdir $@)"
 	${Q}/*? preprocessor ?*/
 	/*- endif -*/
+	# Reflow the generated file if it's a C source or header.
+	${Q}$(if $(patsubst %.c,,$(patsubst %.h,,/*? target ?*/)),,${FMT} "$@" | ${SPONGE} "$@")
 /*- endmacro -*/
 
 # All targets need to be rebuilt if the source CAmkES descriptions change.
