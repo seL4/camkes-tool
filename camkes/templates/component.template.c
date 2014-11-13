@@ -110,8 +110,6 @@ int /*? s.name ?*/_post(void) {
 
 /*- endfor -*/
 
-/*- set untyped_obj_list = [] -*/
-
 /* General CAmkES platform initialisation. Expects to be run in a
  * single-threaded, exclusive context. On failure it does not return.
  */
@@ -191,7 +189,6 @@ static void /*? init ?*/(void) {
                 /*? raise(Exception('illegal untyped size')) ?*/
             /*- endif -*/
             /*- set untyped = alloc('untyped_%s_pool_%d' % (u[0], i), seL4_UntypedObject, size_bits=int(u[0]), read=True, write=True) -*/
-            /*- do untyped_obj_list.append((untyped, u[0])) -*/
             res = camkes_provide(seL4_UntypedObject, /*? untyped ?*/, 1U << /*? u[0] ?*/, seL4_CanRead|seL4_CanWrite);
             if (res != 0) {
                 assert(!"failed to add untyped /*? untyped + 1 ?*/ of size /*? u[0] ?*/ bits to cap allocation pool");
@@ -200,9 +197,6 @@ static void /*? init ?*/(void) {
         /*- endfor -*/
     /*- endfor -*/
 }
-
-/*# If we are generating simple later on then we will need this #*/
-/*- do stash('untyped_obj_list', untyped_obj_list) -*/
 
 #ifndef CONFIG_CAMKES_DEFAULT_STACK_SIZE
     #define CONFIG_CAMKES_DEFAULT_STACK_SIZE PAGE_SIZE_4K

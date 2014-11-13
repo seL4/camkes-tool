@@ -27,11 +27,24 @@
 /*- set self_cnode = alloc_cap('cnode', my_cnode, write=true) -*/
 /*- set self_pd = alloc_cap('my_pd_cap', my_pd, write=true) -*/
 
-/*- set untyped_obj_list = pop('untyped_obj_list') -*/
-
-/*# Handle our stashed values not existing and give them an empty initializer
-    instead of being the None object #*/
-/*- set untyped_obj_list = untyped_obj_list or [] -*/
+/*# Find any untyped pools #*/
+/*- set untyped_obj_list = [] -*/
+/*- for s in configuration.settings -*/
+    /*- if s.instance == me.name -*/
+        /*- set r = re.match('simple_untyped([0-9]+)_pool', s.attribute) -*/
+        /*- if r -*/
+            /*- set bits = r.group(1) -*/
+            /*- set count = s.value -*/
+            /*- for i in range(count) -*/
+                /*- if int(bits) > 28 or int(bits) < 4 -*/
+                    /*? raise(Exception('illegal untyped size')) ?*/
+                /*- endif -*/
+                /*- set untyped = alloc('simple_untyped_%s_pool_%d' % (bits, i), seL4_UntypedObject, size_bits=int(bits), read=True, write=True) -*/
+                /*- do untyped_obj_list.append((untyped, bits)) -*/
+            /*- endfor -*/
+        /*- endif -*/
+    /*- endif -*/
+/*- endfor -*/
 
 /*# Find any configuration IO ports #*/
 /*- set ioports = [] -*/
