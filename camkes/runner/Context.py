@@ -204,6 +204,18 @@ def new_context(entity, configuration, obj_space, cap_space, shmem, **kwargs):
         # should never be constructing objects of these types, but they may
         # need to do `isinstance` testing.
         'camkes':collections.namedtuple('camkes', ['ast'])(AST),
+
+        # When generating Isabelle apply-style proof scripts, the results can
+        # sometimes be fragile in the face of changing code. In particular,
+        # sometimes a generated proof can fail because the underlying code
+        # changed, but inadvertently make progress beyond the actual divergence
+        # point, concealing the source of the failure. This function allows you
+        # to assert within an apply-style proof what the current subgoal looks
+        # like. The idea is that this step will fail early when the code
+        # changes, giving you a better idea of where to begin repairing the
+        # proof.
+        'assert_current_goal':lambda prop:'apply (subgoal_tac "%s", assumption)' % prop \
+            if kwargs['options'].verbosity >= 2 else '',
     }.items() + kwargs.items())
 
 def _assert(condition):
