@@ -113,7 +113,7 @@ endif
 CAMKES_CORE_LIBS = sel4 sel4debug c ${CONFIG_CAMKES_SYSLIB} sel4camkes \
     sel4sync utils
 
-PRUNER_BLACKLIST = FILE fpos_t opterr optind optopt stderr stdin stdout va_list __isoc_va_list
+PRUNER_BLACKLIST = FILE fpos_t opterr optind optopt stderr stdin stdout va_list __isoc_va_list max_align_t
 
 # The included Makefile is generated automatically by the following rule at the
 # bottom of this Makefile.
