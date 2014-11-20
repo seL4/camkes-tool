@@ -14,6 +14,14 @@
 /*? macros.show_includes(me.from_instance.type.includes) ?*/
 
 /*- set aep = alloc('aep', seL4_AsyncEndpointObject, write=True) -*/
+/*- for s in configuration.settings -*/
+    /*- if s.instance == me.from_instance.name -*/
+        /*- if s.attribute == "%s_attributes" % (me.from_interface.name) -*/
+            /*- set badge = s.value.strip('"') -*/
+            /*- do cap_space.cnode[aep].set_badge(int(badge, 10)) -*/
+        /*- endif -*/
+    /*- endif -*/
+/*- endfor -*/
 
 int /*? me.from_interface.name ?*/__run(void) {
     /* Nothing required. */
