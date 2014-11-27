@@ -64,3 +64,12 @@ def combinations(d):
     return itertools.imap(lambda x: dict(x),
         itertools.product(*map(lambda x: map(lambda y: (x[0], y), x[1]),
             d.items())))
+
+class Guard(object):
+    '''Representation of a condition required for some action. See usage in
+    Template.py.'''
+    def __init__(self, guard_fn):
+        self.guard_fn = guard_fn
+
+    def __call__(self, arg):
+        return self.guard_fn(arg)
