@@ -163,18 +163,37 @@ menu "CAmkES Options"
 
     config CAMKES_PROFILER_NONE
     bool "none"
+    help
+        No profiler
 
     config CAMKES_PROFILER_INTERNAL
     bool "internal"
+    help
+        Basic profiling of CAmkES functionality. This option gives you a
+        summary of time spent in each phase of the CAmkES generator. It can be
+        used to determine, at a fairly coarse granularity, which parts of the
+        generator's execution are expensive.
 
     config CAMKES_PROFILER_NATIVE
     bool "native"
+    help
+        Profiler utilising Python's cProfile module. This option gives you
+        comprehensive statistical profiling data per generator phase.
 
     config CAMKES_PROFILER_AGGREGATE
     bool "aggregate"
+    help
+        Profiler utilising Python's cProfile module. This option gives you
+        comprehensive statistical profiling data aggregated across an entire
+        execution of the generator.
 
     config CAMKES_PROFILER_HEARTBEAT
     bool "heartbeat"
+    help
+        This option causes the CAmkES generator to periodically output where in
+        its source it is currently executing. This is primarily useful for
+        debugging infinite loops caused by inadequate input specification checks
+        or incorrect template code.
 
     endchoice
 
