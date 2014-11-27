@@ -36,35 +36,6 @@ def get_fields(s):
     s % f # Value deliberately discarded
     return f.referenced
 
-class Key(object):
-    '''A jazzed up string to use as a dict key. The idea is to use with an
-    optional guard that determines whether the key you're looking up really is
-    a match. Look at the use in Template.py for example usage.'''
-    def __init__(self, key, guard=None):
-        self.key = key
-        self.guard = guard or (lambda x: True)
-
-    def specialise(self, spec_dict):
-        return Key(self.key % spec_dict, self.guard)
-
-    def matches(self, key, entity):
-        return self.key == key and (not self.guard or safe(self.guard, entity))
-
-    def get_fields(self):
-        return get_fields(self.key)
-
-def combinations(d):
-    '''Don't be scared by the following line. This function takes a dict whose
-    values are lists and generates all possible dicts whose keys are the
-    original dict's keys and values are elements that reside in the list value
-    associated with the key in the original dict. E.g.
-    combinations({'hello':[1, 2], 'world':[3, 4]}) returns a generator yielding
-    [{'hello':1, 'world':3}, {'hello':1, 'world':4}, {'hello':2, 'world':3},
-    {'hello':2, 'world':4}].'''
-    return itertools.imap(lambda x: dict(x),
-        itertools.product(*map(lambda x: map(lambda y: (x[0], y), x[1]),
-            d.items())))
-
 class Guard(object):
     '''Representation of a condition required for some action. See usage in
     Template.py.'''
