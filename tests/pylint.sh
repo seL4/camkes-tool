@@ -17,7 +17,7 @@ export TOP_DIR=$(dirname $(readlink -f $0))/..
 
 function lint() {
     echo "Checking $(basename $1)..."
-    pylint --rcfile=/dev/null --include-ids=y --errors-only "$1"
+    pylint --rcfile=/dev/null --errors-only "$1"
     if [ $? -ne 0 ]; then
         exit 255
     else
