@@ -23,6 +23,14 @@
 /*? macros.show_includes(me.from_interface.type.includes, '../static/components/' + me.from_instance.type.name + '/') ?*/
 
 /*- set ep = alloc('ep', seL4_EndpointObject, write=True, grant=True) -*/
+/*- for s in configuration.settings -*/
+    /*- if s.instance == me.from_instance.name -*/
+        /*- if s.attribute == "%s_attributes" % (me.from_interface.name) -*/
+            /*- set badge = s.value.strip('"') -*/
+            /*- do cap_space.cnode[ep].set_badge(int(badge, 0)) -*/
+        /*- endif -*/
+    /*- endif -*/
+/*- endfor -*/
 
 /*- set BUFFER_BASE = c_symbol('BUFFER_BASE') -*/
 /*- set base = '((void*)&seL4_GetIPCBuffer()->msg[0])' -*/

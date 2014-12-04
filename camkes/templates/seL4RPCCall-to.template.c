@@ -47,9 +47,15 @@
 
 /*- set ep = alloc('ep', seL4_EndpointObject, read=True, write=True) -*/
 
+static seL4_Word /*? me.to_interface.name ?*/_badge = 0;
+
+seL4_Word /*? me.to_interface.name ?*/_get_badge(void) {
+    return /*? me.to_interface.name ?*/_badge;
+}
+
 int /*? me.to_interface.name ?*/__run(void) {
     /*- set info = c_symbol('info') -*/
-    seL4_MessageInfo_t /*? info ?*/ = seL4_Wait(/*? ep ?*/, NULL);
+    seL4_MessageInfo_t /*? info ?*/ = seL4_Wait(/*? ep ?*/, & /*? me.to_interface.name ?*/_badge);
     while (1) {
         /*- if not options.fcall_leave_reply_cap or len(me.to_instance.type.provides + me.to_instance.type.uses + me.to_instance.type.consumes + me.to_instance.type.mutexes + me.to_instance.type.semaphores) > 1 -*/
             /* We need to save the reply cap because the user's implementation may
@@ -160,7 +166,7 @@ int /*? me.to_interface.name ?*/__run(void) {
                     /* Send the response */
                     /*- if not options.fcall_leave_reply_cap or len(me.to_instance.type.provides + me.to_instance.type.uses + me.to_instance.type.consumes + me.to_instance.type.mutexes + me.to_instance.type.semaphores) > 1 -*/
                         seL4_Send(/*? reply_cap_slot ?*/, /*? info ?*/);
-                        /*? info ?*/ = seL4_Wait(/*? ep ?*/, NULL);
+                        /*? info ?*/ = seL4_Wait(/*? ep ?*/, & /*? me.to_interface.name ?*/_badge);
                     /*- else -*/
                         /*- if options.fspecialise_syscall_stubs and len(filter(lambda('x: x.array or x.type.type == \'string\''), m.parameters)) == 0 -*/
 #ifdef ARCH_ARM
@@ -196,7 +202,7 @@ int /*? me.to_interface.name ?*/__run(void) {
                             /*- endif -*/
 #endif
                         /*- endif -*/
-                        /*? info ?*/ = seL4_ReplyWait(/*? ep ?*/, /*? info ?*/, NULL);
+                        /*? info ?*/ = seL4_ReplyWait(/*? ep ?*/, /*? info ?*/, & /*? me.to_interface.name ?*/_badge);
                     /*- endif -*/
 
                     /* Free any malloced variables */
