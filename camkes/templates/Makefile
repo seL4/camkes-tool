@@ -18,13 +18,6 @@
     easy to introduce unreadable code in this context.
 #*/
 
-# FIXME: Move to the common build system.
-SPONGE := $(shell which sponge)
-# If `sponge` is unavailable, emulate it.
-ifeq (${SPONGE},)
-  SPONGE := python -c 'import sys; data = sys.stdin.read(); f = open(sys.argv[1], "w"); f.write(data); f.close()'
-endif
-
 /*# Various macros to make constructing makefile rules easier. #*/
 /*- macro rule_cp(target, dependencies) -*/
 /*? target ?*/: /*? dependencies ?*/
