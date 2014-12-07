@@ -18,7 +18,7 @@ available to the template code.
 
 from functools import partial
 from copy import deepcopy
-import code, collections, inspect, itertools, math, os, pdb, re
+import code, collections, inspect, itertools, math, os, pdb, re, textwrap
 
 from capdl.Allocator import seL4_TCBObject, seL4_EndpointObject, \
     seL4_AsyncEndpointObject, seL4_CanRead, seL4_CanWrite, seL4_AllRights, \
@@ -158,6 +158,7 @@ def new_context(entity, configuration, obj_space, cap_space, shmem, **kwargs):
         'arch':os.environ.get('ARCH', ''),
         'ord':ord,
         'chr':chr,
+        'textwrap':collections.namedtuple('textwrap', ['wrap'])(textwrap.wrap),
 
         # Allocation pools. In general, do not touch these in templates, but
         # interact with them through the alloc* functions. They are only in the
