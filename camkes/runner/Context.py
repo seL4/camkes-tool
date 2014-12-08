@@ -159,6 +159,7 @@ def new_context(entity, configuration, obj_space, cap_space, shmem, **kwargs):
         'ord':ord,
         'chr':chr,
         'textwrap':collections.namedtuple('textwrap', ['wrap'])(textwrap.wrap),
+        'copy':collections.namedtuple('copy', ['deepcopy'])(deepcopy),
 
         # Allocation pools. In general, do not touch these in templates, but
         # interact with them through the alloc* functions. They are only in the
