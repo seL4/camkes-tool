@@ -129,7 +129,7 @@ long sys_accept(va_list ap)
 
 		/* -1 is returned when the call fails. */
 		if (newsockfd == -1) {
-			errno = *(int*)sock_data_data;
+		    memcpy(&errno, (void*)sock_data_data, sizeof(errno));
 			return newsockfd;
 		}
 		
