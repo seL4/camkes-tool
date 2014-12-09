@@ -300,7 +300,7 @@ static void simple_camkes_print(void *data) {
     printf("camkes is too cool to print out simple information\n");
 }
 
-static seL4_Error simple_camkes_set_ASID(simple_t *simple, seL4_CPtr vspace) {
+static seL4_Error simple_camkes_set_ASID(void *data, seL4_CPtr vspace) {
     /*- if configuration and filter(lambda('x: x.instance == \'%s\' and x.attribute == \'asid_pool\' and x.value == \'true\'' % (me.name)),  configuration.settings) -*/
 #ifdef CONFIG_ARCH_IA32
         return seL4_IA32_ASIDPool_Assign(/*? asidpool ?*/, vspace);
