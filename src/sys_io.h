@@ -8,6 +8,11 @@
  * @TAG(NICTA_BSD)
  */
 
+#ifndef __LIBSEL4MUSLCCAMKES_H__
+#define __LIBSEL4MUSLCCAMKES_H__
+
+#include <utils/page.h>
+
 #define STDOUT_FD     1
 #define STDERR_FD     2
 #define FIRST_USER_FD 3
@@ -19,7 +24,6 @@
 /* this implementation does not allow users to close STDOUT or STDERR, so they can't be freed */
 #define FREE_FD_TABLE_SIZE(x) (sizeof(int) * ((x) - FIRST_USER_FD))
 
-#define PAGE_SIZE_4K 4096
 typedef struct muslcsys_fd {
     int filetype;
     void *data;
@@ -28,3 +32,5 @@ typedef struct muslcsys_fd {
 int allocate_fd(void);
 
 muslcsys_fd_t *get_fd_struct(int fd);
+
+#endif
