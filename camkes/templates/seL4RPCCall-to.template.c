@@ -167,7 +167,19 @@ int /*? me.to_interface.name ?*/__run(void) {
                         seL4_Send(/*? reply_cap_slot ?*/, /*? info ?*/);
                         /*? info ?*/ = seL4_Wait(/*? ep ?*/, & /*? me.to_interface.name ?*/_badge);
                     /*- else -*/
-                        /*- if options.fspecialise_syscall_stubs and len(filter(lambda('x: x.array or x.type.type == \'string\''), m.parameters)) == 0 -*/
+
+                        /*# The optimisation below is only valid to perform if we do not have any
+                         *# reference (typedefed C) types.
+                         #*/
+                        /*- set contains_reference_type = [False] -*/
+                        /*- for p in m.parameters -*/
+                          /*- if isinstance(p.type, camkes.ast.Reference) -*/
+                            /*- do contains_reference_type.__setitem__(0, True) -*/
+                            /*- break -*/
+                          /*- endif -*/
+                        /*- endfor -*/
+
+                        /*- if options.fspecialise_syscall_stubs and not contains_reference_type[0] and len(filter(lambda('x: x.array or x.type.type == \'string\''), m.parameters)) == 0 -*/
 #ifdef ARCH_ARM
 #ifndef __SWINUM
     #define __SWINUM(x) ((x) & 0x00ffffff)
