@@ -35,6 +35,10 @@ int /*? me.to_interface.name ?*/__run(void) {
 
 int /*? me.to_interface.name ?*/_poll(void) {
     seL4_Word *badge = get_badge();
+    /* Reset the badge as this may not be the first time this function is
+     * called.
+     */
+    *badge = 0;
     seL4_Poll(/*? aep ?*/, badge);
     return *badge == /*? badge_magic ?*/;
 }
