@@ -14,6 +14,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sync/sem-bare.h>
 #include <camkes/marshal.h>
 #include <camkes/dataport.h>
 
@@ -42,6 +43,21 @@
     /*- endif -*/
 /*- endif -*/
 #define /*? BUFFER_BASE ?*/ /*? base ?*/
+
+/*# Conservative calculation of the numbers of threads in this component. #*/
+/*- set threads = (1 if me.from_instance.type.control else 0) + len(me.from_instance.type.provides) + len(me.from_instance.type.uses) + len(me.from_instance.type.emits) + len(me.from_instance.type.consumes) -*/
+
+/*- set userspace_buffer_ep = [None] -*/
+/*- set userspace_buffer_sem_value = c_symbol() -*/
+/*- if threads > 1 and userspace_ipc -*/
+  /*# If we have more than one thread and we're using a userspace memory window
+   *# in lieu of the IPC buffer, multiple threads can end up racing on accesses
+   *# to this window. To prevent this, we use a lock built on an endpoint.
+   #*/
+  /*- do userspace_buffer_ep.__setitem__(0, alloc('userspace_buffer_ep', seL4_EndpointObject, write=True, read=True)) -*/
+  static volatile int /*? userspace_buffer_sem_value ?*/ = 1;
+/*- endif -*/
+/*- set userspace_buffer_ep = userspace_buffer_ep[0] -*/
 
 int /*? me.from_interface.name ?*/__run(void) {
     /* No setup required */
@@ -105,6 +121,14 @@ int /*? me.from_interface.name ?*/__run(void) {
             return;
         /*- endif -*/
 #endif
+    /*- endif -*/
+
+    /*# We're about to start writing to the buffer. If relevant, protect our
+     *# access.
+     #*/
+    /*- if userspace_buffer_ep -*/
+      sync_sem_bare_wait(/*? userspace_buffer_ep ?*/,
+        &/*? userspace_buffer_sem_value ?*/);
     /*- endif -*/
 
     /* Marshal the method index */
@@ -192,6 +216,11 @@ int /*? me.from_interface.name ?*/__run(void) {
             /*- endif -*/
         /*- endif -*/
     /*- endfor -*/
+
+    /*- if userspace_buffer_ep -*/
+      sync_sem_bare_post(/*? userspace_buffer_ep ?*/,
+        &/*? userspace_buffer_sem_value ?*/);
+    /*- endif -*/
 
     /*- if m.return_type -*/
         return /*? ret ?*/;
