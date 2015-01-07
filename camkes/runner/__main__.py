@@ -82,8 +82,8 @@ def cache_relevant_options(opts):
         'profiler',
         'verbosity',
     ])
-    return sorted(filter(lambda x: x[0] not in CACHE_IRRELEVANT_OPTIONS,
-        opts.__dict__.items()))
+    return sorted([x for x in opts.__dict__.items() if \
+        x[0] not in CACHE_IRRELEVANT_OPTIONS])
 
 def _die(debug, s):
     log.error(str(s))
@@ -243,7 +243,7 @@ def main():
             }, unresolved)))
 
     # Locate the assembly
-    assembly = filter(lambda x: isinstance(x, AST.Assembly), ast)
+    assembly = [x for x in ast if isinstance(x, AST.Assembly)]
     if len(assembly) > 1:
         die('Multiple assemblies found')
     elif len(assembly) == 1:
@@ -281,7 +281,7 @@ def main():
     # associated) templates, in which case they won't be in the built-in lookup
     # dictionary. Let's add them now. Note, definitions here that conflict with
     # existing lookup entries will overwrite the existing entries.
-    for c in filter(lambda x: isinstance(x, AST.Connector), ast):
+    for c in [x for x in ast if isinstance(x, AST.Connector)]:
         if c.from_template:
             templates.add(c.name, 'from.source', c.from_template)
         if c.to_template:
@@ -433,7 +433,8 @@ def main():
         if i.type.hardware:
             continue
         assert i.address_space in cspaces
-        if conf and conf.settings and filter(lambda x: x.instance == i.name and x.attribute == 'simple' and x.value, conf.settings):
+        if conf and conf.settings and [x for x in conf.settings if \
+                x.instance == i.name and x.attribute == 'simple' and x.value]:
             for t in ['%s.simple' % i.name]:
                 try:
                     template = templates.lookup(t, i)

@@ -20,7 +20,7 @@ PAGE_SIZE = 4096 # bytes
 IPC_BUFFER_SIZE = 512 # bytes
 
 def find_assembly(ast):
-    assemblies = filter(lambda x: isinstance(x, AST.Assembly), ast)
+    assemblies = [x for x in ast if isinstance(x, AST.Assembly)]
     assert len(assemblies) == 1 # Our parent should have ensured this.
     return assemblies[0]
 
@@ -169,7 +169,7 @@ def set_tcb_caps(ast, obj_space, cspaces, elfs, *_):
 
             pd = None
             pd_name = perspective['pd']
-            pds = filter(lambda x: x.name == pd_name, obj_space.spec.objs)
+            pds = [x for x in obj_space.spec.objs if x.name == pd_name]
             if len(pds) > 1:
                 raise Exception('Multiple PDs found for %s' % group)
             elif len(pds) == 1:
@@ -240,17 +240,16 @@ def collapse_shared_frames(ast, obj_space, cspaces, elfs, *_):
 
         # Find this instance's page directory.
         pd_name = perspective['pd']
-        pds = filter(lambda x: x.name == pd_name, obj_space.spec.objs)
+        pds = [x for x in obj_space.spec.objs if x.name == pd_name]
         assert len(pds) == 1
         pd, = pds
 
         for d in i.type.dataports:
 
             # Find the connection that associates this dataport with another.
-            connections = filter(lambda x: \
-                (x.from_instance == i and x.from_interface == d) or \
-                (x.to_instance == i and x.to_interface == d), \
-                assembly.composition.connections)
+            connections = [x for x in assembly.composition.connections if \
+                ((x.from_instance == i and x.from_interface == d) or \
+                (x.to_instance == i and x.to_interface == d))]
             if len(connections) == 0:
                 # This dataport is unconnected.
                 continue
@@ -295,8 +294,8 @@ def collapse_shared_frames(ast, obj_space, cspaces, elfs, *_):
             # recreate this mapping if it's already correct, but do it anyway
             # for simplicity.
             # FIXME: stop hard coding this name mangling.
-            rights_setting = filter(lambda x: x.instance == conn_name and \
-                x.attribute == '%s_access' % direction, settings)
+            rights_setting = [x for x in settings if \
+                (x.instance == conn_name and x.attribute == '%s_access' % direction)]
             if len(rights_setting) == 1 and \
                     re.match(r'^"R?W?(G|X)?"$', rights_setting[0].value):
                 read = 'R' in rights_setting[0].value
@@ -314,10 +313,9 @@ def collapse_shared_frames(ast, obj_space, cspaces, elfs, *_):
                     assembly.configuration is not None:
                 p = Perspective(to_interface=connections[0].to_interface.name)
                 hardware_attribute = p['hardware_attribute']
-                configurations = filter(lambda x: \
-                    (x.instance == connections[0].to_instance.name and \
-                     x.attribute == hardware_attribute), \
-                    assembly.configuration.settings)
+                configurations = [x for x in assembly.configuration.settings if \
+                    ((x.instance == connections[0].to_instance.name and \
+                     x.attribute == hardware_attribute))]
                 assert len(configurations) == 1
                 paddr, size = configurations[0].value.strip('"').split(':')
                 # Round up the MMIO size to PAGE_SIZE
@@ -337,7 +335,7 @@ def collapse_shared_frames(ast, obj_space, cspaces, elfs, *_):
                 shm_keys.append('%s_%s' % (c.from_instance.name, c.from_interface.name))
                 shm_keys.append('%s_%s' % (c.to_instance.name, c.to_interface.name))
 
-            mapped = filter(lambda x: x in shared_frames, shm_keys)
+            mapped = [x for x in shm_keys if x in shared_frames]
             if mapped:
                 # We've already encountered the other side of tnhis dataport.
 
@@ -400,7 +398,7 @@ def guard_pages(ast, obj_space, cspaces, elfs, *_):
             # Find the page directory.
             pd = None
             pd_name = perspective['pd']
-            pds = filter(lambda x: x.name == pd_name, obj_space.spec.objs)
+            pds = [x for x in obj_space.spec.objs if x.name == pd_name]
             if len(pds) > 1:
                 raise Exception('Multiple PDs found for group %s' % group)
             elif len(pds) == 1:
@@ -516,7 +514,7 @@ def tcb_default_priorities(ast, obj_space, cspaces, elfs, profiler, options):
     '''Set up default thread priorities. Note this filter needs to operate
     *before* tcb_priorities.'''
 
-    for t in filter(lambda x: isinstance(x, TCB), obj_space):
+    for t in [x for x in obj_space if isinstance(x, TCB)]:
         t.prio = options.default_priority
 
 def tcb_priorities(ast, obj_space, cspaces, *_):
@@ -547,9 +545,8 @@ def tcb_priorities(ast, obj_space, cspaces, *_):
             # Find the priority if it was set.
             prio_attribute = perspective['priority_attribute']
             name = perspective['instance']
-            prios = filter(lambda x: \
-                x.instance == name and x.attribute == prio_attribute,
-                settings)
+            prios = [x for x in settings if \
+                (x.instance == name and x.attribute == prio_attribute)]
             if len(prios) != 1:
                 continue
             prio = prios[0].value
@@ -571,17 +568,16 @@ def tcb_domains(ast, obj_space, cspaces, *_):
 
     for group, space in cspaces.items():
         cnode = space.cnode
-        for tcb in filter(lambda x: isinstance(x, TCB),
-                [x.referent for x in filter(None, cnode.slots.values())]):
+        for tcb in [x.referent for x in cnode.slots.values() if \
+                (x and isinstance(x, TCB))]:
 
             perspective = Perspective(group=group, tcb=tcb.name)
 
             # Find the domain if it was set.
             dom_attribute = perspective['domain_attribute']
             name = perspective['instance']
-            doms = filter(lambda x: \
-                x.instance == name and x.attribute == dom_attribute,
-                settings)
+            doms = [x for x in settings if \
+                (x.instance == name and x.attribute == dom_attribute)]
             if len(doms) != 1:
                 continue
             dom = doms[0].value

@@ -17,9 +17,8 @@ def get_tokens(context):
     automatically deduced from the t_* symbols and reserved keywords that are
     in scope in a given context.
     '''
-    return map(lambda x: x[2:], \
-              filter(lambda x: x.startswith('t_') and \
-                               x not in ['t_ignore', 't_error'], context)) \
+    return [x[2:] for x in context if \
+                (x.startswith('t_') and x not in ['t_ignore', 't_error'])] \
            + list(keywords)
 
 # Reserved keywords. This global is intended to be

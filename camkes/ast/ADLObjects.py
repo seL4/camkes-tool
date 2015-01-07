@@ -81,15 +81,15 @@ class Composition(ADLObject):
         if len(self.groups) > 0:
             groups = self.groups
         else:
-            group_names = filter(None, map(lambda x: x.address_space, self.instances))
+            group_names = [x.address_space for x in self.instances if x]
             groups = []
             for g in group_names:
-                groups.append(Group(g, filter(lambda x: x.address_space == g, self.instances)))
+                groups.append(Group(g, [x for x in self.instances if x.address_space == g]))
         grouped = sum(map(lambda x: x.children(), groups), [])
         return 'composition %(name)s { %(groups)s %(instances)s %(connections)s }' % {
             'name':self.name or '',
             'groups':' '.join(map(str, groups)),
-            'instances':' '.join(map(str, filter(lambda x: x not in grouped, self.instances))),
+            'instances':' '.join([str(x) for x in self.instances if x not in grouped]),
             'connections':' '.join(map(str, self.connections)),
         }
 

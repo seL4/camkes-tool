@@ -108,7 +108,7 @@ def resolve_references(ast, allow_forward=False, context=None):
                         assert isinstance(inst.type, Component)
                         comp = inst.type
                 if comp: # The component was not an unresolved reference.
-                    interface = filter(lambda x:x.name == i.from_interface._symbol, comp.uses + comp.emits + comp.dataports)
+                    interface = [x for x in (comp.uses + comp.emits + comp.dataports) if x.name == i.from_interface._symbol]
                     if len(interface) == 1:
                         i.from_interface.resolve_to(interface[0])
 
@@ -127,7 +127,7 @@ def resolve_references(ast, allow_forward=False, context=None):
                         assert isinstance(inst.type, Component)
                         comp = inst.type
                 if comp:
-                    interface = filter(lambda x:x.name == i.to_interface._symbol, comp.provides + comp.consumes + comp.dataports)
+                    interface = [x for x in (comp.provides + comp.consumes + comp.dataports) if x.name == i.to_interface._symbol]
                     if len(interface) == 1:
                         i.to_interface.resolve_to(interface[0])
 
