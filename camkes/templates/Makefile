@@ -111,6 +111,7 @@ endif
     /*? rule_gen('$(abspath ${BUILD_DIR})/src/' + i.name + '/generated/' + i.type.name + '.simple.c', ' '.join(imported), i.name + '.simple', i.name) ?*/
 /*- endif -*/
 /*? rule_gen('$(abspath ${BUILD_DIR})/include/' + i.name + '/generated/' + i.type.name + '.h', ' '.join(imported), i.name + '.header') ?*/
+/*? rule_gen('$(abspath ${BUILD_DIR})/include/' + i.name + '/generated/' + 'camkes.h', ' '.join(imported), i.name + '.header') ?*/
 /*- endfor -*/
 
 # Connection code generation.
@@ -130,13 +131,11 @@ endif
 
 # Each component file may depend on the per-component generated header.
 /*- for i in instances if not i.type.hardware -*/
-$(/*? i.name ?*/_CFILES:%.c=%.o): \
-    $(abspath ${BUILD_DIR})/include//*? i.name ?*//generated//*? i.type.name ?*/.h
-$(/*? i.name ?*/_CXXFILES:%.cxx=%.o): \
-    $(abspath ${BUILD_DIR})/include//*? i.name ?*//generated//*? i.type.name ?*/.h
+    /*- set header = "$(abspath ${BUILD_DIR})/include/%s/generated/%s.h $(abspath ${BUILD_DIR})/include/%s/generated/camkes.h" % (i.name, i.type.name, i.name) -*/
+$(/*? i.name ?*/_CFILES:%.c=%.o): /*? header ?*/
+$(/*? i.name ?*/_CXXFILES:%.cxx=%.o): /*? header ?*/
 # In case we are running CPP separately:
-$(/*? i.name ?*/_CFILES:%.c=%.c_pp): \
-    $(abspath ${BUILD_DIR})/include//*? i.name ?*//generated//*? i.type.name ?*/.h
+$(/*? i.name ?*/_CFILES:%.c=%.c_pp): /*? header ?*/
 /*- endfor -*/
 
 # Each (generated or static) component file compilation may depend on the
