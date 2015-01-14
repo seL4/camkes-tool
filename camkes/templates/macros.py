@@ -69,6 +69,7 @@ def marshal_array(buffer, param, size, pointer=False):
              'param':param,
              'body':body,
          }
+    return s
 
 def unmarshal_array(buffer, param, size, pointer=False, malloc_cast=''):
     star = '*' if pointer else ''
@@ -100,6 +101,7 @@ def unmarshal_array(buffer, param, size, pointer=False, malloc_cast=''):
              'param':param,
              'body':body,
          }
+    return s
 
 def header_guard(filename):
     return '#ifndef %(guard)s\n' \
