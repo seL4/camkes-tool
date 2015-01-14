@@ -1,3 +1,14 @@
+/*#
+ *# Copyright 2014, NICTA
+ *#
+ *# This software may be distributed and modified according to the terms of
+ *# the BSD 2-Clause license. Note that NO WARRANTY is provided.
+ *# See "LICENSE_BSD2.txt" for details.
+ *#
+ *# @TAG(NICTA_BSD)
+ *#
+ #*/
+
 /*# Example template for sending an RPC message. This template is not
  *# intended to be used as-is, but is a guide for implementing your own RPC
  *# templates. Note that error handling has been elided.
