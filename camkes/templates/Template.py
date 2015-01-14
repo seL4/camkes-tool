@@ -173,13 +173,7 @@ class Templates(object):
                 self.type = collections.namedtuple('Type', 'name')(connector_name)
         fc = FakeConnection()
         for key in self.base:
-<<<<<<< HEAD
-            if key.matches('%(connection)s', fc):
-||||||| parent of 5dfb4c7... Templates: Rewrite template lookup to optimise.
-            if isinstance(key, Key) and key.matches('%(connection)s', fc):
-=======
             if isinstance(key, Guard) and key(fc):
->>>>>>> 5dfb4c7... Templates: Rewrite template lookup to optimise.
                 k = key
                 break
         else:
