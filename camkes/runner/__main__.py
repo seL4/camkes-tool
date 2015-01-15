@@ -496,15 +496,10 @@ def main():
         for f in CAPDL_FILTERS:
             try:
                 with profiler('Running CapDL filter %s' % f.__name__):
-                    f(deepcopy(ast), obj_space, cspaces, elfs,
+                    f(ast, obj_space, cspaces, elfs,
                         profiler, options)
             except Exception as inst:
                 die('While forming CapDL spec: %s' % str(inst))
-
-    # SLOW: The deepcopy of the AST in the code below will be costly with a
-    # large AST. Its purpose is so we don't have to trust the templates not to
-    # modify the AST. If you're trying to optimise this code you could remove
-    # the deepcopy at the expense of this security.
 
     # Instantiate any other, miscellaneous template. If we've reached this
     # point, we know the user did not request a code template.
@@ -513,7 +508,7 @@ def main():
         g = ''
         if template:
             with profiler('Rendering %s' % options.item):
-                g = r.render(deepcopy(assembly), deepcopy(conf), template, obj_space, None, \
+                g = r.render(assembly, conf, template, obj_space, None, \
                     shmem, imported=imported, options=options, **cmdln_opts)
             save(options.item, g)
             done(g)
