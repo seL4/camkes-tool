@@ -65,13 +65,8 @@ def set_tcb_info(ast, obj_space, cspaces, elfs, *_):
 
     for group, space in cspaces.items():
         cnode = space.cnode
-        for index, cap in cnode.slots.items():
-            # We only care about the TCBs.
-            if cap is None:
-                continue
-            tcb = cap.referent
-            if not isinstance(tcb, TCB):
-                continue
+        for index, tcb in [(k, v.referent) for (k, v) in cnode.slots.items() \
+                if v is not None and isinstance(v.referent, TCB)]:
 
             perspective = Perspective(group=group, tcb=tcb.name)
 
@@ -146,13 +141,8 @@ def set_tcb_info(ast, obj_space, cspaces, elfs, *_):
 def set_tcb_caps(ast, obj_space, cspaces, elfs, *_):
     for group, space in cspaces.items():
         cnode = space.cnode
-        for index, cap in cnode.slots.items():
-
-            if cap is None:
-                continue
-            tcb = cap.referent
-            if not isinstance(tcb, TCB):
-                continue
+        for index, tcb in [(k, v.referent) for (k, v) in cnode.slots.items() \
+                if v is not None and isinstance(v.referent, TCB)]:
 
             perspective = Perspective(tcb=tcb.name, group=group)
 
@@ -368,9 +358,9 @@ def guard_cnode_caps(ast, obj_space, cspaces, *_):
     calculated (during set_tcb_caps above). Correct them here.'''
 
     for space in cspaces.values():
-        for cap in space.cnode.slots.values():
-            if cap is not None and isinstance(cap.referent, CNode):
-                cap.set_guard_size(32 - cap.referent.size_bits)
+        [cap.set_guard_size(32 - cap.referent.size_bits) \
+            for cap in space.cnode.slots.values() \
+            if cap is not None and isinstance(cap.referent, CNode)]
 
 def guard_pages(ast, obj_space, cspaces, elfs, *_):
     '''Introduce a guard page around each stack and IPC buffer. Note that the
@@ -379,13 +369,8 @@ def guard_pages(ast, obj_space, cspaces, elfs, *_):
 
     for group, space in cspaces.items():
         cnode = space.cnode
-        for index, cap in cnode.slots.items():
-
-            if cap is None:
-                continue
-            tcb = cap.referent
-            if not isinstance(tcb, TCB):
-                continue
+        for index, tcb in [(k, v.referent) for (k, v) in cnode.slots.items() \
+                if v is not None and isinstance(v.referent, TCB)]:
 
             perspective = Perspective(group=group, tcb=tcb.name)
 
@@ -532,13 +517,8 @@ def tcb_priorities(ast, obj_space, cspaces, *_):
 
     for group, space in cspaces.items():
         cnode = space.cnode
-        for cap in cnode.slots.values():
-
-            if cap is None:
-                continue
-            tcb = cap.referent
-            if not isinstance(tcb, TCB):
-                continue
+        for tcb in [v.referent for v in cnode.slots.values() \
+                if v is not None and isinstance(v.referent, TCB)]:
 
             perspective = Perspective(group=group, tcb=tcb.name)
 
@@ -588,9 +568,9 @@ def remove_tcb_caps(ast, obj_space, cspaces, elfs, profiler, options):
     '''Remove all TCB caps in the system if requested by the user.'''
     if not options.fprovide_tcb_caps:
         for space in cspaces.values():
-            for slot in space.cnode.slots.keys():
-                if isinstance(space.cnode[slot].referent, TCB):
-                    del space.cnode[slot]
+            for slot in [k for (k, v) in space.cnode.slots.items() \
+                    if v is not None and isinstance(v.referent, TCB)]:
+                del space.cnode[slot]
 
 CAPDL_FILTERS = [
     set_tcb_info,
