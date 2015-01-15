@@ -337,7 +337,7 @@ def collapse_shared_frames(ast, obj_space, cspaces, elfs, *_):
 
             mapped = [x for x in shm_keys if x in shared_frames]
             if mapped:
-                # We've already encountered the other side of tnhis dataport.
+                # We've already encountered the other side of this dataport.
 
                 # The region had better be the same size in all address spaces.
                 for key in mapped:
