@@ -14,8 +14,10 @@ is under active development. Note that any extraneous files in your source
 directory that match the version filters will be accumulated in the version
 computation.'''
 
+from memoization import memoized
 import hashlib, os, re
 
+@memoized
 def version():
     # Files to consider relevant. Each entry should be a pair of (path, filter)
     # where 'path' is relative to the directory of this file and 'filter' is a
