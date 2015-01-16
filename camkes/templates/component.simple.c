@@ -21,6 +21,7 @@
 #include <sel4/types.h>
 #include <sel4/sel4.h>
 #include <camkes/tls.h>
+#include <vka/kobject_t.h>
 
 #include <simple/simple.h>
 
@@ -86,6 +87,18 @@
         /*- do mmio_caps_len.append(mmio_caps_len.pop() + 1) -*/
     /*- endfor -*/
     };
+/*- endfor -*/
+
+/*# Find an allocate untyped MMIO capabilities #*/
+/*- set untyped_mmio = [] -*/
+/*- for i in configuration.settings -*/
+    /*- if i.instance == me.name and i.attribute == 'untyped_mmio' -*/
+        /*- set paddr, size_bits = i.value.strip('"').split(':') -*/
+        /*- set paddr = int(paddr, 0) -*/
+        /*- set size_bits = int(size_bits, 0) -*/
+        /*- set cap = alloc('untyped_cap_%d' % paddr, seL4_UntypedObject, read=True, write=True, paddr = paddr, size_bits = size_bits) -*/
+        /*- do untyped_mmio.append( (paddr, size_bits, cap) ) -*/
+    /*- endif -*/
 /*- endfor -*/
 
 /*# Allocate any IOSpace caps #*/
@@ -180,7 +193,7 @@ static int simple_camkes_untyped_count(void *data) {
 
 static int simple_camkes_cap_count(void *data) {
     /*# untypeds + mmio +ioports + cnode + pd + iospaces + holding #*/
-    return /*? len(untyped_obj_list) + mmio_caps_len[0] + len(ioports) + len(iospaces) + 3 ?*/;
+    return /*? len(untyped_obj_list) + mmio_caps_len[0] + len(ioports) + len(iospaces) + len(untyped_mmio) + 3 ?*/;
 }
 
 static seL4_CPtr simple_camkes_nth_untyped(void *data, int n, uint32_t *size_bits, uint32_t *paddr) {
@@ -198,10 +211,19 @@ static seL4_Error simple_camkes_get_frame_cap(void *data, void *paddr, int size_
                 return seL4_CNode_Copy(path->root, path->capPtr, path->capDepth, /*? self_cnode ?*/, mmio_cap_lookup_/*? mmio_key ?*/[((uintptr_t)paddr - (uintptr_t)/*? paddr ?*/) >> /*? bits ?*/], 32, seL4_AllRights);
             }
         /*- endfor -*/
-        return seL4_FailedLookup;
-    /*- else -*/
-        return seL4_FailedLookup;
     /*- endif -*/
+    /*- if len(untyped_mmio) > 0 -*/
+#ifdef CONFIG_KERNEL_STABLE
+        /*- for paddr, size_bits, cap in untyped_mmio -*/
+            if ((uintptr_t)paddr >= (uintptr_t)/*? paddr ?*/ && (uintptr_t)paddr + BIT(size_bits) <= (uintptr_t)/*? paddr ?*/ + (uintptr_t)/*? 2**size_bits ?*/) {
+                return seL4_Untyped_RetypeAtOffset(/*? cap ?*/, kobject_get_type(KOBJECT_FRAME, size_bits), (seL4_Word)(paddr - /*? paddr ?*/), size_bits, path->root, path->dest, path->destDepth, path->offset, 1);
+            }
+        /*- endfor -*/
+#else
+#error Untyped MMIO regions requested, but not running on experimental kernel
+#endif
+    /*- endif -*/
+    return seL4_FailedLookup;
 }
 
 static seL4_CPtr simple_camkes_nth_cap(void *data, int n) {
@@ -232,7 +254,11 @@ static seL4_CPtr simple_camkes_nth_cap(void *data, int n) {
         case /*? 2 + len(untyped_obj_list) + mmio_caps_len[0] + len(ioports) + loop.index0 ?*/:
             return /*? cap ?*/;
     /*- endfor -*/
-    case /*? len(untyped_obj_list) + mmio_caps_len[0] + len(ioports) + len(iospaces) + 2 ?*/:
+    /*- for paddr, size, cap in untyped_mmio -*/
+        case /*? 2 + len(untyped_obj_list) + mmio_caps_len[0] + len(ioports) + len(iospaces) + loop.index0 ?*/:
+            return /*? cap ?*/;
+    /*- endfor -*/
+    case /*? len(untyped_obj_list) + mmio_caps_len[0] + len(ioports) + len(iospaces) + len(untyped_mmio) + 2 ?*/:
         /*# The last cap we report is the magic holding slot we allocated.
          * technically this slot is probably free since we should have
          * deleted whatever was there. But this should also be the largest
