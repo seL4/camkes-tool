@@ -212,15 +212,17 @@ static seL4_Error simple_camkes_get_frame_cap(void *data, void *paddr, int size_
             }
         /*- endfor -*/
     /*- endif -*/
-#ifdef CONFIG_KERNEL_STABLE
     /*- if len(untyped_mmio) > 0 -*/
+#ifdef CONFIG_KERNEL_STABLE
         /*- for paddr, size_bits, cap in untyped_mmio -*/
             if ((uintptr_t)paddr >= (uintptr_t)/*? paddr ?*/ && (uintptr_t)paddr + BIT(size_bits) <= (uintptr_t)/*? paddr ?*/ + (uintptr_t)/*? 2**size_bits ?*/) {
                 return seL4_Untyped_RetypeAtOffset(/*? cap ?*/, kobject_get_type(KOBJECT_FRAME, size_bits), (seL4_Word)(paddr - /*? paddr ?*/), size_bits, path->root, path->dest, path->destDepth, path->offset, 1);
             }
         /*- endfor -*/
-    /*- endif -*/
+#else
+#error Untyped MMIO regions requested, but not running on experimental kernel
 #endif
+    /*- endif -*/
     return seL4_FailedLookup;
 }
 
