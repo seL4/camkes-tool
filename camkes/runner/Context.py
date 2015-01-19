@@ -103,7 +103,7 @@ def new_context(entity, configuration, obj_space, cap_space, shmem, **kwargs):
         # A `self`-like reference to the current AST object. It would be nice
         # to actually call this `self` to lead to more pythonic templates, but
         # `self` inside template blocks refers to the jinja2 parser.
-        'me':deepcopy(entity),
+        'me':entity,
 
         # The AST assembly's configuration.
         'configuration':configuration,
