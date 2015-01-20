@@ -1,0 +1,270 @@
+#!/usr/bin/env python
+#
+# Copyright 2014, NICTA
+#
+# This software may be distributed and modified according to the terms of
+# the BSD 2-Clause license. Note that NO WARRANTY is provided.
+# See "LICENSE_BSD2.txt" for details.
+#
+# @TAG(NICTA_BSD)
+#
+
+'''
+Basic pre-processor for Isabelle theory files. Feel free to extend this with
+passes you'd like to make available, but avoid doing anything more complicated
+than sed-style manipulations here. Anything more complicated needs a proper
+semantic understanding of Isabelle theories.
+'''
+
+import argparse, re, StringIO, subprocess, sys, textwrap
+
+class Pass(object):
+    '''A line-wise pre-processor pass. Extend this to specify a line
+    transformation.'''
+    def __init__(self, arg, default=False, help=''):
+        self.arg = arg         # Long form command line argument
+        self.option = arg.replace('-', '_')
+        self.default = default # Enabled by default?
+        self.help = help       # Command line help string
+    def __call__(self, line, properties):
+        '''This function accepts the current line and should return the
+        transformed line, or None to indicate this line should be omitted.'''
+        raise NotImplementedError
+    def notify(self, properties):
+        return None
+
+class RemoveDuplicateNewlines(Pass):
+    def __init__(self):
+        super(RemoveDuplicateNewlines, self).__init__(
+            'remove-duplicate-newlines', True,
+            'turn adjacent empty lines into a single empty line')
+        self.lastempty = False
+    def __call__(self, line, *_):
+        if line.strip() == '':
+            if self.lastempty:
+                return None
+            else:
+                self.lastempty = True
+        else:
+            self.lastempty = False
+        return line
+
+class Rstrip(Pass):
+    def __init__(self):
+        super(Rstrip, self).__init__('rstrip', True,
+            'strip trailing whitespace')
+    def __call__(self, line, *_):
+        return line.rstrip()
+
+class DropLeadingBlankLines(Pass):
+    def __init__(self):
+        super(DropLeadingBlankLines, self).__init__('drop-leading-blank-lines',
+            True,
+            'remove any blank lines at the start of the file')
+        self.initial = True
+    def __call__(self, line, *_):
+        if not self.initial:
+            return line
+        if not line.strip():
+            return None
+        self.initial = False
+        return line
+
+class Condense(Pass):
+    def __init__(self):
+        super(Condense, self).__init__('condense', True,
+            'drop all blank lines in sections where the property ' \
+            '\'condense\' is True')
+    def __call__(self, line, properties):
+        if properties.get('condense', False) and not line.strip():
+            return None
+        return line
+
+class LockIndent(Pass):
+    def __init__(self):
+        super(LockIndent, self).__init__('lock-indent', True,
+            'fix indentation level of statements when the \'lock_indent\' is ' \
+            'defined to the number of spaces it specifies')
+    def __call__(self, line, properties):
+        if not line.strip():
+            return line
+        indentation = properties.get('lock_indent', None)
+        if indentation is not None:
+            line = '%s%s' % (indentation * ' ', line.lstrip())
+        return line
+
+class Cowsay(Pass):
+    def __init__(self):
+        super(Cowsay, self).__init__('cowsay', False, 'try it and see...')
+    def __call__(self, line, properties):
+        cowsay = properties.get('cowsay')
+        if cowsay is not None:
+            p = subprocess.Popen('cowsay %s' % cowsay, shell=True,
+                stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE)
+            stdout, stderr = p.communicate(line)
+            if stderr:
+                print >>sys.stderr, 'cowsay: %s' % stderr
+            del properties['cowsay']
+            return stdout
+        return line
+
+class Accumulate(Pass):
+    def __init__(self):
+        super(Accumulate, self).__init__('accumulate', True,
+            'allow accumulation of multiple lines when the \'accumulate\' ' \
+            'property is set to True')
+        self.accumulated = None
+    def __call__(self, line, properties):
+        if properties.get('accumulate', False):
+            if self.accumulated is None:
+                if not line.strip():
+                    # Don't begin accumulating nothing.
+                    return None
+                self.accumulated = '%s ' % line
+            else:
+                self.accumulated += '%s ' % line.strip()
+            return None
+        assert self.accumulated is None
+        return line
+    def notify(self, properties):
+        if not properties.get('accumulate', False) and self.accumulated is not None:
+            l = self.accumulated.rstrip()
+            ls = textwrap.wrap(l, 80,
+                subsequent_indent=(' ' * (len(l) - len(l.lstrip()) + 2)))
+            self.accumulated = None
+            return ls
+        return None
+
+class CompressBrackets(Pass):
+    def __init__(self):
+        super(CompressBrackets, self).__init__('compress-brackets', True,
+            'remove space between leading and trailing brackets')
+    def __call__(self, line, *_):
+        return re.sub(r'([^ ]) \)', r'\1)', re.sub(r'\( ([^ ])', r'(\1', line))
+
+class CompressBraces(Pass):
+    def __init__(self):
+        super(CompressBraces, self).__init__('compress-braces', True,
+            'remove space between leading and trailing braces')
+    def __call__(self, line, *_):
+        return re.sub(r'([^ ]) \}', r'\1}', re.sub(r'\{ ([^ ])', r'{\1', line))
+
+class CompressCommas(Pass):
+    def __init__(self):
+        super(CompressCommas, self).__init__('compress-commas', True,
+            'remove space before commas')
+    def __call__(self, line, *_):
+        return re.sub(r'([^ ]) ,', r'\1,', line)
+
+def main():
+    p = argparse.ArgumentParser(description='Isabelle theory pre-processor')
+    p.add_argument('--output', '-o', type=argparse.FileType('w'),
+        default=sys.stdout, help='output to a file rather than stdout')
+    p.add_argument('--in-place', '-i', action='store_true',
+        help='overwrite file in place')
+    p.add_argument('input', type=argparse.FileType('r'), nargs='?',
+        default=sys.stdin, help='input file')
+
+    # Add each of the processing passes.
+    PASSES = [
+        RemoveDuplicateNewlines(),
+        Rstrip(),
+        DropLeadingBlankLines(),
+        Condense(),
+        LockIndent(),
+        Cowsay(),
+        Accumulate(),
+        CompressBrackets(),
+        CompressBraces(),
+        CompressCommas(),
+    ]
+    for i in PASSES:
+        p.add_argument('--f%s' % i.arg, action='store_true', default=i.default,
+            help=i.help, dest=i.option)
+        p.add_argument('--fno-%s' % i.arg, action='store_false',
+            help='do not %s' % i.help, dest=i.option)
+
+    # Parse the command line arguments.
+    options = p.parse_args()
+
+    if options.in_place:
+        if options.output != sys.stdout:
+            print >>sys.stderr, 'you cannot use --in-place and --output together'
+            return -1
+        # Ensure we write the output to memory, which we'll dump later.
+        options.output = StringIO.StringIO()
+
+    # Directives can be provided in the input in the form:
+    #  (** TPP: property = value *)
+    # We construct this regex ahead of time for performance reasons.
+    directive_syntax = re.compile(r'^\(\*\*\s+TPP:\s*(\w+)\s*=\s*(.*)\s*\*\)$')
+
+    properties = {}
+    lineno = 0
+    buffered = []
+
+    while True:
+
+        # Each loop iteration retrieve a line we were previously returned or
+        # read a new line from the input.
+        if len(buffered) > 0:
+            line = buffered.pop(0)
+        else:
+            lineno += 1
+            try:
+                line = options.input.next()
+            except StopIteration:
+                break
+
+        # Strip the trailing \n to make life easier for the passes.
+        if line.endswith('\n'):
+            line = line[:-1]
+
+        directive = directive_syntax.match(line.strip())
+        if directive is not None:
+            try:
+                properties[directive.group(1)] = eval(directive.group(2))
+            except:
+                print >>sys.stderr, \
+                    '%(file)s:%(lineno)d: invalid directive \'%(line)s\'' % {
+                        'file':options.input.name,
+                        'lineno':lineno,
+                        'line':line,
+                    }
+            # If we received a directive, notify each enabled pass of the
+            # change in properties so they can push back extra lines to insert
+            # into the output.
+            for i in PASSES:
+                if getattr(options, i.option):
+                    rs = i.notify(properties)
+                    if rs is not None:
+                        buffered += rs
+            continue
+
+        for i in PASSES:
+
+            if getattr(options, i.option):
+                # This pass is enabled.
+                line = i(line, properties)
+
+                # That pass instructed us to remove this line.
+                if line is None:
+                    break
+
+        if line is not None:
+            print >>options.output, line
+
+    if options.in_place:
+        # The data will have been written into a StringIO that we now need to
+        # overwrite the input file with.
+        name = options.input.name
+        options.input.close()
+        with open(name, 'w') as f:
+            f.write(options.output.getvalue())
+        options.output.close()
+
+    return 0
+
+if __name__ == '__main__':
+    sys.exit(main())
