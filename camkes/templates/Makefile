@@ -129,6 +129,57 @@ endif
 /*- do to_names.append(('%s_%s' % (c.to_instance.name, c.to_interface.name))) -*/
 /*- endif -*/
 
+ifeq (${CONFIG_CAMKES_PRUNE_GENERATED},y)
+/*# We need to provide specialised targets for the pruned c_pp files *and* o
+ *# files so the generic targets in tools/common/camkes.mk won't match.
+ #*/
+
+/*# Pruned C files (from) #*/
+/*- set prefix = '$(abspath ${BUILD_DIR})/src/%s/generated/%s_%s' % (c.from_instance.name, c.from_interface.name, c.type.name) -*/
+/*? prefix ?*/.o: /*? prefix ?*/.pruned.c_pp
+	@$(if $(filter-out 0,${V}),$(warning Using CAmkES generic .o target),)
+	@echo " [CC] $(notdir $@)"
+	$(Q)mkdir -p $(dir $@)
+	$(Q)$(CC) -x c $(CFLAGS) $(foreach v,$(filter-out $<,$^),$(patsubst %,-I%,$(abspath $(dir ${v})))) -c $< -o $@
+/*? prefix ?*/.pruned.c_pp: /*? prefix ?*/.c_pp
+	@echo " [PRUNE] $(notdir $@)"
+	${Q}LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${CONFIG_CAMKES_LLVM_PATH}/lib prune --keep /*? c.from_interface.name ?*/__run \
+	/*- if c.from_interface in c.from_instance.type.emits -*/ \
+	    --keep /*? c.from_interface.name ?*/_emit_underlying \
+	/*- elif c.from_interface in c.from_instance.type.dataports -*/ \
+	    --keep /*? c.from_interface.name ?*/_wrap_ptr \
+	    --keep /*? c.from_interface.name ?*/_unwrap_ptr \
+	/*- elif c.from_interface in c.from_instance.type.uses -*/ \
+	    /*- for m in c.from_interface.type.methods -*/ \
+	        --keep /*? c.from_interface.name ?*/_/*? m.name ?*/ \
+	    /*- endfor -*/ \
+	/*- endif -*/ \
+	$(foreach i,${PRUNER_BLACKLIST},--blacklist $i) --output "$@" "$<"
+	$(Q)${FMT} "$@" | ${SPONGE} "$@"
+
+/*# Pruned C files (to) #*/
+/*- set prefix = '$(abspath ${BUILD_DIR})/src/%s/generated/%s_%s' % (c.to_instance.name, c.to_interface.name, c.type.name) -*/
+/*? prefix ?*/.o: /*? prefix ?*/.pruned.c_pp
+	@$(if $(filter-out 0,${V}),$(warning Using CAmkES generic .o target),)
+	@echo " [CC] $(notdir $@)"
+	$(Q)mkdir -p $(dir $@)
+	$(Q)$(CC) -x c $(CFLAGS) $(foreach v,$(filter-out $<,$^),$(patsubst %,-I%,$(abspath $(dir ${v})))) -c $< -o $@
+/*? prefix ?*/.pruned.c_pp: /*? prefix ?*/.c_pp
+	@echo " [PRUNE] $(notdir $@)"
+	${Q}LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${CONFIG_CAMKES_LLVM_PATH}/lib prune --keep /*? c.to_interface.name ?*/__run \
+	/*- if c.to_interface in c.to_instance.type.consumes -*/ \
+	    --keep /*? c.to_interface.name ?*/_poll \
+	    --keep /*? c.to_interface.name ?*/_wait \
+	/*- elif c.to_interface in c.to_instance.type.dataports -*/ \
+	    --keep /*? c.to_interface.name ?*/_wrap_ptr \
+	    --keep /*? c.to_interface.name ?*/_unwrap_ptr \
+	/*- elif c.to_interface in c.to_instance.type.provides -*/ \
+	    /*# nothing extra required #*/ \
+	/*- endif -*/ \
+	$(foreach i,${PRUNER_BLACKLIST},--blacklist $i) --output "$@" "$<"
+	$(Q)${FMT} "$@" | ${SPONGE} "$@"
+endif
+
 /*- endfor -*/
 
 # Each component file may depend on the per-component generated header.

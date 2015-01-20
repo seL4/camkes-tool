@@ -131,6 +131,28 @@ menu "CAmkES Options"
         introduce some endpoint caps for synchronisation. You probably want
         this option enabled unless you are targetting verification.
 
+    config CAMKES_PRUNE_GENERATED
+    bool "Verification: Prune generated C files"
+    depends on BUILDSYS_CPP_SEPARATE
+    default n
+    help
+        When selected, this option minimises the number of C functions in a
+        given generated file. This can be done because the CAmkES generation
+        logic knows which functions are required by the user's components and
+        which are not. This option is only sensible to use in combination with
+        separate pre-processing or otherwise the generated C files are already
+        minimal. Note, you will need libclang-dev installed to enable this
+        option.
+
+    config CAMKES_LLVM_PATH
+    string "LLVM path"
+    depends on CAMKES_PRUNE_GENERATED
+    help
+        Path to an installation of LLVM. This is only required if you need to
+        rebuild or run the pruner tool, which depends on LLVM. If LLVM and
+        libclang are installed in the standard system paths you do not need to
+        set this option.
+
     config CAMKES_CONNECTOR_TIMING
     bool "Enable collection of timing data for connectors"
     default n

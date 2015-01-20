@@ -96,6 +96,7 @@ TOOLS = {
             '--post-render-edit',
             '--profiler',
             '--profile-log',
+            '--prune',
             '--quiet',
             '--set',
             '--templates',
@@ -234,6 +235,8 @@ def parse_args(tool):
         help='Do not support pre_init, post_init and friends.')
     add_arg('--default-priority', type=int, default=254,
         help='Default component thread priority.')
+    add_arg('--prune', action='store_true', \
+        help='Minimise the number of functions in generated C files.')
     add_arg('--ply-optimise', action='store_true', \
         help='Run PLY with optimisations enabled.')
 
