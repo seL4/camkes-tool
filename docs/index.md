@@ -1340,6 +1340,19 @@ The following functions are available at runtime:
   Unwrapping will fail if the underlying pointer is not into a dataport that is
   shared with the receiver. `dataport_unwrap_ptr` returns `NULL` on failure.
 
+**`void *camkes_dma_alloc_page(void)`** (`#include <camkes/dma.h>`)<br/>
+**`void camkes_dma_free_page(void *ptr)`** (`#include <camkes/dma.h>`)
+> Allocator for DMA device operations. These are closely linked with the DMA
+  pool functionality, as the allocation is backed by this pool.
+
+**`uintptr_t camkes_dma_get_paddr(void *ptr)`** (`#include <camkes/dma.h>`)
+> Translate a pointer into a DMA region into a physical address. This function
+  assumes that the pointer you are passing in is to a byte within a region
+  allocated to you by `camkes_dma_alloc_page`. The reason for needing to obtain
+  the physical address of a pointer is typically to pass to a device that is
+  going to access this region outside of the scope of the MMU. For more
+  information, see the [DMA](#Direct%20Memory%20Access) section below.
+
 **`const char *get_instance_name(void)`** (`#include "`_`component`_`"`)
 > Returns the name of this component instance. This can be helpful if you want
   to write component functionality that has different behaviour depending on
@@ -1474,6 +1487,42 @@ There is no native support for inter-component locks. However, it is possible
 to construct these on top of the CAmkES platform. An example of how you would
 do this is shown in the lockserver example application in the CAmkES project
 repository.
+
+### Direct Memory Access
+
+Direct Memory Access (DMA) is a hardware feature that allows devices to read
+and write memory without going via the CPU. It is intended to give a fast I/O
+path to devices, for which memory access is usually the bottleneck.
+
+This only has specific relevance in the context of CAmkES because on platforms
+without an [IOMMU](https://en.wikipedia.org/wiki/IOMMU) devices perform DMA
+accesses on physical memory, rather than virtual memory. The implications of
+this are that, when a device is being directed to perform I/O by a driver, it
+needs to know the physical address(es) of the memory it is about to access. On
+seL4 reversing a virtual memory mapping requires specific capability operations
+and thus CAmkES needs to be aware of any memory region which you intend to use
+for DMA transfers.
+
+To allocate some memory for DMA within a specific component instance you
+describe a DMA pool with a size in bytes. For example,
+
+<pre>
+assembly {
+  composition {
+    component Foo f;
+    ...
+  }
+  configuration {
+    f.dma_pool = 8192;
+  }
+}
+</pre>
+
+This declares an 8KB pool of memory that is available for DMA operations.
+Within the component you must allocate and release pointers into this region
+with the `camkes_dma_alloc_page` and `camkes_dma_free_page` functions described
+above. Note that if you declare a DMA pool that is not page-aligned (4K on the
+platforms we support) it will automatically be rounded up.
 
 ## Templating
 

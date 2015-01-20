@@ -116,11 +116,13 @@ def thread_stack(sym):
     return 'char %s[ROUND_UP_UNSAFE(CONFIG_CAMKES_DEFAULT_STACK_SIZE, ' \
                 'PAGE_SIZE_4K) + PAGE_SIZE_4K * 2]\n' \
            '    __attribute__((externally_visible))\n' \
+           '    __attribute__((section("guarded")))\n' \
            '    __attribute__((aligned(PAGE_SIZE_4K)));\n' % sym
 
 def ipc_buffer(sym):
     return 'char %s[PAGE_SIZE_4K * 3]\n' \
            '    __attribute__((externally_visible))\n' \
+           '    __attribute__((section("guarded")))\n' \
            '    __attribute__((aligned(PAGE_SIZE_4K)));\n' % sym
 
 def save_ipc_buffer_address(sym):

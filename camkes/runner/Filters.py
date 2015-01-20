@@ -352,6 +352,84 @@ def collapse_shared_frames(ast, obj_space, cspaces, elfs, *_):
                 pt.slots[p_index + j] = Cap(f, read, write, execute)
                 obj_space.relabel(conn_name, f)
 
+def replace_dma_frames(ast, obj_space, cspaces, elfs, *_):
+    '''Locate the DMA pool (a region that needs to have frames whose mappings
+    can be reversed) and replace its backing frames with pre-allocated,
+    reversible ones.'''
+
+    # TODO: Large parts of this function clagged from collapse_shared_frames; Refactor.
+
+    if not elfs:
+        # If we haven't been passed any ELF files this step is not relevant yet.
+        return
+
+    assembly = find_assembly(ast)
+
+    for i in assembly.composition.instances:
+        if i.type.hardware:
+            continue
+
+        perspective = Perspective(instance=i.name, group=i.address_space)
+
+        elf_name = perspective['elf_name']
+        assert elf_name in elfs
+        elf = elfs[elf_name]
+
+        # Find this instance's page directory.
+        pd_name = perspective['pd']
+        pds = filter(lambda x: x.name == pd_name, obj_space.spec.objs)
+        assert len(pds) == 1
+        pd, = pds
+
+        sym = perspective['dma_pool_symbol']
+        base = get_symbol_vaddr(elf, sym)
+        if base is None:
+            # We don't have a DMA pool.
+            continue
+        assert base != 0
+        sz = get_symbol_size(elf, sym)
+        assert sz % PAGE_SIZE == 0 # DMA pool should be page-aligned.
+
+        # Generate a list of the base addresses of the pages we need to
+        # replace.
+        base_vaddrs = map(lambda x: PAGE_SIZE * x + base,
+            range(int(sz / PAGE_SIZE)))
+
+        # Unlike collapse_shared_frames, this *does* support the region
+        # crossing page table boundaries.
+
+        for index, v in enumerate(base_vaddrs):
+            # Locate the mapping.
+            pt_index = page_table_index(get_elf_arch(elf), v)
+            p_index = page_index(get_elf_arch(elf), v)
+
+            # It should contain an existing frame.
+            assert pt_index in pd
+            pt = pd[pt_index].referent
+            assert p_index in pt
+            discard_frame = pt[p_index].referent
+
+            # Locate the frame we're going to replace it with. The logic that
+            # constructs this object name is in component.template.c. Note that
+            # we need to account for the guard-prefix of the instance name
+            # introduced by the template context.
+            p = Perspective(instance=i.name, group=i.address_space,
+                dma_frame_index=index)
+            dma_frames = filter( \
+                lambda x: x.name == p['dma_frame_symbol'],
+                obj_space.spec.objs)
+            assert len(dma_frames) == 1
+            dma_frame, = dma_frames
+
+            # Replace the existing mapping.
+            c = Cap(dma_frame, True, True, False) # RW
+            c.set_cached(False)
+            pt.slots[p_index] = c
+
+            # We can now remove the old frame as we know it's not referenced
+            # anywhere else. TODO: assert this somehow.
+            obj_space.spec.objs.remove(discard_frame)
+
 def guard_cnode_caps(ast, obj_space, cspaces, *_):
     '''If the templates have allocated any caps to CNodes, they will not have
     the correct guards. This is due to the CNodes' sizes being automatically
@@ -576,6 +654,7 @@ CAPDL_FILTERS = [
     set_tcb_info,
     set_tcb_caps,
     collapse_shared_frames,
+    replace_dma_frames,
     guard_cnode_caps,
     guard_pages,
     tcb_default_priorities,

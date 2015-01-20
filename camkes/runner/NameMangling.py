@@ -108,6 +108,20 @@ class FromControlDeriver(ForwardDeriver):
             return None
         return self.format % perspective
 
+class DMAFrameIndexDeriver(Deriver):
+    def __init__(self, regex, input):
+        self.regex = re.compile(regex)
+        self.input = input
+    def inputs(self):
+        return set([self.input])
+    def output(self):
+        return 'dma_frame_index'
+    def derive(self, perspective):
+        m = self.regex.match(perspective[self.input])
+        if m is None:
+            return None
+        return int(m.group(1))
+
 # Phases.
 RUNNER, TEMPLATES, FILTERS = range(3)
 
@@ -120,6 +134,8 @@ DERIVATIONS = {
         BackwardDeriver(r'^pd_(.+)$', 'pd', 'elf_name'),
         BackwardDeriver(r'^pd_(.+)_group_bin$', 'pd', 'group'),
     ], TEMPLATES:[
+        ForwardDeriver('dma_frame_%(dma_frame_index)s', 'dma_frame_symbol'),
+        DMAFrameIndexDeriver(r'^dma_frame_([0-9]+)$', 'dma_frame_symbol'),
         ForwardDeriver('_camkes_ipc_buffer_%(instance)s_%(interface)s', 'ipc_buffer_symbol'),
         FromControlDeriver('_camkes_ipc_buffer_%(instance)s__control', 'ipc_buffer_symbol'),
         ControlDeriver(r'^_camkes_ipc_buffer_.+__control$', 'ipc_buffer_symbol'),
@@ -136,6 +152,7 @@ DERIVATIONS = {
         BackwardDeriver(r'^(.+)_main$', 'entry_symbol', 'instance'),
         ForwardDeriver('%(instance)s_tls_setup', 'tls_symbol'),
         BackwardDeriver(r'^(.+)_tls_setup$', 'tls_symbol', 'instance'),
+        ForwardDeriver('camkes_dma_pool', 'dma_pool_symbol'),
     ], FILTERS:[
         ForwardDeriver('%(instance)s_tcb_%(interface)s', 'tcb'),
         FromControlDeriver('%(instance)s_tcb__control', 'tcb'),
@@ -165,6 +182,11 @@ DERIVATIONS = {
         BackwardDeriver(r'^camkes [^ ]+ ([^ ]+) data$', 'dataport_symbol', 'dataport'),
         ForwardDeriver('%(to_interface)s_attributes', 'hardware_attribute'),
         BackwardDeriver(r'^(.+)_attributes', 'hardware_attribute', 'to_interface'),
+        ForwardDeriver('camkes %(instance)s_dma_pool', 'dma_pool_symbol'),
+        BackwardDeriver(r'^camkes (.+)_dma_pool$', 'dma_pool_symbol', 'instance'),
+        ForwardDeriver('%(instance)s_dma_frame_%(dma_frame_index)s', 'dma_frame_symbol'),
+        BackwardDeriver(r'^(.+)_dma_frame_[0-9]+$', 'dma_frame_symbol', 'instance'),
+        DMAFrameIndexDeriver(r'^.+_dma_frame_([0-9]+)$', 'dma_frame_symbol'),
         ControlDeriver(r'^_control_priority$', 'priority_attribute'),
         FromControlDeriver('_control_priority', 'priority_attribute'),
         ForwardDeriver('%(interface)s_priority', 'priority_attribute'),

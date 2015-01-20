@@ -22,10 +22,17 @@
     /*- endif -*/
 /*- endfor -*/
 
-/* Actual dataport is emitted in the per-component template. */
+/* Actual dataport is emitted in the per-component template.
+ * TODO: x86 requires 2M or 4M alignment.
+ */
 /*- set p = Perspective(dataport=me.from_interface.name) -*/
-extern char /*? p['dataport_symbol'] ?*/[];
-extern volatile /*? show(me.from_interface.type) ?*/ * /*? me.from_interface.name ?*/;
+#define MMIO_ALIGN (1 << 12)
+char /*? p['dataport_symbol'] ?*/[ROUND_UP_UNSAFE(sizeof(/*? show(me.from_interface.type) ?*/), PAGE_SIZE_4K)]
+        __attribute__((aligned(MMIO_ALIGN)))
+        __attribute__((section("ignore_/*? me.from_interface.name ?*/")))
+        __attribute__((externally_visible));
+
+volatile /*? show(me.from_interface.type) ?*/ * /*? me.from_interface.name ?*/ = (volatile /*? show(me.from_interface.type) ?*/ *) /*? p['dataport_symbol'] ?*/;
 
 int /*? me.from_interface.name ?*/__run(void) {
     /* Nothing required. */

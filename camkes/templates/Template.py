@@ -132,6 +132,7 @@ TEMPLATES = {
             },
         },
         'Makefile':'Makefile',
+        'linker':'linker.lds',
         'capdl':'capdl-spec.cdl',
         'label-mapping':'label-mapping.json',
     },

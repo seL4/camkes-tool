@@ -55,7 +55,10 @@ const char *get_instance_name(void);
 /*- endfor -*/
 
 /*- for d in me.type.dataports -*/
-    extern volatile /*? show(d.type) ?*/ * /*? d.name ?*/;
+    extern volatile /*? show(d.type) ?*/ * /*? d.name ?*/
+    /*- if d.optional -*/
+        __attribute__((weak))
+    /*- endif -*/;
 /*- endfor -*/
 
 /*- for m in me.type.mutexes -*/

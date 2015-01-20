@@ -163,7 +163,8 @@ $(/*? i.name ?*/_CFILES:%.c=%.c_pp): ${/*? i.name ?*/_HFILES} ${/*? i.name ?*/_C
     ${ENDGROUP} \
     -static -nostdlib \
     -u _camkes_start \
-    -e _camkes_start
+    -e _camkes_start \
+    -Wl,--script=${BUILD_DIR}/linker.lds
 
 /*# Only incrementally link if this instance is going on to become part of a
  *# group.
@@ -267,6 +268,9 @@ endif
          *# user-provided symbols.
          #*/ \
         --keep-global-symbol "" \
+        \
+        /*# Rename the DMA pools so they don't collide. #*/ \
+        --redefine-sym "/*? pre['dma_pool_symbol'] ?*/"="/*? post['dma_pool_symbol'] ?*/" \
         \
         /*# Rename dataports so they don't collide. These symbols can be
          *# localised, but they need to be uniquely locatable for the filter
