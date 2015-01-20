@@ -215,7 +215,7 @@ $(firstword ${TARGETS}): /*- for g in groups -*/ /*- set p = Perspective(group=g
 	$(Q)camkes.sh runner \
         ${CAMKES_FLAGS} \
         --file "${SOURCE_DIR}/${ADL}" \
-        --import-path ${PWD}/tools/camkes/include/builtin \
+        --import-path ${SOURCE_DIR}/../../tools/camkes/include/builtin \
         --item capdl \
         /*- for g in groups -*/ \
             /*- set p = Perspective(group=g) -*/ \
