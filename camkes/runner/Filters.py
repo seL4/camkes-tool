@@ -627,7 +627,7 @@ def tcb_domains(ast, obj_space, cspaces, *_):
     for group, space in cspaces.items():
         cnode = space.cnode
         for tcb in [x.referent for x in cnode.slots.values() if \
-                (x.referent and isinstance(x.referent, TCB))]:
+                (x and isinstance(x.referent, TCB))]:
 
             perspective = Perspective(group=group, tcb=tcb.name)
 
