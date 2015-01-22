@@ -331,7 +331,7 @@ void USED /*? p['tls_symbol'] ?*/(int thread_id) {
             }
         /*- endfor -*/
         default:
-            assert(!"Unreachable");
+            assert(!"invalid thread ID");
     }
 }
 
@@ -358,7 +358,7 @@ int USED /*? p['entry_symbol'] ?*/(int thread_id) {
              * what is happening is probably a failure in passing arguments
              * (thread ID) from our loader.
              */
-            assert(!"Unreachable");
+            assert(!"invalid thread ID");
             return -1;
 
         /*- set tcb_control = alloc('tcb__control', seL4_TCBObject) -*/
