@@ -84,16 +84,6 @@ static char /*? p['dma_pool_symbol'] ?*/[ROUND_UP_UNSAFE(/*? dma_pool ?*/, PAGE_
     __attribute__((section("persistent")))
     __attribute__((aligned(PAGE_SIZE_4K)));
 
-#ifdef ARCH_ARM
-    #define seL4_Page_GetAddress seL4_ARM_Page_GetAddress
-    #define seL4_Page_GetAddress_t seL4_ARM_Page_GetAddress_t
-#elif defined(ARCH_IA32)
-    #define seL4_Page_GetAddress seL4_IA32_Page_GetAddress
-    #define seL4_Page_GetAddress_t seL4_IA32_Page_GetAddress_t
-#else
-    #error "Unsupported architecture"
-#endif
-
 /*- set get_paddr = c_symbol('get_paddr') -*/
 uintptr_t /*? get_paddr ?*/(void *ptr) {
     uintptr_t base UNUSED = (uintptr_t)ptr & ~MASK(PAGE_BITS_4K);
@@ -105,16 +95,13 @@ uintptr_t /*? get_paddr ?*/(void *ptr) {
         if (base == (uintptr_t)/*? p['dma_pool_symbol'] ?*/ + /*? i ?*/ * PAGE_SIZE_4K) {
             /*- set p = Perspective(dma_frame_index=i) -*/
             /*- set frame = alloc(p['dma_frame_symbol'], seL4_FrameObject) -*/
-            seL4_Page_GetAddress_t res = seL4_Page_GetAddress(/*? frame ?*/);
+            seL4_ARCH_Page_GetAddress_t res = seL4_ARCH_Page_GetAddress(/*? frame ?*/);
             assert(res.error == 0);
             return res.paddr + offset;
         }
     /*- endfor -*/
     return (uintptr_t)NULL;
 }
-
-#undef seL4_Page_GetAddress
-#undef seL4_Page_GetAddress_t
 
 /* Mutex functionality. */
 /*- for m in me.type.mutexes -*/
