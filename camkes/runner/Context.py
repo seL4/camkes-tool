@@ -143,6 +143,7 @@ def new_context(entity, configuration, obj_space, cap_space, shmem, **kwargs):
         'isinstance':isinstance,
         'lambda':lambda s: eval('lambda %s' % s),
         'len':len,
+        'list':list,
         'map':map,
         'math':collections.namedtuple('math', ['pow'])(math.pow),
         'NotImplementedError':lambda x='NotImplementedError': NotImplementedError(x),
