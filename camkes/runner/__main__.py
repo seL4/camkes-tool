@@ -151,6 +151,7 @@ def main():
                     done(value.output)
         with profiler('Parsing input'):
             ast = parser.parse_to_ast(s, options.cpp, options.cpp_flag, options.ply_optimise)
+            ast = compose_assemblies(ast)
             parser.assign_filenames(ast, f.name)
     except parser.CAmkESSyntaxError as e:
         e.set_column(s)
@@ -516,6 +517,49 @@ def main():
         die('While rendering %s: %s' % (options.item, str(inst)))
 
     die('No valid element matching --item %s' % options.item)
+
+def compose_assemblies(ast):
+    # parts of assembly
+    instances = []
+    connections = []
+    groups = []
+    settings = []
+
+    filename = None
+    lineno = -1
+
+    # collect pieces from all assemblies
+    for a in filter(lambda x: isinstance(x, AST.Assembly), ast):
+
+        if filename == None:
+            filename = a.filename
+
+        if lineno == -1:
+            lineno = a.lineno
+
+        for i in a.composition.instances:
+            instances.append(i)
+        for c in a.composition.connections:
+            connections.append(c)
+        for g in a.composition.groups:
+            groups.append(g)
+        for s in a.configuration.settings:
+            settings.append(s)
+
+    # create an assembly composed from all the pieces
+    composite_assembly = AST.Assembly(None,
+                            AST.Composition(None, instances, connections, groups),
+                            AST.Configuration(None, settings),
+                            filename, lineno
+                        )
+ 
+    # remove all the assemblies from ast
+    ast = [x for x in ast if not isinstance(x, AST.Assembly)]
+
+    # add the new composite assembly
+    ast.append(composite_assembly)
+
+    return ast
 
 if __name__ == '__main__':
     sys.exit(main())
