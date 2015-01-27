@@ -13,6 +13,7 @@
  */
 
 #include <assert.h>
+#include <limits.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -22,32 +23,34 @@
 #include <utils/util.h>
 
 /* NOT THREAD SAFE. The code could be made thread safe relatively easily by
- * operating atomically on camkes_dma_pool_used entries.
+ * operating atomically on the free list.
  */
 
-/* All these values are to be initialised by the component template. The pool
- * is assumed to be page-aligned and page-sized and (obviously) virtually
- * contiguous. However it is *not* assumed to be physically contiguous. As a
- * consequence of this, the allocator below is not suitable for allocating
- * regions larger than one page.
+/* The pool is assumed to be page-aligned and page-sized, but not necessarily
+ * physically contiguous. As a consequence of this, the allocator below is not
+ * suitable for allocating regions larger than one page.
  */
-static char *pool;
-static size_t pool_sz;
-static bool *used;
+
+/* We store the free list as a linked-list with the pointers to the next node
+ * in the first word of each page. If 'head' is NULL that implies we have
+ * exhausted our allocation pool.
+ */
+static void *head;
 static uintptr_t (*to_paddr)(void *ptr);
 
-int camkes_dma_init(char *dma_pool, size_t dma_pool_sz, bool *bookkeeping,
+int camkes_dma_init(void *dma_pool, size_t dma_pool_sz,
         uintptr_t (*get_paddr)(void *ptr)) {
     /* We should not have already initialised our bookkeeping. */
-    assert(pool == NULL);
+    assert(head == NULL);
 
-    assert(bookkeeping != NULL);
-    used = bookkeeping;
-    /* Zero this just in case the user has not. */
-    memset(used, false, dma_pool_sz * sizeof(used[0]));
+    /* The caller should have passed us a valid DMA pool. */
+    if ((uintptr_t)dma_pool % PAGE_SIZE_4K != 0)  {
+        return -1;
+    }
 
-    pool = dma_pool;
-    pool_sz = dma_pool_sz;
+    for (unsigned int i = 0; i < dma_pool_sz; i++) {
+        camkes_dma_free_page(dma_pool + i * PAGE_SIZE_4K);
+    }
 
     to_paddr = get_paddr;
 
@@ -59,48 +62,30 @@ uintptr_t camkes_dma_get_paddr(void *ptr) {
     return to_paddr(ptr);
 }
 
-#define INPOOL(v) \
-    ISINRANGE((uintptr_t)pool, \
-              (uintptr_t)(v), \
-              (uintptr_t)pool + PAGE_SIZE_4K * pool_sz)
-
-#define VALID(v, sz) \
-    (INPOOL(v) && INPOOL((v) + (sz) - 1) && SAME_PAGE_4K((v), (v) + (sz) - 1))
-
 void *camkes_dma_alloc_page(void) {
-    assert((uintptr_t)pool % PAGE_SIZE_4K == 0);
-
-    for (int i = 0; i < pool_sz; i++) {
-        if (!used[i]) {
-            used[i] = true;
-            return (void*)(pool + i * PAGE_SIZE_4K);
-        }
+    if (head != NULL) {
+        /* We have a page to give out. Take the head of the free list. */
+        void *p = head;
+        head = *(void**)head;
+        return p;
+    } else {
+        /* No pages remaining. */
+        return NULL;
     }
-    /* Failed to find an unused page. */
-    return NULL;
 }
 
 void camkes_dma_free_page(void *ptr) {
     /* Any pointer we gave out should have been page-aligned. */
     assert(IS_ALIGNED_4K((uintptr_t)ptr));
-    assert(ptr == NULL || INPOOL(ptr));
 
     /* Allow the user to free NULL. */
     if (ptr == NULL) {
         return;
     }
 
-    int index = ((uintptr_t)ptr - (uintptr_t)pool) / PAGE_SIZE_4K;
-    
-    /* The pointer we're freeing should lie within our pool. */
-    assert(index >= 0 && index < pool_sz);
-
-    /* The page should have been in use. If this assertion fails, it's likely
-     * the user performed a double free.
-     */
-    assert(used[index]);
-
-    used[index] = false;
+    /* Prepend it to the free list. */
+    *(void**)ptr = head;
+    head = ptr;
 }
 
 /* The remaining functions are to comply with the ps_io_ops-related interface
@@ -128,8 +113,6 @@ static void *dma_alloc(void *cookie UNUSED, size_t size, int align, int cached,
 }
 
 static void dma_free(void *cookie UNUSED, void *addr, size_t size UNUSED) {
-    assert(VALID(addr, size));
-
     camkes_dma_free_page(addr);
 }
 
@@ -137,9 +120,6 @@ static void dma_free(void *cookie UNUSED, void *addr, size_t size UNUSED) {
  * effectively a no-op.
  */
 static uintptr_t dma_pin(void *cookie UNUSED, void *addr, size_t size) {
-    /* The address to pin should lie within our managed pool. */
-    assert(INPOOL(addr) && INPOOL(addr + size - 1));
-
     /* Our pool is not physically contiguous, so we cannot claim to pin regions
      * that cross page boundaries.
      */
@@ -152,13 +132,11 @@ static uintptr_t dma_pin(void *cookie UNUSED, void *addr, size_t size) {
 
 /* As above, all pages are pinned so this is also a no-op. */
 static void dma_unpin(void *cookie UNUSED, void *addr UNUSED, size_t size UNUSED) {
-    assert(VALID(addr, size));
 }
 
 /* Our whole pool is mapped uncached, so cache ops are irrelevant. */
 static void dma_cache_op(void *cookie UNUSED, void *addr UNUSED, size_t size,
         dma_cache_op_t op UNUSED) {
-    assert(VALID(addr, size));
 }
 
 int camkes_dma_manager(ps_dma_man_t *man) {
@@ -171,6 +149,11 @@ int camkes_dma_manager(ps_dma_man_t *man) {
     return 0;
 }
 
+/* Callers of this function are assumed not to be using the underlying
+ * allocation functions above. Note that this function actually returns
+ * accessible pointers into what would notionally be the free list if you were
+ * using the underlying allocation functions.
+ */
 static void *io_map(void *cookie UNUSED, uintptr_t paddr, size_t size,
         int cached, ps_mem_flags_t flags UNUSED) {
     assert(paddr != 0);
@@ -189,15 +172,14 @@ static void *io_map(void *cookie UNUSED, uintptr_t paddr, size_t size,
      * requested frame is to iterate over the (known reversible) mappings we
      * have.
      */
-    for (uintptr_t v = (uintptr_t)pool;
-         v < (uintptr_t)pool + PAGE_SIZE_4K * pool_sz;
-         v += PAGE_SIZE_4K) {
-        uintptr_t p = camkes_dma_get_paddr((void*)v);
+    for (void *v = head; v != NULL; v = *(void**)v) {
+        uintptr_t p = camkes_dma_get_paddr(v);
         if (PAGE_ALIGN_4K(p) == PAGE_ALIGN_4K(paddr)) {
             /* We found it! */
             uintptr_t offset = paddr & MASK(PAGE_BITS_4K);
-            return (void*)(v | offset);
+            return (void*)((uintptr_t)v | offset);
         }
+
     }
 
     /* We didn't find the matching frame. */
@@ -206,8 +188,6 @@ static void *io_map(void *cookie UNUSED, uintptr_t paddr, size_t size,
 
 /* We never unmap anything. */
 static void io_unmap(void *cookie UNUSED, void *vaddr UNUSED, size_t size UNUSED) {
-    /* We should have only "mapped" vaddrs that lie within our DMA pool. */
-    assert(VALID(vaddr, size));
 }
 
 int camkes_io_mapper(ps_io_mapper_t *mapper) {

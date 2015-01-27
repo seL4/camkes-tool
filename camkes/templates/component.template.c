@@ -165,11 +165,9 @@ int /*? s.name ?*/_post(void) {
  */
 /*- set init = c_symbol() -*/
 static void /*? init ?*/(void) {
-    static bool dma_bookkeeping[
-        ROUND_UP_UNSAFE(/*? dma_pool ?*/, PAGE_SIZE_4K) / PAGE_SIZE_4K];
     int res = camkes_dma_init(/*? p['dma_pool_symbol'] ?*/,
         ROUND_UP(/*? dma_pool ?*/, PAGE_SIZE_4K) / PAGE_SIZE_4K,
-        dma_bookkeeping, /*? get_paddr ?*/);
+        /*? get_paddr ?*/);
     if (res != 0) {
         assert(!"DMA initialisation failed");
         abort();
