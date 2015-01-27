@@ -543,8 +543,10 @@ def compose_assemblies(ast):
             connections.append(c)
         for g in a.composition.groups:
             groups.append(g)
-        for s in a.configuration.settings:
-            settings.append(s)
+
+        if a.configuration is not None:
+            for s in a.configuration.settings:
+                settings.append(s)
 
     # create an assembly composed from all the pieces
     composite_assembly = AST.Assembly(None,
