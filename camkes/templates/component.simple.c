@@ -357,22 +357,14 @@ static uintptr_t make_frame_get_paddr(seL4_CPtr untyped) {
     int type;
     int error;
     uintptr_t ret;
-#ifdef CONFIG_ARCH_IA32
-    type = seL4_IA32_4K;
-#elif CONFIG_ARCH_ARM
-    type = seL4_ARM_SmallPageObject;
-#endif
+    type = seL4_ARCH_4KPage;
 #ifdef CONFIG_KERNEL_STABLE
     error = seL4_Untyped_RetypeAtOffset(untyped, type, 0, 12, /*? self_cnode ?*/, 0, 0, /*? holding_slot ?*/, 1);
 #else
     error = seL4_Untyped_Retype(untyped, type, 12, /*? self_cnode ?*/, 0, 0, /*? holding_slot ?*/, 1);
 #endif
     assert(error == seL4_NoError);
-#ifdef CONFIG_ARCH_IA32
-    ret = seL4_IA32_Page_GetAddress(/*? holding_slot ?*/).paddr;
-#elif CONFIG_ARCH_ARM
-    ret = seL4_ARM_Page_GetAddress(/*? holding_slot ?*/).paddr;
-#endif
+    ret = seL4_ARCH_Page_GetAddress(/*? holding_slot ?*/).paddr;
     assert(ret);
     seL4_CNode_Delete(/*? self_cnode ?*/, /*? holding_slot ?*/, 32);
     seL4_CNode_Recycle(/*? self_cnode ?*/, untyped, 32);

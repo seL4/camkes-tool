@@ -12,16 +12,13 @@
 #define _CAMKES_DMA_H_
 
 #include <platsupport/io.h>
-#include <stdbool.h>
 #include <stdint.h>
 
 /* Initialise the DMA allocator. This function must be called before using any
  * of the functions below. Pass in the pool to allocate from, the size of this
- * pool in 4K pages, a book-keeping array and a function to reverse mappings.
- * The book-keeping array is expected to be of size 'dma_pool_sz'. Returns 0 on
- * success.
+ * pool in 4K pages and a function to reverse mappings. Returns 0 on success.
  */
-int camkes_dma_init(char *dma_pool, size_t dma_pool_sz, bool *bookkeeping,
+int camkes_dma_init(void *dma_pool, size_t dma_pool_sz,
     uintptr_t (*get_paddr)(void *ptr));
 
 /* Allocate a page for DMA used. Returns NULL on failure. */
