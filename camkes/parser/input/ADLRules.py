@@ -322,7 +322,7 @@ def p_component_ref(t):
 def p_component_block(t):
     '''component_block : LBRACE component_defn RBRACE'''
     includes, control, hardware, provides, uses, emits, consumes, dataports, \
-        attributes, mutexes, semaphores = t[2]
+        attributes, mutexes, semaphores, composition, configuration = t[2]
     assert isinstance(control, bool)
     assert isinstance(hardware, bool)
     assert isinstance(provides, list)
@@ -334,8 +334,8 @@ def p_component_block(t):
     assert isinstance(dataports, list)
     for d in dataports: assert isinstance(d, Dataport)
     t[0] = Component(None, includes, control, hardware, provides, uses, emits, \
-        consumes, dataports, attributes, mutexes, semaphores, \
-        filename=t.lexer.filename, lineno=t.lexer.lineno)
+        consumes, dataports, attributes, mutexes, semaphores, composition, \
+        configuration, filename=t.lexer.filename, lineno=t.lexer.lineno)
 def p_component_defn(t):
     '''component_defn :
                       | include_statement component_defn
@@ -348,44 +348,65 @@ def p_component_defn(t):
                       | dataport_statement component_defn
                       | attribute_statement component_defn
                       | mutex_statement component_defn
-                      | semaphore_statement component_defn'''
+                      | semaphore_statement component_defn
+                      | composition_sing configuration_sing
+                      | configuration_sing composition_sing
+                      | composition_sing'''
+    print len(t)
     if len(t) == 1:
-        t[0] = ([], False, False, [], [], [], [], [], [], [], [])
+        t[0] = ([], False, False, [], [], [], [], [], [], [], [], None, None)
     elif len(t) == 4:
         includes, control, hardware, provides, uses, emits, consumes, \
-            dataports, attributes, mutexes, semaphores = t[3]
+            dataports, attributes, mutexes, semaphores, composition, \
+            configuration = t[3]
         if t[1] == 'control':
             t[0] = includes, True, False, provides, uses, emits, consumes, \
-                dataports, attributes, mutexes, semaphores
+                dataports, attributes, mutexes, semaphores, composition, \
+                configuration
         else:
             assert t[1] == 'hardware'
             t[0] = includes, False, True, provides, uses, emits, consumes, \
-                dataports, attributes, mutexes, semaphores
+                dataports, attributes, mutexes, semaphores, composition, \
+                configuration
+    elif len(t) == 2:
+        t[0] = ([], False, False, [], [], [], [], [], [], [], [], t[1], None)
     else:
         assert len(t) == 3
-        includes, control, hardware, provides, uses, emits, consumes, \
-            dataports, attributes, mutexes, semaphores = t[2]
-        if isinstance(t[1], Include):
-            includes.append(t[1])
-        elif isinstance(t[1], Provides):
-            provides.append(t[1])
-        elif isinstance(t[1], Uses):
-            uses.append(t[1])
-        elif isinstance(t[1], Emits):
-            emits.append(t[1])
-        elif isinstance(t[1], Consumes):
-            consumes.append(t[1])
-        elif isinstance(t[1], Dataport):
-            dataports.append(t[1])
-        elif isinstance(t[1], Attribute):
-            attributes.append(t[1])
-        elif isinstance(t[1], Mutex):
-            mutexes.append(t[1])
+
+        # check if this is composition_sing configuration_sing or vice versa
+        if isinstance(t[1], Composition):
+            assert isinstance(t[2], Configuration)
+            t[0] = ([], False, False, [], [], [], [], [], [], [], [], t[1], t[2])
+        elif isinstance(t[1], Configuration):
+            assert isinstance(t[2], Composition)
+            t[0] = ([], False, False, [], [], [], [], [], [], [], [], t[2], t[1])
         else:
-            assert isinstance(t[1], Semaphore)
-            semaphores.append(t[1])
-        t[0] = includes, control, hardware, provides, uses, emits, consumes, \
-            dataports, attributes, mutexes, semaphores
+            includes, control, hardware, provides, uses, emits, consumes, \
+                dataports, attributes, mutexes, semaphores, composition, \
+                configuration = t[2]
+            if isinstance(t[1], Include):
+                includes.append(t[1])
+            elif isinstance(t[1], Provides):
+                provides.append(t[1])
+            elif isinstance(t[1], Uses):
+                uses.append(t[1])
+            elif isinstance(t[1], Emits):
+                emits.append(t[1])
+            elif isinstance(t[1], Consumes):
+                consumes.append(t[1])
+            elif isinstance(t[1], Dataport):
+                dataports.append(t[1])
+            elif isinstance(t[1], Attribute):
+                attributes.append(t[1])
+            elif isinstance(t[1], Mutex):
+                mutexes.append(t[1])
+            else:
+                print t[1].__class__.__name__
+                assert isinstance(t[1], Semaphore)
+                semaphores.append(t[1])
+            t[0] = includes, control, hardware, provides, uses, emits, consumes, \
+                dataports, attributes, mutexes, semaphores, composition, \
+                configuration
 
 def p_provides_statement(t):
     '''provides_statement : provides ID ID SEMI'''
