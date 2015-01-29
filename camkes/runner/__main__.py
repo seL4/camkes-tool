@@ -190,7 +190,6 @@ def main():
         die('While collapsing references of \'%s\': %s' % (f.name, str(inst)))
 
     resolve_hierarchy(ast)
-    remove_virtual_interfaces(ast)
 
     # If we have a readable cache check if our current target is in the cache.
     # The previous check will 'miss' and this one will 'hit' when the input
@@ -568,12 +567,29 @@ def compose_assemblies(ast):
     return ast
 
 def resolve_hierarchy(ast):
-    resolve_hierarchy_rec([x for x in ast if isinstance(x, AST.Assembly)][0])
+    assembly = [x for x in ast if isinstance(x, AST.Assembly)][0]
+#    resolve_hierarchy_rec(assembly, 0)
 
-def resolve_hierarchy_rec(assembly):
+    generate_assembly_to_merge(assembly)
+    assert False
+    return
+    print 'instances'
+    for i in assembly.composition.instances:
+        print i.name
+
+    print 'connections'
+    for c in assembly.composition.connections:
+        print c.name, ':', c.from_instance.name, '.', c.from_interface.name, '->', c.to_instance.name, '.', c.to_interface.name
+
+def resolve_hierarchy_rec(assembly, depth):
+    print 'resolve_hierarchy_rec', depth
+    print assembly.__class__.__name__
     for i in assembly.composition.instances:
         if i.type.composition is not None:
             # i is an instance of a component with a composition
+
+            # the component of i may instantiate compound components
+            resolve_hierarchy_rec(i.type, depth + 1)
 
             # copy the composition as there may be several instances
             composition = deepcopy(i.type.composition)
@@ -641,22 +657,116 @@ def resolve_hierarchy_rec(assembly):
                     assembly.configuration = Configuration()
 
                 assembly.configuration.settings = assembly.configuration.settings + configuration.settings
-            
-def remove_virtual_interfaces(ast):
-    for c in filter(lambda x: isinstance(x, AST.Component), ast):
-        if c.composition is not None:
-            unimplemented_interfaces = []
-            for conn in c.composition.connections:
-                if conn.from_instance.name == '__virtual__':
-                    unimplemented_interfaces.append(conn.from_interface)
-                if conn.to_instance.name == '__virtual__':
-                    unimplemented_interfaces.append(conn.to_interface)
 
-            for i in unimplemented_interfaces:
-                if isinstance(i, AST.Provides):
-                    c.provides.remove(i)
-                elif isinstance(i, AST.Uses):
-                    c.uses.remove(i)
+    if isinstance(assembly, AST.Component):
+        remove_virtual_interfaces(assembly)
+    
+def merge_assembly(dest, source, instance):
+    # copy instances
+    for i in source.composition.instances:
+        dest.composition.instances.append(i)
+
+    # copy groups
+    for g in source.composition.groups:
+        dest.composition.groups.append(g)
+    
+    exports = {}
+    for c in source.composition.connections:
+        internal = True
+        if c.from_instance.name == '__virtual__':
+            internal = False
+            exports[c.from_interface.name] = c
+        if c.to_instance.name == '__virtual__':
+            internal = False
+            exports[c.to_interface.name] = c
+        if internal:
+            dest.composition.connections.append(c)
+
+    for c in dest.composition.connections:
+        if c.from_instance is instance:
+            sc = exports[c.from_interface.name]
+            print 'from'
+            print_connection(c)
+            print_connection(sc)
+            c.from_instance = sc.from_instance
+            c.from_interface = sc.from_interface
+            print_connection(c)
+        if c.to_instance is instance:
+            sc = exports[c.to_interface.name]
+            print 'to'
+            print_connection(c)
+            print_connection(sc)
+            c.to_instance = sc.to_instance
+            c.to_interface = sc.to_interface
+            print_connection(c)
+
+def print_connection(dc):
+    print dc.name, ':', dc.from_instance.name, dc.from_interface.name, \
+        '->', dc.to_instance.name, dc.to_interface.name
+
+def rename_assembly(prefix_name, assembly):
+    for i in assembly.composition.instances:
+        i.name = prefix_name + "_" + i.name
+    for c in assembly.composition.connections:
+        c.name = prefix_name + "_" + c.name
+    for g in assembly.composition.groups:
+        g.name = prefix_name + "_" + g.name
+    for s in assembly.configuration.settings:
+        s.instance = prefix_name + "_" + s.instance
+
+def generate_assembly_to_merge(component):
+
+    assembly = AST.Assembly(composition = AST.Composition(), configuration = AST.Configuration())
+
+    if component.composition is None:
+        return assembly
+
+    composition = component.composition
+
+    # copy the connections and groups
+    for c in composition.connections:
+        assembly.composition.connections.append(c)
+    for g in composition.groups:
+        assembly.composition.groups.append(g)
+
+    for i in composition.instances:
+        # if i is an instance of a compound component
+        if i.type.composition is not None:
+            print 'compound', i.name, i.type.name
+            # get the assembly from that component
+            sub_assembly = generate_assembly_to_merge(i.type)
+            
+            # rename assembly elements to indicate them as part of a sub assembly
+            rename_assembly(i.name, sub_assembly)
+            
+            print 'merging', i.name, i.type.name
+            # merge it into the current assembly
+            merge_assembly(assembly, sub_assembly, i)
+
+        # add the instance to the assembly
+        assembly.composition.instances.append(i)
+
+    print 'assembly for', component.name
+    print map(lambda x: x.name, assembly.composition.instances)
+    for c in assembly.composition.connections:
+        print_connection(c)
+
+    return assembly
+
+def remove_virtual_interfaces(component):
+    if component.composition is not None:
+        unimplemented_interfaces = []
+        for conn in component.composition.connections:
+            if conn.from_instance.name == '__virtual__':
+                unimplemented_interfaces.append(conn.from_interface)
+            if conn.to_instance.name == '__virtual__':
+                unimplemented_interfaces.append(conn.to_interface)
+
+        for i in unimplemented_interfaces:
+            if isinstance(i, AST.Provides):
+                component.provides.remove(i)
+            elif isinstance(i, AST.Uses):
+                component.uses.remove(i)
 
 
 if __name__ == '__main__':
