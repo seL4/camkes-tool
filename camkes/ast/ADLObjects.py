@@ -49,7 +49,6 @@ class Composition(ADLObject):
         assert connections is None or isinstance(connections, list)
         assert name is None or isinstance(name, str)
         super(Composition, self).__init__(filename=filename, lineno=lineno)
-        print 'composition groups', groups
         self.name = name
         self.instances = instances or []
         self.connections = connections or []

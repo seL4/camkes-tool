@@ -189,7 +189,8 @@ def main():
     except Exception as inst:
         die('While collapsing references of \'%s\': %s' % (f.name, str(inst)))
 
-    ast = resolve_hierarchy(ast)
+    resolve_hierarchy(ast)
+    remove_virtual_interfaces(ast)
 
     # If we have a readable cache check if our current target is in the cache.
     # The previous check will 'miss' and this one will 'hit' when the input
@@ -567,12 +568,13 @@ def compose_assemblies(ast):
     return ast
 
 def resolve_hierarchy(ast):
-    assembly = [x for x in ast if isinstance(x, AST.Assembly)][0]
+    resolve_hierarchy_rec([x for x in ast if isinstance(x, AST.Assembly)][0])
 
+def resolve_hierarchy_rec(assembly):
     for i in assembly.composition.instances:
         if i.type.composition is not None:
             # i is an instance of a component with a composition
-            
+
             # copy the composition as there may be several instances
             composition = deepcopy(i.type.composition)
 
@@ -640,6 +642,7 @@ def resolve_hierarchy(ast):
 
                 assembly.configuration.settings = assembly.configuration.settings + configuration.settings
             
+def remove_virtual_interfaces(ast):
     for c in filter(lambda x: isinstance(x, AST.Component), ast):
         if c.composition is not None:
             unimplemented_interfaces = []
@@ -654,25 +657,6 @@ def resolve_hierarchy(ast):
                     c.provides.remove(i)
                 elif isinstance(i, AST.Uses):
                     c.uses.remove(i)
-
-            print c
-
-    print '\ninstances'
-    for i in assembly.composition.instances:
-        print i.name, i.address_space
-    print map(lambda x: x.name, assembly.composition.instances)
-    print '\nconnections'
-    for c in assembly.composition.connections:
-        print c.name, ':', c.from_instance.name, c.from_interface.name, '->', c.to_instance.name, c.to_interface.name
-
-    return ast
-
-def inst_test(ast):
-    assembly = [x for x in ast if isinstance(x, AST.Assembly)][0]
-    print '\ninstances'
-    for i in assembly.composition.instances:
-        print i.name, i.address_space
-
 
 
 if __name__ == '__main__':
