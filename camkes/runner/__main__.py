@@ -189,7 +189,7 @@ def main():
     except Exception as inst:
         die('While collapsing references of \'%s\': %s' % (f.name, str(inst)))
 
-    resolve_hierarchy(ast)
+    ast = resolve_hierarchy(ast)
 
     # If we have a readable cache check if our current target is in the cache.
     # The previous check will 'miss' and this one will 'hit' when the input
@@ -567,19 +567,28 @@ def compose_assemblies(ast):
     return ast
 
 def resolve_hierarchy(ast):
+    # find the assembly
     assembly = [x for x in ast if isinstance(x, AST.Assembly)][0]
-#    resolve_hierarchy_rec(assembly, 0)
+    
+    # modify the ast to resolve the hierarchy
+    assembly = generate_assembly_to_merge(deepcopy(assembly))
+    orig_ast = ast
+    # remove the assembly from the ast
+    ast = [x for x in ast if not isinstance(x, AST.Assembly)]
 
-    generate_assembly_to_merge(assembly)
-    assert False
-    return
-    print 'instances'
-    for i in assembly.composition.instances:
-        print i.name
+    # replace it with the new one
+    ast.append(assembly)
 
-    print 'connections'
-    for c in assembly.composition.connections:
-        print c.name, ':', c.from_instance.name, '.', c.from_interface.name, '->', c.to_instance.name, '.', c.to_interface.name
+    # remove all the component interfaces with virtual usage
+    for c in [x for x in ast if isinstance(x, AST.Component)]:
+        remove_virtual_interfaces(c)
+        print c
+    for c in [x for x in orig_ast if isinstance(x, AST.Component)]:
+        print c
+
+    print "settings", assembly.configuration.settings
+
+    return ast
 
 def resolve_hierarchy_rec(assembly, depth):
     print 'resolve_hierarchy_rec', depth
@@ -670,6 +679,9 @@ def merge_assembly(dest, source, instance):
     for g in source.composition.groups:
         dest.composition.groups.append(g)
     
+    for s in source.configuration.settings:
+        dest.configuration.settings.append(s)
+
     exports = {}
     for c in source.composition.connections:
         internal = True
@@ -683,7 +695,7 @@ def merge_assembly(dest, source, instance):
             dest.composition.connections.append(c)
 
     for c in dest.composition.connections:
-        if c.from_instance is instance:
+        if c.from_instance is instance and c.from_interface.name in exports.keys():
             sc = exports[c.from_interface.name]
             print 'from'
             print_connection(c)
@@ -691,7 +703,7 @@ def merge_assembly(dest, source, instance):
             c.from_instance = sc.from_instance
             c.from_interface = sc.from_interface
             print_connection(c)
-        if c.to_instance is instance:
+        if c.to_instance is instance and c.to_interface.name in exports.keys():
             sc = exports[c.to_interface.name]
             print 'to'
             print_connection(c)
@@ -701,12 +713,14 @@ def merge_assembly(dest, source, instance):
             print_connection(c)
 
 def print_connection(dc):
+    pass
     print dc.name, ':', dc.from_instance.name, dc.from_interface.name, \
         '->', dc.to_instance.name, dc.to_interface.name
 
 def rename_assembly(prefix_name, assembly):
     for i in assembly.composition.instances:
         i.name = prefix_name + "_" + i.name
+        i.address_space = i.name
     for c in assembly.composition.connections:
         c.name = prefix_name + "_" + c.name
     for g in assembly.composition.groups:
@@ -722,6 +736,7 @@ def generate_assembly_to_merge(component):
         return assembly
 
     composition = component.composition
+    configuration = component.configuration
 
     # copy the connections and groups
     for c in composition.connections:
@@ -729,12 +744,16 @@ def generate_assembly_to_merge(component):
     for g in composition.groups:
         assembly.composition.groups.append(g)
 
+    if configuration is not None:
+        for s in configuration.settings:
+            assembly.configuration.settings.append(s)
+
     for i in composition.instances:
         # if i is an instance of a compound component
         if i.type.composition is not None:
             print 'compound', i.name, i.type.name
             # get the assembly from that component
-            sub_assembly = generate_assembly_to_merge(i.type)
+            sub_assembly = generate_assembly_to_merge(deepcopy(i.type))
             
             # rename assembly elements to indicate them as part of a sub assembly
             rename_assembly(i.name, sub_assembly)
