@@ -617,10 +617,28 @@ def resolve_hierarchy(ast):
                 inst.name = i.name + '_' + inst.name
                 inst.address_space = inst.name
 
+            for conn in internal_connections:
+                conn.name = i.name + '_' + conn.name
+
+            for group in composition.groups:
+                group.name = i.name + '_' + group.name
+
+
             # add the instances and connections from the component to the assembly
             assembly.composition.instances = assembly.composition.instances + composition.instances
-
             assembly.composition.connections = assembly.composition.connections + internal_connections
+            assembly.composition.groups = assembly.composition.groups + composition.groups
+
+            if i.type.configuration is not None:
+                configuration = deepcopy(i.type.configuration)
+
+                for s in configuration.settings:
+                    s.instance = i.name + "_" + s.instance
+
+                if assembly.configuration is None:
+                    assembly.configuration = Configuration()
+
+                assembly.configuration.settings = assembly.configuration.settings + configuration.settings
             
     for c in filter(lambda x: isinstance(x, AST.Component), ast):
         if c.composition is not None:
