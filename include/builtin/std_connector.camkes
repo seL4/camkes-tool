@@ -114,6 +114,10 @@ connector seL4RPC {
 	from Procedure user_inf;
 	to Procedure provider_inf;
 }
+connector ExportRPC {
+	from Procedure user_inf;
+	to Procedure provider_inf;
+}
 
 connector seL4RPCCall {
 	from Procedure user_inf;

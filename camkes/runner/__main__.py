@@ -189,6 +189,8 @@ def main():
     except Exception as inst:
         die('While collapsing references of \'%s\': %s' % (f.name, str(inst)))
 
+    ast = resolve_hierarchy(ast)
+
     # If we have a readable cache check if our current target is in the cache.
     # The previous check will 'miss' and this one will 'hit' when the input
     # spec is identical to some previous execution modulo a semantically
@@ -304,6 +306,7 @@ def main():
     if conflict:
         die('Attempt to set restricted option(s) %s' % ', '.join(conflict))
 
+
     # We're now ready to instantiate the template the user requested, but there
     # are a few wrinkles in the process. Namely,
     #  1. Template instantiation needs to be done in a deterministic order. The
@@ -320,6 +323,7 @@ def main():
 
     # Instantiate the per-component source and header files.
     for id, i in enumerate(assembly.composition.instances):
+
         # Don't generate any code for hardware components.
         if i.type.hardware:
             continue
@@ -328,6 +332,7 @@ def main():
             cnode = obj_space.alloc(seL4_CapTableObject,
                 name='cnode_%s' % i.address_space, label=i.address_space)
             cspaces[i.address_space] = CSpaceAllocator(cnode)
+            print 'a'
             p = Perspective(phase=RUNNER, instance=i.name,
                 group=i.address_space)
             pd = obj_space.alloc(seL4_PageDirectoryObject, name=p['pd'],
@@ -562,6 +567,84 @@ def compose_assemblies(ast):
     ast.append(composite_assembly)
 
     return ast
+
+def resolve_hierarchy(ast):
+    print "Resolving hierarchy..."
+    assembly = [x for x in ast if isinstance(x, AST.Assembly)][0]
+
+    for i in assembly.composition.instances:
+        if i.type.composition is not None:
+            # i is an instance of a component with a composition
+            
+            # copy the composition as there may be several instances
+            composition = deepcopy(i.type.composition)
+
+            # find all the exported connections
+            export_from_connections = []
+            export_to_connections = []
+            internal_connections = []
+            for c in composition.connections:
+                if isinstance(c.from_instance, AST.Instance) and c.from_instance.name == '__virtual__':
+                    export_from_connections.append(c)
+                elif isinstance(c.to_instance, AST.Instance) and c.to_instance.name == '__virtual__':
+                    export_to_connections.append(c)
+                else:
+                    internal_connections.append(c)
+
+            export_from_interfaces = map(lambda x: x.from_interface.name, export_from_connections)
+            export_to_interfaces = map(lambda x: x.to_interface.name, export_to_connections)
+
+            # create a dict mapping interface names to instance
+            export_dict = {}
+
+            for c in export_from_connections:
+                export_dict[c.from_interface.name] = c
+            for c in export_to_connections:
+                export_dict[c.to_interface.name] = c
+
+
+            # find all the connections to the instance
+            for c in assembly.composition.connections:
+                if c.from_instance == i and c.from_interface.name in export_from_interfaces:
+                    # look up the instance to replace this side of the connection
+                    conn = export_dict[c.from_interface.name]
+                    c.from_instance = conn.to_instance
+                    c.from_interface = conn.to_interface
+
+                elif c.to_instance == i and c.to_interface.name in export_to_interfaces:
+                    conn = export_dict[c.to_interface.name]
+                    c.to_instance = conn.from_instance
+                    c.to_interface = conn.from_interface
+            
+            for inst in composition.instances:
+                inst.name = i.name + '_' + inst.name
+
+            # add the instances and connections from the component to the assembly
+            assembly.composition.instances = assembly.composition.instances + composition.instances
+
+            assembly.composition.connections = assembly.composition.connections + internal_connections
+            
+            assembly.composition.instances.remove(i)
+    
+    return ast
+
+    print '\ninstances'
+    for i in assembly.composition.instances:
+        print i.name, i.address_space
+    print map(lambda x: x.name, assembly.composition.instances)
+    print '\nconnections'
+    for c in assembly.composition.connections:
+        print c.name, ':', c.from_instance.name, c.from_interface.name, '->', c.to_instance.name, c.to_interface.name
+
+    return ast
+
+def inst_test(ast):
+    assembly = [x for x in ast if isinstance(x, AST.Assembly)][0]
+    print '\ninstances'
+    for i in assembly.composition.instances:
+        print i.name, i.address_space
+
+
 
 if __name__ == '__main__':
     sys.exit(main())

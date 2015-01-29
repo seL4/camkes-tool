@@ -210,6 +210,7 @@ class Perspective(object):
     base.'''
     def __init__(self, phase=FILTERS, **kwargs):
         self.kwargs = kwargs
+        print "Perspective", kwargs
         self.derivations = DERIVATIONS[phase]
         if __debug__:
             # When optimisations are not enabled, infer everything possible

@@ -219,17 +219,46 @@ def p_instance_defn(t):
         lineno=t.lexer.lineno)
 
 def p_connection_defn(t):
-    '''connection_defn : connection connector_ref ID LPAREN from ID DOT ID COMMA to ID DOT ID RPAREN SEMI'''
+    '''connection_defn : connection connector_ref ID LPAREN from ID DOT ID COMMA to ID DOT ID RPAREN SEMI
+                       | connection connector_ref ID LPAREN from ID COMMA to ID DOT ID RPAREN SEMI
+                       | connection connector_ref ID LPAREN from ID DOT ID COMMA to ID RPAREN SEMI'''
     connector = t[2]
     name = t[3]
-    from_instance = Reference(t[6], Instance, filename=t.lexer.filename, \
-        lineno=t.lexer.lineno)
-    from_interface = Reference(t[8], Interface, \
-        filename=t.lexer.filename, lineno=t.lexer.lineno)
-    to_instance = Reference(t[11], Instance, filename=t.lexer.filename, \
-        lineno=t.lexer.lineno)
-    to_interface = Reference(t[13], Interface, \
-        filename=t.lexer.filename, lineno=t.lexer.lineno)
+
+    if len(t) == 16:
+        from_instance = Reference(t[6], Instance, filename=t.lexer.filename, \
+            lineno=t.lexer.lineno)
+        from_interface = Reference(t[8], Interface, \
+            filename=t.lexer.filename, lineno=t.lexer.lineno)
+        to_instance = Reference(t[11], Instance, filename=t.lexer.filename, \
+            lineno=t.lexer.lineno)
+        to_interface = Reference(t[13], Interface, \
+            filename=t.lexer.filename, lineno=t.lexer.lineno)
+
+    else:
+        assert len(t) == 14
+        virtual_instance = Instance(Component(), '__virtual__', 
+            filename=t.lexer.filename, lineno=t.lexer.lineno)
+
+        if t[7] == ',':
+            from_instance = virtual_instance
+            from_interface = Reference(t[6], Interface, \
+                filename=t.lexer.filename, lineno=t.lexer.lineno)
+            to_instance = Reference(t[9], Instance, filename=t.lexer.filename, \
+                lineno=t.lexer.lineno)
+            to_interface =  Reference(t[11], Interface, \
+                filename=t.lexer.filename, lineno=t.lexer.lineno)
+        else:
+            assert t[9] == ','
+            from_instance = Reference(t[6], Instance, \
+                filename=t.lexer.filename, lineno=t.lexer.lineno)
+            from_interface = Reference(t[8], Interface, \
+                filename=t.lexer.filename, lineno=t.lexer.lineno)
+            to_instance = virtual_instance
+            to_interface =  Reference(t[11], Interface, \
+                filename=t.lexer.filename, lineno=t.lexer.lineno)
+ 
+
     t[0] = Connection(connector, name, from_instance, from_interface, \
         to_instance, to_interface, filename=t.lexer.filename, \
         lineno=t.lexer.lineno)
@@ -352,7 +381,6 @@ def p_component_defn(t):
                       | composition_sing configuration_sing
                       | configuration_sing composition_sing
                       | composition_sing'''
-    print len(t)
     if len(t) == 1:
         t[0] = ([], False, False, [], [], [], [], [], [], [], [], None, None)
     elif len(t) == 4:
@@ -401,7 +429,6 @@ def p_component_defn(t):
             elif isinstance(t[1], Mutex):
                 mutexes.append(t[1])
             else:
-                print t[1].__class__.__name__
                 assert isinstance(t[1], Semaphore)
                 semaphores.append(t[1])
             t[0] = includes, control, hardware, provides, uses, emits, consumes, \
