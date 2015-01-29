@@ -9,7 +9,6 @@
  #*/
 
 /*# XXX: The functions here are crying out for some model checking. #*/
-#include <assert.h>
 #include <sel4/sel4.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -54,7 +53,7 @@ int /*? me.to_interface.name ?*/__run(void) {
         (void)seL4_Wait(/*? aep ?*/, NULL);
     }
 
-    assert(!"Unreachable");
+    UNREACHABLE();
 }
 
 int /*? me.to_interface.name ?*/_poll(void) {

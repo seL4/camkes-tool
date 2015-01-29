@@ -16,6 +16,7 @@
 #include <camkes/marshal.h>
 #include <sel4/sel4.h>
 #include <camkes/dataport.h>
+#include <utils/util.h>
 
 /*? macros.show_includes(me.to_instance.type.includes) ?*/
 /*? macros.show_includes(me.to_interface.type.includes, '../static/components/' + me.to_instance.type.name + '/') ?*/
@@ -145,5 +146,5 @@ int /*? me.to_interface.name ?*/__run(void) {
         }
     }
 
-    assert(!"Unreachable");
+    UNREACHABLE();
 }
