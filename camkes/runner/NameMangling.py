@@ -210,7 +210,6 @@ class Perspective(object):
     base.'''
     def __init__(self, phase=FILTERS, **kwargs):
         self.kwargs = kwargs
-        print "Perspective", kwargs
         self.derivations = DERIVATIONS[phase]
         if __debug__:
             # When optimisations are not enabled, infer everything possible
@@ -246,7 +245,7 @@ class Perspective(object):
             prev_keys = next_keys
 
     def __setitem__(self, key, value):
-        assert key not in self.kwargs or self.kwargs[key] == value
+        assert key not in self.kwargs or self.kwargs[key] == value, 'aaaaaa'
         # The following assertion is conservative. In the future, it may make
         # sense to set some 'core' strings that we cannot infer.
         assert key in map(lambda x: x.output(), self.derivations), \

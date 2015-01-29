@@ -93,6 +93,7 @@ def _die(debug, s):
 
 def main():
     options = parse_args(constants.TOOL_RUNNER)
+    print 'options', options
 
     # Save us having to pass debugging everywhere.
     die = functools.partial(_die, options.verbosity >= 3)
@@ -323,7 +324,7 @@ def main():
 
     # Instantiate the per-component source and header files.
     for id, i in enumerate(assembly.composition.instances):
-
+        print 'item', options.item
         # Don't generate any code for hardware components.
         if i.type.hardware:
             continue
@@ -340,6 +341,7 @@ def main():
             pds[i.address_space] = pd
 
         for t in ['%s.source' % i.name, '%s.header' % i.name]:
+            print 'source', t
             try:
                 template = templates.lookup(t, i)
                 g = ''
@@ -499,17 +501,21 @@ def main():
         # depend on a fully formed CapDL spec. Guarding this loop with an if
         # is just an optimisation and the conditional can be removed if
         # desired.
+        print CAPDL_FILTERS
         for f in CAPDL_FILTERS:
+            print f.__name__
             try:
                 with profiler('Running CapDL filter %s' % f.__name__):
                     f(ast, obj_space, cspaces, elfs,
                         profiler, options)
             except Exception as inst:
+                print f
                 die('While forming CapDL spec: %s' % str(inst))
 
     # Instantiate any other, miscellaneous template. If we've reached this
     # point, we know the user did not request a code template.
     try:
+        print 'template', options.item
         template = templates.lookup(options.item)
         g = ''
         if template:
@@ -520,7 +526,7 @@ def main():
             done(g)
     except Exception as inst:
         die('While rendering %s: %s' % (options.item, str(inst)))
-
+    
     die('No valid element matching --item %s' % options.item)
 
 def compose_assemblies(ast):
@@ -584,9 +590,9 @@ def resolve_hierarchy(ast):
             export_to_connections = []
             internal_connections = []
             for c in composition.connections:
-                if isinstance(c.from_instance, AST.Instance) and c.from_instance.name == '__virtual__':
+                if c.from_instance.name == '__virtual__':
                     export_from_connections.append(c)
-                elif isinstance(c.to_instance, AST.Instance) and c.to_instance.name == '__virtual__':
+                elif c.to_instance.name == '__virtual__':
                     export_to_connections.append(c)
                 else:
                     internal_connections.append(c)
@@ -618,15 +624,29 @@ def resolve_hierarchy(ast):
             
             for inst in composition.instances:
                 inst.name = i.name + '_' + inst.name
+                inst.address_space = inst.name
 
             # add the instances and connections from the component to the assembly
             assembly.composition.instances = assembly.composition.instances + composition.instances
 
             assembly.composition.connections = assembly.composition.connections + internal_connections
             
-            assembly.composition.instances.remove(i)
-    
-    return ast
+    #        assembly.composition.instances.remove(i)
+
+    for c in filter(lambda x: isinstance(x, AST.Component), ast):
+        if c.composition is not None:
+            unimplemented_interfaces = []
+            for conn in c.composition.connections:
+                if conn.from_instance.name == '__virtual__':
+                    unimplemented_interfaces.append(conn.from_interface)
+                if conn.to_instance.name == '__virtual__':
+                    unimplemented_interfaces.append(conn.to_interface)
+
+            for i in unimplemented_interfaces:
+                if isinstance(i, AST.Provides):
+                    c.provides.remove(i)
+                elif isinstance(i, AST.Uses):
+                    c.uses.remove(i)
 
     print '\ninstances'
     for i in assembly.composition.instances:
