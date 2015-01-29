@@ -245,7 +245,7 @@ class Perspective(object):
             prev_keys = next_keys
 
     def __setitem__(self, key, value):
-        assert key not in self.kwargs or self.kwargs[key] == value, 'aaaaaa'
+        assert key not in self.kwargs or self.kwargs[key] == value
         # The following assertion is conservative. In the future, it may make
         # sense to set some 'core' strings that we cannot infer.
         assert key in map(lambda x: x.output(), self.derivations), \

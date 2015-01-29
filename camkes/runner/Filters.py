@@ -204,7 +204,6 @@ def collapse_shared_frames(ast, obj_space, cspaces, elfs, *_):
     """Find regions in virtual address spaces that are intended to be backed by
     shared frames and adjust the capability distribution to reflect this."""
 
-    print 'start'
     if not elfs:
         # If we haven't been passed any ELF files this step is not relevant yet.
         return
@@ -220,29 +219,22 @@ def collapse_shared_frames(ast, obj_space, cspaces, elfs, *_):
     shared_frames = {}
 
     for i in assembly.composition.instances:
-        print 'in_loop'
         if i.type.hardware:
             continue
-        
-        print 'creating perspective'
+
         perspective = Perspective(instance=i.name, group=i.address_space)
-        print 'created perspective'
+
         elf_name = perspective['elf_name']
-        print elf_name
-        assert elf_name in elfs, 'elf_name not in elfs'
-        print 'a'
+        assert elf_name in elfs
         elf = elfs[elf_name]
 
         # Find this instance's page directory.
         pd_name = perspective['pd']
         pds = [x for x in obj_space.spec.objs if x.name == pd_name]
         assert len(pds) == 1
-        print 'b'
         pd, = pds
 
-        print 'before dataport loop'
         for d in i.type.dataports:
-            print 'in dataport loop'
 
             # Find the connection that associates this dataport with another.
             connections = [x for x in assembly.composition.connections if \
@@ -258,10 +250,8 @@ def collapse_shared_frames(ast, obj_space, cspaces, elfs, *_):
                     connections[0].from_interface == d:
                 direction = 'from'
             else:
-                assert connections[0].to_instance == i, 'aaa'
-                print 'c'
+                assert connections[0].to_instance == i
                 assert connections[0].to_interface == d
-                print 'd'
                 direction = 'to'
 
             # Reverse the logic in the Makefile template.
@@ -271,7 +261,7 @@ def collapse_shared_frames(ast, obj_space, cspaces, elfs, *_):
             vaddr = get_symbol_vaddr(elf, sym)
             assert vaddr is not None, 'failed to find dataport symbol \'%s\'' \
                 ' in ELF %s' % (sym, elf_name)
-            assert vaddr != 0, 'e'
+            assert vaddr != 0
             sz = get_symbol_size(elf, sym)
             assert sz != 0
 
@@ -361,7 +351,6 @@ def collapse_shared_frames(ast, obj_space, cspaces, elfs, *_):
                 f = shared_frames[shm_keys[0]][j]
                 pt.slots[p_index + j] = Cap(f, read, write, execute)
                 obj_space.relabel(conn_name, f)
-    print 'collapse_shared_frames done'
 
 def replace_dma_frames(ast, obj_space, cspaces, elfs, *_):
     '''Locate the DMA pool (a region that needs to have frames whose mappings

@@ -93,7 +93,6 @@ def _die(debug, s):
 
 def main():
     options = parse_args(constants.TOOL_RUNNER)
-    print 'options', options
 
     # Save us having to pass debugging everywhere.
     die = functools.partial(_die, options.verbosity >= 3)
@@ -324,7 +323,6 @@ def main():
 
     # Instantiate the per-component source and header files.
     for id, i in enumerate(assembly.composition.instances):
-        print 'item', options.item
         # Don't generate any code for hardware components.
         if i.type.hardware:
             continue
@@ -333,7 +331,6 @@ def main():
             cnode = obj_space.alloc(seL4_CapTableObject,
                 name='cnode_%s' % i.address_space, label=i.address_space)
             cspaces[i.address_space] = CSpaceAllocator(cnode)
-            print 'a'
             p = Perspective(phase=RUNNER, instance=i.name,
                 group=i.address_space)
             pd = obj_space.alloc(seL4_PageDirectoryObject, name=p['pd'],
@@ -341,7 +338,6 @@ def main():
             pds[i.address_space] = pd
 
         for t in ['%s.source' % i.name, '%s.header' % i.name]:
-            print 'source', t
             try:
                 template = templates.lookup(t, i)
                 g = ''
@@ -501,21 +497,17 @@ def main():
         # depend on a fully formed CapDL spec. Guarding this loop with an if
         # is just an optimisation and the conditional can be removed if
         # desired.
-        print CAPDL_FILTERS
         for f in CAPDL_FILTERS:
-            print f.__name__
             try:
                 with profiler('Running CapDL filter %s' % f.__name__):
                     f(ast, obj_space, cspaces, elfs,
                         profiler, options)
             except Exception as inst:
-                print f
                 die('While forming CapDL spec: %s' % str(inst))
 
     # Instantiate any other, miscellaneous template. If we've reached this
     # point, we know the user did not request a code template.
     try:
-        print 'template', options.item
         template = templates.lookup(options.item)
         g = ''
         if template:
@@ -575,7 +567,6 @@ def compose_assemblies(ast):
     return ast
 
 def resolve_hierarchy(ast):
-    print "Resolving hierarchy..."
     assembly = [x for x in ast if isinstance(x, AST.Assembly)][0]
 
     for i in assembly.composition.instances:
@@ -631,8 +622,6 @@ def resolve_hierarchy(ast):
 
             assembly.composition.connections = assembly.composition.connections + internal_connections
             
-    #        assembly.composition.instances.remove(i)
-
     for c in filter(lambda x: isinstance(x, AST.Component), ast):
         if c.composition is not None:
             unimplemented_interfaces = []
@@ -647,6 +636,8 @@ def resolve_hierarchy(ast):
                     c.provides.remove(i)
                 elif isinstance(i, AST.Uses):
                     c.uses.remove(i)
+
+            print c
 
     print '\ninstances'
     for i in assembly.composition.instances:
