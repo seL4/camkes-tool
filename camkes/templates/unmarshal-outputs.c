@@ -29,7 +29,7 @@ static
 /*? function ?*/(
 /*- set ret = c_symbol('return') -*/
 /*- if return_type and return_type.array -*/
-  size_t * /*? ret ?*/_sz,
+  size_t * /*? ret ?*/_sz
   /*- if len(output_parameters) > 0 -*/
     ,
   /*- endif -*/
