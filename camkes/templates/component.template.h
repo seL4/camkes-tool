@@ -31,11 +31,28 @@ const char *get_instance_name(void);
 /*- for u in me.type.uses + me.type.provides -*/
     /*- for m in u.type.methods -*/
         /*- if m.return_type -*/
-            /*? show(m.return_type) ?*/
+            /*- if m.return_type.array -*/
+                /*- if isinstance(m.return.type, camkes.ast.Type) and m.return_type.type == 'string' -*/
+                    char **
+                /*- else -*/
+                    /*? show(m.return_type) ?*/ *
+                /*- endif -*/
+            /*- elif isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string' -*/
+                char *
+            /*- else -*/
+                /*? show(m.return_type) ?*/
+            /*- endif -*/
         /*- else -*/
             void
         /*- endif -*/
         /*? u.name ?*/_/*? m.name ?*/(
+            /*- if m.return_type and m.return_type.array -*/
+                /*- set ret_sz = c_symbol('ret_sz') -*/
+                size_t * /*? ret_sz ?*/
+                /*- if len(m.parameters) > 0 -*/
+                    ,
+                /*- endif -*/
+            /*- endif -*/
             /*? ', '.join(map(show, m.parameters)) ?*/)
             /*- if u.optional -*/ __attribute__((weak)) /*- endif -*/;
     /*- endfor -*/

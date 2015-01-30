@@ -93,6 +93,13 @@ int /*? me.from_interface.name ?*/__run(void) {
     void
 /*- endif -*/
 /*? me.from_interface.name ?*/_/*? m.name ?*/(
+/*- set ret_sz = c_symbol('ret_sz') -*/
+/*- if m.return_type and m.return_type.array -*/
+    size_t * /*? ret_sz ?*/
+    /*- if len(m.parameters) > 0 -*/
+        ,
+    /*- endif -*/
+/*- endif -*/
     /*? ', '.join(map(show, m.parameters)) ?*/
 ) {
 
@@ -172,10 +179,8 @@ int /*? me.from_interface.name ?*/__run(void) {
     /*- set function = '%s_unmarshal' % m.name -*/
     /*- set return_type = m.return_type -*/
     /*- set ret = c_symbol('return') -*/
-    /*- set ret_sz = c_symbol('ret_sz') -*/
     /*- if return_type -*/
       /*- if return_type.array -*/
-        size_t /*? ret_sz ?*/;
         /*- if isinstance(return_type, camkes.ast.Type) and return_type.type == 'string' -*/
           char ** /*? ret ?*/ =
         /*- else -*/
