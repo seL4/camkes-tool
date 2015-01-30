@@ -25,16 +25,6 @@ TEMPLATES = {
             'header':'component.template.h',
             'simple':'component.simple.c',
         },
-        Guard(lambda x: isinstance(x, Connection) and x.type.name == 'ExportRPC'):{
-            # Direction
-            'from':{
-                # Item
-                'source':'seL4RPC-from.template.c',
-            },
-            'to':{
-                'source':'seL4RPC-to.template.c',
-            },
-        },
         Guard(lambda x: isinstance(x, Connection) and x.type.name == 'seL4RPC'):{
             # Direction
             'from':{

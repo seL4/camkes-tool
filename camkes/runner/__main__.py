@@ -306,7 +306,6 @@ def main():
     if conflict:
         die('Attempt to set restricted option(s) %s' % ', '.join(conflict))
 
-
     # We're now ready to instantiate the template the user requested, but there
     # are a few wrinkles in the process. Namely,
     #  1. Template instantiation needs to be done in a deterministic order. The
@@ -518,7 +517,7 @@ def main():
             done(g)
     except Exception as inst:
         die('While rendering %s: %s' % (options.item, str(inst)))
-    
+
     die('No valid element matching --item %s' % options.item)
 
 def compose_assemblies(ast):
