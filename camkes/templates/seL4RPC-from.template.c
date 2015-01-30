@@ -8,6 +8,7 @@
  *# @TAG(NICTA_BSD)
  #*/
 
+#define _POSIX_SOURCE /* stpcpy */
 #include <sel4/sel4.h>
 #include <assert.h>
 #include <stddef.h>
@@ -53,7 +54,12 @@ int /*? me.from_interface.name ?*/__run(void) {
 /*- endif -*/
 /*- set timing_method = timing_method[0] if len(timing_method) > 0 else None -*/
 
+/*- set methods_len = len(me.from_interface.type.methods) -*/
+
 /*- for i, m in enumerate(me.from_interface.type.methods) -*/
+
+/*- set input_parameters = filter(lambda('x: x.direction.direction in [\'in\', \'inout\']'), m.parameters) -*/
+/*- set output_parameters = filter(lambda('x: x.direction.direction in [\'out\', \'inout\']'), m.parameters) -*/
 
 /*# If we're meant to be timing this method, map its timestamps to the real
  *# measurement functionality. Otherwise, make this a no-op.
@@ -63,6 +69,21 @@ int /*? me.from_interface.name ?*/__run(void) {
 /*- else -*/
     #define _TIMESTAMP(x) /* nothing */
 /*- endif -*/
+
+/*- set name = m.name -*/
+/*- set function = '%s_marshal' % m.name -*/
+/*- set buffer = BUFFER_BASE -*/
+/*- set size = 'seL4_MsgMaxLength * sizeof(seL4_Word)' -*/
+/*- set method_index = i -*/
+/*- include 'marshal-inputs.c' -*/
+
+/*- set name = m.name -*/
+/*- set function = '%s_unmarshal' % m.name -*/
+/*- set buffer = BUFFER_BASE -*/
+/*- set size = 'seL4_MsgMaxLength * sizeof(seL4_Word)' -*/
+/*- set method_index = i -*/
+/*- set return_type = m.return_type -*/
+/*- include 'unmarshal-outputs.c' -*/
 
 /*- if m.return_type -*/
     /*? show(m.return_type) ?*/
@@ -93,33 +114,16 @@ int /*? me.from_interface.name ?*/__run(void) {
 
     _TIMESTAMP("lock acquired");
 
-    /*- set buffer = c_symbol('buffer') -*/
-    void * /*? buffer ?*/ = (void*)/*? BUFFER_BASE ?*/;
-
-    /* Marshal the method index */
-    /*- set call = c_symbol('call') -*/
-    int /*? call ?*/ = /*? i ?*/;
-    /*? buffer ?*/ = camkes_marshal(/*? BUFFER_BASE ?*/, &/*? call ?*/, sizeof(/*? call ?*/));
-
-    /* Marshal all the parameters */
-    /*- for p in m.parameters -*/
-        /*- if p.direction.direction in ['inout', 'in'] -*/
-            /*- if p.array -*/
-                /*? macros.marshal_array(buffer, p.name, 'sizeof(%s)' % show(p.type), p.direction.direction == 'inout') ?*/
-            /*- elif p.type.type == 'string' -*/
-                /*? macros.marshal_string(buffer, p.name, p.direction.direction == 'inout') ?*/
-            /*- else -*/
-                /*? macros.marshal(buffer, p.name, 'sizeof(%s)' % show(p.type), p.direction.direction == 'inout') ?*/
-            /*- endif -*/
-        /*- endif -*/
-    /*- endfor -*/
+    /*- set function = '%s_marshal' % m.name -*/
+    /*- set length = c_symbol('length') -*/
+    unsigned int /*? length ?*/ = /*- include 'call-marshal-inputs.c' -*/;
 
     _TIMESTAMP("marshalling done");
 
     /* Call the endpoint */
     /*- set info = c_symbol('info') -*/
     seL4_MessageInfo_t /*? info ?*/ = seL4_MessageInfo_new(0, 0, 0,
-        ROUND_UP(/*? buffer ?*/ - (void*)/*? BUFFER_BASE ?*/, sizeof(seL4_Word)) / sizeof(seL4_Word));
+        ROUND_UP(/*? length ?*/, sizeof(seL4_Word)) / sizeof(seL4_Word));
 
     seL4_Send(/*? ep ?*/, /*? info ?*/);
     (void)seL4_Wait(/*? ep ?*/, NULL);
@@ -136,32 +140,25 @@ int /*? me.from_interface.name ?*/__run(void) {
     _TIMESTAMP("lock released");
 
     /* Unmarshal the response */
-    /*? buffer ?*/ = (void*)/*? BUFFER_BASE ?*/;
-    /*- if m.return_type -*/
-        /*- set ret = c_symbol('ret') -*/
-        /*? show(m.return_type) ?*/ /*? ret ?*/;
-        /*- if m.return_type.type == 'string' -*/
-            /*? macros.unmarshal_string(buffer, ret, True) ?*/
+    /*- set function = '%s_unmarshal' % m.name -*/
+    /*- set return_type = m.return_type -*/
+    /*- set ret = c_symbol('return') -*/
+    /*- set ret_sz = c_symbol('ret_sz') -*/
+    /*- if return_type -*/
+      /*- if return_type.array -*/
+        size_t /*? ret_sz ?*/;
+        /*- if isinstance(return_type, camkes.ast.Type) and return_type.type == 'string' -*/
+          char ** /*? ret ?*/ =
         /*- else -*/
-            /*? macros.unmarshal(buffer, ret, 'sizeof(%s)' % show(m.return_type)) ?*/
+          /*? show(return_type) ?*/ * /*? ret ?*/ =
         /*- endif -*/
+      /*- elif isinstance(return_type, camkes.ast.Type) and return_type.type == 'string' -*/
+        char * /*? ret ?*/ =
+      /*- else -*/
+        /*? show(return_type) ?*/ /*? ret ?*/ =
+      /*- endif -*/
     /*- endif -*/
-
-    /*- for p in m.parameters -*/
-        /*- if p.direction.direction in ['inout', 'out'] -*/
-            /*- if p.array -*/
-    	        /*- if p.direction.direction == 'out' -*/
-    	            /*? '*%s' % p.name ?*/ = NULL;
-    		    /*? '*%s_sz' % p.name ?*/ = 0;
-    	        /*- endif -*/
-                /*? macros.unmarshal_array(buffer, p.name, 'sizeof(%s)' % show(p.type), True, show(p.type)) ?*/
-            /*- elif p.type.type == 'string' -*/
-                /*? macros.unmarshal_string(buffer, p.name, p.direction.direction == 'out', True) ?*/
-            /*- else -*/
-                /*? macros.unmarshal(buffer, p.name, 'sizeof(%s)' % show(p.type), True) ?*/
-            /*- endif -*/
-        /*- endif -*/
-    /*- endfor -*/
+    /*- include 'call-unmarshal-outputs.c' -*/;
 
     _TIMESTAMP("unmarshalling done");
 
