@@ -192,12 +192,12 @@ class Component(ADLObject):
         self.includes = includes or []
         self.control = control
         self.hardware = hardware
-        self.provides = provides
-        self.uses = uses
-        self.emits = emits
-        self.consumes = consumes
-        self.dataports = dataports
-        self.attributes = attributes
+        self.provides = provides or []
+        self.uses = uses or []
+        self.emits = emits or []
+        self.consumes = consumes or []
+        self.dataports = dataports or []
+        self.attributes = attributes or []
         self.mutexes = mutexes or []
         self.semaphores = semaphores or []
 
