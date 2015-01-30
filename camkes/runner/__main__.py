@@ -593,17 +593,10 @@ def merge_assembly(dest, source, instance):
        interface of the given instance are changed to connect to the
        actual component instance that implements that interface'''
        
-    # copy instances
-    for i in source.composition.instances:
-        dest.composition.instances.append(i)
-
-    # copy groups
-    for g in source.composition.groups:
-        dest.composition.groups.append(g)
-    
-    # copy configuration
-    for s in source.configuration.settings:
-        dest.configuration.settings.append(s)
+    # copy instances, groups and configuration settings
+    dest.composition.instances.extend(source.composition.instances)
+    dest.composition.groups.extend(source.composition.groups)
+    dest.configuration.settings.extend(source.configuration.settings)
 
     # create dict mapping exported interface name -> source connector
     exports = {}
@@ -665,17 +658,15 @@ def generate_assembly(component):
     composition = component.composition
     configuration = component.configuration
 
-    # copy the connections, groups and configuration
-    for c in composition.connections:
-        assembly.composition.connections.append(c)
-    for g in composition.groups:
-        assembly.composition.groups.append(g)
+    # copy the instances, connections, groups and configuration
+    assembly.composition.instances.extend(composition.instances)
+    assembly.composition.connections.extend(composition.connections)
+    assembly.composition.groups.extend(composition.groups)
 
     if configuration is not None:
-        for s in configuration.settings:
-            assembly.configuration.settings.append(s)
+        assembly.configuration.settings.extend(configuration.settings)
     
-    # copy the instances, first recursively resolving any hierarchy
+    # recursively resolve hierarchy of instances
     for i in composition.instances:
 
         # if i is an instance of a compound component
@@ -689,9 +680,6 @@ def generate_assembly(component):
             
             # merge it into the current assembly
             merge_assembly(assembly, sub_assembly, i)
-
-        # add the instance to the assembly
-        assembly.composition.instances.append(i)
 
     return assembly
 
