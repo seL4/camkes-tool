@@ -640,14 +640,14 @@ def rename_assembly(prefix, assembly):
     '''prepends a given prefix to all the elements of the assembly'''
 
     for i in assembly.composition.instances:
-        i.name = prefix + "_" + i.name
+        i.name = '%s_%s' % (prefix, i.name)
         i.address_space = i.name
     for c in assembly.composition.connections:
-        c.name = prefix + "_" + c.name
+        c.name = '%s_%s' % (prefix, c.name)
     for g in assembly.composition.groups:
-        g.name = prefix + "_" + g.name
+        g.name = '%s_%s' % (prefix, g.name)
     for s in assembly.configuration.settings:
-        s.instance = prefix + "_" + s.instance
+        s.instance = '%s_%s' % (prefix, s.instance)
 
 def generate_assembly(component):
     '''Given something that has a composition and optionally a configuration
