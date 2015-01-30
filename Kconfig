@@ -284,4 +284,48 @@ menu "CAmkES Options"
         of a function mapping these to final policy labels. The final labels
         are then used to reason about the security properties of a system.
 
+    choice
+    prompt "Error handling"
+    default CAMKES_ERROR_HANDLER_CONFIGURABLE
+    help
+        Select the mode of error handling used in the glue code. It should only
+        be necessary to adjust this setting if you are doing verification.
+        Otherwise, the default error handling mechanism allows for
+        configuration at runtime.
+
+    config CAMKES_ERROR_HANDLER_CONFIGURABLE
+    bool "Standard"
+    help
+        Standard error handling mechanism, that is configurable by the user at
+        runtime. See the documentation for details of the API for this.
+
+    config CAMKES_ERROR_HANDLER_GUARD
+    bool "Guards"
+    help
+        Use verification-visible guards at the site of each potential error.
+        Note that this assumes that none of the error conditions are possible.
+        If you are trying to verify code, you will be forced to prove that none
+        of the error conditions can ever actually occur.
+
+    config CAMKES_ERROR_HANDLER_ABORT
+    bool "Abort"
+    help
+        Call "abort" inline when an error occurs. For debugging purposes, this
+        is probably not the behaviour you want as it will give you no
+        information about the error. The standard error handling mechanism has
+        a nicer default for debugging. This mode is primarily useful when you
+        want to verify code whose error handlers are unreachable for
+        non-trivial reasons.
+
+    config CAMKES_ERROR_HANDLER_DISCARD
+    bool "Discard"
+    help
+        Perform the "discard" action on any error that occurs. The advantage of
+        this over simply configuring this behaviour via the standard mechanism
+        is that you will not need to reason about any of the complicated error
+        handling structures or control flow. This has no implementation
+        advantages over the standard mechanism.
+
+    endchoice
+
 endmenu

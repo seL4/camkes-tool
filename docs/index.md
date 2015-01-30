@@ -1310,6 +1310,11 @@ The following types are available at runtime from the C context of a component:
 > The underlying type of a dataport. A user is never expected to instantiate
   one of these manually, but they are free to do so if they wish.
 
+**`camkes_error_handler_t`** (`#include <camkes/error.h>`)
+> The type of an error handler for dealing with errors originating in glue
+  code. For more information about this see
+  [Error Handling](#Error%20Handling).
+
 **`camkes_tls_t`** (`#include <camkes/tls.h>`)
 > Thread-local storage metadata. This captures some necessary information for
   constructing a thread context inside templates. A user is never expected to
@@ -1329,6 +1334,13 @@ The following variables are available:
   specification. As mentioned previously, the default type is `Buf`.
 
 The following functions are available at runtime:
+
+**`camkes_error_handler_t camkes_register_error_handler(camkes_error_handler_t handler)`** (`#include <camkes/error.h>`)<br/>
+**`camkes_error_handler_t `&nbsp;_`interface`_`_register_error_handler(camkes_error_handler_t handler)`** (`#include <camkes/error.h>`)
+> Register a component-wide or interface-specific error handler, respectively.
+  These functions return the previous error handler or `NULL` if there was no
+  previously installed error handler. For more information see
+  [Error Handling](#Error%20Handling).
 
 **`dataport_ptr_t dataport_wrap_ptr(void *ptr)`** (`#include <camkes/dataport.h>`)<br/>
 **`void *dataport_unwrap_ptr(dataport_ptr_t ptr)`** (`#include <camkes/dataport.h>`)
@@ -1521,6 +1533,58 @@ Within the component you must allocate and release pointers into this region
 with the `camkes_dma_alloc_page` and `camkes_dma_free_page` functions described
 above. Note that if you declare a DMA pool that is not page-aligned (4K on the
 platforms we support) it will automatically be rounded up.
+
+### Error Handling
+
+Some runtime conditions can lead to an error in the glue code. For example, if
+an interface accepts a string parameter and the caller passes a string that is
+too large to fit in the IPC buffer. Errors can also arise in glue code if your
+user code is not well-behaved and attempts to operate directly on capabilities.
+The glue code attempts to handle all errors occurring from user mistakes and
+malicious user code, to the best of its abilities. It also attempts to handle
+errors that occur as a result of unexpected runtime conditions. For example,
+accesses to a device that unexpectedly is not found at runtime.
+
+The mode of error handling can be configured at compile-time, but the default
+mode is generally the only relevant one you will need. It allows for runtime
+handling of errors. By default, all errors cause a diagnostic message and a
+system halt on a debug kernel. To alter this behaviour, user code can call the
+function `camkes_register_error_handler` (described in
+[Runtime API](#Runtime%20API)) and provide their own error handling function.
+The user's error handling will thenceforth be invoked by glue code whenever an
+error is detected. The error handling function should return one of the
+following values, documented further in `camkes/error.h`, that indicate to the
+glue code how it should proceed:
+
+* `CEA_DISCARD` — Ignore whatever message or request was currently being
+  handled and return to the original calling function of the user or an event
+  loop as appropriate. This is typically the failure mode you want for servers
+  that are intended to be robust against denial-of-service attacks from
+  malicious clients.
+
+* `CEA_IGNORE` — Pretend the error was not detected and continue executing.
+  This is almost never the response you want to take, but it can be useful for
+  debugging or masking spurious errors.
+
+* `CEA_ABORT` — Terminate the current thread with failure status. This is a
+  fail-stop response, though note it will not halt the rest of the system. If
+  the glue code is currently handling a request on behalf of a client, the
+  client will likely end up stuck blocked waiting for a response.
+
+* `CEA_HALT` — Halt the entire system. This is only possible on a debug
+  kernel. On a release kernel it will act identically to `CEA_ABORT`.
+
+To conditionally determine which response to return, the error handler is
+passed a structure that describes the error that was detected. For details on
+this structure, refer to `camkes/error.h`.
+
+The mechanism just described allows for handling errors at a component-wide
+level. In a more complicated component, there are often notional subsystems
+that want to be able to handle their own errors independently. For this there
+are interface-specific error handlers. Each interface has its own error handler
+registration function as _`interface`_`_register_error_handler`. Any interface that
+does not have a registered interface-specific error handler will default to the
+component-wide error handler.
 
 ## Templating
 

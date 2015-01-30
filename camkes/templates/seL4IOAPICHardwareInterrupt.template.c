@@ -9,10 +9,14 @@
  #*/
 
 #include <assert.h>
+#include <camkes/error.h>
 #include <sel4/sel4.h>
 #include <utils/util.h>
 
 /*? macros.show_includes(me.to_instance.type.includes) ?*/
+
+/*- set instance = me.to_instance.name -*/
+/*- set interface = me.to_interface.name -*/
 
 /*- set attr = "%s_attributes" % me.from_interface.name -*/
 /*- set irq= [] -*/
@@ -27,6 +31,10 @@
     /*- endif -*/
 /*- endfor -*/
 /*- set lock = alloc('lock', seL4_AsyncEndpointObject, read=True, write=True) -*/
+
+/* Interface-specific error handling */
+/*- set error_handler = c_symbol('error_handler') -*/
+/*- include 'error-handler.c' -*/
 
 #define MAX_CALLBACKS 10
 
@@ -103,8 +111,17 @@ int /*? me.to_interface.name ?*/_reg_callback(void (*callback)(void*), void *arg
     for (int i = 0; i < MAX_CALLBACKS; ++i) {
         if (CAS(&callbacks[i], NULL, callback) == NULL) {
             callback_args[i] = arg;
-	    error = seL4_IRQHandler_Ack(/*? irq[0][0] ?*/);
-	    assert(!error);
+            error = seL4_IRQHandler_Ack(/*? irq[0][0] ?*/);
+            ERR_IF(error != 0, /*? error_handler ?*/, ((camkes_error_t){
+                    .type = CE_SYSCALL_FAILED,
+                    .instance = "/*? instance ?*/",
+                    .interface = "/*? interface ?*/",
+                    .description = "failed to acknowledge IRQ",
+                    .syscall = IRQAckIRQ,
+                    .error = error,
+                }), ({
+                    return -1;
+                }));
             return 0;
         }
     }

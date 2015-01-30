@@ -11,12 +11,14 @@
 #define _POSIX_SOURCE /* stpcpy */
 #include <sel4/sel4.h>
 #include <assert.h>
+#include <limits.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <camkes/marshal.h>
 #include <camkes/dataport.h>
+#include <camkes/error.h>
 #include <camkes/timing.h>
 #include <sync/sem-bare.h>
 
@@ -27,6 +29,14 @@
 
 /*- set BUFFER_BASE = c_symbol('BUFFER_BASE') -*/
 #define /*? BUFFER_BASE ?*/ ((void*)&seL4_GetIPCBuffer()->msg[0])
+
+/*- set methods_len = len(me.from_interface.type.methods) -*/
+/*- set instance = me.from_instance.name -*/
+/*- set interface = me.from_interface.name -*/
+
+/* Interface-specific error handling */
+/*- set error_handler = c_symbol('error_handler') -*/
+/*- include 'error-handler.c' -*/
 
 /*- if not options.frpc_lock_elision or len([me.from_instance.type.control] + me.from_instance.type.provides + me.from_instance.type.consumes) > 1 -*/
     /*# See below for an explanation of this conditional. #*/
@@ -53,8 +63,6 @@ int /*? me.from_interface.name ?*/__run(void) {
     /*- endif -*/
 /*- endif -*/
 /*- set timing_method = timing_method[0] if len(timing_method) > 0 else None -*/
-
-/*- set methods_len = len(me.from_interface.type.methods) -*/
 
 /*- for i, m in enumerate(me.from_interface.type.methods) -*/
 
@@ -83,6 +91,7 @@ int /*? me.from_interface.name ?*/__run(void) {
 /*- set size = 'seL4_MsgMaxLength * sizeof(seL4_Word)' -*/
 /*- set method_index = i -*/
 /*- set return_type = m.return_type -*/
+/*- set allow_trailing_data = False -*/
 /*- include 'unmarshal-outputs.c' -*/
 
 /*- if m.return_type -*/
@@ -124,6 +133,21 @@ int /*? me.from_interface.name ?*/__run(void) {
     /*- set function = '%s_marshal' % m.name -*/
     /*- set length = c_symbol('length') -*/
     unsigned int /*? length ?*/ = /*- include 'call-marshal-inputs.c' -*/;
+    if (unlikely(/*? length ?*/ == UINT_MAX)) {
+        /* Error in marshalling; bail out. */
+        /*- if m.return_type -*/
+            /*- if m.return_type.array or (isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string')  -*/
+                return NULL;
+            /*- else -*/
+                /*- set ret = c_symbol() -*/
+                /*? show(m.return_type) ?*/ /*? ret ?*/;
+                memset(& /*? ret ?*/, 0, sizeof(/*? ret ?*/));
+                return /*? ret ?*/;
+            /*- endif -*/
+        /*- else -*/
+            return;
+        /*- endif -*/
+    }
 
     _TIMESTAMP("marshalling done");
 
@@ -133,7 +157,7 @@ int /*? me.from_interface.name ?*/__run(void) {
         ROUND_UP(/*? length ?*/, sizeof(seL4_Word)) / sizeof(seL4_Word));
 
     seL4_Send(/*? ep ?*/, /*? info ?*/);
-    (void)seL4_Wait(/*? ep ?*/, NULL);
+    /*? info ?*/ = seL4_Wait(/*? ep ?*/, NULL);
 
     _TIMESTAMP("communication done");
 
@@ -147,23 +171,41 @@ int /*? me.from_interface.name ?*/__run(void) {
     _TIMESTAMP("lock released");
 
     /* Unmarshal the response */
+    /*- set size = c_symbol('size') -*/
+    unsigned int /*? size ?*/ = seL4_MessageInfo_get_length(/*? info ?*/) * sizeof(seL4_Word);
+
     /*- set function = '%s_unmarshal' % m.name -*/
     /*- set return_type = m.return_type -*/
     /*- set ret = c_symbol('return') -*/
     /*- if return_type -*/
       /*- if return_type.array -*/
         /*- if isinstance(return_type, camkes.ast.Type) and return_type.type == 'string' -*/
-          char ** /*? ret ?*/ =
+          char **
         /*- else -*/
-          /*? show(return_type) ?*/ * /*? ret ?*/ =
+          /*? show(return_type) ?*/ *
         /*- endif -*/
       /*- elif isinstance(return_type, camkes.ast.Type) and return_type.type == 'string' -*/
-        char * /*? ret ?*/ =
+        char *
       /*- else -*/
-        /*? show(return_type) ?*/ /*? ret ?*/ =
+        /*? show(return_type) ?*/
       /*- endif -*/
+      /*? ret ?*/;
     /*- endif -*/
-    /*- include 'call-unmarshal-outputs.c' -*/;
+    /*- set err = c_symbol('error') -*/
+    int /*? err ?*/ = /*- include 'call-unmarshal-outputs.c' -*/;
+    if (unlikely(/*? err ?*/ != 0)) {
+        /* Error in unmarshalling; bail out. */
+        /*- if m.return_type -*/
+            /*- if m.return_type.array or (isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string')  -*/
+                return NULL;
+            /*- else -*/
+                memset(& /*? ret ?*/, 0, sizeof(/*? ret ?*/));
+                return /*? ret ?*/;
+            /*- endif -*/
+        /*- else -*/
+            return;
+        /*- endif -*/
+    }
 
     _TIMESTAMP("unmarshalling done");
 
