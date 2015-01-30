@@ -637,7 +637,7 @@ def merge_assembly(dest, source, instance):
             c.to_interface = sc.to_interface
 
 def rename_assembly(prefix, assembly):
-    '''prepends a given prefix to all the elemnets of the assembly'''
+    '''prepends a given prefix to all the elements of the assembly'''
 
     for i in assembly.composition.instances:
         i.name = prefix + "_" + i.name
