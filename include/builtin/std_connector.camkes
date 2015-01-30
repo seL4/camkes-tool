@@ -89,6 +89,11 @@ connector seL4RPCEvent {
 	to Event consumer_inf;
 }
 
+connector ExportAsync {
+	from Event user_inf;
+	to Event provider_inf;
+}
+
 /**
  * Asynchronous event export connector
  * 
@@ -114,12 +119,13 @@ connector seL4RPC {
 	from Procedure user_inf;
 	to Procedure provider_inf;
 }
-connector ExportRPC {
+
+connector seL4RPCCall {
 	from Procedure user_inf;
 	to Procedure provider_inf;
 }
 
-connector seL4RPCCall {
+connector ExportRPC {
 	from Procedure user_inf;
 	to Procedure provider_inf;
 }
@@ -163,6 +169,10 @@ connector seL4SharedData {
 	to Dataport provider_data;
 }
 
+connector ExportData {
+	from Dataport user_data;
+	to Dataport provider_data;
+}
 /**
  * Dataport export connector
  * 

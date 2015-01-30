@@ -568,11 +568,13 @@ def compose_assemblies(ast):
 
 def resolve_hierarchy(ast):
     # find the assembly
-    assembly = [x for x in ast if isinstance(x, AST.Assembly)][0]
+    assembly = [x for x in ast if isinstance(x, AST.Assembly)]
+    assert len(assembly) == 1
+    assembly = assembly[0]
     
     # modify the ast to resolve the hierarchy
-    assembly = generate_assembly_to_merge(deepcopy(assembly))
-    orig_ast = ast
+    assembly = generate_assembly(deepcopy(assembly))
+    
     # remove the assembly from the ast
     ast = [x for x in ast if not isinstance(x, AST.Assembly)]
 
@@ -582,95 +584,16 @@ def resolve_hierarchy(ast):
     # remove all the component interfaces with virtual usage
     for c in [x for x in ast if isinstance(x, AST.Component)]:
         remove_virtual_interfaces(c)
-        print c
-    for c in [x for x in orig_ast if isinstance(x, AST.Component)]:
-        print c
-
-    print "settings", assembly.configuration.settings
 
     return ast
 
-def resolve_hierarchy_rec(assembly, depth):
-    print 'resolve_hierarchy_rec', depth
-    print assembly.__class__.__name__
-    for i in assembly.composition.instances:
-        if i.type.composition is not None:
-            # i is an instance of a component with a composition
-
-            # the component of i may instantiate compound components
-            resolve_hierarchy_rec(i.type, depth + 1)
-
-            # copy the composition as there may be several instances
-            composition = deepcopy(i.type.composition)
-
-            # find all the exported connections
-            export_from_connections = []
-            export_to_connections = []
-            internal_connections = []
-            for c in composition.connections:
-                if c.from_instance.name == '__virtual__':
-                    export_from_connections.append(c)
-                elif c.to_instance.name == '__virtual__':
-                    export_to_connections.append(c)
-                else:
-                    internal_connections.append(c)
-
-            export_from_interfaces = map(lambda x: x.from_interface.name, export_from_connections)
-            export_to_interfaces = map(lambda x: x.to_interface.name, export_to_connections)
-
-            # create a dict mapping interface names to instance
-            export_dict = {}
-
-            for c in export_from_connections:
-                export_dict[c.from_interface.name] = c
-            for c in export_to_connections:
-                export_dict[c.to_interface.name] = c
-
-
-            # find all the connections to the instance
-            for c in assembly.composition.connections:
-                if c.from_instance == i and c.from_interface.name in export_from_interfaces:
-                    # look up the instance to replace this side of the connection
-                    conn = export_dict[c.from_interface.name]
-                    c.from_instance = conn.to_instance
-                    c.from_interface = conn.to_interface
-
-                elif c.to_instance == i and c.to_interface.name in export_to_interfaces:
-                    conn = export_dict[c.to_interface.name]
-                    c.to_instance = conn.from_instance
-                    c.to_interface = conn.from_interface
-            
-            for inst in composition.instances:
-                inst.name = i.name + '_' + inst.name
-                inst.address_space = inst.name
-
-            for conn in internal_connections:
-                conn.name = i.name + '_' + conn.name
-
-            for group in composition.groups:
-                group.name = i.name + '_' + group.name
-
-
-            # add the instances and connections from the component to the assembly
-            assembly.composition.instances = assembly.composition.instances + composition.instances
-            assembly.composition.connections = assembly.composition.connections + internal_connections
-            assembly.composition.groups = assembly.composition.groups + composition.groups
-
-            if i.type.configuration is not None:
-                configuration = deepcopy(i.type.configuration)
-
-                for s in configuration.settings:
-                    s.instance = i.name + "_" + s.instance
-
-                if assembly.configuration is None:
-                    assembly.configuration = Configuration()
-
-                assembly.configuration.settings = assembly.configuration.settings + configuration.settings
-
-    if isinstance(assembly, AST.Component):
-        remove_virtual_interfaces(assembly)
-    
 def merge_assembly(dest, source, instance):
+    '''Copies all the assembly elements from source into dest, where
+       instance is a composite component instance in dest, whose component's
+       assembly is source. Any connectors in dest which connect an exported
+       interface of the given instance are changed to connect to the
+       actual component instance that implements that interface'''
+       
     # copy instances
     for i in source.composition.instances:
         dest.composition.instances.append(i)
@@ -679,66 +602,71 @@ def merge_assembly(dest, source, instance):
     for g in source.composition.groups:
         dest.composition.groups.append(g)
     
+    # copy configuration
     for s in source.configuration.settings:
         dest.configuration.settings.append(s)
 
+    # create dict mapping exported interface name -> source connector
     exports = {}
     for c in source.composition.connections:
         internal = True
+
+        # special instance name for the exported side of a connection
         if c.from_instance.name == '__virtual__':
             internal = False
             exports[c.from_interface.name] = c
         if c.to_instance.name == '__virtual__':
             internal = False
             exports[c.to_interface.name] = c
+
+        # all non export connectors are copied straight to dest
         if internal:
             dest.composition.connections.append(c)
 
+    # find all the connections in dest with the given instance on one side
+    # and the interface of the given instance is exported by in the source 
+    # assembly, replacing the instance and interface of that side of the
+    # connection with the corresponding one from the source
     for c in dest.composition.connections:
         if c.from_instance is instance and c.from_interface.name in exports.keys():
             sc = exports[c.from_interface.name]
-            print 'from'
-            print_connection(c)
-            print_connection(sc)
             c.from_instance = sc.from_instance
             c.from_interface = sc.from_interface
-            print_connection(c)
         if c.to_instance is instance and c.to_interface.name in exports.keys():
             sc = exports[c.to_interface.name]
-            print 'to'
-            print_connection(c)
-            print_connection(sc)
             c.to_instance = sc.to_instance
             c.to_interface = sc.to_interface
-            print_connection(c)
 
-def print_connection(dc):
-    pass
-    print dc.name, ':', dc.from_instance.name, dc.from_interface.name, \
-        '->', dc.to_instance.name, dc.to_interface.name
+def rename_assembly(prefix, assembly):
+    '''prepends a given prefix to all the elemnets of the assembly'''
 
-def rename_assembly(prefix_name, assembly):
     for i in assembly.composition.instances:
-        i.name = prefix_name + "_" + i.name
+        i.name = prefix + "_" + i.name
         i.address_space = i.name
     for c in assembly.composition.connections:
-        c.name = prefix_name + "_" + c.name
+        c.name = prefix + "_" + c.name
     for g in assembly.composition.groups:
-        g.name = prefix_name + "_" + g.name
+        g.name = prefix + "_" + g.name
     for s in assembly.configuration.settings:
-        s.instance = prefix_name + "_" + s.instance
+        s.instance = prefix + "_" + s.instance
 
-def generate_assembly_to_merge(component):
+def generate_assembly(component):
+    '''Given something that has a composition and optionally a configuration
+       (ie. an assembly or composite component), this returns a new Assembly
+       containing instances and connections in which any hierarchy below the
+       given component are resolved.'''
 
+    # create empty assembly to populate
     assembly = AST.Assembly(composition = AST.Composition(), configuration = AST.Configuration())
 
+    # non-composite components don't have any instances or connections
     if component.composition is None:
         return assembly
 
     composition = component.composition
     configuration = component.configuration
 
-    # copy the connections and groups
+    # copy the connections, groups and configuration
     for c in composition.connections:
         assembly.composition.connections.append(c)
     for g in composition.groups:
@@ -747,32 +675,32 @@ def generate_assembly_to_merge(component):
     if configuration is not None:
         for s in configuration.settings:
             assembly.configuration.settings.append(s)
-
+    
+    # copy the instances, first recursively resolving any hierarchy
     for i in composition.instances:
+
         # if i is an instance of a compound component
         if i.type.composition is not None:
-            print 'compound', i.name, i.type.name
+            
             # get the assembly from that component
-            sub_assembly = generate_assembly_to_merge(deepcopy(i.type))
+            sub_assembly = generate_assembly(deepcopy(i.type))
             
             # rename assembly elements to indicate them as part of a sub assembly
             rename_assembly(i.name, sub_assembly)
             
-            print 'merging', i.name, i.type.name
             # merge it into the current assembly
             merge_assembly(assembly, sub_assembly, i)
 
         # add the instance to the assembly
         assembly.composition.instances.append(i)
 
-    print 'assembly for', component.name
-    print map(lambda x: x.name, assembly.composition.instances)
-    for c in assembly.composition.connections:
-        print_connection(c)
-
     return assembly
 
 def remove_virtual_interfaces(component):
+    '''modifies the component (not an instance), removing all interfaces
+       which aren't implemented by that component (ie. implemented by a
+       sub component) so no code is generated for those interfaces'''
+
     if component.composition is not None:
         unimplemented_interfaces = []
         for conn in component.composition.connections:
@@ -786,6 +714,16 @@ def remove_virtual_interfaces(component):
                 component.provides.remove(i)
             elif isinstance(i, AST.Uses):
                 component.uses.remove(i)
+            elif isinstance(i, AST.Emits):
+                component.emits.remove(i)
+            elif isinstance(i, AST.Consumes):
+                component.consumes.remove(i)
+            elif isinstance(i, AST.Dataport):
+                component.dataport.remove(i)
+            elif isinstance(i, AST.Mutex):
+                component.mutexes.remove(i)
+            elif isinstance(i, AST.Semaphores):
+                component.semaphores.remove(i)
 
 
 if __name__ == '__main__':
