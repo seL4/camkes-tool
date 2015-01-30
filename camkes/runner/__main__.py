@@ -636,7 +636,7 @@ def merge_assembly(dest, source, instance):
             c.to_instance = sc.to_instance
             c.to_interface = sc.to_interface
 
-def rename_assembly(prefix, assembly):
+def prefix_children(prefix, assembly):
     '''prepends a given prefix to all the elements of the assembly'''
 
     for i in assembly.composition.instances:
@@ -685,7 +685,7 @@ def generate_assembly(component):
             sub_assembly = generate_assembly(deepcopy(i.type))
             
             # rename assembly elements to indicate them as part of a sub assembly
-            rename_assembly(i.name, sub_assembly)
+            prefix_children(i.name, sub_assembly)
             
             # merge it into the current assembly
             merge_assembly(assembly, sub_assembly, i)
