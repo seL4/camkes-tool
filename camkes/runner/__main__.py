@@ -620,11 +620,11 @@ def merge_assembly(dest, source, instance):
     # assembly, replacing the instance and interface of that side of the
     # connection with the corresponding one from the source
     for c in dest.composition.connections:
-        if c.from_instance is instance and c.from_interface.name in exports.keys():
+        if c.from_instance == instance and c.from_interface.name in exports:
             sc = exports[c.from_interface.name]
             c.from_instance = sc.from_instance
             c.from_interface = sc.from_interface
-        if c.to_instance is instance and c.to_interface.name in exports.keys():
+        if c.to_instance == instance and c.to_interface.name in exports:
             sc = exports[c.to_interface.name]
             c.to_instance = sc.to_instance
             c.to_interface = sc.to_interface
@@ -673,7 +673,7 @@ def generate_assembly(component):
         if i.type.composition is not None:
             
             # get the assembly from that component
-            sub_assembly = generate_assembly(deepcopy(i.type))
+            sub_assembly = generate_assembly(i.type)
             
             # rename assembly elements to indicate them as part of a sub assembly
             prefix_children(i.name, sub_assembly)
