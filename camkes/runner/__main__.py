@@ -572,7 +572,7 @@ def resolve_hierarchy(ast):
     assembly = assembly[0]
     
     # modify the ast to resolve the hierarchy
-    assembly = generate_assembly(deepcopy(assembly))
+    assembly = generate_assembly(assembly)
     
     # remove the assembly from the ast
     ast = [x for x in ast if not isinstance(x, AST.Assembly)]
@@ -642,46 +642,43 @@ def prefix_children(prefix, assembly):
     for s in assembly.configuration.settings:
         s.instance = '%s_%s' % (prefix, s.instance)
 
-def generate_assembly(component):
+def generate_assembly(original):
     '''Given something that has a composition and optionally a configuration
-       (ie. an assembly or composite component), this returns a new Assembly
+       (ie. an assembly or composite original), this returns a new Assembly
        containing instances and connections in which any hierarchy below the
-       given component are resolved.'''
+       given original are resolved.'''
 
     # create empty assembly to populate
-    assembly = AST.Assembly(composition = AST.Composition(), configuration = AST.Configuration())
+    resolved = AST.Assembly(composition = AST.Composition(), configuration = AST.Configuration())
 
     # non-composite components don't have any instances or connections
-    if component.composition is None:
+    if original.composition is None:
         return assembly
 
-    composition = component.composition
-    configuration = component.configuration
-
     # copy the instances, connections, groups and configuration
-    assembly.composition.instances.extend(composition.instances)
-    assembly.composition.connections.extend(composition.connections)
-    assembly.composition.groups.extend(composition.groups)
+    resolved.composition.instances.extend(original.composition.instances)
+    resolved.composition.connections.extend(original.composition.connections)
+    resolved.composition.groups.extend(original.composition.groups)
 
-    if configuration is not None:
-        assembly.configuration.settings.extend(configuration.settings)
+    if original.configuration is not None:
+        resolved.configuration.settings.extend(original.configuration.settings)
     
     # recursively resolve hierarchy of instances
-    for i in composition.instances:
+    for i in original.composition.instances:
 
         # if i is an instance of a compound component
         if i.type.composition is not None:
             
             # get the assembly from that component
-            sub_assembly = generate_assembly(i.type)
+            resolved_instance = generate_assembly(deepcopy(i.type))
             
             # rename assembly elements to indicate them as part of a sub assembly
-            prefix_children(i.name, sub_assembly)
+            prefix_children(i.name, resolved_instance)
             
             # merge it into the current assembly
-            merge_assembly(assembly, sub_assembly, i)
+            merge_assembly(resolved, resolved_instance, i)
 
-    return assembly
+    return resolved
 
 def remove_virtual_interfaces(component):
     '''modifies the component (not an instance), removing all interfaces
