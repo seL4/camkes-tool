@@ -99,7 +99,7 @@ connector seL4RPCEvent {
  * 
  * Please look at fatfs.camkes for more details.
  */
-connector ExportAsync {
+connector ExportAsynch {
 	from Event emitter_inf;
 	to Event consumer_inf;
 }
