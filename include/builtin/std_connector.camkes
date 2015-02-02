@@ -103,6 +103,10 @@ connector ExportAsync {
 	from Event emitter_inf;
 	to Event consumer_inf;
 }
+connector seL4ExportAsynch {
+	from Interface emitter_inf;
+	to Interface exported_inf;
+}
 
 /**
  * RPC connector
@@ -145,6 +149,10 @@ connector ExportRPC {
 	from Procedure user_inf;
 	to Procedure provider_inf;
 }
+connector seL4ExportRPC {
+	from Interface implemented_inf;
+	to Interface exported_inf;
+}
 
 /**
  * Dataport connector
@@ -172,6 +180,10 @@ connector seL4SharedData {
 connector ExportData {
 	from Dataport a_data;
 	to Dataport b_data;
+}
+connector seL4ExportData {
+	from Dataport provider_data;
+	to Dataport exported_data;
 }
 
 /**
