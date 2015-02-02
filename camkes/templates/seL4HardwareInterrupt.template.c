@@ -10,6 +10,7 @@
 
 #include <assert.h>
 #include <sel4/sel4.h>
+#include <util/utils.h>
 
 /*? macros.show_includes(me.to_instance.type.includes) ?*/
 /*- set attr = "%s_attributes" % me.from_interface.name -*/
@@ -79,7 +80,7 @@ int /*? me.to_interface.name ?*/__run(void) {
         /* Else, leave it for polling. */
     }
 
-    assert(!"Unreachable");
+    UNREACHABLE();
 }
 
 int /*? me.to_interface.name ?*/_poll(void) {

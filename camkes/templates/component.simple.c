@@ -20,6 +20,7 @@
 #include <assert.h>
 #include <sel4/types.h>
 #include <sel4/sel4.h>
+#include <sel4utils/mapping.h>
 #include <camkes/tls.h>
 #include <vka/kobject_t.h>
 

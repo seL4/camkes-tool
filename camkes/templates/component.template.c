@@ -27,6 +27,7 @@
 #include <stdlib.h>
 #include <sync/sem-bare.h>
 #include <sel4debug/identity.h>
+#include <sel4utils/mapping.h>
 #include <utils/util.h>
 
 /*# Include path based on logic in the Makefile template. #*/

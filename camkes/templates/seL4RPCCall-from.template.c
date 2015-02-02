@@ -64,16 +64,44 @@ int /*? me.from_interface.name ?*/__run(void) {
     return 0;
 }
 
+/*- set methods_len = len(me.from_interface.type.methods) -*/
+
 /*- for i, m in enumerate(me.from_interface.type.methods) -*/
+
+/*- set name = m.name -*/
+/*- set function = '%s_marshal' % m.name -*/
+/*- set buffer = base -*/
+/*- set sizes = [None] -*/
+/*- if userspace_ipc -*/
+    /*- do sizes.__setitem__(0, 'PAGE_SIZE_4K') -*/
+/*- else -*/
+    /*- do sizes.__setitem__(0, 'seL4_MsgMaxLength * sizeof(seL4_Word)') -*/
+/*- endif -*/
+/*- set size = sizes[0] -*/
+/*- set method_index = i -*/
+/*- set input_parameters = filter(lambda('x: x.direction.direction in [\'in\', \'inout\']'), m.parameters) -*/
+/*- include 'marshal-inputs.c' -*/
+
+/*- set function = '%s_unmarshal' % m.name -*/
+/*- set output_parameters = filter(lambda('x: x.direction.direction in [\'out\', \'inout\']'), m.parameters) -*/
+/*- set return_type = m.return_type -*/
+/*- include 'unmarshal-outputs.c' -*/
+
 /*- if m.return_type -*/
     /*? show(m.return_type) ?*/
 /*- else -*/
     void
 /*- endif -*/
 /*? me.from_interface.name ?*/_/*? m.name ?*/(
+/*- set ret_sz = c_symbol('ret_sz') -*/
+/*- if m.return_type and m.return_type.array -*/
+    size_t * /*? ret_sz ?*/
+    /*- if len(m.parameters) > 0 -*/
+        ,
+    /*- endif -*/
+/*- endif -*/
     /*? ', '.join(map(show, m.parameters)) ?*/
 ) {
-    /*- set methods_len = len(me.from_interface.type.methods) -*/
 
     /*# The optimisation below is only valid to perform if we do not have any
      *# reference (typedefed C) types.
@@ -131,55 +159,10 @@ int /*? me.from_interface.name ?*/__run(void) {
         &/*? userspace_buffer_sem_value ?*/);
     /*- endif -*/
 
-    /* Marshal the method index */
-    /*- set offset = ['0'] -*/
-    /*- if methods_len > 1 -*/
-        /*- if methods_len <= 2 ** 8 -*/
-            uint8_t
-        /*- elif methods_len <= 2 ** 16 -*/
-            uint16_t
-        /*- elif methods_len <= 2 ** 32 -*/
-            uint32_t
-        /*- else -*/
-            /*? raise(Exception('too many methods in interface %s' % me.from_interface.type.name)) ?*/
-        /*- endif -*/
-        /*- set call = c_symbol('call') -*/
-        /*? call ?*/ = /*? i ?*/;
-        memcpy(/*? BUFFER_BASE ?*/, &/*? call ?*/, sizeof(/*? call ?*/));
-        /*- do offset.append('sizeof(%s)' % call) -*/
-    /*- endif -*/
-
     /* Marshal all the parameters */
-    /*- for p in m.parameters -*/
-        /*- if p.direction.direction in ['inout', 'in'] -*/
-            /*- if p.array -*/
-                /*- set lcount = c_symbol() -*/
-                for (int /*? lcount ?*/ = 0; /*? lcount ?*/ <
-                    /*- if p.direction.direction == 'inout' -*/
-                        *
-                    /*- endif -*/
-                    /*? p.name ?*/_sz; /*? lcount ?*/ ++) {
-                    memcpy(/*? BUFFER_BASE ?*/ + /*? '+'.join(offset) ?*/ + /*? lcount ?*/ * sizeof(/*? show(p.type) ?*/), &((
-                        /*- if p.direction.direction == 'inout' -*/
-                            *
-                        /*- endif -*/
-                        /*? p.name ?*/)[/*? lcount ?*/]), sizeof(/*? show(p.type) ?*/));
-                }
-                /*- do offset.append('(%s%s_sz) * sizeof(%s)' % ('*' if p.direction.direction == 'inout' else '', p.name, show(p.type))) -*/
-            /*- elif p.type.type == 'string' -*/
-                /*- set ptr = c_symbol() -*/
-                char * /*? ptr ?*/ UNUSED = stpcpy((char*)((uint32_t)/*? BUFFER_BASE ?*/ + /*? '+'.join(offset) ?*/), /*? p.name ?*/);
-                /*- do offset.append('(uint32_t)%s + 1 - (uint32_t)%s - %s' % (ptr, BUFFER_BASE, '-'.join(offset))) -*/
-            /*- else -*/
-                memcpy(/*? BUFFER_BASE ?*/ + /*? '+'.join(offset) ?*/,
-                /*- if p.direction.direction == 'in' -*/
-                    &
-                /*- endif -*/
-                /*? p.name ?*/, sizeof(/*? show(p.type) ?*/));
-                /*- do offset.append('sizeof(%s)' % show(p.type)) -*/
-            /*- endif -*/
-        /*- endif -*/
-    /*- endfor -*/
+    /*- set function = '%s_marshal' % m.name -*/
+    /*- set length = c_symbol('length') -*/
+    unsigned int /*? length ?*/ = /*- include 'call-marshal-inputs.c' -*/;
 
     /* Call the endpoint */
     /*- set info = c_symbol('info') -*/
@@ -187,35 +170,29 @@ int /*? me.from_interface.name ?*/__run(void) {
         /*- if userspace_ipc -*/
                 0
         /*- else -*/
-                ROUND_UP(/*? '+'.join(offset) ?*/, sizeof(seL4_Word)) / sizeof(seL4_Word)
+                ROUND_UP(/*? length ?*/, sizeof(seL4_Word)) / sizeof(seL4_Word)
         /*- endif -*/
         );
     (void)seL4_Call(/*? ep ?*/, /*? info ?*/);
 
     /* Unmarshal the response */
-    /*- set buffer = c_symbol('buffer') -*/
-    void * /*? buffer ?*/ UNUSED = /*? BUFFER_BASE ?*/;
-    /*- if m.return_type -*/
-        /*- set ret = c_symbol('ret') -*/
-        /*? show(m.return_type) ?*/ /*? ret ?*/;
-        /*- if m.return_type.type == 'string' -*/
-            /*? macros.unmarshal_string(buffer, ret, True) ?*/
+    /*- set function = '%s_unmarshal' % m.name -*/
+    /*- set return_type = m.return_type -*/
+    /*- set ret = c_symbol('return') -*/
+    /*- if return_type -*/
+      /*- if return_type.array -*/
+        /*- if isinstance(return_type, camkes.ast.Type) and return_type.type == 'string' -*/
+          char ** /*? ret ?*/ =
         /*- else -*/
-            /*? macros.unmarshal(buffer, ret, 'sizeof(%s)' % show(m.return_type)) ?*/
+          /*? show(return_type) ?*/ * /*? ret ?*/ =
         /*- endif -*/
+      /*- elif isinstance(return_type, camkes.ast.Type) and return_type.type == 'string' -*/
+        char * /*? ret ?*/ =
+      /*- else -*/
+        /*? show(return_type) ?*/ /*? ret ?*/ =
+      /*- endif -*/
     /*- endif -*/
-
-    /*- for p in m.parameters -*/
-        /*- if p.direction.direction in ['inout', 'out'] -*/
-            /*- if p.array -*/
-                /*? macros.unmarshal_array(buffer, p.name, 'sizeof(%s)' % show(p.type), True, show(p.type)) ?*/
-            /*- elif p.type.type == 'string' -*/
-                /*? macros.unmarshal_string(buffer, p.name) ?*/
-            /*- else -*/
-                /*? macros.unmarshal(buffer, p.name, 'sizeof(%s)' % show(p.type), True) ?*/
-            /*- endif -*/
-        /*- endif -*/
-    /*- endfor -*/
+    /*- include 'call-unmarshal-outputs.c' -*/;
 
     /*- if userspace_buffer_ep -*/
       sync_sem_bare_post(/*? userspace_buffer_ep ?*/,
