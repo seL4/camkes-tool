@@ -670,6 +670,9 @@ def generate_assembly(original):
         if i.type.composition is not None:
             
             # get the assembly from that component
+            # deepcopying prevents modifying the original component's composition's
+            # children, which must be preserved for future instantiation of the
+            # component
             resolved_instance = generate_assembly(deepcopy(i.type))
             
             # rename assembly elements to indicate them as part of a sub assembly
