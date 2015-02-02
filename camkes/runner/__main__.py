@@ -572,7 +572,7 @@ def resolve_hierarchy(ast):
     assembly = assembly[0]
     
     # modify the ast to resolve the hierarchy
-    assembly = generate_assembly(assembly)
+    assembly = resolve_assembly_hierarchy(assembly)
     
     # remove the assembly from the ast
     ast[:] = [x for x in ast if not isinstance(x, AST.Assembly)]
@@ -653,7 +653,7 @@ def prefix_children(prefix, assembly):
     for s in assembly.configuration.settings:
         s.instance = '%s_%s' % (prefix, s.instance)
 
-def generate_assembly(original):
+def resolve_assembly_hierarchy(original):
     '''Given something that has a composition and optionally a configuration
        (ie. an assembly or composite original), this returns a new Assembly
        containing instances and connections in which any hierarchy below the
@@ -684,7 +684,7 @@ def generate_assembly(original):
             # deepcopying prevents modifying the original component's composition's
             # children, which must be preserved for future instantiation of the
             # component
-            resolved_instance = generate_assembly(deepcopy(i.type))
+            resolved_instance = resolve_assembly_hierarchy(deepcopy(i.type))
             
             # rename assembly elements to indicate them as part of a sub assembly
             prefix_children(i.name, resolved_instance)
