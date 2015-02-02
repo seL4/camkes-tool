@@ -664,7 +664,7 @@ def resolve_assembly_hierarchy(original):
 
     # non-composite components don't have any instances or connections
     if original.composition is None:
-        return assembly
+        return resolved
 
     # copy the instances, connections, groups and configuration
     resolved.composition.instances.extend(original.composition.instances)
@@ -720,7 +720,7 @@ def remove_virtual_interfaces(component):
                 component.dataport.remove(i)
             elif isinstance(i, AST.Mutex):
                 component.mutexes.remove(i)
-            elif isinstance(i, AST.Semaphores):
+            elif isinstance(i, AST.Semaphore):
                 component.semaphores.remove(i)
 
 
