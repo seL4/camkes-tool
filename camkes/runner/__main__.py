@@ -606,9 +606,20 @@ def merge_assembly(dest, source, instance):
         # special instance name for the exported side of a connection
         if c.from_instance.name == '__virtual__':
             internal = False
+
+            if c.from_interface.name in exports:
+                raise Exception("Multiple declaration of interface %s in component %s." \
+                                    % (c.from_interface.name, source.name))
+
             exports[c.from_interface.name] = c
+
         if c.to_instance.name == '__virtual__':
             internal = False
+
+            if c.to_interface.name in exports:
+                raise Exception("Multiple declaration of interface %s in component %s." \
+                                    % (c.to_interface.name, source.name))
+
             exports[c.to_interface.name] = c
 
         # all non export connectors are copied straight to dest
