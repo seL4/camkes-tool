@@ -575,7 +575,7 @@ def resolve_hierarchy(ast):
     assembly = generate_assembly(assembly)
     
     # remove the assembly from the ast
-    ast = [x for x in ast if not isinstance(x, AST.Assembly)]
+    ast[:] = [x for x in ast if not isinstance(x, AST.Assembly)]
 
     # replace it with the new one
     ast.append(assembly)
