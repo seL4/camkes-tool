@@ -89,6 +89,7 @@ connector seL4RPCEvent {
 	to Event consumer_inf;
 }
 
+
 /**
  * Asynchronous event export connector
  * 
@@ -98,6 +99,10 @@ connector seL4RPCEvent {
  * 
  * Please look at fatfs.camkes for more details.
  */
+connector ExportAsync {
+	from Event emitter_inf;
+	to Event consumer_inf;
+}
 connector seL4ExportAsynch {
 	from Interface emitter_inf;
 	to Interface exported_inf;
@@ -120,6 +125,8 @@ connector seL4RPCCall {
 	to Procedure provider_inf;
 }
 
+
+
 /**
  * Direct Call connector
  * 
@@ -135,9 +142,13 @@ connector seL4DirectCall {
  * RPC export connector
  * 
  * This connecor works in same way as the asynchronous event export connector
- * (seL4ExportAsynch) with the only difference that the two instances are
+ * (ExportAsynch) with the only difference that the two instances are
  * dedicated for RPC connections.
  */
+connector ExportRPC {
+	from Procedure user_inf;
+	to Procedure provider_inf;
+}
 connector seL4ExportRPC {
 	from Interface implemented_inf;
 	to Interface exported_inf;
@@ -163,9 +174,13 @@ connector seL4SharedData {
  * Dataport export connector
  * 
  * This connector works in same way as the asynchronous event export connector
- * (seL4ExportAsynch) with the only difference that two two interfaces are
+ * (ExportAsynch) with the only difference that two two interfaces are
  * for dataport connections.
  */
+connector ExportData {
+	from Dataport a_data;
+	to Dataport b_data;
+}
 connector seL4ExportData {
 	from Dataport provider_data;
 	to Dataport exported_data;

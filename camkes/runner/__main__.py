@@ -189,6 +189,8 @@ def main():
     except Exception as inst:
         die('While collapsing references of \'%s\': %s' % (f.name, str(inst)))
 
+    ast = resolve_hierarchy(ast)
+
     # If we have a readable cache check if our current target is in the cache.
     # The previous check will 'miss' and this one will 'hit' when the input
     # spec is identical to some previous execution modulo a semantically
@@ -562,6 +564,165 @@ def compose_assemblies(ast):
     ast.append(composite_assembly)
 
     return ast
+
+def resolve_hierarchy(ast):
+    # find the assembly
+    assembly = [x for x in ast if isinstance(x, AST.Assembly)]
+    assert len(assembly) == 1
+    assembly = assembly[0]
+    
+    # modify the ast to resolve the hierarchy
+    assembly = resolve_assembly_hierarchy(assembly)
+    
+    # remove the assembly from the ast
+    ast[:] = [x for x in ast if not isinstance(x, AST.Assembly)]
+
+    # replace it with the new one
+    ast.append(assembly)
+
+    # remove all the component interfaces with virtual usage
+    for c in [x for x in ast if isinstance(x, AST.Component)]:
+        remove_virtual_interfaces(c)
+
+    return ast
+
+def merge_assembly(dest, source, instance):
+    '''Copies all the assembly elements from source into dest, where
+       instance is a composite component instance in dest, whose component's
+       assembly is source. Any connectors in dest which connect an exported
+       interface of the given instance are changed to connect to the
+       actual component instance that implements that interface'''
+       
+    # copy instances, groups and configuration settings
+    dest.composition.instances.extend(source.composition.instances)
+    dest.composition.groups.extend(source.composition.groups)
+    dest.configuration.settings.extend(source.configuration.settings)
+
+    # create dict mapping exported interface name -> source connector
+    exports = {}
+    for c in source.composition.connections:
+        internal = True
+
+        # special instance name for the exported side of a connection
+        if c.from_instance.name == '__virtual__':
+            internal = False
+
+            if c.from_interface.name in exports:
+                raise Exception("Multiple declaration of interface %s in component %s." \
+                                    % (c.from_interface.name, source.name))
+
+            exports[c.from_interface.name] = c
+
+        if c.to_instance.name == '__virtual__':
+            internal = False
+
+            if c.to_interface.name in exports:
+                raise Exception("Multiple declaration of interface %s in component %s." \
+                                    % (c.to_interface.name, source.name))
+
+            exports[c.to_interface.name] = c
+
+        # all non export connectors are copied straight to dest
+        if internal:
+            dest.composition.connections.append(c)
+
+    # find all the connections in dest with the given instance on one side
+    # and the interface of the given instance is exported by in the source 
+    # assembly, replacing the instance and interface of that side of the
+    # connection with the corresponding one from the source
+    for c in dest.composition.connections:
+        if c.from_instance == instance and c.from_interface.name in exports:
+            sc = exports[c.from_interface.name]
+            c.from_instance = sc.from_instance
+            c.from_interface = sc.from_interface
+        if c.to_instance == instance and c.to_interface.name in exports:
+            sc = exports[c.to_interface.name]
+            c.to_instance = sc.to_instance
+            c.to_interface = sc.to_interface
+
+def prefix_children(prefix, assembly):
+    '''prepends a given prefix to all the elements of the assembly'''
+
+    for i in assembly.composition.instances:
+        i.name = '%s_%s' % (prefix, i.name)
+        i.address_space = i.name
+    for c in assembly.composition.connections:
+        c.name = '%s_%s' % (prefix, c.name)
+    for g in assembly.composition.groups:
+        g.name = '%s_%s' % (prefix, g.name)
+    for s in assembly.configuration.settings:
+        s.instance = '%s_%s' % (prefix, s.instance)
+
+def resolve_assembly_hierarchy(original):
+    '''Given something that has a composition and optionally a configuration
+       (ie. an assembly or composite original), this returns a new Assembly
+       containing instances and connections in which any hierarchy below the
+       given original are resolved.'''
+
+    # create empty assembly to populate
+    resolved = AST.Assembly(composition = AST.Composition(), configuration = AST.Configuration())
+
+    # non-composite components don't have any instances or connections
+    if original.composition is None:
+        return resolved
+
+    # copy the instances, connections, groups and configuration
+    resolved.composition.instances.extend(original.composition.instances)
+    resolved.composition.connections.extend(original.composition.connections)
+    resolved.composition.groups.extend(original.composition.groups)
+
+    if original.configuration is not None:
+        resolved.configuration.settings.extend(original.configuration.settings)
+    
+    # recursively resolve hierarchy of instances
+    for i in original.composition.instances:
+
+        # if i is an instance of a compound component
+        if i.type.composition is not None:
+            
+            # get the assembly from that component
+            # deepcopying prevents modifying the original component's composition's
+            # children, which must be preserved for future instantiation of the
+            # component
+            resolved_instance = resolve_assembly_hierarchy(deepcopy(i.type))
+            
+            # rename assembly elements to indicate them as part of a sub assembly
+            prefix_children(i.name, resolved_instance)
+            
+            # merge it into the current assembly
+            merge_assembly(resolved, resolved_instance, i)
+
+    return resolved
+
+def remove_virtual_interfaces(component):
+    '''modifies the component (not an instance), removing all interfaces
+       which aren't implemented by that component (ie. implemented by a
+       sub component) so no code is generated for those interfaces'''
+
+    if component.composition is not None:
+        unimplemented_interfaces = []
+        for conn in component.composition.connections:
+            if conn.from_instance.name == '__virtual__':
+                unimplemented_interfaces.append(conn.from_interface)
+            if conn.to_instance.name == '__virtual__':
+                unimplemented_interfaces.append(conn.to_interface)
+
+        for i in unimplemented_interfaces:
+            if isinstance(i, AST.Provides):
+                component.provides.remove(i)
+            elif isinstance(i, AST.Uses):
+                component.uses.remove(i)
+            elif isinstance(i, AST.Emits):
+                component.emits.remove(i)
+            elif isinstance(i, AST.Consumes):
+                component.consumes.remove(i)
+            elif isinstance(i, AST.Dataport):
+                component.dataport.remove(i)
+            elif isinstance(i, AST.Mutex):
+                component.mutexes.remove(i)
+            elif isinstance(i, AST.Semaphore):
+                component.semaphores.remove(i)
+
 
 if __name__ == '__main__':
     sys.exit(main())

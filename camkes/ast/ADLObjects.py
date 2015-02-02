@@ -178,7 +178,8 @@ class Setting(ADLObject):
 class Component(ADLObject):
     def __init__(self, name=None, includes=None, control=False, hardware=False, \
             provides=None, uses=None, emits=None, consumes=None, dataports=None, \
-            attributes=[], mutexes=None, semaphores=None, filename=None, lineno=-1):
+            attributes=[], mutexes=None, semaphores=None, composition=None, \
+            configuration=None, filename=None, lineno=-1):
         assert name is None or isinstance(name, str)
         assert isinstance(control, bool)
         assert isinstance(hardware, bool)
@@ -200,14 +201,27 @@ class Component(ADLObject):
         self.attributes = attributes or []
         self.mutexes = mutexes or []
         self.semaphores = semaphores or []
+        self.composition = composition
+        self.configuration = configuration
 
     def children(self):
-        return self.includes + self.provides + self.uses + self.emits + \
+        ret = self.includes + self.provides + self.uses + self.emits + \
             self.consumes + self.dataports + self.mutexes + self.semaphores
+        if self.composition is not None:
+            ret.append(self.composition)
+        if self.configuration is not None:
+            ret.append(self.configuration)
+        return ret
 
     def collapse_references(self):
         for i in ['includes', 'provides', 'uses', 'emits', 'consumes', 'dataports']:
             self.try_collapse_list(i)
+
+        if self.composition is not None:
+            self.try_collapse('composition')
+        if self.configuration is not None:
+            self.try_collapse('configuration')
+
 
     def __repr__(self):
         s = '{ %(control)s %(hardware)s %(provides)s %(uses)s %(emits)s %(consumes)s %(dataports)s %(mutexes)s %(semaphores)s %(includes)s }' % {
