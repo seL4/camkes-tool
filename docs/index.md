@@ -260,12 +260,10 @@ another OS.
   specifications. You will need a fairly up to date version that supports ARM
   files, so you may need to build and install this from source.
 
-**CapDL Python module**
+**[CapDL Python module](https://github.com/seL4/python-capdl-tool)**
 > This module contains functionality for managing and generating CapDL
-  specifications in Python. At time of writing this is available at
-  ssh://hg.ertos.nicta.com.au//data/hg_root/tools/python-capdl. If you are
-  working in the larger CAmkES project repository, this is already available as
-  a subrepository.
+  specifications in Python. If you are working in the larger CAmkES project
+  repository, this is already available as a subrepository.
 
 **[Expect](http://expect.sourceforge.net/)**
 > Expect is a tool for automating interaction with a command line application.
@@ -1821,14 +1819,10 @@ expanded at some point.
 ## Legacy Implementation
 
 Prior to the existing CAmkES implementation, there was a previous build system
-and initialisation task for running CAmkES applications. At time of writing the
-project repository for this work is at:
-
-`ssh://hg.ertos.nicta.com.au//data/hg_root/Camkes/taronga/camkes-project-sel4/`
-
-This section is a quick reference for porting applications from the older
-CAmkES runtime and build system. If you are not familiar with the older CAmkES
-you can safely skip this section.
+and initialisation task for running CAmkES applications. This section is a quick
+reference for porting applications from the older CAmkES runtime and build
+system. If you are not familiar with the older CAmkES you can safely skip this
+section.
 
 The directory structure in this repository is similar to the current CAmkES
 project repository and it should be obvious where to copy application
