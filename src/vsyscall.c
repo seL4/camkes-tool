@@ -44,6 +44,12 @@ static long (*syscall_table[])(va_list) = {
     [__NR_mremap] = sys_mremap,
     [__NR_pause] = sys_pause,
     [__NR_munmap] = sys_munmap,
+    [__NR_socket] = sys_socket,
+    [__NR_bind] = sys_bind,
+    [__NR_connect] = sys_connect,
+    [__NR_listen] = sys_listen,
+    [__NR_accept] = sys_accept,
+    [__NR_setsockopt] = sys_setsockopt,
 };
 
 #ifdef CONFIG_DEBUG_BUILD

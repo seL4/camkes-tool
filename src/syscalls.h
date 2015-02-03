@@ -38,5 +38,11 @@ long sys_mremap(va_list ap);
 long sys_writev(va_list ap);
 long sys_pause(va_list ap);
 long sys_munmap(va_list ap);
+long sys_socket(va_list ap);
+long sys_bind(va_list ap);
+long sys_connect(va_list ap);
+long sys_listen(va_list ap);
+long sys_accept(va_list ap);
+long sys_setsockopt(va_list ap);
 
 #endif
