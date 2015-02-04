@@ -53,8 +53,42 @@ const char *get_instance_name(void);
                     ,
                 /*- endif -*/
             /*- endif -*/
-            /*? ', '.join(map(show, m.parameters)) ?*/)
-            /*- if u.optional -*/ __attribute__((weak)) /*- endif -*/;
+            /*- for p in m.parameters -*/
+              /*- if p.direction.direction == 'in' -*/
+                /*- if p.array -*/
+                  size_t /*? p.name ?*/_sz,
+                  /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+                    char **
+                  /*- else -*/
+                    /*? show(p.type) ?*/ *
+                  /*- endif -*/
+                /*- elif isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+                  char *
+                /*- else -*/
+                  /*? show(p.type) ?*/
+                /*- endif -*/
+                /*? p.name ?*/
+              /*- else -*/
+                /*? assert(p.direction.direction in ['refin', 'out', 'inout']) ?*/
+                /*- if p.array -*/
+                  size_t * /*? p.name ?*/_sz,
+                  /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+                    char ***
+                  /*- else -*/
+                    /*? show(p.type) ?*/ **
+                  /*- endif -*/
+                /*- elif isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+                  char **
+                /*- else -*/
+                  /*? show(p.type) ?*/ *
+                /*- endif -*/
+                /*? p.name ?*/
+              /*- endif -*/
+              /*- if not loop.last -*/
+                ,
+              /*- endif -*/
+            /*- endfor -*/
+        ) /*- if u.optional -*/ __attribute__((weak)) /*- endif -*/;
     /*- endfor -*/
 /*- endfor -*/
 

@@ -23,7 +23,7 @@ syn match CamkesUntypedPool "untyped[0-9]\+_pool"
 syn keyword CamkesType component connection attribute connector Procedure Event
     \ Dataport
 syn keyword CamkesCType int string char character unsigned signed
-    \ void long in out inout int8_t uint8_t int16_t uint16_t int32_t uint32_t
+    \ void long refin in out inout int8_t uint8_t int16_t uint16_t int32_t uint32_t
     \ int64_t uint64_t
 syn keyword CamkesDependency uses provides emits consumes
 syn keyword CamkesImport import include

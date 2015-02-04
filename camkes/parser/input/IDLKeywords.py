@@ -24,6 +24,7 @@ keywords = set([
     'event',
 
     # Parameter direction
+    'refin',
     'in',
     'out',
     'inout',

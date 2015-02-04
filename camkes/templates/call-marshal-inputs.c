@@ -12,7 +12,7 @@
     /*- endif -*/
     /*? p.name ?*/
   /*- else -*/
-    /*? assert(p.direction.direction == 'inout') ?*/
+    /*? assert(p.direction.direction in ['refin', 'inout']) ?*/
     /*- if p.array -*/
       * /*? p.name ?*/_sz,
       * /*? p.name ?*/

@@ -131,7 +131,7 @@ class Type(IDLObject):
 class Direction(IDLObject):
     def __init__(self, direction, filename=None, lineno=-1):
         assert isinstance(direction, str)
-        assert direction in ['in', 'inout', 'out']
+        assert direction in ['refin', 'in', 'inout', 'out']
         super(Direction, self).__init__(filename=filename, lineno=lineno)
         self.direction = direction
 

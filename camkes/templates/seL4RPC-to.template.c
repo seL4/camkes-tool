@@ -46,12 +46,46 @@
         void
     /*- endif -*/
     /*? me.to_interface.name ?*/_/*? m.name ?*/(
-        /*? ', '.join(map(show, m.parameters)) ?*/
+    /*- for p in m.parameters -*/
+      /*- if p.direction.direction == 'in' -*/
+        /*- if p.array -*/
+          size_t /*? p.name ?*/_sz,
+          /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+            char **
+          /*- else -*/
+            /*? show(p.type) ?*/ *
+          /*- endif -*/
+        /*- elif isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+          char *
+        /*- else -*/
+          /*? show(p.type) ?*/
+        /*- endif -*/
+        /*? p.name ?*/
+      /*- else -*/
+        /*? assert(p.direction.direction in ['refin', 'out', 'inout']) ?*/
+        /*- if p.array -*/
+          size_t * /*? p.name ?*/_sz,
+          /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+            char ***
+          /*- else -*/
+            /*? show(p.type) ?*/ **
+          /*- endif -*/
+        /*- elif isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+          char **
+        /*- else -*/
+          /*? show(p.type) ?*/ *
+        /*- endif -*/
+        /*? p.name ?*/
+      /*- endif -*/
+      /*- if not loop.last -*/
+        ,
+      /*- endif -*/
+    /*- endfor -*/
     );
 
 /*- set name = m.name -*/
 /*- set function = '%s_unmarshal' % m.name -*/
-/*- set input_parameters = filter(lambda('x: x.direction.direction in [\'in\', \'inout\']'), m.parameters) -*/
+/*- set input_parameters = filter(lambda('x: x.direction.direction in [\'refin\', \'in\', \'inout\']'), m.parameters) -*/
 /*- include 'unmarshal-inputs.c' -*/
 
 /*- set function = '%s_marshal' % m.name -*/
@@ -125,7 +159,7 @@ int /*? me.to_interface.name ?*/__run(void) {
 
                     /* Unmarshal parameters */
                     /*- set function = '%s_unmarshal' % m.name -*/
-                    /*- set input_parameters = filter(lambda('x: x.direction.direction in [\'in\', \'inout\']'), m.parameters) -*/
+                    /*- set input_parameters = filter(lambda('x: x.direction.direction in [\'refin\', \'in\', \'inout\']'), m.parameters) -*/
                     /*- set err = c_symbol('error') -*/
                     int /*? err ?*/ = /*- include 'call-unmarshal-inputs.c' -*/;
                     if (unlikely(/*? err ?*/ != 0)) {
@@ -160,12 +194,12 @@ int /*? me.to_interface.name ?*/__run(void) {
                         /*- endif -*/
                         /*- for p in m.parameters -*/
                             /*- if p.array -*/
-                                /*- if p.direction.direction in ['inout', 'out'] -*/
+                                /*- if p.direction.direction in ['refin', 'inout', 'out'] -*/
                                     &
                                 /*- endif -*/
                                 /*? p.name ?*/_sz,
                             /*- endif -*/
-                            /*- if p.direction.direction in ['inout', 'out'] -*/
+                            /*- if p.direction.direction in ['refin', 'inout', 'out'] -*/
                                 &
                             /*- endif -*/
                             /*? p.name ?*/

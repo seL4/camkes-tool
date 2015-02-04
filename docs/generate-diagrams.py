@@ -90,6 +90,7 @@ DIAGRAMS = [
         Production('id'))
     },
     {'direction':diag(Or(
+        Text('refin'),
         Text('in'),
         Text('inout'),
         Text('out')))

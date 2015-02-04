@@ -161,7 +161,8 @@ def p_parameter(t):
     t[0].lineno = t.lexer.lineno
 
 def p_direction(t):
-    '''direction : in
+    '''direction : refin
+                 | in
                  | inout
                  | out'''
     t[0] = Direction(t[1], filename=t.lexer.filename, lineno=t.lexer.lineno)

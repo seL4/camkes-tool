@@ -15,7 +15,7 @@
 "      au BufRead,BufNewFile *.idl4 setfiletype idl4
 "  augroup END
 
-syn keyword IDLType interface in out inout procedure
+syn keyword IDLType interface refin in out inout procedure
 syn keyword IDLCType int string char void unsigned signed integer character float double real boolean bool int8_t int16_t int32_t int64_t uint8_t uint16_t uint32_t uint64_t
 syn keyword IDLImport import include
 syn region Foldable start="{" end="}" fold transparent

@@ -112,8 +112,9 @@ of these terms are made explicit below.
 **Direction**
 
 > The flow of a parameter of a procedure method. The only possible directions
-  are 'in' (caller to callee), 'out' (callee to caller) and 'inout'
-  (bidirectional).
+  are 'in' (caller to callee), 'out' (callee to caller), 'inout'
+  (bidirectional) and 'refin' (identical to 'in' except for the C backend where
+  this is optimised to pass-by-reference).
 
 **Emits**
 
