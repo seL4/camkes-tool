@@ -21,6 +21,17 @@
 /*? macros.show_includes(me.to_instance.type.includes) ?*/
 /*? macros.show_includes(me.to_interface.type.includes, '../static/components/' + me.to_instance.type.name + '/') ?*/
 
+/*# Determine if we trust our partner. If we trust them, we can be more liberal
+ *# with error checking.
+ #*/
+/*- set _trust_partner = [False] -*/
+/*- for s in configuration.settings -*/
+    /*- if s.instance == me.from_instance.name and s.attribute == 'trusted' and s.value == '"true"' -*/
+        /*- do _trust_partner.__setitem__(0, True) -*/
+    /*- endif -*/
+/*- endfor -*/
+/*- set trust_partner = _trust_partner[0] -*/
+
 /*- set BUFFER_BASE = c_symbol('BUFFER_BASE') -*/
 /*- set base = '((void*)&seL4_GetIPCBuffer()->msg[0])' -*/
 /*- set userspace_ipc = False -*/
@@ -263,8 +274,14 @@ int /*? me.to_interface.name ?*/__run(void) {
                                 /*- set src = c_symbol() -*/
                                 register seL4_Word /*? src ?*/ asm("r0") = /*? ep ?*/;
                                 asm volatile("swi %[swinum]"
-                                    :"+r"(/*? src ?*/)
-                                    :[swinum]"i"(__SWINUM(seL4_SysReplyWait)), "r"(/*? scno ?*/), "r"(/*? info2 ?*/)
+                                    /*- if trust_partner -*/
+                                        :"+r"(/*? src ?*/)
+                                        :[swinum]"i"(__SWINUM(seL4_SysReplyWait)), "r"(/*? scno ?*/), "r"(/*? info2 ?*/)
+                                    /*- else -*/
+                                        :"+r"(/*? src ?*/), "r"(/*? info2 ?*/)
+                                        :[swinum]"i"(__SWINUM(seL4_SysReplyWait)), "r"(/*? scno ?*/)
+                                        :"r2", "r3", "r4", "r5", "memory"
+                                    /*- endif -*/
                                 );
                                 /*? info ?*/ = /*? info2 ?*/; /*# Most probably, not necessary. #*/
                                 break;
