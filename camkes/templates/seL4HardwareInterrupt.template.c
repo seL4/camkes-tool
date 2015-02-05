@@ -10,7 +10,7 @@
 
 #include <assert.h>
 #include <sel4/sel4.h>
-#include <util/utils.h>
+#include <utils/util.h>
 
 /*? macros.show_includes(me.to_instance.type.includes) ?*/
 /*- set attr = "%s_attributes" % me.from_interface.name -*/
