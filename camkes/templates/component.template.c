@@ -10,6 +10,7 @@
 
 #include <autoconf.h>
 #include <assert.h>
+#include <platsupport/io.h>
 #include <sel4/types.h>
 #include <sel4/sel4.h>
 /*- if len(me.type.mutexes) > 0 -*/
@@ -23,6 +24,7 @@
 #include <camkes/dataport.h>
 #include <camkes/dma.h>
 #include <camkes/error.h>
+#include <camkes/io.h>
 #include <camkes/tls.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -112,6 +114,71 @@ uintptr_t /*? get_paddr ?*/(void *ptr) {
         }
     /*- endfor -*/
     return (uintptr_t)NULL;
+}
+
+/* MMIO related functionality for interaction with libplatsupport. */
+void *camkes_io_map(void *cookie UNUSED, uintptr_t paddr, size_t size,
+        int cached UNUSED, ps_mem_flags_t flags UNUSED) {
+
+    /*- for d in me.type.dataports -*/
+        extern void * /*? d.name ?*/_translate_paddr(uintptr_t paddr,
+            size_t size) __attribute__((weak));
+        if (/*? d.name ?*/_translate_paddr != NULL) {
+            void *p = /*? d.name ?*/_translate_paddr(paddr, size);
+            if (p != NULL) {
+                return p;
+            }
+        }
+    /*- endfor -*/
+
+    /* Not found. */
+    return NULL;
+}
+
+/* IO port related functionality for interaction with libplatsupport. */
+int camkes_io_port_in(void *cookie UNUSED, uint32_t port, int io_size,
+    uint32_t *result) {
+    /*- for u in me.type.uses -*/
+        /*- if u.type.name == 'IOPort' -*/ /*# XXX: awkward hardcoding of connector type name #*/
+            if (/*? u.name ?*/_in_range(port)) {
+                switch (io_size) {
+                    case 1:
+                        *result = /*? u.name ?*/_in8(port);
+                        return 0;
+                    case 2:
+                        *result = /*? u.name ?*/_in16(port);
+                        return 0;
+                    case 4:
+                        *result = /*? u.name ?*/_in32(port);
+                        return 0;
+                }
+                return -1;
+            }
+        /*- endif -*/
+    /*- endfor -*/
+    return -1;
+}
+int camkes_io_port_out(void *cookie UNUSED, uint32_t port, int io_size,
+        uint32_t val) {
+    /*- for u in me.type.uses -*/
+        /*- if u.type.name == 'IOPort' -*/ /*# XXX: awkward hardcoding of connector type name #*/
+            if (/*? u.name ?*/_in_range(port)) {
+                switch (io_size) {
+                    case 1:
+                        /*? u.name ?*/_out8(port, val);
+                        return 0;
+                    case 2:
+                        /*? u.name ?*/_out16(port, val);
+                        return 0;
+                    case 4:
+                        /*? u.name ?*/_out32(port, val);
+                        return 0;
+                }
+                return -1;
+            }
+        /*- endif -*/
+    /*- endfor -*/
+    return -1;
 }
 
 /* Mutex functionality. */

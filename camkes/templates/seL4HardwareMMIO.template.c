@@ -9,18 +9,9 @@
  #*/
 
 #include <camkes/dataport.h>
+#include <stddef.h>
+#include <stdint.h>
 /*? macros.show_includes(me.from_instance.type.includes) ?*/
-
-/*- set p = Perspective(to_interface=me.to_interface.name) -*/
-/*#Check if we have preserved enough virtual memory for the MMIO. #*/
-/*- for s in configuration.settings -*/
-    /*- if s.instance == me.to_instance.name -*/
-        /*- if s.attribute == p['hardware_attribute'] -*/
-            /*- set paddr, size = s.value.strip('"').split(':') -*/
-            _Static_assert(sizeof(/*? show(me.from_interface.type) ?*/) == /*? size ?*/, "Data type mismatch!");
-        /*- endif -*/
-    /*- endif -*/
-/*- endfor -*/
 
 /* Actual dataport is emitted in the per-component template.
  * TODO: x86 requires 2M or 4M alignment.
@@ -58,3 +49,22 @@ void * /*? me.from_interface.name ?*/_unwrap_ptr(dataport_ptr_t *p) {
         return NULL;
     }
 }
+
+/*- set p = Perspective(to_interface=me.to_interface.name) -*/
+/*#Check if we have preserved enough virtual memory for the MMIO. #*/
+/*- for s in configuration.settings -*/
+    /*- if s.instance == me.to_instance.name -*/
+        /*- if s.attribute == p['hardware_attribute'] -*/
+            /*- set paddr, size = s.value.strip('"').split(':') -*/
+            _Static_assert(sizeof(/*? show(me.from_interface.type) ?*/) == /*? size ?*/, "Data type mismatch!");
+
+            void * /*? me.from_interface.name ?*/_translate_paddr(
+                    uintptr_t paddr, size_t size) {
+                if (paddr == /*? paddr ?*/ && size == /*? size ?*/) {
+                    return (void*)/*? me.from_interface.name ?*/;
+                }
+                return NULL;
+            }
+        /*- endif -*/
+    /*- endif -*/
+/*- endfor -*/

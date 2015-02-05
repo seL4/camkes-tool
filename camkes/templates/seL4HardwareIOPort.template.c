@@ -29,6 +29,9 @@
         /*- set end = int(end, 16) -*/
         /*- do ioport.append(alloc('ioport', seL4_IA32_IOPort)) -*/
         /*- do cap_space.cnode[ioport[0]].set_ports(range(start, end + 1)) -*/
+        int /*? me.from_interface.name ?*/_in_range(unsigned int port) {
+            return port >= /*? start ?*/ && port < /*? end ?*/;
+        }
         /*- break -*/
     /*- endif -*/
 /*- endfor -*/

@@ -47,17 +47,4 @@ uintptr_t camkes_dma_get_paddr(void *ptr);
  */
 int camkes_dma_manager(ps_dma_man_t *man);
 
-/* Initialise an IO mapper for use with libplatsupport. This manager will
- * operate on the (generated) CAmkES DMA pool. Returns 0 on success.
- *
- * Like dma_manager, calls to the initialised IO mapper can be mixed with calls
- * to the functions above with no adverse effects.
- */
-int camkes_io_mapper(ps_io_mapper_t *mapper);
-
-/* Initialise an IO operations object for use with libplatsupport. All relevant
- * areas are backed by the (generated) CAmkES DMA pool. Returns 0 on success.
- */
-int camkes_io_ops(ps_io_ops_t *ops);
-
 #endif

@@ -1429,6 +1429,30 @@ The following functions are available at runtime:
   going to access this region outside of the scope of the MMU. For more
   information, see the [DMA](#direct-memory-access) section below.
 
+**`void *camkes_io_map(void *cookie, uintptr_t paddr, size_t size, int cached, ps_mem_flags_t flags)`** (`#include <camkes/io.h>`)
+> Lookup the translation to virtual address from the physical address of a
+  memory-mapped IO device. This function is primarily to ease interaction with
+  libplatsupport infrastructure, so refer to its documentation where
+  appropriate.
+
+**`int camkes_io_mapper(ps_io_mapper_t *mapper)`** (`#include <camkes/io.h>`)
+> Construct an IO mapping structure to pass to libplatsupport. See source
+  comments for more information about how to use this.
+
+**`int camkes_io_ops(ps_io_ops_t *ops)`** (`#include <camkes/io.h>`)
+> Construct an IO operations structure to pass to libplatsupport. See source
+  comments for more information about how to use this.
+
+**`int camkes_io_port_in(void *cookie, uint32_t port, int io_size, uint32_t *result)`** (`#include <camkes/io.h>`)
+**`int camkes_io_port_out(void *cookie, uint32_t port, int io_size, uint32_t val)`** (`#include <camkes/io.h>`)
+> Read from or write to a hardware IO port. This function is primarily to ease
+  interaction with libplatsupport infrastructure, so refer to its documentation
+  where appropriate.
+
+**`int camkes_io_port_ops(ps_io_port_ops_t *ops)`** (`#include <camkes/io.h>`)
+> Construct an IO port access structure to pass to libplatsupport. See source
+  comments for more information about how to use this.
+
 **`const char *get_instance_name(void)`** (`#include "`_`component`_`"`)
 
 > Returns the name of this component instance. This can be helpful if you want

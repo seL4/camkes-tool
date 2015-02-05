@@ -14,12 +14,12 @@
 
 #include <assert.h>
 #include <limits.h>
+#include <platsupport/io.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <camkes/dma.h>
-#include <platsupport/io.h>
 #include <utils/util.h>
 
 /* NOT THREAD SAFE. The code could be made thread safe relatively easily by
@@ -151,82 +151,4 @@ int camkes_dma_manager(ps_dma_man_t *man) {
     man->dma_unpin_fn = dma_unpin;
     man->dma_cache_op_fn = dma_cache_op;
     return 0;
-}
-
-/* Callers of this function are assumed not to be using the underlying
- * allocation functions above. Note that this function actually returns
- * accessible pointers into what would notionally be the free list if you were
- * using the underlying allocation functions.
- */
-static void *io_map(void *cookie UNUSED, uintptr_t paddr, size_t size,
-        int cached, ps_mem_flags_t flags UNUSED) {
-    assert(paddr != 0);
-
-    /* All the frames backing our pool are uncached. */
-    if (cached) {
-        return NULL;
-    }
-
-    /* We can't "map" anything that crosses a frame boundary. */
-    if (!SAME_PAGE_4K(paddr, paddr + size - 1)) {
-        return NULL;
-    }
-
-    /* We don't track physical addresses, so the only way we can locate the
-     * requested frame is to iterate over the (known reversible) mappings we
-     * have.
-     */
-    for (void *v = head; v != NULL; v = *(void**)v) {
-        uintptr_t p = camkes_dma_get_paddr(v);
-        if (PAGE_ALIGN_4K(p) == PAGE_ALIGN_4K(paddr)) {
-            /* We found it! */
-            uintptr_t offset = paddr & MASK(PAGE_BITS_4K);
-            return (void*)((uintptr_t)v | offset);
-        }
-
-    }
-
-    /* We didn't find the matching frame. */
-    return NULL;
-}
-
-/* We never unmap anything. */
-static void io_unmap(void *cookie UNUSED, void *vaddr UNUSED, size_t size UNUSED) {
-}
-
-int camkes_io_mapper(ps_io_mapper_t *mapper) {
-    assert(mapper != NULL);
-    mapper->io_map_fn = io_map;
-    mapper->io_unmap_fn = io_unmap;
-    return 0;
-}
-
-/* Is it worth pointing these to a component's accessible IO ports when these
- * are a legacy feature?
- */
-static int io_port_in(void *cookie UNUSED, uint32_t port UNUSED,
-        int io_size UNUSED, uint32_t *result UNUSED) {
-    assert(!"unimplemented");
-    return -1;
-}
-static int io_port_out(void *cookie UNUSED, uint32_t port UNUSED,
-        int io_size UNUSED, uint32_t val UNUSED) {
-    assert(!"unimplemented");
-    return -1;
-}
-
-/* This one is static because we don't really want users directly constructing
- * one of these when its only functionality is stubbed out.
- */
-static void io_port_ops(ps_io_port_ops_t *ops) {
-    assert(ops != NULL);
-    ops->io_port_in_fn = io_port_in;
-    ops->io_port_out_fn = io_port_out;
-}
-
-int camkes_io_ops(ps_io_ops_t *ops) {
-    assert(ops != NULL);
-    io_port_ops(&ops->io_port_ops);
-    return camkes_dma_manager(&ops->dma_manager) ||
-        camkes_io_mapper(&ops->io_mapper);
 }

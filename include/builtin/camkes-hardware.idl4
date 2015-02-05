@@ -26,4 +26,9 @@ procedure IOPort {
 	void out8 (in unsigned int ioport, in unsigned int value);
 	void out16(in unsigned int ioport, in unsigned int value);
 	void out32(in unsigned int ioport, in unsigned int value);
+
+    /* This function is expected to return 0 if the given port does not fall in
+     * the addressable range of this interface, or non-zero if it does.
+     */
+    int in_range(in unsigned int port);
 }
