@@ -10,6 +10,7 @@
 
 #include <assert.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <sel4/sel4.h>
 
 /*? macros.show_includes(me.from_instance.type.includes) ?*/
