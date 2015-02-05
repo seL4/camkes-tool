@@ -24,6 +24,7 @@
 #include <camkes/dma.h>
 #include <camkes/tls.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <sync/sem-bare.h>
 #include <sel4debug/identity.h>
