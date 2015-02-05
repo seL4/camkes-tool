@@ -104,10 +104,14 @@ static void *dma_alloc(void *cookie UNUSED, size_t size, int align, int cached,
         return NULL;
     }
 
-    /* All the frames backing our DMA pool are uncached. */
-    if (cached) {
-        return NULL;
-    }
+    /* Ignore the cached argument and allocate an uncached page. The assumption
+     * here is that any caller that wants a cached page only wants it so as an
+     * optimisation. Their usage pattern is expected to be (1) write repeatedly
+     * to the page, (2) flush the page, (3) pass it to a device. In the case of
+     * an uncached frame we simply lose some performance in (1) and make (2) a
+     * no-op.
+     */
+    (void)cached;
 
     return camkes_dma_alloc_page();
 }
