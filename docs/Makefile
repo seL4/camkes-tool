@@ -8,26 +8,22 @@
 # @TAG(NICTA_BSD)
 #
 
-SOURCES=$(wildcard *.md)
-
 ifeq (${V},1)
 Q :=
 else
 Q:= @
 endif
 
-default: $(SOURCES:%.md=%.html) contents.js
+default: index.html camkes-manual.pdf
 
-%.html: %.md
-	@echo " [MARKDOWN] $@"
-	${Q}which markdown >/dev/null 2>/dev/null || { echo "markdown not found" ; exit 1 ; }
-	${Q}{ echo "<html><head><meta http-equiv=\"Content-type\" content=\"text/html; charset=utf-8\" /></head><body>" ; sed -e 's/^\(#\+\) \(.*\)$$/\1 <a id="\2"><\/a>\2/g' $^ | markdown - ; echo "</body></html>" ; } >$@
+index.html: index.md
+	@echo " [PANDOC] $@"
+	${Q}pandoc -s --toc -o $@ $<
 
-contents.js: index.md
-	@echo " [GEN] $@"
-	${Q}grep '^#' $^ | sed -e 's/#/\&nbsp;\&nbsp;\&nbsp;\&nbsp;\&nbsp;/g' -e 's/^\(\(\&nbsp;\)\+\) \(.*\)$$/document.write("\1<a href=\\"#\3\\">\3<\/a><br\/>");/g' >$@
+camkes-manual.pdf: index.md imgs/echo.png
+	@echo " [PANDOC] $@"
+	${Q}pandoc -s --toc -o $@ $<
 
 clean:
-	@echo " [CLEAN] $(SOURCES:%.md=%.html) contents.js"
-	${Q}rm -rf $(SOURCES:%.md=%.html)
-	${Q}rm -rf contents.js
+	@echo " [CLEAN] index.html camkes-manual.pdf"
+	${Q}rm -rf index.html camkes-manual.pdf
