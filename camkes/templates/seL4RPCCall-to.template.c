@@ -10,10 +10,12 @@
 
 #define _POSIX_SOURCE /* stpcpy */
 #include <assert.h>
+#include <limits.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 #include <camkes/marshal.h>
+#include <camkes/error.h>
 #include <sel4/sel4.h>
 #include <camkes/dataport.h>
 #include <utils/util.h>
@@ -46,6 +48,12 @@
 #define /*? BUFFER_BASE ?*/ /*? base ?*/
 
 /*- set methods_len = len(me.to_interface.type.methods) -*/
+/*- set instance = me.to_instance.name -*/
+/*- set interface = me.to_interface.name -*/
+
+/* Interface-specific error handling */
+/*- set error_handler = c_symbol('error_handler') -*/
+/*- include 'error-handler.c' -*/
 
 /*- for m in me.to_interface.type.methods -*/
     extern
@@ -86,6 +94,7 @@
 /*- endif -*/
 /*- set size = sizes[0] -*/
 /*- set input_parameters = filter(lambda('x: x.direction.direction in [\'in\', \'inout\']'), m.parameters) -*/
+/*- set allow_trailing_data = userspace_ipc -*/
 /*- include 'unmarshal-inputs.c' -*/
 
 /*- set function = '%s_marshal' % m.name -*/
@@ -115,7 +124,26 @@ int /*? me.to_interface.name ?*/__run(void) {
             /*- set cnode = alloc_cap('cnode', my_cnode, write=True) -*/
             /*- set reply_cap_slot = alloc_cap('reply_cap_slot', None) -*/
             int /*? result ?*/ UNUSED = seL4_CNode_SaveCaller(/*? cnode ?*/, /*? reply_cap_slot ?*/, 32);
-            assert(/*? result ?*/ == 0);
+            ERR_IF(/*? result ?*/ != 0, /*? error_handler ?*/, ((camkes_error_t){
+                    .type = CE_SYSCALL_FAILED,
+                    .instance = "/*? instance ?*/",
+                    .interface = "/*? interface ?*/",
+                    .description = "failed to save reply cap in /*? name ?*/",
+                    .syscall = CNodeSaveCaller,
+                    .error = /*? result ?*/,
+                }), ({
+                    /*? info ?*/ = seL4_Wait(/*? ep ?*/, & /*? me.to_interface.name ?*/_badge);
+                    continue;
+                }));
+        /*- endif -*/
+
+        /*- set size = c_symbol('size') -*/
+        unsigned int /*? size ?*/ =
+        /*- if userspace_ipc -*/
+            /*? sizes[0] ?*/;
+        /*- else -*/
+            seL4_MessageInfo_get_length(/*? info ?*/) * sizeof(seL4_Word);
+            assert(/*? size ?*/ <= seL4_MsgMaxLength * sizeof(seL4_Word));
         /*- endif -*/
 
         /*- set call = c_symbol('call') -*/
@@ -137,6 +165,18 @@ int /*? me.to_interface.name ?*/__run(void) {
 
             /*- set buffer = c_symbol('buffer') -*/
             void * /*? buffer ?*/ = (void*)/*? BUFFER_BASE ?*/;
+
+            ERR_IF(sizeof(/*? call ?*/) > /*? size ?*/, /*? error_handler ?*/, ((camkes_error_t){
+                    .type = CE_MALFORMED_RPC_PAYLOAD,
+                    .instance = "/*? instance ?*/",
+                    .interface = "/*? interface ?*/",
+                    .description = "truncated message encountered while unmarshalling method index in /*? name ?*/",
+                    .length = /*? size ?*/,
+                    .current_index = sizeof(/*? call ?*/),
+                }), ({
+                    /*? info ?*/ = seL4_Wait(/*? ep ?*/, & /*? me.to_interface.name ?*/_badge);
+                    continue;
+                }));
 
             memcpy(& /*? call ?*/, /*? buffer ?*/, sizeof(/*? call ?*/));
         /*- endif -*/
@@ -164,7 +204,13 @@ int /*? me.to_interface.name ?*/__run(void) {
                     /* Unmarshal parameters */
                     /*- set function = '%s_unmarshal' % m.name -*/
                     /*- set input_parameters = filter(lambda('x: x.direction.direction in [\'in\', \'inout\']'), m.parameters) -*/
-                    /*- include 'call-unmarshal-inputs.c' -*/;
+                    /*- set err = c_symbol('error') -*/
+                    int /*? err ?*/ = /*- include 'call-unmarshal-inputs.c' -*/;
+                    if (unlikely(/*? err ?*/ != 0)) {
+                        /* Error in unmarshalling; return to event loop. */
+                        /*? info ?*/ = seL4_Wait(/*? ep ?*/, & /*? me.to_interface.name ?*/_badge);
+                        continue;
+                    }
 
                     /* Call the implementation */
                     /*- set ret = c_symbol('ret') -*/
@@ -295,8 +341,18 @@ int /*? me.to_interface.name ?*/__run(void) {
                 }
             /*- endfor -*/
             default: {
-                /*# TODO: Handle error #*/
-                assert(0);
+                ERR(/*? error_handler ?*/, ((camkes_error_t){
+                        .type = CE_INVALID_METHOD_INDEX,
+                        .instance = "/*? instance ?*/",
+                        .interface = "/*? interface ?*/",
+                        .description = "invalid method index received in /*? name ?*/",
+                        .lower_bound = 0,
+                        .upper_bound = /*? methods_len ?*/ - 1,
+                        .invalid_index = /*? call ?*/,
+                    }), ({
+                        /*? info ?*/ = seL4_Wait(/*? ep ?*/, & /*? me.to_interface.name ?*/_badge);
+                        continue;
+                    }));
             }
         }
     }

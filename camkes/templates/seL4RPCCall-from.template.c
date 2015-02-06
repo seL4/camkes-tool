@@ -11,12 +11,14 @@
 #define _POSIX_SOURCE /* stpcpy */
 #include <sel4/sel4.h>
 #include <assert.h>
+#include <limits.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sync/sem-bare.h>
 #include <camkes/marshal.h>
 #include <camkes/dataport.h>
+#include <camkes/error.h>
 
 /*? macros.show_includes(me.from_instance.type.includes) ?*/
 /*? macros.show_includes(me.from_interface.type.includes, '../static/components/' + me.from_instance.type.name + '/') ?*/
@@ -55,6 +57,14 @@
 /*- endif -*/
 #define /*? BUFFER_BASE ?*/ /*? base ?*/
 
+/*- set methods_len = len(me.from_interface.type.methods) -*/
+/*- set instance = me.from_instance.name -*/
+/*- set interface = me.from_interface.name -*/
+
+/* Interface-specific error handling */
+/*- set error_handler = c_symbol('error_handler') -*/
+/*- include 'error-handler.c' -*/
+
 /*# Conservative calculation of the numbers of threads in this component. #*/
 /*- set threads = (1 if me.from_instance.type.control else 0) + len(me.from_instance.type.provides) + len(me.from_instance.type.uses) + len(me.from_instance.type.emits) + len(me.from_instance.type.consumes) -*/
 
@@ -75,8 +85,6 @@ int /*? me.from_interface.name ?*/__run(void) {
     return 0;
 }
 
-/*- set methods_len = len(me.from_interface.type.methods) -*/
-
 /*- for i, m in enumerate(me.from_interface.type.methods) -*/
 
 /*- set name = m.name -*/
@@ -96,6 +104,7 @@ int /*? me.from_interface.name ?*/__run(void) {
 /*- set function = '%s_unmarshal' % m.name -*/
 /*- set output_parameters = filter(lambda('x: x.direction.direction in [\'out\', \'inout\']'), m.parameters) -*/
 /*- set return_type = m.return_type -*/
+/*- set allow_trailing_data = userspace_ipc -*/
 /*- include 'unmarshal-outputs.c' -*/
 
 /*- if m.return_type -*/
@@ -180,6 +189,21 @@ int /*? me.from_interface.name ?*/__run(void) {
     /*- set function = '%s_marshal' % m.name -*/
     /*- set length = c_symbol('length') -*/
     unsigned int /*? length ?*/ = /*- include 'call-marshal-inputs.c' -*/;
+    if (unlikely(/*? length ?*/ == UINT_MAX)) {
+        /* Error in marshalling; bail out. */
+        /*- if m.return_type -*/
+            /*- if m.return_type.array or (isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string')  -*/
+                return NULL;
+            /*- else -*/
+                /*- set ret = c_symbol() -*/
+                /*? show(m.return_type) ?*/ /*? ret ?*/;
+                memset(& /*? ret ?*/, 0, sizeof(/*? ret ?*/));
+                return /*? ret ?*/;
+            /*- endif -*/
+        /*- else -*/
+            return;
+        /*- endif -*/
+    }
 
     /* Call the endpoint */
     /*- set info = c_symbol('info') -*/
@@ -190,7 +214,16 @@ int /*? me.from_interface.name ?*/__run(void) {
                 ROUND_UP(/*? length ?*/, sizeof(seL4_Word)) / sizeof(seL4_Word)
         /*- endif -*/
         );
-    (void)seL4_Call(/*? ep ?*/, /*? info ?*/);
+    /*? info ?*/ = seL4_Call(/*? ep ?*/, /*? info ?*/);
+
+    /*- set size = c_symbol('size') -*/
+    unsigned int /*? size ?*/ =
+    /*- if userspace_ipc -*/
+        /*? sizes[0] ?*/;
+    /*- else -*/
+        seL4_MessageInfo_get_length(/*? info ?*/) * sizeof(seL4_Word);
+        assert(/*? size ?*/ <= seL4_MsgMaxLength * sizeof(seL4_Word));
+    /*- endif -*/
 
     /* Unmarshal the response */
     /*- set function = '%s_unmarshal' % m.name -*/
@@ -199,17 +232,32 @@ int /*? me.from_interface.name ?*/__run(void) {
     /*- if return_type -*/
       /*- if return_type.array -*/
         /*- if isinstance(return_type, camkes.ast.Type) and return_type.type == 'string' -*/
-          char ** /*? ret ?*/ =
+          char **
         /*- else -*/
-          /*? show(return_type) ?*/ * /*? ret ?*/ =
+          /*? show(return_type) ?*/ *
         /*- endif -*/
       /*- elif isinstance(return_type, camkes.ast.Type) and return_type.type == 'string' -*/
-        char * /*? ret ?*/ =
+        char *
       /*- else -*/
-        /*? show(return_type) ?*/ /*? ret ?*/ =
+        /*? show(return_type) ?*/
       /*- endif -*/
+      /*? ret ?*/;
     /*- endif -*/
-    /*- include 'call-unmarshal-outputs.c' -*/;
+    /*- set err = c_symbol('error') -*/
+    int /*? err ?*/ = /*- include 'call-unmarshal-outputs.c' -*/;
+    if (unlikely(/*? err ?*/ != 0)) {
+        /* Error in unmarshalling; bail out. */
+        /*- if m.return_type -*/
+            /*- if m.return_type.array or (isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string')  -*/
+                return NULL;
+            /*- else -*/
+                memset(& /*? ret ?*/, 0, sizeof(/*? ret ?*/));
+                return /*? ret ?*/;
+            /*- endif -*/
+        /*- else -*/
+            return;
+        /*- endif -*/
+    }
 
     /*- if userspace_buffer_ep -*/
       sync_sem_bare_post(/*? userspace_buffer_ep ?*/,

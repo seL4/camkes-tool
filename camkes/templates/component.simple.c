@@ -21,6 +21,7 @@
 #include <sel4/types.h>
 #include <sel4/sel4.h>
 #include <sel4utils/mapping.h>
+#include <camkes/error.h>
 #include <camkes/tls.h>
 #include <vka/kobject_t.h>
 
@@ -298,7 +299,13 @@ static seL4_CPtr simple_camkes_get_IOPort_cap(void *data, uint16_t start_port, u
             return /*? cap ?*/;
         }
     /*- endfor -*/
-    assert(!"Unable to find IOPort cap");
+    ERR(camkes_error, ((camkes_error_t){
+            .type = CE_ALLOCATION_FAILURE,
+            .instance = "/*? me.name ?*/",
+            .description = "unable to find IO port cap",
+        }), ({
+            return 0;
+        }));
     return 0;
 }
 
@@ -364,9 +371,26 @@ static uintptr_t make_frame_get_paddr(seL4_CPtr untyped) {
 #else
     error = seL4_Untyped_Retype(untyped, type, 12, /*? self_cnode ?*/, 0, 0, /*? holding_slot ?*/, 1);
 #endif
-    assert(error == seL4_NoError);
-    ret = seL4_ARCH_Page_GetAddress(/*? holding_slot ?*/).paddr;
-    assert(ret);
+    ERR_IF(error != seL4_NoError, camkes_error, ((camkes_error_t){
+            .type = CE_SYSCALL_FAILED,
+            .instance = "/*? me.name ?*/",
+            .description = "failed to retype an untyped while trying to determine its physical address",
+            .syscall = UntypedRetype,
+            .error = error,
+        }), ({
+            return (uintptr_t)NULL;
+        }));
+    seL4_ARCH_Page_GetAddress_t res = seL4_ARCH_Page_GetAddress(/*? holding_slot ?*/);
+    ret = res.paddr;
+    ERR_IF(ret == 0, camkes_error, ((camkes_error_t){
+            .type = CE_SYSCALL_FAILED,
+            .instance = "/*? me.name ?*/",
+            .description = "failed to retrieve the physical address of a temporary frame",
+            .syscall = ARCHPageGetAddress,
+            .error = res.error,
+        }), ({
+            return (uintptr_t)NULL;
+        }));
     seL4_CNode_Delete(/*? self_cnode ?*/, /*? holding_slot ?*/, 32);
     seL4_CNode_Recycle(/*? self_cnode ?*/, untyped, 32);
     return ret;

@@ -22,6 +22,7 @@
 #include <camkes/allocator.h>
 #include <camkes/dataport.h>
 #include <camkes/dma.h>
+#include <camkes/error.h>
 #include <camkes/tls.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -98,7 +99,15 @@ uintptr_t /*? get_paddr ?*/(void *ptr) {
             /*- set p = Perspective(dma_frame_index=i) -*/
             /*- set frame = alloc(p['dma_frame_symbol'], seL4_FrameObject) -*/
             seL4_ARCH_Page_GetAddress_t res = seL4_ARCH_Page_GetAddress(/*? frame ?*/);
-            assert(res.error == 0);
+            ERR_IF(res.error != 0, camkes_error, ((camkes_error_t){
+                    .type = CE_SYSCALL_FAILED,
+                    .instance = "/*? me.name ?*/",
+                    .description = "failed to reverse virtual mapping to a DMA frame",
+                    .syscall = ARCHPageGetAddress,
+                    .error = res.error,
+                }), ({
+                    return (uintptr_t)NULL;
+                }));
             return res.paddr + offset;
         }
     /*- endfor -*/
@@ -167,27 +176,39 @@ int /*? s.name ?*/_post(void) {
  */
 /*- set init = c_symbol() -*/
 static void /*? init ?*/(void) {
+    /* The user has actually had no opportunity to install any error handlers at
+     * this point, so any error triggered below will certainly be fatal.
+     */
     int res = camkes_dma_init(/*? p['dma_pool_symbol'] ?*/,
         ROUND_UP(/*? dma_pool ?*/, PAGE_SIZE_4K) / PAGE_SIZE_4K,
         /*? get_paddr ?*/);
-    if (res != 0) {
-        assert(!"DMA initialisation failed");
-        abort();
-    }
+    ERR_IF(res != 0, camkes_error, ((camkes_error_t){
+            .type = CE_ALLOCATION_FAILURE,
+            .instance = "/*? me.name ?*/",
+            .description = "DMA initialisation failed",
+        }), ({
+            return;
+        }));
     debug_set_id_fn(get_instance_name);
     /*- for m in me.type.mutexes -*/
         res = mutex_/*? m.name ?*/_init();
-        if (res != 0) {
-            assert(!"initialisation of mutex \"/*? m.name ?*/\" failed");
-            abort();
-        }
+        ERR_IF(res != 0, camkes_error, ((camkes_error_t){
+                .type = CE_ALLOCATION_FAILURE,
+                .instance = "/*? me.name ?*/",
+                .description = "initialisation of mutex \"/*? m.name ?*/\" failed",
+            }), ({
+                return;
+            }));
     /*- endfor -*/
     /*- for s in me.type.semaphores -*/
         res = semaphore_/*? s.name ?*/_init();
-        if (res != 0) {
-            assert(!"initialisation of semaphore \"/*? s.name ?*/\" failed");
-            abort();
-        }
+        ERR_IF(res != 0, camkes_error, ((camkes_error_t){
+                .type = CE_ALLOCATION_FAILURE,
+                .instance = "/*? me.name ?*/",
+                .description = "initialisation of semaphore \"/*? s.name ?*/\" failed",
+            }), ({
+                return;
+            }));
     /*- endfor -*/
 
     /* Initialise cap allocator. */
@@ -215,30 +236,39 @@ static void /*? init ?*/(void) {
         /*- for i in range(tcb_pool[0]) -*/
             /*- set tcb = alloc('tcb_pool_%d' % i, seL4_TCBObject, read=True, write=True) -*/
             res = camkes_provide(seL4_TCBObject, /*? tcb ?*/, 0, seL4_CanRead|seL4_CanWrite);
-            if (res != 0) {
-                assert(!"failed to add TCB /*? tcb + 1 ?*/ to cap allocation pool");
-                abort();
-            }
+            ERR_IF(res != 0, camkes_error, ((camkes_error_t){
+                    .type = CE_ALLOCATION_FAILURE,
+                    .instance = "/*? me.name ?*/",
+                    .description = "failed to add TCB /*? tcb + 1 ?*/ to cap allocation pool",
+                }), ({
+                    return;
+                }));
         /*- endfor -*/
     /*- endif -*/
     /*- if ep_pool -*/
         /*- for i in range(ep_pool[0]) -*/
             /*- set ep = alloc('ep_pool_%d' % i, seL4_EndpointObject, read=True, write=True) -*/
             res = camkes_provide(seL4_EndpointObject, /*? ep ?*/, 0, seL4_CanRead|seL4_CanWrite);
-            if (res != 0) {
-                assert(!"failed to add EP /*? ep + 1 ?*/ to cap allocation pool");
-                abort();
-            }
+            ERR_IF(res != 0, camkes_error, ((camkes_error_t){
+                    .type = CE_ALLOCATION_FAILURE,
+                    .instance = "/*? me.name ?*/",
+                    .description = "failed to add EP /*? ep + 1 ?*/ to cap allocation pool",
+                }), ({
+                    return;
+                }));
         /*- endfor -*/
     /*- endif -*/
     /*- if aep_pool -*/
         /*- for i in range(aep_pool[0]) -*/
             /*- set aep = alloc('aep_pool_%d' % i, seL4_AsyncEndpointObject, read=True, write=True) -*/
             res = camkes_provide(seL4_AsyncEndpointObject, /*? aep ?*/, 0, seL4_CanRead|seL4_CanWrite);
-            if (res != 0) {
-                assert(!"failed to add AEP /*? aep + 1 ?*/ to cap allocation pool");
-                abort();
-            }
+            ERR_IF(res != 0, camkes_error, ((camkes_error_t){
+                    .type = CE_ALLOCATION_FAILURE,
+                    .instance = "/*? me.name ?*/",
+                    .description = "failed to add AEP /*? aep + 1 ?*/ to cap allocation pool",
+                }), ({
+                    return;
+                }));
         /*- endfor -*/
     /*- endif -*/
     /*- for u in untyped_pool -*/
@@ -248,10 +278,13 @@ static void /*? init ?*/(void) {
             /*- endif -*/
             /*- set untyped = alloc('untyped_%s_pool_%d' % (u[0], i), seL4_UntypedObject, size_bits=int(u[0]), read=True, write=True) -*/
             res = camkes_provide(seL4_UntypedObject, /*? untyped ?*/, 1U << /*? u[0] ?*/, seL4_CanRead|seL4_CanWrite);
-            if (res != 0) {
-                assert(!"failed to add untyped /*? untyped + 1 ?*/ of size /*? u[0] ?*/ bits to cap allocation pool");
-                abort();
-            }
+            ERR_IF(res != 0, camkes_error, ((camkes_error_t){
+                    .type = CE_ALLOCATION_FAILURE,
+                    .instance = "/*? me.name ?*/",
+                    .description = "failed to add untyped /*? untyped + 1 ?*/ of size /*? u[0] ?*/ bits to cap allocation pool",
+                }), ({
+                    return;
+                }));
         /*- endfor -*/
     /*- endfor -*/
 }

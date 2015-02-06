@@ -10,11 +10,13 @@
 
 #define _POSIX_SOURCE /* stpcpy */
 #include <assert.h>
+#include <limits.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <camkes/marshal.h>
+#include <camkes/error.h>
 #include <sel4/sel4.h>
 #include <camkes/dataport.h>
 #include <utils/util.h>
@@ -25,7 +27,16 @@
 /*- set BUFFER_BASE = c_symbol('BUFFER_BASE') -*/
 #define /*? BUFFER_BASE ?*/ ((void*)&seL4_GetIPCBuffer()->msg[0])
 
-/*- set methods_len = len(me.from_interface.type.methods) -*/
+/*- set methods_len = len(me.to_interface.type.methods) -*/
+/*- set instance = me.to_instance.name -*/
+/*- set interface = me.to_interface.name -*/
+/*- set buffer = BUFFER_BASE -*/
+/*- set size = 'seL4_MsgMaxLength * sizeof(seL4_Word)' -*/
+/*- set allow_trailing_data = False -*/
+
+/* Interface-specific error handling */
+/*- set error_handler = c_symbol('error_handler') -*/
+/*- include 'error-handler.c' -*/
 
 /*- for m in me.to_interface.type.methods -*/
     extern
@@ -40,8 +51,6 @@
 
 /*- set name = m.name -*/
 /*- set function = '%s_unmarshal' % m.name -*/
-/*- set buffer = BUFFER_BASE -*/
-/*- set size = 'seL4_MsgMaxLength * sizeof(seL4_Word)' -*/
 /*- set input_parameters = filter(lambda('x: x.direction.direction in [\'in\', \'inout\']'), m.parameters) -*/
 /*- include 'unmarshal-inputs.c' -*/
 
@@ -58,6 +67,10 @@ int /*? me.to_interface.name ?*/__run(void) {
     while (1) {
         /*- set info = c_symbol('info') -*/
         seL4_MessageInfo_t /*? info ?*/ = seL4_Wait(/*? ep ?*/, NULL);
+
+        /*- set size = c_symbol('size') -*/
+        unsigned int /*? size ?*/ = seL4_MessageInfo_get_length(/*? info ?*/) * sizeof(seL4_Word);
+        assert(/*? size ?*/ <= seL4_MsgMaxLength * sizeof(seL4_Word));
 
         /*- set buffer = c_symbol('buffer') -*/
         void * /*? buffer ?*/ UNUSED = /*? BUFFER_BASE ?*/;
@@ -78,6 +91,16 @@ int /*? me.to_interface.name ?*/__run(void) {
             /*? raise(Exception('too many methods in interface %s' % me.to_interface.name)) ?*/
           /*- endif -*/
           /*? call ?*/;
+          ERR_IF(sizeof(/*? call ?*/) > /*? size ?*/, /*? error_handler ?*/, ((camkes_error_t){
+                .type = CE_MALFORMED_RPC_PAYLOAD,
+                .instance = "/*? instance ?*/",
+                .interface = "/*? interface ?*/",
+                .description = "truncated message encountered while unmarshalling method index in /*? name ?*/",
+                .length = /*? size ?*/,
+                .current_index = sizeof(/*? call ?*/),
+              }), ({
+                  continue;
+              }));
           memcpy(& /*? call ?*/, /*? buffer ?*/, sizeof(/*? call ?*/));
         /*- endif -*/
 
@@ -103,7 +126,12 @@ int /*? me.to_interface.name ?*/__run(void) {
                     /* Unmarshal parameters */
                     /*- set function = '%s_unmarshal' % m.name -*/
                     /*- set input_parameters = filter(lambda('x: x.direction.direction in [\'in\', \'inout\']'), m.parameters) -*/
-                    /*- include 'call-unmarshal-inputs.c' -*/;
+                    /*- set err = c_symbol('error') -*/
+                    int /*? err ?*/ = /*- include 'call-unmarshal-inputs.c' -*/;
+                    if (unlikely(/*? err ?*/ != 0)) {
+                        /* Error in unmarshalling; return to event loop. */
+                        continue;
+                    }
 
                     /* Call the implementation */
                     /*- set ret = c_symbol('ret') -*/
@@ -151,6 +179,10 @@ int /*? me.to_interface.name ?*/__run(void) {
                     /*- set return_type = m.return_type -*/
                     /*- set length = c_symbol('length') -*/
                     unsigned int /*? length ?*/ = /*- include 'call-marshal-outputs.c' -*/;
+                    if (unlikely(/*? length ?*/ == UINT_MAX)) {
+                        /* Error occurred in unmarshalling; return to event loop. */
+                        continue;
+                    }
 
                     /*# We no longer need anything we previously malloced #*/
                     /*- if m.return_type and (m.return_type.array or (isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string')) -*/
@@ -173,8 +205,17 @@ int /*? me.to_interface.name ?*/__run(void) {
                 }
             /*- endfor -*/
             default: {
-                /*# TODO: Handle error #*/
-                assert(0);
+                ERR(/*? error_handler ?*/, ((camkes_error_t){
+                        .type = CE_INVALID_METHOD_INDEX,
+                        .instance = "/*? instance ?*/",
+                        .interface = "/*? interface ?*/",
+                        .description = "invalid method index received in /*? name ?*/",
+                        .lower_bound = 0,
+                        .upper_bound = /*? methods_len ?*/ - 1,
+                        .invalid_index = /*? call ?*/,
+                    }), ({
+                        continue;
+                    }));
             }
         }
     }
