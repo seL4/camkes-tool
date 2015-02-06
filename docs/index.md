@@ -1864,6 +1864,20 @@ there aren't many gotchas here. If you're doing something more complicated than
 exposing an existing built-in and having difficulty you may find the
 implementations of `breakpoint` or `exec` informative as examples.
 
+### Core Libraries
+
+CAmkES has a notion of "core libraries" as the set of seL4 libraries that may
+be relied on to be available from within the template context. These are
+defined within the camkes.mk Makefile fragment available in the CAmkES
+directory. This set of libraries has been extended on demand to cover all
+base seL4 infrastructure. This can be freely expanded to cover more libraries
+with no expected surprises.
+
+Be aware that these libraries will be unconditionally depended upon and linked
+into all CAmkES components. That is, the user's lists of libraries defined in
+their application Makefile will all be silently extended to include the core
+libraries.
+
 ### Testing
 
 Currently there are only tests for the [parser](#parser); that is, the test
