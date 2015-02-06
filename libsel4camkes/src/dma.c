@@ -100,7 +100,7 @@ static void *dma_alloc(void *cookie UNUSED, size_t size, int align, int cached,
     if (size > PAGE_SIZE_4K) {
         return NULL;
     }
-    if (PAGE_SIZE_4K % align != 0) {
+    if (align && PAGE_SIZE_4K % align != 0) {
         return NULL;
     }
 
