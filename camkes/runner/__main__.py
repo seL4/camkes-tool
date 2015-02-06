@@ -531,7 +531,7 @@ def compose_assemblies(ast):
     lineno = -1
 
     # collect pieces from all assemblies
-    for a in filter(lambda x: isinstance(x, AST.Assembly), ast):
+    for a in [x for x in ast if isinstance(x, AST.Assembly)]:
 
         if filename == None:
             filename = a.filename
@@ -539,16 +539,12 @@ def compose_assemblies(ast):
         if lineno == -1:
             lineno = a.lineno
 
-        for i in a.composition.instances:
-            instances.append(i)
-        for c in a.composition.connections:
-            connections.append(c)
-        for g in a.composition.groups:
-            groups.append(g)
+        instances.extend(a.composition.instances)
+        connections.extend(a.composition.connections)
+        groups.extend(a.composition.groups)
 
         if a.configuration is not None:
-            for s in a.configuration.settings:
-                settings.append(s)
+            settings.extend(a.configuration.settings)
 
     # create an assembly composed from all the pieces
     composite_assembly = AST.Assembly(None,
@@ -558,7 +554,7 @@ def compose_assemblies(ast):
                         )
  
     # remove all the assemblies from ast
-    ast = [x for x in ast if not isinstance(x, AST.Assembly)]
+    ast[:] = [x for x in ast if not isinstance(x, AST.Assembly)]
 
     # add the new composite assembly
     ast.append(composite_assembly)
