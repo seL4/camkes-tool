@@ -19,7 +19,7 @@
  */
 void __arch_putchar(int c) __attribute__((noinline));
 
-#ifdef CONFIG_LIB_SEL4_MUSLC_SYS_ARCH_PUTCHAR_WEAK
+#ifdef CONFIG_LIB_SEL4_MUSLC_CAMKES_ARCH_PUTCHAR_WEAK
     void __arch_putchar(int c) __attribute__((weak));
 #endif
 
