@@ -219,13 +219,31 @@ int /*? me.to_interface.name ?*/__run(void) {
                     }
 
                     /*# We no longer need anything we previously malloced #*/
-                    /*- if m.return_type and (m.return_type.array or (isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string')) -*/
+                    /*- if m.return_type -*/
+                      /*- if m.return_type.array -*/
+                        /*- if isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string' -*/
+                          /*- set mcount = c_symbol() -*/
+                          for (int /*? mcount ?*/ = 0; /*? mcount ?*/ < /*? ret_sz ?*/; /*? mcount ?*/ ++) {
+                            free(/*? ret ?*/[/*? mcount ?*/]);
+                          }
+                        /*- endif -*/
                         free(/*? ret ?*/);
+                      /*- elif isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string' -*/
+                        free(/*? ret ?*/);
+                      /*- endif -*/
                     /*- endif -*/
                     /*- for p in m.parameters -*/
-                        /*- if p.array or (isinstance(p.type, camkes.ast.Type) and p.type.type == 'string') -*/
-                            free(/*? p.name ?*/);
+                      /*- if p.array -*/
+                        /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+                          /*- set mcount = c_symbol() -*/
+                          for (int /*? mcount ?*/ = 0; /*? mcount ?*/ < /*? p.name ?*/_sz; /*? mcount ?*/ ++) {
+                            free(/*? p.name ?*/[/*? mcount ?*/]);
+                          }
                         /*- endif -*/
+                        free(/*? p.name ?*/);
+                      /*- elif isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+                        free(/*? p.name ?*/);
+                      /*- endif -*/
                     /*- endfor -*/
 
                     /*? info ?*/ = seL4_MessageInfo_new(0, 0, 0, /* length */

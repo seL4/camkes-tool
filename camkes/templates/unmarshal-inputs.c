@@ -73,7 +73,15 @@ unsigned int /*? size ?*/
             /*- if q == p -*/
               /*- do break -*/
             /*- endif -*/
-            /*- if q.array or (isinstance(q.type, camkes.ast.Type) and q.type.type == 'string') -*/
+            /*- if q.array -*/
+              /*- if isinstance(q.type, camkes.ast.Type) and q.type.type == 'string' -*/
+                /*- set mcount = c_symbol() -*/
+                for (int /*? mcount ?*/ = 0; /*? mcount ?*/ < * /*? q.name ?*/_sz; /*? mcount ?*/ ++) {
+                  free((* /*? q.name ?*/)[/*? mcount ?*/]);
+                }
+              /*- endif -*/
+              free(* /*? q.name ?*/);
+            /*- elif isinstance(q.type, camkes.ast.Type) and q.type.type == 'string' -*/
               free(* /*? q.name ?*/);
             /*- endif -*/
           /*- endfor -*/
@@ -83,19 +91,27 @@ unsigned int /*? size ?*/
       /*? length ?*/ += sizeof(* /*? p.name ?*/_sz);
       /*- set lcount = c_symbol() -*/
       /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
-        * /*? p.name ?*/ = malloc(sizeof(char) * CAMKES_STR_MAX * (* /*? p.name ?*/_sz));
+        * /*? p.name ?*/ = malloc(sizeof(char*) * (* /*? p.name ?*/_sz));
         ERR_IF(* /*? p.name ?*/ == NULL, /*? error_handler ?*/, ((camkes_error_t){
             .type = CE_ALLOCATION_FAILURE,
             .instance = "/*? instance ?*/",
             .interface = "/*? interface ?*/",
             .description = "out of memory while unmarshalling /*? p.name ?*/ in /*? name ?*/",
-            .alloc_bytes = sizeof(char) * CAMKES_STR_MAX * (* /*? p.name ?*/_sz),
+            .alloc_bytes = sizeof(char*) * (* /*? p.name ?*/_sz),
           }), ({
             /*- for q in input_parameters -*/
               /*- if q == p -*/
                 /*- do break -*/
               /*- endif -*/
-              /*- if q.array or (isinstance(q.type, camkes.ast.Type) and q.type.type == 'string') -*/
+              /*- if q.array -*/
+                /*- if isinstance(q.type, camkes.ast.Type) and q.type.type == 'string' -*/
+                  /*- set mcount = c_symbol() -*/
+                  for (int /*? mcount ?*/ = 0; /*? mcount ?*/ < * /*? q.name ?*/_sz; /*? mcount ?*/ ++) {
+                    free((* /*? q.name ?*/)[/*? mcount ?*/]);
+                  }
+                /*- endif -*/
+                free(* /*? q.name ?*/);
+              /*- elif isinstance(q.type, camkes.ast.Type) and q.type.type == 'string' -*/
                 free(* /*? q.name ?*/);
               /*- endif -*/
             /*- endfor -*/
@@ -114,7 +130,15 @@ unsigned int /*? size ?*/
               /*- if q == p -*/
                 /*- do break -*/
               /*- endif -*/
-              /*- if q.array or (isinstance(q.type, camkes.ast.Type) and q.type.type == 'string') -*/
+              /*- if q.array -*/
+                /*- if isinstance(q.type, camkes.ast.Type) and q.type.type == 'string' -*/
+                  /*- set mcount = c_symbol() -*/
+                  for (int /*? mcount ?*/ = 0; /*? mcount ?*/ < * /*? q.name ?*/_sz; /*? mcount ?*/ ++) {
+                    free((* /*? q.name ?*/)[/*? mcount ?*/]);
+                  }
+                /*- endif -*/
+                free(* /*? q.name ?*/);
+              /*- elif isinstance(q.type, camkes.ast.Type) and q.type.type == 'string' -*/
                 free(* /*? q.name ?*/);
               /*- endif -*/
             /*- endfor -*/
@@ -137,15 +161,57 @@ unsigned int /*? size ?*/
                 /*- if q == p -*/
                   /*- do break -*/
                 /*- endif -*/
-                /*- if q.array or (isinstance(q.type, camkes.ast.Type) and q.type.type == 'string') -*/
+                /*- if q.array -*/
+                  /*- if isinstance(q.type, camkes.ast.Type) and q.type.type == 'string' -*/
+                    /*- set mcount = c_symbol() -*/
+                    for (int /*? mcount ?*/ = 0; /*? mcount ?*/ < * /*? q.name ?*/_sz; /*? mcount ?*/ ++) {
+                      free((* /*? q.name ?*/)[/*? mcount ?*/]);
+                    }
+                  /*- endif -*/
+                  free(* /*? q.name ?*/);
+                /*- elif isinstance(q.type, camkes.ast.Type) and q.type.type == 'string' -*/
                   free(* /*? q.name ?*/);
                 /*- endif -*/
               /*- endfor -*/
+              /*- set mcount = c_symbol() -*/
+              for (int /*? mcount ?*/ = 0; /*? mcount ?*/ < /*? lcount ?*/; /*? mcount ?*/ ++) {
+                free((* /*? p.name ?*/)[/*? mcount ?*/]);
+              }
               free(* /*? p.name ?*/);
               return -1;
             }));
-          /* If we didn't trigger an error, we now know this strcpy is safe. */
-          (void)strcpy((* /*? p.name ?*/)[/*? lcount ?*/], /*? base ?*/ + /*? length ?*/);
+          /* If we didn't trigger an error, we now know this strdup is safe. */
+          (* /*? p.name ?*/)[/*? lcount ?*/] = strdup(/*? base ?*/ + /*? length ?*/);
+          ERR_IF((* /*? p.name ?*/)[/*? lcount ?*/] == NULL, /*? error_handler ?*/, ((camkes_error_t){
+              .type = CE_ALLOCATION_FAILURE,
+              .instance = "/*? instance ?*/",
+              .interface = "/*? interface ?*/",
+              .description = "out of memory while unmarshalling /*? p.name ?*/ in /*? name ?*/",
+              .alloc_bytes = /*? len ?*/ + 1,
+            }), ({
+              /*- for q in input_parameters -*/
+                /*- if q == p -*/
+                  /*- do break -*/
+                /*- endif -*/
+                /*- if q.array -*/
+                  /*- if isinstance(q.type, camkes.ast.Type) and q.type.type == 'string' -*/
+                    /*- set mcount = c_symbol() -*/
+                    for (int /*? mcount ?*/ = 0; /*? mcount ?*/ < * /*? q.name ?*/_sz; /*? mcount ?*/ ++) {
+                      free((* /*? q.name ?*/)[/*? mcount ?*/]);
+                    }
+                  /*- endif -*/
+                  free(* /*? q.name ?*/);
+                /*- elif isinstance(q.type, camkes.ast.Type) and q.type.type == 'string' -*/
+                  free(* /*? q.name ?*/);
+                /*- endif -*/
+              /*- endfor -*/
+              /*- set mcount = c_symbol() -*/
+              for (int /*? mcount ?*/ = 0; /*? mcount ?*/ < /*? lcount ?*/; /*? mcount ?*/ ++) {
+                free((* /*? p.name ?*/)[/*? mcount ?*/]);
+              }
+              free(* /*? p.name ?*/);
+              return -1;
+            }));
           /*? length ?*/ += /*? len ?*/ + 1;
         /*- else -*/
           ERR_IF(/*? length ?*/ + sizeof((* /*? p.name ?*/)[0]) > /*? size ?*/, /*? error_handler ?*/, ((camkes_error_t){
@@ -160,7 +226,15 @@ unsigned int /*? size ?*/
                 /*- if q == p -*/
                   /*- do break -*/
                 /*- endif -*/
-                /*- if q.array or (isinstance(q.type, camkes.ast.Type) and q.type.type == 'string') -*/
+                /*- if q.array -*/
+                  /*- if isinstance(q.type, camkes.ast.Type) and q.type.type == 'string' -*/
+                    /*- set mcount = c_symbol() -*/
+                    for (int /*? mcount ?*/ = 0; /*? mcount ?*/ < * /*? q.name ?*/_sz; /*? mcount ?*/ ++) {
+                      free((* /*? q.name ?*/)[/*? mcount ?*/]);
+                    }
+                  /*- endif -*/
+                  free(* /*? q.name ?*/);
+                /*- elif isinstance(q.type, camkes.ast.Type) and q.type.type == 'string' -*/
                   free(* /*? q.name ?*/);
                 /*- endif -*/
               /*- endfor -*/
@@ -186,57 +260,46 @@ unsigned int /*? size ?*/
             /*- if q == p -*/
               /*- do break -*/
             /*- endif -*/
-            /*- if q.array or (isinstance(q.type, camkes.ast.Type) and q.type.type == 'string') -*/
+            /*- if q.array -*/
+              /*- if isinstance(q.type, camkes.ast.Type) and q.type.type == 'string' -*/
+                /*- set mcount = c_symbol() -*/
+                for (int /*? mcount ?*/ = 0; /*? mcount ?*/ < * /*? q.name ?*/_sz; /*? mcount ?*/ ++) {
+                  free((* /*? q.name ?*/)[/*? mcount ?*/]);
+                }
+              /*- endif -*/
+              free(* /*? q.name ?*/);
+            /*- elif isinstance(q.type, camkes.ast.Type) and q.type.type == 'string' -*/
               free(* /*? q.name ?*/);
             /*- endif -*/
           /*- endfor -*/
           return -1;
         }));
-      /*- if p.direction.direction == 'in' -*/
-        /* We can use strdup here, as opposed to malloc of CAMKES_STR_MAX and
-         * then strcpy because we know the user doesn't need to modify this
-         * string.
-         */
-        * /*? p.name ?*/ = strdup(/*? base ?*/ + /*? length ?*/);
-        ERR_IF(* /*? p.name ?*/ == NULL, /*? error_handler ?*/, ((camkes_error_t){
-            .type = CE_ALLOCATION_FAILURE,
-            .instance = "/*? instance ?*/",
-            .interface = "/*? interface ?*/",
-            .description = "out of memory while unmarshalling /*? p.name ?*/ in /*? name ?*/",
-            .alloc_bytes = /*? len ?*/ + 1,
-          }), ({
-            /*- for q in input_parameters -*/
-              /*- if q == p -*/
-                /*- do break -*/
+      * /*? p.name ?*/ = strdup(/*? base ?*/ + /*? length ?*/);
+      ERR_IF(* /*? p.name ?*/ == NULL, /*? error_handler ?*/, ((camkes_error_t){
+          .type = CE_ALLOCATION_FAILURE,
+          .instance = "/*? instance ?*/",
+          .interface = "/*? interface ?*/",
+          .description = "out of memory while unmarshalling /*? p.name ?*/ in /*? name ?*/",
+          .alloc_bytes = /*? len ?*/ + 1,
+        }), ({
+          /*- for q in input_parameters -*/
+            /*- if q == p -*/
+              /*- do break -*/
+            /*- endif -*/
+            /*- if q.array -*/
+              /*- if isinstance(q.type, camkes.ast.Type) and q.type.type == 'string' -*/
+                /*- set mcount = c_symbol() -*/
+                for (int /*? mcount ?*/ = 0; /*? mcount ?*/ < * /*? q.name ?*/_sz; /*? mcount ?*/ ++) {
+                  free((* /*? q.name ?*/)[/*? mcount ?*/]);
+                }
               /*- endif -*/
-              /*- if q.array or (isinstance(q.type, camkes.ast.Type) and q.type.type == 'string') -*/
-                free(* /*? q.name ?*/);
-              /*- endif -*/
-            /*- endfor -*/
-            return -1;
-          }));
-      /*- else -*/
-        /*? assert(p.direction.direction == 'inout') ?*/
-        * /*? p.name ?*/ = malloc(sizeof(char) * CAMKES_STR_MAX);
-        ERR_IF(* /*? p.name ?*/ == NULL, /*? error_handler ?*/, ((camkes_error_t){
-            .type = CE_ALLOCATION_FAILURE,
-            .instance = "/*? instance ?*/",
-            .interface = "/*? interface ?*/",
-            .description = "out of memory while unmarshalling /*? p.name ?*/ in /*? name ?*/",
-            .alloc_bytes = sizeof(char) * CAMKES_STR_MAX,
-          }), ({
-            /*- for q in input_parameters -*/
-              /*- if q == p -*/
-                /*- do break -*/
-              /*- endif -*/
-              /*- if q.array or (isinstance(q.type, camkes.ast.Type) and q.type.type == 'string') -*/
-                free(* /*? q.name ?*/);
-              /*- endif -*/
-            /*- endfor -*/
-            return -1;
-          }));
-        (void)strcpy(* /*? p.name ?*/, /*? base ?*/ + /*? length ?*/);
-      /*- endif -*/
+              free(* /*? q.name ?*/);
+            /*- elif isinstance(q.type, camkes.ast.Type) and q.type.type == 'string' -*/
+              free(* /*? q.name ?*/);
+            /*- endif -*/
+          /*- endfor -*/
+          return -1;
+        }));
       /*? length ?*/ += /*? len ?*/ + 1;
     /*- else -*/
       ERR_IF(/*? length ?*/ + sizeof(* /*? p.name ?*/) > /*? size ?*/, /*? error_handler ?*/, ((camkes_error_t){
@@ -251,7 +314,15 @@ unsigned int /*? size ?*/
             /*- if q == p -*/
               /*- do break -*/
             /*- endif -*/
-            /*- if q.array or (isinstance(q.type, camkes.ast.Type) and q.type.type == 'string') -*/
+            /*- if q.array -*/
+              /*- if isinstance(q.type, camkes.ast.Type) and q.type.type == 'string' -*/
+                /*- set mcount = c_symbol() -*/
+                for (int /*? mcount ?*/ = 0; /*? mcount ?*/ < * /*? q.name ?*/_sz; /*? mcount ?*/ ++) {
+                  free((* /*? q.name ?*/)[/*? mcount ?*/]);
+                }
+              /*- endif -*/
+              free(* /*? q.name ?*/);
+            /*- elif isinstance(q.type, camkes.ast.Type) and q.type.type == 'string' -*/
               free(* /*? q.name ?*/);
             /*- endif -*/
           /*- endfor -*/
@@ -272,7 +343,15 @@ unsigned int /*? size ?*/
         .current_index = /*? length ?*/,
       }), ({
         /*- for p in input_parameters -*/
-          /*- if p.array or (isinstance(p.type, camkes.ast.Type) and p.type.type == 'string') -*/
+          /*- if p.array -*/
+            /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+              /*- set mcount = c_symbol() -*/
+              for (int /*? mcount ?*/ = 0; /*? mcount ?*/ < * /*? p.name ?*/_sz; /*? mcount ?*/ ++) {
+                free((* /*? p.name ?*/)[/*? mcount ?*/]);
+              }
+            /*- endif -*/
+            free(* /*? p.name ?*/);
+          /*- elif isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
             free(* /*? p.name ?*/);
           /*- endif -*/
         /*- endfor -*/
