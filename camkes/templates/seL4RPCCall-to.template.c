@@ -292,6 +292,11 @@ int /*? me.to_interface.name ?*/__run(void) {
                     /*- set return_type = m.return_type -*/
                     /*- set length = c_symbol('length') -*/
                     unsigned int /*? length ?*/ = /*- include 'call-marshal-outputs.c' -*/;
+                    if (unlikely(/*? length ?*/ == UINT_MAX)) {
+                        /* Error occurred in unmarshalling; return to event loop. */
+                        /*? info ?*/ = seL4_Wait(/*? ep ?*/, & /*? me.to_interface.name ?*/_badge);
+                        continue;
+                    }
 
                     /*# We no longer need anything we previously malloced #*/
                     /*- if m.return_type and (m.return_type.array or (isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string')) -*/
