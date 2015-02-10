@@ -242,6 +242,12 @@ unsigned int /*? size ?*/
       memcpy(/*? p.name ?*/_sz, /*? base ?*/ + /*? length ?*/, sizeof(* /*? p.name ?*/_sz));
       /*? length ?*/ += sizeof(* /*? p.name ?*/_sz);
       /*- if p.direction.direction == 'inout' -*/
+        /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+          /*- set mcount = c_symbol() -*/
+          for (int /*? mcount ?*/ = 0; /*? mcount ?*/ < * /*? p.name ?*/_sz; /*? mcount ?*/ ++) {
+            free((* /*? p.name ?*/)[/*? mcount ?*/]);
+          }
+        /*- endif -*/
         free(* /*? p.name ?*/);
       /*- endif -*/
       /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
