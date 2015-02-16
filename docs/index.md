@@ -1414,8 +1414,8 @@ The following functions are available at runtime:
   Unwrapping will fail if the underlying pointer is not into a dataport that is
   shared with the receiver. `dataport_unwrap_ptr` returns `NULL` on failure.
 
-**`void *camkes_dma_alloc_page(void)`** (`#include <camkes/dma.h>`)  
-**`void camkes_dma_free_page(void *ptr)`** (`#include <camkes/dma.h>`)
+**`void *camkes_dma_alloc(size_t size, int align)`** (`#include <camkes/dma.h>`)  
+**`void camkes_dma_free(void *ptr, size_t size)`** (`#include <camkes/dma.h>`)
 
 > Allocator for DMA device operations. These are closely linked with the DMA
   pool functionality, as the allocation is backed by this pool.
@@ -1628,8 +1628,10 @@ describe a DMA pool with a size in bytes. For example,
 
 This declares an 8KB pool of memory that is available for DMA operations.
 Within the component you must allocate and release pointers into this region
-with the `camkes_dma_alloc_page` and `camkes_dma_free_page` functions described
-above. Note that if you declare a DMA pool that is not page-aligned (4K on the
+with the `camkes_dma_alloc` and `camkes_dma_free` functions described above.
+The allocation function accepts a size and alignment constraint, but be aware
+that allocation may not be efficient or guaranteed when requesting more than
+4Kb. Note that if you declare a DMA pool that is not page-aligned (4K on the
 platforms we support) it will automatically be rounded up.
 
 ### Error Handling
