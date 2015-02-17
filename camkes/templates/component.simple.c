@@ -144,33 +144,22 @@
 /*# We need to have a known cspace size to instatiate a simple. This logic is
     more complicated than it strictly needs to be since in practice camkes will
     always have an 'auto' size, but it does not hurt to be general here #*/
+/*- set _cnodesize = [None] -*/
 /*- if cap_space.cnode.size_bits == 'auto' -*/
     /*- set size_bits = filter(lambda('x: x.instance == \'%s\' and x.attribute == \'cnode_size_bits\'' % (me.name)),  configuration.settings) -*/
     /*- if size_bits -*/
         /*- if len(size_bits) != 1 -*/
             /*? raise(Exception('Multiple cnode_size_bits specified. This makes no sense')) ?*/
         /*- endif -*/
-        /*- do exec('cap_space.cnode.size_bits = %d' % (size_bits[0].value)) -*/
+        /*- do _cnodesize.__setitem__(0, size_bits[0].value) -*/
     /*- else -*/
         /*# We will determine the size at run time #*/
     /*- endif -*/
 /*- else -*/
+    /*- do _cnodesize.__setitem__(0, cap_space.cnode.size_bits) -*/
     simple_data.cnodesizebits = /*? cap_space.cnode.size_bits ?*/;
 /*- endif -*/
-
-/*- macro _cnodesize() -*/
-    /*- if cap_space.cnode.size_bits == 'auto' -*/
-        camkes->cnodesizebits
-    /*- else -*/
-        /*? cap_space.cnode.size_bits ?*/
-    /*- endif -*/
-/*- endmacro -*/
-
-/*- macro _dataforsize() -*/
-    /*- if cap_space.cnode.size_bits == 'auto' -*/
-        camkes_simple_data_t *camkes = (camkes_simple_data_t *)data;
-    /*- endif -*/
-/*- endmacro -*/
+/*- set cnodesize = _cnodesize[0] -*/
 
 /* Static declaration for our cap information. We will populate this when we make
  * the simple */
@@ -180,7 +169,7 @@ typedef struct camkes_untyped {
     int size_bits;
 } camkes_untyped_t;
 typedef struct camkes_simple_data {
-/*- if cap_space.cnode.size_bits == 'auto' -*/
+/*- if cnodesize == None -*/
     int cnodesizebits;
 /*- endif -*/
     camkes_untyped_t untyped[/*? len(untyped_obj_list) ?*/];
@@ -288,8 +277,12 @@ static seL4_CPtr simple_camkes_init_cap(void *data, seL4_CPtr cap) {
 }
 
 static uint8_t simple_camkes_cnode_size(void *data) {
-    /*- do _dataforsize() -*/
-    return /*? _cnodesize() ?*/;
+    /*- if cnodesize == None -*/
+        camkes_simple_data_t *camkes = (camkes_simple_data_t *)data;
+        return camkes->cnodesizebits;
+    /*- else -*/
+        return /*? cnodesize ?*/;
+    /*- endif -*/
 }
 
 static seL4_CPtr simple_camkes_get_IOPort_cap(void *data, uint16_t start_port, uint16_t end_port) {
@@ -398,7 +391,7 @@ static uintptr_t make_frame_get_paddr(seL4_CPtr untyped) {
 
 void camkes_make_simple(simple_t *simple) {
     if (!camkes_simple_init) {
-        /*- if cap_space.cnode.size_bits == 'auto' -*/
+        /*- if cnodesize == None -*/
             /* Guess the size of our cnode by rounding */
             /*# If there is no size specified in the configuration then we assume the cnode
                 will be as small as possible to hold all the capabilities that are currently
