@@ -100,17 +100,22 @@ uintptr_t /*? get_paddr ?*/(void *ptr) {
         if (base == (uintptr_t)/*? p['dma_pool_symbol'] ?*/ + /*? i ?*/ * PAGE_SIZE_4K) {
             /*- set p = Perspective(dma_frame_index=i) -*/
             /*- set frame = alloc(p['dma_frame_symbol'], seL4_FrameObject) -*/
-            seL4_ARCH_Page_GetAddress_t res = seL4_ARCH_Page_GetAddress(/*? frame ?*/);
-            ERR_IF(res.error != 0, camkes_error, ((camkes_error_t){
-                    .type = CE_SYSCALL_FAILED,
-                    .instance = "/*? me.name ?*/",
-                    .description = "failed to reverse virtual mapping to a DMA frame",
-                    .syscall = ARCHPageGetAddress,
-                    .error = res.error,
-                }), ({
-                    return (uintptr_t)NULL;
-                }));
-            return res.paddr + offset;
+            /*- set paddr_sym = c_symbol('paddr') -*/
+            static uintptr_t /*? paddr_sym ?*/;
+            if (/*? paddr_sym ?*/ == 0) {
+                seL4_ARCH_Page_GetAddress_t res = seL4_ARCH_Page_GetAddress(/*? frame ?*/);
+                ERR_IF(res.error != 0, camkes_error, ((camkes_error_t){
+                        .type = CE_SYSCALL_FAILED,
+                        .instance = "/*? me.name ?*/",
+                        .description = "failed to reverse virtual mapping to a DMA frame",
+                        .syscall = ARCHPageGetAddress,
+                        .error = res.error,
+                    }), ({
+                        return (uintptr_t)NULL;
+                    }));
+                /*? paddr_sym ?*/ = res.paddr;
+            }
+            return /*? paddr_sym ?*/ + offset;
         }
     /*- endfor -*/
     return (uintptr_t)NULL;
