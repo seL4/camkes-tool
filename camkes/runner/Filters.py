@@ -286,22 +286,16 @@ def collapse_shared_frames(ast, obj_space, cspaces, elfs, *_):
             assert vaddr is not None, 'failed to find dataport symbol \'%s\'' \
                 ' in ELF %s' % (sym, elf_name)
             assert vaddr != 0
+            assert vaddr % PAGE_SIZE == 0, 'dataport not page-aligned'
             sz = get_symbol_size(elf, sym)
             assert sz != 0
 
-            # Infer the page table that backs this vaddr.
-            pt_index = page_table_index(get_elf_arch(elf), vaddr)
-            assert pt_index in pd
-            pt = pd[pt_index].referent
+            arch = get_elf_arch(elf)
 
-            # Infer the starting page index of this vaddr.
-            p_index = page_index(get_elf_arch(elf), vaddr)
-
-            # TODO: If the following assertion fails it means that the shared
-            # region crosses a PT boundary (i.e. it is backed by more than one
-            # PT). In theory we could support this with a bit more cleverness
-            # here.
-            assert page_table_index(get_elf_arch(elf), vaddr + sz - 1) == pt_index
+            # Infer the page table(s) and page(s) that back this region.
+            pts, p_indicies = zip(*[\
+                (pd[page_table_index(arch, v)].referent, page_index(arch, v)) \
+                for v in xrange(vaddr, vaddr + sz, PAGE_SIZE)])
 
             # Determine the rights this mapping should have. We use these to
             # recreate the mapping below. Technically we may not need to
@@ -333,13 +327,19 @@ def collapse_shared_frames(ast, obj_space, cspaces, elfs, *_):
                 assert len(configurations) == 1
                 paddr, size = configurations[0].value.strip('"').split(':')
                 # Round up the MMIO size to PAGE_SIZE
+                paddr = int(paddr, 16)
                 size = int(size, 16)
-                for idx in range(0, (size + PAGE_SIZE - 1) / PAGE_SIZE):
-                    frame_obj = pt[p_index + idx].referent
-                    frame_obj.paddr = int(paddr, 16) + PAGE_SIZE * idx
+                for idx in xrange(0, (size + PAGE_SIZE - 1) / PAGE_SIZE):
+                    try:
+                        frame_obj = pts[idx][p_indicies[idx]].referent
+                    except IndexError:
+                        raise Exception('MMIO attributes specify device ' \
+                            'memory that is larger than the dataport it is ' \
+                            'associated with')
+                    frame_obj.paddr = paddr + PAGE_SIZE * idx
                     cap = Cap(frame_obj, read, write, execute)
                     cap.set_cached(False)
-                    pt.slots[p_index + idx] = cap
+                    pts[idx].slots[p_indicies[idx]] = cap
                     obj_space.relabel(conn_name, frame_obj)
 
                 continue
@@ -364,16 +364,14 @@ def collapse_shared_frames(ast, obj_space, cspaces, elfs, *_):
                 if mapped:
                     shared_frames[key] = shared_frames[mapped[0]]
                 else:
-                    shared_frames[key] = \
-                        map(lambda x: pt[p_index + x].referent, \
-                        range(0, sz / PAGE_SIZE))
+                    shared_frames[key] = [pt[p_index].referent \
+                        for (pt, p_index) in zip(pts, p_indicies)]
 
             # Overwrite the caps backing this region with caps to the shared
             # frames. Again, note we may not need to do this, but doing it
             # unconditionally is simpler.
-            for j in range(0, sz / PAGE_SIZE):
-                f = shared_frames[shm_keys[0]][j]
-                pt.slots[p_index + j] = Cap(f, read, write, execute)
+            for j, f in enumerate(shared_frames[shm_keys[0]]):
+                pts[j].slots[p_indicies[j]] = Cap(f, read, write, execute)
                 obj_space.relabel(conn_name, f)
 
 def replace_dma_frames(ast, obj_space, cspaces, elfs, *_):
