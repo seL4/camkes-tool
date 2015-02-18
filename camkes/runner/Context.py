@@ -23,8 +23,16 @@ import code, collections, inspect, itertools, math, os, pdb, re, textwrap
 from capdl.Allocator import seL4_TCBObject, seL4_EndpointObject, \
     seL4_AsyncEndpointObject, seL4_CanRead, seL4_CanWrite, seL4_AllRights, \
     seL4_ARM_SmallPageObject, seL4_FrameObject, seL4_IRQControl, \
-    seL4_UntypedObject, seL4_IA32_IOPort, seL4_IA32_IOSpace, seL4_ASID_Pool, \
+    seL4_UntypedObject, seL4_IA32_IOPort, seL4_IA32_IOSpace, \
     seL4_ARM_SectionObject, seL4_ARM_SuperSectionObject
+
+# Depending on what kernel branch we are on, we may or may not have ASIDs.
+# There are separate python-capdl branches for this, but this import allows us
+# to easily interoperate with both.
+try:
+    from capdl.Allocation import seL4_ASID_Pool
+except ImportError:
+    seL4_ASID_Pool = None
 
 import camkes.ast as AST
 from camkes.internal.DeterministicSet import DeterministicSet
