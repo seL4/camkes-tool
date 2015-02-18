@@ -19,6 +19,7 @@ syn match CamkesCPP "^[ \t]*#.*$"
 syn keyword CamkesKeyword assembly composition from to configuration control
     \ procedure hardware maybe dma_pool has mutex semaphore group tcb_pool
     \ ep_pool aep_pool from_access to_access template untyped_mmio trusted
+    \ cnode_size_bits
 syn match CamkesUntypedPool "untyped[0-9]\+_pool"
 syn keyword CamkesType component connection attribute connector Procedure Event
     \ Dataport

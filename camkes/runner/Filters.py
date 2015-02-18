@@ -139,6 +139,12 @@ def set_tcb_info(ast, obj_space, cspaces, elfs, *_):
             tcb.init.append(vaddr)
 
 def set_tcb_caps(ast, obj_space, cspaces, elfs, *_):
+    assembly = find_assembly(ast)
+
+    settings = \
+        assembly.configuration.settings if assembly.configuration is not None \
+        else []
+
     for group, space in cspaces.items():
         cnode = space.cnode
         for index, tcb in [(k, v.referent) for (k, v) in cnode.slots.items() \
@@ -150,6 +156,24 @@ def set_tcb_caps(ast, obj_space, cspaces, elfs, *_):
             # be. Note that we are assuming no further caps will be added to
             # the CNode after this point.
             cnode.finalise_size()
+
+            # Allow the user to override CNode sizes with the 'cnode_size_bits'
+            # attribute.
+            cnode_size = [x for x in settings if \
+                x.instance == group and x.attribute == 'cnode_size_bits']
+            if len(cnode_size) > 1:
+                raise Exception('multiple CNode sizes specified for %s' % group)
+            elif len(cnode_size) == 1:
+                try:
+                    size = int(cnode_size[0].value)
+                except ValueError:
+                    raise Exception('illegal value for CNode size for %s' % \
+                        group)
+                if size < cnode.size_bits:
+                    raise Exception('%d-bit CNode specified for %s, but this ' \
+                        'CSpace needs to be at least %d bits' % \
+                        (size, group, cnode.size_bits))
+                cnode.size_bits = size
 
             cspace = Cap(cnode)
             cspace.set_guard_size(32 - cnode.size_bits)
