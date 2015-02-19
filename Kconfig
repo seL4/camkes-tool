@@ -93,12 +93,11 @@ menu "CAmkES Options"
     bool "Optimisation: Leave reply cap in place"
     default y
     help
-        Detect scenarios where a reply cap obtained when in an seL4RPCCall
-        connector can never be overwritten, and operate on it in place instead
-        of saving it to a free cap slot. This is an optimisation that can
-        improve the performance of the seL4RPCCall connector. Under the right
-        conditions, with this optimisation enabled, it is possible to hit the
-        IPC fastpath on return.
+        Detect scenarios where a reply cap obtained can never be overwritten
+        and operate on it in place instead of saving it to a free cap slot. This
+        is an optimisation that can improve the performance of connectors that
+        use seL4_Call. Under the right conditions, with this optimisation
+        enabled, it is possible to hit the IPC fastpath on return.
 
     config CAMKES_OPTIMISATION_SPECIALISE_SYSCALL_STUBS
     bool "Optimisation: Specialise syscall stubs"
