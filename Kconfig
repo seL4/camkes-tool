@@ -160,6 +160,19 @@ menu "CAmkES Options"
         values as they are passed. This timing data can then be retrieved after
         execution.
 
+    config CAMKES_LARGE_FRAME_PROMOTION
+    bool "Large frame promotion"
+    default y
+    help
+        Some hardware platforms support multiple page sizes. In components with
+        large virtual address spaces, it is possible to reduce memory usage
+        (and consequent load time) by backing the component's address space with
+        pages of these larger sizes. When this setting is enabled, small
+        consecutive page mappings will be promoted to fewer consecutive large
+        mappings. Note that larger frame sizes are directly mapped into page
+        directories and can also save the overhead of an accompanying page
+        table.
+
     config CAMKES_DEFAULT_PRIORITY
     int "Default thread priority"
     # Default to one less than max prio to avoid interleaving our output with

@@ -484,7 +484,7 @@ def main():
             group = p['group']
             with profiler('Deriving CapDL spec from %s' % e):
                 elf_spec = elf.get_spec(infer_tcb=False, infer_asid=False,
-                    pd=pds[group])
+                    pd=pds[group], use_large_frames=options.largeframe)
                 obj_space.merge(elf_spec, label=group)
             elfs[name] = (e, elf)
         except Exception as inst:

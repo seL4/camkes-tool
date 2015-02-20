@@ -138,7 +138,7 @@ def set_tcb_info(ast, obj_space, cspaces, elfs, *_):
                 raise Exception('TLS symbol, %s, of %s not found' % (tls_setup, tcb.name))
             tcb.init.append(vaddr)
 
-def set_tcb_caps(ast, obj_space, cspaces, elfs, *_):
+def set_tcb_caps(ast, obj_space, cspaces, elfs, _, options):
     assembly = find_assembly(ast)
 
     settings = \
@@ -207,14 +207,15 @@ def set_tcb_caps(ast, obj_space, cspaces, elfs, *_):
                 ipc_vaddr = get_symbol_vaddr(elf, ipc_symbol) + PAGE_SIZE
 
                 # Relate this virtual address to a PT.
-                pt_index = page_table_index(get_elf_arch(elf), ipc_vaddr)
+                pt_index = page_table_index(get_elf_arch(elf), ipc_vaddr,
+                    options.hyp)
                 if pt_index not in pd:
                     raise Exception('IPC buffer of TCB %s in group %s does ' \
                         'not appear to be backed by a frame' % (tcb.name, group))
                 pt = pd[pt_index].referent
 
                 # Continue on to infer the physical frame.
-                p_index = page_index(get_elf_arch(elf), ipc_vaddr)
+                p_index = page_index(get_elf_arch(elf), ipc_vaddr, options.hyp)
                 if p_index not in pt:
                     raise Exception('IPC buffer of TCB %s in group %s does ' \
                         'not appear to be backed by a frame' % (tcb.name, group))
@@ -224,7 +225,7 @@ def set_tcb_caps(ast, obj_space, cspaces, elfs, *_):
 
             # Currently no fault EP (fault_ep_slot).
 
-def collapse_shared_frames(ast, obj_space, cspaces, elfs, *_):
+def collapse_shared_frames(ast, obj_space, cspaces, elfs, _, options):
     """Find regions in virtual address spaces that are intended to be backed by
     shared frames and adjust the capability distribution to reflect this."""
 
@@ -294,7 +295,8 @@ def collapse_shared_frames(ast, obj_space, cspaces, elfs, *_):
 
             # Infer the page table(s) and page(s) that back this region.
             pts, p_indices = zip(*[\
-                (pd[page_table_index(arch, v)].referent, page_index(arch, v)) \
+                (pd[page_table_index(arch, v, options.hyp)].referent,
+                 page_index(arch, v, options.hyp)) \
                 for v in xrange(vaddr, vaddr + sz, PAGE_SIZE)])
 
             # Determine the rights this mapping should have. We use these to
@@ -378,7 +380,7 @@ def collapse_shared_frames(ast, obj_space, cspaces, elfs, *_):
                 pts[j].slots[p_indices[j]] = Cap(f, read, write, execute)
                 obj_space.relabel(conn_name, f)
 
-def replace_dma_frames(ast, obj_space, cspaces, elfs, *_):
+def replace_dma_frames(ast, obj_space, cspaces, elfs, _, options):
     '''Locate the DMA pool (a region that needs to have frames whose mappings
     can be reversed) and replace its backing frames with pre-allocated,
     reversible ones.'''
@@ -426,8 +428,8 @@ def replace_dma_frames(ast, obj_space, cspaces, elfs, *_):
 
         for index, v in enumerate(base_vaddrs):
             # Locate the mapping.
-            pt_index = page_table_index(get_elf_arch(elf), v)
-            p_index = page_index(get_elf_arch(elf), v)
+            pt_index = page_table_index(get_elf_arch(elf), v, options.hyp)
+            p_index = page_index(get_elf_arch(elf), v, options.hyp)
 
             # It should contain an existing frame.
             assert pt_index in pd
@@ -466,7 +468,7 @@ def guard_cnode_caps(ast, obj_space, cspaces, *_):
             for cap in space.cnode.slots.values() \
             if cap is not None and isinstance(cap.referent, CNode)]
 
-def guard_pages(ast, obj_space, cspaces, elfs, *_):
+def guard_pages(ast, obj_space, cspaces, elfs, _, options):
     '''Introduce a guard page around each stack and IPC buffer. Note that the
     templates should have ensured a three page region for each stack in order to
     enable this.'''
@@ -507,7 +509,8 @@ def guard_pages(ast, obj_space, cspaces, elfs, *_):
                 pre_guard = get_symbol_vaddr(elf, ipc_symbol)
 
                 # Relate this virtual address to a PT.
-                pt_index = page_table_index(get_elf_arch(elf), pre_guard)
+                pt_index = page_table_index(get_elf_arch(elf), pre_guard,
+                    options.hyp)
                 if pt_index not in pd:
                     raise Exception('IPC buffer region of TCB %s in ' \
                         'group %s does not appear to be backed by a frame' \
@@ -515,7 +518,7 @@ def guard_pages(ast, obj_space, cspaces, elfs, *_):
                 pt = pd[pt_index].referent
 
                 # Continue on to infer the page.
-                p_index = page_index(get_elf_arch(elf), pre_guard)
+                p_index = page_index(get_elf_arch(elf), pre_guard, options.hyp)
                 if p_index not in pt:
                     raise Exception('IPC buffer region of TCB %s in ' \
                         'group %s does not appear to be backed by a frame' \
@@ -532,14 +535,15 @@ def guard_pages(ast, obj_space, cspaces, elfs, *_):
 
                 post_guard = pre_guard + 2 * PAGE_SIZE
 
-                pt_index = page_table_index(get_elf_arch(elf), post_guard)
+                pt_index = page_table_index(get_elf_arch(elf), post_guard,
+                    options.hyp)
                 if pt_index not in pd:
                     raise Exception('IPC buffer region of TCB %s in ' \
                         'group %s does not appear to be backed by a frame' \
                         % (tcb.name, group))
                 pt = pd[pt_index].referent
 
-                p_index = page_index(get_elf_arch(elf), post_guard)
+                p_index = page_index(get_elf_arch(elf), post_guard, options.hyp)
                 if p_index not in pt:
                     raise Exception('IPC buffer region of TCB %s in ' \
                         'group %s does not appear to be backed by a frame' \
@@ -556,14 +560,15 @@ def guard_pages(ast, obj_space, cspaces, elfs, *_):
 
                 pre_guard = get_symbol_vaddr(elf, stack_symbol)
 
-                pt_index = page_table_index(get_elf_arch(elf), pre_guard)
+                pt_index = page_table_index(get_elf_arch(elf), pre_guard,
+                    options.hyp)
                 if pt_index not in pd:
                     raise Exception('stack region of TCB %s in ' \
                         'group %s does not appear to be backed by a frame' \
                         % (tcb.name, group))
                 pt = pd[pt_index].referent
 
-                p_index = page_index(get_elf_arch(elf), pre_guard)
+                p_index = page_index(get_elf_arch(elf), pre_guard, options.hyp)
                 if p_index not in pt:
                     raise Exception('stack region of TCB %s in ' \
                         'group %s does not appear to be backed by a frame' \
@@ -582,14 +587,15 @@ def guard_pages(ast, obj_space, cspaces, elfs, *_):
                     'stack region has no room for guard pages'
                 post_guard = pre_guard + stack_region_size - PAGE_SIZE
 
-                pt_index = page_table_index(get_elf_arch(elf), post_guard)
+                pt_index = page_table_index(get_elf_arch(elf), post_guard,
+                    options.hyp)
                 if pt_index not in pd:
                     raise Exception('stack region of TCB %s in ' \
                         'group %s does not appear to be backed by a frame' \
                         % (tcb.name, group))
                 pt = pd[pt_index].referent
 
-                p_index = page_index(get_elf_arch(elf), post_guard)
+                p_index = page_index(get_elf_arch(elf), post_guard, options.hyp)
                 if p_index not in pt:
                     raise Exception('stack region of TCB %s in ' \
                         'group %s does not appear to be backed by a frame' \

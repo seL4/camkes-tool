@@ -53,9 +53,10 @@ CAMKES_FLAGS += \
     $(if ${CONFIG_CAMKES_PROFILER_NATIVE},--profiler native,) \
     $(if ${CONFIG_CAMKES_PROFILER_AGGREGATE},--profiler aggregate,) \
     $(if ${CONFIG_CAMKES_PROFILER_HEARTBEAT},--profiler heartbeat,) \
-    $(if ${CONFIG_CAMKES_USE_LARGEFRAME},--largeframe,) \
+    $(if ${CONFIG_CAMKES_LARGE_FRAME_PROMOTION},--largeframe,) \
     $(if ${CONFIG_CAMKES_PRUNE_GENERATED},--prune,) \
     $(if ${CONFIG_CAMKES_PLY_OPTIMIZE},--ply-optimise,) \
+    $(if ${ARM_HYP},--hyp,) \
 
 include ${SEL4_COMMON}/common.mk
 
