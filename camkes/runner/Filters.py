@@ -368,9 +368,13 @@ def collapse_shared_frames(ast, obj_space, cspaces, elfs, *_):
                         for (pt, p_index) in zip(pts, p_indices)]
 
             # Overwrite the caps backing this region with caps to the shared
-            # frames. Again, note we may not need to do this, but doing it
-            # unconditionally is simpler.
+            # frames.
             for j, f in enumerate(shared_frames[shm_keys[0]]):
+                existing = pts[j].slots[p_indices[j]].referent
+                if existing != f:
+                    # We're actually modifying this mapping. Delete the
+                    # unneeded frame.
+                    obj_space.remove(existing)
                 pts[j].slots[p_indices[j]] = Cap(f, read, write, execute)
                 obj_space.relabel(conn_name, f)
 
