@@ -293,7 +293,7 @@ def collapse_shared_frames(ast, obj_space, cspaces, elfs, *_):
             arch = get_elf_arch(elf)
 
             # Infer the page table(s) and page(s) that back this region.
-            pts, p_indicies = zip(*[\
+            pts, p_indices = zip(*[\
                 (pd[page_table_index(arch, v)].referent, page_index(arch, v)) \
                 for v in xrange(vaddr, vaddr + sz, PAGE_SIZE)])
 
@@ -331,7 +331,7 @@ def collapse_shared_frames(ast, obj_space, cspaces, elfs, *_):
                 size = int(size, 16)
                 for idx in xrange(0, (size + PAGE_SIZE - 1) / PAGE_SIZE):
                     try:
-                        frame_obj = pts[idx][p_indicies[idx]].referent
+                        frame_obj = pts[idx][p_indices[idx]].referent
                     except IndexError:
                         raise Exception('MMIO attributes specify device ' \
                             'memory that is larger than the dataport it is ' \
@@ -339,7 +339,7 @@ def collapse_shared_frames(ast, obj_space, cspaces, elfs, *_):
                     frame_obj.paddr = paddr + PAGE_SIZE * idx
                     cap = Cap(frame_obj, read, write, execute)
                     cap.set_cached(False)
-                    pts[idx].slots[p_indicies[idx]] = cap
+                    pts[idx].slots[p_indices[idx]] = cap
                     obj_space.relabel(conn_name, frame_obj)
 
                 continue
@@ -365,13 +365,13 @@ def collapse_shared_frames(ast, obj_space, cspaces, elfs, *_):
                     shared_frames[key] = shared_frames[mapped[0]]
                 else:
                     shared_frames[key] = [pt[p_index].referent \
-                        for (pt, p_index) in zip(pts, p_indicies)]
+                        for (pt, p_index) in zip(pts, p_indices)]
 
             # Overwrite the caps backing this region with caps to the shared
             # frames. Again, note we may not need to do this, but doing it
             # unconditionally is simpler.
             for j, f in enumerate(shared_frames[shm_keys[0]]):
-                pts[j].slots[p_indicies[j]] = Cap(f, read, write, execute)
+                pts[j].slots[p_indices[j]] = Cap(f, read, write, execute)
                 obj_space.relabel(conn_name, f)
 
 def replace_dma_frames(ast, obj_space, cspaces, elfs, *_):
