@@ -58,6 +58,78 @@ uintptr_t camkes_dma_get_paddr(void *ptr);
  */
 int camkes_dma_manager(ps_dma_man_t *man);
 
+/* Debug functionality for profiling DMA heap usage. This information is
+ * returned from a call to `camkes_dma_stats`. Note that this functionality is
+ * only available when NDEBUG is not defined.
+ */
+typedef struct {
+
+    /* The total size of the heap in bytes. */
+    size_t heap_size;
+
+    /* The low water mark of available bytes the heap has ever reached. */
+    size_t minimum_heap_size;
+
+    /* The current live (allocated) heap space in bytes. Note that the
+     * currently available bytes in the heap can be calculated as
+     * `heap_size - current_outstanding`
+     */
+    size_t current_outstanding;
+
+    /* The number of defragmentation attempts that have been performed. Note
+     * that no information is provided as to which of these defragmentation
+     * operations did useful work.
+     */
+    uint64_t defragmentations;
+
+    /* Number of coalescing operations that were performed during
+     * defragmentations.
+     */
+    uint64_t coalesces;
+
+    /* Total number of allocation requests (succeeded or failed) that have been
+     * performed.
+     */
+    uint64_t total_allocations;
+
+    /* Number of allocations that initially failed, but then succeeded on
+     * retrying after defragmenting the heap.
+     */
+    uint64_t succeeded_allocations_on_defrag;
+
+    /* Number of failed allocations. This is separated into those that failed
+     * because the heap was exhausted, because we received illegal caller
+     * arguments and for some other reason. The total failures is calculable by
+     * summing them. The succeeded allocations are available by subtracting
+     * their sum from `total_allocations`.
+     */
+    uint64_t failed_allocations_out_of_memory;
+    uint64_t failed_allocations_illegal_arguments;
+    uint64_t failed_allocations_other;
+
+    /* Average allocation request (succeeded or failed) in bytes. */
+    size_t average_allocation;
+
+    /* Minimum allocation request (succeeded or failed) in bytes. */
+    size_t minimum_allocation;
+
+    /* Maximum allocation request (succeeded or failed) in bytes. */
+    size_t maximum_allocation;
+
+    /* Maximum alignment constraint (succeeded or failed) in bytes. */
+    int maximum_alignment;
+
+    /* Minimum alignment constraint (succeeded or failed) in bytes. */
+    int minimum_alignment;
+
+} camkes_dma_stats_t;
+
+/* Retrieve the above statistics for the current DMA heap. This function is
+ * only provided when NDEBUG is not defined. The caller should not modify or
+ * free the returned value that may be a static resource.
+ */
+const camkes_dma_stats_t *camkes_dma_stats(void);
+
 /* Legacy functionality. Use the general allocation and free functions above in
  * preference to these.
  */

@@ -145,8 +145,8 @@ static void check_consistency(void) {
     for (region_t *r = head; r != NULL; r = r->next) {
         for (region_t *p = head; p != r; p = p->next) {
 
-            uintptr_t r_vaddr = (uintptr_t)r,
-                      p_vaddr = (uintptr_t)p;
+            uintptr_t r_vaddr UNUSED = (uintptr_t)r,
+                      p_vaddr UNUSED = (uintptr_t)p;
 
             assert(!((r_vaddr >= p_vaddr && r_vaddr < p_vaddr + p->size) ||
                      (p_vaddr >= r_vaddr && p_vaddr < r_vaddr + r->size)) &&
@@ -158,6 +158,27 @@ static void check_consistency(void) {
         }
     }
 }
+
+#ifdef NDEBUG
+    #define STATS(arg) do { } while (0)
+#else
+    /* Statistics functionality. */
+
+    #define STATS(arg) do { arg; } while (0)
+
+    static camkes_dma_stats_t stats;
+
+    static size_t total_allocation_bytes;
+
+    const camkes_dma_stats_t *camkes_dma_stats(void) {
+        if (stats.total_allocations > 0) {
+            stats.average_allocation = total_allocation_bytes / stats.total_allocations;
+        } else {
+            stats.average_allocation = 0;
+        }
+        return (const camkes_dma_stats_t*)&stats;
+    }
+#endif
 
 /* Defragment the free list. Can safely be called at any time. The complexity
  * of this function is at least O(n^2).
@@ -189,6 +210,8 @@ static void defrag(void) {
 
     check_consistency();
 
+    STATS(stats.defragmentations++);
+
     /* For each region in the free list... */
     for (region_t *pprev = NULL, *p = head; p != NULL; pprev = p, p = p->next) {
 
@@ -216,6 +239,7 @@ static void defrag(void) {
                  */
                 grow_node(q, p->size);
                 remove_node(pprev, p);
+                STATS(stats.coalesces++);
                 /* Bump the outer scan back to the node we just modified
                  * (accounting for the fact that the next thing we will do is
                  * increment 'p' as we go round the loop). The reason for this
@@ -242,6 +266,7 @@ static void defrag(void) {
                  */
                 grow_node(p, q->size);
                 remove_node(qprev, q);
+                STATS(stats.coalesces++);
 
                 /* Similar to above, we bump the outer scan back so we
                  * reconsider 'p' again the next time around the loop. Now that
@@ -268,6 +293,11 @@ int camkes_dma_init(void *dma_pool, size_t dma_pool_sz,
     }
 
     to_paddr = get_paddr;
+
+    STATS(stats.heap_size = dma_pool_sz);
+    STATS(stats.minimum_heap_size = dma_pool_sz);
+    STATS(stats.minimum_allocation = SIZE_MAX);
+    STATS(stats.minimum_alignment = INT_MAX);
 
     for (unsigned int i = 0; i < dma_pool_sz; i++) {
         camkes_dma_free(dma_pool + i * PAGE_SIZE_4K, PAGE_SIZE_4K);
@@ -357,13 +387,32 @@ static void *alloc(size_t size, int align) {
 
 void *camkes_dma_alloc(size_t size, int align) {
 
+    STATS(({
+        stats.total_allocations++;
+        if (size < stats.minimum_allocation) {
+            stats.minimum_allocation = size;
+        }
+        if (size > stats.maximum_allocation) {
+            stats.maximum_allocation = size;
+        }
+        if (align < stats.minimum_alignment) {
+            stats.minimum_alignment = align;
+        }
+        if (align > stats.maximum_alignment) {
+            stats.maximum_alignment = align;
+        }
+        total_allocation_bytes += size;
+    }));
+
     if (head == NULL) {
         /* Nothing in the free list. */
+        STATS(stats.failed_allocations_out_of_memory++);
         return NULL;
     }
 
     if (align != 0 && PAGE_SIZE_4K % align != 0 && align % PAGE_SIZE_4K != 0) {
         /* The caller has given us unsatisfiable alignment constraints. */
+        STATS(stats.failed_allocations_illegal_arguments++);
         return NULL;
     }
 
@@ -377,10 +426,22 @@ void *camkes_dma_alloc(size_t size, int align) {
              * metadata out of the first page.
              */
             shrink_node(r, PAGE_SIZE_4K);
+            STATS(({
+                stats.current_outstanding += PAGE_SIZE_4K;
+                if (stats.heap_size - stats.current_outstanding < stats.minimum_heap_size) {
+                    stats.minimum_heap_size = stats.heap_size - stats.current_outstanding;
+                }
+            }));
             return (void*)r + r->size;
         } else {
             /* This node is only a single page. */
             remove_node(NULL, r);
+            STATS(({
+                stats.current_outstanding += PAGE_SIZE_4K;
+                if (stats.heap_size - stats.current_outstanding < stats.minimum_heap_size) {
+                    stats.minimum_heap_size = stats.heap_size - stats.current_outstanding;
+                }
+            }));
             return r;
         }
     }
@@ -400,9 +461,24 @@ void *camkes_dma_alloc(size_t size, int align) {
          */
         defrag();
         p = alloc(size, align);
+
+        if (p != NULL) {
+            STATS(stats.succeeded_allocations_on_defrag++);
+        }
     }
 
     check_consistency();
+
+    if (p == NULL) {
+        STATS(stats.failed_allocations_other++);
+    } else {
+        STATS(({
+            stats.current_outstanding += size;
+            if (stats.heap_size - stats.current_outstanding < stats.minimum_heap_size) {
+                stats.minimum_heap_size = stats.heap_size - stats.current_outstanding;
+            }
+        }));
+    }
 
     return p;
 }
@@ -424,6 +500,8 @@ void camkes_dma_free(void *ptr, size_t size) {
      * would have rounded up the size during allocation.
      */
     size = ROUND_UP(size, PAGE_SIZE_4K);
+
+    STATS(stats.current_outstanding -= size);
 
     /* PERF: As an optimisation, we see if we can append or prepend this region
      * onto the first node in the free list. This can avoid unnecessary
