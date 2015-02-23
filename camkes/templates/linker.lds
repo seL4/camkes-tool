@@ -63,7 +63,11 @@ SECTIONS {
 
     /*- for c in me.composition.connections -*/
     /*- if c.type.name == 'seL4HardwareMMIO' -*/
-    ignore_/*? c.from_interface.name ?*/ (NOLOAD) : {
+    /*- if arch == 'arm' -*/
+    ignore_/*? c.from_interface.name ?*/ (NOLOAD) : ALIGN(0x100000) { /*# ARM Section Size #*/
+    /*- else -*/
+    ignore_/*? c.from_interface.name ?*/ (NOLOAD) : ALIGN(0x400000) { /*# IA32 4M Page Size #*/
+    /*- endif -*/
         *(ignore_/*? c.from_interface.name ?*/)
     }
     /*- endif -*/
