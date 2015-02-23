@@ -98,13 +98,11 @@ typedef struct {
     uint64_t succeeded_allocations_on_defrag;
 
     /* Number of failed allocations. This is separated into those that failed
-     * because the heap was exhausted, because we received illegal caller
-     * arguments and for some other reason. The total failures is calculable by
-     * summing them. The succeeded allocations are available by subtracting
-     * their sum from `total_allocations`.
+     * because the heap was exhausted and for some other reason. The total
+     * failures is calculable by summing them. The succeeded allocations are
+     * available by subtracting their sum from `total_allocations`.
      */
     uint64_t failed_allocations_out_of_memory;
-    uint64_t failed_allocations_illegal_arguments;
     uint64_t failed_allocations_other;
 
     /* Average allocation request (succeeded or failed) in bytes. */

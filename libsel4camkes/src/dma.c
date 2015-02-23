@@ -35,7 +35,10 @@ static void *head;
 static uintptr_t (*to_paddr)(void *ptr);
 
 /* A node in the free list. Note that the free list is stored as a linked-list
- * of such nodes *within* the DMA pages themselves.
+ * of such nodes *within* the DMA pages themselves. We aggresively pack this
+ * structure to avoid wasting space if we need to round up to this size during
+ * allocation, and we tweak its alignment to tell the compiler we will be
+ * accessing it through unaligned pointers.
  */
 typedef struct {
 
@@ -47,8 +50,12 @@ typedef struct {
      *  void *vaddr;
      */
 
-    /* The physical address of this region. */
-    uintptr_t paddr;
+    /* The upper bits of the physical address of this region. We don't need to
+     * store the lower bits (the offset into the physical frame) because we can
+     * reconstruct these from the offset into the page, obtainable as described
+     * above. See `extract_paddr` below.
+     */
+    uintptr_t paddr_upper:sizeof(uintptr_t) * 8 - PAGE_BITS_4K;
 
     /* The size in bytes of this region. */
     size_t size;
@@ -56,7 +63,35 @@ typedef struct {
     /* The next node in the list. */
     void *next;
 
-} region_t;
+} __attribute__((aligned(1), packed)) region_t;
+
+static void save_paddr(region_t *r, uintptr_t paddr) {
+    assert(r != NULL);
+    r->paddr_upper = paddr >> PAGE_BITS_4K;
+}
+static uintptr_t try_extract_paddr(region_t *r) {
+    assert(r != NULL);
+    uintptr_t paddr = r->paddr_upper;
+    if (paddr != 0) {
+        uintptr_t offset = (uintptr_t)r & MASK(PAGE_BITS_4K);
+        paddr = (paddr << PAGE_BITS_4K) | offset;
+    }
+    return paddr;
+}
+static uintptr_t extract_paddr(region_t *r) {
+    uintptr_t paddr = try_extract_paddr(r);
+    if (paddr == 0) {
+        /* We've never looked up the physical address of this region. Look it
+         * up and cache it now.
+         */
+        paddr = camkes_dma_get_paddr(r);
+        assert(paddr != 0);
+        save_paddr(r, paddr);
+        paddr = try_extract_paddr(r);
+    }
+    assert(paddr != 0);
+    return paddr;
+}
 
 /* Various helpers for dealing with the above data structure layout. */
 static void prepend_node(region_t *node) {
@@ -121,23 +156,16 @@ static void check_consistency(void) {
 
         assert(r != NULL && "a region includes NULL");
 
-        assert(r->paddr != 0 && "a region includes physical frame 0");
-
-        assert((uintptr_t)r % PAGE_SIZE_4K == 0 &&
-            "the virtual address of a region is not page-aligned");
-
-        assert(r->paddr % PAGE_SIZE_4K == 0 &&
-            "the physical address of a region is not page-aligned");
-
-        assert(r->size % PAGE_SIZE_4K == 0 &&
-            "the size of a region is not page-aligned");
+        assert(extract_paddr(r) != 0 && "a region includes physical frame 0");
 
         assert(r->size > 0 && "a region has size 0");
+
+        assert(r->size >= sizeof(region_t) && "a region has an invalid size");
 
         assert(UINTPTR_MAX - (uintptr_t)r >= r->size &&
             "a region overflows in virtual address space");
 
-        assert(UINTPTR_MAX - r->paddr >= r->size &&
+        assert(UINTPTR_MAX - extract_paddr(r) >= r->size &&
             "a region overflows in physical address space");
     }
 
@@ -146,14 +174,16 @@ static void check_consistency(void) {
         for (region_t *p = head; p != r; p = p->next) {
 
             uintptr_t r_vaddr UNUSED = (uintptr_t)r,
-                      p_vaddr UNUSED = (uintptr_t)p;
+                      p_vaddr UNUSED = (uintptr_t)p,
+                      r_paddr UNUSED = extract_paddr(r),
+                      p_paddr UNUSED = extract_paddr(p);
 
             assert(!((r_vaddr >= p_vaddr && r_vaddr < p_vaddr + p->size) ||
                      (p_vaddr >= r_vaddr && p_vaddr < r_vaddr + r->size)) &&
                 "two regions overlap in virtual address space");
 
-            assert(!((r->paddr >= p->paddr && r->paddr < p->paddr + p->size) ||
-                     (p->paddr >= r->paddr && p->paddr < r->paddr + r->size)) &&
+            assert(!((r_paddr >= p_paddr && r_paddr < p_paddr + p->size) ||
+                     (p_paddr >= r_paddr && p_paddr < r_paddr + r->size)) &&
                 "two regions overlap in physical address space");
         }
     }
@@ -217,16 +247,16 @@ static void defrag(void) {
 
         uintptr_t p_vstart = (uintptr_t)p,           /* start virtual address */
                   p_vend   = (uintptr_t)p + p->size, /* end virtual address */
-                  p_pstart = p->paddr,               /* start physical address */
-                  p_pend   = p->paddr + p->size;     /* end physical address */
+                  p_pstart = extract_paddr(p),       /* start physical address */
+                  p_pend   = p_pstart + p->size;     /* end physical address */
 
         /* For each region *before* this one... */ 
         for (region_t *qprev = NULL, *q = head; q != p; qprev = q, q = q->next) {
 
             uintptr_t q_vstart = (uintptr_t)q,
                       q_vend   = (uintptr_t)q + q->size,
-                      q_pstart = q->paddr,
-                      q_pend   = q->paddr + q->size;
+                      q_pstart = extract_paddr(q),
+                      q_pend   = q_pstart + q->size;
 
             /* We could not have entered this loop if 'p' was the head of the
              * free list.
@@ -319,7 +349,7 @@ uintptr_t camkes_dma_get_paddr(void *ptr) {
 static void *alloc(size_t size, int align) {
 
     /* Our caller should have rounded 'size' up. */
-    assert(size % PAGE_SIZE_4K == 0);
+    assert(size >= sizeof(region_t));
 
     /* For each region in the free list... */
     for (region_t *prev = NULL, *p = head; p != NULL; prev = p, p = p->next) {
@@ -330,15 +360,21 @@ static void *alloc(size_t size, int align) {
             /* Scan subintervals of 'size' bytes within this region from the
              * end. We scan the region from the end as an optimisation because
              * we can avoid relocating the region's metadata if we find a
-             * satisfying allocation that doesn't involve the first page.
+             * satisfying allocation that doesn't involve the initial
+             * sizeof(region_t) bytes.
              */
-            for (void *q = (void*)p + p->size - size; q >= (void*)p;
-                    q -= PAGE_SIZE_4K) {
+            for (void *q = (void*)ROUND_DOWN((uintptr_t)p + p->size - size, align);
+                    q == (void*)p || q >= (void*)p + sizeof(region_t);
+                    q -= align) {
 
-                if (align == 0 || (uintptr_t)q % align == 0) {
-                    /* Found something that satisfies the caller's alignment
-                     * requirements.
+                if (q + size == (void*)p + p->size ||
+                        q + size + sizeof(region_t) <= (void*)p + p->size) {
+                    /* Found something that satisfies the caller's
+                     * requirements and leaves us enough room to turn the cut
+                     * off suffix into a new chunk.
                      */
+
+                    uintptr_t base_paddr = try_extract_paddr(p);
 
                     /* There are four possible cases here... */
 
@@ -353,7 +389,15 @@ static void *alloc(size_t size, int align) {
                              * need to extract the end as a new node.
                              */
                             region_t *r = (void*)p + size;
-                            r->paddr = p->paddr + size;
+                            if (base_paddr != 0) {
+                                /* PERF: The original chunk had a physical
+                                 * address. Save the overhead of a future
+                                 * syscall by reusing this information now.
+                                 */
+                                save_paddr(r, base_paddr + size);
+                            } else {
+                                r->paddr_upper = 0;
+                            }
                             r->size = p->size - size;
                             replace_node(prev, p, r);
                         }
@@ -369,7 +413,12 @@ static void *alloc(size_t size, int align) {
                          */
                         size_t start_size = (uintptr_t)q - (uintptr_t)p;
                         region_t *end = q + size;
-                        end->paddr = p->paddr + start_size + size;
+                        if (base_paddr != 0) {
+                            /* PERF: An optimisation as above. */
+                            save_paddr(end, base_paddr + start_size + size);
+                        } else {
+                            end->paddr_upper = 0;
+                        }
                         end->size = p->size - size - start_size;
                         prepend_node(end);
                         p->size = start_size;
@@ -410,51 +459,22 @@ void *camkes_dma_alloc(size_t size, int align) {
         return NULL;
     }
 
-    if (align != 0 && PAGE_SIZE_4K % align != 0 && align % PAGE_SIZE_4K != 0) {
-        /* The caller has given us unsatisfiable alignment constraints. */
-        STATS(stats.failed_allocations_illegal_arguments++);
-        return NULL;
+    if (align == 0) {
+        /* No alignment requirements. */
+        align = 1;
     }
 
-    /* PERF: Fast path the allocation of a single page. */
-    if (size <= PAGE_SIZE_4K && (align == 0 || PAGE_SIZE_4K % align == 0)) {
-        assert(head != NULL);
-        region_t *r = head;
-        if (r->size > PAGE_SIZE_4K) {
-            /* This node contains more than one page. Allocate the caller the
-             * last page in order to avoid unnecessary relocation of the
-             * metadata out of the first page.
-             */
-            shrink_node(r, PAGE_SIZE_4K);
-            STATS(({
-                stats.current_outstanding += PAGE_SIZE_4K;
-                if (stats.heap_size - stats.current_outstanding < stats.minimum_heap_size) {
-                    stats.minimum_heap_size = stats.heap_size - stats.current_outstanding;
-                }
-            }));
-            return (void*)r + r->size;
-        } else {
-            /* This node is only a single page. */
-            remove_node(NULL, r);
-            STATS(({
-                stats.current_outstanding += PAGE_SIZE_4K;
-                if (stats.heap_size - stats.current_outstanding < stats.minimum_heap_size) {
-                    stats.minimum_heap_size = stats.heap_size - stats.current_outstanding;
-                }
-            }));
-            return r;
-        }
+    if (size < sizeof(region_t)) {
+        /* We need to bump up smaller allocations because they may be freed at
+         * a point when they cannot be conjoined with another chunk in the heap
+         * and therefore need to become host to region_t metadata.
+         */
+        size = sizeof(region_t);
     }
-
-    /* Round up to a page boundary. We allocate entire pages to callers for
-     * security because we don't know whether it's safe to collocate other
-     * allocations in the same page(s).
-     */
-    size = ROUND_UP(size, PAGE_SIZE_4K);
 
     void *p = alloc(size, align);
 
-    if (p == NULL) {
+    if (p == NULL && size > sizeof(region_t)) {
         /* We failed to allocate a matching region, but we may be able to
          * satisfy this allocation by defragmenting the free list and
          * re-attempting.
@@ -484,48 +504,25 @@ void *camkes_dma_alloc(size_t size, int align) {
 }
 
 void camkes_dma_free(void *ptr, size_t size) {
-    /* Any pointer we gave out should have been page-aligned. */
-    assert(IS_ALIGNED_4K((uintptr_t)ptr));
 
     /* Allow the user to free NULL. */
     if (ptr == NULL) {
         return;
     }
 
-    uintptr_t paddr = camkes_dma_get_paddr(ptr);
-    assert(paddr != 0 && "freeing memory via the DMA allocator that is not "
-        "part of the DMA pool");
-
-    /* If the user allocated a region that was not aligned to the page size, we
-     * would have rounded up the size during allocation.
+    /* If the user allocated a region that was too small, we would have rounded
+     * up the size during allocation.
      */
-    size = ROUND_UP(size, PAGE_SIZE_4K);
+    if (size < sizeof(region_t)) {
+        size = sizeof(region_t);
+    }
 
     STATS(stats.current_outstanding -= size);
 
-    /* PERF: As an optimisation, we see if we can append or prepend this region
-     * onto the first node in the free list. This can avoid unnecessary
-     * defrag() calls when repeatedly allocating and deallocating the same small
-     * chunk.
-     */
-    region_t *r = head;
-    if (r != NULL && ptr + size == r && paddr + size == r->paddr) {
-        /* The region being freed precedes the free list head. */
-        region_t *p = ptr;
-        p->paddr = paddr;
-        p->size = size + r->size;
-        replace_node(NULL, r, p);
-    } else if (r != NULL && (void*)r + r->size == ptr &&
-            r->paddr + r->size == paddr) {
-        /* The region being freed follows the free list head. */
-        grow_node(r, size);
-    } else {
-        /* Default case. */
-        region_t *p = ptr;
-        p->paddr = paddr;
-        p->size = size;
-        prepend_node(p);
-    }
+    region_t *p = ptr;
+    p->paddr_upper = 0;
+    p->size = size;
+    prepend_node(p);
 
     check_consistency();
 }
