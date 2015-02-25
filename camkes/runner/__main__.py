@@ -32,7 +32,7 @@ from camkes.internal.version import version
 from NameMangling import Perspective, RUNNER
 from Renderer import Renderer
 from Filters import CAPDL_FILTERS
-from Transforms import AST_TRANSFORMS
+from Transforms import AST_TRANSFORMS, PRE_RESOLUTION, POST_RESOLUTION
 import Context
 
 import functools, os, traceback
@@ -160,7 +160,7 @@ def main():
         die('While parsing \'%s\': %s' % (f.name, str(inst)))
 
     try:
-        for t in AST_TRANSFORMS:
+        for t in AST_TRANSFORMS[PRE_RESOLUTION]:
             with profiler('Running AST transform %s' % t.__name__):
                 ast = t(ast)
     except Exception as inst:
@@ -188,6 +188,13 @@ def main():
             parser.collapse_references(ast)
     except Exception as inst:
         die('While collapsing references of \'%s\': %s' % (f.name, str(inst)))
+
+    try:
+        for t in AST_TRANSFORMS[POST_RESOLUTION]:
+            with profiler('Running AST transform %s' % t.__name__):
+                ast = t(ast)
+    except Exception as inst:
+        die('While transforming AST: %s' % str(inst))
 
     ast = resolve_hierarchy(ast)
 

@@ -54,6 +54,43 @@ def assign_address_spaces(ast):
 
     return ast
 
+def check_for_unresolved_references(ast):
+    '''
+    Check for unresolved references in the AST. Note that this "transformation"
+    does not actually modify the AST.
+    '''
+    for elem in ast:
+
+        # Is this an unresolved reference? Note that we deliberately exclude
+        # RPC parameter types and dataport types that are permitted to be
+        # unresolved references that will later connect to C typedefs.
+        # XXX: Currently Events are also allowed to be unresolved because we
+        # infer them at generation time. At some point we should start
+        # requiring users to explicitly declare their event types.
+        if isinstance(elem, AST.Reference) and elem._referent is None and \
+                elem._type not in [AST.Type, AST.Port, AST.Event]:
+
+            raise Exception('%s:%d: unresolved reference to %s' % \
+                (elem.filename, elem.lineno, elem._symbol))
+
+        check_for_unresolved_references(elem.children())
+
+    return ast
+
+PRE_RESOLUTION, POST_RESOLUTION = range(2)
+
 AST_TRANSFORMS = [
-    assign_address_spaces,
+
+    # AST_TRANSFORMS[PRE_RESOLUTION]
+    # Transformations that should run before import and reference resolution.
+    [
+        assign_address_spaces,
+    ],
+
+    # AST_TRANSFORMS[POST_RESOLUTION]
+    # Transformations that should run after import and reference resolution.
+    [
+        check_for_unresolved_references,
+    ],
+
 ]
