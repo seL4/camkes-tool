@@ -173,8 +173,12 @@ def main():
     except Exception as inst:
         die('While resolving imports of \'%s\': %s' % (f.name, str(inst)))
 
-    # if there are multiple assemblies, combine them now
-    ast = compose_assemblies(ast)
+    try:
+        with profiler('Combining assemblies'):
+            # if there are multiple assemblies, combine them now
+            ast = compose_assemblies(ast)
+    except Exception as inst:
+        die('While combining assemblies: %s' % str(inst))
 
     with profiler('Caching original AST'):
         orig_ast = deepcopy(ast)
