@@ -84,13 +84,13 @@ AST_TRANSFORMS = [
     # AST_TRANSFORMS[PRE_RESOLUTION]
     # Transformations that should run before import and reference resolution.
     [
-        assign_address_spaces,
     ],
 
     # AST_TRANSFORMS[POST_RESOLUTION]
     # Transformations that should run after import and reference resolution.
     [
         check_for_unresolved_references,
+        assign_address_spaces,
     ],
 
 ]

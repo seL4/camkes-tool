@@ -159,6 +159,13 @@ def main():
         die('While parsing \'%s\': %s' % (f.name, str(inst)))
 
     try:
+        for t in AST_TRANSFORMS[PRE_RESOLUTION]:
+            with profiler('Running AST transform %s' % t.__name__):
+                ast = t(ast)
+    except Exception as inst:
+        die('While transforming AST: %s' % str(inst))
+
+    try:
         with profiler('Resolving imports'):
             ast, imported = parser.resolve_imports(ast, \
                 os.path.dirname(os.path.abspath(f.name)), options.import_path,
@@ -166,13 +173,7 @@ def main():
     except Exception as inst:
         die('While resolving imports of \'%s\': %s' % (f.name, str(inst)))
 
-    try:
-        for t in AST_TRANSFORMS:
-            with profiler('Running AST transform %s' % t.__name__):
-                ast = t(ast)
-    except Exception as inst:
-        die('While transforming AST: %s' % str(inst))
-
+    # if there are multiple assemblies, combine them now
     ast = compose_assemblies(ast)
 
     with profiler('Caching original AST'):
