@@ -12,7 +12,8 @@
 
 import os, re, subprocess
 import camkes.ast as AST
-from capdl import Cap, CNode, TCB, page_table_index, page_index
+from capdl import Cap, CNode, TCB, page_table_index, page_index, \
+                  Frame, seL4_ARM_SectionObject, seL4_IA32_4M
 from camkes.internal.memoization import memoized
 from NameMangling import Perspective
 
@@ -259,6 +260,8 @@ def collapse_shared_frames(ast, obj_space, cspaces, elfs, _, options):
         assert len(pds) == 1
         pd, = pds
 
+        large_frame_uid = 0
+
         for d in i.type.dataports:
 
             # Find the connection that associates this dataport with another.
@@ -331,18 +334,78 @@ def collapse_shared_frames(ast, obj_space, cspaces, elfs, _, options):
                 # Round up the MMIO size to PAGE_SIZE
                 paddr = int(paddr, 16)
                 size = int(size, 16)
-                for idx in xrange(0, (size + PAGE_SIZE - 1) / PAGE_SIZE):
-                    try:
-                        frame_obj = pts[idx][p_indices[idx]].referent
-                    except IndexError:
-                        raise Exception('MMIO attributes specify device ' \
-                            'memory that is larger than the dataport it is ' \
-                            'associated with')
-                    frame_obj.paddr = paddr + PAGE_SIZE * idx
-                    cap = Cap(frame_obj, read, write, execute)
-                    cap.set_cached(False)
-                    pts[idx].slots[p_indices[idx]] = cap
-                    obj_space.relabel(conn_name, frame_obj)
+
+                instance_name = connections[0].to_instance.name
+
+                if size == 0:
+                    raise Exception('Hardware dataport %s.%s has zero size!' % (instance_name,
+                        connections[0].to_interface.name))
+
+                # determine the size of a large frame, and the type of kernel
+                # object that will be used, both of which depend on the architecture
+                if get_elf_arch(elf) == 'ARM':
+                    large_size = 1024 * 1024
+                    large_object_type = seL4_ARM_SectionObject
+                else:
+                    large_size = 4 * 1024 * 1024
+                    large_object_type = seL4_IA32_4M
+
+                # Check if MMIO start and end is aligned to page table coverage.
+                # This will indicate that we should use pagetable-sized pages
+                # to back the device region to be consistent with the kernel.
+                if paddr % large_size == 0 and size % large_size == 0:
+
+                    # number of page tables backing device memory
+                    n_pts = size / large_size
+
+                    # index of first page table in page directory backing the device memory
+                    base_pt_index = page_table_index(get_elf_arch(elf), vaddr)
+                    pt_indices = xrange(base_pt_index, base_pt_index + n_pts)
+
+                    # loop over all the page table indices and replace the page tables
+                    # with large frames
+                    for count, pt_index in enumerate(pt_indices):
+                        
+                        # look up the page table at the current index
+                        pt = pd[pt_index].referent
+                        
+                        name = 'large_frame_%s_%d' % (instance_name, large_frame_uid)
+                        large_frame_uid += 1
+
+                        frame_paddr = paddr + large_size * count
+
+                        # allocate a new large frame
+                        frame = obj_space.alloc(large_object_type, name, paddr=frame_paddr)
+
+                        # insert the frame cap into the page directory
+                        frame_cap = Cap(frame, read, write, execute)
+                        frame_cap.set_cached(False)
+                        pd[pt_index] = frame_cap
+                    
+                        # remove all the small frames from the spec
+                        for p_index in pt:
+                            small_frame = pt[p_index].referent
+                            obj_space.remove(small_frame)
+
+                        # remove the page table from the spec
+                        obj_space.remove(pt)
+
+                else:
+                    # If the MMIO start and end are not aligned to page table coverage,
+                    # loop over all the frames and set their paddrs based on the
+                    # paddr in the spec.
+                    for idx in xrange(0, (size + PAGE_SIZE - 1) / PAGE_SIZE):
+                        try:
+                            frame_obj = pts[idx][p_indices[idx]].referent
+                        except IndexError:
+                            raise Exception('MMIO attributes specify device ' \
+                                'memory that is larger than the dataport it is ' \
+                                'associated with')
+                        frame_obj.paddr = paddr + PAGE_SIZE * idx
+                        cap = Cap(frame_obj, read, write, execute)
+                        cap.set_cached(False)
+                        pts[idx].slots[p_indices[idx]] = cap
+                        obj_space.relabel(conn_name, frame_obj)
 
                 continue
 
