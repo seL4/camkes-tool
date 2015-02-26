@@ -13,6 +13,328 @@
 /*? assert(isinstance(error_handler, str)) ?*/ /*# Handler to invoke on error #*/
 /*? assert(isinstance(allow_trailing_data, bool)) ?*/ /*# Whether to ignore checks for remaining bytes after a message #*/
 
+/*- set ret_fn = c_symbol('ret_fn') -*/
+/*- if return_type -*/
+  /*- set offset = c_symbol('offset') -*/
+  /*- set size = c_symbol('size') -*/
+  /*- set ret = c_symbol('return') -*/
+  static unsigned int /*? function ?*/_/*? ret_fn ?*/(unsigned int /*? size ?*/, unsigned int /*? offset ?*/,
+    /*- if return_type.array -*/
+      size_t * /*? ret ?*/_sz,
+      /*- if isinstance(return_type, camkes.ast.Type) and return_type.type == 'string' -*/
+        char ***
+      /*- else -*/
+        /*? show(return_type) ?*/ **
+      /*- endif -*/
+    /*- elif isinstance(return_type, camkes.ast.Type) and return_type.type == 'string' -*/
+      char **
+    /*- else -*/
+      /*? show(return_type) ?*/ *
+    /*- endif -*/
+    /*? ret ?*/
+  ) {
+
+    /*- set base = c_symbol('buffer_base') -*/
+    void * /*? base ?*/ UNUSED = (void*)(/*? buffer ?*/);
+
+    /* Unmarshal the return value. */
+    /*- if return_type.array -*/
+      ERR_IF(/*? offset ?*/ + sizeof(* /*? ret ?*/_sz) > /*? size ?*/, /*? error_handler ?*/, ((camkes_error_t){
+          .type = CE_MALFORMED_RPC_PAYLOAD,
+          .instance = "/*? instance ?*/",
+          .interface = "/*? interface ?*/",
+          .description = "truncated message encountered while unmarshalling return value for /*? name ?*/",
+          .length = /*? size ?*/,
+          .current_index = /*? offset ?*/ + sizeof(* /*? ret ?*/_sz),
+        }), ({
+          return UINT_MAX;
+        }));
+      memcpy(/*? ret ?*/_sz, /*? base ?*/ + /*? offset ?*/, sizeof(* /*? ret ?*/_sz));
+      /*? offset ?*/ += sizeof(* /*? ret ?*/_sz);
+      /*- if isinstance(return_type, camkes.ast.Type) and return_type.type == 'string' -*/
+        * /*? ret ?*/ = malloc(sizeof(char*) * (* /*? ret ?*/_sz));
+        ERR_IF(* /*? ret ?*/ == NULL, /*? error_handler ?*/, ((camkes_error_t){
+            .type = CE_ALLOCATION_FAILURE,
+            .instance = "/*? instance ?*/",
+            .interface = "/*? interface ?*/",
+            .description = "out of memory while unmarshalling return value for /*? name ?*/",
+            .alloc_bytes = sizeof(char*) * (* /*? ret ?*/_sz),
+          }), ({
+            return UINT_MAX;
+          }));
+      /*- else -*/
+        * /*? ret ?*/ = malloc(sizeof((* /*? ret ?*/)[0]) * (* /*? ret ?*/_sz));
+        ERR_IF(* /*? ret ?*/ == NULL, /*? error_handler ?*/, ((camkes_error_t){
+            .type = CE_ALLOCATION_FAILURE,
+            .instance = "/*? instance ?*/",
+            .interface = "/*? interface ?*/",
+            .description = "out of memory while unmarshalling return value for /*? name ?*/",
+            .alloc_bytes = sizeof((* /*? ret ?*/)[0]) * (* /*? ret ?*/_sz),
+          }), ({
+            return UINT_MAX;
+          }));
+      /*- endif -*/
+      /*- if isinstance(return_type, camkes.ast.Type) and return_type.type == 'string' -*/
+        /*- set lcount = c_symbol() -*/
+        for (int /*? lcount ?*/ = 0; /*? lcount ?*/ < * /*? ret ?*/_sz; /*? lcount ?*/ ++) {
+          /*- set strlen = c_symbol('strlen') -*/
+          size_t /*? strlen ?*/ = strnlen(/*? base ?*/ + /*? offset ?*/, /*? size ?*/ - /*? offset ?*/);
+          ERR_IF(/*? strlen ?*/ >= /*? size ?*/ - /*? offset ?*/, /*? error_handler ?*/, ((camkes_error_t){
+              .type = CE_MALFORMED_RPC_PAYLOAD,
+              .instance = "/*? instance ?*/",
+              .interface = "/*? interface ?*/",
+              .description = "truncated message encountered while unmarshalling return value for /*? name ?*/",
+              .length = /*? size ?*/,
+              .current_index = /*? offset ?*/ + /*? strlen ?*/ + 1,
+            }), ({
+              /*- set mcount = c_symbol() -*/
+              for (int /*? mcount ?*/ = 0; /*? mcount ?*/ < /*? lcount ?*/; /*? mcount ?*/ ++) {
+                free((* /*? ret ?*/)[/*? mcount ?*/]);
+              }
+              free(* /*? ret ?*/);
+              return UINT_MAX;
+            }));
+          /* If we didn't trigger an error, we now know this strdup is safe. */
+          (* /*? ret ?*/)[/*? lcount ?*/] = strdup(/*? base ?*/ + /*? offset ?*/);
+          ERR_IF((* /*? ret ?*/)[/*? lcount ?*/] == NULL, /*? error_handler ?*/, ((camkes_error_t){
+              .type = CE_ALLOCATION_FAILURE,
+              .instance = "/*? instance ?*/",
+              .interface = "/*? interface ?*/",
+              .description = "out of memory while unmarshalling return value for /*? name ?*/",
+              .alloc_bytes = /*? strlen ?*/ + 1,
+            }), ({
+              /*- set mcount = c_symbol() -*/
+              for (int /*? mcount ?*/ = 0; /*? mcount ?*/ < /*? lcount ?*/; /*? mcount ?*/ ++) {
+                free((* /*? ret ?*/)[/*? mcount ?*/]);
+              }
+              free(* /*? ret ?*/);
+              return UINT_MAX;
+            }));
+
+          /*? offset ?*/ += /*? strlen ?*/ + 1;
+        }
+      /*- else -*/
+        ERR_IF(/*? offset ?*/ + sizeof((* /*? ret ?*/)[0]) * (* /*? ret ?*/_sz) > /*? size ?*/, /*? error_handler ?*/, ((camkes_error_t){
+            .type = CE_MALFORMED_RPC_PAYLOAD,
+            .instance = "/*? instance ?*/",
+            .interface = "/*? interface ?*/",
+            .description = "truncated message encountered while unmarshalling return value for /*? name ?*/",
+            .length = /*? size ?*/,
+            .current_index = /*? offset ?*/ + sizeof((* /*? ret ?*/)[0]) * (* /*? ret ?*/_sz),
+          }), ({
+            free(* /*? ret ?*/);
+            return UINT_MAX;
+          }));
+        memcpy((* /*? ret ?*/), /*? base ?*/ + /*? offset ?*/, sizeof((* /*? ret ?*/)[0]) * (* /*? ret ?*/_sz));
+        /*? offset ?*/ += sizeof((* /*? ret ?*/[0])) * (* /*? ret ?*/_sz);
+      /*- endif -*/
+    /*- elif isinstance(return_type, camkes.ast.Type) and return_type.type == 'string' -*/
+      /*- set strlen = c_symbol('strlen') -*/
+      size_t /*? strlen ?*/ = strnlen(/*? base ?*/ + /*? offset ?*/, /*? size ?*/ - /*? offset ?*/);
+      ERR_IF(/*? strlen ?*/ >= /*? size ?*/ - /*? offset ?*/, /*? error_handler ?*/, ((camkes_error_t){
+          .type = CE_MALFORMED_RPC_PAYLOAD,
+          .instance = "/*? instance ?*/",
+          .interface = "/*? interface ?*/",
+          .description = "truncated message encountered while unmarshalling return value for /*? name ?*/",
+          .length = /*? size ?*/,
+          .current_index = /*? offset ?*/ + /*? strlen ?*/ + 1,
+        }), ({
+          return UINT_MAX;
+        }));
+      * /*? ret ?*/ = strdup(/*? base ?*/ + /*? offset ?*/);
+      ERR_IF(* /*? ret ?*/ == NULL, /*? error_handler ?*/, ((camkes_error_t){
+          .type = CE_ALLOCATION_FAILURE,
+          .instance = "/*? instance ?*/",
+          .interface = "/*? interface ?*/",
+          .description = "out of memory while unmarshalling return value for /*? name ?*/",
+          .alloc_bytes = /*? strlen ?*/ + 1,
+        }), ({
+          return UINT_MAX;
+        }));
+      /*? offset ?*/ += /*? strlen ?*/ + 1;
+    /*- else -*/
+      ERR_IF(/*? offset ?*/ + sizeof(* /*? ret ?*/) > /*? size ?*/, /*? error_handler ?*/, ((camkes_error_t){
+          .type = CE_MALFORMED_RPC_PAYLOAD,
+          .instance = "/*? instance ?*/",
+          .interface = "/*? interface ?*/",
+          .description = "truncated message encountered while unmarshalling return value for /*? name ?*/",
+          .length = /*? size ?*/,
+          .current_index = /*? offset ?*/ + sizeof(* /*? ret ?*/),
+        }), ({
+          return UINT_MAX;
+        }));
+      memcpy(/*? ret ?*/, /*? base ?*/ + /*? offset ?*/, sizeof(* /*? ret ?*/));
+      /*? offset ?*/ += sizeof(* /*? ret ?*/);
+    /*- endif -*/
+
+    return /*? offset ?*/;
+  }
+/*- endif -*/
+/*- for p in output_parameters -*/
+  /*- set size = c_symbol('size') -*/
+  /*- set offset = c_symbol('offset') -*/
+  static unsigned int /*? function ?*/_/*? p.name ?*/(unsigned int /*? size ?*/, unsigned int /*? offset ?*/,
+    /*- if p.array -*/
+      size_t * /*? p.name ?*/_sz,
+      /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+        char *** /*? p.name ?*/
+      /*- else -*/
+        /*? show(p.type) ?*/ ** /*? p.name ?*/
+      /*- endif -*/
+    /*- elif isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+      char ** /*? p.name ?*/
+    /*- else -*/
+      /*? show(p.type) ?*/ * /*? p.name ?*/
+    /*- endif -*/
+  ) {
+
+    /*- set base = c_symbol('buffer_base') -*/
+    void * /*? base ?*/ UNUSED = (void*)(/*? buffer ?*/);
+
+    /*- if p.array -*/
+      ERR_IF(/*? offset ?*/ + sizeof(* /*? p.name ?*/_sz) > /*? size ?*/, /*? error_handler ?*/, ((camkes_error_t){
+          .type = CE_MALFORMED_RPC_PAYLOAD,
+          .instance = "/*? instance ?*/",
+          .interface = "/*? interface ?*/",
+          .description = "truncated message encountered while unmarshalling /*? p.name ?*/ in /*? name ?*/",
+          .length = /*? size ?*/,
+          .current_index = /*? offset ?*/ + sizeof(* /*? p.name ?*/_sz),
+        }), ({
+          return UINT_MAX;
+        }));
+      memcpy(/*? p.name ?*/_sz, /*? base ?*/ + /*? offset ?*/, sizeof(* /*? p.name ?*/_sz));
+      /*? offset ?*/ += sizeof(* /*? p.name ?*/_sz);
+      /*- if p.direction.direction == 'inout' -*/
+        /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+          /*- set mcount = c_symbol() -*/
+          for (int /*? mcount ?*/ = 0; /*? mcount ?*/ < * /*? p.name ?*/_sz; /*? mcount ?*/ ++) {
+            free((* /*? p.name ?*/)[/*? mcount ?*/]);
+          }
+        /*- endif -*/
+        free(* /*? p.name ?*/);
+      /*- endif -*/
+      /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+        * /*? p.name ?*/ = malloc(sizeof(char*) * (* /*? p.name ?*/_sz));
+        ERR_IF(* /*? p.name ?*/ == NULL, /*? error_handler ?*/, ((camkes_error_t){
+            .type = CE_ALLOCATION_FAILURE,
+            .instance = "/*? instance ?*/",
+            .interface = "/*? interface ?*/",
+            .description = "out of memory while unmarshalling /*? p.name ?*/ in /*? name ?*/",
+            .alloc_bytes = sizeof(char*) * (* /*? p.name ?*/_sz),
+          }), ({
+            return UINT_MAX;
+          }));
+      /*- else -*/
+        * /*? p.name ?*/ = malloc(sizeof((* /*? p.name ?*/)[0]) * (* /*? p.name ?*/_sz));
+        ERR_IF(* /*? p.name ?*/ == NULL, /*? error_handler ?*/, ((camkes_error_t){
+            .type = CE_ALLOCATION_FAILURE,
+            .instance = "/*? instance ?*/",
+            .interface = "/*? interface ?*/",
+            .description = "out of memory while unmarshalling /*? p.name ?*/ in /*? name ?*/",
+            .alloc_bytes = sizeof((* /*? p.name ?*/)[0]) * (* /*? p.name ?*/_sz),
+          }), ({
+            return UINT_MAX;
+          }));
+      /*- endif -*/
+      /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+        /*- set lcount = c_symbol() -*/
+        for (int /*? lcount ?*/ = 0; /*? lcount ?*/ < * /*? p.name ?*/_sz; /*? lcount ?*/ ++) {
+          /*- set strlen = c_symbol('strlen') -*/
+          size_t /*? strlen ?*/ = strnlen(/*? base ?*/ + /*? offset ?*/, /*? size ?*/ - /*? offset ?*/);
+          ERR_IF(/*? strlen ?*/ >= /*? size ?*/ - /*? offset ?*/, /*? error_handler ?*/, ((camkes_error_t){
+              .type = CE_MALFORMED_RPC_PAYLOAD,
+              .instance = "/*? instance ?*/",
+              .interface = "/*? interface ?*/",
+              .description = "truncated message encountered while unmarshalling /*? p.name ?*/ in /*? name ?*/",
+              .length = /*? size ?*/,
+              .current_index = /*? offset ?*/ + /*? strlen ?*/ + 1,
+            }), ({
+              /*- set mcount = c_symbol() -*/
+              for (int /*? mcount ?*/ = 0; /*? mcount ?*/ < /*? lcount ?*/; /*? mcount ?*/ ++) {
+                free((* /*? p.name ?*/)[/*? mcount ?*/]);
+              }
+              free(* /*? p.name ?*/);
+              return UINT_MAX;
+            }));
+          /* If we didn't trigger an error, we now know this strdup is safe. */
+          (* /*? p.name ?*/)[/*? lcount ?*/] = strdup(/*? base ?*/ + /*? offset ?*/);
+          ERR_IF((* /*? p.name ?*/)[/*? lcount ?*/] == NULL, /*? error_handler ?*/, ((camkes_error_t){
+              .type = CE_ALLOCATION_FAILURE,
+              .instance = "/*? instance ?*/",
+              .interface = "/*? interface ?*/",
+              .description = "out of memory while unmarshalling /*? p.name ?*/ in /*? name ?*/",
+              .alloc_bytes = /*? strlen ?*/ + 1,
+            }), ({
+              /*- set mcount = c_symbol() -*/
+              for (int /*? mcount ?*/ = 0; /*? mcount ?*/ < /*? lcount ?*/; /*? mcount ?*/ ++) {
+                free((* /*? p.name ?*/)[/*? mcount ?*/]);
+              }
+              free(* /*? p.name ?*/);
+              return UINT_MAX;
+            }));
+          /*? offset ?*/ += /*? strlen ?*/ + 1;
+        }
+      /*- else -*/
+        ERR_IF(/*? offset ?*/ + sizeof((* /*? p.name ?*/)[0]) * (* /*? p.name ?*/_sz) > /*? size ?*/, /*? error_handler ?*/, ((camkes_error_t){
+            .type = CE_MALFORMED_RPC_PAYLOAD,
+            .instance = "/*? instance ?*/",
+            .interface = "/*? interface ?*/",
+            .description = "truncated message encountered while unmarshalling /*? p.name ?*/ in /*? name ?*/",
+            .length = /*? size ?*/,
+            .current_index = /*? offset ?*/ + sizeof((* /*? p.name ?*/)[0]) * (* /*? p.name ?*/_sz),
+          }), ({
+            free(* /*? p.name ?*/);
+            return UINT_MAX;
+          }));
+        memcpy((* /*? p.name ?*/), /*? base ?*/ + /*? offset ?*/, sizeof((* /*? p.name ?*/)[0]) * (* /*? p.name ?*/_sz));
+        /*? offset ?*/ += sizeof((* /*? p.name ?*/)[0]) * (* /*? p.name ?*/_sz);
+      /*- endif -*/
+    /*- elif isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+      /*- if p.direction.direction == 'inout' -*/
+        free(* /*? p.name ?*/);
+      /*- endif -*/
+      /*- set strlen = c_symbol('strlen') -*/
+      size_t /*? strlen ?*/ = strnlen(/*? base ?*/ + /*? offset ?*/, /*? size ?*/ - /*? offset ?*/);
+      ERR_IF(/*? strlen ?*/ >= /*? size ?*/ - /*? offset ?*/, /*? error_handler ?*/, ((camkes_error_t){
+          .type = CE_MALFORMED_RPC_PAYLOAD,
+          .instance = "/*? instance ?*/",
+          .interface = "/*? interface ?*/",
+          .description = "truncated message encountered while unmarshalling /*? p.name ?*/ in /*? name ?*/",
+          .length = /*? size ?*/,
+          .current_index = /*? offset ?*/ + /*? strlen ?*/ + 1,
+        }), ({
+          return UINT_MAX;
+        }));
+      * /*? p.name ?*/ = strdup(/*? base ?*/ + /*? offset ?*/);
+      ERR_IF(* /*? p.name ?*/ == NULL, /*? error_handler ?*/, ((camkes_error_t){
+          .type = CE_ALLOCATION_FAILURE,
+          .instance = "/*? instance ?*/",
+          .interface = "/*? interface ?*/",
+          .description = "out of memory while unmarshalling /*? p.name ?*/ in /*? name ?*/",
+          .alloc_bytes = /*? strlen ?*/ + 1,
+        }), ({
+          return UINT_MAX;
+        }));
+      /*? offset ?*/ += /*? strlen ?*/ + 1;
+    /*- else -*/
+      ERR_IF(/*? offset ?*/ + sizeof(* /*? p.name ?*/) > /*? size ?*/, /*? error_handler ?*/, ((camkes_error_t){
+          .type = CE_MALFORMED_RPC_PAYLOAD,
+          .instance = "/*? instance ?*/",
+          .interface = "/*? interface ?*/",
+          .description = "truncated message encountered while unmarshalling /*? p.name ?*/ in /*? name ?*/",
+          .length = /*? size ?*/,
+          .current_index = /*? offset ?*/ + sizeof(* /*? p.name ?*/),
+        }), ({
+          return UINT_MAX;
+        }));
+      memcpy(/*? p.name ?*/, /*? base ?*/ + /*? offset ?*/, sizeof(* /*? p.name ?*/));
+      /*? offset ?*/ += sizeof(* /*? p.name ?*/);
+    /*- endif -*/
+
+    return /*? offset ?*/;
+  }
+/*- endfor -*/
+
 static int
 /*? function ?*/(
 /*- set size = c_symbol('size') -*/
@@ -65,540 +387,58 @@ unsigned int /*? size ?*/
   void * /*? base ?*/ UNUSED = (void*)(/*? buffer ?*/);
 
   /*- if return_type -*/
-    /* Unmarshal the return value. */
-    /*- if return_type.array -*/
-      ERR_IF(/*? length ?*/ + sizeof(* /*? ret ?*/_sz) > /*? size ?*/, /*? error_handler ?*/, ((camkes_error_t){
-          .type = CE_MALFORMED_RPC_PAYLOAD,
-          .instance = "/*? instance ?*/",
-          .interface = "/*? interface ?*/",
-          .description = "truncated message encountered while unmarshalling return value for /*? name ?*/",
-          .length = /*? size ?*/,
-          .current_index = /*? length ?*/ + sizeof(* /*? ret ?*/_sz),
-        }), ({
-          return -1;
-        }));
-      memcpy(/*? ret ?*/_sz, /*? base ?*/ + /*? length ?*/, sizeof(* /*? ret ?*/_sz));
-      /*? length ?*/ += sizeof(* /*? ret ?*/_sz);
-      /*- if isinstance(return_type, camkes.ast.Type) and return_type.type == 'string' -*/
-        * /*? ret ?*/ = malloc(sizeof(char*) * (* /*? ret ?*/_sz));
-        ERR_IF(* /*? ret ?*/ == NULL, /*? error_handler ?*/, ((camkes_error_t){
-            .type = CE_ALLOCATION_FAILURE,
-            .instance = "/*? instance ?*/",
-            .interface = "/*? interface ?*/",
-            .description = "out of memory while unmarshalling return value for /*? name ?*/",
-            .alloc_bytes = sizeof(char*) * (* /*? ret ?*/_sz),
-          }), ({
-            return -1;
-          }));
-      /*- else -*/
-        * /*? ret ?*/ = malloc(sizeof((* /*? ret ?*/)[0]) * (* /*? ret ?*/_sz));
-        ERR_IF(* /*? ret ?*/ == NULL, /*? error_handler ?*/, ((camkes_error_t){
-            .type = CE_ALLOCATION_FAILURE,
-            .instance = "/*? instance ?*/",
-            .interface = "/*? interface ?*/",
-            .description = "out of memory while unmarshalling return value for /*? name ?*/",
-            .alloc_bytes = sizeof((* /*? ret ?*/)[0]) * (* /*? ret ?*/_sz),
-          }), ({
-            return -1;
-          }));
+    /*? length ?*/ = /*? function ?*/_/*? ret_fn ?*/(/*? size ?*/, /*? length ?*/,
+      /*- if return_type.array -*/
+        /*? ret ?*/_sz,
       /*- endif -*/
-      /*- if isinstance(return_type, camkes.ast.Type) and return_type.type == 'string' -*/
-        /*- set lcount = c_symbol() -*/
-        for (int /*? lcount ?*/ = 0; /*? lcount ?*/ < * /*? ret ?*/_sz; /*? lcount ?*/ ++) {
-          /*- set len = c_symbol('strlen') -*/
-          size_t /*? len ?*/ = strnlen(/*? base ?*/ + /*? length ?*/, /*? size ?*/ - /*? length ?*/);
-          ERR_IF(/*? len ?*/ >= /*? size ?*/ - /*? length ?*/, /*? error_handler ?*/, ((camkes_error_t){
-              .type = CE_MALFORMED_RPC_PAYLOAD,
-              .instance = "/*? instance ?*/",
-              .interface = "/*? interface ?*/",
-              .description = "truncated message encountered while unmarshalling return value for /*? name ?*/",
-              .length = /*? size ?*/,
-              .current_index = /*? length ?*/ + /*? len ?*/ + 1,
-            }), ({
-              /*- set mcount = c_symbol() -*/
-              for (int /*? mcount ?*/ = 0; /*? mcount ?*/ < /*? lcount ?*/; /*? mcount ?*/ ++) {
-                free((* /*? ret ?*/)[/*? mcount ?*/]);
-              }
-              free(* /*? ret ?*/);
-              return -1;
-            }));
-          /* If we didn't trigger an error, we now know this strdup is safe. */
-          (* /*? ret ?*/)[/*? lcount ?*/] = strdup(/*? base ?*/ + /*? length ?*/);
-          ERR_IF((* /*? ret ?*/)[/*? lcount ?*/] == NULL, /*? error_handler ?*/, ((camkes_error_t){
-              .type = CE_ALLOCATION_FAILURE,
-              .instance = "/*? instance ?*/",
-              .interface = "/*? interface ?*/",
-              .description = "out of memory while unmarshalling return value for /*? name ?*/",
-              .alloc_bytes = /*? len ?*/ + 1,
-            }), ({
-              /*- set mcount = c_symbol() -*/
-              for (int /*? mcount ?*/ = 0; /*? mcount ?*/ < /*? lcount ?*/; /*? mcount ?*/ ++) {
-                free((* /*? ret ?*/)[/*? mcount ?*/]);
-              }
-              free(* /*? ret ?*/);
-              return -1;
-            }));
-
-          /*? length ?*/ += /*? len ?*/ + 1;
-        }
-      /*- else -*/
-        ERR_IF(/*? length ?*/ + sizeof((* /*? ret ?*/)[0]) * (* /*? ret ?*/_sz) > /*? size ?*/, /*? error_handler ?*/, ((camkes_error_t){
-            .type = CE_MALFORMED_RPC_PAYLOAD,
-            .instance = "/*? instance ?*/",
-            .interface = "/*? interface ?*/",
-            .description = "truncated message encountered while unmarshalling return value for /*? name ?*/",
-            .length = /*? size ?*/,
-            .current_index = /*? length ?*/ + sizeof((* /*? ret ?*/)[0]) * (* /*? ret ?*/_sz),
-          }), ({
-            free(* /*? ret ?*/);
-            return -1;
-          }));
-        memcpy((* /*? ret ?*/), /*? base ?*/ + /*? length ?*/, sizeof((* /*? ret ?*/)[0]) * (* /*? ret ?*/_sz));
-        /*? length ?*/ += sizeof((* /*? ret ?*/[0])) * (* /*? ret ?*/_sz);
-      /*- endif -*/
-    /*- elif isinstance(return_type, camkes.ast.Type) and return_type.type == 'string' -*/
-      /*- set len = c_symbol('strlen') -*/
-      size_t /*? len ?*/ = strnlen(/*? base ?*/ + /*? length ?*/, /*? size ?*/ - /*? length ?*/);
-      ERR_IF(/*? len ?*/ >= /*? size ?*/ - /*? length ?*/, /*? error_handler ?*/, ((camkes_error_t){
-          .type = CE_MALFORMED_RPC_PAYLOAD,
-          .instance = "/*? instance ?*/",
-          .interface = "/*? interface ?*/",
-          .description = "truncated message encountered while unmarshalling return value for /*? name ?*/",
-          .length = /*? size ?*/,
-          .current_index = /*? length ?*/ + /*? len ?*/ + 1,
-        }), ({
-          return -1;
-        }));
-      * /*? ret ?*/ = strdup(/*? base ?*/ + /*? length ?*/);
-      ERR_IF(* /*? ret ?*/ == NULL, /*? error_handler ?*/, ((camkes_error_t){
-          .type = CE_ALLOCATION_FAILURE,
-          .instance = "/*? instance ?*/",
-          .interface = "/*? interface ?*/",
-          .description = "out of memory while unmarshalling return value for /*? name ?*/",
-          .alloc_bytes = /*? len ?*/ + 1,
-        }), ({
-          return -1;
-        }));
-      /*? length ?*/ += /*? len ?*/ + 1;
-    /*- else -*/
-      ERR_IF(/*? length ?*/ + sizeof(* /*? ret ?*/) > /*? size ?*/, /*? error_handler ?*/, ((camkes_error_t){
-          .type = CE_MALFORMED_RPC_PAYLOAD,
-          .instance = "/*? instance ?*/",
-          .interface = "/*? interface ?*/",
-          .description = "truncated message encountered while unmarshalling return value for /*? name ?*/",
-          .length = /*? size ?*/,
-          .current_index = /*? length ?*/ + sizeof(* /*? ret ?*/),
-        }), ({
-          return -1;
-        }));
-      memcpy(/*? ret ?*/, /*? base ?*/ + /*? length ?*/, sizeof(* /*? ret ?*/));
-      /*? length ?*/ += sizeof(* /*? ret ?*/);
-    /*- endif -*/
+      /*? ret ?*/
+    );
+    if (/*? length ?*/ == UINT_MAX) {
+      return -1;
+    }
   /*- endif -*/
-  
+
   /* Unmarshal the parameters. */
   /*- for p in output_parameters -*/
     /*? assert(isinstance(p.type, camkes.ast.Type) or isinstance(p.type, camkes.ast.Reference)) ?*/
-    /*- if p.array -*/
-      ERR_IF(/*? length ?*/ + sizeof(* /*? p.name ?*/_sz) > /*? size ?*/, /*? error_handler ?*/, ((camkes_error_t){
-          .type = CE_MALFORMED_RPC_PAYLOAD,
-          .instance = "/*? instance ?*/",
-          .interface = "/*? interface ?*/",
-          .description = "truncated message encountered while unmarshalling /*? p.name ?*/ in /*? name ?*/",
-          .length = /*? size ?*/,
-          .current_index = /*? length ?*/ + sizeof(* /*? p.name ?*/_sz),
-        }), ({
-          /*- if return_type -*/
-            /*- if return_type.array -*/
-              /*- if isinstance(return_type, camkes.ast.Type) and return_type.type == 'string' -*/
-                /*- set mcount = c_symbol() -*/
-                for (int /*? mcount ?*/ = 0; /*? mcount ?*/ < * /*? ret ?*/_sz; /*? mcount ?*/ ++) {
-                  free((* /*? ret ?*/)[/*? mcount ?*/]);
-                }
-              /*- endif -*/
-              free(* /*? ret ?*/);
-            /*- elif isinstance(return_type, camkes.ast.Type) and return_type.type == 'string' -*/
-              free(* /*? ret ?*/);
-            /*- endif -*/
+    /*? length ?*/ = /*? function ?*/_/*? p.name ?*/(/*? size ?*/, /*? length ?*/,
+      /*- if p.array -*/
+        /*? p.name ?*/_sz,
+      /*- endif -*/
+      /*? p.name ?*/
+    );
+    if (/*? length ?*/ == UINT_MAX) {
+      /*- if return_type -*/
+        /*- if return_type.array -*/
+          /*- if isinstance(return_type, camkes.ast.Type) and return_type.type == 'string' -*/
+            /*- set mcount = c_symbol() -*/
+            for (int /*? mcount ?*/ = 0; /*? mcount ?*/ < * /*? ret ?*/_sz; /*? mcount ?*/ ++) {
+              free((* /*? ret ?*/)[/*? mcount ?*/]);
+            }
           /*- endif -*/
-          /*- for q in output_parameters -*/
-            /*- if q == p -*/
-              /*- do break -*/
-            /*- endif -*/
-            /*- if q.array -*/
-              /*- if isinstance(q.type, camkes.ast.Type) and q.type.type == 'string' -*/
-                /*- set mcount = c_symbol() -*/
-                for (int /*? mcount ?*/ = 0; /*? mcount ?*/ < * /*? q.name ?*/_sz; /*? mcount ?*/ ++) {
-                  free((* /*? q.name ?*/)[/*? mcount ?*/]);
-                }
-              /*- endif -*/
-              free(* /*? q.name ?*/);
-            /*- elif isinstance(q.type, camkes.ast.Type) and q.type.type == 'string' -*/
-              free(* /*? q.name ?*/);
-            /*- endif -*/
-          /*- endfor -*/
-          return -1;
-        }));
-      memcpy(/*? p.name ?*/_sz, /*? base ?*/ + /*? length ?*/, sizeof(* /*? p.name ?*/_sz));
-      /*? length ?*/ += sizeof(* /*? p.name ?*/_sz);
-      /*- if p.direction.direction == 'inout' -*/
-        /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
-          /*- set mcount = c_symbol() -*/
-          for (int /*? mcount ?*/ = 0; /*? mcount ?*/ < * /*? p.name ?*/_sz; /*? mcount ?*/ ++) {
-            free((* /*? p.name ?*/)[/*? mcount ?*/]);
-          }
+          free(* /*? ret ?*/);
+        /*- elif isinstance(return_type, camkes.ast.Type) and return_type.type == 'string' -*/
+          free(* /*? ret ?*/);
         /*- endif -*/
-        free(* /*? p.name ?*/);
       /*- endif -*/
-      /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
-        * /*? p.name ?*/ = malloc(sizeof(char*) * (* /*? p.name ?*/_sz));
-        ERR_IF(* /*? p.name ?*/ == NULL, /*? error_handler ?*/, ((camkes_error_t){
-            .type = CE_ALLOCATION_FAILURE,
-            .instance = "/*? instance ?*/",
-            .interface = "/*? interface ?*/",
-            .description = "out of memory while unmarshalling /*? p.name ?*/ in /*? name ?*/",
-            .alloc_bytes = sizeof(char*) * (* /*? p.name ?*/_sz),
-          }), ({
-            /*- if return_type -*/
-              /*- if return_type.array -*/
-                /*- if isinstance(return_type, camkes.ast.Type) and return_type.type == 'string' -*/
-                  /*- set mcount = c_symbol() -*/
-                  for (int /*? mcount ?*/ = 0; /*? mcount ?*/ < * /*? ret ?*/_sz; /*? mcount ?*/ ++) {
-                    free((* /*? ret ?*/)[/*? mcount ?*/]);
-                  }
-                /*- endif -*/
-                free(* /*? ret ?*/);
-              /*- elif isinstance(return_type, camkes.ast.Type) and return_type.type == 'string' -*/
-                free(* /*? ret ?*/);
-              /*- endif -*/
-            /*- endif -*/
-            /*- for q in output_parameters -*/
-              /*- if q == p -*/
-                /*- do break -*/
-              /*- endif -*/
-              /*- if q.array -*/
-                /*- if isinstance(q.type, camkes.ast.Type) and q.type.type == 'string' -*/
-                  /*- set mcount = c_symbol() -*/
-                  for (int /*? mcount ?*/ = 0; /*? mcount ?*/ < * /*? q.name ?*/_sz; /*? mcount ?*/ ++) {
-                    free((* /*? q.name ?*/)[/*? mcount ?*/]);
-                  }
-                /*- endif -*/
-                free(* /*? q.name ?*/);
-              /*- elif isinstance(q.type, camkes.ast.Type) and q.type.type == 'string' -*/
-                free(* /*? q.name ?*/);
-              /*- endif -*/
-            /*- endfor -*/
-            return -1;
-          }));
-      /*- else -*/
-        * /*? p.name ?*/ = malloc(sizeof((* /*? p.name ?*/)[0]) * (* /*? p.name ?*/_sz));
-        ERR_IF(* /*? p.name ?*/ == NULL, /*? error_handler ?*/, ((camkes_error_t){
-            .type = CE_ALLOCATION_FAILURE,
-            .instance = "/*? instance ?*/",
-            .interface = "/*? interface ?*/",
-            .description = "out of memory while unmarshalling /*? p.name ?*/ in /*? name ?*/",
-            .alloc_bytes = sizeof((* /*? p.name ?*/)[0]) * (* /*? p.name ?*/_sz),
-          }), ({
-            /*- if return_type -*/
-              /*- if return_type.array -*/
-                /*- if isinstance(return_type, camkes.ast.Type) and return_type.type == 'string' -*/
-                  /*- set mcount = c_symbol() -*/
-                  for (int /*? mcount ?*/ = 0; /*? mcount ?*/ < * /*? ret ?*/_sz; /*? mcount ?*/ ++) {
-                    free((* /*? ret ?*/)[/*? mcount ?*/]);
-                  }
-                /*- endif -*/
-                free(* /*? ret ?*/);
-              /*- elif isinstance(return_type, camkes.ast.Type) and return_type.type == 'string' -*/
-                free(* /*? ret ?*/);
-              /*- endif -*/
-            /*- endif -*/
-            /*- for q in output_parameters -*/
-              /*- if q == p -*/
-                /*- do break -*/
-              /*- endif -*/
-              /*- if q.array -*/
-                /*- if isinstance(q.type, camkes.ast.Type) and q.type.type == 'string' -*/
-                  /*- set mcount = c_symbol() -*/
-                  for (int /*? mcount ?*/ = 0; /*? mcount ?*/ < * /*? q.name ?*/_sz; /*? mcount ?*/ ++) {
-                    free((* /*? q.name ?*/)[/*? mcount ?*/]);
-                  }
-                /*- endif -*/
-                free(* /*? q.name ?*/);
-              /*- elif isinstance(q.type, camkes.ast.Type) and q.type.type == 'string' -*/
-                free(* /*? q.name ?*/);
-              /*- endif -*/
-            /*- endfor -*/
-            return -1;
-          }));
-      /*- endif -*/
-      /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
-        /*- set lcount = c_symbol() -*/
-        for (int /*? lcount ?*/ = 0; /*? lcount ?*/ < * /*? p.name ?*/_sz; /*? lcount ?*/ ++) {
-          /*- set len = c_symbol('strlen') -*/
-          size_t /*? len ?*/ = strnlen(/*? base ?*/ + /*? length ?*/, /*? size ?*/ - /*? length ?*/);
-          ERR_IF(/*? len ?*/ >= /*? size ?*/ - /*? length ?*/, /*? error_handler ?*/, ((camkes_error_t){
-              .type = CE_MALFORMED_RPC_PAYLOAD,
-              .instance = "/*? instance ?*/",
-              .interface = "/*? interface ?*/",
-              .description = "truncated message encountered while unmarshalling /*? p.name ?*/ in /*? name ?*/",
-              .length = /*? size ?*/,
-              .current_index = /*? length ?*/ + /*? len ?*/ + 1,
-            }), ({
-              /*- if return_type -*/
-                /*- if return_type.array -*/
-                  /*- if isinstance(return_type, camkes.ast.Type) and return_type.type == 'string' -*/
-                    /*- set mcount = c_symbol() -*/
-                    for (int /*? mcount ?*/ = 0; /*? mcount ?*/ < * /*? ret ?*/_sz; /*? mcount ?*/ ++) {
-                      free((* /*? ret ?*/)[/*? mcount ?*/]);
-                    }
-                  /*- endif -*/
-                  free(* /*? ret ?*/);
-                /*- elif isinstance(return_type, camkes.ast.Type) and return_type.type == 'string' -*/
-                  free(* /*? ret ?*/);
-                /*- endif -*/
-              /*- endif -*/
-              /*- for q in output_parameters -*/
-                /*- if q == p -*/
-                  /*- do break -*/
-                /*- endif -*/
-                /*- if q.array -*/
-                  /*- if isinstance(q.type, camkes.ast.Type) and q.type.type == 'string' -*/
-                    /*- set mcount = c_symbol() -*/
-                    for (int /*? mcount ?*/ = 0; /*? mcount ?*/ < * /*? q.name ?*/_sz; /*? mcount ?*/ ++) {
-                      free((* /*? q.name ?*/)[/*? mcount ?*/]);
-                    }
-                  /*- endif -*/
-                  free(* /*? q.name ?*/);
-                /*- elif isinstance(q.type, camkes.ast.Type) and q.type.type == 'string' -*/
-                  free(* /*? q.name ?*/);
-                /*- endif -*/
-              /*- endfor -*/
-              /*- set mcount = c_symbol() -*/
-              for (int /*? mcount ?*/ = 0; /*? mcount ?*/ < /*? lcount ?*/; /*? mcount ?*/ ++) {
-                free((* /*? p.name ?*/)[/*? mcount ?*/]);
-              }
-              free(* /*? p.name ?*/);
-              return -1;
-            }));
-          /* If we didn't trigger an error, we now know this strdup is safe. */
-          (* /*? p.name ?*/)[/*? lcount ?*/] = strdup(/*? base ?*/ + /*? length ?*/);
-          ERR_IF((* /*? p.name ?*/)[/*? lcount ?*/] == NULL, /*? error_handler ?*/, ((camkes_error_t){
-              .type = CE_ALLOCATION_FAILURE,
-              .instance = "/*? instance ?*/",
-              .interface = "/*? interface ?*/",
-              .description = "out of memory while unmarshalling /*? p.name ?*/ in /*? name ?*/",
-              .alloc_bytes = /*? len ?*/ + 1,
-            }), ({
-              /*- if return_type -*/
-                /*- if return_type.array -*/
-                  /*- if isinstance(return_type, camkes.ast.Type) and return_type.type == 'string' -*/
-                    /*- set mcount = c_symbol() -*/
-                    for (int /*? mcount ?*/ = 0; /*? mcount ?*/ < * /*? ret ?*/_sz; /*? mcount ?*/ ++) {
-                      free((* /*? ret ?*/)[/*? mcount ?*/]);
-                    }
-                  /*- endif -*/
-                  free(* /*? ret ?*/);
-                /*- elif isinstance(return_type, camkes.ast.Type) and return_type.type == 'string' -*/
-                  free(* /*? ret ?*/);
-                /*- endif -*/
-              /*- endif -*/
-              /*- for q in output_parameters -*/
-                /*- if q == p -*/
-                  /*- do break -*/
-                /*- endif -*/
-                /*- if q.array -*/
-                  /*- if isinstance(q.type, camkes.ast.Type) and q.type.type == 'string' -*/
-                    /*- set mcount = c_symbol() -*/
-                    for (int /*? mcount ?*/ = 0; /*? mcount ?*/ < * /*? q.name ?*/_sz; /*? mcount ?*/ ++) {
-                      free((* /*? q.name ?*/)[/*? mcount ?*/]);
-                    }
-                  /*- endif -*/
-                  free(* /*? q.name ?*/);
-                /*- elif isinstance(q.type, camkes.ast.Type) and q.type.type == 'string' -*/
-                  free(* /*? q.name ?*/);
-                /*- endif -*/
-              /*- endfor -*/
-              /*- set mcount = c_symbol() -*/
-              for (int /*? mcount ?*/ = 0; /*? mcount ?*/ < /*? lcount ?*/; /*? mcount ?*/ ++) {
-                free((* /*? p.name ?*/)[/*? mcount ?*/]);
-              }
-              free(* /*? p.name ?*/);
-              return -1;
-            }));
-          /*? length ?*/ += /*? len ?*/ + 1;
-        }
-      /*- else -*/
-        ERR_IF(/*? length ?*/ + sizeof((* /*? p.name ?*/)[0]) * (* /*? p.name ?*/_sz) > /*? size ?*/, /*? error_handler ?*/, ((camkes_error_t){
-            .type = CE_MALFORMED_RPC_PAYLOAD,
-            .instance = "/*? instance ?*/",
-            .interface = "/*? interface ?*/",
-            .description = "truncated message encountered while unmarshalling /*? p.name ?*/ in /*? name ?*/",
-            .length = /*? size ?*/,
-            .current_index = /*? length ?*/ + sizeof((* /*? p.name ?*/)[0]) * (* /*? p.name ?*/_sz),
-          }), ({
-            /*- if return_type -*/
-              /*- if return_type.array -*/
-                /*- if isinstance(return_type, camkes.ast.Type) and return_type.type == 'string' -*/
-                  /*- set mcount = c_symbol() -*/
-                  for (int /*? mcount ?*/ = 0; /*? mcount ?*/ < * /*? ret ?*/_sz; /*? mcount ?*/ ++) {
-                    free((* /*? ret ?*/)[/*? mcount ?*/]);
-                  }
-                /*- endif -*/
-                free(* /*? ret ?*/);
-              /*- elif isinstance(return_type, camkes.ast.Type) and return_type.type == 'string' -*/
-                free(* /*? ret ?*/);
-              /*- endif -*/
-            /*- endif -*/
-            /*- for q in output_parameters -*/
-              /*- if q == p -*/
-                /*- do break -*/
-              /*- endif -*/
-              /*- if q.array -*/
-                /*- if isinstance(q.type, camkes.ast.Type) and q.type.type == 'string' -*/
-                  /*- set mcount = c_symbol() -*/
-                  for (int /*? mcount ?*/ = 0; /*? mcount ?*/ < * /*? q.name ?*/_sz; /*? mcount ?*/ ++) {
-                    free((* /*? q.name ?*/)[/*? mcount ?*/]);
-                  }
-                /*- endif -*/
-                free(* /*? q.name ?*/);
-              /*- elif isinstance(q.type, camkes.ast.Type) and q.type.type == 'string' -*/
-                free(* /*? q.name ?*/);
-              /*- endif -*/
-            /*- endfor -*/
-            free(* /*? p.name ?*/);
-            return -1;
-          }));
-        memcpy((* /*? p.name ?*/), /*? base ?*/ + /*? length ?*/, sizeof((* /*? p.name ?*/)[0]) * (* /*? p.name ?*/_sz));
-        /*? length ?*/ += sizeof((* /*? p.name ?*/)[0]) * (* /*? p.name ?*/_sz);
-      /*- endif -*/
-    /*- elif isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
-      /*- if p.direction.direction == 'inout' -*/
-        free(* /*? p.name ?*/);
-      /*- endif -*/
-      /*- set len = c_symbol('strlen') -*/
-      size_t /*? len ?*/ = strnlen(/*? base ?*/ + /*? length ?*/, /*? size ?*/ - /*? length ?*/);
-      ERR_IF(/*? len ?*/ >= /*? size ?*/ - /*? length ?*/, /*? error_handler ?*/, ((camkes_error_t){
-          .type = CE_MALFORMED_RPC_PAYLOAD,
-          .instance = "/*? instance ?*/",
-          .interface = "/*? interface ?*/",
-          .description = "truncated message encountered while unmarshalling /*? p.name ?*/ in /*? name ?*/",
-          .length = /*? size ?*/,
-          .current_index = /*? length ?*/ + /*? len ?*/ + 1,
-        }), ({
-          /*- if return_type -*/
-            /*- if return_type.array -*/
-              /*- if isinstance(return_type, camkes.ast.Type) and return_type.type == 'string' -*/
-                /*- set mcount = c_symbol() -*/
-                for (int /*? mcount ?*/ = 0; /*? mcount ?*/ < * /*? ret ?*/_sz; /*? mcount ?*/ ++) {
-                  free((* /*? ret ?*/)[/*? mcount ?*/]);
-                }
-              /*- endif -*/
-              free(* /*? ret ?*/);
-            /*- elif isinstance(return_type, camkes.ast.Type) and return_type.type == 'string' -*/
-              free(* /*? ret ?*/);
-            /*- endif -*/
+      /*- for q in output_parameters -*/
+        /*- if q == p -*/
+          /*- do break -*/
+        /*- endif -*/
+        /*- if q.array -*/
+          /*- if isinstance(q.type, camkes.ast.Type) and q.type.type == 'string' -*/
+            /*- set mcount = c_symbol() -*/
+            for (int /*? mcount ?*/ = 0; /*? mcount ?*/ < * /*? q.name ?*/_sz; /*? mcount ?*/ ++) {
+              free((* /*? q.name ?*/)[/*? mcount ?*/]);
+            }
           /*- endif -*/
-          /*- for q in output_parameters -*/
-            /*- if q == p -*/
-              /*- do break -*/
-            /*- endif -*/
-            /*- if q.array -*/
-              /*- if isinstance(q.type, camkes.ast.Type) and q.type.type == 'string' -*/
-                /*- set mcount = c_symbol() -*/
-                for (int /*? mcount ?*/ = 0; /*? mcount ?*/ < * /*? q.name ?*/_sz; /*? mcount ?*/ ++) {
-                  free((* /*? q.name ?*/)[/*? mcount ?*/]);
-                }
-              /*- endif -*/
-              free(* /*? q.name ?*/);
-            /*- elif isinstance(q.type, camkes.ast.Type) and q.type.type == 'string' -*/
-              free(* /*? q.name ?*/);
-            /*- endif -*/
-          /*- endfor -*/
-          return -1;
-        }));
-      * /*? p.name ?*/ = strdup(/*? base ?*/ + /*? length ?*/);
-      ERR_IF(* /*? p.name ?*/ == NULL, /*? error_handler ?*/, ((camkes_error_t){
-          .type = CE_ALLOCATION_FAILURE,
-          .instance = "/*? instance ?*/",
-          .interface = "/*? interface ?*/",
-          .description = "out of memory while unmarshalling /*? p.name ?*/ in /*? name ?*/",
-          .alloc_bytes = /*? len ?*/ + 1,
-        }), ({
-          /*- if return_type -*/
-            /*- if return_type.array -*/
-              /*- if isinstance(return_type, camkes.ast.Type) and return_type.type == 'string' -*/
-                /*- set mcount = c_symbol() -*/
-                for (int /*? mcount ?*/ = 0; /*? mcount ?*/ < * /*? ret ?*/_sz; /*? mcount ?*/ ++) {
-                  free((* /*? ret ?*/)[/*? mcount ?*/]);
-                }
-              /*- endif -*/
-              free(* /*? ret ?*/);
-            /*- elif isinstance(return_type, camkes.ast.Type) and return_type.type == 'string' -*/
-              free(* /*? ret ?*/);
-            /*- endif -*/
-          /*- endif -*/
-          /*- for q in output_parameters -*/
-            /*- if q == p -*/
-              /*- do break -*/
-            /*- endif -*/
-            /*- if q.array -*/
-              /*- if isinstance(q.type, camkes.ast.Type) and q.type.type == 'string' -*/
-                /*- set mcount = c_symbol() -*/
-                for (int /*? mcount ?*/ = 0; /*? mcount ?*/ < * /*? q.name ?*/_sz; /*? mcount ?*/ ++) {
-                  free((* /*? q.name ?*/)[/*? mcount ?*/]);
-                }
-              /*- endif -*/
-              free(* /*? q.name ?*/);
-            /*- elif isinstance(q.type, camkes.ast.Type) and q.type.type == 'string' -*/
-              free(* /*? q.name ?*/);
-            /*- endif -*/
-          /*- endfor -*/
-          return -1;
-        }));
-      /*? length ?*/ += /*? len ?*/ + 1;
-    /*- else -*/
-      ERR_IF(/*? length ?*/ + sizeof(* /*? p.name ?*/) > /*? size ?*/, /*? error_handler ?*/, ((camkes_error_t){
-          .type = CE_MALFORMED_RPC_PAYLOAD,
-          .instance = "/*? instance ?*/",
-          .interface = "/*? interface ?*/",
-          .description = "truncated message encountered while unmarshalling /*? p.name ?*/ in /*? name ?*/",
-          .length = /*? size ?*/,
-          .current_index = /*? length ?*/ + sizeof(* /*? p.name ?*/),
-        }), ({
-          /*- if return_type -*/
-            /*- if return_type.array -*/
-              /*- if isinstance(return_type, camkes.ast.Type) and return_type.type == 'string' -*/
-                /*- set mcount = c_symbol() -*/
-                for (int /*? mcount ?*/ = 0; /*? mcount ?*/ < * /*? ret ?*/_sz; /*? mcount ?*/ ++) {
-                  free((* /*? ret ?*/)[/*? mcount ?*/]);
-                }
-              /*- endif -*/
-              free(* /*? ret ?*/);
-            /*- elif isinstance(return_type, camkes.ast.Type) and return_type.type == 'string' -*/
-              free(* /*? ret ?*/);
-            /*- endif -*/
-          /*- endif -*/
-          /*- for q in output_parameters -*/
-            /*- if q == p -*/
-              /*- do break -*/
-            /*- endif -*/
-            /*- if q.array -*/
-              /*- if isinstance(q.type, camkes.ast.Type) and q.type.type == 'string' -*/
-                /*- set mcount = c_symbol() -*/
-                for (int /*? mcount ?*/ = 0; /*? mcount ?*/ < * /*? q.name ?*/_sz; /*? mcount ?*/ ++) {
-                  free((* /*? q.name ?*/)[/*? mcount ?*/]);
-                }
-              /*- endif -*/
-              free(* /*? q.name ?*/);
-            /*- elif isinstance(q.type, camkes.ast.Type) and q.type.type == 'string' -*/
-              free(* /*? q.name ?*/);
-            /*- endif -*/
-          /*- endfor -*/
-          return -1;
-        }));
-      memcpy(/*? p.name ?*/, /*? base ?*/ + /*? length ?*/, sizeof(* /*? p.name ?*/));
-      /*? length ?*/ += sizeof(* /*? p.name ?*/);
-    /*- endif -*/
+          free(* /*? q.name ?*/);
+        /*- elif isinstance(q.type, camkes.ast.Type) and q.type.type == 'string' -*/
+          free(* /*? q.name ?*/);
+        /*- endif -*/
+      /*- endfor -*/
+      return -1;
+    }
   /*- endfor -*/
 
   /*- if not allow_trailing_data -*/
