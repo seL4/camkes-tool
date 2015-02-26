@@ -151,7 +151,6 @@ def main():
                     done(value.output)
         with profiler('Parsing input'):
             ast = parser.parse_to_ast(s, options.cpp, options.cpp_flag, options.ply_optimise)
-            ast = compose_assemblies(ast)
             parser.assign_filenames(ast, f.name)
     except parser.CAmkESSyntaxError as e:
         e.set_column(s)
@@ -173,6 +172,14 @@ def main():
                 options.cpp, options.cpp_flag, options.ply_optimise)
     except Exception as inst:
         die('While resolving imports of \'%s\': %s' % (f.name, str(inst)))
+
+    try:
+        with profiler('Combining assemblies'):
+            # if there are multiple assemblies, combine them now
+            ast = compose_assemblies(ast)
+    except Exception as inst:
+        die('While combining assemblies: %s' % str(inst))
+
     with profiler('Caching original AST'):
         orig_ast = deepcopy(ast)
     with profiler('Deduping AST'):
