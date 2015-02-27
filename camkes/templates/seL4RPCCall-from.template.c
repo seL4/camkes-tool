@@ -245,7 +245,7 @@ int /*? me.from_interface.name ?*/__run(void) {
         /*- if userspace_ipc -*/
                 0
         /*- else -*/
-                ROUND_UP(/*? length ?*/, sizeof(seL4_Word)) / sizeof(seL4_Word)
+                ROUND_UP_UNSAFE(/*? length ?*/, sizeof(seL4_Word)) / sizeof(seL4_Word)
         /*- endif -*/
         );
     /*? info ?*/ = seL4_Call(/*? ep ?*/, /*? info ?*/);

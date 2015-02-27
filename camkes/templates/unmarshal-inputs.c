@@ -241,7 +241,7 @@ unsigned int /*? size ?*/
   /*- endfor -*/
 
   /*- if not allow_trailing_data -*/
-    ERR_IF(ROUND_UP(/*? length ?*/, sizeof(seL4_Word)) != /*? size ?*/, /*? error_handler ?*/, ((camkes_error_t){
+    ERR_IF(ROUND_UP_UNSAFE(/*? length ?*/, sizeof(seL4_Word)) != /*? size ?*/, /*? error_handler ?*/, ((camkes_error_t){
         .type = CE_MALFORMED_RPC_PAYLOAD,
         .instance = "/*? instance ?*/",
         .interface = "/*? interface ?*/",

@@ -247,7 +247,7 @@ int /*? me.to_interface.name ?*/__run(void) {
                     /*- endfor -*/
 
                     /*? info ?*/ = seL4_MessageInfo_new(0, 0, 0, /* length */
-                        ROUND_UP(/*? length ?*/, sizeof(seL4_Word)) / sizeof(seL4_Word)
+                        ROUND_UP_UNSAFE(/*? length ?*/, sizeof(seL4_Word)) / sizeof(seL4_Word)
                     );
 
                     /* Send the response */

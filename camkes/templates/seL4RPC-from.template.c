@@ -187,7 +187,7 @@ int /*? me.from_interface.name ?*/__run(void) {
     /* Call the endpoint */
     /*- set info = c_symbol('info') -*/
     seL4_MessageInfo_t /*? info ?*/ = seL4_MessageInfo_new(0, 0, 0,
-        ROUND_UP(/*? length ?*/, sizeof(seL4_Word)) / sizeof(seL4_Word));
+        ROUND_UP_UNSAFE(/*? length ?*/, sizeof(seL4_Word)) / sizeof(seL4_Word));
 
     seL4_Send(/*? ep ?*/, /*? info ?*/);
     /*? info ?*/ = seL4_Wait(/*? ep ?*/, NULL);
