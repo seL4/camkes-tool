@@ -117,7 +117,7 @@ CAMKES_CORE_LIBS = sel4 sel4debug c ${CONFIG_CAMKES_SYSLIB} sel4camkes \
 PRUNER_BLACKLIST = FILE fpos_t opterr optind optopt stderr stdin stdout \
   va_list __isoc_va_list max_align_t camkes_error_t camkes_error_handler_t \
   pthread_attr_t pthread_mutex_t pthread_cond_t pthread_rwlock_t \
-  pthread_barrier_t
+  pthread_barrier_t sel4bench_arm1136_pmnc_t
 
 # The included Makefile is generated automatically by the following rule at the
 # bottom of this Makefile.
