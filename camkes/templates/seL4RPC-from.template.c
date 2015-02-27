@@ -45,7 +45,7 @@
     static volatile int /*? lock ?*/ = 1;
 /*- endif -*/
 
-TIMING_DEFS(/*? me.from_interface.name ?*/, "glue code entry", "lock acquired", "marshalling done", "communication done", "lock released", "unmarshalling done");
+TIMING_DEFS(/*? me.from_interface.name ?*/, "glue code entry", "lock acquired", "marshalling done", "communication done", "lock released", "unmarshalling done")
 
 int /*? me.from_interface.name ?*/__run(void) {
     /* Nothing to be done. */
