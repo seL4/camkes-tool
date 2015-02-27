@@ -27,11 +27,9 @@
     static /*? type ?*/ /*? name ?*/_/*? index ?*/
     /*- if array -*/
         /*# Assume this array is for some IPC-transferred data and therefore
-         *# cannot be bigger than the IPC buffer. Note that this is actually an
-         *# overestimation as size of the member type may be greater than a
-         *# word.
+         *# cannot be bigger than the IPC buffer.
         #*/
-        [seL4_MsgMaxLength]
+        [seL4_MsgMaxLength * sizeof(seL4_Word) / sizeof(/*? type ?*/)]
     /*- endif -*/
     ;
 /*- endfor -*/
