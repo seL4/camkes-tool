@@ -4,7 +4,11 @@
 /*? assert(isinstance(interface, str)) ?*/     /*# Name of this interface #*/
 /*? assert(isinstance(error_handler, str)) ?*/ /*# Symbol to use for creating error handler #*/
 
-static camkes_error_handler_t /*? error_handler ?*/_fn;
+/* The currently active error handler. This variable is marked UNUSED to squash
+ * compiler warnings generated when the user's build configuration causes the
+ * two following functions to be pruned from the final source.
+ */
+static camkes_error_handler_t /*? error_handler ?*/_fn UNUSED;
 
 camkes_error_handler_t /*? interface ?*/_register_error_handler(
     camkes_error_handler_t handler) {
