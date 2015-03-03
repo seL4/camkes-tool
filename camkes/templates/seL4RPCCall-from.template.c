@@ -19,6 +19,7 @@
 #include <camkes/marshal.h>
 #include <camkes/dataport.h>
 #include <camkes/error.h>
+#include <camkes/tls.h>
 
 /*? macros.show_includes(me.from_instance.type.includes) ?*/
 /*? macros.show_includes(me.from_interface.type.includes, '../static/components/' + me.from_instance.type.name + '/') ?*/

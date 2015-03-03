@@ -20,6 +20,7 @@
 #include <camkes/dataport.h>
 #include <camkes/error.h>
 #include <camkes/timing.h>
+#include <camkes/tls.h>
 #include <sync/sem-bare.h>
 
 /*? macros.show_includes(me.from_instance.type.includes) ?*/
