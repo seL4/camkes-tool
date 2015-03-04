@@ -6,20 +6,10 @@
 
 /*? function ?*/(
 /*- for p in input_parameters -*/
-  /*- if p.direction.direction == 'in' -*/
-    /*- if p.array -*/
-      /*? p.name ?*/_sz,
-    /*- endif -*/
-    /*? p.name ?*/
-  /*- else -*/
-    /*? assert(p.direction.direction in ['refin', 'inout']) ?*/
-    /*- if p.array -*/
-      * /*? p.name ?*/_sz,
-      * /*? p.name ?*/
-    /*- else -*/
-      * /*? p.name ?*/
-    /*- endif -*/
+  /*- if p.array -*/
+    /*? p.name ?*/_sz,
   /*- endif -*/
+  /*? p.name ?*/
   /*- if not loop.last -*/
     ,
   /*- endif -*/

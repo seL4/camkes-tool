@@ -15,41 +15,93 @@
 /*- for p in input_parameters -*/
   /*- set offset = c_symbol('offset') -*/
   static unsigned int /*? function ?*/_/*? p.name ?*/(unsigned int /*? offset ?*/,
-    /*- if p.array -*/
-      size_t /*? p.name ?*/_sz,
-      /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+    /*- if p.direction.direction == 'in' -*/
+      /*- if p.array -*/
+        size_t /*? p.name ?*/_sz,
+        /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+          char ** /*? p.name ?*/
+        /*- else -*/
+          /*? show(p.type) ?*/ * /*? p.name ?*/
+        /*- endif -*/
+      /*- elif isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+        char * /*? p.name ?*/
+      /*- else -*/
+        /*? show(p.type) ?*/ /*? p.name ?*/
+      /*- endif -*/
+    /*- else -*/
+      /*? assert(p.direction.direction in ['refin', 'inout']) ?*/
+      /*- if p.array -*/
+        size_t * /*? p.name ?*/_sz,
+        /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+          char *** /*? p.name ?*/
+        /*- else -*/
+          /*? show(p.type) ?*/ ** /*? p.name ?*/
+        /*- endif -*/
+      /*- elif isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
         char ** /*? p.name ?*/
       /*- else -*/
         /*? show(p.type) ?*/ * /*? p.name ?*/
       /*- endif -*/
-    /*- elif isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
-      char * /*? p.name ?*/
-    /*- else -*/
-      /*? show(p.type) ?*/ /*? p.name ?*/
     /*- endif -*/
     ) {
 
     /*- set base = c_symbol('buffer_base') -*/
     void * /*? base ?*/ UNUSED = (void*)(/*? buffer ?*/);
 
+    /* Construct parameter pointers. We do this here to consolidate where we
+     * are taking the address of local variables. In future, we need to avoid
+     * doing this for verification.
+     */
+    /*- set ptr = c_symbol('ptr') -*/
+    /*- set ptr_sz = c_symbol('ptr_sz') -*/
+    /*- set ptr_str = c_symbol('ptr_str') -*/
+    /*- set ptr_arr = c_symbol('ptr_arr') -*/
+    /*- if p.direction.direction == 'in' -*/
+      /*- if p.array -*/
+        size_t * /*? ptr_sz ?*/ = & /*? p.name ?*/_sz;
+        /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+          char ** /*? ptr_arr ?*/ = /*? p.name ?*/;
+        /*- else -*/
+          /*? show(p.type) ?*/ * /*? ptr_arr ?*/ = /*? p.name ?*/;
+        /*- endif -*/
+      /*- elif isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+        char * /*? ptr_str ?*/ = /*? p.name ?*/;
+      /*- else -*/
+        /*? show(p.type) ?*/ * /*? ptr ?*/ = & /*? p.name ?*/;
+      /*- endif -*/
+    /*- else -*/
+      /*- if p.array -*/
+        size_t * /*? ptr_sz ?*/ = /*? p.name ?*/_sz;
+        /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+          char ** /*? ptr_arr ?*/ = * /*? p.name ?*/;
+        /*- else -*/
+          /*? show(p.type) ?*/ * /*? ptr_arr ?*/ = * /*? p.name ?*/;
+        /*- endif -*/
+      /*- elif isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+        char * /*? ptr_str ?*/ = * /*? p.name ?*/;
+      /*- else -*/
+        /*? show(p.type) ?*/ * /*? ptr ?*/ = /*? p.name ?*/;
+      /*- endif -*/
+    /*- endif -*/
+
     /*- if p.array -*/
-      ERR_IF(/*? offset ?*/ + sizeof(/*? p.name ?*/_sz) > /*? size ?*/, /*? error_handler ?*/, ((camkes_error_t){
+      ERR_IF(/*? offset ?*/ + sizeof(* /*? ptr_sz ?*/) > /*? size ?*/, /*? error_handler ?*/, ((camkes_error_t){
           .type = CE_BUFFER_LENGTH_EXCEEDED,
           .instance = "/*? instance ?*/",
           .interface = "/*? interface ?*/",
           .description = "buffer exceeded while marshalling /*? p.name ?*/ in /*? name ?*/",
           .current_length = /*? offset ?*/,
-          .target_length = /*? offset ?*/ + sizeof(/*? p.name ?*/_sz),
+          .target_length = /*? offset ?*/ + sizeof(* /*? ptr_sz ?*/),
         }), ({
           return UINT_MAX;
         }));
-      memcpy(/*? base ?*/ + /*? offset ?*/, & /*? p.name ?*/_sz, sizeof(/*? p.name ?*/_sz));
-      /*? offset ?*/ += sizeof(/*? p.name ?*/_sz);
+      memcpy(/*? base ?*/ + /*? offset ?*/, /*? ptr_sz ?*/, sizeof(* /*? ptr_sz ?*/));
+      /*? offset ?*/ += sizeof(* /*? ptr_sz ?*/);
       /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
         /*- set lcount = c_symbol() -*/
-        for (int /*? lcount ?*/ = 0; /*? lcount ?*/ < /*? p.name ?*/_sz; /*? lcount ?*/ ++) {
+        for (int /*? lcount ?*/ = 0; /*? lcount ?*/ < * /*? ptr_sz ?*/; /*? lcount ?*/ ++) {
           /*- set strlen = c_symbol('strlen') -*/
-          size_t /*? strlen ?*/ = strnlen(/*? p.name ?*/[/*? lcount ?*/], /*? size ?*/ - /*? offset ?*/);
+          size_t /*? strlen ?*/ = strnlen(/*? ptr_arr ?*/[/*? lcount ?*/], /*? size ?*/ - /*? offset ?*/);
           ERR_IF(/*? strlen ?*/ >= /*? size ?*/ - /*? offset ?*/, /*? error_handler ?*/, ((camkes_error_t){
               .type = CE_BUFFER_LENGTH_EXCEEDED,
               .instance = "/*? instance ?*/",
@@ -61,26 +113,26 @@
               return UINT_MAX;
             }));
           /* If we didn't trigger an error, we now know this strcpy is safe. */
-          (void)strcpy(/*? base ?*/ + /*? offset ?*/, /*? p.name ?*/[/*? lcount ?*/]);
+          (void)strcpy(/*? base ?*/ + /*? offset ?*/, /*? ptr_arr ?*/[/*? lcount ?*/]);
           /*? offset ?*/ += /*? strlen ?*/ + 1;
         }
       /*- else -*/
-        ERR_IF(/*? offset ?*/ + sizeof(/*? p.name ?*/[0]) * /*? p.name ?*/_sz > /*? size ?*/, /*? error_handler ?*/, ((camkes_error_t){
+        ERR_IF(/*? offset ?*/ + sizeof(/*? ptr_arr ?*/[0]) * (* /*? ptr_sz ?*/) > /*? size ?*/, /*? error_handler ?*/, ((camkes_error_t){
             .type = CE_BUFFER_LENGTH_EXCEEDED,
             .instance = "/*? instance ?*/",
             .interface = "/*? interface ?*/",
             .description = "buffer exceeded while marshalling /*? p.name ?*/ in /*? name ?*/",
             .current_length = /*? offset ?*/,
-            .target_length = /*? offset ?*/ + sizeof(/*? p.name ?*/[0]) * /*? p.name ?*/_sz,
+            .target_length = /*? offset ?*/ + sizeof(/*? ptr_arr ?*/[0]) * (* /*? ptr_sz ?*/),
           }), ({
             return UINT_MAX;
           }));
-        memcpy(/*? base ?*/ + /*? offset ?*/, /*? p.name ?*/, sizeof(/*? p.name ?*/[0]) * /*? p.name ?*/_sz);
-        /*? offset ?*/ += sizeof(/*? p.name ?*/[0]) * /*? p.name ?*/_sz;
+        memcpy(/*? base ?*/ + /*? offset ?*/, /*? ptr_arr ?*/, sizeof(/*? ptr_arr ?*/[0]) * (* /*? ptr_sz ?*/));
+        /*? offset ?*/ += sizeof(/*? ptr_arr ?*/[0]) * (* /*? ptr_sz ?*/);
       /*- endif -*/
     /*- elif isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
       /*- set strlen = c_symbol('strlen') -*/
-      size_t /*? strlen ?*/ = strnlen(/*? p.name ?*/, /*? size ?*/ - /*? offset ?*/);
+      size_t /*? strlen ?*/ = strnlen(/*? ptr_str ?*/, /*? size ?*/ - /*? offset ?*/);
       ERR_IF(/*? strlen ?*/ >= /*? size ?*/ - /*? offset ?*/, /*? error_handler ?*/, ((camkes_error_t){
           .type = CE_BUFFER_LENGTH_EXCEEDED,
           .instance = "/*? instance ?*/",
@@ -92,21 +144,21 @@
           return UINT_MAX;
         }));
       /* If we didn't trigger an error, we now know this strcpy is safe. */
-      (void)strcpy(/*? base ?*/ + /*? offset ?*/, /*? p.name ?*/);
+      (void)strcpy(/*? base ?*/ + /*? offset ?*/, /*? ptr_str ?*/);
       /*? offset ?*/ += /*? strlen ?*/ + 1;
     /*- else -*/
-      ERR_IF(/*? offset ?*/ + sizeof(/*? p.name ?*/) > /*? size ?*/, /*? error_handler ?*/, ((camkes_error_t){
+      ERR_IF(/*? offset ?*/ + sizeof(* /*? ptr ?*/) > /*? size ?*/, /*? error_handler ?*/, ((camkes_error_t){
           .type = CE_BUFFER_LENGTH_EXCEEDED,
           .instance = "/*? instance ?*/",
           .interface = "/*? interface ?*/",
           .description = "buffer exceeded while marshalling /*? p.name ?*/ in /*? name ?*/",
           .current_length = /*? offset ?*/,
-          .target_length = /*? offset ?*/ + sizeof(/*? p.name ?*/),
+          .target_length = /*? offset ?*/ + sizeof(* /*? ptr ?*/),
         }), ({
           return UINT_MAX;
         }));
-      memcpy(/*? base ?*/ + /*? offset ?*/, & /*? p.name ?*/, sizeof(/*? p.name ?*/));
-      /*? offset ?*/ += sizeof(/*? p.name ?*/);
+      memcpy(/*? base ?*/ + /*? offset ?*/, /*? ptr ?*/, sizeof(* /*? ptr ?*/));
+      /*? offset ?*/ += sizeof(* /*? ptr ?*/);
     /*- endif -*/
 
     return /*? offset ?*/;
@@ -132,17 +184,33 @@
 
 static unsigned int /*? function ?*/(
 /*- for p in input_parameters -*/
-  /*- if p.array -*/
-    size_t /*? p.name ?*/_sz,
-    /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+  /*- if p.direction.direction == 'in' -*/
+    /*- if p.array -*/
+      size_t /*? p.name ?*/_sz,
+      /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+        char ** /*? p.name ?*/
+      /*- else -*/
+        /*? show(p.type) ?*/ * /*? p.name ?*/
+      /*- endif -*/
+    /*- elif isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+      char * /*? p.name ?*/
+    /*- else -*/
+      /*? show(p.type) ?*/ /*? p.name ?*/
+    /*- endif -*/
+  /*- else -*/
+    /*? assert(p.direction.direction in ['refin', 'inout']) ?*/
+    /*- if p.array -*/
+      size_t * /*? p.name ?*/_sz,
+      /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+        char *** /*? p.name ?*/
+      /*- else -*/
+        /*? show(p.type) ?*/ ** /*? p.name ?*/
+      /*- endif -*/
+    /*- elif isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
       char ** /*? p.name ?*/
     /*- else -*/
       /*? show(p.type) ?*/ * /*? p.name ?*/
     /*- endif -*/
-  /*- elif isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
-    char * /*? p.name ?*/
-  /*- else -*/
-    /*? show(p.type) ?*/ /*? p.name ?*/
   /*- endif -*/
   /*- if not loop.last -*/
     ,
