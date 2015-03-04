@@ -51,9 +51,11 @@ of these terms are made explicit below.
 **Assembly**
 
 > A top-level element that encapsulates a component system description. An
-  assembly can be thought of as a complete description of a full system. Within
-  the context of a system there can only be one assembly, so it is a singleton
-  in that sense.
+  assembly can be thought of as a complete description of a full system. 
+  A system must contain at least one assembly. A system with more than one
+  assembly is equivalent to a system with one assembly whose composition
+  and configuration sections are the concatenation of the composition and
+  configuration sections of each assembly.
 
 **Attribute**
 
@@ -78,6 +80,10 @@ of these terms are made explicit below.
   This is essentially a syntactic element for delimiting sections in a
   specification. It is contained by an assembly block, along with an optional
   configuration.
+
+**Compound Component**
+
+> A component with a composition section, and optionally a configuration section.
 
 **Configuration**
 
@@ -128,6 +134,20 @@ of these terms are made explicit below.
   value as mapping to something like an interrupt number or a signal type,
   although they do not necessarily represent hardware messages.
 
+**Export Connector**
+
+> A special type of connector which can only appear inside a compound component's
+  composition section. It can be used to connect one of the compound component's
+  interfaces to an interface of an internal instance declared in the compound component's
+  composition section. Interfaces of compound components connected with an export
+  connector are considered "Virtual Interfaces". Interfaces of internal instances
+  connected to virtual interfaces are known as "Exported Interfaces".
+
+**Exported Interface**
+
+> An interface of an internal instance connected to a virtual interface with an export connector.
+
+
 **Instance**
 
 > An instantiation of a component type. Of course 'instance' can be used to
@@ -148,6 +168,16 @@ of these terms are made explicit below.
   this was considered distinct from ADL, but now the term 'ADL' is intended to
   encompass both syntaxes. The CAmkES IDL subset is heavily inspired by
   [OMG IDL](http://www.omg.org/gettingstarted/omg_idl.htm).
+
+**Internal Instance**
+
+> A component instance declared inside a compound component's composition section.
+
+**Internal Connection**
+
+> A connection declared inside a compound component which connects two internal
+  instance interfaces. That is, any connection declared inside a compound component
+  which does not use an export connector.
 
 **Method**
 
@@ -198,6 +228,11 @@ of these terms are made explicit below.
   conventional programming language this typically means that the component
   contains calls to functions that are expected to implement each method in the
   procedures used.
+
+**Virtual Interface**
+
+> An interface of a compound component connected to an internal instance's interface
+  using an export connector.
 
 A concrete example:
 
@@ -1691,8 +1726,8 @@ component-wide error handler.
 CAmkES allows the programmer to define arbitrary attributes of components.
 
     component Foo {
-        attribute string a;
-        attribute int b;
+      attribute string a;
+      attribute int b;
     }
 
 These attributes are set in the configuration section of the assembly:
@@ -1723,11 +1758,11 @@ A hardware component represents an interface to hardware in the form of a compon
 Declaring a component with the `hardware` keyword creates a hardware component.
 
     component Device {
-        hardware;
+      hardware;
 
-        provides IOPort io_port;
-        emits Interrupt irq;
-        dataport Buf mem;
+      provides IOPort io_port;
+      emits Interrupt irq;
+      dataport Buf mem;
     }
 
 When an interface of a device component instance is connected to a regular
@@ -1738,41 +1773,38 @@ The type of hardware interface depends on the type of CAmkES interface,
 and the connector used. Available connectors for hardware, and their
 corresponding hardware interfaces are listed below.
 
-<table border=1>
-    <tr><th>CAmkES Interface Type</th><th>Connector</th><th>Description</th></tr>
-    <tr><td>procedure (provides)</td><td>seL4HardwareIOPort</td>
-    <td>
-    When using IOPort as the interface type, this provides access to
-    IO ports. The connected component gets access to the methods in the
-    IOPort interface, which allow sending and receiving data over
-    IO ports.
-    This is specific to the IA32 architecture.
-    </td></tr>
-    <tr><td>event (emits)</td><td>seL4HardwareInterrupt</td>
-    <td>
-    An event is emitted when an interrupt occurs.
-    </td></tr>
-    <tr><td>port (dataport)</td><td>seL4HardwareMMIO</td>
-    <td>
-    Memory mapped registers can be accessed via the shared memory.
-    </td></tr>
-</table>
+CAmkES Interface Type       Connector               Description
+-----------------------     -------------------     ---------------------------------------------------------------------
+procedure (provides)        seL4HardwareIOPort      When using IOPort as the interface type, this 
+                                                    provides access to IO ports. The connected 
+                                                    component gets access to the methods in the
+                                                    IOPort interface, which allow sending and 
+                                                    receiving data over IO ports. This is specific 
+                                                    to the IA32 architecture.
+event (emits)               seL4HardwareInterrupt   An event is emitted when an interrupt occurs.
+port (dataport)             seL4HardwareMMIO        Memory mapped registers can be accessed via the 
+                                                    shared memory.
+
+The following example shows an example of connecting a hardware component to a driver
+component. Note the order of arguments to the connection. `seL4HardwareInterrupt` requires
+the hardware interface on the `from` side of the connection, whereas the other connectors
+require the hardware interface on the `to` side.
 
     component Driver {
-        uses IOPort io_port;
-        consumes Interrupt irq;
-        dataport Buf mem;
+      uses IOPort io_port;
+      consumes Interrupt irq;
+      dataport Buf mem;
     }
 
     assembly {
-        composition {
-            component Device dev;
-            component Driver drv;
-            ...
-            connection seL4HardwareIOPort ioport_c(from drv.io_port, to dev.io_port);
-            connection seL4HardwareInterrupt irq_c(from dev.irq, to drv.irq);
-            connection seL4HardwareMMIO mmio_c(from drv.mem, to dev.mem);
-        }
+      composition {
+        component Device dev;
+        component Driver drv;
+        ...
+        connection seL4HardwareIOPort ioport_c(from drv.io_port, to dev.io_port);
+        connection seL4HardwareInterrupt irq_c(from dev.irq, to drv.irq);
+        connection seL4HardwareMMIO mmio_c(from drv.mem, to dev.mem);
+      }
     }
 
 #### Configuration
@@ -1780,17 +1812,17 @@ corresponding hardware interfaces are listed below.
 Each type of hardware component interface has some configuration required for it
 to work. This is done by setting attributes of instances of device components.
 
-##### Port/MMIO
+##### MMIO
 The physical address of the memory, and size (in bytes) to make available
 to a connected component must be specified. The example below specifies that
-the port names `mem` of the component instance `d` is a 0x1000 byte region
+the port named `mem` of the component instance `d` is a 0x1000 byte region
 starting at physical address 0xE0000000.
 
     component Device {
-        hardware;
+      hardware;
 
-        dataport Buf mem;
-        ...
+      dataport Buf mem;
+      ...
     }
 
     assembly {
@@ -1804,15 +1836,15 @@ starting at physical address 0xE0000000.
       }
     }
 
-##### Event/Interrupt
+##### Interrupts
 The interrupt number must be specified. The example below specifies that
 the event will be emitted when interrupt number 2 is received.
 
     component Device {
-        hardware;
+      hardware;
 
-        emits Interrupt irq;
-        ...
+      emits Interrupt irq;
+      ...
     }
 
     assembly {
@@ -1826,17 +1858,17 @@ the event will be emitted when interrupt number 2 is received.
       }
     }
 
-##### Procedure/IOPorts
+##### IO Ports
 The allowable range of IO Ports must be specified.
 The example below specifies that the hardware component instance
-`d` may accesses io ports greater than or equal to 0x60, and less 
+`d` may access IO ports greater than or equal to 0x60, and less 
 than 0x64.
 
     component Device {
-        hardware;
+      hardware;
         
-        provides IOPort io_port;
-        ...
+      provides IOPort io_port;
+      ...
     }
 
     assembly {
@@ -1854,27 +1886,40 @@ than 0x64.
 
 ### Port Privileges
 
-CAmkES allows the programmer to specify a port as read-only for a particular component instance,
-by specifying `to_access` and `from_access` attributes of a port connector.
-In the example below, `f`'s access to its `data_a` interface is read-only,
-and `g`'s access to its `data_b` interface is also read-only.
+CAmkES allows the programmer to specify access rights that instances have over the ports
+connecting them to other instances. This is done by setting the `from_access` and `to_access`
+attributes of the port connection. The value of the attribute must be a string containing
+the letters "R", "W" and "X" (or "G"), giving the instance on specified side of the connection
+read, write and execute privileges over the shared region of memory. If left unspecified,
+read/write access will be given.
+
+In the example below, instance `f` has read-only access to `port_a`, and instance `b` has
+read/write access to `port_a`. Instance `b` has read-only access to `port_b`. Instance `a`
+has read/write access to `port_b` even though it's not explicitly stated, as this is the
+default.
 
     component Foo {
-        dataport Buf data_a;
-        dataport Buf data_b;
+      dataport Buf data_a;
+      dataport Buf data_b;
+    }
+
+    component Bar {
+      dataport Buf data_a;
+      dataport Buf data_b;
     }
 
     assembly {
       composition {
         component Foo f;
-        component Foo g;
+        component Bar b;
         ...
-        connection seL4SharedMemory port_a(from f.data_a, to g.data_a);
-        connection seL4SharedMemory port_b(from f.data_b, to g.data_b);
+        connection seL4SharedMemory port_a(from f.data_a, to b.data_a);
+        connection seL4SharedMemory port_b(from f.data_b, to b.data_b);
         ...
       }
       configuration {
         port_a.from_access = "R";
+        port_a.to_access = "RW;
         port_b.to_access = "R";
         ...
       }
@@ -1884,30 +1929,6 @@ and `g`'s access to its `data_b` interface is also read-only.
 
 ### Scheduling Domains
 
-The seL4 kernel uses a domain scheduler to avoid exposing timing information
-to threads that could be used to construct a covert channel. 
-Programmers can group threads into distinct groups called "domains",
-and provide a static schedule specifying how much CPU time each domain receives.
-The kernel schedules domains based on this schedule. While a domain is active,
-its threads are scheduled using priority based round robin scheduling.
-
-Threads in different domains cannot learn anything about one another based on the CPU
-time they consume. Note that threads in the same domain can still learn about other
-threads consumption of CPU time.
-
-Below is an example schedule for a system with 3 domains. In this example,
-domain 0 will run for 2 timeslices, domain 1 will run for 4, domain 0 will run again for 1,
-and domain 2 will then run for 2. The schedule will the repeat from the start
-for the duration of the system.
-```c
-const dschedule_t ksDomSchedule[] = {
-    { .domain = 0, .length = 2 },
-    { .domain = 1, .length = 4 },
-    { .domain = 0, .length = 1 },
-    { .domain = 2, .length = 2 },
-};
-```
-
 In CAmkES, it is possible to specify the domain each thread belongs to, by setting attributes.
 Each interface of each component instance will have an associated thread. Additionally, components
 with a thread of control (indicated by the `control` keyword in their component definition) will
@@ -1916,12 +1937,12 @@ attribute `<interface>_domain` of the instance. For control threads, the attribu
 of the instance can be set.
 
     component Foo {
-        control;
-        uses iface i;
+      control;
+      uses iface i;
     }
 
     component Bar {
-        provides iface o;
+      provides iface o;
     }
 
     assembly {
@@ -1948,32 +1969,32 @@ assembly are merged together, with all declared names remaining the same.
 Thus, naming conflicts can occur on items declared in different assemblies.
 
     assembly {
-        composition {
-            component Foo f;
-        }
+      composition {
+        component Foo f;
+      }
     }
 
     assembly {
-        composition {
-            component Bar b;
-            connection seL4RPC c(from f.a, to b.a);
-        }
-        configuration {
-            f.some_attribute = 0;
-        }
+      composition {
+        component Bar b;
+        connection seL4RPC c(from f.a, to b.a);
+      }
+      configuration {
+        f.some_attribute = 0;
+      }
     }
 
 The example above is equivalent to:
     
     assembly {
-        composition {
-            component Foo f;
-            component Bar b;
-            connection seL4RPC c(from f.a, to b.a);
-        }
-        configuration {
-            f.some_attribute = 0;
-        }
+      composition {
+        component Foo f;
+        component Bar b;
+        connection seL4RPC c(from f.a, to b.a);
+      }
+      configuration {
+        f.some_attribute = 0;
+      }
     }
 
 ### Hierarchical Components
@@ -1981,260 +2002,242 @@ The example above is equivalent to:
 #### Syntax
 
 A component definition may include a composition and configuration section.
-The composition and configuration sections must by the last items in the component definition..
+The composition and configuration sections must be the last items in the component definition.
 The composition and configuration sections may appear in any order. A composition section
 can be included without a configuration, however a configuration section is only allowed
 if there is a composition.
 
     component Foo_Impl {
-        provides iface_a a_impl;
-        attribute string str;
+      provides iface_a a_impl;
+      attribute string str;
     }
 
     component Foo {
-        provides iface_a a;
+      provides iface_a a;
 
-        composition {
-            component Foo_Impl fi;
-            connection ExportRPC exp(from a, to fi.a_impl);
-        } 
-        configuration {
-            fi.str = "Hello, World!";
-        }
+      composition {
+        component Foo_Impl fi;
+        connection ExportRPC exp(from a, to fi.a_impl);
+      } 
+      configuration {
+        fi.str = "Hello, World!";
+      }
     }
 
     component Bar {
-        control;
-        uses iface_a a;
+      control;
+      uses iface_a a;
     }
 
     assembly {
-        composition {
-            component Foo f;
-            component Bar b;
-            connection seL4RPC c(from b.a, to f.a);
-        }
+      composition {
+        component Foo f;
+        component Bar b;
+        connection seL4RPC c(from b.a, to f.a);
+      }
     }
 
-In the example above, the component Foo exposes an interface `a`,
+In the example above, the component `Foo` exposes a virtual interface `a`,
 which is exported from the interface `a_impl` of the component instance `fi` of type `Foo_Impl`.
 
-#### Compilation
+#### Hierarchy Resolution
 
-During compilation, compound components (components with a composition section)
-such as Foo are flattened by
-merging their composition and configuration sections with the composition
-and configuration in the assembly, and resolving any export connections.
+Prior to compilation, the AST representing the system is transformed to remove all
+hierarchical components. For each instance of a compound component, any internal instances 
+and internal connections declared
+inside the component are copied into the top-level assembly with the compound component instance's
+name prepended to their own. 
+Each appearance of a virtual interface of some compound component instance 
+in a connection in the top-level assembly, is replaced
+with the exported interface of the internal instance copied into the top-level assembly
+while resolving that compound component instance.
+Then, for each compound component, all virtual interfaces are removed.
+If this results in any components with no interfaces, these components, and all instances
+of such components, are removed from the specification.
+
 The example above would be converted into the following:
      
     component Foo_Impl {
-        provides iface_a a_impl;
-        attribute string str;
+      provides iface_a a_impl;
+      attribute string str;
     }
-
-    component Foo {}   
     
+    component Bar {
+      control;
+      uses iface_a a;
+    }
     assembly {
-        composition {
-            component Foo f;
-            component Bar b;
-            component Foo_Impl f_fi;
-            connection seL4RPC c(from b.a, to f_fi.a_impl);
-        }
-        configuration {
-            f_fi.str = "Hello, World!";
-        }
+      composition {
+        component Bar b;
+        component Foo_Impl f_fi;
+        connection seL4RPC c(from b.a, to f_fi.a_impl);
+      }
+      configuration {
+        f_fi.str = "Hello, World!";
+      }
     }
 
 #### Export Connectors
 
-Note the connector used inside the composition section in the component Foo.
-Export connectors are not used to connect two component instance interfaces,
-but rather to export an interface of a component instance in the composition,
-via one of the component's interfaces. In this case, connecting to the
-`a` interface of a Foo instance will be effectively connecting to the `a_impl`
-interface of a Foo_Impl instance.
-
-There is an export connector available for each type of interface:
+The `ExportRPC` connector in the example above is an Export Connector.
+Recall from the Terminology section, that an export connector associates 
+a virtual interface of a compound component
+with an interface of an internal instance declared in the composition section
+of that component. `ExportRPC` can be used to export procedural interfaces.
+There is a similar export connector available for each type of interface:
 
 - _ExportRPC_ exports a procedural interface
 - _ExportAsync_ exports an event interface
 - _ExportData_ exports a port interface
 
-Note that unlike normal connectors, when using an export connector, only one
-side of the connection specifies an instance. The other side of the connector
-can be seen as "virtual". A real instance will be found at compile time to
-be on this side of the connection.
-
-It is necessary that when the hierarchy is resolved at compile time, each connection
-involving a compound component instance ends up with a real instance interface
-on the `to` and `from` sides. Hierarchy resolution will not switch the sides
-of an interface in a connection, so it's important that connections are specified
-such that real instance interfaces will eventually be on both sides.
+When a virtual interface of a compound component instance appears in a connection
+in the top-level assembly, the side of the connection with the virtual interface
+in this connection must be the same as the side of the exported interface
+in the export connection in the compound component. That is, they must both
+appear on the `to` side, or the `from` side of their respective connections.
 
     component Foo {
-        provides iface_a a;
+      provides iface_a a;
 
-        composition {
-            component Foo_Impl fi;
-            connection ExportRPC exp(from a, to fi.a_impl); // real interface on the to-side
-        } 
+      composition {
+        component Foo_Impl fi;
+        
+        // fi.a_impl is the exported interface, and appears on the 'to' side
+        connection ExportRPC exp(from a, to fi.a_impl); 
+      } 
     }
 
     component Bar {
-        control;
-        uses iface_a a;
+      control;
+      uses iface_a a;
     }
 
     assembly {
-        composition {
-            component Foo f;
-            component Bar b;
-            connection seL4RPC c(from b.a, to f.a); // real interface on the from-side
-        }
+      composition {
+        component Foo f;
+        component Bar b;
+        
+        // f.a is the virtual interface, and appears on the 'to' side
+        connection seL4RPC c(from b.a, to f.a);
+      }
     }
 
-The example above is correct since a real interface `fi.a_impl` is on the to-side of the export connection `exp`,
-and in the connection `c`, a real interface `b.a` is on the from-side of the connection.
-
-```
-    ...
-    connection ExportRPC exp(from fi.a_impl, to a); // real interface on the from-side
-    ...
-    connection seL4RPC c(from f.a, to b.a); // real interface on the to-side
-
-```
-
-If the `to` and `from` sides were switched in the export connection and the  seL4RPC connection,
-it would still be correct as they are on different sides. A mnemonic for this is
-to think of the "real" instance interface being "dropped into" the connection,
-and so the real instance interface must be in the same place as virtual side of the export connection.
-
-```
-    connection ExportRPC exp(from fi.a_impl, to a); // 'from fi.a_impl' is the real part
-    connection seL4RPC c(from f.a, to b.a); // 'to b.a' is the real part
-    // this will be compiled to:
-    connection seL4RPC c(from f_fi.a_impl, to b.a); 
-```
+The example above is correct, as the exported interface `fi.a_impl` in the compound component
+definition, and the virtual interface `f.a` in the top-level assembly, both appear on the
+`to` side of their connections.
 
 #### Examples
 
 ##### Connecting multiple compound components
-It's possible for both sides of a connection to be compound component interfaces:
+It's possible for both sides of a connection to be virtual interfaces:
     
     component Foo_Impl {
-        provides iface_a a_impl;
+      provides iface_a a_impl;
     }
 
     component Bar_Impl {
-        uses iface_a a_usage; 
+      uses iface_a a_usage; 
     }
 
     component Foo {
-        provides iface_a a;
+      provides iface_a a;
 
-        composition {
-            component Foo_Impl fi;
-            connection ExportRPC exp(from a, to fi.a_impl); // real instance on the to-side
-        } 
+      composition {
+        component Foo_Impl fi;
+        connection ExportRPC exp(from a, to fi.a_impl);
+      } 
     }
 
     component Bar {
-        uses iface_a a;
+      uses iface_a a;
 
-        composition {
-            component Bar_Impl bi;
-            connection ExportRPC exp(from bi.a_usage, to a); // real instance on the from-side
-        }
+      composition {
+        component Bar_Impl bi;
+        connection ExportRPC exp(from bi.a_usage, to a);
+      }
     }
 
     assembly {
-        composition {
-            component Foo f;
-            component Bar b;
-            connection seL4RPC c(from b.a, to f.a);
-        }
+      composition {
+        component Foo f;
+        component Bar b;
+        connection seL4RPC c(from b.a, to f.a);
+      }
     }
 
 This example compiles to:
 
     component Foo_Impl {
-        provides iface_a a_impl;
+      provides iface_a a_impl;
     }
 
     component Bar_Impl {
-        uses iface_a a_usage; 
+      uses iface_a a_usage; 
     }
-
-    component Foo {}
-
-    component Bar {}
 
     assembly {
-        composition {
-            component Foo f;
-            component Bar b;
-            component Foo_Impl f_fi;
-            component Bar_Impl b_bi;
-            connection seL4RPC c(from b_bi.a_usage, to f_fi.a_impl);
-        }
+      composition {
+        component Foo_Impl f_fi;
+        component Bar_Impl b_bi;
+        connection seL4RPC c(from b_bi.a_usage, to f_fi.a_impl);
+      }
     }
 
-##### Compound component with extra interfaces
+##### Compound component with non-virtual interfaces
 
-A component can have both exported and implemented interfaces:
+A component can have both virtual and implemented interfaces:
 
     component Foo_Impl {
-        provides iface_a a_impl;
+      provides iface_a a_impl;
     }
 
     component Foo {
-        provides iface_a a;
-        provides iface_b b;
+      provides iface_a a;
+      provides iface_b b;
 
-        composition {
-            component Foo_Impl fi;
-            connection ExportRPC exp(from a, to fi.a_impl);
-        }
+      composition {
+        component Foo_Impl fi;
+        connection ExportRPC exp(from a, to fi.a_impl);
+      }
     }
 
     component Bar {
-        uses iface_a a;
-        uses iface_b b;
+      uses iface_a a;
+      uses iface_b b;
     }
     
     assembly {
-        composition {
-            component Foo f;
-            component Bar b;
-            connection seL4RPC c(from b.a, to f.a);
-            connection seL4RPC c(from b.b, to f.b);
-        }
+      composition {
+        component Foo f;
+        component Bar b;
+        connection seL4RPC c(from b.a, to f.a);
+        connection seL4RPC c(from b.b, to f.b);
+      }
     }
 
 This example compiles to:
     
     component Foo_Impl {
-        provides iface_a a_impl;
+      provides iface_a a_impl;
     }
 
     component Foo {
-        provides iface_b b;
+      provides iface_b b;
     }
 
     component Bar {
-        uses iface_a a;
-        uses iface_b b;
+      uses iface_a a;
+      uses iface_b b;
     }
     
     assembly {
-        composition {
-            component Foo f;
-            component Bar b;
-            component Foo_Impl f_fi;
-            connection seL4RPC c(from b.a, to f_fi.a_impl);
-            connection seL4RPC c(from b.b, to f.b);
-        }
+      composition {
+        component Foo f;
+        component Bar b;
+        component Foo_Impl f_fi;
+        connection seL4RPC c(from b.a, to f_fi.a_impl);
+        connection seL4RPC c(from b.b, to f.b);
+      }
     }
 
 ##### Deeper Hierarchy
@@ -2243,78 +2246,71 @@ So far, each example has had a compound component containing only non-compound c
 It's possible to have a hierarchy of components of an arbitrary depth.
 
     component A_Piece1 {
-        provides a_piece ap;
+      provides a_piece ap;
     }
 
     component A_Piece2 {
-        uses a_piece ap;
-        provides iface_a a_impl;
+      uses a_piece ap;
+      provides iface_a a_impl;
     }
 
     component Foo_Impl {
-        provides iface_a a_impl;
+      provides iface_a a_impl;
 
-        composition {
-            component A_Piece1 a1;
-            component A_Piece2 a2;
-            connection seL4RPC c(from a1.ap, to a2.ap);
-            connection ExportRPC exp(from a_impl, to a2.a_impl);
-        }
+      composition {
+        component A_Piece1 a1;
+        component A_Piece2 a2;
+        connection seL4RPC c(from a1.ap, to a2.ap);
+        connection ExportRPC exp(from a_impl, to a2.a_impl);
+      }
     }
 
     component Foo {
-        provides iface_a a;
+      provides iface_a a;
 
-        composition {
-            component Foo_Impl fi;
-            connection ExportRPC exp(from a, to fi.a_impl);
-        }
+      composition {
+        component Foo_Impl fi;
+        connection ExportRPC exp(from a, to fi.a_impl);
+      }
     }
 
     component Bar {
-        uses iface_a a;
+      uses iface_a a;
     }
 
     assembly {
-        composition {
-            component Foo f;
-            component Bar b;
-            connection seL4RPC c(from b.a, to f.a);
-        }
+      composition {
+        component Foo f;
+        component Bar b;
+        connection seL4RPC c(from b.a, to f.a);
+      }
     }
 
 This example compiles to:
 
     component A_Piece1 {
-        provides a_piece ap;
+      provides a_piece ap;
     }
 
     component A_Piece2 {
-        uses a_piece ap;
-        provides iface_a a_impl;
+      uses a_piece ap;
+      provides iface_a a_impl;
     }
 
-    component Foo_Impl {}
-
-    component Foo {}
-
     component Bar {
-        uses iface_a a;
+      uses iface_a a;
     }
 
     assembly {
-        composition {
-            component Foo f;
-            component Bar b;
+      composition {
+        component Bar b;
             
-            component Foo_Impl f_fi;
+        component A_Piece1 f_fi_a1;
+        component A_Piece2 f_fi_a2;
 
-            component A_Piece1 f_fi_a1;
-            component A_Piece2 f_fi_a2;
-
-            connection seL4RPC f_fi_c(from f_fi_a1.ap, to f_fi_a2.ap);
-            connection seL4RPC c(from b.a, to f_fi_a2.a_impl);
-        }
+        connection seL4RPC f_fi_c(from f_fi_a1.ap, to f_fi_a2.ap);
+        connection seL4RPC c(from b.a, to f_fi_a2.a_impl);
+      }
     }
 
 
