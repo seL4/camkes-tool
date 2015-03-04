@@ -203,7 +203,11 @@ def main():
     except Exception as inst:
         die('While transforming AST: %s' % str(inst))
 
-    ast = resolve_hierarchy(ast)
+    try:
+        with profiler('Resolving hierarchy'):
+            ast = resolve_hierarchy(ast)
+    except Exception as inst:
+        die('While resolving hierarchy: %s' % str(inst))
 
     # If we have a readable cache check if our current target is in the cache.
     # The previous check will 'miss' and this one will 'hit' when the input
