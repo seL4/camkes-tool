@@ -575,11 +575,14 @@ def compose_assemblies(ast):
 
     return ast
 
-def resolve_hierarchy(ast):
-    # find the assembly
+def get_assembly(ast):
     assembly = [x for x in ast if isinstance(x, AST.Assembly)]
     assert len(assembly) == 1
-    assembly = assembly[0]
+    return assembly[0]
+
+def resolve_hierarchy(ast):
+    # find the assembly
+    assembly = get_assembly(ast)
     
     # modify the ast to resolve the hierarchy
     assembly = resolve_assembly_hierarchy(assembly)
@@ -593,6 +596,9 @@ def resolve_hierarchy(ast):
     # remove all the component interfaces with virtual usage
     for c in [x for x in ast if isinstance(x, AST.Component)]:
         remove_virtual_interfaces(c)
+
+    # remove empty components and instances of empty components
+    ast[:] = remove_empty_components(ast)
 
     return ast
 
@@ -733,6 +739,34 @@ def remove_virtual_interfaces(component):
             elif isinstance(i, AST.Semaphore):
                 component.semaphores.remove(i)
 
+
+def remove_empty_components(ast):
+    '''Resolving the hierarchy can result in components with no items in them.
+       This removes all such components from the spec, and all instances of
+       such components from the top level composition.'''
+
+    # copy non-empty components to new ast, building a dict of empty component names
+    empty_components = {}
+    ret_ast = []
+    for x in ast:
+        if isinstance(x, AST.Component) and \
+                len(x.provides + x.uses + x.emits + x.consumes + x.dataports) == 0:
+            empty_components[x.name] = True
+        else:
+            ret_ast.append(x)
+
+    # make list of instances of empty components
+    assembly = get_assembly(ret_ast)
+    empty_instances = []
+    for i in assembly.composition.instances:
+        if i.type.name in empty_components:
+            empty_instances.append(i)
+
+    # remove empty component instances from the assembly
+    for i in empty_instances:
+        assembly.composition.instances.remove(i)
+
+    return ret_ast
 
 if __name__ == '__main__':
     sys.exit(main())
