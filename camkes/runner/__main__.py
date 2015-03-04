@@ -754,6 +754,7 @@ def remove_empty_components(ast):
     ret_ast = []
     for x in ast:
         if isinstance(x, AST.Component) and \
+                not x.control and \
                 len(x.provides + x.uses + x.emits + x.consumes + x.dataports) == 0:
             empty_components[x.name] = True
         else:
