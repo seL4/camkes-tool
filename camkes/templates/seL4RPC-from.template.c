@@ -172,7 +172,17 @@ int /*? me.from_interface.name ?*/__run(void) {
         /*- if m.return_type -*/
             /*- if m.return_type.array or (isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string')  -*/
                 return NULL;
+            /*- elif isinstance(m.return_type, camkes.ast.Type) -*/
+                /*# This looks a bit strange, returning 0 here when the return
+                 *# type of this function is arbitrary, but this is valid for
+                 *# all CAmkES primitives and this way we can avoid a call to
+                 *# memset which troubles the verification C parser. Note,
+                 *# these phrasings are completely interchangeable from GCC's
+                 *# point of view.
+                 #*/
+                return 0;
             /*- else -*/
+                /*# We have a reference (uninterpreted) type. #*/
                 /*- set ret = c_symbol() -*/
                 /*? show(m.return_type) ?*/ /*? ret ?*/;
                 memset(& /*? ret ?*/, 0, sizeof(/*? ret ?*/));
@@ -232,6 +242,8 @@ int /*? me.from_interface.name ?*/__run(void) {
         /*- if m.return_type -*/
             /*- if m.return_type.array or (isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string')  -*/
                 return NULL;
+            /*- elif isinstance(m.return_type, camkes.ast.Type) -*/
+                return 0;
             /*- else -*/
                 memset(& /*? ret ?*/, 0, sizeof(/*? ret ?*/));
                 return /*? ret ?*/;

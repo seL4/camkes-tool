@@ -229,6 +229,9 @@ int /*? me.from_interface.name ?*/__run(void) {
         /*- if m.return_type -*/
             /*- if m.return_type.array or (isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string')  -*/
                 return NULL;
+            /*- elif isinstance(m.return_type, camkes.ast.Type) -*/
+                /*# See comment in seL4RPC-from about this. #*/
+                return 0;
             /*- else -*/
                 /*- set ret = c_symbol() -*/
                 /*? show(m.return_type) ?*/ /*? ret ?*/;
@@ -285,6 +288,8 @@ int /*? me.from_interface.name ?*/__run(void) {
         /*- if m.return_type -*/
             /*- if m.return_type.array or (isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string')  -*/
                 return NULL;
+            /*- elif isinstance(m.return_type, camkes.ast.Type) -*/
+                return 0;
             /*- else -*/
                 memset(& /*? ret ?*/, 0, sizeof(/*? ret ?*/));
                 return /*? ret ?*/;
