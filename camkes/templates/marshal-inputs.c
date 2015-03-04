@@ -113,6 +113,23 @@
   }
 /*- endfor -*/
 
+/*- if methods_len > 1 -*/
+  /*- set call = c_symbol('method_index') -*/
+  static const
+  /*- if methods_len <= 2 ** 8 -*/
+    uint8_t
+  /*- elif methods_len <= 2 ** 16 -*/
+    uint16_t
+  /*- elif methods_len <= 2 ** 32 -*/
+    uint32_t
+  /*- elif methods_len <= 2 ** 64 -*/
+    uint64_t
+  /*- else -*/
+    /*? raise(Exception('too many methods in interface %s' % name)) ?*/
+  /*- endif -*/
+  /*? call ?*/ = /*? method_index ?*/;
+/*- endif -*/
+
 static unsigned int /*? function ?*/(
 /*- for p in input_parameters -*/
   /*- if p.array -*/
@@ -141,19 +158,6 @@ static unsigned int /*? function ?*/(
 
   /*- if methods_len > 1 -*/
     /* Marshal the method index. */
-    /*- set call = c_symbol('method_index') -*/
-    /*- if methods_len <= 2 ** 8 -*/
-      uint8_t
-    /*- elif methods_len <= 2 ** 16 -*/
-      uint16_t
-    /*- elif methods_len <= 2 ** 32 -*/
-      uint32_t
-    /*- elif methods_len <= 2 ** 64 -*/
-      uint64_t
-    /*- else -*/
-      /*? raise(Exception('too many methods in interface %s' % name)) ?*/
-    /*- endif -*/
-    /*? call ?*/ = /*? method_index ?*/;
     ERR_IF(/*? length ?*/ + sizeof(/*? call ?*/) > /*? size ?*/, /*? error_handler ?*/, ((camkes_error_t){
         .type = CE_BUFFER_LENGTH_EXCEEDED,
         .instance = "/*? instance ?*/",
