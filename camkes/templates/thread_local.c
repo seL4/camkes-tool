@@ -16,7 +16,6 @@
 
 /*- for index in threads -*/
     /*- if array -*/
-        static size_t /*? name ?*/_sz_/*? index ?*/;
         /*# The existence of this pointer is rather unpleasant. We need to
          *# return a reference to the static array that, itself, needs to be a
          *# global. Naturally this is all once again necessitated by
@@ -34,31 +33,11 @@
     ;
 /*- endfor -*/
 
-/*- if array -*/
-    static size_t *get_/*? name ?*/_sz(void) __attribute__((unused));
-    static size_t *get_/*? name ?*/_sz(void) {
-        switch(camkes_get_tls()->thread_index) {
-            /*- for index in threads -*/
-                case /*? index ?*/:
-                    return & /*? name ?*/_sz_/*? index ?*/;
-            /*- endfor -*/
-            default:
-                assert(!"invalid thread index");
-                abort();
-        }
-    }
-/*- endif -*/
-
 static /*? type ?*/ *
 /*- if array -*/
     *
 /*- endif -*/
-get_/*? name ?*/(void) __attribute__((unused));
-static /*? type ?*/ *
-/*- if array -*/
-    *
-/*- endif -*/
-get_/*? name ?*/(void) {
+__attribute__((unused)) get_/*? name ?*/(void) {
     switch (camkes_get_tls()->thread_index) {
         /*- for index in threads -*/
             case /*? index ?*/:

@@ -36,12 +36,17 @@ int /*? me.from_interface.name ?*/__run(void) {
  *# only the case for 'out' and 'inout' arrays, but we do it for any array for
  *# simplicity.
  #*/
-/*- set array = True -*/
 /*- for p in m.parameters -*/
+    /*# We've already set 'threads' previously. #*/
     /*- if p.array -*/
+        /*- set type = 'size_t' -*/
+        /*- set name = '%s_%s_sz' % (m.name, p.name) -*/
+        /*- set array = False -*/
+        /*- include "thread_local.c" -*/
+
         /*- set type = show(p.type) -*/
         /*- set name = '%s_%s' % (m.name, p.name) -*/
-        /*# We've already set 'threads' previously. #*/
+        /*- set array = True -*/
         /*- include "thread_local.c" -*/
     /*- endif -*/
 /*- endfor -*/

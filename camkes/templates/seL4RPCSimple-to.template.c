@@ -44,6 +44,13 @@
         /*- set name = '%s_%s' % (m.name, p.name) -*/
         /*- set array = p.array -*/
         /*- include "thread_local.c" -*/
+
+        /*- if p.array -*/
+            /*- set type = 'size_t' -*/
+            /*- set name = '%s_%s_sz' % (m.name, p.name) -*/
+            /*- set array = False -*/
+            /*- include "thread_local.c" -*/
+        /*- endif -*/
     /*- endfor -*/
 
 static unsigned int /*? m.name ?*/_internal(void) {
