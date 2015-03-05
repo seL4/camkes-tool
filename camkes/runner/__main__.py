@@ -176,7 +176,7 @@ def main():
     try:
         with profiler('Combining assemblies'):
             # if there are multiple assemblies, combine them now
-            ast = compose_assemblies(ast)
+            compose_assemblies(ast)
     except Exception as inst:
         die('While combining assemblies: %s' % str(inst))
 
@@ -205,7 +205,7 @@ def main():
 
     try:
         with profiler('Resolving hierarchy'):
-            ast = resolve_hierarchy(ast)
+            resolve_hierarchy(ast)
     except Exception as inst:
         die('While resolving hierarchy: %s' % str(inst))
 
@@ -572,12 +572,12 @@ def compose_assemblies(ast):
                         )
  
     # remove all the assemblies from ast
-    ast[:] = [x for x in ast if not isinstance(x, AST.Assembly)]
+    assemblies = [x for x in ast if isinstance(x, AST.Assembly)]
+    for a in assemblies:
+        ast.remove(a)
 
     # add the new composite assembly
     ast.append(composite_assembly)
-
-    return ast
 
 def get_assembly(ast):
     assembly = [x for x in ast if isinstance(x, AST.Assembly)]
@@ -589,22 +589,20 @@ def resolve_hierarchy(ast):
     assembly = get_assembly(ast)
     
     # modify the ast to resolve the hierarchy
-    assembly = resolve_assembly_hierarchy(assembly)
+    new_assembly = resolve_assembly_hierarchy(assembly)
     
     # remove the assembly from the ast
-    ast[:] = [x for x in ast if not isinstance(x, AST.Assembly)]
+    ast.remove(assembly)
 
     # replace it with the new one
-    ast.append(assembly)
+    ast.append(new_assembly)
 
     # remove all the component interfaces with virtual usage
     for c in [x for x in ast if isinstance(x, AST.Component)]:
         remove_virtual_interfaces(c)
 
     # remove empty components and instances of empty components
-    ast[:] = remove_empty_components(ast)
-
-    return ast
+    remove_empty_components(ast)
 
 def merge_assembly(dest, source, instance):
     '''Copies all the assembly elements from source into dest, where
@@ -749,29 +747,33 @@ def remove_empty_components(ast):
        This removes all such components from the spec, and all instances of
        such components from the top level composition.'''
 
-    # copy non-empty components to new ast, building a dict of empty component names
-    empty_components = {}
-    ret_ast = []
+    # dict storing names of empty components for later use
+    empty_component_names = {}
+
+    # list storing empty component objects to be removed from the ast
+    empty_components = []
+
     for x in ast:
         if isinstance(x, AST.Component) and \
                 not x.control and \
                 len(x.provides + x.uses + x.emits + x.consumes + x.dataports) == 0:
-            empty_components[x.name] = True
-        else:
-            ret_ast.append(x)
+            empty_component_names[x.name] = True
+            empty_components.append(x)
+
+    for c in empty_components:
+        ast.remove(c)
 
     # make list of instances of empty components
-    assembly = get_assembly(ret_ast)
+    assembly = get_assembly(ast)
     empty_instances = []
     for i in assembly.composition.instances:
-        if i.type.name in empty_components:
+        if i.type.name in empty_component_names:
             empty_instances.append(i)
 
     # remove empty component instances from the assembly
     for i in empty_instances:
         assembly.composition.instances.remove(i)
 
-    return ret_ast
 
 if __name__ == '__main__':
     sys.exit(main())
