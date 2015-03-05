@@ -17,7 +17,7 @@
 /*- if return_type -*/
   /*- if return_type.array -*/
     /*? assert(isinstance(ret_sz, str)) ?*/
-    & /*? ret_sz ?*/,
+    /*? ret_sz ?*/,
   /*- endif -*/
   & /*? ret ?*/
   /*- if len(output_parameters) > 0 -*/
