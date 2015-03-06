@@ -37,7 +37,12 @@ static /*? type ?*/ *
 /*- if array -*/
     *
 /*- endif -*/
-__attribute__((unused)) get_/*? name ?*/(void) {
+get_/*? name ?*/(void) __attribute__((unused));
+static /*? type ?*/ *
+/*- if array -*/
+    *
+/*- endif -*/
+get_/*? name ?*/(void) {
     switch (camkes_get_tls()->thread_index) {
         /*- for index in threads -*/
             case /*? index ?*/:
