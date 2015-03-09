@@ -14,6 +14,30 @@
  *# See examples in the templates themselves.
  #*/
 
+/* The TLS_PTR macro is for acquiring a pointer to a local variable. The first
+ * argument is the corresponding TLS global and the second is the local
+ * variable you are taking the address of. The purpose of this abstraction is
+ * to allow for varying TLS models.
+ */
+
+#ifdef CONFIG_CAMKES_TLS_STANDARD
+
+  #ifndef TLS_PTR
+    #define TLS_PTR(tls_var, name) (&(name))
+  #endif
+
+#elif defined(CONFIG_CAMKES_TLS_PTG)
+
+  #ifndef TLS_PTR
+    #define TLS_PTR(tls_var, name) (get_##tls_var())
+  #endif
+
+#else
+
+  #error undefined TLS model
+
+#endif
+
 /*- for index in threads -*/
     /*- if array -*/
         /*# The existence of this pointer is rather unpleasant. We need to
@@ -21,7 +45,7 @@
          *# global. Naturally this is all once again necessitated by
          *# verification.
          #*/
-        static /*? type ?*/ * /*? name ?*/_ptr_/*? index ?*/;
+        static /*? type ?*/ * /*? name ?*/_ptr_/*? index ?*/ UNUSED;
     /*- endif -*/
     static /*? type ?*/ /*? name ?*/_/*? index ?*/
     /*- if array -*/
@@ -30,14 +54,14 @@
         #*/
         [seL4_MsgMaxLength * sizeof(seL4_Word) / sizeof(/*? type ?*/)]
     /*- endif -*/
-    ;
+    UNUSED;
 /*- endfor -*/
 
 static /*? type ?*/ *
 /*- if array -*/
     *
 /*- endif -*/
-get_/*? name ?*/(void) __attribute__((unused));
+get_/*? name ?*/(void) UNUSED;
 static /*? type ?*/ *
 /*- if array -*/
     *

@@ -116,7 +116,7 @@
             free(* /*? p.name ?*/);
             return UINT_MAX;
           }));
-        memcpy((* /*? p.name ?*/), /*? base ?*/ + /*? offset ?*/, sizeof((* /*? p.name ?*/)[0]) * (* /*? p.name ?*/_sz));
+        memcpy(* /*? p.name ?*/, /*? base ?*/ + /*? offset ?*/, sizeof((* /*? p.name ?*/)[0]) * (* /*? p.name ?*/_sz));
         /*? offset ?*/ += sizeof((* /*? p.name ?*/)[0]) * (* /*? p.name ?*/_sz);
       /*- endif -*/
     /*- elif isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/

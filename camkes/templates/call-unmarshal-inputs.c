@@ -12,9 +12,9 @@
 /*- endif -*/
 /*- for p in input_parameters -*/
   /*- if p.array -*/
-    & /*? p.name ?*/_sz,
+    /*? p.name ?*/_sz_ptr,
   /*- endif -*/
-  & /*? p.name ?*/
+  /*? p.name ?*/_ptr
   /*- if not loop.last -*/
     ,
   /*- endif -*/

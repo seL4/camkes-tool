@@ -34,6 +34,7 @@
 /*- set methods_len = len(me.from_interface.type.methods) -*/
 /*- set instance = me.from_instance.name -*/
 /*- set interface = me.from_interface.name -*/
+/*- set threads = list(range(1, 2 + len(me.from_instance.type.provides) + len(me.from_instance.type.uses) + len(me.from_instance.type.emits) + len(me.from_instance.type.consumes))) -*/
 
 /* Interface-specific error handling */
 /*- set error_handler = '%s_error_handler' % me.from_interface.name -*/
@@ -94,6 +95,33 @@ int /*? me.from_interface.name ?*/__run(void) {
 /*- set return_type = m.return_type -*/
 /*- set allow_trailing_data = False -*/
 /*- include 'unmarshal-outputs.c' -*/
+
+/*- set ret_tls_var = c_symbol('ret_tls_var') -*/
+/*- if m.return_type -*/
+  /*# We will need to take the address of a value representing this return
+   *# value at some point. Construct a TLS variable.
+   #*/
+  /*- set name = ret_tls_var -*/
+  /*- if m.return_type.array -*/
+    /*- if isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string' -*/
+      /*- set array = False -*/
+      /*- set type = 'char**' -*/
+      /*- include 'thread_local.c' -*/
+    /*- else -*/
+      /*- set array = False -*/
+      /*- set type = '%s*' % show(m.return_type) -*/
+      /*- include 'thread_local.c' -*/
+    /*- endif -*/
+  /*- elif isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string' -*/
+    /*- set array = False -*/
+    /*- set type = 'char*' -*/
+    /*- include 'thread_local.c' -*/
+  /*- else -*/
+    /*- set array = False -*/
+    /*- set type = show(m.return_type) -*/
+    /*- include 'thread_local.c' -*/
+  /*- endif -*/
+/*- endif -*/
 
 /*- if m.return_type -*/
     /*? show(m.return_type) ?*/
@@ -164,6 +192,26 @@ int /*? me.from_interface.name ?*/__run(void) {
 
     _TIMESTAMP("lock acquired");
 
+    /*- set ret_val = c_symbol('return') -*/
+    /*- set ret_ptr = c_symbol('return_ptr') -*/
+    /*- if m.return_type -*/
+      /*- if m.return_type.array -*/
+        /*- if isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string' -*/
+          char ** /*? ret_val ?*/ UNUSED;
+          char *** /*? ret_ptr ?*/ = TLS_PTR(/*? ret_tls_var ?*/, /*? ret_val ?*/);
+        /*- else -*/
+          /*? show(m.return_type) ?*/ * /*? ret_val ?*/ UNUSED;
+          /*? show(m.return_type) ?*/ ** /*? ret_ptr ?*/ = TLS_PTR(/*? ret_tls_var ?*/, /*? ret_val ?*/);
+        /*- endif -*/
+      /*- elif isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string' -*/
+        char * /*? ret_val ?*/ UNUSED;
+        char ** /*? ret_ptr ?*/ = TLS_PTR(/*? ret_tls_var ?*/, /*? ret_val ?*/);
+      /*- else -*/
+        /*? show(m.return_type) ?*/ /*? ret_val ?*/ UNUSED;
+        /*? show(m.return_type) ?*/ * /*? ret_ptr ?*/ = TLS_PTR(/*? ret_tls_var ?*/, /*? ret_val ?*/);
+      /*- endif -*/
+    /*- endif -*/
+
     /*- set function = '%s_marshal' % m.name -*/
     /*- set length = c_symbol('length') -*/
     unsigned int /*? length ?*/ = /*- include 'call-marshal-inputs.c' -*/;
@@ -172,21 +220,9 @@ int /*? me.from_interface.name ?*/__run(void) {
         /*- if m.return_type -*/
             /*- if m.return_type.array or (isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string')  -*/
                 return NULL;
-            /*- elif isinstance(m.return_type, camkes.ast.Type) -*/
-                /*# This looks a bit strange, returning 0 here when the return
-                 *# type of this function is arbitrary, but this is valid for
-                 *# all CAmkES primitives and this way we can avoid a call to
-                 *# memset which troubles the verification C parser. Note,
-                 *# these phrasings are completely interchangeable from GCC's
-                 *# point of view.
-                 #*/
-                return 0;
             /*- else -*/
-                /*# We have a reference (uninterpreted) type. #*/
-                /*- set ret = c_symbol() -*/
-                /*? show(m.return_type) ?*/ /*? ret ?*/;
-                memset(& /*? ret ?*/, 0, sizeof(/*? ret ?*/));
-                return /*? ret ?*/;
+                memset(/*? ret_ptr ?*/, 0, sizeof(* /*? ret_ptr ?*/));
+                return * /*? ret_ptr ?*/;
             /*- endif -*/
         /*- else -*/
             return;
@@ -220,21 +256,6 @@ int /*? me.from_interface.name ?*/__run(void) {
 
     /*- set function = '%s_unmarshal' % m.name -*/
     /*- set return_type = m.return_type -*/
-    /*- set ret = c_symbol('return') -*/
-    /*- if return_type -*/
-      /*- if return_type.array -*/
-        /*- if isinstance(return_type, camkes.ast.Type) and return_type.type == 'string' -*/
-          char **
-        /*- else -*/
-          /*? show(return_type) ?*/ *
-        /*- endif -*/
-      /*- elif isinstance(return_type, camkes.ast.Type) and return_type.type == 'string' -*/
-        char *
-      /*- else -*/
-        /*? show(return_type) ?*/
-      /*- endif -*/
-      /*? ret ?*/;
-    /*- endif -*/
     /*- set err = c_symbol('error') -*/
     int /*? err ?*/ = /*- include 'call-unmarshal-outputs.c' -*/;
     if (unlikely(/*? err ?*/ != 0)) {
@@ -242,11 +263,9 @@ int /*? me.from_interface.name ?*/__run(void) {
         /*- if m.return_type -*/
             /*- if m.return_type.array or (isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string')  -*/
                 return NULL;
-            /*- elif isinstance(m.return_type, camkes.ast.Type) -*/
-                return 0;
             /*- else -*/
-                memset(& /*? ret ?*/, 0, sizeof(/*? ret ?*/));
-                return /*? ret ?*/;
+                memset(/*? ret_ptr ?*/, 0, sizeof(* /*? ret_ptr ?*/));
+                return * /*? ret_ptr ?*/;
             /*- endif -*/
         /*- else -*/
             return;
@@ -256,7 +275,7 @@ int /*? me.from_interface.name ?*/__run(void) {
     _TIMESTAMP("unmarshalling done");
 
     /*- if m.return_type -*/
-        return /*? ret ?*/;
+        return * /*? ret_ptr ?*/;
     /*- endif -*/
 }
 #undef _TIMESTAMP

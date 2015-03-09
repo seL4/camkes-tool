@@ -12,6 +12,24 @@
 /*? assert(isinstance(input_parameters, list)) ?*/   /*# All input parameters to this method #*/
 /*? assert(isinstance(error_handler, str)) ?*/ /*# Handler to invoke on error #*/
 
+/*- set name_backup = name -*/
+/*- for p in input_parameters -*/
+  /*- if p.direction.direction == 'in' -*/
+    /*- if p.array -*/
+      /*- set array = False -*/
+      /*- set type = 'size_t' -*/
+      /*- set name = '%s_%s_sz' % (name_backup, p.name) -*/
+      /*- include 'thread_local.c' -*/
+    /*- elif not (isinstance(p.type, camkes.ast.Type) and p.type.type == 'string') -*/
+      /*- set array = False -*/
+      /*- set type = show(p.type) -*/
+      /*- set name = '%s_%s' % (name_backup, p.name) -*/
+      /*- include 'thread_local.c' -*/
+    /*- endif -*/
+  /*- endif -*/
+/*- endfor -*/
+/*- set name = name_backup -*/
+
 /*- for p in input_parameters -*/
   /*- set offset = c_symbol('offset') -*/
   static unsigned int /*? function ?*/_/*? p.name ?*/(unsigned int /*? offset ?*/,
@@ -58,7 +76,8 @@
     /*- set ptr_arr = c_symbol('ptr_arr') -*/
     /*- if p.direction.direction == 'in' -*/
       /*- if p.array -*/
-        size_t * /*? ptr_sz ?*/ = & /*? p.name ?*/_sz;
+        size_t * /*? ptr_sz ?*/ = TLS_PTR(/*? name ?*/_/*? p.name ?*/_sz, /*? p.name ?*/_sz);
+        * /*? ptr_sz ?*/ = /*? p.name ?*/_sz;
         /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
           char ** /*? ptr_arr ?*/ = /*? p.name ?*/;
         /*- else -*/
@@ -67,7 +86,8 @@
       /*- elif isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
         char * /*? ptr_str ?*/ = /*? p.name ?*/;
       /*- else -*/
-        /*? show(p.type) ?*/ * /*? ptr ?*/ = & /*? p.name ?*/;
+        /*? show(p.type) ?*/ * /*? ptr ?*/ = TLS_PTR(/*? name ?*/_/*? p.name ?*/, /*? p.name ?*/);
+        * /*? ptr ?*/ = /*? p.name ?*/;
       /*- endif -*/
     /*- else -*/
       /*- if p.array -*/

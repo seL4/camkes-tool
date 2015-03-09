@@ -5,26 +5,26 @@
 /*? assert(isinstance(output_parameters, list)) ?*/   /*# All output parameters to this method #*/
 /*? assert(return_type == None or isinstance(return_type, camkes.ast.Type) or isinstance(return_type, camkes.ast.Reference)) ?*/
                                                /*# Return type of this interface #*/
-/*# ret #*/                                    /*# Symbol for the return value #*/
-/*# ret_sz #*/                                 /*# Symbol for the size of the return if it is an array #*/
+/*# ret_ptr #*/                                /*# Symbol for a pointer to the return value #*/
+/*# ret_sz_ptr #*/                             /*# Symbol for a pointer to the size of the return if it is an array #*/
 
 /*? function ?*/(
 /*- if return_type -*/
-  /*? assert(isinstance(ret, str)) ?*/
+  /*? assert(isinstance(ret_ptr, str)) ?*/
   /*- if return_type.array -*/
-    /*? assert(isinstance(ret_sz, str)) ?*/
-    /*? ret_sz ?*/,
+    /*? assert(isinstance(ret_sz_ptr, str)) ?*/
+    /*? ret_sz_ptr ?*/,
   /*- endif -*/
-  /*? ret ?*/
+  /*? ret_ptr ?*/
   /*- if len(output_parameters) > 0 -*/
     ,
   /*- endif -*/
 /*- endif -*/
 /*- for p in output_parameters -*/
   /*- if p.array -*/
-    /*? p.name ?*/_sz,
+    /*? p.name ?*/_sz_ptr,
   /*- endif -*/
-  /*? p.name ?*/
+  /*? p.name ?*/_ptr
   /*- if not loop.last -*/
     ,
   /*- endif -*/

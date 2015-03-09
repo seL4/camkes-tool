@@ -340,4 +340,29 @@ menu "CAmkES Options"
 
     endchoice
 
+    choice
+    prompt "TLS model"
+    default CAMKES_TLS_STANDARD
+    help
+        The CAmkES glue code uses thread-local variables for marshalling and
+        unmarshalling of RPC parameters. This setting controls how this thread-
+        local storage is implemented.
+
+    config CAMKES_TLS_STANDARD
+    bool "standard"
+    help
+        Allocate thread-local variables on the stack or the heap as appropriate.
+        This is the default and will hold the fewest surprises for C
+        programmers.
+
+    config CAMKES_TLS_PTG
+    bool "per-thread globals"
+    help
+        Allocate per-thread global variables for use as thread-local storage.
+        The main purpose of this implementation is to avoid taking the address
+        of local variables, an idiom that cannot be handled by the verification
+        C parser.
+
+    endchoice
+
 endmenu

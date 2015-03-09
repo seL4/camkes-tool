@@ -61,17 +61,18 @@
 /*- set methods_len = len(me.from_interface.type.methods) -*/
 /*- set instance = me.from_instance.name -*/
 /*- set interface = me.from_interface.name -*/
+/*- set threads = list(range(1, 2 + len(me.from_instance.type.provides) + len(me.from_instance.type.uses) + len(me.from_instance.type.emits) + len(me.from_instance.type.consumes))) -*/
 
 /* Interface-specific error handling */
 /*- set error_handler = '%s_error_handler' % me.from_interface.name -*/
 /*- include 'error-handler.c' -*/
 
 /*# Conservative calculation of the numbers of threads in this component. #*/
-/*- set threads = (1 if me.from_instance.type.control else 0) + len(me.from_instance.type.provides) + len(me.from_instance.type.uses) + len(me.from_instance.type.emits) + len(me.from_instance.type.consumes) -*/
+/*- set thread_count = (1 if me.from_instance.type.control else 0) + len(me.from_instance.type.provides) + len(me.from_instance.type.uses) + len(me.from_instance.type.emits) + len(me.from_instance.type.consumes) -*/
 
 /*- set userspace_buffer_ep = [None] -*/
 /*- set userspace_buffer_sem_value = c_symbol() -*/
-/*- if threads > 1 and userspace_ipc -*/
+/*- if thread_count > 1 and userspace_ipc -*/
   /*# If we have more than one thread and we're using a userspace memory window
    *# in lieu of the IPC buffer, multiple threads can end up racing on accesses
    *# to this window. To prevent this, we use a lock built on an endpoint.
@@ -107,6 +108,33 @@ int /*? me.from_interface.name ?*/__run(void) {
 /*- set return_type = m.return_type -*/
 /*- set allow_trailing_data = userspace_ipc -*/
 /*- include 'unmarshal-outputs.c' -*/
+
+/*- set ret_tls_var = c_symbol('ret_tls_var') -*/
+/*- if m.return_type -*/
+  /*# We will need to take the address of a value representing this return
+   *# value at some point. Construct a TLS variable.
+   #*/
+  /*- set name = ret_tls_var -*/
+  /*- if m.return_type.array -*/
+    /*- if isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string' -*/
+      /*- set array = False -*/
+      /*- set type = 'char**' -*/
+      /*- include 'thread_local.c' -*/
+    /*- else -*/
+      /*- set array = False -*/
+      /*- set type = '%s*' % show(m.return_type) -*/
+      /*- include 'thread_local.c' -*/
+    /*- endif -*/
+  /*- elif isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string' -*/
+    /*- set array = False -*/
+    /*- set type = 'char*' -*/
+    /*- include 'thread_local.c' -*/
+  /*- else -*/
+    /*- set array = False -*/
+    /*- set type = show(m.return_type) -*/
+    /*- include 'thread_local.c' -*/
+  /*- endif -*/
+/*- endif -*/
 
 /*- if m.return_type -*/
     /*? show(m.return_type) ?*/
@@ -220,6 +248,26 @@ int /*? me.from_interface.name ?*/__run(void) {
         &/*? userspace_buffer_sem_value ?*/);
     /*- endif -*/
 
+    /*- set ret_val = c_symbol('return') -*/
+    /*- set ret_ptr = c_symbol('return_ptr') -*/
+    /*- if m.return_type -*/
+      /*- if m.return_type.array -*/
+        /*- if isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string' -*/
+          char ** /*? ret_val ?*/ UNUSED;
+          char *** /*? ret_ptr ?*/ = TLS_PTR(/*? ret_tls_var ?*/, /*? ret_val ?*/);
+        /*- else -*/
+          /*? show(m.return_type) ?*/ * /*? ret_val ?*/ UNUSED;
+          /*? show(m.return_type) ?*/ ** /*? ret_ptr ?*/ = TLS_PTR(/*? ret_tls_var ?*/, /*? ret_val ?*/);
+        /*- endif -*/
+      /*- elif isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string' -*/
+        char * /*? ret_val ?*/ UNUSED;
+        char ** /*? ret_ptr ?*/ = TLS_PTR(/*? ret_tls_var ?*/, /*? ret_val ?*/);
+      /*- else -*/
+        /*? show(m.return_type) ?*/ /*? ret_val ?*/ UNUSED;
+        /*? show(m.return_type) ?*/ * /*? ret_ptr ?*/ = TLS_PTR(/*? ret_tls_var ?*/, /*? ret_val ?*/);
+      /*- endif -*/
+    /*- endif -*/
+
     /* Marshal all the parameters */
     /*- set function = '%s_marshal' % m.name -*/
     /*- set length = c_symbol('length') -*/
@@ -229,14 +277,9 @@ int /*? me.from_interface.name ?*/__run(void) {
         /*- if m.return_type -*/
             /*- if m.return_type.array or (isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string')  -*/
                 return NULL;
-            /*- elif isinstance(m.return_type, camkes.ast.Type) -*/
-                /*# See comment in seL4RPC-from about this. #*/
-                return 0;
             /*- else -*/
-                /*- set ret = c_symbol() -*/
-                /*? show(m.return_type) ?*/ /*? ret ?*/;
-                memset(& /*? ret ?*/, 0, sizeof(/*? ret ?*/));
-                return /*? ret ?*/;
+                memset(/*? ret_ptr ?*/, 0, sizeof(* /*? ret_ptr ?*/));
+                return * /*? ret_ptr ?*/;
             /*- endif -*/
         /*- else -*/
             return;
@@ -266,21 +309,6 @@ int /*? me.from_interface.name ?*/__run(void) {
     /* Unmarshal the response */
     /*- set function = '%s_unmarshal' % m.name -*/
     /*- set return_type = m.return_type -*/
-    /*- set ret = c_symbol('return') -*/
-    /*- if return_type -*/
-      /*- if return_type.array -*/
-        /*- if isinstance(return_type, camkes.ast.Type) and return_type.type == 'string' -*/
-          char **
-        /*- else -*/
-          /*? show(return_type) ?*/ *
-        /*- endif -*/
-      /*- elif isinstance(return_type, camkes.ast.Type) and return_type.type == 'string' -*/
-        char *
-      /*- else -*/
-        /*? show(return_type) ?*/
-      /*- endif -*/
-      /*? ret ?*/;
-    /*- endif -*/
     /*- set err = c_symbol('error') -*/
     int /*? err ?*/ = /*- include 'call-unmarshal-outputs.c' -*/;
     if (unlikely(/*? err ?*/ != 0)) {
@@ -288,11 +316,9 @@ int /*? me.from_interface.name ?*/__run(void) {
         /*- if m.return_type -*/
             /*- if m.return_type.array or (isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string')  -*/
                 return NULL;
-            /*- elif isinstance(m.return_type, camkes.ast.Type) -*/
-                return 0;
             /*- else -*/
-                memset(& /*? ret ?*/, 0, sizeof(/*? ret ?*/));
-                return /*? ret ?*/;
+                memset(/*? ret_ptr ?*/, 0, sizeof(* /*? ret_ptr ?*/));
+                return * /*? ret_ptr ?*/;
             /*- endif -*/
         /*- else -*/
             return;
@@ -305,7 +331,7 @@ int /*? me.from_interface.name ?*/__run(void) {
     /*- endif -*/
 
     /*- if m.return_type -*/
-        return /*? ret ?*/;
+        return * /*? ret_ptr ?*/;
     /*- endif -*/
 }
 /*- endfor -*/
