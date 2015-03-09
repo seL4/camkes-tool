@@ -434,13 +434,13 @@ int USED /*? p['entry_symbol'] ?*/(int thread_id) {
         /*# Locks for synchronising init ops. #*/
         /*- set pre_init_ep = alloc('pre_init_ep', seL4_EndpointObject, read=True, write=True) -*/
         /*- set pre_init_lock = c_symbol('pre_init_lock') -*/
-        static volatile int __attribute__((unused)) /*? pre_init_lock ?*/ = 0;
+        static volatile int UNUSED /*? pre_init_lock ?*/ = 0;
         /*- set interface_init_ep = alloc('interface_init_ep', seL4_EndpointObject, read=True, write=True) -*/
         /*- set interface_init_lock = c_symbol('interface_init_lock') -*/
-        static volatile int __attribute__((unused)) /*? interface_init_lock ?*/ = 0;
+        static volatile int UNUSED /*? interface_init_lock ?*/ = 0;
         /*- set post_init_ep = alloc('post_init_ep', seL4_EndpointObject, read=True, write=True) -*/
         /*- set post_init_lock = c_symbol('post_init_lock') -*/
-        static volatile int __attribute__((unused)) /*? post_init_lock ?*/ = 0;
+        static volatile int UNUSED /*? post_init_lock ?*/ = 0;
     /*- endif -*/
 
     switch (thread_id) {
