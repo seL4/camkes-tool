@@ -176,7 +176,7 @@ def main():
     try:
         with profiler('Combining assemblies'):
             # if there are multiple assemblies, combine them now
-            ast = compose_assemblies(ast)
+            compose_assemblies(ast)
     except Exception as inst:
         die('While combining assemblies: %s' % str(inst))
 
@@ -203,7 +203,11 @@ def main():
     except Exception as inst:
         die('While transforming AST: %s' % str(inst))
 
-    ast = resolve_hierarchy(ast)
+    try:
+        with profiler('Resolving hierarchy'):
+            resolve_hierarchy(ast)
+    except Exception as inst:
+        die('While resolving hierarchy: %s' % str(inst))
 
     # If we have a readable cache check if our current target is in the cache.
     # The previous check will 'miss' and this one will 'hit' when the input
@@ -568,33 +572,37 @@ def compose_assemblies(ast):
                         )
  
     # remove all the assemblies from ast
-    ast[:] = [x for x in ast if not isinstance(x, AST.Assembly)]
+    assemblies = [x for x in ast if isinstance(x, AST.Assembly)]
+    for a in assemblies:
+        ast.remove(a)
 
     # add the new composite assembly
     ast.append(composite_assembly)
 
-    return ast
+def get_assembly(ast):
+    assembly = [x for x in ast if isinstance(x, AST.Assembly)]
+    assert len(assembly) == 1
+    return assembly[0]
 
 def resolve_hierarchy(ast):
     # find the assembly
-    assembly = [x for x in ast if isinstance(x, AST.Assembly)]
-    assert len(assembly) == 1
-    assembly = assembly[0]
+    assembly = get_assembly(ast)
     
     # modify the ast to resolve the hierarchy
-    assembly = resolve_assembly_hierarchy(assembly)
+    new_assembly = resolve_assembly_hierarchy(assembly)
     
     # remove the assembly from the ast
-    ast[:] = [x for x in ast if not isinstance(x, AST.Assembly)]
+    ast.remove(assembly)
 
     # replace it with the new one
-    ast.append(assembly)
+    ast.append(new_assembly)
 
     # remove all the component interfaces with virtual usage
     for c in [x for x in ast if isinstance(x, AST.Component)]:
         remove_virtual_interfaces(c)
 
-    return ast
+    # remove empty components and instances of empty components
+    remove_empty_components(ast)
 
 def merge_assembly(dest, source, instance):
     '''Copies all the assembly elements from source into dest, where
@@ -732,6 +740,39 @@ def remove_virtual_interfaces(component):
                 component.mutexes.remove(i)
             elif isinstance(i, AST.Semaphore):
                 component.semaphores.remove(i)
+
+
+def remove_empty_components(ast):
+    '''Resolving the hierarchy can result in components with no items in them.
+       This removes all such components from the spec, and all instances of
+       such components from the top level composition.'''
+
+    # dict storing names of empty components for later use
+    empty_component_names = {}
+
+    # list storing empty component objects to be removed from the ast
+    empty_components = []
+
+    for x in ast:
+        if isinstance(x, AST.Component) and \
+                not x.control and \
+                len(x.provides + x.uses + x.emits + x.consumes + x.dataports) == 0:
+            empty_component_names[x.name] = True
+            empty_components.append(x)
+
+    for c in empty_components:
+        ast.remove(c)
+
+    # make list of instances of empty components
+    assembly = get_assembly(ast)
+    empty_instances = []
+    for i in assembly.composition.instances:
+        if i.type.name in empty_component_names:
+            empty_instances.append(i)
+
+    # remove empty component instances from the assembly
+    for i in empty_instances:
+        assembly.composition.instances.remove(i)
 
 
 if __name__ == '__main__':
