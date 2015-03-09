@@ -36,7 +36,7 @@
 /*- set allow_trailing_data = False -*/
 
 /* Interface-specific error handling */
-/*- set error_handler = c_symbol('error_handler') -*/
+/*- set error_handler = '%s_error_handler' % me.to_interface.name -*/
 /*- include 'error-handler.c' -*/
 
 /*- for m in me.to_interface.type.methods -*/

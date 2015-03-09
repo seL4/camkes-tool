@@ -63,7 +63,7 @@
 /*- set interface = me.from_interface.name -*/
 
 /* Interface-specific error handling */
-/*- set error_handler = c_symbol('error_handler') -*/
+/*- set error_handler = '%s_error_handler' % me.from_interface.name -*/
 /*- include 'error-handler.c' -*/
 
 /*# Conservative calculation of the numbers of threads in this component. #*/

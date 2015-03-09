@@ -33,7 +33,7 @@
 /*- set lock = alloc('lock', seL4_AsyncEndpointObject, read=True, write=True) -*/
 
 /* Interface-specific error handling */
-/*- set error_handler = c_symbol('error_handler') -*/
+/*- set error_handler = '%s_error_handler' % me.to_interface.name -*/
 /*- include 'error-handler.c' -*/
 
 #define MAX_CALLBACKS 10

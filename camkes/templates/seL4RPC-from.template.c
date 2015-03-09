@@ -36,7 +36,7 @@
 /*- set interface = me.from_interface.name -*/
 
 /* Interface-specific error handling */
-/*- set error_handler = c_symbol('error_handler') -*/
+/*- set error_handler = '%s_error_handler' % me.from_interface.name -*/
 /*- include 'error-handler.c' -*/
 
 /*- if not options.frpc_lock_elision or len([me.from_instance.type.control] + me.from_instance.type.provides + me.from_instance.type.consumes) > 1 -*/

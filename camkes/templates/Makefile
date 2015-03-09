@@ -154,7 +154,9 @@ ifeq (${CONFIG_CAMKES_PRUNE_GENERATED},y)
 	        --keep /*? c.from_interface.name ?*/_/*? m.name ?*/ \
 	    /*- endfor -*/ \
 	/*- endif -*/ \
-	$(foreach i,${PRUNER_BLACKLIST},--blacklist $i) --output "$@" "$<"
+	$(foreach i,${PRUNER_BLACKLIST},--blacklist $i) \
+      --blacklist /*? c.from_interface.name ?*/_error_handler_fn \
+      --output "$@" "$<"
 	$(Q)${FMT} "$@" | ${SPONGE} "$@"
 
 /*# Pruned C files (to) #*/
@@ -176,7 +178,9 @@ ifeq (${CONFIG_CAMKES_PRUNE_GENERATED},y)
 	/*- elif c.to_interface in c.to_instance.type.provides -*/ \
 	    /*# nothing extra required #*/ \
 	/*- endif -*/ \
-	$(foreach i,${PRUNER_BLACKLIST},--blacklist $i) --output "$@" "$<"
+	$(foreach i,${PRUNER_BLACKLIST},--blacklist $i) \
+      --blacklist /*? c.to_interface.name ?*/_error_handler_fn \
+      --output "$@" "$<"
 	$(Q)${FMT} "$@" | ${SPONGE} "$@"
 endif
 

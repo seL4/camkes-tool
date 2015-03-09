@@ -37,7 +37,7 @@
 /*- endfor -*/
 
 /* Interface-specific error handling */
-/*- set error_handler = c_symbol('error_handler') -*/
+/*- set error_handler = '%s_error_handler' % me.to_interface.name -*/
 /*- include 'error-handler.c' -*/
 
 uint8_t /*? me.from_interface.name ?*/_in8(uint16_t port)
