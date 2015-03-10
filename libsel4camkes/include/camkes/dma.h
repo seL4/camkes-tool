@@ -21,7 +21,7 @@
  * pool in 4K pages and a function to reverse mappings. Returns 0 on success.
  */
 int camkes_dma_init(void *dma_pool, size_t dma_pool_sz,
-    uintptr_t (*get_paddr)(void *ptr));
+    uintptr_t (*get_paddr)(void *ptr)) NONNULL(1, 3) WARN_UNUSED_RESULT;
 
 /**
  * Allocate memory to be used for DMA.
@@ -31,7 +31,8 @@ int camkes_dma_init(void *dma_pool, size_t dma_pool_sz,
  *
  * @return Virtual address of allocation or NULL on failure
  */
-void *camkes_dma_alloc(size_t size, int align);
+void *camkes_dma_alloc(size_t size, int align) ALLOC_SIZE(1) ALLOC_ALIGN(2)
+    MALLOC WARN_UNUSED_RESULT;
 
 /**
  * Free previously allocated DMA memory.
@@ -57,7 +58,7 @@ uintptr_t camkes_dma_get_paddr(void *ptr);
  * this function. Note that you can mix calls to alloc_page, free_page and the
  * manager initialised by this function with no adverse effects.
  */
-int camkes_dma_manager(ps_dma_man_t *man);
+int camkes_dma_manager(ps_dma_man_t *man) NONNULL_ALL WARN_UNUSED_RESULT;
 
 /* Debug functionality for profiling DMA heap usage. This information is
  * returned from a call to `camkes_dma_stats`. Note that this functionality is
@@ -127,12 +128,14 @@ typedef struct {
  * only provided when NDEBUG is not defined. The caller should not modify or
  * free the returned value that may be a static resource.
  */
-const camkes_dma_stats_t *camkes_dma_stats(void);
+const camkes_dma_stats_t *camkes_dma_stats(void) RETURNS_NONNULL;
 
 /* Legacy functionality. Use the general allocation and free functions above in
  * preference to these.
  */
-void *camkes_dma_alloc_page(void) DEPRECATED;
-void camkes_dma_free_page(void *ptr) DEPRECATED;
+void *camkes_dma_alloc_page(void)
+    DEPRECATED("use camkes_dma_alloc(PAGE_SIZE_4K, PAGE_SIZE_4K) instead");
+void camkes_dma_free_page(void *ptr)
+    DEPRECATED("use camkes_dma_free(ptr, PAGE_SIZE_4K) instead");
 
 #endif
