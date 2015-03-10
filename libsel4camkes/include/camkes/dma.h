@@ -14,6 +14,7 @@
 #include <platsupport/io.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <utils/util.h>
 
 /* Initialise the DMA allocator. This function must be called before using any
  * of the functions below. Pass in the pool to allocate from, the size of this
@@ -131,7 +132,7 @@ const camkes_dma_stats_t *camkes_dma_stats(void);
 /* Legacy functionality. Use the general allocation and free functions above in
  * preference to these.
  */
-void *camkes_dma_alloc_page(void);
-void camkes_dma_free_page(void *ptr);
+void *camkes_dma_alloc_page(void) DEPRECATED;
+void camkes_dma_free_page(void *ptr) DEPRECATED;
 
 #endif
