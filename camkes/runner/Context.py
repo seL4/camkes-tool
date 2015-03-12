@@ -30,7 +30,7 @@ from capdl.Allocator import seL4_TCBObject, seL4_EndpointObject, \
 # There are separate python-capdl branches for this, but this import allows us
 # to easily interoperate with both.
 try:
-    from capdl.Allocation import seL4_ASID_Pool
+    from capdl.Allocator import seL4_ASID_Pool
 except ImportError:
     seL4_ASID_Pool = None
 
