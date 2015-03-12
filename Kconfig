@@ -81,6 +81,13 @@ menu "CAmkES Options"
         components. This defaults to sel4muslcsys, which is a minimal syscall library for
         muslc.
 
+    config CAMKES_IMPORT_PATH
+    string "Absolute paths of directories containing components or interfaces"
+    help
+        CAmkES can include components and interfaces stored outside the current application
+        directory. This option is a space delimited list of absolute paths to directories
+        to be searched for components or interfaces included with angle brackets.
+
     config CAMKES_OPTIMISATION_RPC_LOCK_ELISION
     bool "Optimisation: RPC lock elision"
     default y

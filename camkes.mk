@@ -41,7 +41,7 @@ CAMKES_FLAGS += \
     $(if ${CONFIG_CAMKES_CPP},--cpp,) \
     --cpp-flag=-I${KERNEL_ROOT_PATH}/../include/generated \
     $(if ${CONFIG_CAMKES_DEBUG_POST_RENDER_EDIT},--post-render-edit,) \
-    --import-path ${PWD}/tools/camkes/include/builtin \
+	$(shell echo "$(addprefix --import-path=,${PWD}/tools/camkes/include/builtin ${CONFIG_CAMKES_IMPORT_PATH})" | tr ' ' '\n') \
     $(if ${TEMPLATES},--templates "${SOURCE_DIR}/${TEMPLATES}",) \
     $(if ${CONFIG_CAMKES_OPTIMISATION_RPC_LOCK_ELISION},--frpc-lock-elision,--fno-rpc-lock-elision) \
     $(if ${CONFIG_CAMKES_OPTIMISATION_CALL_LEAVE_REPLY_CAP},--fcall-leave-reply-cap,--fno-call-leave-reply-cap) \
