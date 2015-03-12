@@ -18,10 +18,12 @@
 
 /* Initialise the DMA allocator. This function must be called before using any
  * of the functions below. Pass in the pool to allocate from, the size of this
- * pool in 4K pages and a function to reverse mappings. Returns 0 on success.
+ * pool in bytes, the page size of the associated mappings and a function to
+ * reverse mappings. Callers may pass 0 as the page_size to force the allocator
+ * itself to determine it automatically. Returns 0 on success.
  */
-int camkes_dma_init(void *dma_pool, size_t dma_pool_sz,
-    uintptr_t (*get_paddr)(void *ptr)) NONNULL(1, 3) WARN_UNUSED_RESULT;
+int camkes_dma_init(void *dma_pool, size_t dma_pool_sz, size_t page_size,
+    uintptr_t (*get_paddr)(void *ptr)) NONNULL(1, 4) WARN_UNUSED_RESULT;
 
 /**
  * Allocate memory to be used for DMA.

@@ -252,7 +252,7 @@ static void /*? init ?*/(void) {
      * this point, so any error triggered below will certainly be fatal.
      */
     int res = camkes_dma_init(/*? p['dma_pool_symbol'] ?*/,
-        ROUND_UP(/*? dma_pool ?*/, PAGE_SIZE_4K) / PAGE_SIZE_4K,
+        ROUND_UP(/*? dma_pool ?*/, PAGE_SIZE_4K) / PAGE_SIZE_4K, PAGE_SIZE_4K,
         /*? get_paddr ?*/);
     ERR_IF(res != 0, camkes_error, ((camkes_error_t){
             .type = CE_ALLOCATION_FAILURE,

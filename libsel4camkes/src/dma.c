@@ -312,13 +312,14 @@ static void defrag(void) {
     check_consistency();
 }
 
-int camkes_dma_init(void *dma_pool, size_t dma_pool_sz,
+int camkes_dma_init(void *dma_pool, size_t dma_pool_sz, size_t page_size,
         uintptr_t (*get_paddr)(void *ptr)) {
     /* We should not have already initialised our bookkeeping. */
     assert(head == NULL);
 
     /* The caller should have passed us a valid DMA pool. */
-    if ((uintptr_t)dma_pool % PAGE_SIZE_4K != 0)  {
+    if (page_size != 0 && (page_size <= sizeof(region_t) ||
+                           (uintptr_t)dma_pool % page_size != 0))  {
         return -1;
     }
 
@@ -329,8 +330,53 @@ int camkes_dma_init(void *dma_pool, size_t dma_pool_sz,
     STATS(stats.minimum_allocation = SIZE_MAX);
     STATS(stats.minimum_alignment = INT_MAX);
 
-    for (unsigned int i = 0; i < dma_pool_sz; i++) {
-        camkes_dma_free(dma_pool + i * PAGE_SIZE_4K, PAGE_SIZE_4K);
+    if (page_size != 0) {
+        /* The caller specified a page size. Excellent; we don't have to work
+         * it out for ourselves.
+         */
+        for (void *base = dma_pool; base < dma_pool + dma_pool_sz;
+                base += page_size) {
+            camkes_dma_free(base, page_size);
+        }
+    } else {
+        /* The lazy caller didn't bother giving us a page size. Manually scan
+         * for breaks in physical contiguity.
+         */
+        for (void *base = dma_pool; base < dma_pool + dma_pool_sz;) {
+            uintptr_t base_paddr = get_paddr(base);
+            if (base_paddr == 0) {
+                /* The caller gave us a region backed by non-reversible frames. */
+                return -1;
+            }
+            void *limit = base + 1;
+            uintptr_t next_expected_paddr = base_paddr + 1;
+            while (limit < dma_pool + dma_pool_sz) {
+                if (limit == NULL) {
+                    /* The user gave us a region that wraps virtual memory. */
+                    return -1;
+                }
+                uintptr_t limit_paddr = get_paddr(limit);
+                if (limit_paddr == 0) {
+                    /* The user gave us a region that wraps physical memory. */
+                    return -1;
+                }
+                if (limit_paddr != next_expected_paddr) {
+                    /* We've hit a physical contiguity break (== frame
+                     * boundary).
+                     */
+                    break;
+                }
+                limit++;
+                next_expected_paddr++;
+            }
+            /* Only add the region if it's large enough to actually contain the
+             * necessary metadata.
+             */
+            if (base + sizeof(region_t) >= limit) {
+                camkes_dma_free(base, limit - base);
+            }
+            base = limit;
+        }
     }
 
     check_consistency();
