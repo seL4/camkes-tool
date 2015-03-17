@@ -82,7 +82,7 @@ menu "CAmkES Options"
         muslc.
 
     config CAMKES_IMPORT_PATH
-    string "Absolute paths of directories containing components or interfaces"
+    string "Search path for components and interfaces"
     help
         CAmkES can include components and interfaces stored outside the current application
         directory. This option is a space delimited list of absolute paths to directories

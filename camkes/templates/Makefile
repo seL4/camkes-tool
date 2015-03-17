@@ -18,12 +18,6 @@
     easy to introduce unreadable code in this context.
 #*/
 
-# Generate list of absolute paths to files included from application Makefile
-ABS_INCLUDE_FILES := $(foreach inc, ${GLOBAL_INCLUDES}, \
-	$(firstword $(wildcard $(addsuffix /${inc}/Makefile, ${CONFIG_CAMKES_IMPORT_PATH}))))
-
-include ${ABS_INCLUDE_FILES}
-
 /*# Various macros to make constructing makefile rules easier. #*/
 /*- macro rule_cp(target, dependencies) -*/
 /*? target ?*/: /*? dependencies ?*/
@@ -101,11 +95,11 @@ endif
 
 # If this component is from a global include, use the path as is rather than appending it to SOURCE_DIR
 ifeq ($(/*? i.type.name ?*/_GLOBAL), 1)
-    /*? rule_cp('$(abspath ${BUILD_DIR})/src/' + i.name + '/static/%', %) ?*/
-    /*? rule_cp('$(abspath ${BUILD_DIR})/include/' + i.name + '/static/%', %) ?*/
+    /*? rule_cp('$(abspath ${BUILD_DIR})/src/' + i.name + '/static/%', '%') ?*/
+    /*? rule_cp('$(abspath ${BUILD_DIR})/include/' + i.name + '/static/%', '%') ?*/
 else
-    /*? rule_cp('$(abspath ${BUILD_DIR})/src/' + i.name + '/static/%', ${SOURCE_DIR}/%) ?*/
-    /*? rule_cp('$(abspath ${BUILD_DIR})/include/' + i.name + '/static/%', ${SOURCE_DIR}/%) ?*/
+    /*? rule_cp('$(abspath ${BUILD_DIR})/src/' + i.name + '/static/%', '${SOURCE_DIR}/%') ?*/
+    /*? rule_cp('$(abspath ${BUILD_DIR})/include/' + i.name + '/static/%', '${SOURCE_DIR}/%') ?*/
 endif
 /*- endfor -*/
 

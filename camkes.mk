@@ -8,7 +8,6 @@
 # @TAG(NICTA_BSD)
 #
 
-MAKEFLAGS+="222222222222222222"
 # The variable 'TARGETS' should have been set by our includer.
 ifeq (${TARGETS},)
 $(error TARGETS not set)
@@ -42,8 +41,8 @@ CAMKES_FLAGS += \
     $(if ${CONFIG_CAMKES_CPP},--cpp,) \
     --cpp-flag=-I${KERNEL_ROOT_PATH}/../include/generated \
     $(if ${CONFIG_CAMKES_DEBUG_POST_RENDER_EDIT},--post-render-edit,) \
-	$(foreach path, ${PWD}/tools/camkes/include/builtin $(subst $\",,${CONFIG_CAMKES_IMPORT_PATH}), --import-path=${path}) \
-	$(if ${TEMPLATES},--templates "${SOURCE_DIR}/${TEMPLATES}",) \
+    $(foreach path, ${PWD}/tools/camkes/include/builtin $(subst $\",,${CONFIG_CAMKES_IMPORT_PATH}), --import-path=${path}) \
+    $(if ${TEMPLATES},--templates "${SOURCE_DIR}/${TEMPLATES}",) \
     $(if ${CONFIG_CAMKES_OPTIMISATION_RPC_LOCK_ELISION},--frpc-lock-elision,--fno-rpc-lock-elision) \
     $(if ${CONFIG_CAMKES_OPTIMISATION_CALL_LEAVE_REPLY_CAP},--fcall-leave-reply-cap,--fno-call-leave-reply-cap) \
     $(if ${CONFIG_CAMKES_OPTIMISATION_SPECIALISE_SYSCALL_STUBS},--fspecialise-syscall-stubs,--fno-specialise-syscall-stubs) \
