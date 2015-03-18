@@ -245,10 +245,10 @@ int /*? me.to_interface.name ?*/__run(void) {
         /*- endif -*/
 
         /*- set buffer = c_symbol('buffer') -*/
-        void * /*? buffer ?*/ = (void*)/*? BUFFER_BASE ?*/;
+        void * /*? buffer ?*/ UNUSED = (void*)/*? BUFFER_BASE ?*/;
 
         /*- set size = c_symbol('size') -*/
-        unsigned int /*? size ?*/ =
+        unsigned int /*? size ?*/ UNUSED =
         /*- if userspace_ipc -*/
             /*? sizes[0] ?*/;
         /*- else -*/
