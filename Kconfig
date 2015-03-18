@@ -83,6 +83,7 @@ menu "CAmkES Options"
 
     config CAMKES_IMPORT_PATH
     string "Search path for components and interfaces"
+    default ""
     help
         CAmkES can include components and interfaces stored outside the current application
         directory. This option is a space delimited list of absolute paths to directories

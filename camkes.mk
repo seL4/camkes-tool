@@ -35,13 +35,16 @@ export CONFIG_CAMKES_USE_EXTERNAL_OBJDUMP \
     CONFIG_CAMKES_PYTHON_INTERPRETER_FIGLEAF \
     CONFIG_CAMKES_PYTHON_INTERPRETER_COVERAGE
 
+# Strip the quotes from the string CONFIG_CAMKES_IMPORT_PATH.
+CAMKES_IMPORT_PATH=$(subst $\",,${CONFIG_CAMKES_IMPORT_PATH})
+
 CAMKES_FLAGS += \
     $(if ${V},--debug,) \
     --cache $(if ${CONFIG_CAMKES_CACHE_READWRITE},on,$(if ${CONFIG_CAMKES_CACHE_READONLY},readonly,$(if ${CONFIG_CAMKES_CACHE_WRITEONLY},writeonly,off))) \
     $(if ${CONFIG_CAMKES_CPP},--cpp,) \
     --cpp-flag=-I${KERNEL_ROOT_PATH}/../include/generated \
     $(if ${CONFIG_CAMKES_DEBUG_POST_RENDER_EDIT},--post-render-edit,) \
-    $(foreach path, ${PWD}/tools/camkes/include/builtin $(subst $\",,${CONFIG_CAMKES_IMPORT_PATH}), --import-path=${path}) \
+    $(foreach path, ${PWD}/tools/camkes/include/builtin ${CAMKES_IMPORT_PATH}, --import-path=${path}) \
     $(if ${TEMPLATES},--templates "${SOURCE_DIR}/${TEMPLATES}",) \
     $(if ${CONFIG_CAMKES_OPTIMISATION_RPC_LOCK_ELISION},--frpc-lock-elision,--fno-rpc-lock-elision) \
     $(if ${CONFIG_CAMKES_OPTIMISATION_CALL_LEAVE_REPLY_CAP},--fcall-leave-reply-cap,--fno-call-leave-reply-cap) \
