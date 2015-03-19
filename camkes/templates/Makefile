@@ -163,10 +163,19 @@ ifeq (${CONFIG_CAMKES_PRUNE_GENERATED},y)
 	        --keep /*? c.from_interface.name ?*/_/*? m.name ?*/ \
 	    /*- endfor -*/ \
 	/*- endif -*/ \
+	  /*# unconditionally keep some things verification refers to. #*/ \
+	  --keep camkes_get_tls \
+	  --keep seL4_Call \
+	  --keep seL4_Notify \
+	  --keep seL4_Poll \
+	  --keep seL4_ReplyWait \
+	  --keep seL4_Wait \
 	$(foreach i,${PRUNER_BLACKLIST},--blacklist $i) \
       --blacklist /*? c.from_interface.name ?*/_error_handler_fn \
       --output "$@" "$<"
-	$(Q)${FMT} "$@" | ${SPONGE} "$@"
+	@# We prepend a declaration of abort because it gets pruned and is needed for
+	@# verification.
+	$(Q)sh -c "echo 'void abort(void);'; cat $@" | ${FMT} | ${SPONGE} "$@"
 
 /*# Pruned C files (to) #*/
 /*- set prefix = '$(abspath ${BUILD_DIR})/src/%s/generated/%s_%s' % (c.to_instance.name, c.to_interface.name, c.type.name) -*/
@@ -190,10 +199,19 @@ ifeq (${CONFIG_CAMKES_PRUNE_GENERATED},y)
 	/*- elif c.to_interface in c.to_instance.type.provides -*/ \
 	    /*# nothing extra required #*/ \
 	/*- endif -*/ \
+	  /*# unconditionally keep some things verification refers to. #*/ \
+	  --keep camkes_get_tls \
+	  --keep seL4_Call \
+	  --keep seL4_Notify \
+	  --keep seL4_Poll \
+	  --keep seL4_ReplyWait \
+	  --keep seL4_Wait \
 	$(foreach i,${PRUNER_BLACKLIST},--blacklist $i) \
       --blacklist /*? c.to_interface.name ?*/_error_handler_fn \
       --output "$@" "$<"
-	$(Q)${FMT} "$@" | ${SPONGE} "$@"
+	@# We prepend a declaration of abort because it gets pruned and is needed for
+	@# verification.
+	$(Q)sh -c "echo 'void abort(void);'; cat $@" | ${FMT} | ${SPONGE} "$@"
 endif
 
 /*- endfor -*/
