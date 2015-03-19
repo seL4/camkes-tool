@@ -93,14 +93,9 @@ endif
 /*? i.name ?*/_HFILES += \
     $(/*? i.type.name ?*/_HFILES:%=$(abspath ${BUILD_DIR})/include//*? i.name ?*//static/%)
 
-# If this component is from a global include, use the path as is rather than appending it to SOURCE_DIR
-ifeq ($(/*? i.type.name ?*/_GLOBAL), 1)
-    /*? rule_cp('$(abspath ${BUILD_DIR})/src/' + i.name + '/static/%', '%') ?*/
-    /*? rule_cp('$(abspath ${BUILD_DIR})/include/' + i.name + '/static/%', '%') ?*/
-else
-    /*? rule_cp('$(abspath ${BUILD_DIR})/src/' + i.name + '/static/%', '${SOURCE_DIR}/%') ?*/
-    /*? rule_cp('$(abspath ${BUILD_DIR})/include/' + i.name + '/static/%', '${SOURCE_DIR}/%') ?*/
-endif
+/*? rule_cp('$(abspath ${BUILD_DIR})/src/' + i.name + '/static/%', '%') ?*/
+/*? rule_cp('$(abspath ${BUILD_DIR})/include/' + i.name + '/static/%', '%') ?*/
+
 /*- endfor -*/
 
 # Library dependencies required by glue code.
