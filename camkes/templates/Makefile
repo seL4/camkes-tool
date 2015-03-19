@@ -149,6 +149,15 @@ ifeq (${CONFIG_CAMKES_PRUNE_GENERATED},y)
 	/*- elif c.from_interface in c.from_instance.type.dataports -*/ \
 	    --keep /*? c.from_interface.name ?*/_wrap_ptr \
 	    --keep /*? c.from_interface.name ?*/_unwrap_ptr \
+	    /*# XXX: When pruning generated code involving dataports, the attributes
+	     *# of the dataport are discarded. This is a problem because dataports
+	     *# need to be page-aligned for the shared memory remapping done by the
+	     *# CapDL filters to work correctly. Here we reintroduce the necessary
+	     *# attributes. Note that these are expected to match the original
+	     *# attributes from whatever template you're using.
+	     #*/ \
+	    --add-attribute '/*? c.from_interface.name ?*/_data:aligned(1 << 12)' \
+	    --add-attribute '/*? c.from_interface.name ?*/_data:section("shared_/*? c.from_interface.name ?*/")' \
 	/*- elif c.from_interface in c.from_instance.type.uses -*/ \
 	    /*- for m in c.from_interface.type.methods -*/ \
 	        --keep /*? c.from_interface.name ?*/_/*? m.name ?*/ \
@@ -175,6 +184,9 @@ ifeq (${CONFIG_CAMKES_PRUNE_GENERATED},y)
 	/*- elif c.to_interface in c.to_instance.type.dataports -*/ \
 	    --keep /*? c.to_interface.name ?*/_wrap_ptr \
 	    --keep /*? c.to_interface.name ?*/_unwrap_ptr \
+        /*# See note above. #*/ \
+	    --add-attribute '/*? c.to_interface.name ?*/_data:aligned(1 << 12)' \
+	    --add-attribute '/*? c.to_interface.name ?*/_data:section("shared_/*? c.to_interface.name ?*/")' \
 	/*- elif c.to_interface in c.to_instance.type.provides -*/ \
 	    /*# nothing extra required #*/ \
 	/*- endif -*/ \
