@@ -136,12 +136,12 @@ ifeq (${CONFIG_CAMKES_PRUNE_GENERATED},y)
 
 /*# Pruned C files (from) #*/
 /*- set prefix = '$(abspath ${BUILD_DIR})/src/%s/generated/%s_%s' % (c.from_instance.name, c.from_interface.name, c.type.name) -*/
-/*? prefix ?*/.o: /*? prefix ?*/.pruned.c_pp
+/*? prefix ?*/.o: /*? prefix ?*/_pruned.c_pp
 	@$(if $(filter-out 0,${V}),$(warning Using CAmkES generic .o target),)
 	@echo " [CC] $(notdir $@)"
 	$(Q)mkdir -p $(dir $@)
 	$(Q)$(CC) -x c $(CFLAGS) $(foreach v,$(filter-out $<,$^),$(patsubst %,-I%,$(abspath $(dir ${v})))) -c $< -o $@
-/*? prefix ?*/.pruned.c_pp: /*? prefix ?*/.c_pp
+/*? prefix ?*/_pruned.c_pp: /*? prefix ?*/.c_pp
 	@echo " [PRUNE] $(notdir $@)"
 	${Q}LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${CONFIG_CAMKES_LLVM_PATH}/lib prune --keep /*? c.from_interface.name ?*/__run \
 	/*- if c.from_interface in c.from_instance.type.emits -*/ \
@@ -161,12 +161,12 @@ ifeq (${CONFIG_CAMKES_PRUNE_GENERATED},y)
 
 /*# Pruned C files (to) #*/
 /*- set prefix = '$(abspath ${BUILD_DIR})/src/%s/generated/%s_%s' % (c.to_instance.name, c.to_interface.name, c.type.name) -*/
-/*? prefix ?*/.o: /*? prefix ?*/.pruned.c_pp
+/*? prefix ?*/.o: /*? prefix ?*/_pruned.c_pp
 	@$(if $(filter-out 0,${V}),$(warning Using CAmkES generic .o target),)
 	@echo " [CC] $(notdir $@)"
 	$(Q)mkdir -p $(dir $@)
 	$(Q)$(CC) -x c $(CFLAGS) $(foreach v,$(filter-out $<,$^),$(patsubst %,-I%,$(abspath $(dir ${v})))) -c $< -o $@
-/*? prefix ?*/.pruned.c_pp: /*? prefix ?*/.c_pp
+/*? prefix ?*/_pruned.c_pp: /*? prefix ?*/.c_pp
 	@echo " [PRUNE] $(notdir $@)"
 	${Q}LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${CONFIG_CAMKES_LLVM_PATH}/lib prune --keep /*? c.to_interface.name ?*/__run \
 	/*- if c.to_interface in c.to_instance.type.consumes -*/ \
