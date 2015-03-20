@@ -162,6 +162,8 @@ TEMPLATES = {
         Guard(lambda x: isinstance(x, Connection) and x.type.name == 'seL4RPCSimple'):{
             'from':{
                 'theory':'autocorres/RPCSimpleFrom.template.thy',
+                'unifiedtheory':'autocorres/RPCSimple.template.thy',
+                'unifiedbase':'autocorres/RPCSimple_base.template.thy',
             },
             'to':{
                 'theory':'autocorres/RPCSimpleTo.template.thy',
