@@ -152,6 +152,20 @@ menu "CAmkES Options"
         libclang are installed in the standard system paths you do not need to
         set this option.
 
+    config CAMKES_THYS
+    bool "Verification: Generate correctness proofs"
+    default n
+    help
+        Generate AutoCorres-based theories of connector correctness during
+        compilation.
+
+    config CAMKES_UNIFIED_THY
+    bool "Verification: Generate unified correctness proof"
+    default n
+    help
+        Generate an AutoCorred-based theory combining the two glue code halves
+        of a connector, resulting in a final correctness statement.
+
     config CAMKES_CONNECTOR_TIMING
     bool "Enable collection of timing data for connectors"
     default n

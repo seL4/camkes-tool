@@ -142,6 +142,32 @@ TEMPLATES = {
     'architecture-semantics':{ # Isabelle ADL formalism
         'theory':'arch-definitions.thy',
     },
+    'autocorres':{ # AutoCorres-based C code proofs
+        Guard(lambda x: isinstance(x, Connection) and x.type.name == 'seL4AsynchNative'):{
+            'to':{
+                'theory':'autocorres/AsynchNativeTo.template.thy',
+            },
+            'from':{
+                'theory':'autocorres/AsynchNativeFrom.template.thy',
+            },
+        },
+        Guard(lambda x: isinstance(x, Connection) and x.type.name == 'seL4SharedData'):{
+            'to':{
+                'theory':'autocorres/SharedDataTo.template.thy',
+            },
+            'from':{
+                'theory':'autocorres/SharedDataFrom.template.thy',
+            },
+        },
+        Guard(lambda x: isinstance(x, Connection) and x.type.name == 'seL4RPCSimple'):{
+            'from':{
+                'theory':'autocorres/RPCSimpleFrom.template.thy',
+            },
+            'to':{
+                'theory':'autocorres/RPCSimpleTo.template.thy',
+            },
+        },
+    },
     'GraphViz':{
         'graph':'graph.dot',
     },

@@ -39,7 +39,6 @@
 /*- set threads = [1] + map(lambda('x: x + 2'), range(len(me.to_instance.type.provides + me.to_instance.type.uses + me.to_instance.type.emits + me.to_instance.type.consumes + me.to_instance.type.dataports))) -*/
 /*- for m in me.to_interface.type.methods -*/
     /*- for p in m.parameters -*/
-    /*# XXX: We only need to do this TLS instantiation for 'out' and 'inout' variables, but for simplicity we currently do it for everything. #*/
         /*- set type = show(p.type) -*/
         /*- set name = '%s_%s' % (m.name, p.name) -*/
         /*- set array = p.array -*/
@@ -53,131 +52,209 @@
         /*- endif -*/
     /*- endfor -*/
 
-static unsigned int /*? m.name ?*/_internal(void) {
-    /* Unmarshal parameters */
+/*- set input_parameters = filter(lambda('x: x.direction.direction in [\'in\', \'inout\']'), m.parameters) -*/
+static void /*? me.to_interface.name ?*/_/*? m.name ?*/_unmarshal(
+    /*- for p in input_parameters -*/
+        /*- if isinstance(p.type, camkes.ast.Reference) or p.array or p.type.type == 'string' -*/
+            /*? raise(NotImplementedError()) ?*/
+        /*- else -*/
+            /*? p.type.type ?*/
+        /*- endif -*/
+        *
+        /*? p.name ?*/
+        /*- if not loop.last -*/
+            ,
+        /*- endif -*/
+    /*- endfor -*/
+) {
     /*- set mr = c_symbol('mr') -*/
     unsigned int /*? mr ?*/ = 1; /* 0 contained the method index. */
-    /*- for p in m.parameters -*/
 
-        /*# Declare parameters. #*/
-        /*- if p.array -*/
-            size_t * /*? p.name ?*/_sz = get_/*? m.name ?*/_/*? p.name ?*/_sz();
+    /*- for p in input_parameters -*/
+        /*- if isinstance(p.type, camkes.ast.Reference) or p.array or p.type.type == 'string' -*/
+            /*? raise(NotImplementedError()) ?*/
+        /*- elif sizeof(p) <= __SIZEOF_POINTER__ -*/
+            * /*? p.name ?*/ = seL4_GetMR(/*? mr ?*/);
+            /*? mr ?*/++;
+        /*- else -*/
+            * /*? p.name ?*/ = (/*? p.type.type ?*/)(((uint64_t)seL4_GetMR(/*? mr ?*/)) | (((uint64_t)seL4_GetMR(/*? mr ?*/ + 1)) << __WORDSIZE));
+            /*? mr ?*/ += 2;
+            /*? assert(sizeof(p) <= 2 * __SIZEOF_POINTER__) ?*/
         /*- endif -*/
-        /*? show(p.type) ?*/ *
-        /*- if p.array -*/
+    /*- endfor -*/
+}
+
+static
+/*- if m.return_type -*/
+    /*? m.return_type ?*/
+/*- else -*/
+    void
+/*- endif -*/
+/*? me.to_interface.name ?*/_/*? m.name ?*/_invoke(
+    /*- for p in m.parameters -*/
+        /*- if isinstance(p.type, camkes.ast.Reference) or p.array or p.type.type == 'string' -*/
+            /*? raise(NotImplementedError()) ?*/
+        /*- else -*/
+            /*? p.type.type ?*/
+        /*- endif -*/
+        /*- if p.direction.direction in ['inout', 'out'] -*/
             *
         /*- endif -*/
-        /*? p.name ?*/ = get_/*? m.name ?*/_/*? p.name ?*/();
-
-        /*# Unmarshal parameters #*/
-        /*- if p.direction.direction in ['in', 'inout'] -*/
-            /*- if p.array -*/
-                * /*? p.name ?*/_sz = seL4_GetMR(/*? mr ?*/);
-                /*? mr ?*/ += 1;
-                /*- set counter = c_symbol() -*/
-                for (unsigned int /*? counter ?*/ = 0; /*? counter ?*/ < * /*? p.name ?*/_sz; /*? counter ?*/++) {
-                    (* /*? p.name ?*/)[/*? counter ?*/] = seL4_GetMR(/*? mr ?*/);
-                    /*? mr ?*/ += 1;
-                    /*- if sizeof(p) > __SIZEOF_POINTER__ -*/
-                        /* We need a second message register. */
-                        (* /*? p.name ?*/)[/*? counter ?*/] |= ((/*? p.type.type ?*/)seL4_GetMR(/*? mr ?*/)) << __WORDSIZE;
-                        /*? mr ?*/ += 1;
-                    /*- endif -*/
-                }
-            /*- else -*/
-                _Static_assert(sizeof(/*? p.name ?*/) <= 2 * sizeof(seL4_Word),
-                    "parameter /*? p.name ?*/ does not fit in two message registers");
-                * /*? p.name ?*/ = seL4_GetMR(/*? mr ?*/);
-                /*? mr ?*/ += 1;
-                /*- if sizeof(p) > __SIZEOF_POINTER__ -*/
-                    /* We need a second message register. */
-                    * /*? p.name ?*/ |= ((/*? p.type.type ?*/)seL4_GetMR(/*? mr ?*/)) << __WORDSIZE;
-                    /*? mr ?*/ += 1;
-                /*- endif -*/
-            /*- endif -*/
+        /*? p.name ?*/
+        /*- if not loop.last -*/
+            ,
         /*- endif -*/
-
     /*- endfor -*/
-    assert(/*? mr ?*/ <= seL4_MsgMaxLength &&
-        "IPC buffer length exceeded during argument unmarshalling");
+) {
 
     /* Call the implementation */
     /*- if m.return_type -*/
-        /*- set ret = c_symbol('ret') -*/
-        /*? show(m.return_type) ?*/ /*? ret ?*/ =
+        return
     /*- endif -*/
     /*? me.to_interface.name ?*/_/*? m.name ?*/(
         /*- for p in m.parameters -*/
-            /*- if p.array -*/
-                /*- if p.direction.direction == 'in' -*/
-                    *
-                /*- endif -*/
-                /*? p.name ?*/_sz,
-                /*- if p.direction.direction == 'in' -*/
-                    *
-                /*- endif -*/
-                /*? p.name ?*/
-            /*- else -*/
-                /*- if p.direction.direction == 'in' -*/
-                    *
-                /*- endif -*/
-                /*? p.name ?*/
+            /*- if isinstance(p.type, camkes.ast.Reference) or p.array or p.type.type == 'string' -*/
+                /*? raise(NotImplementedError()) ?*/
             /*- endif -*/
-            /*- if not loop.last -*/,/*- endif -*/
+            /*? p.name ?*/
+            /*- if not loop.last -*/
+                ,
+            /*- endif -*/
         /*- endfor -*/
     );
+}
 
-    /* Marshal the response */
-    /*? mr ?*/ = 0;
+/*- set output_parameters = filter(lambda('x: x.direction.direction in [\'inout\', \'out\']'), m.parameters) -*/
+static unsigned int /*? me.to_interface.name ?*/_/*? m.name ?*/_marshal(
+    /*- set ret = c_symbol('ret') -*/
     /*- if m.return_type -*/
-        _Static_assert(sizeof(/*? ret ?*/) <= 2 * sizeof(seL4_Word),
-            "return type does not fit in two message registers");
-        seL4_SetMR(/*? mr ?*/, /*? ret ?*/);
-        /*? mr ?*/ += 1;
-        /*- if sizeof(m.return_type) > __SIZEOF_POINTER__ -*/
-            /* We need a second message register. */
-            seL4_SetMR(/*? mr ?*/, /*? ret ?*/ >> __WORDSIZE);
-            /*? mr ?*/ += 1;
+        /*? m.return_type ?*/ /*? ret ?*/
+        /*- if len(output_parameters) > 0 -*/
+            ,
         /*- endif -*/
     /*- endif -*/
-    /*- for p in m.parameters -*/
-        /*- if p.direction.direction in ['inout', 'out'] -*/
-            /*- if p.array -*/
-                seL4_SetMR(/*? mr ?*/, * /*? p.name ?*/_sz);
-                /*? mr ?*/ += 1;
-                /*- set counter = c_symbol() -*/
-                for (unsigned int /*? counter ?*/ = 0; /*? counter ?*/ < * /*? p.name ?*/_sz; /*? counter ?*/++) {
-                    seL4_SetMR(/*? mr ?*/, (* /*? p.name ?*/)[/*? counter ?*/]);
-                    /*? mr ?*/ += 1;
-                    /*- if sizeof(p) > __SIZEOF_POINTER__ -*/
-                        /* We need a second message register. */
-                        seL4_SetMR(/*? mr ?*/, (seL4_Word)((* /*? p.name ?*/)[/*? counter ?*/] >> __WORDSIZE));
-                        /*? mr ?*/ += 1;
-                    /*- endif -*/
-                }
-            /*- else -*/
-                _Static_assert(sizeof(/*? p.name ?*/) <= 2 * sizeof(seL4_Word),
-                    "parameter /*? p.name ?*/ does not fit in two message registers");
-                seL4_SetMR(/*? mr ?*/, * /*? p.name ?*/);
-                /*? mr ?*/ += 1;
-                /*- if sizeof(p) > __SIZEOF_POINTER__ -*/
-                    /* We need a second message register. */
-                    seL4_SetMR(/*? mr ?*/, (seL4_Word)(* /*? p.name ?*/ >> __WORDSIZE));
-                    /*? mr ?*/ += 1;
-                /*- endif -*/
+    /*- for p in output_parameters -*/
+        /*- if isinstance(p.type, camkes.ast.Reference) or p.array or p.type.type == 'string' -*/
+            /*? raise(NotImplementedError()) ?*/
+        /*- else -*/
+            /*? p.type.type ?*/
+        /*- endif -*/
+        /*? p.name ?*/
+        /*- if not loop.last -*/
+            ,
+        /*- endif -*/
+    /*- endfor -*/
+) {
+    /*- set mr = c_symbol('mr') -*/
+    unsigned int /*? mr ?*/ = 0;
+
+    /*- if m.return_type -*/
+        seL4_SetMR(/*? mr ?*/, (seL4_Word)/*? ret ?*/);
+        /*? mr ?*/++;
+        /*- if sizeof(m.return_type) > __SIZEOF_POINTER__ -*/
+            seL4_SetMR(/*? mr ?*/, (seL4_Word)(((uint64_t)/*? ret ?*/) >> __WORDSIZE));
+            /*? mr ?*/++;
+            /*? assert(sizeof(m.return_type) <= 2 * __SIZEOF_POINTER__) ?*/
+        /*- endif -*/
+    /*- endif -*/
+
+    /*- for p in output_parameters -*/
+        /*- if isinstance(p.type, camkes.ast.Reference) or p.array or p.type.type == 'string' -*/
+            /*? raise(NotImplementedError()) ?*/
+        /*- else -*/
+            seL4_SetMR(/*? mr ?*/, (seL4_Word)/*? p.name ?*/);
+            /*? mr ?*/++;
+            /*- if sizeof(p) > __SIZEOF_POINTER__ -*/
+                seL4_SetMR(/*? mr ?*/, (seL4_Word)(((uint64_t)/*? p.name ?*/) >> __WORDSIZE));
+                /*? mr ?*/++;
+                /*? assert(sizeof(p) <= 2 * __SIZEOF_POINTER__) ?*/
             /*- endif -*/
         /*- endif -*/
     /*- endfor -*/
 
     return /*? mr ?*/;
 }
+
+static unsigned int /*? me.to_interface.name ?*/_/*? m.name ?*/_internal(void) {
+    /*- for p in m.parameters -*/
+        /*- if isinstance(p.type, camkes.ast.Reference) or p.array or p.type.type == 'string' -*/
+            /*? raise(NotImplementedError()) ?*/
+        /*- else -*/
+            /*? p.type.type ?*/
+        /*- endif -*/
+        *
+        /*? p.name ?*/ = get_/*? m.name ?*/_/*? p.name ?*/();
+    /*- endfor -*/
+
+    /*? me.to_interface.name ?*/_/*? m.name ?*/_unmarshal(
+        /*- for p in input_parameters -*/
+            /*- if isinstance(p.type, camkes.ast.Reference) or p.array or p.type.type == 'string' -*/
+                /*? raise(NotImplementedError()) ?*/
+            /*- else -*/
+                /*? p.name ?*/
+            /*- endif -*/
+            /*- if not loop.last -*/
+                ,
+            /*- endif -*/
+        /*- endfor -*/
+    );
+
+    /*- set ret = c_symbol('ret') -*/
+    /*- if m.return_type -*/
+        /*? m.return_type ?*/ /*? ret ?*/ =
+    /*- endif -*/
+    /*? me.to_interface.name ?*/_/*? m.name ?*/_invoke(
+        /*- for p in m.parameters -*/
+            /*- if p.direction.direction == 'in' -*/
+                * /*? p.name ?*/
+            /*- else -*/
+                /*? p.name ?*/
+            /*- endif -*/
+            /*- if not loop.last -*/
+                ,
+            /*- endif -*/
+        /*- endfor -*/
+    );
+   
+    /*- set length = c_symbol('length') -*/
+    unsigned int /*? length ?*/ = /*? me.to_interface.name ?*/_/*? m.name ?*/_marshal(
+        /*- if m.return_type -*/
+            /*? ret ?*/
+            /*- if len(output_parameters) > 0 -*/
+                ,
+            /*- endif -*/
+        /*- endif -*/
+        /*- for p in output_parameters -*/
+            /*- if isinstance(p.type, camkes.ast.Reference) or p.array or p.type.type == 'string' -*/
+                /*? raise(NotImplementedError()) ?*/
+            /*- else -*/
+                * /*? p.name ?*/
+            /*- endif -*/
+            /*- if not loop.last -*/
+                ,
+            /*- endif -*/
+        /*- endfor -*/
+    );
+
+    return /*? length ?*/;
+}
 /*- endfor -*/
 
 /*- set info = c_symbol('info') -*/
 /*- set first = c_symbol('first') -*/
 static seL4_MessageInfo_t /*? me.to_interface.name ?*/__run_internal(bool /*? first ?*/, seL4_MessageInfo_t /*? info ?*/) {
+    /*- if not options.fcall_leave_reply_cap or len(me.to_instance.type.provides + me.to_instance.type.uses + me.to_instance.type.consumes + me.to_instance.type.mutexes + me.to_instance.type.semaphores) > 1 -*/
+        /*- set result = c_symbol() -*/
+        /*- set cnode = alloc_cap('cnode', my_cnode, write=True) -*/
+        /*- set reply_cap_slot = alloc_cap('reply_cap_slot', None) -*/
+    /*- endif -*/
     if (/*? first ?*/) {
         /*? info ?*/ = seL4_Wait(/*? ep ?*/, NULL);
+
+        /*- if not options.fcall_leave_reply_cap or len(me.to_instance.type.provides + me.to_instance.type.uses + me.to_instance.type.consumes + me.to_instance.type.mutexes + me.to_instance.type.semaphores) > 1 -*/
+            int /*? result ?*/ UNUSED = seL4_CNode_SaveCaller(/*? cnode ?*/, /*? reply_cap_slot ?*/, 32);
+            assert(/*? result ?*/ == 0);
+        /*- endif -*/
     }
 
     /* We should have at least been passed a method index */
@@ -189,13 +266,19 @@ static seL4_MessageInfo_t /*? me.to_interface.name ?*/__run_internal(bool /*? fi
         /*- for i, m in enumerate(me.to_interface.type.methods) -*/
             case /*? i ?*/: { /*? '/' + '* ' + m.name + ' *' + '/' ?*/
                 /*- set length = c_symbol('length') -*/
-                unsigned int /*? length ?*/ = /*? m.name ?*/_internal();
-                assert(/*? length ?*/ <= 120 &&
-                    "IPC buffer length exceeded during argument marshalling");
+                unsigned int /*? length ?*/ = /*? me.to_interface.name ?*/_/*? m.name ?*/_internal();
 
                 /* Send the response */
                 /*? info ?*/ = seL4_MessageInfo_new(0, 0, 0, /*? length ?*/);
-                seL4_ReplyWait(/*? ep ?*/, /*? info ?*/, NULL);
+
+                /*- if not options.fcall_leave_reply_cap or len(me.to_instance.type.provides + me.to_instance.type.uses + me.to_instance.type.consumes + me.to_instance.type.mutexes + me.to_instance.type.semaphores) > 1 -*/
+                    seL4_Send(/*? reply_cap_slot ?*/, /*? info ?*/);
+                    /*? info ?*/ = seL4_Wait(/*? ep ?*/, NULL);
+                    int /*? result ?*/ UNUSED = seL4_CNode_SaveCaller(/*? cnode ?*/, /*? reply_cap_slot ?*/, 32);
+                    assert(/*? result ?*/ == 0);
+                /*- else -*/
+                    seL4_ReplyWait(/*? ep ?*/, /*? info ?*/, NULL);
+                /*- endif -*/
 
                 break;
             }

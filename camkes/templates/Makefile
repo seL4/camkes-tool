@@ -214,6 +214,77 @@ ifeq (${CONFIG_CAMKES_PRUNE_GENERATED},y)
 	$(Q)sh -c "echo 'void abort(void);'; cat $@" | ${FMT} | ${SPONGE} "$@"
 endif
 
+/*# Theory generation #*/
+/*- set fromthy = '$(abspath ${BUILD_DIR})/thy/%s/generated/%s.thy' % (c.from_instance.name, c.from_interface.name) -*/
+/*? rule_gen(fromthy, ' '.join(imported), '%s.from.theory' % c.name, platform='autocorres', preprocessor='${TPP} --in-place "$@"') ?*/
+ifeq (${CONFIG_CAMKES_THYS},y)
+${TARGETS}: /*? fromthy ?*/
+endif
+/*- set tothy = '$(abspath ${BUILD_DIR})/thy/%s/generated/%s.thy' % (c.to_instance.name, c.to_interface.name) -*/
+/*? rule_gen(tothy, ' '.join(imported), '%s.to.theory' % c.name, platform='autocorres', preprocessor='${TPP} --in-place "$@"') ?*/
+ifeq (${CONFIG_CAMKES_THYS},y)
+${TARGETS}: /*? tothy ?*/
+endif
+/*- set unifiedthy = '$(abspath ${BUILD_DIR})/thy/%s/generated/%s.thy' % (c.name, c.name) -*/
+/*# It's completely arbitrary that we've stuck the unified theory in the 'from'
+ *# side of the template dictionary (see Template.py), but a quirk of CAmkES
+ *# means connector-based templates need to be assigned to either the 'from' or
+ *# 'to' side.
+ #*/
+/*? rule_gen(unifiedthy, ' '.join(imported), '%s.from.unifiedtheory' % c.name, platform='autocorres', preprocessor='${TPP} --in-place "$@"') ?*/
+ifeq (${CONFIG_CAMKES_UNIFIED_THY},y)
+${TARGETS}: /*? unifiedthy ?*/
+endif
+/*- if options.verbosity >= 2 -*/
+  /*# With debugging on, the unified theory imports a base theory that we need
+   *# to generated here.
+   #*/
+  /*- set unifiedbase = '$(abspath ${BUILD_DIR})/thy/%s/generated/%s_base.thy' % (c.name, c.name) -*/
+/*? rule_gen(unifiedbase, ' '.join(imported), '%s.from.unifiedbase' % c.name, platform='autocorres', preprocessor='${TPP} --in-place "$@"') ?*/
+ifeq (${CONFIG_CAMKES_UNIFIED_THY},y)
+${TARGETS}: /*? unifiedbase ?*/
+endif
+/*- endif -*/
+# Unified version of the connector code.
+/*- set prefix = '$(abspath ${BUILD_DIR})/thy/%s/generated/%s' % (c.name, c.name) -*/
+/*? prefix ?*/.c: \
+  /*? '$(abspath ${BUILD_DIR})/src/%s/generated/%s_%s.c' % (c.from_instance.name, c.from_interface.name, c.type.name) ?*/ \
+  /*? '$(abspath ${BUILD_DIR})/src/%s/generated/%s_%s.c' % (c.to_instance.name, c.to_interface.name, c.type.name) ?*/
+	@echo " [CAT] $(notdir $@)"
+	$(Q)mkdir -p $(dir $@)
+	${Q}cat >"$@" \
+  /*? '$(abspath ${BUILD_DIR})/src/%s/generated/%s_%s.c' % (c.from_instance.name, c.from_interface.name, c.type.name) ?*/ \
+  /*? '$(abspath ${BUILD_DIR})/src/%s/generated/%s_%s.c' % (c.to_instance.name, c.to_interface.name, c.type.name) ?*/
+/*? prefix ?*/_pruned.c_pp: /*? prefix ?*/.c_pp
+	@echo " [PRUNE] $(notdir $@)"
+	${Q}LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${CONFIG_CAMKES_LLVM_PATH}/lib prune \
+  --keep /*? c.to_interface.name ?*/__run \
+  --keep /*? c.from_interface.name ?*/__run \
+  /*- if c.from_interface in c.from_instance.type.emits -*/ \
+    --keep /*? c.from_interface.name ?*/_emit_underlying \
+  /*- elif c.from_interface in c.from_instance.type.dataports -*/ \
+    --keep /*? c.from_interface.name ?*/_wrap_ptr \
+    --keep /*? c.from_interface.name ?*/_unwrap_ptr \
+  /*- elif c.from_interface in c.from_instance.type.uses -*/ \
+    /*- for m in c.from_interface.type.methods -*/ \
+      --keep /*? c.from_interface.name ?*/_/*? m.name ?*/ \
+    /*- endfor -*/ \
+  /*- endif -*/ \
+  /*- if c.to_interface in c.to_instance.type.consumes -*/ \
+    --keep /*? c.to_interface.name ?*/_poll \
+    --keep /*? c.to_interface.name ?*/_wait \
+  /*- elif c.to_interface in c.to_instance.type.dataports -*/ \
+    --keep /*? c.to_interface.name ?*/_wrap_ptr \
+    --keep /*? c.to_interface.name ?*/_unwrap_ptr \
+  /*- elif c.to_interface in c.to_instance.type.provides -*/ \
+    /*# nothing extra required #*/ \
+  /*- endif -*/ \
+  $(foreach i,${PRUNER_BLACKLIST},--blacklist $i) --output "$@" "$<"
+	@echo " [FMT] $(notdir $@)"
+	${Q}${FMT} "$@" | sponge "$@"
+ifeq (${CONFIG_CAMKES_UNIFIED_THY},y)
+${TARGETS}: /*? prefix ?*/_pruned.c_pp
+endif
 /*- endfor -*/
 
 # Each component file may depend on the per-component generated header.
