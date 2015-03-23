@@ -381,7 +381,7 @@ unsigned int /*? size ?*/
 ) {
 
   /*- set length = c_symbol('length') -*/
-  unsigned int /*? length ?*/ = 0;
+  unsigned int /*? length ?*/ UNUSED = 0;
 
   /*- set base = c_symbol('buffer_base') -*/
   void * /*? base ?*/ UNUSED = (void*)(/*? buffer ?*/);
