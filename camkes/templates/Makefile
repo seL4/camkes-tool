@@ -92,8 +92,15 @@ endif
     $(/*? i.type.name ?*/_ASMFILES:%=$(abspath ${BUILD_DIR})/src//*? i.name ?*//static/%)
 /*? i.name ?*/_HFILES += \
     $(/*? i.type.name ?*/_HFILES:%=$(abspath ${BUILD_DIR})/include//*? i.name ?*//static/%)
+
+# This will be matched for local source and header files.
 /*? rule_cp('$(abspath ${BUILD_DIR})/src/' + i.name + '/static/%', '${SOURCE_DIR}/%') ?*/
 /*? rule_cp('$(abspath ${BUILD_DIR})/include/' + i.name + '/static/%', '${SOURCE_DIR}/%') ?*/
+
+# This will be matched for global source and header files.
+/*? rule_cp('$(abspath ${BUILD_DIR})/src/' + i.name + '/static/%', '/%') ?*/
+/*? rule_cp('$(abspath ${BUILD_DIR})/include/' + i.name + '/static/%', '/%') ?*/
+
 /*- endfor -*/
 
 # Library dependencies required by glue code.
