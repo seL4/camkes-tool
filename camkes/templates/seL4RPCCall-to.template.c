@@ -57,6 +57,13 @@
 /*- set error_handler = '%s_error_handler' % me.to_interface.name -*/
 /*- include 'error-handler.c' -*/
 
+/*- set sizes = [None] -*/
+/*- if userspace_ipc -*/
+    /*- do sizes.__setitem__(0, 'PAGE_SIZE_4K') -*/
+/*- else -*/
+    /*- do sizes.__setitem__(0, 'seL4_MsgMaxLength * sizeof(seL4_Word)') -*/
+/*- endif -*/
+
 /*- for m in me.to_interface.type.methods -*/
     extern
     /*- if m.return_type -*/
@@ -122,12 +129,6 @@
 /*- set name = m.name -*/
 /*- set function = '%s_unmarshal' % m.name -*/
 /*- set buffer = base -*/
-/*- set sizes = [None] -*/
-/*- if userspace_ipc -*/
-    /*- do sizes.__setitem__(0, 'PAGE_SIZE_4K') -*/
-/*- else -*/
-    /*- do sizes.__setitem__(0, 'seL4_MsgMaxLength * sizeof(seL4_Word)') -*/
-/*- endif -*/
 /*- set size = sizes[0] -*/
 /*- set input_parameters = filter(lambda('x: x.direction.direction in [\'refin\', \'in\', \'inout\']'), m.parameters) -*/
 /*- set allow_trailing_data = userspace_ipc -*/
