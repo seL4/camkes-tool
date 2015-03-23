@@ -471,7 +471,7 @@ int /*? me.to_interface.name ?*/__run(void) {
                                         :"+r"(/*? src ?*/)
                                         :[swinum]"i"(__SWINUM(seL4_SysReplyWait)), "r"(/*? scno ?*/), "r"(/*? info2 ?*/)
                                     /*- else -*/
-                                        :"+r"(/*? src ?*/), "r"(/*? info2 ?*/)
+                                        :"+r"(/*? src ?*/), "+r"(/*? info2 ?*/)
                                         :[swinum]"i"(__SWINUM(seL4_SysReplyWait)), "r"(/*? scno ?*/)
                                         :"r2", "r3", "r4", "r5", "memory"
                                     /*- endif -*/

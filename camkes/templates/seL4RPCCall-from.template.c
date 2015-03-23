@@ -230,7 +230,7 @@ int /*? me.from_interface.name ?*/__run(void) {
                     :"+r"(/*? dest ?*/)
                     :[swinum]"i"(__SWINUM(seL4_SysCall)), "r"(/*? scno ?*/), "r"(/*? tag ?*/)
                 /*- else -*/
-                    :"+r"(/*? dest ?*/), "r"(/*? tag ?*/)
+                    :"+r"(/*? dest ?*/), "+r"(/*? tag ?*/)
                     :[swinum]"i"(__SWINUM(seL4_SysCall)), "r"(/*? scno ?*/)
                     :"r2", "r3", "r4", "r5", "memory"
                 /*- endif -*/
