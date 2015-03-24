@@ -147,7 +147,6 @@ of these terms are made explicit below.
 
 > An interface of an internal instance connected to a virtual interface with an export connector.
 
-
 **Instance**
 
 > An instantiation of a component type. Of course 'instance' can be used to
@@ -1773,17 +1772,25 @@ The type of hardware interface depends on the type of CAmkES interface,
 and the connector used. Available connectors for hardware, and their
 corresponding hardware interfaces are listed below.
 
-CAmkES Interface Type       Connector               Description
------------------------     -------------------     ---------------------------------------------------------------------
-procedure (provides)        seL4HardwareIOPort      When using IOPort as the interface type, this 
-                                                    provides access to IO ports. The connected 
-                                                    component gets access to the methods in the
-                                                    IOPort interface, which allow sending and 
-                                                    receiving data over IO ports. This is specific 
-                                                    to the IA32 architecture.
-event (emits)               seL4HardwareInterrupt   An event is emitted when an interrupt occurs.
-port (dataport)             seL4HardwareMMIO        Memory mapped registers can be accessed via the 
-                                                    shared memory.
+**Interface:** procedure            \
+**Keyword:** provides               \
+**Connector:** seL4HardwareIOPort   \
+**Description:**
+When using IOPort as the interface type, this provides access to IO ports. The connected 
+component gets access to the methods in the IOPort interface, which allow sending and receiving 
+data over IO ports. This is specific to the IA32 architecture.
+
+**Interface:** event                    \
+**Keyword:** emits                      \
+**Connector:** seL4HardwareInterrupt    \
+**Description:**
+An event is emitted when an interrupt occurs.
+
+**Interface:** port                 \
+**Keyword:** dataport               \
+**Connector:** seL4HardwareMMIO     \
+**Description:**
+Memory mapped registers can be accessed via the shared memory.
 
 The following example shows an example of connecting a hardware component to a driver
 component. Note the order of arguments to the connection. `seL4HardwareInterrupt` requires
