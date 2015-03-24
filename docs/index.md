@@ -2087,7 +2087,7 @@ The example above would be converted into the following:
 #### Export Connectors
 
 The `ExportRPC` connector in the example above is an Export Connector.
-Recall from the Terminology section, that an export connector associates 
+Recall from the [Terminology](#terminology) section, that an export connector associates 
 a virtual interface of a compound component
 with an interface of an internal instance declared in the composition section
 of that component. `ExportRPC` can be used to export procedural interfaces.
