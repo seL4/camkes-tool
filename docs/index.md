@@ -2591,7 +2591,162 @@ CURRENT_DIR := $(dir $(abspath $(lastword ${MAKEFILE_LIST})))
 
 Math_CFILES := $(wildcard ${CURRENT_DIR}/src/*.c)
 Math_HFILES := $(wildcard ${CURRENT_DIR}/include/*.h)
+
 ```
+
+#### Example involving Custom Procedure Type
+
+The example above will be extended to include some basic vector arithmetic
+operations. This will require the definition of a vector data type. (Here,
+"vector" refers to a pair of real numbers, as distinct from the C++ standard
+vector class.) The vector type is defined with the `MathIface` interface:
+
+```c
+/* interfaces/MathIface/include/vec.h */
+
+#ifndef _VEC_H_
+#define _VEC_H_
+
+typedef struct {
+    double x;
+    double y;
+} vec_t;
+
+#endif
+```
+
+The client source will be modified to include an implementation
+of vector projection composed from simpler vector operations, which will
+be implemented in the math library component. 
+
+```c
+/* apps/pythagoras/components/Client/src/main.c */
+
+#include <Client.h>
+#include <stdio.h>
+
+#include <vec.h>
+
+double pythag(double a, double b) {
+    return math_sqrt(math_add(math_square(a), math_square(b)));
+}
+
+vec_t vec_project(vec_t a, vec_t b) {
+    return math_scalar_mult(a, math_divide(math_dot(a, b),
+                            math_square(math_length(a))));
+}
+
+int run(void) {
+    double a = 3;
+    double b = 4;
+    double c = pythag(a, b);
+    
+    printf("pythag(%2f, %2f) == %2f\n", a, b, c);
+
+    vec_t x_axis = (vec_t) {.x = 1, .y = 0};
+    vec_t v = (vec_t) {.x = 3, .y = 4};
+    vec_t proj = vec_project(x_axis, v);
+
+    printf("x component of (%2f, %2f) is (%2f, %2f)\n",
+        v.x, v.y, proj.x, proj.y);
+
+    return 0;
+}
+```
+
+Note that `vec.h` is included in the above code listing. 
+The process by which `vec.h` is added to the include path for this
+project is as follows.
+
+A file `MathIface.mk` is added to the `MathIface` directory inside the
+`interfaces` global include directory. This file serves to expose to the
+rest of the project, a list of header files containing type definitions
+for any types used for arguments or return values of methods that make
+up the interface `MathIface`.
+
+```Makefile
+# interfaces/MathIface/MathIface.mk
+
+CURRENT_DIR := $(dir $(abspath $(lastword ${MAKEFILE_LIST})))
+MathIface_EXPORT_HFILES := $(wildcard ${CURRENT_DIR}/include/vec.h)
+```
+
+The variable `MathIface_EXPORT_HFILES` should contain a list of paths to
+header files containing any types referenced in the `MathIface` interface.
+This convention should be followed for any interfaces using custom types
+defined in header files.
+
+The `MathImpl` procedure definition was modified to include some new methods:
+
+    procedure MathIface {
+        
+        include <vec.h>;
+
+        ...
+
+        double dot(in vec_t a, in vec_t b);
+        vec_t scalar_mult(in vec_t v, in double s);
+        double length(in vec_t a);
+
+        int compute_roots_of_unity(in int n);
+    };
+
+The `Math` component implementation contains the implementation of these new methods:
+
+```c
+/* components/Math/src/main.c */
+
+#include <Math.h>
+
+#include <vec.h>
+
+...
+
+double m_dot(vec_t a, vec_t b) {
+    return a.x*b.x + a.y*b.y;
+}
+
+vec_t m_scalar_mult(vec_t v, double s) {
+    return (vec_t) {.x = v.x*s, .y = v.y*s};
+}
+
+double m_length(vec_t a) {
+    return sqrt(a.x*a.x+a.y*a.y);
+}
+```
+
+Since this file includes `vec.h`, it must be added to the header files for
+this component in the component Makefile as follows:
+
+```Makefile
+# components/Math/Math.mk
+
+CURRENT_DIR := $(dir $(abspath $(lastword ${MAKEFILE_LIST})))
+
+Math_CFILES := $(wildcard ${CURRENT_DIR}/src/*.c)
+Math_HFILES := $(wildcard ${CURRENT_DIR}/include/*.h)
+include MathIface/MathIface.mk
+Math_HFILES += ${MathIface_EXPORT_HFILES}
+```
+
+Finally, `vec.h` is also included in the local component `Client`. The path
+to `vec.h` is added to the list of headers for `Client` in the application
+Makefile in the same way:
+
+```Makefile
+# apps/pythagoras/Makefile
+
+include Math/Math.mk
+include MathIface/MathIface.mk
+
+TARGETS := pythagoras.cdl
+ADL := pythagoras.camkes
+
+Client_CFILES := components/Client/src/*.c \
+                 ${MathIface_EXPORT_HFILES}
+include ${PWD}/tools/camkes/camkes.mk
+```
+
 
 ## Templating
 
