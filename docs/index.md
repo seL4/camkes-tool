@@ -2398,6 +2398,201 @@ an appropriately large region of memory for the data type:
 ```c
 extern volatile IntArray * int_arr;
 ```
+
+### Global Include Directories
+
+CAmkES allows users to define a list of directories that will be searched
+when resolving imports of `.camkes` files (components and interfaces) and
+all files included in Makefiles.
+This allows one to place common components and interfaces in a central location
+rather than duplicating them inside the application directory of each
+application that uses them. Components and interfaces defined in global include
+directories are known as **Global Components** and **Global Interfaces**.
+
+#### Recommended Practices
+
+Generally, a component should be created as a global component unless there's
+some good reason not to. A CAmkES application should have at most one application-specific
+component with a thread of control, which uses resources and services defined
+in global components. Seemingly application-specific utility/helper components should
+generally be made more generic and added to a global component repository.
+If a global component provides or uses a procedural interface, that procedural interface
+should be a global interface and placed in the same repository.
+
+The following examples will demonstrate some conventions for defining and using
+global components and interfaces.
+
+#### Simple Example
+
+This example will demonstrate an application called `pythagoras` that computes
+the length of the hypotenuse of a right-angle triangle using the Pythagorean 
+theorem. All paths in this example are relative to the project root.
+
+Two additional directories are created in the project root directory:
+
+- `components`
+- `interfaces`
+
+They are made known to the build system by setting the
+"Search path for components and interfaces" in the "CAmkES Options" section
+when running `make menuconfig`, to: `${PWD}/components ${PWD}/interfaces`.
+This value holds a space separated list of directories to search when
+resolving imports. `${PWD}` is resolved to the project root directory.
+
+The `pythagoras` application is located in `apps/pythagoras`. It has a client component
+which computes the length of the hypotenuse of a right-angle triangle.
+It makes calls into a math library component which is defined in a global
+include directory outside of this application.
+
+The math library component is defined in a directory `components/Math`.
+The procedure interface it provides is named `MathIface` and is located
+in a directory `interfaces/MathIface`.
+
+In the top-level `.camkes` file shown below, note the angle brackets around `Math/Math.camkes`.
+This denotes that the file is not located in the application's directory, but in
+some global include directory (in this case, the `components` directory).
+
+    /* apps/pythagoras/pythagoras.camkes */
+
+    import <std_connector.camkes>;
+
+    import <Math/Math.camkes>;
+
+    import "components/Client/Client.camkes";
+
+    assembly {
+        composition {
+            component Client client;
+            component Math math;
+
+            connection seL4RPC c(from client.math, to math.m);
+        }
+    }
+
+The client's component definition (`.camkes`) is located inside the application 
+directory. Note again the angle brackets around `MathIface/MathIface.camkes`.
+This file contains the interface provided by the Math component, and is
+located in a global include directory (the `interfaces` directory).
+
+    /* apps/pythagoras/components/Client/Client.camkes */
+
+    import <MathIface/MathIface.camkes>;
+
+    component Client {
+        control;
+
+        uses MathIface math;
+    }
+
+The client's component implementation (`.c`) is also located inside the application.
+
+```c
+
+/* apps/pythagoras/components/Client/src/main.c */
+
+#include <Client.h>
+#include <stdio.h>
+
+double pythag(double a, double b) {
+    return math_sqrt(math_add(math_square(a), math_square(b)));
+}
+
+int run(void) {
+    double a = 3;
+    double b = 4;
+    double c = pythag(a, b);
+    
+    printf("pythag(%2f, %2f) == %2f\n", a, b, c);
+
+    return 0;
+}
+```
+
+The `.c` file implementing the externally-defined Math component must be known
+to the build system so it can be compiled. This is achieved by including
+a component Makefile (`Math.mk`) in the application's Makefile. 
+A component Makefile lists the `.c` and `.h` files required by a global component,
+in the same way as the application Makefile below lists the `.c` and `.h`
+files required by the local component `Client`.
+
+Note that the path given
+to include is relative to one of the global import directories (in this case, `components`).
+
+```Makefile
+# apps/pythagoras/Makefile
+
+include Math/Math.mk
+
+TARGETS := pythagoras.cdl
+ADL := pythagoras.camkes
+
+Client_CFILES := components/Client/src/*.c
+include ${PWD}/tools/camkes/camkes.mk
+```
+
+The interface `MathIface` is defined as normal:
+    
+    /* interfaces/MathIface/MathIface.camkes */
+
+    procedure MathIface {
+        double square(in double a);
+        double sqrt(in double a);
+        double add(in double a, in double b);
+        double divide(in double a, in double b);
+    };
+
+The component `Math` imports the MathIface component using angle brackets.
+Even though `Math` is defined in a global include directory, it can still
+import files from different global include directories.
+
+    /* components/Math/Math.camkes */
+
+    import <MathIface/MathIface.camkes>;
+
+    component Math {
+        provides MathIface m;
+    }
+
+The `Math` component is implemented inside the `Math` component directory.
+
+```c
+/* components/Math/src/main.c */
+
+#include <Math.h>
+
+#include <math.h>
+
+double m_square(double a) {
+    return a * a;
+}
+
+double m_sqrt(double a) {
+    return sqrt(a);
+}
+
+double m_add(double a, double b) {
+    return a + b;
+}
+
+double m_divide(double a, double b) {
+    return a / b;
+}
+```
+
+The build system must know the location of the component's source file(s), so
+a Makefile specifying this information
+is packaged with each globally-includable component. Recall that
+this file was included by the application's Makefile.
+
+```Makefile
+# components/Math/Math.mk
+
+CURRENT_DIR := $(dir $(abspath $(lastword ${MAKEFILE_LIST})))
+
+Math_CFILES := $(wildcard ${CURRENT_DIR}/src/*.c)
+Math_HFILES := $(wildcard ${CURRENT_DIR}/include/*.h)
+```
+
 ## Templating
 
 CAmkES glue code, code automatically introduced into your component system at
