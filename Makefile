@@ -103,5 +103,3 @@ tags:
 	@find . \( -name "*.h" -o -name "*.c" -o -name "*.py" \) > list.txt
 	@ctags-exuberant -L list.txt
 	@rm list.txt
-
-
