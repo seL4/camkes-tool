@@ -2747,6 +2747,182 @@ Client_CFILES := components/Client/src/*.c \
 include ${PWD}/tools/camkes/camkes.mk
 ```
 
+#### Example involving Custom Port Type
+To motivate this example, the above example will be extended to include
+a method which computes the nth complex roots of unity for an argument `n`. For
+each positive integer `n`, there are `n` complex numbers which when raised to
+the power of `n`, result in a value of 1. A port will be used to store the result
+of this computation.
+
+A header file defining complex numbers, and a struct containing an array of
+complex numbers, will be added to the Math component. Note that unlike in the
+previous example, ports do note have a corresponding `.camkes` file. Thus,
+header files defining port types are placed in component directories instead of
+interface directories.
+
+```c
+/* components/Math/include/vec.h */
+
+#ifndef _VEC_ARR_H_
+#define _VEC_ARR_H_
+
+typedef struct {
+    double re;
+    double im;
+} complex_t;
+
+typedef struct {
+    complex_t data[4096];
+} complex_arr_t;
+
+#endif
+```
+
+A new port interface must be added to the `Math` and `Client` components:
+
+    /* components/Math/Math.camkes */
+
+    import <MathIface/MathIface.camkes>;
+
+    component Math {
+        provides MathIface m;
+        
+        include <complex_arr.h>;
+        dataport complex_arr_t complex_data;
+    }
+
+
+    /* apps/pythagoras/components/Client/Client.camkes */
+
+    import <MathIface/MathIface.camkes>;
+
+    component Client {
+        control;
+
+        uses MathIface math;
+        
+        include <complex_arr.h>;
+        dataport complex_arr_t complex_data;
+    }
+
+A new connection is added to the top level `.camkes` file:
+
+    /* apps/pythagoras/pythagoras.camkes */
+
+    ...
+    assembly {
+        composition {
+            ...
+            connection seL4SharedData d(from client.complex_data, 
+                                        to math.complex_data);
+        }
+    }
+
+A new method is added to the `MathIface` interface. Note that since
+this method doesn't actually return the complex roots of unity (but
+rather writes them into an area of shared memory) there is no reason
+for this to include the header file defining complex numbers.
+
+    /* interfaces/MathIface/MathIface.camkes */
+
+    procedure MathIface {
+        
+        ...
+
+        int compute_roots_of_unity(in int n);
+    };
+
+The implementation of this method is added to the `Math` component implementation:
+```c
+/* components/Math/src/main.c */
+
+#include <Math.h>
+
+#include <math.h>
+
+#include <complex_arr.h>
+
+...
+
+#define PI 3.14159
+int m_compute_roots_of_unity(int n) {
+    if (n >= 4096) {
+        return -1;
+    }
+    for (int i=0;i<n;i++) {
+        complex_data->data[i] = (complex_t) {
+            .re = cos((i*2*PI)/n),
+            .im = sin((i*2*PI)/n)
+        };
+    }
+    return 0;
+}
+
+```
+
+The method is called from the `Client` component implementation:
+```c
+/* apps/pythagoras/components/Client/src/main.c */
+
+...
+
+#include <complex_arr.h>
+
+...
+
+int run(void) {
+    ...
+    const int n = 4;
+    if (math_compute_roots_of_unity(4) == 0) {
+        printf("%dth roots of unity:\n", n);
+        for (int i=0;i<4;i++) {
+            printf("%2f + %2fi\n", complex_data->data[i].re, 
+                                   complex_data->data[i].im);
+        }
+    }
+
+    return 0;
+}
+```
+
+To make the build system aware of the new header file (`complex_arr.h`), it must be exported
+by the `Math` component Makefile much in the same way as `vec.h` was exported in the previous
+example. It sets the `Math_EXPORT_HFILES` variable which becomes accessible to all dependant
+Makefiles.
+
+```Makefile
+# components/Math/Math.mk
+
+CURRENT_DIR := $(dir $(abspath $(lastword ${MAKEFILE_LIST})))
+
+Math_CFILES := $(wildcard ${CURRENT_DIR}/src/*.c)
+Math_HFILES := $(wildcard ${CURRENT_DIR}/include/*.h)
+
+Math_EXPORT_HFILES := \
+    $(wildcard ${CURRENT_DIR}/include/complex_arr.h)
+
+include MathIface/MathIface.mk
+Math_HFILES += ${MathIface_EXPORT_HFILES}
+
+```
+
+The application Makefile must be adjusted to add this dependency:
+
+```Makefile
+# apps/pythagoras/Makefile
+
+include Math/Math.mk
+include MathIface/MathIface.mk
+
+TARGETS := pythagoras.cdl
+ADL := pythagoras.camkes
+
+Client_CFILES := components/Client/src/*.c  \
+                 ${MathIface_EXPORT_HFILES} \
+                 ${Math_EXPORT_HFILES}
+include ${PWD}/tools/camkes/camkes.mk
+```
+
 
 ## Templating
 
