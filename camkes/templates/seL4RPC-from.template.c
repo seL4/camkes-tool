@@ -81,14 +81,14 @@ int /*? me.from_interface.name ?*/__run(void) {
 /*- endif -*/
 
 /*- set name = m.name -*/
-/*- set function = '%s_marshal' % m.name -*/
+/*- set function = '%s_marshal_inputs' % m.name -*/
 /*- set buffer = BUFFER_BASE -*/
 /*- set size = 'seL4_MsgMaxLength * sizeof(seL4_Word)' -*/
 /*- set method_index = i -*/
 /*- include 'marshal-inputs.c' -*/
 
 /*- set name = m.name -*/
-/*- set function = '%s_unmarshal' % m.name -*/
+/*- set function = '%s_unmarshal_outputs' % m.name -*/
 /*- set buffer = BUFFER_BASE -*/
 /*- set size = 'seL4_MsgMaxLength * sizeof(seL4_Word)' -*/
 /*- set method_index = i -*/
@@ -212,7 +212,7 @@ int /*? me.from_interface.name ?*/__run(void) {
       /*- endif -*/
     /*- endif -*/
 
-    /*- set function = '%s_marshal' % m.name -*/
+    /*- set function = '%s_marshal_inputs' % m.name -*/
     /*- set length = c_symbol('length') -*/
     unsigned int /*? length ?*/ = /*- include 'call-marshal-inputs.c' -*/;
     if (unlikely(/*? length ?*/ == UINT_MAX)) {
@@ -254,7 +254,7 @@ int /*? me.from_interface.name ?*/__run(void) {
     /*- set size = c_symbol('size') -*/
     unsigned int /*? size ?*/ = seL4_MessageInfo_get_length(/*? info ?*/) * sizeof(seL4_Word);
 
-    /*- set function = '%s_unmarshal' % m.name -*/
+    /*- set function = '%s_unmarshal_outputs' % m.name -*/
     /*- set return_type = m.return_type -*/
     /*- set err = c_symbol('error') -*/
     int /*? err ?*/ = /*- include 'call-unmarshal-outputs.c' -*/;

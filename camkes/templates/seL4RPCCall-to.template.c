@@ -127,14 +127,14 @@
     );
 
 /*- set name = m.name -*/
-/*- set function = '%s_unmarshal' % m.name -*/
+/*- set function = '%s_unmarshal_inputs' % m.name -*/
 /*- set buffer = base -*/
 /*- set size = sizes[0] -*/
 /*- set input_parameters = filter(lambda('x: x.direction.direction in [\'refin\', \'in\', \'inout\']'), m.parameters) -*/
 /*- set allow_trailing_data = userspace_ipc -*/
 /*- include 'unmarshal-inputs.c' -*/
 
-/*- set function = '%s_marshal' % m.name -*/
+/*- set function = '%s_marshal_outputs' % m.name -*/
 /*- set output_parameters = filter(lambda('x: x.direction.direction in [\'out\', \'inout\']'), m.parameters) -*/
 /*- set return_type = m.return_type -*/
 /*- include 'marshal-outputs.c' -*/
@@ -320,7 +320,7 @@ int /*? me.to_interface.name ?*/__run(void) {
                     /*- endfor -*/
 
                     /* Unmarshal parameters */
-                    /*- set function = '%s_unmarshal' % m.name -*/
+                    /*- set function = '%s_unmarshal_inputs' % m.name -*/
                     /*- set input_parameters = filter(lambda('x: x.direction.direction in [\'refin\', \'in\', \'inout\']'), m.parameters) -*/
                     /*- set err = c_symbol('error') -*/
                     int /*? err ?*/ = /*- include 'call-unmarshal-inputs.c' -*/;
@@ -378,7 +378,7 @@ int /*? me.to_interface.name ?*/__run(void) {
                     );
 
                     /* Marshal the response */
-                    /*- set function = '%s_marshal' % m.name -*/
+                    /*- set function = '%s_marshal_outputs' % m.name -*/
                     /*- set output_parameters = filter(lambda('x: x.direction.direction in [\'out\', \'inout\']'), m.parameters) -*/
                     /*- set return_type = m.return_type -*/
                     /*- set length = c_symbol('length') -*/

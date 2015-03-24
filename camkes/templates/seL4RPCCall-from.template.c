@@ -90,7 +90,7 @@ int /*? me.from_interface.name ?*/__run(void) {
 /*- for i, m in enumerate(me.from_interface.type.methods) -*/
 
 /*- set name = m.name -*/
-/*- set function = '%s_marshal' % m.name -*/
+/*- set function = '%s_marshal_inputs' % m.name -*/
 /*- set buffer = base -*/
 /*- set sizes = [None] -*/
 /*- if userspace_ipc -*/
@@ -103,7 +103,7 @@ int /*? me.from_interface.name ?*/__run(void) {
 /*- set input_parameters = filter(lambda('x: x.direction.direction in [\'refin\', \'in\', \'inout\']'), m.parameters) -*/
 /*- include 'marshal-inputs.c' -*/
 
-/*- set function = '%s_unmarshal' % m.name -*/
+/*- set function = '%s_unmarshal_outputs' % m.name -*/
 /*- set output_parameters = filter(lambda('x: x.direction.direction in [\'out\', \'inout\']'), m.parameters) -*/
 /*- set return_type = m.return_type -*/
 /*- set allow_trailing_data = userspace_ipc -*/
@@ -269,7 +269,7 @@ int /*? me.from_interface.name ?*/__run(void) {
     /*- endif -*/
 
     /* Marshal all the parameters */
-    /*- set function = '%s_marshal' % m.name -*/
+    /*- set function = '%s_marshal_inputs' % m.name -*/
     /*- set length = c_symbol('length') -*/
     unsigned int /*? length ?*/ = /*- include 'call-marshal-inputs.c' -*/;
     if (unlikely(/*? length ?*/ == UINT_MAX)) {
@@ -307,7 +307,7 @@ int /*? me.from_interface.name ?*/__run(void) {
     /*- endif -*/
 
     /* Unmarshal the response */
-    /*- set function = '%s_unmarshal' % m.name -*/
+    /*- set function = '%s_unmarshal_outputs' % m.name -*/
     /*- set return_type = m.return_type -*/
     /*- set err = c_symbol('error') -*/
     int /*? err ?*/ = /*- include 'call-unmarshal-outputs.c' -*/;
