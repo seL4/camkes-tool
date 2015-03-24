@@ -1792,7 +1792,7 @@ An event is emitted when an interrupt occurs.
 **Description:**
 Memory mapped registers can be accessed via the shared memory.
 
-The following example shows an example of connecting a hardware component to a driver
+The following shows an example of connecting a hardware component to a driver
 component. Note the order of arguments to the connection. `seL4HardwareInterrupt` requires
 the hardware interface on the `from` side of the connection, whereas the other connectors
 require the hardware interface on the `to` side.
