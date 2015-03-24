@@ -97,48 +97,48 @@
 
 /*- if m.return_type -*/
   /*- if m.return_type.array -*/
-    /*- set name = '%s_ret_sz' % m.name -*/
+    /*- set name = '%s_ret_sz_to' % m.name -*/
     /*- set type = 'size_t' -*/
     /*- include 'thread_local.c' -*/
     /*- if isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string' -*/
-      /*- set name = '%s_ret' % m.name -*/
+      /*- set name = '%s_ret_to' % m.name -*/
       /*- set type = 'char**' -*/
       /*- include 'thread_local.c' -*/
     /*- else -*/
-      /*- set name = '%s_ret' % m.name -*/
+      /*- set name = '%s_ret_to' % m.name -*/
       /*- set type = '%s*' % show(m.return_type) -*/
       /*- include 'thread_local.c' -*/
     /*- endif -*/
   /*- elif isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string' -*/
-    /*- set name = '%s_ret' % m.name -*/
+    /*- set name = '%s_ret_to' % m.name -*/
     /*- set type = 'char*' -*/
     /*- include 'thread_local.c' -*/
   /*- else -*/
-    /*- set name = '%s_ret' % m.name -*/
+    /*- set name = '%s_ret_to' % m.name -*/
     /*- set type = show(m.return_type) -*/
     /*- include 'thread_local.c' -*/
   /*- endif -*/
 /*- endif -*/
 /*- for p in m.parameters -*/
   /*- if p.array -*/
-    /*- set name = '%s_%s_sz' % (m.name, p.name) -*/
+    /*- set name = '%s_%s_sz_to' % (m.name, p.name) -*/
     /*- set type = 'size_t' -*/
     /*- include 'thread_local.c' -*/
     /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
-      /*- set name = '%s_%s' % (m.name, p.name) -*/
+      /*- set name = '%s_%s_to' % (m.name, p.name) -*/
       /*- set type = 'char**' -*/
       /*- include 'thread_local.c' -*/
     /*- else -*/
-      /*- set name = '%s_%s' % (m.name, p.name) -*/
+      /*- set name = '%s_%s_to' % (m.name, p.name) -*/
       /*- set type = '%s*' % show(p.type) -*/
       /*- include 'thread_local.c' -*/
     /*- endif -*/
   /*- elif isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
-    /*- set name = '%s_%s' % (m.name, p.name) -*/
+    /*- set name = '%s_%s_to' % (m.name, p.name) -*/
     /*- set type = 'char*' -*/
     /*- include 'thread_local.c' -*/
   /*- else -*/
-    /*- set name = '%s_%s' % (m.name, p.name) -*/
+    /*- set name = '%s_%s_to' % (m.name, p.name) -*/
     /*- set type = show(p.type) -*/
     /*- include 'thread_local.c' -*/
   /*- endif -*/
@@ -148,7 +148,7 @@
 
 /*- set ep = alloc('ep', seL4_EndpointObject, read=True, write=True) -*/
 
-/*- set call_tls_var = c_symbol('call_tls_var') -*/
+/*- set call_tls_var = c_symbol('call_tls_var_to') -*/
 /*- set array = False -*/
 /*- set name = call_tls_var -*/
 /*- if methods_len <= 1 -*/
@@ -224,20 +224,20 @@ int /*? me.to_interface.name ?*/__run(void) {
                         /*# Declare parameters. #*/
                         /*- if p.array -*/
                             size_t /*? p.name ?*/_sz UNUSED;
-                            size_t * /*? p.name ?*/_sz_ptr = TLS_PTR(/*? m.name ?*/_/*? p.name ?*/_sz, /*? p.name ?*/_sz);
+                            size_t * /*? p.name ?*/_sz_ptr = TLS_PTR(/*? m.name ?*/_/*? p.name ?*/_sz_to, /*? p.name ?*/_sz);
                             /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
                                 char ** /*? p.name ?*/ UNUSED = NULL;
-                                char *** /*? p.name ?*/_ptr = TLS_PTR(/*? m.name ?*/_/*? p.name ?*/, /*? p.name ?*/);
+                                char *** /*? p.name ?*/_ptr = TLS_PTR(/*? m.name ?*/_/*? p.name ?*/_to, /*? p.name ?*/);
                             /*- else -*/
                                 /*? show(p.type) ?*/ * /*? p.name ?*/ UNUSED = NULL;
-                                /*? show(p.type) ?*/ ** /*? p.name ?*/_ptr = TLS_PTR(/*? m.name ?*/_/*? p.name ?*/, /*? p.name ?*/);
+                                /*? show(p.type) ?*/ ** /*? p.name ?*/_ptr = TLS_PTR(/*? m.name ?*/_/*? p.name ?*/_to, /*? p.name ?*/);
                             /*- endif -*/
                         /*- elif isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
                             char * /*? p.name ?*/ UNUSED = NULL;
-                            char ** /*? p.name ?*/_ptr = TLS_PTR(/*? m.name ?*/_/*? p.name ?*/, /*? p.name ?*/);
+                            char ** /*? p.name ?*/_ptr = TLS_PTR(/*? m.name ?*/_/*? p.name ?*/_to, /*? p.name ?*/);
                         /*- else -*/
                             /*? show(p.type) ?*/ /*? p.name ?*/ UNUSED;
-                            /*? show(p.type) ?*/ * /*? p.name ?*/_ptr = TLS_PTR(/*? m.name ?*/_/*? p.name ?*/, /*? p.name ?*/);
+                            /*? show(p.type) ?*/ * /*? p.name ?*/_ptr = TLS_PTR(/*? m.name ?*/_/*? p.name ?*/_to, /*? p.name ?*/);
                         /*- endif -*/
                     /*- endfor -*/
 
@@ -259,20 +259,20 @@ int /*? me.to_interface.name ?*/__run(void) {
                     /*- if m.return_type -*/
                         /*- if m.return_type.array -*/
                             size_t /*? ret_sz ?*/ UNUSED;
-                            size_t * /*? ret_sz_ptr ?*/ = TLS_PTR(/*? m.name ?*/_ret_sz, /*? ret_sz ?*/);
+                            size_t * /*? ret_sz_ptr ?*/ = TLS_PTR(/*? m.name ?*/_ret_sz_to, /*? ret_sz ?*/);
                             /*- if isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string' -*/
                                 char ** /*? ret ?*/ UNUSED;
-                                char *** /*? ret_ptr ?*/ = TLS_PTR(/*? m.name ?*/_ret, /*? ret ?*/);
+                                char *** /*? ret_ptr ?*/ = TLS_PTR(/*? m.name ?*/_ret_to, /*? ret ?*/);
                             /*- else -*/
                                 /*? show(m.return_type) ?*/ * /*? ret ?*/ UNUSED;
-                                /*? show(m.return_type) ?*/ ** /*? ret_ptr ?*/ = TLS_PTR(/*? m.name ?*/_ret, /*? ret ?*/);
+                                /*? show(m.return_type) ?*/ ** /*? ret_ptr ?*/ = TLS_PTR(/*? m.name ?*/_ret_to, /*? ret ?*/);
                             /*- endif -*/
                         /*- elif isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string' -*/
                             char * /*? ret ?*/ UNUSED;
-                            char ** /*? ret_ptr ?*/ = TLS_PTR(/*? m.name ?*/_ret, /*? ret ?*/);
+                            char ** /*? ret_ptr ?*/ = TLS_PTR(/*? m.name ?*/_ret_to, /*? ret ?*/);
                         /*- else -*/
                             /*? show(m.return_type) ?*/ /*? ret ?*/ UNUSED;
-                            /*? show(m.return_type) ?*/ * /*? ret_ptr ?*/ = TLS_PTR(/*? m.name ?*/_ret, /*? ret ?*/);
+                            /*? show(m.return_type) ?*/ * /*? ret_ptr ?*/ = TLS_PTR(/*? m.name ?*/_ret_to, /*? ret ?*/);
                         /*- endif -*/
                         * /*? ret_ptr ?*/ =
                     /*- endif -*/

@@ -96,7 +96,7 @@ int /*? me.from_interface.name ?*/__run(void) {
 /*- set allow_trailing_data = False -*/
 /*- include 'unmarshal-outputs.c' -*/
 
-/*- set ret_tls_var = c_symbol('ret_tls_var') -*/
+/*- set ret_tls_var = c_symbol('ret_tls_var_from') -*/
 /*- if m.return_type -*/
   /*# We will need to take the address of a value representing this return
    *# value at some point. Construct a TLS variable.

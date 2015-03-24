@@ -18,12 +18,12 @@
     /*- if p.array -*/
       /*- set array = False -*/
       /*- set type = 'size_t' -*/
-      /*- set name = '%s_%s_sz' % (name_backup, p.name) -*/
+      /*- set name = '%s_%s_sz_from' % (name_backup, p.name) -*/
       /*- include 'thread_local.c' -*/
     /*- elif not (isinstance(p.type, camkes.ast.Type) and p.type.type == 'string') -*/
       /*- set array = False -*/
       /*- set type = show(p.type) -*/
-      /*- set name = '%s_%s' % (name_backup, p.name) -*/
+      /*- set name = '%s_%s_from' % (name_backup, p.name) -*/
       /*- include 'thread_local.c' -*/
     /*- endif -*/
   /*- endif -*/
@@ -76,7 +76,7 @@
     /*- set ptr_arr = c_symbol('ptr_arr') -*/
     /*- if p.direction.direction == 'in' -*/
       /*- if p.array -*/
-        size_t * /*? ptr_sz ?*/ = TLS_PTR(/*? name ?*/_/*? p.name ?*/_sz, /*? p.name ?*/_sz);
+        size_t * /*? ptr_sz ?*/ = TLS_PTR(/*? name ?*/_/*? p.name ?*/_sz_from, /*? p.name ?*/_sz);
         * /*? ptr_sz ?*/ = /*? p.name ?*/_sz;
         /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
           char ** /*? ptr_arr ?*/ = /*? p.name ?*/;
@@ -86,7 +86,7 @@
       /*- elif isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
         char * /*? ptr_str ?*/ = /*? p.name ?*/;
       /*- else -*/
-        /*? show(p.type) ?*/ * /*? ptr ?*/ = TLS_PTR(/*? name ?*/_/*? p.name ?*/, /*? p.name ?*/);
+        /*? show(p.type) ?*/ * /*? ptr ?*/ = TLS_PTR(/*? name ?*/_/*? p.name ?*/_from, /*? p.name ?*/);
         * /*? ptr ?*/ = /*? p.name ?*/;
       /*- endif -*/
     /*- else -*/
