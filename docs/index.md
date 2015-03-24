@@ -2321,8 +2321,83 @@ This example compiles to:
     }
 
 
+### Custom Data Types
 
+CAmkES allows the definition of custom data types for procedure method argument, and ports.
+Data types can be defined in C header files by typedefing a struct, enum or built-in type.
+Sections of the application that refer to custom types must include the header file.
 
+#### Procedures
+
+Assume a data type `Vector` is defined in the file `vector.h` in the top level `include` directory of the application:
+
+```c
+#ifndef _VECTOR_H_
+#define _VECTOR_H_
+
+typedef struct {
+  double x;
+  double y;
+} Vector;
+
+#endif
+```
+
+A procedural interface could then be defined to use the type:
+    
+    procedure algebra_iface {
+      include <vector.h>;
+      Vector add(Vector a, vector b);
+    }
+
+C source files that need access to this data type can include the file with:
+```c
+#include <vector.h>
+```
+
+To make the build system aware of the header file, for each component that uses it, the following must be added
+to the application's Makefile (replacing the name `Component` with the name of the component):
+
+```Makefile
+Component_HFILES := 
+  $(patsubst ${SOURCE_DIR}/%,%,$(wildcard ${SOURCE_DIR}/include/*.h))
+```
+
+The header file can be placed anywhere in the application's directory structure, provided the path
+in the Makefile is appropriately specified.
+
+The use of angle brackets or double quotes around the names of included files in both `.c` and `.camkes` files
+are interchangeable.
+
+#### Ports
+
+Assume a data type `IntArray` is defined in `int_array.h` in the top level `include` directory of the application:
+
+```c
+#ifndef _INT_ARRAY_H_
+#define _INT_ARRAY_H_
+
+typedef struct {
+  int data[1024];
+} IntArray;
+
+#endif
+```
+
+A component could declare a port of this type:
+
+    component A {
+        control;
+
+        include "int_array.h";
+        dataport IntArray  int_arr;
+    }
+
+This would give the implementation access to a global pointer, which points to
+an appropriately large region of memory for the data type:
+```c
+extern volatile IntArray * int_arr;
+```
 ## Templating
 
 CAmkES glue code, code automatically introduced into your component system at
