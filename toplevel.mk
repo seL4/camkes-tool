@@ -8,6 +8,11 @@
 # @TAG(NICTA_BSD)
 #
 
+ifeq ($(wildcard tools/camkes),)
+  $(error Directory 'tools/camkes' not present. Symlink this Makefile to the\
+          top-level directory of the project and run `make` from there)
+endif
+
 export PYTHONPATH:=${PYTHONPATH}:$(abspath tools/python-capdl)
 export PATH:=${PATH}:$(abspath tools/camkes)
 
@@ -15,18 +20,6 @@ lib-dirs:=libs
 
 # Isabelle theory pre-processor.
 export TPP:=$(abspath tools/camkes/tools/tpp)
-
-INCORRECT_LOCATION_MESSAGE:=Symlink this Makefile to the top-level directory of the project\
-							and run `make` from there
-ifeq ($(wildcard kernel),)
-  $(error Directory 'kernel' not present. ${INCORRECT_LOCATION_MESSAGE})
-else ifeq ($(wildcard apps),)
-  $(error Directory 'apps' not present. ${INCORRECT_LOCATION_MESSAGE})
-else ifeq ($(wildcard ${lib-dirs}),)
-  $(error Directory '${lib-dirs}' not present. ${INCORRECT_LOCATION_MESSAGE})
-else ifeq ($(wildcard tools),)
-  $(error Directory 'tools' not present. ${INCORRECT_LOCATION_MESSAGE})
-endif
 
 # Build the loader image, rather than the default (app-images) because the
 # loader image actually ends up containing the component images.
