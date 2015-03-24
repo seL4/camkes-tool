@@ -16,6 +16,18 @@ lib-dirs:=libs
 # Isabelle theory pre-processor.
 export TPP:=$(abspath tools/camkes/tools/tpp)
 
+INCORRECT_LOCATION_MESSAGE:=Symlink this Makefile to the top-level directory of the project\
+							and run `make` from there
+ifeq ($(wildcard kernel),)
+  $(error Directory 'kernel' not present. ${INCORRECT_LOCATION_MESSAGE})
+else ifeq ($(wildcard apps),)
+  $(error Directory 'apps' not present. ${INCORRECT_LOCATION_MESSAGE})
+else ifeq ($(wildcard ${lib-dirs}),)
+  $(error Directory '${lib-dirs}' not present. ${INCORRECT_LOCATION_MESSAGE})
+else ifeq ($(wildcard tools),)
+  $(error Directory 'tools' not present. ${INCORRECT_LOCATION_MESSAGE})
+endif
+
 # Build the loader image, rather than the default (app-images) because the
 # loader image actually ends up containing the component images.
 all: capdl-loader-experimental-image
@@ -91,3 +103,5 @@ tags:
 	@find . \( -name "*.h" -o -name "*.c" -o -name "*.py" \) > list.txt
 	@ctags-exuberant -L list.txt
 	@rm list.txt
+
+
