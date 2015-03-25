@@ -18,37 +18,6 @@ menu "CAmkES Options"
         Stack size to allocate per-component, in bytes. Note that this value
         should be page-aligned. If not, it will be rounded up.
 
-    config CAMKES_USE_EXTERNAL_OBJDUMP
-    bool "Call out to objdump for ELF information"
-    default n
-    help
-        Instead of using the internal ELF parsing functionality, call out to
-        your toolchain's objdump to perform required operations. This is much
-        more fragile than using internal functionality, but can provide a
-        performance boost in compilation times.
-
-    choice
-    prompt "Compilation cache"
-    default CAMKES_CACHE_OFF
-    help
-        Select the mode of operation of the compilation cache. This cache
-        stores results of previous code generation using the same configuration
-        and uses this to speed up subsequent invocations.
-
-    config CAMKES_CACHE_OFF
-    bool "off"
-
-    config CAMKES_CACHE_READWRITE
-    bool "read/write"
-
-    config CAMKES_CACHE_READONLY
-    bool "read-only"
-
-    config CAMKES_CACHE_WRITEONLY
-    bool "write-only"
-
-    endchoice
-
     config CAMKES_CPP
     bool "Pre-process with CPP"
     default n
@@ -56,22 +25,6 @@ menu "CAmkES Options"
         Run CPP on the input specification(s) before parsing them into an AST.
         This can allow you to write parameterised specs in the case of more
         complex systems.
-
-    config CAMKES_DEBUG_MALLOC
-    bool "Enable allocation debugging"
-    default n
-    help
-        This option instruments memory allocation functions to catch heap
-        corruption. Use this for debugging dynamic memory problems.
-
-    config CAMKES_DEBUG_POST_RENDER_EDIT
-    bool "Allow editing each template after rendering"
-    default n
-    help
-        After each template is rendered, you will be prompted as to whether you
-        want to edit the rendered output before the runner exits. If you choose
-        to do so, the output will be opened in the editor determined by the
-        value of your environment variable EDITOR.
 
     config CAMKES_SYSLIB
     string "Name of C stdlib syscall backing library"
@@ -89,112 +42,6 @@ menu "CAmkES Options"
         directory. This option is a space delimited list of absolute paths to directories
         to be searched for components or interfaces included with angle brackets.
 
-    config CAMKES_OPTIMISATION_RPC_LOCK_ELISION
-    bool "Optimisation: RPC lock elision"
-    default y
-    help
-        Detect when it is safe to exclude locking operations in the seL4RPC connector and
-        automatically do so. This is an optimisation that can improve the performance of
-        this connector.
-
-    config CAMKES_OPTIMISATION_CALL_LEAVE_REPLY_CAP
-    bool "Optimisation: Leave reply cap in place"
-    default y
-    help
-        Detect scenarios where a reply cap obtained can never be overwritten
-        and operate on it in place instead of saving it to a free cap slot. This
-        is an optimisation that can improve the performance of connectors that
-        use seL4_Call. Under the right conditions, with this optimisation
-        enabled, it is possible to hit the IPC fastpath on return.
-
-    config CAMKES_OPTIMISATION_SPECIALISE_SYSCALL_STUBS
-    bool "Optimisation: Specialise syscall stubs"
-    default y
-    help
-        Detect when glue code overhead could be reduced with a custom syscall
-        stub and generate and use this instead of the libsel4 stubs. This does
-        not affect whether a given IPC will hit the fastpath, but it does
-        reduce the userlevel overhead of these system calls. In ideal
-        conditions this will give you RPC as fast as native seL4 IPC. This only
-        has an effect on ARM.
-
-    config CAMKES_PROVIDE_TCB_CAPS
-    bool "Verification: Provide TCB caps"
-    default y
-    help
-        Hand out TCB caps to components. These caps are used by the component
-        to exit cleanly by suspending. Disabling this option leaves components
-        with an empty slot in place of their TCB cap. This means they will cap
-        fault when attempting to exit. The advantage is that your resulting
-        CapDL specification contains no TCB caps and is thus easier to reason
-        about.
-
-    config CAMKES_SUPPORT_INIT
-    bool "Verification: Support init infrastructure"
-    default y
-    help
-        Support the pre_init, post_init and interface init functions as part of
-        component startup. These functions allow extra functionality, but
-        introduce some endpoint caps for synchronisation. You probably want
-        this option enabled unless you are targetting verification.
-
-    config CAMKES_PRUNE_GENERATED
-    bool "Verification: Prune generated C files"
-    depends on BUILDSYS_CPP_SEPARATE
-    default n
-    help
-        When selected, this option minimises the number of C functions in a
-        given generated file. This can be done because the CAmkES generation
-        logic knows which functions are required by the user's components and
-        which are not. This option is only sensible to use in combination with
-        separate pre-processing or otherwise the generated C files are already
-        minimal. Note, you will need libclang-dev installed to enable this
-        option.
-
-    config CAMKES_LLVM_PATH
-    string "LLVM path"
-    depends on CAMKES_PRUNE_GENERATED
-    help
-        Path to an installation of LLVM. This is only required if you need to
-        rebuild or run the pruner tool, which depends on LLVM. If LLVM and
-        libclang are installed in the standard system paths you do not need to
-        set this option.
-
-    config CAMKES_THYS
-    bool "Verification: Generate correctness proofs"
-    default n
-    help
-        Generate AutoCorres-based theories of connector correctness during
-        compilation.
-
-    config CAMKES_UNIFIED_THY
-    bool "Verification: Generate unified correctness proof"
-    default n
-    help
-        Generate an AutoCorred-based theory combining the two glue code halves
-        of a connector, resulting in a final correctness statement.
-
-    config CAMKES_CONNECTOR_TIMING
-    bool "Enable collection of timing data for connectors"
-    default n
-    help
-        Enable timing points within connector templates that take cycle counter
-        values as they are passed. This timing data can then be retrieved after
-        execution.
-
-    config CAMKES_LARGE_FRAME_PROMOTION
-    bool "Large frame promotion"
-    default y
-    help
-        Some hardware platforms support multiple page sizes. In components with
-        large virtual address spaces, it is possible to reduce memory usage
-        (and consequent load time) by backing the component's address space with
-        pages of these larger sizes. When this setting is enabled, small
-        consecutive page mappings will be promoted to fewer consecutive large
-        mappings. Note that larger frame sizes are directly mapped into page
-        directories and can also save the overhead of an accompanying page
-        table.
-
     config CAMKES_DEFAULT_PRIORITY
     int "Default thread priority"
     # Default to one less than max prio to avoid interleaving our output with
@@ -205,118 +52,6 @@ menu "CAmkES Options"
         Default priority for component threads if this is not overridden via an
         attribute. Generally you want to set this as high as possible due to
         the suboptimal seL4 scheduler.
-
-    choice
-    prompt "Profiler"
-    default CAMKES_PROFILER_NONE
-    help
-        Select the profiling tool to use when instantiating templates. Enabling
-        a profiler can help you diagnose performance bottlenecks in the
-        compilation process. The available profilers are "internal" (basic
-        timing information), "native" (cProfile), "aggregate" (single
-        cProfile measurement across entire execution) and "heartbeat" (just a
-        debugging print out pulse to show progress).
-
-    config CAMKES_PROFILER_NONE
-    bool "none"
-    help
-        No profiler
-
-    config CAMKES_PROFILER_INTERNAL
-    bool "internal"
-    help
-        Basic profiling of CAmkES functionality. This option gives you a
-        summary of time spent in each phase of the CAmkES generator. It can be
-        used to determine, at a fairly coarse granularity, which parts of the
-        generator's execution are expensive.
-
-    config CAMKES_PROFILER_NATIVE
-    bool "native"
-    help
-        Profiler utilising Python's cProfile module. This option gives you
-        comprehensive statistical profiling data per generator phase.
-
-    config CAMKES_PROFILER_AGGREGATE
-    bool "aggregate"
-    help
-        Profiler utilising Python's cProfile module. This option gives you
-        comprehensive statistical profiling data aggregated across an entire
-        execution of the generator.
-
-    config CAMKES_PROFILER_HEARTBEAT
-    bool "heartbeat"
-    help
-        This option causes the CAmkES generator to periodically output where in
-        its source it is currently executing. This is primarily useful for
-        debugging infinite loops caused by inadequate input specification checks
-        or incorrect template code.
-
-    endchoice
-
-    config CAMKES_PYTHON_OPTIMIZE
-    bool "Enable Python optimisations (-O)"
-    # Note that you cannot enable -OO (strip docstrings as well) because PLY
-    # needs them.
-    default n
-    help
-        Pass -O to Python when running CAmkES. This causes Python to produce
-        optimised bytecode that runs significantly faster. Note that this
-        option will disable assertions and therefore it is not recommended to
-        enable it if you are working on the internals of CAmkES itself.
-
-    config CAMKES_PLY_OPTIMIZE
-    bool "Enable PLY optimisations"
-    default n
-    help
-        Run the CAmkES parsing library, PLY, in an optimised configuration.
-        With this enabled, docstrings and regexs are compiled during an
-        execution and then re-used during following executions rather than
-        re-compiling. This option significantly hampers PLY's diagnostics so it
-        is not recommended to enable this if you are working on the internals
-        of CAmkES itself.
-
-    config CAMKES_DISABLE_PYTHON_IMPORT_CHECKS
-    bool "Disable Python import checks"
-    default n
-    help
-        Disable sanity checks that Python modules we are about to import are
-        available. These checks are designed to warn new users that they do not
-        have the required dependencies. If you have an established installation
-        and want to speed up your build times you should select this option.
-
-    choice
-    prompt "Python interpreter"
-    default CAMKES_PYTHON_INTERPRETER_CPYTHON
-    help
-        Select the Python interpreter used for executing CAmkES. The default
-        CPython interpreter should be acceptable for any normal use, but you
-        may find PyPy provides better build system performance under some
-        circumstances. To use PyPy, obviously you need it installed. The other
-        interpreters are for profiling or dynamic analysis.
-
-    config CAMKES_PYTHON_INTERPRETER_CPYTHON
-    bool "CPython (default)"
-
-    config CAMKES_PYTHON_INTERPRETER_PYPY
-    bool "PyPy"
-
-    config CAMKES_PYTHON_INTERPRETER_FIGLEAF
-    bool "Figleaf"
-
-    config CAMKES_PYTHON_INTERPRETER_COVERAGE
-    bool "Coverage"
-
-    endchoice
-
-    config CAMKES_LABEL_MAPPING
-    bool "Generate policy label mapping"
-    default n
-    help
-        Enable this option to generate a mapping from labels to kernel objects
-        during compilation. A label per-CAmkES entity (component instance or
-        connection) is generated and they are intended to form the input domain
-        of a function mapping these to final policy labels. The final labels
-        are then used to reason about the security properties of a system.
 
     choice
     prompt "Error handling"
@@ -362,29 +97,310 @@ menu "CAmkES Options"
 
     endchoice
 
-    choice
-    prompt "TLS model"
-    default CAMKES_TLS_STANDARD
-    help
-        The CAmkES glue code uses thread-local variables for marshalling and
-        unmarshalling of RPC parameters. This setting controls how this thread-
-        local storage is implemented.
+    menu "Optimisation"
 
-    config CAMKES_TLS_STANDARD
-    bool "standard"
-    help
-        Allocate thread-local variables on the stack or the heap as appropriate.
-        This is the default and will hold the fewest surprises for C
-        programmers.
+        config CAMKES_USE_EXTERNAL_OBJDUMP
+        bool "Call out to objdump for ELF information"
+        default n
+        help
+            Instead of using the internal ELF parsing functionality, call out to
+            your toolchain's objdump to perform required operations. This is much
+            more fragile than using internal functionality, but can provide a
+            performance boost in compilation times.
 
-    config CAMKES_TLS_PTG
-    bool "per-thread globals"
-    help
-        Allocate per-thread global variables for use as thread-local storage.
-        The main purpose of this implementation is to avoid taking the address
-        of local variables, an idiom that cannot be handled by the verification
-        C parser.
+        choice
+        prompt "Compilation cache"
+        default CAMKES_CACHE_OFF
+        help
+            Select the mode of operation of the compilation cache. This cache
+            stores results of previous code generation using the same configuration
+            and uses this to speed up subsequent invocations.
 
-    endchoice
+        config CAMKES_CACHE_OFF
+        bool "off"
+
+        config CAMKES_CACHE_READWRITE
+        bool "read/write"
+
+        config CAMKES_CACHE_READONLY
+        bool "read-only"
+
+        config CAMKES_CACHE_WRITEONLY
+        bool "write-only"
+
+        endchoice
+
+        config CAMKES_OPTIMISATION_RPC_LOCK_ELISION
+        bool "RPC lock elision"
+        default y
+        help
+            Detect when it is safe to exclude locking operations in the seL4RPC connector and
+            automatically do so. This is an optimisation that can improve the performance of
+            this connector.
+
+        config CAMKES_OPTIMISATION_CALL_LEAVE_REPLY_CAP
+        bool "Leave reply cap in place"
+        default y
+        help
+            Detect scenarios where a reply cap obtained can never be overwritten
+            and operate on it in place instead of saving it to a free cap slot. This
+            is an optimisation that can improve the performance of connectors that
+            use seL4_Call. Under the right conditions, with this optimisation
+            enabled, it is possible to hit the IPC fastpath on return.
+
+        config CAMKES_OPTIMISATION_SPECIALISE_SYSCALL_STUBS
+        bool "Specialise syscall stubs"
+        default y
+        help
+            Detect when glue code overhead could be reduced with a custom syscall
+            stub and generate and use this instead of the libsel4 stubs. This does
+            not affect whether a given IPC will hit the fastpath, but it does
+            reduce the userlevel overhead of these system calls. In ideal
+            conditions this will give you RPC as fast as native seL4 IPC. This only
+            has an effect on ARM.
+
+        config CAMKES_LARGE_FRAME_PROMOTION
+        bool "Large frame promotion"
+        default y
+        help
+            Some hardware platforms support multiple page sizes. In components with
+            large virtual address spaces, it is possible to reduce memory usage
+            (and consequent load time) by backing the component's address space with
+            pages of these larger sizes. When this setting is enabled, small
+            consecutive page mappings will be promoted to fewer consecutive large
+            mappings. Note that larger frame sizes are directly mapped into page
+            directories and can also save the overhead of an accompanying page
+            table.
+
+        config CAMKES_PYTHON_OPTIMIZE
+        bool "Enable Python optimisations (-O)"
+        # Note that you cannot enable -OO (strip docstrings as well) because PLY
+        # needs them.
+        default n
+        help
+            Pass -O to Python when running CAmkES. This causes Python to produce
+            optimised bytecode that runs significantly faster. Note that this
+            option will disable assertions and therefore it is not recommended to
+            enable it if you are working on the internals of CAmkES itself.
+
+        config CAMKES_PLY_OPTIMIZE
+        bool "Enable PLY optimisations"
+        default n
+        help
+            Run the CAmkES parsing library, PLY, in an optimised configuration.
+            With this enabled, docstrings and regexs are compiled during an
+            execution and then re-used during following executions rather than
+            re-compiling. This option significantly hampers PLY's diagnostics so it
+            is not recommended to enable this if you are working on the internals
+            of CAmkES itself.
+
+        config CAMKES_DISABLE_PYTHON_IMPORT_CHECKS
+        bool "Disable Python import checks"
+        default n
+        help
+            Disable sanity checks that Python modules we are about to import are
+            available. These checks are designed to warn new users that they do not
+            have the required dependencies. If you have an established installation
+            and want to speed up your build times you should select this option.
+
+        choice
+        prompt "Python interpreter"
+        default CAMKES_PYTHON_INTERPRETER_CPYTHON
+        help
+            Select the Python interpreter used for executing CAmkES. The default
+            CPython interpreter should be acceptable for any normal use, but you
+            may find PyPy provides better build system performance under some
+            circumstances. To use PyPy, obviously you need it installed. The other
+            interpreters are for profiling or dynamic analysis.
+
+        config CAMKES_PYTHON_INTERPRETER_CPYTHON
+        bool "CPython (default)"
+
+        config CAMKES_PYTHON_INTERPRETER_PYPY
+        bool "PyPy"
+
+        config CAMKES_PYTHON_INTERPRETER_FIGLEAF
+        bool "Figleaf"
+
+        config CAMKES_PYTHON_INTERPRETER_COVERAGE
+        bool "Coverage"
+
+        endchoice
+
+    endmenu
+
+    menu "Profiling"
+
+        config CAMKES_CONNECTOR_TIMING
+        bool "Enable collection of timing data for connectors"
+        default n
+        help
+            Enable timing points within connector templates that take cycle counter
+            values as they are passed. This timing data can then be retrieved after
+            execution.
+
+        choice
+        prompt "Profiler"
+        default CAMKES_PROFILER_NONE
+        help
+            Select the profiling tool to use when instantiating templates. Enabling
+            a profiler can help you diagnose performance bottlenecks in the
+            compilation process. The available profilers are "internal" (basic
+            timing information), "native" (cProfile), "aggregate" (single
+            cProfile measurement across entire execution) and "heartbeat" (just a
+            debugging print out pulse to show progress).
+
+        config CAMKES_PROFILER_NONE
+        bool "none"
+        help
+            No profiler
+
+        config CAMKES_PROFILER_INTERNAL
+        bool "internal"
+        help
+            Basic profiling of CAmkES functionality. This option gives you a
+            summary of time spent in each phase of the CAmkES generator. It can be
+            used to determine, at a fairly coarse granularity, which parts of the
+            generator's execution are expensive.
+
+        config CAMKES_PROFILER_NATIVE
+        bool "native"
+        help
+            Profiler utilising Python's cProfile module. This option gives you
+            comprehensive statistical profiling data per generator phase.
+
+        config CAMKES_PROFILER_AGGREGATE
+        bool "aggregate"
+        help
+            Profiler utilising Python's cProfile module. This option gives you
+            comprehensive statistical profiling data aggregated across an entire
+            execution of the generator.
+
+        config CAMKES_PROFILER_HEARTBEAT
+        bool "heartbeat"
+        help
+            This option causes the CAmkES generator to periodically output where in
+            its source it is currently executing. This is primarily useful for
+            debugging infinite loops caused by inadequate input specification checks
+            or incorrect template code.
+
+        endchoice
+
+    endmenu
+
+    menu "Debugging"
+
+        config CAMKES_DEBUG_MALLOC
+        bool "Enable allocation debugging"
+        default n
+        help
+            This option instruments memory allocation functions to catch heap
+            corruption. Use this for debugging dynamic memory problems.
+
+        config CAMKES_DEBUG_POST_RENDER_EDIT
+        bool "Allow editing each template after rendering"
+        default n
+        help
+            After each template is rendered, you will be prompted as to whether you
+            want to edit the rendered output before the runner exits. If you choose
+            to do so, the output will be opened in the editor determined by the
+            value of your environment variable EDITOR.
+
+    endmenu
+
+    menu "Verification"
+
+        config CAMKES_PROVIDE_TCB_CAPS
+        bool "Provide TCB caps"
+        default y
+        help
+            Hand out TCB caps to components. These caps are used by the component
+            to exit cleanly by suspending. Disabling this option leaves components
+            with an empty slot in place of their TCB cap. This means they will cap
+            fault when attempting to exit. The advantage is that your resulting
+            CapDL specification contains no TCB caps and is thus easier to reason
+            about.
+
+        config CAMKES_SUPPORT_INIT
+        bool "Support init infrastructure"
+        default y
+        help
+            Support the pre_init, post_init and interface init functions as part of
+            component startup. These functions allow extra functionality, but
+            introduce some endpoint caps for synchronisation. You probably want
+            this option enabled unless you are targetting verification.
+
+        config CAMKES_PRUNE_GENERATED
+        bool "Prune generated C files"
+        depends on BUILDSYS_CPP_SEPARATE
+        default n
+        help
+            When selected, this option minimises the number of C functions in a
+            given generated file. This can be done because the CAmkES generation
+            logic knows which functions are required by the user's components and
+            which are not. This option is only sensible to use in combination with
+            separate pre-processing or otherwise the generated C files are already
+            minimal. Note, you will need libclang-dev installed to enable this
+            option.
+
+        config CAMKES_LLVM_PATH
+        string "LLVM path"
+        depends on CAMKES_PRUNE_GENERATED
+        help
+            Path to an installation of LLVM. This is only required if you need to
+            rebuild or run the pruner tool, which depends on LLVM. If LLVM and
+            libclang are installed in the standard system paths you do not need to
+            set this option.
+
+        config CAMKES_THYS
+        bool "Generate correctness proofs"
+        default n
+        help
+            Generate AutoCorres-based theories of connector correctness during
+            compilation.
+
+        config CAMKES_UNIFIED_THY
+        bool "Generate unified correctness proof"
+        default n
+        help
+            Generate an AutoCorred-based theory combining the two glue code halves
+            of a connector, resulting in a final correctness statement.
+
+        config CAMKES_LABEL_MAPPING
+        bool "Generate policy label mapping"
+        default n
+        help
+            Enable this option to generate a mapping from labels to kernel objects
+            during compilation. A label per-CAmkES entity (component instance or
+            connection) is generated and they are intended to form the input domain
+            of a function mapping these to final policy labels. The final labels
+            are then used to reason about the security properties of a system.
+
+        choice
+        prompt "TLS model"
+        default CAMKES_TLS_STANDARD
+        help
+            The CAmkES glue code uses thread-local variables for marshalling and
+            unmarshalling of RPC parameters. This setting controls how this thread-
+            local storage is implemented.
+
+        config CAMKES_TLS_STANDARD
+        bool "standard"
+        help
+            Allocate thread-local variables on the stack or the heap as appropriate.
+            This is the default and will hold the fewest surprises for C
+            programmers.
+
+        config CAMKES_TLS_PTG
+        bool "per-thread globals"
+        help
+            Allocate per-thread global variables for use as thread-local storage.
+            The main purpose of this implementation is to avoid taking the address
+            of local variables, an idiom that cannot be handled by the verification
+            C parser.
+
+        endchoice
+
+    endmenu
 
 endmenu
