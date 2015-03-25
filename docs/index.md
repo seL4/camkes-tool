@@ -2585,10 +2585,10 @@ this file was included by the application's Makefile.
 ```Makefile
 # components/Math/Math.mk
 
-CURRENT_DIR := $(dir $(abspath $(lastword ${MAKEFILE_LIST})))
+BASE_DIR := $(dir $(abspath $(lastword ${MAKEFILE_LIST})))
 
-Math_CFILES := $(wildcard ${CURRENT_DIR}/src/*.c)
-Math_HFILES := $(wildcard ${CURRENT_DIR}/include/*.h)
+Math_CFILES := $(wildcard ${BASE_DIR}/src/*.c)
+Math_HFILES := $(wildcard ${BASE_DIR}/include/*.h)
 
 ```
 
@@ -2665,8 +2665,8 @@ up the interface `MathIface`.
 ```Makefile
 # interfaces/MathIface/MathIface.mk
 
-CURRENT_DIR := $(dir $(abspath $(lastword ${MAKEFILE_LIST})))
-MathIface_EXPORT_HFILES := $(wildcard ${CURRENT_DIR}/include/vec.h)
+BASE_DIR := $(dir $(abspath $(lastword ${MAKEFILE_LIST})))
+MathIface_EXPORT_HFILES := $(wildcard ${BASE_DIR}/include/vec.h)
 ```
 
 The variable `MathIface_EXPORT_HFILES` should contain a list of paths to
@@ -2719,10 +2719,10 @@ this component in the component Makefile as follows:
 ```Makefile
 # components/Math/Math.mk
 
-CURRENT_DIR := $(dir $(abspath $(lastword ${MAKEFILE_LIST})))
+BASE_DIR := $(dir $(abspath $(lastword ${MAKEFILE_LIST})))
 
-Math_CFILES := $(wildcard ${CURRENT_DIR}/src/*.c)
-Math_HFILES := $(wildcard ${CURRENT_DIR}/include/*.h)
+Math_CFILES := $(wildcard ${BASE_DIR}/src/*.c)
+Math_HFILES := $(wildcard ${BASE_DIR}/include/*.h)
 include MathIface/MathIface.mk
 Math_HFILES += ${MathIface_EXPORT_HFILES}
 ```
@@ -2891,13 +2891,13 @@ Makefiles.
 ```Makefile
 # components/Math/Math.mk
 
-CURRENT_DIR := $(dir $(abspath $(lastword ${MAKEFILE_LIST})))
+BASE_DIR := $(dir $(abspath $(lastword ${MAKEFILE_LIST})))
 
-Math_CFILES := $(wildcard ${CURRENT_DIR}/src/*.c)
-Math_HFILES := $(wildcard ${CURRENT_DIR}/include/*.h)
+Math_CFILES := $(wildcard ${BASE_DIR}/src/*.c)
+Math_HFILES := $(wildcard ${BASE_DIR}/include/*.h)
 
 Math_EXPORT_HFILES := \
-    $(wildcard ${CURRENT_DIR}/include/complex_arr.h)
+    $(wildcard ${BASE_DIR}/include/complex_arr.h)
 
 include MathIface/MathIface.mk
 Math_HFILES += ${MathIface_EXPORT_HFILES}
