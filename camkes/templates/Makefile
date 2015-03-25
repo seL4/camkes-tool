@@ -286,9 +286,13 @@ endif
   /*- elif c.to_interface in c.to_instance.type.provides -*/ \
     /*# nothing extra required #*/ \
   /*- endif -*/ \
-  $(foreach i,${PRUNER_BLACKLIST},--blacklist $i) --output "$@" "$<"
+  $(foreach i,${PRUNER_BLACKLIST},--blacklist $i) --output "$@" "$<" \
+  --blacklist /*? c.to_interface.name ?*/_error_handler_fn \
+  --blacklist /*? c.from_interface.name ?*/_error_handler_fn
 	@echo " [FMT] $(notdir $@)"
-	${Q}${FMT} "$@" | sponge "$@"
+	@# We prepend a declaration of abort because it gets pruned and is needed for
+	@# verification.
+	$(Q)sh -c "echo 'void abort(void);'; cat $@" | ${FMT} | ${SPONGE} "$@"
 ifeq (${CONFIG_CAMKES_UNIFIED_THY},y)
 ${TARGETS}: /*? prefix ?*/_pruned.c_pp
 endif
