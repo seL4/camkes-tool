@@ -2406,16 +2406,33 @@ This allows one to place common components and interfaces in a central location
 rather than duplicating them inside the application directory of each
 application that uses them. Components and interfaces defined in global include
 directories are known as **Global Components** and **Global Interfaces**.
+When the distinction is necessary, non-global components and interfaces are
+known as **Local Components** and **Local Interfaces**.
 
 #### Recommended Practices
 
 Generally, a component should be created as a global component unless there's
-some good reason not to. A CAmkES application should have at most one application-specific
-component with a thread of control, which uses resources and services defined
-in global components. Seemingly application-specific utility/helper components should
-generally be made more generic and added to a global component repository.
-If a global component provides or uses a procedural interface, that procedural interface
-should be a global interface and placed in the same repository.
+some good reason not to. Applications should consist of a (usually) small number
+of control components, and possibly some application specific utility components.
+When possible, utility components should be generalized and placed in a global
+component repository.
+
+All procedural interfaces used or provided by global components should be
+global interfaces. Applications containing multiple local components which
+communicate over procedural interfaces should define these interfaces locally,
+unless it would make sense for these interfaces to generalise to other components
+in the future, in which case they should be global interfaces.
+
+Regarding header files defining custom data types, if the data type is specific to
+a particular component or procedural interface, the header file should be placed
+in the directory of that component or interface. Otherwise, header files should
+be placed in a well known top-level subdirectory of the component repository so
+they may be reused between components and interfaces.
+
+It is possible that between global components, there is some shared functionality
+such as commonly used algorithms and data structures. Rather than duplicating this
+code across multiple global components, it should be placed in source/header files
+in a well known top-level subdirectory of the component repository.
 
 The following examples will demonstrate some conventions for defining and using
 global components and interfaces.
