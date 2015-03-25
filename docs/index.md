@@ -1773,22 +1773,22 @@ and the connector used. Available connectors for hardware, and their
 corresponding hardware interfaces are listed below.
 
 **Interface:** procedure            \
-**Keyword:** provides               \
-**Connector:** seL4HardwareIOPort   \
+**Keyword:** `provides`               \
+**Connector:** `seL4HardwareIOPort`   \
 **Description:**
-When using IOPort as the interface type, this provides access to IO ports. The connected 
-component gets access to the methods in the IOPort interface, which allow sending and receiving 
+When using `IOPort` as the interface type, this provides access to IO ports. The connected 
+component gets access to the methods in the `IOPort` interface, which allow sending and receiving 
 data over IO ports. This is specific to the IA32 architecture.
 
 **Interface:** event                    \
-**Keyword:** emits                      \
-**Connector:** seL4HardwareInterrupt    \
+**Keyword:** `emits`                      \
+**Connector:** `seL4HardwareInterrupt`    \
 **Description:**
-An event is emitted when an interrupt occurs.
+An `event` is emitted when an interrupt occurs.
 
 **Interface:** port                 \
-**Keyword:** dataport               \
-**Connector:** seL4HardwareMMIO     \
+**Keyword:** `dataport `              \
+**Connector:** `seL4HardwareMMIO`     \
 **Description:**
 Memory mapped registers can be accessed via the shared memory.
 
@@ -2323,13 +2323,13 @@ This example compiles to:
 
 ### Custom Data Types
 
-CAmkES allows the definition of custom data types for procedure method argument, and ports.
+CAmkES allows the definition of custom data types for procedure method arguments and ports.
 Data types can be defined in C header files by typedefing a struct, enum or built-in type.
 Sections of the application that refer to custom types must include the header file.
 
 #### Procedures
 
-Assume a data type `Vector` is defined in the file `vector.h` in the top level `include` directory of the application:
+Assume a data type `Vector` is defined in the file vector.h in the top level include directory of the application:
 
 ```c
 #ifndef _VECTOR_H_
@@ -2347,7 +2347,7 @@ A procedural interface could then be defined to use the type:
     
     procedure algebra_iface {
       include <vector.h>;
-      Vector add(Vector a, vector b);
+      Vector add(Vector a, Vector b);
     }
 
 C source files that need access to this data type can include the file with:
@@ -2359,19 +2359,17 @@ To make the build system aware of the header file, for each component that uses 
 to the application's Makefile (replacing the name `Component` with the name of the component):
 
 ```Makefile
-Component_HFILES := 
+Component_HFILES := \
   $(patsubst ${SOURCE_DIR}/%,%,$(wildcard ${SOURCE_DIR}/include/*.h))
 ```
 
 The header file can be placed anywhere in the application's directory structure, provided the path
-in the Makefile is appropriately specified.
-
-The use of angle brackets or double quotes around the names of included files in both `.c` and `.camkes` files
-are interchangeable.
+in the Makefile is appropriately specified, though by convention, header files defining data types
+should be placed in the top level include directory of the application.
 
 #### Ports
 
-Assume a data type `IntArray` is defined in `int_array.h` in the top level `include` directory of the application:
+Assume a data type `IntArray` is defined in int_array.h in the top level `include` directory of the application:
 
 ```c
 #ifndef _INT_ARRAY_H_
@@ -2390,7 +2388,7 @@ A component could declare a port of this type:
         control;
 
         include "int_array.h";
-        dataport IntArray  int_arr;
+        dataport IntArray int_arr;
     }
 
 This would give the implementation access to a global pointer, which points to
@@ -2402,7 +2400,7 @@ extern volatile IntArray * int_arr;
 ### Global Include Directories
 
 CAmkES allows users to define a list of directories that will be searched
-when resolving imports of `.camkes` files (components and interfaces) and
+when resolving imports of .camkes files (components and interfaces) and
 all files included in Makefiles.
 This allows one to place common components and interfaces in a central location
 rather than duplicating them inside the application directory of each
@@ -2424,7 +2422,7 @@ global components and interfaces.
 
 #### Simple Example
 
-This example will demonstrate an application called `pythagoras` that computes
+This example will demonstrate an application called pythagoras that computes
 the length of the hypotenuse of a right-angle triangle using the Pythagorean 
 theorem. All paths in this example are relative to the project root.
 
@@ -2439,18 +2437,18 @@ when running `make menuconfig`, to: `${PWD}/components ${PWD}/interfaces`.
 This value holds a space separated list of directories to search when
 resolving imports. `${PWD}` is resolved to the project root directory.
 
-The `pythagoras` application is located in `apps/pythagoras`. It has a client component
+The pythagoras application is located in apps/pythagoras. It has a client component
 which computes the length of the hypotenuse of a right-angle triangle.
 It makes calls into a math library component which is defined in a global
 include directory outside of this application.
 
-The math library component is defined in a directory `components/Math`.
+The math library component is defined in a directory components/Math.
 The procedure interface it provides is named `MathIface` and is located
-in a directory `interfaces/MathIface`.
+in a directory interfaces/MathIface.
 
-In the top-level `.camkes` file shown below, note the angle brackets around `Math/Math.camkes`.
+In the top-level .camkes file shown below, note the angle brackets around Math/Math.camkes.
 This denotes that the file is not located in the application's directory, but in
-some global include directory (in this case, the `components` directory).
+some global include directory (in this case, the components directory).
 
     /* apps/pythagoras/pythagoras.camkes */
 
@@ -2469,10 +2467,10 @@ some global include directory (in this case, the `components` directory).
         }
     }
 
-The client's component definition (`.camkes`) is located inside the application 
-directory. Note again the angle brackets around `MathIface/MathIface.camkes`.
+The client's component definition (.camkes) is located inside the application 
+directory. Note again the angle brackets around MathIface/MathIface.camkes.
 This file contains the interface provided by the Math component, and is
-located in a global include directory (the `interfaces` directory).
+located in a global include directory (the interfaces directory).
 
     /* apps/pythagoras/components/Client/Client.camkes */
 
@@ -2484,7 +2482,7 @@ located in a global include directory (the `interfaces` directory).
         uses MathIface math;
     }
 
-The client's component implementation (`.c`) is also located inside the application.
+The client's component implementation (.c) is also located inside the application.
 
 ```c
 
@@ -2508,15 +2506,15 @@ int run(void) {
 }
 ```
 
-The `.c` file implementing the externally-defined Math component must be known
+The .c file implementing the externally-defined Math component must be known
 to the build system so it can be compiled. This is achieved by including
-a component Makefile (`Math.mk`) in the application's Makefile. 
-A component Makefile lists the `.c` and `.h` files required by a global component,
-in the same way as the application Makefile below lists the `.c` and `.h`
+a component Makefile (Math.mk) in the application's Makefile. 
+A component Makefile lists the .c and .h files required by a global component,
+in the same way as the application Makefile below lists the .c and .h
 files required by the local component `Client`.
 
 Note that the path given
-to include is relative to one of the global import directories (in this case, `components`).
+to include is relative to one of the global import directories (in this case, components).
 
 ```Makefile
 # apps/pythagoras/Makefile
@@ -2541,7 +2539,7 @@ The interface `MathIface` is defined as normal:
         double divide(in double a, in double b);
     };
 
-The component `Math` imports the MathIface component using angle brackets.
+The component `Math` imports the `MathIface` component using angle brackets.
 Even though `Math` is defined in a global include directory, it can still
 import files from different global include directories.
 
@@ -2553,7 +2551,7 @@ import files from different global include directories.
         provides MathIface m;
     }
 
-The `Math` component is implemented inside the `Math` component directory.
+The `Math` component is implemented inside the Math component directory.
 
 ```c
 /* components/Math/src/main.c */
@@ -2654,12 +2652,12 @@ int run(void) {
 }
 ```
 
-Note that `vec.h` is included in the above code listing. 
-The process by which `vec.h` is added to the include path for this
+Note that vec.h is included in the above code listing. 
+The process by which vec.h is added to the include path for this
 project is as follows.
 
-A file `MathIface.mk` is added to the `MathIface` directory inside the
-`interfaces` global include directory. This file serves to expose to the
+A file MathIface.mk is added to the MathIface directory inside the
+interfaces global include directory. This file serves to expose to the
 rest of the project, a list of header files containing type definitions
 for any types used for arguments or return values of methods that make
 up the interface `MathIface`.
@@ -2715,7 +2713,7 @@ double m_length(vec_t a) {
 }
 ```
 
-Since this file includes `vec.h`, it must be added to the header files for
+Since this file includes vec.h, it must be added to the header files for
 this component in the component Makefile as follows:
 
 ```Makefile
@@ -2729,8 +2727,8 @@ include MathIface/MathIface.mk
 Math_HFILES += ${MathIface_EXPORT_HFILES}
 ```
 
-Finally, `vec.h` is also included in the local component `Client`. The path
-to `vec.h` is added to the list of headers for `Client` in the application
+Finally, vec.h is also included in the local component `Client`. The path
+to vec.h is added to the list of headers for `Client` in the application
 Makefile in the same way:
 
 ```Makefile
@@ -2756,7 +2754,7 @@ of this computation.
 
 A header file defining complex numbers, and a struct containing an array of
 complex numbers, will be added to the Math component. Note that unlike in the
-previous example, ports do note have a corresponding `.camkes` file. Thus,
+previous example, ports do note have a corresponding .camkes file. Thus,
 header files defining port types are placed in component directories instead of
 interface directories.
 
@@ -2805,7 +2803,7 @@ A new port interface must be added to the `Math` and `Client` components:
         dataport complex_arr_t complex_data;
     }
 
-A new connection is added to the top level `.camkes` file:
+A new connection is added to the top level .camkes file:
 
     /* apps/pythagoras/pythagoras.camkes */
 
@@ -2885,8 +2883,8 @@ int run(void) {
 }
 ```
 
-To make the build system aware of the new header file (`complex_arr.h`), it must be exported
-by the `Math` component Makefile much in the same way as `vec.h` was exported in the previous
+To make the build system aware of the new header file (complex_arr.h), it must be exported
+by the `Math` component Makefile much in the same way as vec.h was exported in the previous
 example. It sets the `Math_EXPORT_HFILES` variable which becomes accessible to all dependant
 Makefiles.
 
