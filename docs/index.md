@@ -2525,6 +2525,7 @@ TARGETS := pythagoras.cdl
 ADL := pythagoras.camkes
 
 Client_CFILES := components/Client/src/*.c
+
 include ${PWD}/tools/camkes/camkes.mk
 ```
 
@@ -2579,7 +2580,7 @@ double m_divide(double a, double b) {
 
 The build system must know the location of the component's source file(s), so
 a Makefile specifying this information
-is packaged with each globally-includable component. Recall that
+is packaged with each globally component. Recall that
 this file was included by the application's Makefile.
 
 ```Makefile
@@ -2595,9 +2596,8 @@ Math_HFILES := $(wildcard ${BASE_DIR}/include/*.h)
 #### Example involving Custom Procedure Type
 
 The example above will be extended to include some basic vector arithmetic
-operations. This will require the definition of a vector data type. (Here,
-"vector" refers to a pair of real numbers, as distinct from the C++ standard
-vector class.) The vector type is defined with the `MathIface` interface:
+operations. This will require the definition of a vector data type. 
+The vector type is defined with the `MathIface` interface:
 
 ```c
 /* interfaces/MathIface/include/vec.h */
@@ -2615,7 +2615,7 @@ typedef struct {
 
 The client source will be modified to include an implementation
 of vector projection composed from simpler vector operations, which will
-be implemented in the math library component. 
+be implemented in the `Math` global component. 
 
 ```c
 /* apps/pythagoras/components/Client/src/main.c */
@@ -2630,8 +2630,9 @@ double pythag(double a, double b) {
 }
 
 vec_t vec_project(vec_t a, vec_t b) {
-    return math_scalar_mult(a, math_divide(math_dot(a, b),
-                            math_square(math_length(a))));
+
+    double scalar = math_divide(math_dot(a, b), math_square(math_length(a)));
+    return math_scalar_mult(a, scalar);
 }
 
 int run(void) {
@@ -2685,8 +2686,6 @@ The `MathImpl` procedure definition was modified to include some new methods:
         double dot(in vec_t a, in vec_t b);
         vec_t scalar_mult(in vec_t v, in double s);
         double length(in vec_t a);
-
-        int compute_roots_of_unity(in int n);
     };
 
 The `Math` component implementation contains the implementation of these new methods:
@@ -2740,21 +2739,26 @@ include MathIface/MathIface.mk
 TARGETS := pythagoras.cdl
 ADL := pythagoras.camkes
 
-Client_CFILES := components/Client/src/*.c \
-                 ${MathIface_EXPORT_HFILES}
+Client_CFILES := components/Client/src/*.c
+Client_HFILES := ${MathIface_EXPORT_HFILES}
+
 include ${PWD}/tools/camkes/camkes.mk
 ```
 
 #### Example involving Custom Port Type
-To motivate this example, the above example will be extended to include
-a method which computes the nth complex roots of unity for an argument `n`. For
-each positive integer `n`, there are `n` complex numbers which when raised to
-the power of `n`, result in a value of 1. A port will be used to store the result
-of this computation.
+
+The example in this section will demonstrate defining a custom type
+for a port in a global component. To motivate this example, the previous 
+example will be extended to include a method which computes the nth 
+complex roots of unity for an argument `n` - an operation which results 
+in `n` values. For each positive integer `n`, the nth roots of unity are the
+`n` complex numbers which, when raised to the power of `n`, result in a value of 1. 
+A port will be used to pass the results of this operation from the `Math`
+global component to the `Client` component.
 
 A header file defining complex numbers, and a struct containing an array of
 complex numbers, will be added to the Math component. Note that unlike in the
-previous example, ports do note have a corresponding .camkes file. Thus,
+procedure in the previous example, ports do not have a corresponding .camkes file. Thus,
 header files defining port types are placed in component directories instead of
 interface directories.
 
@@ -2765,8 +2769,8 @@ interface directories.
 #define _VEC_ARR_H_
 
 typedef struct {
-    double re;
-    double im;
+    double real;
+    double imaginary;
 } complex_t;
 
 typedef struct {
@@ -2842,15 +2846,15 @@ The implementation of this method is added to the `Math` component implementatio
 
 ...
 
-#define PI 3.14159
+#define M_PI 3.14159
 int m_compute_roots_of_unity(int n) {
     if (n >= 4096) {
         return -1;
     }
     for (int i=0;i<n;i++) {
         complex_data->data[i] = (complex_t) {
-            .re = cos((i*2*PI)/n),
-            .im = sin((i*2*PI)/n)
+            .real = cos((i*2*M_PI)/n),
+            .imaginary = sin((i*2*M_PI)/n)
         };
     }
     return 0;
@@ -2874,8 +2878,8 @@ int run(void) {
     if (math_compute_roots_of_unity(4) == 0) {
         printf("%dth roots of unity:\n", n);
         for (int i=0;i<4;i++) {
-            printf("%2f + %2fi\n", complex_data->data[i].re, 
-                                   complex_data->data[i].im);
+            printf("%2f + %2fi\n", complex_data->data[i].real, 
+                                   complex_data->data[i].imaginary);
         }
     }
 
@@ -2885,7 +2889,7 @@ int run(void) {
 
 To make the build system aware of the new header file (complex_arr.h), it must be exported
 by the `Math` component Makefile much in the same way as vec.h was exported in the previous
-example. It sets the `Math_EXPORT_HFILES` variable which becomes accessible to all dependant
+example. It sets the `Math_EXPORT_HFILES` variable which becomes accessible to all dependent
 Makefiles.
 
 ```Makefile
@@ -2915,9 +2919,10 @@ include MathIface/MathIface.mk
 TARGETS := pythagoras.cdl
 ADL := pythagoras.camkes
 
-Client_CFILES := components/Client/src/*.c  \
-                 ${MathIface_EXPORT_HFILES} \
+Client_CFILES := components/Client/src/*.c
+Client_HFILES := ${MathIface_EXPORT_HFILES} \
                  ${Math_EXPORT_HFILES}
+
 include ${PWD}/tools/camkes/camkes.mk
 ```
 
