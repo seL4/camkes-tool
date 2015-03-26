@@ -1784,10 +1784,10 @@ data over IO ports. This is specific to the IA32 architecture.
 **Keyword:** `emits`                      \
 **Connector:** `seL4HardwareInterrupt`    \
 **Description:**
-An `event` is emitted when an interrupt occurs.
+An event is emitted when an interrupt occurs.
 
 **Interface:** port                 \
-**Keyword:** `dataport `              \
+**Keyword:** `dataport`              \
 **Connector:** `seL4HardwareMMIO`     \
 **Description:**
 Memory mapped registers can be accessed via the shared memory.
@@ -2369,7 +2369,7 @@ should be placed in the top level include directory of the application.
 
 #### Ports
 
-Assume a data type `IntArray` is defined in int_array.h in the top level `include` directory of the application:
+Assume a data type `IntArray` is defined in int_array.h in the top level include directory of the application:
 
 ```c
 #ifndef _INT_ARRAY_H_
@@ -2414,7 +2414,7 @@ known as **Local Components** and **Local Interfaces**.
 Generally, a component should be created as a global component unless there's
 some good reason not to. Applications should consist of a (usually) small number
 of control components, and possibly some application specific utility components.
-When possible, utility components should be generalized and placed in a global
+When possible, utility components should be generalised and placed in a global
 component repository.
 
 All procedural interfaces used or provided by global components should be
@@ -2445,8 +2445,8 @@ theorem. All paths in this example are relative to the project root.
 
 Two additional directories are created in the project root directory:
 
-- `components`
-- `interfaces`
+- components
+- interfaces
 
 They are made known to the build system by setting the
 "Search path for components and interfaces" in the "CAmkES Options" section
@@ -2597,7 +2597,7 @@ double m_divide(double a, double b) {
 
 The build system must know the location of the component's source file(s), so
 a Makefile specifying this information
-is packaged with each globally component. Recall that
+is packaged with each global component. Recall that
 this file was included by the application's Makefile.
 
 ```Makefile
@@ -2765,7 +2765,7 @@ include ${PWD}/tools/camkes/camkes.mk
 #### Example involving Custom Port Type
 
 The example in this section will demonstrate defining a custom type
-for a port in a global component. To motivate this example, the previous 
+for a port in a global component. The previous
 example will be extended to include a method which computes the nth 
 complex roots of unity for an argument `n` - an operation which results 
 in `n` values. For each positive integer `n`, the nth roots of unity are the
@@ -2863,7 +2863,6 @@ The implementation of this method is added to the `Math` component implementatio
 
 ...
 
-#define M_PI 3.14159
 int m_compute_roots_of_unity(int n) {
     if (n >= 4096) {
         return -1;
