@@ -383,11 +383,6 @@ int /*? me.to_interface.name ?*/__run(void) {
                     /*- set return_type = m.return_type -*/
                     /*- set length = c_symbol('length') -*/
                     unsigned int /*? length ?*/ = /*- include 'call-marshal-outputs.c' -*/;
-                    if (unlikely(/*? length ?*/ == UINT_MAX)) {
-                        /* Error occurred in unmarshalling; return to event loop. */
-                        /*? info ?*/ = seL4_Wait(/*? ep ?*/, & /*? me.to_interface.name ?*/_badge);
-                        continue;
-                    }
 
                     /*# We no longer need anything we previously malloced #*/
                     /*- if m.return_type -*/
@@ -416,6 +411,16 @@ int /*? me.to_interface.name ?*/__run(void) {
                         free(* /*? p.name ?*/_ptr);
                       /*- endif -*/
                     /*- endfor -*/
+
+                    /* Check if there was an error during marshalling. We do
+                     * this after freeing internal parameter variables to avoid
+                     * leaking memory on errors.
+                     */
+                    if (unlikely(/*? length ?*/ == UINT_MAX)) {
+                        /* Error occurred; return to event loop. */
+                        /*? info ?*/ = seL4_Wait(/*? ep ?*/, & /*? me.to_interface.name ?*/_badge);
+                        continue;
+                    }
 
                     /*? info ?*/ = seL4_MessageInfo_new(0, 0, 0, /* length */
                         /*- if userspace_ipc -*/
