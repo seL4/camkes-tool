@@ -27,9 +27,14 @@ static camkes_error_action_t default_error_handler(camkes_error_t *error) {
             fprintf(stderr, "Error: syscall failed\n");
             break;
 
+        case CE_ALLOCATION_FAILURE:
+            fprintf(stderr, "Error: allocation failed\n");
+            break;
+
         default:
             UNREACHABLE();
     }
+    fprintf(stderr, "Occurred at %s:%u\n", error->filename, error->lineno);
     fprintf(stderr, "Details: %s\n", error->description);
 
     return CEA_HALT;
