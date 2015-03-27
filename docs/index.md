@@ -1925,7 +1925,44 @@ default.
       }
     }
 
+### Thread Priorities
 
+Each thread in a CAmkES system has a priority that determines how it is
+scheduled by seL4. These priorities default to a value given by the
+`--default-priority` command-line argument to the runner. In a given system, it
+it possible to adjust the priority of a specific thread with an attribute that
+has specific semantics. To adjust the priority of the control thread (the
+thread that calls `run`), use the `_control_priority` attribute:
+
+    assembly {
+      composition {
+        component Foo f;
+        ...
+      }
+      configuration {
+        f._control_priority = 100;
+      }
+    }
+
+To adjust the priority of an interface thread, use an attribute named with the
+name of the interface and the suffix ``_priority'':
+
+    component Foo {
+      uses MyInterface i;
+    }
+
+    assembly {
+      composition {
+        component Foo f;
+        ...
+      }
+      configuration {
+        f.i_priority = 100;
+      }
+    }
+
+For more information about the specifics of the seL4 scheduler, please refer to
+the seL4 documentation.
 
 ### Scheduling Domains
 
