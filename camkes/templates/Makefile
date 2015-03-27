@@ -28,7 +28,7 @@
 /*- endmacro -*/
 
 /*- macro rule_gen(target, dependencies, item, cfiles_append=None, platform='seL4', preprocessor=None) -*/
-/*- if cfiles_append -*/
+/*- if cfiles_append is not none -*/
 /*? cfiles_append ?*/_CFILES += /*? target ?*/
 /*- endif -*/
 .DELETE_ON_ERROR: /*? target ?*/

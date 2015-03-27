@@ -58,7 +58,7 @@ int /*? me.from_interface.name ?*/__run(void) {
  *# timing points.
  #*/
 /*- set timing_method = [] -*/
-/*- if configuration -*/
+/*- if configuration is not none -*/
     /*- set timing_setting = filter(lambda('x: x.instance == \'%s\' and x.attribute == \'%s_timing\'' % (me.from_instance.name, me.from_interface.name)), configuration.settings) -*/
     /*- if len(timing_setting) > 0 -*/
         /*- do timing_method.append(timing_setting[0].value) -*/

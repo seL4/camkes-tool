@@ -35,7 +35,7 @@
 /*- for s in configuration.settings -*/
     /*- if s.instance == me.name -*/
         /*- set r = re.match('simple_untyped([0-9]+)_pool', s.attribute) -*/
-        /*- if r -*/
+        /*- if r is not none -*/
             /*- set bits = r.group(1) -*/
             /*- set count = s.value -*/
             /*- for i in range(count) -*/
@@ -147,7 +147,7 @@
 /*- set _cnodesize = [None] -*/
 /*- if cap_space.cnode.size_bits == 'auto' -*/
     /*- set size_bits = filter(lambda('x: x.instance == \'%s\' and x.attribute == \'cnode_size_bits\'' % (me.name)),  configuration.settings) -*/
-    /*- if size_bits -*/
+    /*- if len(size_bits) > 0 -*/
         /*- if len(size_bits) != 1 -*/
             /*? raise(Exception('Multiple cnode_size_bits specified. This makes no sense')) ?*/
         /*- endif -*/

@@ -48,7 +48,7 @@
 /*- set BUFFER_BASE = c_symbol('BUFFER_BASE') -*/
 /*- set base = '((void*)&seL4_GetIPCBuffer()->msg[0])' -*/
 /*- set userspace_ipc = False -*/
-/*- if configuration -*/
+/*- if configuration is not none -*/
     /*- set buffers = filter(lambda('x: x.instance == \'%s\' and x.attribute == \'%s_buffer\'' % (me.from_instance.name, me.from_interface.name)), configuration.settings) -*/
     /*- if len(buffers) == 1 -*/
         /*- set base = buffers[0].value -*/
@@ -243,7 +243,7 @@ int /*? me.from_interface.name ?*/__run(void) {
     /*# We're about to start writing to the buffer. If relevant, protect our
      *# access.
      #*/
-    /*- if userspace_buffer_ep -*/
+    /*- if userspace_buffer_ep is not none -*/
       sync_sem_bare_wait(/*? userspace_buffer_ep ?*/,
         &/*? userspace_buffer_sem_value ?*/);
     /*- endif -*/
@@ -325,7 +325,7 @@ int /*? me.from_interface.name ?*/__run(void) {
         /*- endif -*/
     }
 
-    /*- if userspace_buffer_ep -*/
+    /*- if userspace_buffer_ep is not none -*/
       sync_sem_bare_post(/*? userspace_buffer_ep ?*/,
         &/*? userspace_buffer_sem_value ?*/);
     /*- endif -*/

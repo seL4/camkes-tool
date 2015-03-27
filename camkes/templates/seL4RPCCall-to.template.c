@@ -38,7 +38,7 @@
 /*- set BUFFER_BASE = c_symbol('BUFFER_BASE') -*/
 /*- set base = '((void*)&seL4_GetIPCBuffer()->msg[0])' -*/
 /*- set userspace_ipc = False -*/
-/*- if configuration -*/
+/*- if configuration is not none -*/
     /*- set buffers = filter(lambda('x: x.instance == \'%s\' and x.attribute == \'%s_buffer\'' % (me.to_instance.name, me.to_interface.name)), configuration.settings) -*/
     /*- if len(buffers) == 1 -*/
         /*- set base = buffers[0].value -*/
