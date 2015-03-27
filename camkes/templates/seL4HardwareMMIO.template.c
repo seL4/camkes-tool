@@ -52,19 +52,16 @@ void * /*? me.from_interface.name ?*/_unwrap_ptr(dataport_ptr_t *p) {
 
 /*- set p = Perspective(to_interface=me.to_interface.name) -*/
 /*#Check if we have preserved enough virtual memory for the MMIO. #*/
-/*- for s in configuration.settings -*/
-    /*- if s.instance == me.to_instance.name -*/
-        /*- if s.attribute == p['hardware_attribute'] -*/
-            /*- set paddr, size = s.value.strip('"').split(':') -*/
-            _Static_assert(sizeof(/*? show(me.from_interface.type) ?*/) == /*? size ?*/, "Data type mismatch!");
+/*- set attr = configuration[me.to_instance.name].get(p['hardware_attribute']) -*/
+/*- if attr is not none -*/
+    /*- set paddr, size = attr.strip('"').split(':') -*/
+    _Static_assert(sizeof(/*? show(me.from_interface.type) ?*/) == /*? size ?*/, "Data type mismatch!");
 
-            void * /*? me.from_interface.name ?*/_translate_paddr(
-                    uintptr_t paddr, size_t size) {
-                if (paddr == /*? paddr ?*/ && size == /*? size ?*/) {
-                    return (void*)/*? me.from_interface.name ?*/;
-                }
-                return NULL;
-            }
-        /*- endif -*/
-    /*- endif -*/
-/*- endfor -*/
+    void * /*? me.from_interface.name ?*/_translate_paddr(
+            uintptr_t paddr, size_t size) {
+        if (paddr == /*? paddr ?*/ && size == /*? size ?*/) {
+            return (void*)/*? me.from_interface.name ?*/;
+        }
+        return NULL;
+    }
+/*- endif -*/

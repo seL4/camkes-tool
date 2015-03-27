@@ -57,14 +57,7 @@ int /*? me.from_interface.name ?*/__run(void) {
 /*# Find the method (if any) that has been marked to be instrumented with
  *# timing points.
  #*/
-/*- set timing_method = [] -*/
-/*- if configuration is not none -*/
-    /*- set timing_setting = filter(lambda('x: x.instance == \'%s\' and x.attribute == \'%s_timing\'' % (me.from_instance.name, me.from_interface.name)), configuration.settings) -*/
-    /*- if len(timing_setting) > 0 -*/
-        /*- do timing_method.append(timing_setting[0].value) -*/
-    /*- endif -*/
-/*- endif -*/
-/*- set timing_method = timing_method[0] if len(timing_method) > 0 else None -*/
+/*- set timing_method = configuration[me.from_instance.name].get('%s_timing' % me.from_interface.name) -*/
 
 /*- for i, m in enumerate(me.from_interface.type.methods) -*/
 

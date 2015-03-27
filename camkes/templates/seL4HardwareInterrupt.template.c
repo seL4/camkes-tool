@@ -14,15 +14,10 @@
 
 /*? macros.show_includes(me.to_instance.type.includes) ?*/
 /*- set attr = "%s_attributes" % me.from_interface.name -*/
-/*- set irq= [] -*/
 /*- set aep_obj = alloc_obj('aep', seL4_AsyncEndpointObject) -*/
 /*- set aep = alloc_cap('aep', aep_obj, read=True) -*/
-/*- for i in configuration.settings -*/
-    /*- if attr == i.attribute and i.instance == me.from_instance.name -*/
-        /*- do irq.append(alloc('irq', seL4_IRQControl, number=i.value, aep=aep_obj)) -*/
-        /*- break -*/
-    /*- endif -*/
-/*- endfor -*/
+/*- set _irq = configuration[me.from_instance.name].get(attr) -*/
+/*- set irq = alloc('irq', seL4_IRQControl, number=_irq, aep=aep_obj) -*/
 /*- set lock = alloc('lock', seL4_AsyncEndpointObject, read=True, write=True) -*/
 
 #define MAX_CALLBACKS 10
@@ -98,7 +93,7 @@ int /*? me.to_interface.name ?*/_reg_callback(void (*callback)(void*), void *arg
     for (int i = 0; i < MAX_CALLBACKS; ++i) {
         if (CAS(&callbacks[i], NULL, callback) == NULL) {
             callback_args[i] = arg;
-	    error = seL4_IRQHandler_Ack(/*? irq[0] ?*/);
+	    error = seL4_IRQHandler_Ack(/*? irq ?*/);
 	    assert(!error);
             return 0;
         }
