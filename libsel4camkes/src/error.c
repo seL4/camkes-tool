@@ -34,7 +34,7 @@ static camkes_error_action_t default_error_handler(camkes_error_t *error) {
         default:
             UNREACHABLE();
     }
-    fprintf(stderr, "Occurred at %s:%u\n", error->filename, error->lineno);
+    fprintf(stderr, "Occurred at %s:%lu\n", error->filename, error->lineno);
     fprintf(stderr, "Details: %s\n", error->description);
 
     return CEA_HALT;
