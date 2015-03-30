@@ -654,7 +654,6 @@ for the component that does nothing except emit the event itself:
 ```c
 /* apps/helloevent/components/Emitter/src/main.c */
 
-#include <stdio.h>
 #include <Emitter.h>
   
 int run(void) {
