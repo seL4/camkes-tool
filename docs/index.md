@@ -2443,6 +2443,28 @@ the resulting symbol name. This is helpful for debugging purposes if you want
 to give someone looking at the instantiated template a visual clue as to the
 purpose of a temporary variable.
 
+#### Subverting Scoping
+
+Jinja has some unusual and often counter-intuitive variable scoping rules.
+Occasionally templates wish to conditionally assign to a variable within the
+context of a loop or other Jinja block. In these circumstances it can be tricky
+to get the write to propagate outside the loop. You may see a temporary array
+and a `do` construct used in these situations:
+
+```c
+/*- set temp = [None] -*/
+/*- for .... -*/
+  ...
+  /*- if ... -*/
+    /*- do temp.__setitem__(0, True) -*/
+  /*- else -*/
+    /*- do temp.__setitem__(0, False) -*/
+  /*- endif -*/
+  ...
+/*- endfor -*/
+/*- set variable_we_want_to_set = temp[0] -*/
+```
+
 ### Template Debugging
 
 If you are writing complicated template logic and need to debug during
