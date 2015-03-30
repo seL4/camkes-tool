@@ -18,7 +18,7 @@
   /*- set ret = c_symbol('return') -*/
   static unsigned int /*? function ?*/_/*? ret_fn ?*/(unsigned int /*? offset ?*/,
     /*- if return_type.array -*/
-      size_t * /*? ret ?*/_sz,
+      const size_t * /*? ret ?*/_sz,
       /*- if isinstance(return_type, camkes.ast.Type) and return_type.type == 'string' -*/
         char *** /*? ret ?*/
       /*- else -*/
@@ -27,7 +27,7 @@
     /*- elif isinstance(return_type, camkes.ast.Type) and return_type.type == 'string' -*/
       char ** /*? ret ?*/
     /*- else -*/
-      /*? show(return_type) ?*/ * /*? ret ?*/
+      const /*? show(return_type) ?*/ * /*? ret ?*/
     /*- endif -*/
   ) {
 
@@ -119,7 +119,7 @@
   /*- set offset = c_symbol('offset') -*/
   static unsigned int /*? function ?*/_/*? p.name ?*/(unsigned int /*? offset ?*/,
     /*- if p.array -*/
-      size_t * /*? p.name ?*/_sz,
+      const size_t * /*? p.name ?*/_sz,
       /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
         char *** /*? p.name ?*/
       /*- else -*/
@@ -128,7 +128,7 @@
     /*- elif isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
       char ** /*? p.name ?*/
     /*- else -*/
-      /*? show(p.type) ?*/ * /*? p.name ?*/
+      const /*? show(p.type) ?*/ * /*? p.name ?*/
     /*- endif -*/
   ) {
 
@@ -220,7 +220,7 @@ static unsigned int /*? function ?*/(
 /*- set ret = c_symbol('return') -*/
 /*- if return_type -*/
   /*- if return_type.array -*/
-    size_t * /*? ret ?*/_sz,
+    const size_t * /*? ret ?*/_sz,
     /*- if isinstance(return_type, camkes.ast.Type) and return_type.type == 'string' -*/
       char *** /*? ret ?*/
     /*- else -*/
@@ -229,7 +229,7 @@ static unsigned int /*? function ?*/(
   /*- elif isinstance(return_type, camkes.ast.Type) and return_type.type == 'string' -*/
     char ** /*? ret ?*/
   /*- else -*/
-    /*? show(return_type) ?*/ * /*? ret ?*/
+    const /*? show(return_type) ?*/ * /*? ret ?*/
   /*- endif -*/
   /*- if len(output_parameters) > 0 -*/
     ,
@@ -237,7 +237,7 @@ static unsigned int /*? function ?*/(
 /*- endif -*/
 /*- for p in output_parameters -*/
   /*- if p.array -*/
-    size_t * /*? p.name ?*/_sz,
+    const size_t * /*? p.name ?*/_sz,
     /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
       char *** /*? p.name ?*/
     /*- else -*/
@@ -246,7 +246,7 @@ static unsigned int /*? function ?*/(
   /*- elif isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
     char ** /*? p.name ?*/
   /*- else -*/
-    /*? show(p.type) ?*/ * /*? p.name ?*/
+    const /*? show(p.type) ?*/ * /*? p.name ?*/
   /*- endif -*/
   /*- if not loop.last -*/
     ,

@@ -29,7 +29,12 @@
         void
     /*- endif -*/
     /*? me.to_interface.name ?*/_/*? m.name ?*/(
-        /*? ', '.join(map(show, m.parameters)) ?*/
+      /*- for p in m.parameters -*/
+        /*- if isinstance(p.type, camkes.ast.Reference) or p.array or p.type.type == 'string' or p.direction.direction == 'refin' -*/
+          /*? raise(NotImplementedError()) ?*/
+        /*- endif -*/
+      /*- endfor -*/
+      /*? ', '.join(map(show, m.parameters)) ?*/
     );
 /*- endfor -*/
 
