@@ -59,7 +59,7 @@ static unsigned int /*? me.from_interface.name ?*/_/*? m.name ?*/_marshal(
             /*? assert(sizeof(p) <= 2 * __SIZEOF_POINTER__) ?*/
         /*- endif -*/
     /*- endfor -*/
-        
+
     return /*? length ?*/;
 }
 

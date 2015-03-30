@@ -114,7 +114,7 @@ lemma msg_update_id:"msg_C_update (\<lambda>r. Arrays.update r i (index (msg_C y
   apply (cut_tac f="(\<lambda>r. Arrays.update r i (index (msg_C y) i))" and
                  f'=id and r=y and r'=y in seL4_IPCBuffer__C_fold_congs(2))
      apply simp+
-  apply (simp add:id_def) 
+  apply (simp add:id_def)
   apply (metis seL4_IPCBuffer__C_accupd_diff(22) seL4_IPCBuffer__C_accupd_diff(24)
                seL4_IPCBuffer__C_accupd_diff(26) seL4_IPCBuffer__C_accupd_diff(28)
                seL4_IPCBuffer__C_accupd_diff(30) seL4_IPCBuffer__C_accupd_diff(41)

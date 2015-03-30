@@ -463,7 +463,7 @@ def main():
                     if template:
                         with profiler('Rendering %s' % t):
                             g = r.render(i, conf, template, obj_space, cspaces[i.address_space], \
-                                shmem, options=options, id=id, my_pd=pds[i.address_space], 
+                                shmem, options=options, id=id, my_pd=pds[i.address_space],
                                 **cmdln_opts)
                     save(t, g)
                     if options.item == t:
@@ -570,7 +570,7 @@ def compose_assemblies(ast):
                             AST.Configuration(None, settings),
                             filename, lineno
                         )
- 
+
     # remove all the assemblies from ast
     assemblies = [x for x in ast if isinstance(x, AST.Assembly)]
     for a in assemblies:
@@ -587,10 +587,10 @@ def get_assembly(ast):
 def resolve_hierarchy(ast):
     # find the assembly
     assembly = get_assembly(ast)
-    
+
     # modify the ast to resolve the hierarchy
     new_assembly = resolve_assembly_hierarchy(assembly)
-    
+
     # remove the assembly from the ast
     ast.remove(assembly)
 
@@ -610,7 +610,7 @@ def merge_assembly(dest, source, instance):
        assembly is source. Any connectors in dest which connect an exported
        interface of the given instance are changed to connect to the
        actual component instance that implements that interface'''
-       
+
     # copy instances, groups and configuration settings
     dest.composition.instances.extend(source.composition.instances)
     dest.composition.groups.extend(source.composition.groups)
@@ -645,7 +645,7 @@ def merge_assembly(dest, source, instance):
             dest.composition.connections.append(c)
 
     # find all the connections in dest with the given instance on one side
-    # and the interface of the given instance is exported by in the source 
+    # and the interface of the given instance is exported by in the source
     # assembly, replacing the instance and interface of that side of the
     # connection with the corresponding one from the source
     for c in dest.composition.connections:
@@ -691,22 +691,22 @@ def resolve_assembly_hierarchy(original):
 
     if original.configuration is not None:
         resolved.configuration.settings.extend(original.configuration.settings)
-    
+
     # recursively resolve hierarchy of instances
     for i in original.composition.instances:
 
         # if i is an instance of a compound component
         if i.type.composition is not None:
-            
+
             # get the assembly from that component
             # deepcopying prevents modifying the original component's composition's
             # children, which must be preserved for future instantiation of the
             # component
             resolved_instance = resolve_assembly_hierarchy(deepcopy(i.type))
-            
+
             # rename assembly elements to indicate them as part of a sub assembly
             prefix_children(i.name, resolved_instance)
-            
+
             # merge it into the current assembly
             merge_assembly(resolved, resolved_instance, i)
 

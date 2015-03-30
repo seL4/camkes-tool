@@ -336,7 +336,7 @@ lemma heap_w/*? w1 ?*/_setmr[simp]: "heap_w/*? w1 ?*/ (setMR s i x) = heap_w/*? 
     lemma heap_w/*? w1 ?*/_update_s/*? w2 ?*/: "heap_w/*? w1 ?*/ (update_s/*? w2 ?*/ s p v) q = (if (ptr_coerce p) = q then scast v else heap_w/*? w1 ?*/ s q)"
       by (simp add:update_s/*? w2 ?*/_def)
           /*- endif -*/
-    
+
           /*- if ('%d word' % w2) in used_types -*/
     lemma heap_w/*? w1 ?*/_update_u/*? w2 ?*/: "heap_w/*? w1 ?*/ (update_u/*? w2 ?*/ s p v) q = (if p = q then v else heap_w/*? w1 ?*/ s q)"
       by (simp add:update_u/*? w2 ?*/_def)
@@ -346,7 +346,7 @@ lemma heap_w/*? w1 ?*/_setmr[simp]: "heap_w/*? w1 ?*/ (setMR s i x) = heap_w/*? 
     lemma heap_w/*? w1 ?*/_update_s/*? w2 ?*/[simp]: "heap_w/*? w1 ?*/ (update_s/*? w2 ?*/ s p v) q = heap_w/*? w1 ?*/ s q"
       by (simp add:update_s/*? w2 ?*/_def)
           /*- endif -*/
-    
+
           /*- if ('%d word' % w2) in used_types -*/
     lemma heap_w/*? w1 ?*/_update_u/*? w2 ?*/[simp]: "heap_w/*? w1 ?*/ (update_u/*? w2 ?*/ s p v) q = heap_w/*? w1 ?*/ s q"
       by (simp add:update_u/*? w2 ?*/_def)

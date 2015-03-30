@@ -215,7 +215,7 @@ static unsigned int /*? me.to_interface.name ?*/_/*? m.name ?*/_internal(void) {
             /*- endif -*/
         /*- endfor -*/
     );
-   
+
     /*- set length = c_symbol('length') -*/
     unsigned int /*? length ?*/ = /*? me.to_interface.name ?*/_/*? m.name ?*/_marshal(
         /*- if m.return_type -*/

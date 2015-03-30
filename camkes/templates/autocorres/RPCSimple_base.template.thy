@@ -5,7 +5,7 @@
 /*- set used_types = set() -*/
 /*- include 'autocorres/have_heap.thy' -*/
 
-theory /*? thy ?*/ imports 
+theory /*? thy ?*/ imports
   "../../../tools/autocorres/AutoCorres"
   "../../../lib/LemmaBucket"
   "../../../lib/WordBitwiseSigned"

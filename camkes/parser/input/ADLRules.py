@@ -237,10 +237,10 @@ def p_connection_defn(t):
 
     else:
         assert len(t) == 14
-        
+
         # placeholder refering to 'current instance of this component'
         # required for hierarchical components
-        virtual_instance = Instance(Component(), '__virtual__', 
+        virtual_instance = Instance(Component(), '__virtual__',
             filename=t.lexer.filename, lineno=t.lexer.lineno)
 
         if t[7] == ',':
@@ -260,7 +260,7 @@ def p_connection_defn(t):
             to_instance = virtual_instance
             to_interface =  Reference(t[11], Interface, \
                 filename=t.lexer.filename, lineno=t.lexer.lineno)
- 
+
 
     t[0] = Connection(connector, name, from_instance, from_interface, \
         to_instance, to_interface, filename=t.lexer.filename, \

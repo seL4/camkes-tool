@@ -365,10 +365,10 @@ def collapse_shared_frames(ast, obj_space, cspaces, elfs, _, options):
                     # loop over all the page table indices and replace the page tables
                     # with large frames
                     for count, pt_index in enumerate(pt_indices):
-                        
+
                         # look up the page table at the current index
                         pt = pd[pt_index].referent
-                        
+
                         name = 'large_frame_%s_%d' % (instance_name, large_frame_uid)
                         large_frame_uid += 1
 
@@ -381,7 +381,7 @@ def collapse_shared_frames(ast, obj_space, cspaces, elfs, _, options):
                         frame_cap = Cap(frame, read, write, execute)
                         frame_cap.set_cached(False)
                         pd[pt_index] = frame_cap
-                    
+
                         # remove all the small frames from the spec
                         for p_index in pt:
                             small_frame = pt[p_index].referent

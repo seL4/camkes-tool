@@ -55,7 +55,7 @@ where
      ret' \<leftarrow> seL4_GetIPCBuffer';
      guard (\<lambda>s. i < uint seL4_MsgMaxLength);
      guard (\<lambda>s. 0 \<le> i);
-     modify (\<lambda>s. s \<lparr>heap_seL4_IPCBuffer__C := (heap_seL4_IPCBuffer__C s)(ret' := 
+     modify (\<lambda>s. s \<lparr>heap_seL4_IPCBuffer__C := (heap_seL4_IPCBuffer__C s)(ret' :=
         msg_C_update  (
             \<lambda>a. Arrays.update a (nat i) val) (heap_seL4_IPCBuffer__C s ret')
           )  \<rparr>)
@@ -453,7 +453,7 @@ lemma /*? thy ?*/_run_internal_wp[wp_unsafe]:
   /*- set state = isabelle_symbol('s') -*/
   shows
   "\<lbrace>\<lambda>/*? state ?*/. globals_frame_intact /*? state ?*/ \<and>
-  
+
   tls_valid /*? state ?*/ \<and>
   thread_index_C (tls /*? state ?*/) \<in> {1..thread_count} \<and>
 

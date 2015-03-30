@@ -101,7 +101,7 @@ lemma /*? name ?*/[simp]:"ptr_valid_/*? 's' if signed else 'u' ?*//*? size ?*/ (
   /*? ptr_contains_t_valid(ptr_lemmas, 64, True) ?*/
   /*? ptr_contains_t_setmr(ptr_lemmas, 64, True) ?*/
   /*? ptr_valid_t_setmr(ptr_lemmas, 64, True) ?*/
- 
+
 /*- endif -*/
 
 /*- endfor -*/

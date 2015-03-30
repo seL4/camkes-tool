@@ -39,7 +39,7 @@ where
      guard (\<lambda>s. i < uint seL4_MsgMaxLength);
      guard (\<lambda>s. 0 \<le> i);
      modify (\<lambda>s. s \<lparr>heap_seL4_IPCBuffer__C :=
-       (heap_seL4_IPCBuffer__C s)(ret' := 
+       (heap_seL4_IPCBuffer__C s)(ret' :=
           msg_C_update (\<lambda>a. Arrays.update a (nat i) val)
              (heap_seL4_IPCBuffer__C s ret'))
      \<rparr>)
@@ -129,7 +129,7 @@ lemma camkes_get_tls_wp':
 
 lemmas camkes_get_tls_wp[wp] =
   camkes_get_tls_wp'[THEN validNF_make_schematic_post, simplified]
- 
+
 lemma abort_wp[wp]:
   "\<lbrace>\<lambda>_. False\<rbrace> abort' \<lbrace>P\<rbrace>!"
   apply (rule validNF_false_pre)

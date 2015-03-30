@@ -41,7 +41,7 @@ where
      guard (\<lambda>s. i < uint seL4_MsgMaxLength);
      guard (\<lambda>s. 0 \<le> i);
      modify (\<lambda>s. s \<lparr>heap_seL4_IPCBuffer__C :=
-       (heap_seL4_IPCBuffer__C s)(ret' := 
+       (heap_seL4_IPCBuffer__C s)(ret' :=
           msg_C_update (\<lambda>a. Arrays.update a (nat i) val)
              (heap_seL4_IPCBuffer__C s ret'))
      \<rparr>)
@@ -110,7 +110,7 @@ where
        guard (\<lambda>s. i < uint seL4_MsgMaxLength);
        guard (\<lambda>s. 0 \<le> i);
        modify (\<lambda>s. s \<lparr>heap_seL4_IPCBuffer__C :=
-         (heap_seL4_IPCBuffer__C s)(ret' := 
+         (heap_seL4_IPCBuffer__C s)(ret' :=
             msg_C_update (\<lambda>a. Arrays.update a (nat i) val)
                (heap_seL4_IPCBuffer__C s ret'))
        \<rparr>)
@@ -413,7 +413,7 @@ text {*
   (e.g. \code{int}), parameters smaller than a word (e.g. \code{char}) and parameters greater than
   a word (e.g. \code{uint64\_t}). Similarly the generation logic handles input, output and
   bidirectional parameters, as well as methods with and without a return value.
-  
+
   The proofs themselves state that the glue code obeys the C99 standard and that, when invoked, it
   consistently terminates (returns to the user) and does not reference invalid memory. The
   assumptions are the properties of the globals frame and TLS region discussed previously and,
@@ -454,7 +454,7 @@ lemma /*? me.from_interface.name ?*/_/*? m.name ?*/_nf:
     /*- endfor -*/
 (** TPP: accumulate = False *)
 
-  \<lbrace>\<lambda>_ /*? state ?*/. globals_frame_intact /*? state ?*/ \<and> 
+  \<lbrace>\<lambda>_ /*? state ?*/. globals_frame_intact /*? state ?*/ \<and>
 (** TPP: lock_indent = 6 + len("/*? state ?*/") + 2 *)
 
   /*# Any 'out' or 'inout' parameter pointers are still valid. #*/

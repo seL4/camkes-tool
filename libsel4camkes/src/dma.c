@@ -250,7 +250,7 @@ static void defrag(void) {
                   p_pstart = extract_paddr(p),       /* start physical address */
                   p_pend   = p_pstart + p->size;     /* end physical address */
 
-        /* For each region *before* this one... */ 
+        /* For each region *before* this one... */
         for (region_t *qprev = NULL, *q = head; q != p; qprev = q, q = q->next) {
 
             uintptr_t q_vstart = (uintptr_t)q,
