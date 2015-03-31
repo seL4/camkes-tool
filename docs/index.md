@@ -236,7 +236,7 @@ of these terms are made explicit below.
 A concrete example:
 
     procedure thing {
-        int func(in int x);
+      int func(in int x);
     }
 
     event sig = 42;
@@ -244,27 +244,27 @@ A concrete example:
     dataport Buf buffer;
 
     component foo {
-        control;
-        uses thing t1;
-        emits sig s1;
-        dataport buffer b1;
+      control;
+      uses thing t1;
+      emits sig s1;
+      dataport buffer b1;
     }
 
     component bar {
-        provides thing t2;
-        consumes sig s2;
-        dataport buffer b2;
+      provides thing t2;
+      consumes sig s2;
+      dataport buffer b2;
     }
 
     assembly {
-        composition {
-            component foo f;
-            component bar b;
+      composition {
+        component foo f;
+        component bar b;
 
-            connection RPC c1(from f.t1, to b.t2);
-            connection Asynch c2(from f.s1, to b.s2);
-            connection SharedData c3(from f.b1, to b.b2);
-        }
+        connection RPC c1(from f.t1, to b.t2);
+        connection Asynch c2(from f.s1, to b.s2);
+        connection SharedData c3(from f.b1, to b.b2);
+      }
     }
 
 * `thing` is a **procedure**
@@ -441,7 +441,7 @@ this under apps/helloworld/interfaces/MyInterface.idl4:
     /* apps/helloworld/interfaces/MyInterface.idl4 */
      
     procedure MyInterface {
-        void print(in string message);
+      void print(in string message);
     };
 
 This interface consists of a single method, print that takes an input parameter
@@ -458,7 +458,7 @@ apps/helloworld/components/Client/Client.camkes.
     import "../../interfaces/MyInterface.idl4";
 
     component Hello {
-        provides MyInterface inf;
+      provides MyInterface inf;
     }
 
     /* apps/helloworld/components/Client/Client.camkes */
@@ -466,8 +466,8 @@ apps/helloworld/components/Client/Client.camkes.
     import "../../interfaces/MyInterface.idl4";
          
     component Client {
-        control;
-        uses MyInterface iface;
+      control;
+      uses MyInterface iface;
     }
 
 Note that each component description needs to import the interface file we
@@ -490,11 +490,11 @@ apps/helloworld/helloworld.camkes.
     import "components/Client/Client.camkes";
 
     assembly {
-        composition {
-            component Hello h;
-            component Client c;
-            connection seL4RPC conn(from c.iface, to h.inf);
-        }
+      composition {
+        component Hello h;
+        component Client c;
+        connection seL4RPC conn(from c.iface, to h.inf);
+      }
     }
 
 This file begins with several import statements that reference other files.
@@ -517,7 +517,7 @@ void inf__init(void) {
 }
   
 void inf_print(char *message) {
-    printf("Client says: %s\n", message);
+  printf("Client says: %s\n", message);
 }
 ```
 
@@ -539,9 +539,9 @@ they are directly available to it:
 #include <Client.h>
 
 int run(void) {
-    char *s = "hello world";
-    iface_print(s);
-    return 0;
+  char *s = "hello world";
+  iface_print(s);
+  return 0;
 }
 ```
 
@@ -642,8 +642,8 @@ infer an event type. Create the following description for Emitter:
     /* apps/helloevent/components/Emitter/Emitter.camkes */
 
     component Emitter {
-        control;
-        emits MyEvent e;
+      control;
+      emits MyEvent e;
     }
 
 This description says Emitter is an active component (the control keyword) and
@@ -656,10 +656,10 @@ for the component that does nothing except emit the event itself:
 #include <Emitter.h>
   
 int run(void) {
-    while (1) {
-        e_emit();
-    }
-    return 0;
+  while (1) {
+    e_emit();
+  }
+  return 0;
 }
 ```
 
@@ -670,8 +670,8 @@ Now let's create a description of the Consumer that will handle this event:
     /* apps/helloevent/components/Consumer/Consumer.camkes */
 
     component Consumer {
-        control;
-        consumes MyEvent s;
+      control;
+      consumes MyEvent s;
     }
 
 Note that this component consumes (handles) an event of the same type. Let's
@@ -684,11 +684,11 @@ instantiate and connect these components together using another ADL file:
     import "components/Consumer/Consumer.camkes";
 
     assembly {
-        composition {
-            component Emitter source;
-            component Consumer sink;
-            connection seL4Asynch channel(from source.e, to sink.s);
-        }
+      composition {
+        component Emitter source;
+        component Consumer sink;
+        connection seL4Asynch channel(from source.e, to sink.s);
+      }
     }
 
 In this file, seL4Asynch is a seL4 specific connector for transmitting
@@ -706,30 +706,30 @@ arrived or not. Let's add some source code that uses all three:
 #include <Consumer.h>
 
 static void handler(void) {
-    static int fired = 0;
-    printf("Callback fired!\n");
-    if (!fired) {
-        fired = 1;
-        s_reg_callback(&handler);
-    }
+  static int fired = 0;
+  printf("Callback fired!\n");
+  if (!fired) {
+    fired = 1;
+    s_reg_callback(&handler);
+  }
 }
 
 int run(void) {
-    printf("Registering callback...\n");
-    s_reg_callback(&handler);
+  printf("Registering callback...\n");
+  s_reg_callback(&handler);
 
-    printf("Polling...\n");
-    if (s_poll()) {
-        printf("We found an event!\n");
-    } else {
-        printf("We didn't find an event\n");
-    }
+  printf("Polling...\n");
+  if (s_poll()) {
+    printf("We found an event!\n");
+  } else {
+    printf("We didn't find an event\n");
+  }
 
-    printf("Waiting...\n");
-    s_wait();
-    printf("Unblocked by an event!\n");
+  printf("Waiting...\n");
+  s_wait();
+  printf("Unblocked by an event!\n");
 
-    return 0;
+  return 0;
 }
 ```
 
@@ -784,7 +784,7 @@ Let's define a struct that will be used as one of the dataports:
 #define _PORTTYPE_H_
   
 typedef struct MyData {
-    char data[10];
+  char data[10];
 } MyData_t;
    
 #endif
@@ -810,10 +810,10 @@ Now let's create an ADL description of the Ping component:
     import "Porttype.idl4";
 
     component Ping {
-        include "porttype.h";
-        control;
-        dataport Buf d1;
-        dataport MyData_t d2;
+      include "porttype.h";
+      control;
+      dataport Buf d1;
+      dataport MyData_t d2;
     }
 
 Note that we need to include the C header in the ADL. CAmkES does not actually
@@ -825,10 +825,10 @@ the `MyData_t` type. Add a similar description for Pong:
     import "Porttype.idl4";
 
     component Pong {
-        include "porttype.h";
-        control;
-        dataport Buf s1;
-        dataport MyData_t s2;
+      include "porttype.h";
+      control;
+      dataport Buf s1;
+      dataport MyData_t s2;
     }
 
 Now we'll create some basic code for each component to use the dataports:
@@ -844,18 +844,18 @@ Now we'll create some basic code for each component to use the dataports:
 #include <porttype.h>
 
 int run(void) {
-    char *hello = "hello";
+  char *hello = "hello";
 
-    printf("Ping: sending %s...\n", hello);
-    strcpy((void*)d1_data, hello);
+  printf("Ping: sending %s...\n", hello);
+  strcpy((void*)d1_data, hello);
 
-    /* Wait for Pong to reply. We can assume d2_data is
-     * zeroed on startup by seL4.
-     */
-    while (!d2_data->data[0]);
-    printf("Ping: received %s.\n", d2_data->data);
+  /* Wait for Pong to reply. We can assume d2_data is
+   * zeroed on startup by seL4.
+   */
+  while (!d2_data->data[0]);
+  printf("Ping: received %s.\n", d2_data->data);
 
-    return 0;
+  return 0;
 }
 ```
 
@@ -870,18 +870,18 @@ int run(void) {
 #include <porttype.h>
 
 int run(void) {
-    char *world = "world";
+  char *world = "world";
 
-    /* Wait for Ping to message us. We can assume s1_data is
-     * zeroed on startup by seL4.
-     */
-    while (!*(volatile char*)s1_data);
-    printf("Pong: received %s\n", (volatile char*)s1_data);
+  /* Wait for Ping to message us. We can assume s1_data is
+   * zeroed on startup by seL4.
+   */
+  while (!*(volatile char*)s1_data);
+  printf("Pong: received %s\n", (volatile char*)s1_data);
 
-    printf("Pong: sending %s...\n", world);
-    strcpy((void*)s2_data->data, world);
+  printf("Pong: sending %s...\n", world);
+  strcpy((void*)s2_data->data, world);
 
-    return 0;
+  return 0;
 }
 ```
 
@@ -1888,8 +1888,6 @@ than 0x64.
       }
     }
 
-
-
 ### Port Privileges
 
 CAmkES allows the programmer to specify access rights that instances have over the ports
@@ -2001,7 +1999,6 @@ of the instance can be set.
         ...
       }
     }
-
 
 ### Multi-Assembly Applications
 
@@ -2356,7 +2353,6 @@ This example compiles to:
       }
     }
 
-
 ### Custom Data Types
 
 CAmkES allows the definition of custom data types for procedure method arguments and ports.
@@ -2421,10 +2417,10 @@ typedef struct {
 A component could declare a port of this type:
 
     component A {
-        control;
+      control;
 
-        include "int_array.h";
-        dataport IntArray int_arr;
+      include "int_array.h";
+      dataport IntArray int_arr;
     }
 
 This would give the implementation access to a global pointer, which points to
@@ -2512,12 +2508,12 @@ some global include directory (in this case, the components directory).
     import "components/Client/Client.camkes";
 
     assembly {
-        composition {
-            component Client client;
-            component Math math;
+      composition {
+        component Client client;
+        component Math math;
 
-            connection seL4RPC c(from client.math, to math.m);
-        }
+        connection seL4RPC c(from client.math, to math.m);
+      }
     }
 
 The client's component definition (.camkes) is located inside the application 
@@ -2530,32 +2526,31 @@ located in a global include directory (the interfaces directory).
     import <MathIface/MathIface.camkes>;
 
     component Client {
-        control;
+      control;
 
-        uses MathIface math;
+      uses MathIface math;
     }
 
 The client's component implementation (.c) is also located inside the application.
 
 ```c
-
 /* apps/pythagoras/components/Client/src/main.c */
 
 #include <Client.h>
 #include <stdio.h>
 
 double pythag(double a, double b) {
-    return math_sqrt(math_add(math_square(a), math_square(b)));
+  return math_sqrt(math_add(math_square(a), math_square(b)));
 }
 
 int run(void) {
-    double a = 3;
-    double b = 4;
-    double c = pythag(a, b);
-    
-    printf("pythag(%2f, %2f) == %2f\n", a, b, c);
+  double a = 3;
+  double b = 4;
+  double c = pythag(a, b);
+  
+  printf("pythag(%2f, %2f) == %2f\n", a, b, c);
 
-    return 0;
+  return 0;
 }
 ```
 
@@ -2587,10 +2582,10 @@ The interface `MathIface` is defined as normal:
     /* interfaces/MathIface/MathIface.camkes */
 
     procedure MathIface {
-        double square(in double a);
-        double sqrt(in double a);
-        double add(in double a, in double b);
-        double divide(in double a, in double b);
+      double square(in double a);
+      double sqrt(in double a);
+      double add(in double a, in double b);
+      double divide(in double a, in double b);
     };
 
 The component `Math` imports the `MathIface` component using angle brackets.
@@ -2602,7 +2597,7 @@ import files from different global include directories.
     import <MathIface/MathIface.camkes>;
 
     component Math {
-        provides MathIface m;
+      provides MathIface m;
     }
 
 The `Math` component is implemented inside the Math component directory.
@@ -2615,19 +2610,19 @@ The `Math` component is implemented inside the Math component directory.
 #include <math.h>
 
 double m_square(double a) {
-    return a * a;
+  return a * a;
 }
 
 double m_sqrt(double a) {
-    return sqrt(a);
+  return sqrt(a);
 }
 
 double m_add(double a, double b) {
-    return a + b;
+  return a + b;
 }
 
 double m_divide(double a, double b) {
-    return a / b;
+  return a / b;
 }
 ```
 
@@ -2643,7 +2638,6 @@ BASE_DIR := $(dir $(abspath $(lastword ${MAKEFILE_LIST})))
 
 Math_CFILES := $(wildcard ${BASE_DIR}/src/*.c)
 Math_HFILES := $(wildcard ${BASE_DIR}/include/*.h)
-
 ```
 
 #### Example involving Custom Procedure Type
@@ -2659,8 +2653,8 @@ The vector type is defined with the `MathIface` interface:
 #define _VEC_H_
 
 typedef struct {
-    double x;
-    double y;
+  double x;
+  double y;
 } vec_t;
 
 #endif
@@ -2679,30 +2673,29 @@ be implemented in the `Math` global component.
 #include <vec.h>
 
 double pythag(double a, double b) {
-    return math_sqrt(math_add(math_square(a), math_square(b)));
+  return math_sqrt(math_add(math_square(a), math_square(b)));
 }
 
 vec_t vec_project(vec_t a, vec_t b) {
-
-    double scalar = math_divide(math_dot(a, b), math_square(math_length(a)));
-    return math_scalar_mult(a, scalar);
+  double scalar = math_divide(math_dot(a, b), math_square(math_length(a)));
+  return math_scalar_mult(a, scalar);
 }
 
 int run(void) {
-    double a = 3;
-    double b = 4;
-    double c = pythag(a, b);
-    
-    printf("pythag(%2f, %2f) == %2f\n", a, b, c);
+  double a = 3;
+  double b = 4;
+  double c = pythag(a, b);
+  
+  printf("pythag(%2f, %2f) == %2f\n", a, b, c);
 
-    vec_t x_axis = (vec_t) {.x = 1, .y = 0};
-    vec_t v = (vec_t) {.x = 3, .y = 4};
-    vec_t proj = vec_project(x_axis, v);
+  vec_t x_axis = (vec_t) {.x = 1, .y = 0};
+  vec_t v = (vec_t) {.x = 3, .y = 4};
+  vec_t proj = vec_project(x_axis, v);
 
-    printf("x component of (%2f, %2f) is (%2f, %2f)\n",
-        v.x, v.y, proj.x, proj.y);
+  printf("x component of (%2f, %2f) is (%2f, %2f)\n",
+      v.x, v.y, proj.x, proj.y);
 
-    return 0;
+  return 0;
 }
 ```
 
@@ -2731,14 +2724,13 @@ defined in header files.
 The `MathImpl` procedure definition was modified to include some new methods:
 
     procedure MathIface {
-        
-        include <vec.h>;
+      include <vec.h>;
 
-        ...
+      ...
 
-        double dot(in vec_t a, in vec_t b);
-        vec_t scalar_mult(in vec_t v, in double s);
-        double length(in vec_t a);
+      double dot(in vec_t a, in vec_t b);
+      vec_t scalar_mult(in vec_t v, in double s);
+      double length(in vec_t a);
     };
 
 The `Math` component implementation contains the implementation of these new methods:
@@ -2753,15 +2745,15 @@ The `Math` component implementation contains the implementation of these new met
 ...
 
 double m_dot(vec_t a, vec_t b) {
-    return a.x*b.x + a.y*b.y;
+  return a.x*b.x + a.y*b.y;
 }
 
 vec_t m_scalar_mult(vec_t v, double s) {
-    return (vec_t) {.x = v.x*s, .y = v.y*s};
+  return (vec_t) {.x = v.x*s, .y = v.y*s};
 }
 
 double m_length(vec_t a) {
-    return sqrt(a.x*a.x+a.y*a.y);
+  return sqrt(a.x*a.x+a.y*a.y);
 }
 ```
 
@@ -2822,12 +2814,12 @@ interface directories.
 #define _VEC_ARR_H_
 
 typedef struct {
-    double real;
-    double imaginary;
+  double real;
+  double imaginary;
 } complex_t;
 
 typedef struct {
-    complex_t data[4096];
+  complex_t data[4096];
 } complex_arr_t;
 
 #endif
@@ -2840,10 +2832,10 @@ A new port interface must be added to the `Math` and `Client` components:
     import <MathIface/MathIface.camkes>;
 
     component Math {
-        provides MathIface m;
-        
-        include <complex_arr.h>;
-        dataport complex_arr_t complex_data;
+      provides MathIface m;
+      
+      include <complex_arr.h>;
+      dataport complex_arr_t complex_data;
     }
 
 
@@ -2852,12 +2844,12 @@ A new port interface must be added to the `Math` and `Client` components:
     import <MathIface/MathIface.camkes>;
 
     component Client {
-        control;
+      control;
 
-        uses MathIface math;
-        
-        include <complex_arr.h>;
-        dataport complex_arr_t complex_data;
+      uses MathIface math;
+      
+      include <complex_arr.h>;
+      dataport complex_arr_t complex_data;
     }
 
 A new connection is added to the top level .camkes file:
@@ -2866,11 +2858,11 @@ A new connection is added to the top level .camkes file:
 
     ...
     assembly {
-        composition {
-            ...
-            connection seL4SharedData d(from client.complex_data, 
-                                        to math.complex_data);
-        }
+      composition {
+        ...
+        connection seL4SharedData d(from client.complex_data, 
+                                    to math.complex_data);
+      }
     }
 
 A new method is added to the `MathIface` interface. Note that since
@@ -2881,10 +2873,10 @@ for this to include the header file defining complex numbers.
     /* interfaces/MathIface/MathIface.camkes */
 
     procedure MathIface {
-        
-        ...
+      
+      ...
 
-        int compute_roots_of_unity(in int n);
+      int compute_roots_of_unity(in int n);
     };
 
 The implementation of this method is added to the `Math` component implementation:
@@ -2900,18 +2892,17 @@ The implementation of this method is added to the `Math` component implementatio
 ...
 
 int m_compute_roots_of_unity(int n) {
-    if (n >= 4096) {
-        return -1;
-    }
-    for (int i=0;i<n;i++) {
-        complex_data->data[i] = (complex_t) {
-            .real = cos((i*2*M_PI)/n),
-            .imaginary = sin((i*2*M_PI)/n)
-        };
-    }
-    return 0;
+  if (n >= 4096) {
+    return -1;
+  }
+  for (int i=0;i<n;i++) {
+    complex_data->data[i] = (complex_t) {
+      .real = cos((i*2*M_PI)/n),
+      .imaginary = sin((i*2*M_PI)/n)
+    };
+  }
+  return 0;
 }
-
 ```
 
 The method is called from the `Client` component implementation:
@@ -2925,17 +2916,17 @@ The method is called from the `Client` component implementation:
 ...
 
 int run(void) {
-    ...
-    const int n = 4;
-    if (math_compute_roots_of_unity(4) == 0) {
-        printf("%dth roots of unity:\n", n);
-        for (int i=0;i<4;i++) {
-            printf("%2f + %2fi\n", complex_data->data[i].real, 
-                                   complex_data->data[i].imaginary);
-        }
+  ...
+  const int n = 4;
+  if (math_compute_roots_of_unity(4) == 0) {
+    printf("%dth roots of unity:\n", n);
+    for (int i=0;i<4;i++) {
+      printf("%2f + %2fi\n", complex_data->data[i].real, 
+                             complex_data->data[i].imaginary);
     }
+  }
 
-    return 0;
+  return 0;
 }
 ```
 
@@ -2957,7 +2948,6 @@ Math_EXPORT_HFILES := \
 
 include MathIface/MathIface.mk
 Math_HFILES += ${MathIface_EXPORT_HFILES}
-
 ```
 
 The application Makefile must be adjusted to add this dependency:
@@ -3375,7 +3365,7 @@ No changes required.
 The old parser required a trailing semi-colon for interface blocks. E.g.
 
     interface foo {
-        ...
+      ...
     };
 
 In the new parser this trailing semi-colon is optional; in fact, it is parsed
@@ -3409,16 +3399,16 @@ TARGETS := simple.cpio
 ADL := simple.camkes
 
 Client_CFILES := \
-    $(patsubst ${SOURCE_DIR}/%,%,$(wildcard ${SOURCE_DIR}/components/Client/src/*.c))
+  $(patsubst ${SOURCE_DIR}/%,%,$(wildcard ${SOURCE_DIR}/components/Client/src/*.c))
 
 Client_ASMFILES := \
-    $(patsubst ${SOURCE_DIR}/%,%,$(wildcard ${SOURCE_DIR}/components/Client/crt/arch-${ARCH}/crt0.S))
+  $(patsubst ${SOURCE_DIR}/%,%,$(wildcard ${SOURCE_DIR}/components/Client/crt/arch-${ARCH}/crt0.S))
 
 Echo_CFILES := \
-    $(patsubst ${SOURCE_DIR}/%,%,$(wildcard ${SOURCE_DIR}/components/Echo/src/*.c))
+  $(patsubst ${SOURCE_DIR}/%,%,$(wildcard ${SOURCE_DIR}/components/Echo/src/*.c))
 
 Echo_ASMFILES := \
-    $(patsubst ${SOURCE_DIR}/%,%,$(wildcard ${SOURCE_DIR}/components/Echo/crt/arch-${ARCH}/crt0.S))
+  $(patsubst ${SOURCE_DIR}/%,%,$(wildcard ${SOURCE_DIR}/components/Echo/crt/arch-${ARCH}/crt0.S))
 
 include ${SOURCE_DIR}/../../tools/camkes/camkes.mk
 ```
