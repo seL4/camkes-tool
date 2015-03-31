@@ -143,16 +143,19 @@ int /*? me.from_interface.name ?*/__run(void) {
       /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
         char **
       /*- else -*/
-        /*? show(p.type) ?*/ *
+        const /*? show(p.type) ?*/ *
       /*- endif -*/
     /*- elif isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
-      char *
+      const char *
     /*- else -*/
       /*? show(p.type) ?*/
     /*- endif -*/
   /*- else -*/
     /*? assert(p.direction.direction in ['refin', 'out', 'inout']) ?*/
     /*- if p.array -*/
+      /*- if p.direction.direction == 'refin' -*/
+        const
+      /*- endif -*/
       size_t * /*? p.name ?*/_sz,
       /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
         char ***
@@ -162,6 +165,9 @@ int /*? me.from_interface.name ?*/__run(void) {
     /*- elif isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
       char **
     /*- else -*/
+      /*- if p.direction.direction == 'refin' -*/
+        const
+      /*- endif -*/
       /*? show(p.type) ?*/ *
     /*- endif -*/
   /*- endif -*/

@@ -516,7 +516,7 @@ Hello as apps/helloworld/components/Hello/src/hello.c:
 void inf__init(void) {
 }
   
-void inf_print(char *message) {
+void inf_print(const char *message) {
   printf("Client says: %s\n", message);
 }
 ```
@@ -539,7 +539,7 @@ they are directly available to it:
 #include <Client.h>
 
 int run(void) {
-  char *s = "hello world";
+  const char *s = "hello world";
   iface_print(s);
   return 0;
 }

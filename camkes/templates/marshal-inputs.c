@@ -39,17 +39,17 @@
         /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
           char ** /*? p.name ?*/
         /*- else -*/
-          /*? show(p.type) ?*/ * /*? p.name ?*/
+          const /*? show(p.type) ?*/ * /*? p.name ?*/
         /*- endif -*/
       /*- elif isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
-        char * /*? p.name ?*/
+        const char * /*? p.name ?*/
       /*- else -*/
         /*? show(p.type) ?*/ /*? p.name ?*/
       /*- endif -*/
     /*- else -*/
       /*? assert(p.direction.direction in ['refin', 'inout']) ?*/
       /*- if p.array -*/
-        size_t * /*? p.name ?*/_sz,
+        const size_t * /*? p.name ?*/_sz,
         /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
           char *** /*? p.name ?*/
         /*- else -*/
@@ -58,7 +58,7 @@
       /*- elif isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
         char ** /*? p.name ?*/
       /*- else -*/
-        /*? show(p.type) ?*/ * /*? p.name ?*/
+        const /*? show(p.type) ?*/ * /*? p.name ?*/
       /*- endif -*/
     /*- endif -*/
     ) {
@@ -81,26 +81,26 @@
         /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
           char ** /*? ptr_arr ?*/ = /*? p.name ?*/;
         /*- else -*/
-          /*? show(p.type) ?*/ * /*? ptr_arr ?*/ = /*? p.name ?*/;
+          const /*? show(p.type) ?*/ * /*? ptr_arr ?*/ = /*? p.name ?*/;
         /*- endif -*/
       /*- elif isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
-        char * /*? ptr_str ?*/ = /*? p.name ?*/;
+        const char * /*? ptr_str ?*/ = /*? p.name ?*/;
       /*- else -*/
         /*? show(p.type) ?*/ * /*? ptr ?*/ = TLS_PTR(/*? name ?*/_/*? p.name ?*/_from, /*? p.name ?*/);
         * /*? ptr ?*/ = /*? p.name ?*/;
       /*- endif -*/
     /*- else -*/
       /*- if p.array -*/
-        size_t * /*? ptr_sz ?*/ = /*? p.name ?*/_sz;
+        const size_t * /*? ptr_sz ?*/ = /*? p.name ?*/_sz;
         /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
           char ** /*? ptr_arr ?*/ = * /*? p.name ?*/;
         /*- else -*/
-          /*? show(p.type) ?*/ * /*? ptr_arr ?*/ = * /*? p.name ?*/;
+          const /*? show(p.type) ?*/ * /*? ptr_arr ?*/ = * /*? p.name ?*/;
         /*- endif -*/
       /*- elif isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
-        char * /*? ptr_str ?*/ = * /*? p.name ?*/;
+        const char * /*? ptr_str ?*/ = * /*? p.name ?*/;
       /*- else -*/
-        /*? show(p.type) ?*/ * /*? ptr ?*/ = /*? p.name ?*/;
+        const /*? show(p.type) ?*/ * /*? ptr ?*/ = /*? p.name ?*/;
       /*- endif -*/
     /*- endif -*/
 
@@ -210,17 +210,17 @@ static unsigned int /*? function ?*/(
       /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
         char ** /*? p.name ?*/
       /*- else -*/
-        /*? show(p.type) ?*/ * /*? p.name ?*/
+        const /*? show(p.type) ?*/ * /*? p.name ?*/
       /*- endif -*/
     /*- elif isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
-      char * /*? p.name ?*/
+      const char * /*? p.name ?*/
     /*- else -*/
       /*? show(p.type) ?*/ /*? p.name ?*/
     /*- endif -*/
   /*- else -*/
     /*? assert(p.direction.direction in ['refin', 'inout']) ?*/
     /*- if p.array -*/
-      size_t * /*? p.name ?*/_sz,
+      const size_t * /*? p.name ?*/_sz,
       /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
         char *** /*? p.name ?*/
       /*- else -*/
@@ -229,7 +229,7 @@ static unsigned int /*? function ?*/(
     /*- elif isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
       char ** /*? p.name ?*/
     /*- else -*/
-      /*? show(p.type) ?*/ * /*? p.name ?*/
+      const /*? show(p.type) ?*/ * /*? p.name ?*/
     /*- endif -*/
   /*- endif -*/
   /*- if not loop.last -*/
