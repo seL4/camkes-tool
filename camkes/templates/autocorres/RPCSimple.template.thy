@@ -19,6 +19,10 @@ theory /*? thy ?*/ imports
 begin
 (** TPP: condense = False *)
 
+(* THIS THEORY IS GENERATED. DO NOT EDIT.
+ * It is expected to be hosted in l4v/internal/camkes/glue-proofs.
+ *)
+
 (* FIXME: MOVE *)
 lemma circ_break:"\<lbrakk>f = g; h = i\<rbrakk> \<Longrightarrow> f \<circ> h = g \<circ> i"
   by fast

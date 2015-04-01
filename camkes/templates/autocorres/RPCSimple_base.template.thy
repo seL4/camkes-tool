@@ -11,6 +11,10 @@ theory /*? thy ?*/ imports
   "../../../lib/WordBitwiseSigned"
 begin
 
+(* THIS THEORY IS GENERATED. DO NOT EDIT.
+ * It is expected to be hosted in l4v/internal/camkes/glue-proofs.
+ *)
+
 /*# install_code.thy expects the thy variable to have a specific relationship
  *# to the underlying C file we want to install.
  #*/
