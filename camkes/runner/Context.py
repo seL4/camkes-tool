@@ -42,7 +42,7 @@ from Joiner import Joiner
 from apply import apply, by, done, oops, sorry
 from NameMangling import TEMPLATES, FILTERS, Perspective
 
-def new_context(entity, configuration, obj_space, cap_space, shmem, **kwargs):
+def new_context(entity, assembly, obj_space, cap_space, shmem, **kwargs):
     '''Create a new default context for rendering.'''
     return dict({
         # Kernel object allocator
@@ -114,7 +114,10 @@ def new_context(entity, configuration, obj_space, cap_space, shmem, **kwargs):
         'me':entity,
 
         # The AST assembly's configuration.
-        'configuration':configuration,
+        'configuration':assembly.configuration,
+
+        # The AST assembly's composition
+        'composition':assembly.composition,
 
         # Allow some AST objects to be printed trivially
         'show':show,

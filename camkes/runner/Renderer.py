@@ -86,9 +86,9 @@ class Renderer(object):
                 filter_func=(lambda x: x in templates), zip=None,
                 ignore_errors=False, py_compile=True)
 
-    def render(self, me, configuration, template, obj_space, cap_space, shmem,
+    def render(self, me, assembly, template, obj_space, cap_space, shmem,
             **kwargs):
-        context = Context.new_context(me, configuration, obj_space, cap_space,
+        context = Context.new_context(me, assembly, obj_space, cap_space,
             shmem, **kwargs)
 
         t = self.env.get_template(template)
