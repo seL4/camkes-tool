@@ -360,7 +360,7 @@ def main():
                 g = ''
                 if template:
                     with profiler('Rendering %s' % t):
-                        g = r.render(i, conf, template, obj_space, cspaces[i.address_space], \
+                        g = r.render(i, assembly, template, obj_space, cspaces[i.address_space], \
                             shmem, options=options, id=id, my_pd=pds[i.address_space], \
                             **cmdln_opts)
                 save(t, g)
@@ -403,7 +403,7 @@ def main():
                 g = ''
                 if template:
                     with profiler('Rendering %s' % t[0]):
-                        g = r.render(c, conf, template, obj_space, cspaces[t[1]], \
+                        g = r.render(c, assembly, template, obj_space, cspaces[t[1]], \
                             shmem, options=options, id=id, my_pd=pds[t[1]], \
                             **cmdln_opts)
                 save(t[0], g)
@@ -438,7 +438,7 @@ def main():
                 if template is None:
                     raise Exception('no registered template for %s' % options.item)
                 with profiler('Rendering %s' % options.item):
-                    g = r.render(c, conf, template, obj_space, cspaces[t[1]], \
+                    g = r.render(c, assembly, template, obj_space, cspaces[t[1]], \
                         shmem, options=options, id=id, my_pd=pds[t[1]], \
                         **cmdln_opts)
                 save(options.item, g)
@@ -462,7 +462,7 @@ def main():
                     g = ''
                     if template:
                         with profiler('Rendering %s' % t):
-                            g = r.render(i, conf, template, obj_space, cspaces[i.address_space], \
+                            g = r.render(i, assembly, template, obj_space, cspaces[i.address_space], \
                                 shmem, options=options, id=id, my_pd=pds[i.address_space],
                                 **cmdln_opts)
                     save(t, g)
@@ -529,7 +529,7 @@ def main():
         g = ''
         if template:
             with profiler('Rendering %s' % options.item):
-                g = r.render(assembly, conf, template, obj_space, None, \
+                g = r.render(assembly, assembly, template, obj_space, None, \
                     shmem, imported=imported, options=options, **cmdln_opts)
             save(options.item, g)
             done(g)
