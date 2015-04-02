@@ -12,15 +12,15 @@ theory /*? thy ?*/ imports
   /*- if options.verbosity >= 2 -*/
   /*? thy ?*/_base
   /*- else -*/
-  "../../../tools/autocorres/AutoCorres"
-  "../../../lib/LemmaBucket"
-  "../../../lib/WordBitwiseSigned"
+  "../../tools/autocorres/AutoCorres"
+  "../../lib/LemmaBucket"
+  "../../lib/WordBitwiseSigned"
   /*- endif -*/
 begin
 (** TPP: condense = False *)
 
 (* THIS THEORY IS GENERATED. DO NOT EDIT.
- * It is expected to be hosted in l4v/internal/camkes/glue-proofs.
+ * It is expected to be hosted in l4v/camkes/glue-proofs.
  *)
 
 (* FIXME: MOVE *)

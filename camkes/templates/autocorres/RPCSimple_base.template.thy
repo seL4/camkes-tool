@@ -6,13 +6,13 @@
 /*- include 'autocorres/have_heap.thy' -*/
 
 theory /*? thy ?*/ imports
-  "../../../tools/autocorres/AutoCorres"
-  "../../../lib/LemmaBucket"
-  "../../../lib/WordBitwiseSigned"
+  "../../tools/autocorres/AutoCorres"
+  "../../lib/LemmaBucket"
+  "../../lib/WordBitwiseSigned"
 begin
 
 (* THIS THEORY IS GENERATED. DO NOT EDIT.
- * It is expected to be hosted in l4v/internal/camkes/glue-proofs.
+ * It is expected to be hosted in l4v/camkes/glue-proofs.
  *)
 
 /*# install_code.thy expects the thy variable to have a specific relationship
