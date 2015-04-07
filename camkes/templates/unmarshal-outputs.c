@@ -14,7 +14,7 @@
 /*? assert(isinstance(allow_trailing_data, bool)) ?*/ /*# Whether to ignore checks for remaining bytes after a message #*/
 
 /*- set ret_fn = c_symbol('ret_fn') -*/
-/*- if return_type -*/
+/*- if return_type is not none -*/
   /*- set offset = c_symbol('offset') -*/
   /*- set size = c_symbol('size') -*/
   /*- set ret = c_symbol('return') -*/
@@ -343,7 +343,7 @@ unsigned int /*? size ?*/
   ,
 /*- endif -*/
 /*- set ret = c_symbol('return') -*/
-/*- if return_type -*/
+/*- if return_type is not none -*/
   /*- if return_type.array -*/
     size_t * /*? ret ?*/_sz,
     /*- if isinstance(return_type, camkes.ast.Type) and return_type.type == 'string' -*/
@@ -386,7 +386,7 @@ unsigned int /*? size ?*/
   /*- set base = c_symbol('buffer_base') -*/
   void * /*? base ?*/ UNUSED = (void*)(/*? buffer ?*/);
 
-  /*- if return_type -*/
+  /*- if return_type is not none -*/
     /*? length ?*/ = /*? function ?*/_/*? ret_fn ?*/(/*? size ?*/, /*? length ?*/,
       /*- if return_type.array -*/
         /*? ret ?*/_sz,
@@ -408,7 +408,7 @@ unsigned int /*? size ?*/
       /*? p.name ?*/
     );
     if (/*? length ?*/ == UINT_MAX) {
-      /*- if return_type -*/
+      /*- if return_type is not none -*/
         /*- if return_type.array -*/
           /*- if isinstance(return_type, camkes.ast.Type) and return_type.type == 'string' -*/
             /*- set mcount = c_symbol() -*/
@@ -450,7 +450,7 @@ unsigned int /*? size ?*/
         .length = /*? size ?*/,
         .current_index = /*? length ?*/,
       }), ({
-        /*- if return_type -*/
+        /*- if return_type is not none -*/
           /*- if return_type.array -*/
             /*- if isinstance(return_type, camkes.ast.Type) and return_type.type == 'string' -*/
               /*- set mcount = c_symbol() -*/

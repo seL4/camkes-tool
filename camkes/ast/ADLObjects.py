@@ -12,6 +12,7 @@
 
 from GenericObjects import ASTObject, Reference
 import IDLObjects as IDL
+import collections
 
 class ADLObject(ASTObject):
     pass
@@ -93,13 +94,23 @@ class Composition(ADLObject):
             'connections':' '.join(map(str, self.connections)),
         }
 
-class Configuration(ADLObject):
+class Configuration(ADLObject, collections.Mapping):
     def __init__(self, name=None, settings=None, filename=None, lineno=-1):
         assert settings is None or isinstance(settings, list)
         assert name is None or isinstance(name, str)
         super(Configuration, self).__init__(filename=filename, lineno=lineno)
         self.name = name
         self.settings = settings or []
+        # Build a two-level dictionary of the attributes, the first level keyed
+        # on instance name and the second level keyed on attribute name. This
+        # allows more optimised lookups of attributes from templates.
+        self.mapping = collections.defaultdict(dict, **{
+            instance: {
+                s.attribute: s.value for
+                    s in filter(lambda x: x.instance == instance, self.settings)
+            } for
+                instance in set(map(lambda x: x.instance, self.settings))
+        })
 
     def children(self):
         return self.settings
@@ -112,6 +123,14 @@ class Configuration(ADLObject):
             'name':self.name or '',
             'settings':' '.join(map(str, self.settings)),
         }
+
+    # Implement functions required by collections.Mapping.
+    def __getitem__(self, key):
+        return self.mapping.__getitem__(key)
+    def __iter__(self):
+        return self.mapping.__iter__()
+    def __len__(self):
+        return self.mapping.__len__()
 
 class Instance(ADLObject):
     def __init__(self, type, name, filename=None, lineno=-1):

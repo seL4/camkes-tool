@@ -27,21 +27,15 @@
 /*# Determine if we trust our partner. If we trust them, we can be more liberal
  *# with error checking.
  #*/
-/*- set _trust_partner = [False] -*/
-/*- for s in configuration.settings -*/
-    /*- if s.instance == me.from_instance.name and s.attribute == 'trusted' and s.value == '"true"' -*/
-        /*- do _trust_partner.__setitem__(0, True) -*/
-    /*- endif -*/
-/*- endfor -*/
-/*- set trust_partner = _trust_partner[0] -*/
+/*- set trust_partner = configuration[me.from_instance.name].get('trusted') == '"true"' -*/
 
 /*- set BUFFER_BASE = c_symbol('BUFFER_BASE') -*/
 /*- set base = '((void*)&seL4_GetIPCBuffer()->msg[0])' -*/
 /*- set userspace_ipc = False -*/
-/*- if configuration -*/
-    /*- set buffers = filter(lambda('x: x.instance == \'%s\' and x.attribute == \'%s_buffer\'' % (me.to_instance.name, me.to_interface.name)), configuration.settings) -*/
-    /*- if len(buffers) == 1 -*/
-        /*- set base = buffers[0].value -*/
+/*- if configuration is not none -*/
+    /*- set buffer = configuration[me.to_instance.name].get('%s_buffer' % me.to_interface.name) -*/
+    /*- if buffer is not none -*/
+        /*- set base = buffer -*/
         /*- set userspace_ipc = True -*/
         extern void * /*? base ?*/;
     /*- endif -*/

@@ -22,14 +22,12 @@
 /*- set irq= [] -*/
 /*- set aep_obj = alloc_obj('aep', seL4_AsyncEndpointObject) -*/
 /*- set aep = alloc_cap('aep', aep_obj, read=True) -*/
-/*- for i in configuration.settings -*/
-    /*- if attr == i.attribute and i.instance == me.from_instance.name -*/
-        /*- set attr_irq, attr_level, attr_trig = i.value.strip('"').split(',') -*/
-        /*- set irq_handler = alloc('irq', seL4_IRQControl, number=int(attr_irq), aep=aep_obj) -*/
-        /*- do irq.append((irq_handler, int(attr_level), int(attr_trig))) -*/
-        /*- break -*/
-    /*- endif -*/
-/*- endfor -*/
+/*- set _irq = configuration[me.from_instance.name].get(attr) -*/
+/*- if _irq is not none -*/
+    /*- set attr_irq, attr_level, attr_trig = _irq.strip('"').split(',') -*/
+    /*- set irq_handler = alloc('irq', seL4_IRQControl, number=int(attr_irq), aep=aep_obj) -*/
+    /*- do irq.append((irq_handler, int(attr_level), int(attr_trig))) -*/
+/*- endif -*/
 /*- set lock = alloc('lock', seL4_AsyncEndpointObject, read=True, write=True) -*/
 
 /* Interface-specific error handling */

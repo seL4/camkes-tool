@@ -69,20 +69,7 @@ const char *get_instance_name(void) {
  *# the top of this file. If the component actually has a declared attribute
  *# 'dma_pool' then they will get access to this variable at runtime.
  #*/
-/*- set dma_pool = [] -*/
-/*- if configuration -*/
-    /*- for s in configuration.settings -*/
-        /*- if s.instance == me.name and s.attribute == 'dma_pool' -*/
-            /*- do dma_pool.append(s.value) -*/
-        /*- endif -*/
-    /*- endfor -*/
-/*- endif -*/
-/*- if dma_pool -*/
-    /*- set dma_pool = dma_pool[0] -*/
-/*- else -*/
-    /*# default #*/
-    /*- set dma_pool = 0 -*/
-/*- endif -*/
+/*- set dma_pool = configuration[me.name].get('dma_pool', 0) -*/
 
 /*- set p = Perspective() -*/
 static char /*? p['dma_pool_symbol'] ?*/[ROUND_UP_UNSAFE(/*? dma_pool ?*/, PAGE_SIZE_4K)]
@@ -216,17 +203,7 @@ static sync_sem_t /*? semaphore ?*/;
 static int semaphore_/*? s.name ?*/_init(void) {
     /*- set ep = alloc(s.name, seL4_EndpointObject, read=True, write=True) -*/
     return sync_sem_init(&/*? semaphore ?*/, /*? ep ?*/,
-    /*- if configuration -*/
-        /*- set count = filter(lambda('x: x.instance == \'%s\' and x.attribute == \'%s_value\'' % (me.name, s.name)),  configuration.settings) -*/
-        /*- if len(count) > 0 -*/
-            /*? count[0].value ?*/
-        /*- else -*/
-            1
-        /*- endif -*/
-    /*- else -*/
-        1
-    /*- endif -*/
-    );
+        /*? configuration[me.name].get('%s_value' % s.name, 1) ?*/);
 }
 
 int /*? s.name ?*/_wait(void) {
@@ -284,63 +261,51 @@ static void /*? init ?*/(void) {
     /*- endfor -*/
 
     /* Initialise cap allocator. */
-    /*- set tcb_pool = [] -*/
-    /*- set ep_pool = [] -*/
-    /*- set aep_pool = [] -*/
+    /*- set tcb_pool = configuration[me.name].get('tcb_pool', 0) -*/
+    /*- for i in range(tcb_pool) -*/
+        /*- set tcb = alloc('tcb_pool_%d' % i, seL4_TCBObject, read=True, write=True) -*/
+        res = camkes_provide(seL4_TCBObject, /*? tcb ?*/, 0, seL4_CanRead|seL4_CanWrite);
+        ERR_IF(res != 0, camkes_error, ((camkes_error_t){
+                .type = CE_ALLOCATION_FAILURE,
+                .instance = "/*? me.name ?*/",
+                .description = "failed to add TCB /*? tcb + 1 ?*/ to cap allocation pool",
+            }), ({
+                return;
+            }));
+    /*- endfor -*/
+    /*- set ep_pool = configuration[me.name].get('ep_pool', 0) -*/
+    /*- for i in range(ep_pool) -*/
+        /*- set ep = alloc('ep_pool_%d' % i, seL4_EndpointObject, read=True, write=True) -*/
+        res = camkes_provide(seL4_EndpointObject, /*? ep ?*/, 0, seL4_CanRead|seL4_CanWrite);
+        ERR_IF(res != 0, camkes_error, ((camkes_error_t){
+                .type = CE_ALLOCATION_FAILURE,
+                .instance = "/*? me.name ?*/",
+                .description = "failed to add EP /*? ep + 1 ?*/ to cap allocation pool",
+            }), ({
+                return;
+            }));
+    /*- endfor -*/
+    /*- set aep_pool = configuration[me.name].get('aep_pool', 0) -*/
+    /*- for i in range(aep_pool) -*/
+        /*- set aep = alloc('aep_pool_%d' % i, seL4_AsyncEndpointObject, read=True, write=True) -*/
+        res = camkes_provide(seL4_AsyncEndpointObject, /*? aep ?*/, 0, seL4_CanRead|seL4_CanWrite);
+        ERR_IF(res != 0, camkes_error, ((camkes_error_t){
+                .type = CE_ALLOCATION_FAILURE,
+                .instance = "/*? me.name ?*/",
+                .description = "failed to add AEP /*? aep + 1 ?*/ to cap allocation pool",
+            }), ({
+                return;
+            }));
+    /*- endfor -*/
     /*- set untyped_pool = [] -*/
-    /*- if configuration -*/
+    /*- if configuration is not none -*/
         /*- for s in configuration.settings -*/
             /*- if s.instance == me.name -*/
                 /*- set r = re.match('untyped([0-9]+)_pool', s.attribute) -*/
-                /*- if s.attribute == 'tcb_pool' -*/
-                    /*- do tcb_pool.append(s.value) -*/
-                /*- elif s.attribute == 'ep_pool' -*/
-                    /*- do ep_pool.append(s.value) -*/
-                /*- elif s.attribute == 'aep_pool' -*/
-                    /*- do aep_pool.append(s.value) -*/
-                /*- elif r -*/
+                /*- if r is not none -*/
                     /*- do untyped_pool.append((r.group(1), s.value)) -*/
                 /*- endif -*/
             /*- endif -*/
-        /*- endfor -*/
-    /*- endif -*/
-    /*- if tcb_pool -*/
-        /*- for i in range(tcb_pool[0]) -*/
-            /*- set tcb = alloc('tcb_pool_%d' % i, seL4_TCBObject, read=True, write=True) -*/
-            res = camkes_provide(seL4_TCBObject, /*? tcb ?*/, 0, seL4_CanRead|seL4_CanWrite);
-            ERR_IF(res != 0, camkes_error, ((camkes_error_t){
-                    .type = CE_ALLOCATION_FAILURE,
-                    .instance = "/*? me.name ?*/",
-                    .description = "failed to add TCB /*? tcb + 1 ?*/ to cap allocation pool",
-                }), ({
-                    return;
-                }));
-        /*- endfor -*/
-    /*- endif -*/
-    /*- if ep_pool -*/
-        /*- for i in range(ep_pool[0]) -*/
-            /*- set ep = alloc('ep_pool_%d' % i, seL4_EndpointObject, read=True, write=True) -*/
-            res = camkes_provide(seL4_EndpointObject, /*? ep ?*/, 0, seL4_CanRead|seL4_CanWrite);
-            ERR_IF(res != 0, camkes_error, ((camkes_error_t){
-                    .type = CE_ALLOCATION_FAILURE,
-                    .instance = "/*? me.name ?*/",
-                    .description = "failed to add EP /*? ep + 1 ?*/ to cap allocation pool",
-                }), ({
-                    return;
-                }));
-        /*- endfor -*/
-    /*- endif -*/
-    /*- if aep_pool -*/
-        /*- for i in range(aep_pool[0]) -*/
-            /*- set aep = alloc('aep_pool_%d' % i, seL4_AsyncEndpointObject, read=True, write=True) -*/
-            res = camkes_provide(seL4_AsyncEndpointObject, /*? aep ?*/, 0, seL4_CanRead|seL4_CanWrite);
-            ERR_IF(res != 0, camkes_error, ((camkes_error_t){
-                    .type = CE_ALLOCATION_FAILURE,
-                    .instance = "/*? me.name ?*/",
-                    .description = "failed to add AEP /*? aep + 1 ?*/ to cap allocation pool",
-                }), ({
-                    return;
-                }));
         /*- endfor -*/
     /*- endif -*/
     /*- for u in untyped_pool -*/
@@ -386,16 +351,13 @@ static void /*? init ?*/(void) {
     /*? macros.ipc_buffer(p['ipc_buffer_symbol']) ?*/
 /*- endfor -*/
 
-/*- if configuration -*/
+/*- if configuration is not none -*/
     /* Attributes */
-    /*- for s in configuration.settings -*/
-        /*- if s.instance == me.name -*/
-            /*# This attribute is for this component instance; now locate it. #*/
-            /*- for a in me.type.attributes -*/
-                /*- if a.name == s.attribute -*/
-                    const /*? show(a.type) ?*/ /*? a.name ?*/ = /*? s.value ?*/;
-                /*- endif -*/
-            /*- endfor -*/
+    /*- set myconf = configuration[me.name] -*/
+    /*- for a in me.type.attributes -*/
+        /*- set value = myconf.get(a.name) -*/
+        /*- if value is not none -*/
+            const /*? show(a.type) ?*/ /*? a.name ?*/ = /*? value ?*/;
         /*- endif -*/
     /*- endfor -*/
 /*- endif -*/

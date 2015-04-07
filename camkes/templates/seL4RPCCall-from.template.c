@@ -25,36 +25,25 @@
 /*? macros.show_includes(me.from_interface.type.includes, '../static/components/' + me.from_instance.type.name + '/') ?*/
 
 /*- set ep = alloc('ep', seL4_EndpointObject, write=True, grant=True) -*/
-/*- for s in configuration.settings -*/
-    /*- if s.instance == me.from_instance.name -*/
-        /*- if s.attribute == "%s_attributes" % (me.from_interface.name) -*/
-            /*- set badge = s.value.strip('"') -*/
-            /*- do cap_space.cnode[ep].set_badge(int(badge, 0)) -*/
-        /*- endif -*/
-    /*- endif -*/
-/*- endfor -*/
+/*- set badge = configuration[me.from_instance.name].get('%s_attributes' % me.from_interface.name) -*/
+/*- if badge is not none -*/
+    /*- set badge = badge.strip('"') -*/
+    /*- do cap_space.cnode[ep].set_badge(int(badge, 0)) -*/
+/*- endif -*/
 
 /*# Determine if we trust our partner. If we trust them, we can be more liberal
  *# with error checking.
  #*/
-/*- set _trust_partner = [False] -*/
-/*- for s in configuration.settings -*/
-    /*- if s.instance == me.to_instance.name and s.attribute == 'trusted' and s.value == '"true"' -*/
-        /*- do _trust_partner.__setitem__(0, True) -*/
-    /*- endif -*/
-/*- endfor -*/
-/*- set trust_partner = _trust_partner[0] -*/
+/*- set trust_partner = configuration[me.to_instance.name].get('trusted') == '"true"' -*/
 
 /*- set BUFFER_BASE = c_symbol('BUFFER_BASE') -*/
 /*- set base = '((void*)&seL4_GetIPCBuffer()->msg[0])' -*/
 /*- set userspace_ipc = False -*/
-/*- if configuration -*/
-    /*- set buffers = filter(lambda('x: x.instance == \'%s\' and x.attribute == \'%s_buffer\'' % (me.from_instance.name, me.from_interface.name)), configuration.settings) -*/
-    /*- if len(buffers) == 1 -*/
-        /*- set base = buffers[0].value -*/
-        /*- set userspace_ipc = True -*/
-        extern void * /*? base ?*/;
-    /*- endif -*/
+/*- set buffer = configuration[me.from_instance.name].get('%s_buffer' % me.from_interface.name) -*/
+/*- if buffer is not none -*/
+    /*- set base = buffer -*/
+    /*- set userspace_ipc = True -*/
+    extern void * /*? base ?*/;
 /*- endif -*/
 #define /*? BUFFER_BASE ?*/ /*? base ?*/
 
@@ -249,7 +238,7 @@ int /*? me.from_interface.name ?*/__run(void) {
     /*# We're about to start writing to the buffer. If relevant, protect our
      *# access.
      #*/
-    /*- if userspace_buffer_ep -*/
+    /*- if userspace_buffer_ep is not none -*/
       sync_sem_bare_wait(/*? userspace_buffer_ep ?*/,
         &/*? userspace_buffer_sem_value ?*/);
     /*- endif -*/
@@ -331,7 +320,7 @@ int /*? me.from_interface.name ?*/__run(void) {
         /*- endif -*/
     }
 
-    /*- if userspace_buffer_ep -*/
+    /*- if userspace_buffer_ep is not none -*/
       sync_sem_bare_post(/*? userspace_buffer_ep ?*/,
         &/*? userspace_buffer_sem_value ?*/);
     /*- endif -*/

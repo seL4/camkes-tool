@@ -13,7 +13,7 @@
 /*? assert(isinstance(error_handler, str)) ?*/ /*# Handler to invoke on error #*/
 
 /*- set ret_fn = c_symbol('ret_fn') -*/
-/*- if return_type -*/
+/*- if return_type is not none -*/
   /*- set offset = c_symbol('offset') -*/
   /*- set ret = c_symbol('return') -*/
   static unsigned int /*? function ?*/_/*? ret_fn ?*/(unsigned int /*? offset ?*/,
@@ -218,7 +218,7 @@
 
 static unsigned int /*? function ?*/(
 /*- set ret = c_symbol('return') -*/
-/*- if return_type -*/
+/*- if return_type is not none -*/
   /*- if return_type.array -*/
     const size_t * /*? ret ?*/_sz,
     /*- if isinstance(return_type, camkes.ast.Type) and return_type.type == 'string' -*/
@@ -257,7 +257,7 @@ static unsigned int /*? function ?*/(
   /*- set length = c_symbol('length') -*/
   unsigned int /*? length ?*/ = 0;
 
-  /*- if return_type -*/
+  /*- if return_type is not none -*/
     /*? length ?*/ = /*? function ?*/_/*? ret_fn ?*/(/*? length ?*/,
       /*- if return_type.array -*/
         /*? ret ?*/_sz,

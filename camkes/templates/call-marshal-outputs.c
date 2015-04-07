@@ -9,7 +9,7 @@
 /*# ret_sz_ptr #*/                             /*# Symbol for a pointer to the size of the return if it is an array #*/
 
 /*? function ?*/(
-/*- if return_type -*/
+/*- if return_type is not none -*/
   /*? assert(isinstance(ret_ptr, str)) ?*/
   /*- if return_type.array -*/
     /*? assert(isinstance(ret_sz_ptr, str)) ?*/

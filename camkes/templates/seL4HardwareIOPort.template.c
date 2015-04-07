@@ -21,20 +21,17 @@
 
 /*- set ioport = [] -*/
 /*- set p = Perspective(to_interface=me.to_interface.name) -*/
-/*- set attr = p['hardware_attribute'] -*/
-/*- for i in configuration.settings -*/
-    /*- if attr == i.attribute and i.instance == me.to_instance.name -*/
-        /*- set start, end = i.value.strip('"').split(':') -*/
-        /*- set start = int(start, 16) -*/
-        /*- set end = int(end, 16) -*/
-        /*- do ioport.append(alloc('ioport', seL4_IA32_IOPort)) -*/
-        /*- do cap_space.cnode[ioport[0]].set_ports(range(start, end + 1)) -*/
-        int /*? me.from_interface.name ?*/_in_range(unsigned int port) {
-            return port >= /*? start ?*/ && port < /*? end ?*/;
-        }
-        /*- break -*/
-    /*- endif -*/
-/*- endfor -*/
+/*- set attr = configuration[me.to_instance.name].get(p['hardware_attribute']) -*/
+/*- if attr is not none -*/
+    /*- set start, end = attr.strip('"').split(':') -*/
+    /*- set start = int(start, 16) -*/
+    /*- set end = int(end, 16) -*/
+    /*- do ioport.append(alloc('ioport', seL4_IA32_IOPort)) -*/
+    /*- do cap_space.cnode[ioport[0]].set_ports(range(start, end + 1)) -*/
+    int /*? me.from_interface.name ?*/_in_range(unsigned int port) {
+        return port >= /*? start ?*/ && port < /*? end ?*/;
+    }
+/*- endif -*/
 
 /* Interface-specific error handling */
 /*- set error_handler = '%s_error_handler' % me.to_interface.name -*/

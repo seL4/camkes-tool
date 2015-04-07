@@ -142,10 +142,6 @@ def set_tcb_info(ast, obj_space, cspaces, elfs, *_):
 def set_tcb_caps(ast, obj_space, cspaces, elfs, _, options):
     assembly = find_assembly(ast)
 
-    settings = \
-        assembly.configuration.settings if assembly.configuration is not None \
-        else []
-
     for group, space in cspaces.items():
         cnode = space.cnode
         for index, tcb in [(k, v.referent) for (k, v) in cnode.slots.items() \
@@ -160,13 +156,10 @@ def set_tcb_caps(ast, obj_space, cspaces, elfs, _, options):
 
             # Allow the user to override CNode sizes with the 'cnode_size_bits'
             # attribute.
-            cnode_size = [x for x in settings if \
-                x.instance == group and x.attribute == 'cnode_size_bits']
-            if len(cnode_size) > 1:
-                raise Exception('multiple CNode sizes specified for %s' % group)
-            elif len(cnode_size) == 1:
+            cnode_size = assembly.configuration[group].get('cnode_size_bits')
+            if cnode_size is not None:
                 try:
-                    size = int(cnode_size[0].value)
+                    size = int(cnode_size)
                 except ValueError:
                     raise Exception('illegal value for CNode size for %s' % \
                         group)
@@ -236,10 +229,6 @@ def collapse_shared_frames(ast, obj_space, cspaces, elfs, _, options):
 
     assembly = find_assembly(ast)
 
-    settings = \
-        assembly.configuration.settings if assembly.configuration is not None \
-        else []
-
     # We want to track the frame objects backing shared regions with a dict
     # keyed on the name of the connection linking the regions.
     shared_frames = {}
@@ -307,14 +296,12 @@ def collapse_shared_frames(ast, obj_space, cspaces, elfs, _, options):
             # recreate this mapping if it's already correct, but do it anyway
             # for simplicity.
             # FIXME: stop hard coding this name mangling.
-            rights_setting = [x for x in settings if \
-                (x.instance == conn_name and x.attribute == '%s_access' % direction)]
-            if len(rights_setting) == 1 and \
-                    re.match(r'^"R?W?(G|X)?"$', rights_setting[0].value):
-                read = 'R' in rights_setting[0].value
-                write = 'W' in rights_setting[0].value
-                execute = 'X' in rights_setting[0].value or \
-                    'G' in rights_setting[0].value
+            rights_setting = assembly.configuration[conn_name].get('%s_access' % direction)
+            if rights_setting is not None and \
+                    re.match(r'^"R?W?(G|X)?"$', rights_setting):
+                read = 'R' in rights_setting
+                write = 'W' in rights_setting
+                execute = 'X' in rights_setting or 'G' in rights_setting
             else:
                 # default
                 read = True
@@ -326,11 +313,9 @@ def collapse_shared_frames(ast, obj_space, cspaces, elfs, _, options):
                     assembly.configuration is not None:
                 p = Perspective(to_interface=connections[0].to_interface.name)
                 hardware_attribute = p['hardware_attribute']
-                configurations = [x for x in assembly.configuration.settings if \
-                    ((x.instance == connections[0].to_instance.name and \
-                     x.attribute == hardware_attribute))]
-                assert len(configurations) == 1
-                paddr, size = configurations[0].value.strip('"').split(':')
+                conf = assembly.configuration[connections[0].to_instance.name].get(hardware_attribute)
+                assert conf is not None
+                paddr, size = conf.strip('"').split(':')
                 # Round up the MMIO size to PAGE_SIZE
                 paddr = int(paddr, 16)
                 size = int(size, 16)
@@ -686,8 +671,6 @@ def tcb_priorities(ast, obj_space, cspaces, *_):
         # We have nothing to do if no priorities were set.
         return
 
-    settings = assembly.configuration.settings
-
     for group, space in cspaces.items():
         cnode = space.cnode
         for tcb in [v.referent for v in cnode.slots.values() \
@@ -698,13 +681,9 @@ def tcb_priorities(ast, obj_space, cspaces, *_):
             # Find the priority if it was set.
             prio_attribute = perspective['priority_attribute']
             name = perspective['instance']
-            prios = [x for x in settings if \
-                (x.instance == name and x.attribute == prio_attribute)]
-            if len(prios) != 1:
-                continue
-            prio = prios[0].value
-
-            tcb.prio = prio
+            prio = assembly.configuration[name].get(prio_attribute)
+            if prio is not None:
+                tcb.prio = prio
 
 def tcb_domains(ast, obj_space, cspaces, *_):
     '''Set the domain of a TCB if the user has specified this in an
@@ -717,8 +696,6 @@ def tcb_domains(ast, obj_space, cspaces, *_):
         # We have nothing to do if no domains were set.
         return
 
-    settings = assembly.configuration.settings
-
     for group, space in cspaces.items():
         cnode = space.cnode
         for tcb in [x.referent for x in cnode.slots.values() if \
@@ -729,13 +706,9 @@ def tcb_domains(ast, obj_space, cspaces, *_):
             # Find the domain if it was set.
             dom_attribute = perspective['domain_attribute']
             name = perspective['instance']
-            doms = [x for x in settings if \
-                (x.instance == name and x.attribute == dom_attribute)]
-            if len(doms) != 1:
-                continue
-            dom = doms[0].value
-
-            tcb.domain = dom
+            dom = assembly.configuration[name].get(dom_attribute)
+            if dom is not None:
+                tcb.domain = dom
 
 def remove_tcb_caps(ast, obj_space, cspaces, elfs, profiler, options):
     '''Remove all TCB caps in the system if requested by the user.'''
