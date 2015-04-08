@@ -77,6 +77,22 @@ def check_for_unresolved_references(ast):
 
     return ast
 
+def check_for_duplicate_attribute_definitions(ast):
+    '''
+    Checks for whether an attribute (either declared or undeclared) has been
+    assigned to twice in the configuration block. Note that we currently assume
+    all attribute definitions end up colocated in the same final configuration.
+    '''
+    defns = set()
+    for conf in iter_type(ast, AST.Configuration):
+        for setting in conf.settings:
+            id = (setting.instance, setting.attribute)
+            if id in defns:
+                raise Exception('malformed specification: attribute %s.%s ' \
+                    'is assigned to twice' % id)
+            defns.add(id)
+    return ast
+
 PRE_RESOLUTION, POST_RESOLUTION = range(2)
 
 AST_TRANSFORMS = [
@@ -91,6 +107,7 @@ AST_TRANSFORMS = [
     [
         check_for_unresolved_references,
         assign_address_spaces,
+        check_for_duplicate_attribute_definitions,
     ],
 
 ]
