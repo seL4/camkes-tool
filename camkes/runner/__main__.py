@@ -62,7 +62,7 @@ def cache_relevant_options(opts):
     #  2. It affects the AST, which is already in the cache key (e.g. cpp); or
     #  3. It has no affect on code generation (e.g. profiler).
     # We do this as an exclude list, rather than an include list so a
-    # mistakenly missing entry will cause an (safe) unnecesary cache miss, as
+    # mistakenly missing entry will cause an (safe) unnecessary cache miss, as
     # opposed to an incorrect cache hit.
     CACHE_IRRELEVANT_OPTIONS = frozenset([
         'allow_forward_references',
@@ -448,7 +448,7 @@ def main():
 
     # Perform any per component simple generation. This needs to happen last
     # as this template needs to run after all other capabilities have been
-    # alloacted
+    # allocated
     for id, i in enumerate(assembly.composition.instances):
         # Don't generate any code for hardware components.
         if i.type.hardware:
