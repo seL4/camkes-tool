@@ -18,15 +18,9 @@ class Cache(object):
         self.root = root
 
     def get_file(self, key):
-        def resolve(key):
-            assert isinstance(key, list)
-            assert len(key) > 0
-            h = hash.content_hash(repr(key[0]))
-            if len(key) > 1:
-                r = resolve(key[1:])
-                h = os.path.join(h, r)
-            return h
-        return os.path.join(self.root, resolve(key))
+        assert isinstance(key, list), 'argument expected to be a list'
+        return os.path.join(*([self.root] +
+            [hash.content_hash(repr(k)) for k in key]))
 
     def __setitem__(self, key, value):
         path = self.get_file(key)
