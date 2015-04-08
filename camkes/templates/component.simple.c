@@ -51,22 +51,28 @@
 
 /*# Find any configuration IO ports #*/
 /*- set ioports = [] -*/
-/*- set ioport = configuration[me.name].get('ioport') -*/
-/*- if ioport is not none -*/
-    /*- set start, end = ioport.strip('"').split(':') -*/
-    /*- set start = int(start, 16) -*/
-    /*- set end = int(end, 16) -*/
-    /*- set ioport_cap = alloc("ioport%d_%d" % (start, end), seL4_IA32_IOPort) -*/
-    /*- do cap_space.cnode[ioport_cap].set_ports(range(start, end +1)) -*/
-    /*- do ioports.append( (ioport_cap, start, end) ) -*/
+/*- set ioport_list = configuration[me.name].get('ioports') -*/
+/*- if ioport_list is not none -*/
+    /*- set ioport_list = ioport_list.strip('"').split(',') -*/
+    /*- for ioport in ioport_list -*/
+        /*- set start, end = ioport.split(':') -*/
+        /*- set start = int(start, 16) -*/
+        /*- set end = int(end, 16) -*/
+        /*- set ioport_cap = alloc("ioport%d_%d" % (start, end), seL4_IA32_IOPort) -*/
+        /*- do cap_space.cnode[ioport_cap].set_ports(range(start, end +1)) -*/
+        /*- do ioports.append( (ioport_cap, start, end) ) -*/
+    /*- endfor -*/
 /*- endif -*/
 
 /*# Find any configuration mmio regions #*/
 /*- set mmio_regions = [] -*/
-/*- set mmio_region = configuration[me.name].get('mmio') -*/
-/*- if mmio_region is not none -*/
-    /*- set paddr, size, bits = mmio_region.strip('"').split(':') -*/
-    /*- do mmio_regions.append( (int(paddr, 16), int(size, 16),int(bits, 10)) ) -*/
+/*- set mmio_region_list = configuration[me.name].get('mmios') -*/
+/*- if mmio_region_list is not none -*/
+    /*- set mmio_region_list = mmio_region_list.split(',') -*/
+    /*- for mmio_region in mmio_region_list -*/
+        /*- set paddr, size, bits = mmio_region.strip('"').split(':') -*/
+        /*- do mmio_regions.append( (int(paddr, 16), int(size, 16),int(bits, 10)) ) -*/
+    /*- endfor -*/
 /*- endif -*/
 
 /*# Allocates capabilities for all the MMIO regions #*/
@@ -91,29 +97,34 @@
 
 /*# Find an allocate untyped MMIO capabilities #*/
 /*- set untyped_mmio = [] -*/
-/*- set ut_mmio = configuration[me.name].get('untyped_mmio') -*/
-/*- if ut_mmio is not none -*/
-    /*- set paddr, size_bits = ut_mmio.strip('"').split(':') -*/
-    /*- set paddr = int(paddr, 0) -*/
-    /*- set size_bits = int(size_bits, 0) -*/
-    /*- set cap = alloc('untyped_cap_%d' % paddr, seL4_UntypedObject, read=True, write=True, paddr = paddr, size_bits = size_bits) -*/
-    /*- do untyped_mmio.append( (paddr, size_bits, cap) ) -*/
+/*- set ut_mmio_list = configuration[me.name].get('untyped_mmios') -*/
+/*- if ut_mmio_list is not none -*/
+    /*- set ut_mmio_list = ut_mmio_list.strip('"').split(',') -*/
+    /*- for ut_mmio in ut_mmio_list -*/
+        /*- set paddr, size_bits = ut_mmio.split(':') -*/
+        /*- set paddr = int(paddr, 0) -*/
+        /*- set size_bits = int(size_bits, 0) -*/
+        /*- set cap = alloc('untyped_cap_%d' % paddr, seL4_UntypedObject, read=True, write=True, paddr = paddr, size_bits = size_bits) -*/
+        /*- do untyped_mmio.append( (paddr, size_bits, cap) ) -*/
+    /*- endfor -*/
 /*- endif -*/
 
 /*# Allocate any IOSpace caps #*/
 /*- set iospaces = [] -*/
-/*- set iospace = configuration[me.name].get('iospace') -*/
-/*- if iospace is not none -*/
-    /*- set domain, bus, dev, fun = iospace.strip('"').split(':') -*/
-    /*- set domain = int(domain, 16) -*/
-    /*- set bus = int(bus, 16) -*/
-    /*- set dev = int(dev, 16) -*/
-    /*- set fun = int(fun, 10) -*/
-    /*- set pciid = bus * 256 + dev * 8 + fun -*/
-    /*- set devid = domain * 65536 + pciid -*/
-    /*- set iospace_cap = alloc('iospace_%d' % devid, seL4_IA32_IOSpace, domainID=domain, bus=bus, dev=dev, fun=fun) -*/
-    /*- do iospaces.append((devid, iospace_cap)) -*/
-    /*# do cap_space.cnode[iospace_cap].set_iospace( (domain, bus, dev, fun) ) #*/
+/*- set iospace_list = configuration[me.name].get('iospaces') -*/
+/*- if iospace_list is not none -*/
+    /*- set iospace_list = iospace_list.strip('"').split(',') -*/
+    /*- for iospace in iospace_list -*/
+        /*- set domain, bus, dev, fun = iospace.split(':') -*/
+        /*- set domain = int(domain, 16) -*/
+        /*- set bus = int(bus, 16) -*/
+        /*- set dev = int(dev, 16) -*/
+        /*- set fun = int(fun, 10) -*/
+        /*- set pciid = bus * 256 + dev * 8 + fun -*/
+        /*- set devid = domain * 65536 + pciid -*/
+        /*- set iospace_cap = alloc('iospace_%d' % devid, seL4_IA32_IOSpace, domainID=domain, bus=bus, dev=dev, fun=fun) -*/
+        /*- do iospaces.append((devid, iospace_cap)) -*/
+    /*- endfor -*/
 /*- endif -*/
 
 /*# Allocate asid pool cap #*/
@@ -124,12 +135,14 @@
 /*- set irqaep_object = alloc_obj('irq_aep_obj', seL4_AsyncEndpointObject) -*/
 /*- set irqaep = alloc_cap('irq_aep_obj', irqaep_object, read=True) -*/
 /*- set irqs = [] -*/
-/*- set irq = configuration[me.name].get('irq') -*/
-/*- if irq is not none -*/
-    /*- set irq = irq.strip('"') -*/
-    /*- set irq = int(irq, 10) -*/
-    /*- set irq_cap = alloc('irq_%d' % irq, seL4_IRQControl, number=irq, aep=irqaep_object) -*/
-    /*- do irqs.append( (irq, irq_cap) ) -*/
+/*- set irq_list = configuration[me.name].get('irqs') -*/
+/*- if irq_list is not none -*/
+    /*- set irq_list = irq_list.strip('"').split(',') -*/
+    /*- for irq in irq_list -*/
+        /*- set irq = int(irq, 10) -*/
+        /*- set irq_cap = alloc('irq_%d' % irq, seL4_IRQControl, number=irq, aep=irqaep_object) -*/
+        /*- do irqs.append( (irq, irq_cap) ) -*/
+    /*- endfor -*/
 /*- endif -*/
 
 /*# No cap allocation from here on! We assume all caps exist so we can guess our cnode size from the
