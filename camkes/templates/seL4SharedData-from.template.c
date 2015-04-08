@@ -13,7 +13,6 @@
 
 /*? macros.show_includes(me.from_instance.type.includes) ?*/
 
-/* Actual dataport is emitted in the per-component template. */
 /*- set p = Perspective(dataport=me.from_interface.name) -*/
 #define SHM_ALIGN (1 << 12)
 char /*? p['dataport_symbol'] ?*/[ROUND_UP_UNSAFE(sizeof(/*? show(me.from_interface.type) ?*/), PAGE_SIZE_4K)]
