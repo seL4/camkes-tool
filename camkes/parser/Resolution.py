@@ -131,11 +131,11 @@ def resolve_references(ast, allow_forward=False, context=None):
                     if len(interface) == 1:
                         i.to_interface.resolve_to(interface[0])
 
+        resolve_references(i.children(), allow_forward, context)
+
         if not isinstance(i, Reference):
             # This is a referenceable object
             context.register(i)
-
-        resolve_references(i.children(), allow_forward, context)
 
     context.pop_scope()
 
