@@ -42,7 +42,7 @@
         --item /*? item ?*/ \
         --outfile "$@" \
         --platform /*? platform ?*/
-	/*- if preprocessor != None -*/
+	/*- if preprocessor is not none -*/
 	@echo " [PP] $(notdir $@)"
 	${Q}/*? preprocessor ?*/
 	/*- endif -*/
@@ -349,8 +349,11 @@ endif
 CRTOBJFILES ?= $(SEL4_LIBDIR)/crt1.o $(SEL4_LIBDIR)/crti.o $(shell $(CC) $(CFLAGS) $(CPPFLAGS)  -print-file-name=crtbegin.o)
 FINOBJFILES ?= $(shell $(CC) $(CFLAGS) $(CPPFLAGS) -print-file-name=crtend.o) $(SEL4_LIBDIR)/crtn.o
 
-/*? i.name ?*/.instance.bin: $(/*? i.name ?*/_CFILES:%.c=%.o) $(/*? i.name ?*/_CXXFILES:%.cxx=%.o) $(/*? i.name ?*/_ASMFILES:%.S=%.o) $(/*? i.name ?*/_OFILES) \
-	$(/*? i.name ?*/_instance_LIBS:%=%.a)
+/*? i.name ?*/.instance.bin: $(/*? i.name ?*/_CFILES:%.c=%.o) \
+                             $(/*? i.name ?*/_CXXFILES:%.cxx=%.o) \
+                             $(/*? i.name ?*/_ASMFILES:%.S=%.o) \
+                             $(/*? i.name ?*/_OFILES) \
+                             $(/*? i.name ?*/_instance_LIBS:%=%.a)
 	@echo " [LD] $(notdir $@)"
 	${Q}${CC} $(CRTOBJFILES) $(filter %.o,$^) $(FINOBJFILES) ${/*? i.name ?*/_instance_LDFLAGS} -o $@
 /*- set p = Perspective(group=i.address_space) -*/
