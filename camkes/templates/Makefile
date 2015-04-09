@@ -350,7 +350,7 @@ CRTOBJFILES ?= $(SEL4_LIBDIR)/crt1.o $(SEL4_LIBDIR)/crti.o $(shell $(CC) $(CFLAG
 FINOBJFILES ?= $(shell $(CC) $(CFLAGS) $(CPPFLAGS) -print-file-name=crtend.o) $(SEL4_LIBDIR)/crtn.o
 
 /*? i.name ?*/.instance.bin: $(/*? i.name ?*/_CFILES:%.c=%.o) $(/*? i.name ?*/_CXXFILES:%.cxx=%.o) $(/*? i.name ?*/_ASMFILES:%.S=%.o) $(/*? i.name ?*/_OFILES) \
-	$(/*? i.name ?*/_instance_LIBS:%=%.a)
+	$(/*? i.name ?*/_instance_LIBS:%=%.a) ${BUILD_DIR}/linker.lds
 	@echo " [LD] $(notdir $@)"
 	${Q}${CC} $(CRTOBJFILES) $(filter %.o,$^) $(FINOBJFILES) ${/*? i.name ?*/_instance_LDFLAGS} -o $@
 /*- set p = Perspective(group=i.address_space) -*/

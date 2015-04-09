@@ -128,7 +128,7 @@ PRUNER_BLACKLIST = FILE fpos_t opterr optind optopt stderr stdin stdout \
 include ${BUILD_DIR}/camkes-gen.mk
 
 .DELETE_ON_ERROR: ${BUILD_DIR}/camkes-gen.mk
-${BUILD_DIR}/camkes-gen.mk: ${SOURCE_DIR}/${ADL} ${BUILD_DIR}/linker.lds
+${BUILD_DIR}/camkes-gen.mk: ${SOURCE_DIR}/${ADL}
 	@echo " [GEN] $(notdir $@)"
 	camkes.sh runner \
         ${CAMKES_FLAGS} \
