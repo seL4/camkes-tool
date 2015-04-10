@@ -77,20 +77,44 @@ def check_for_unresolved_references(ast):
 
     return ast
 
+
+def check_configuration_for_duplicate_attribute_definitions(conf, defns):
+    '''
+    Helper function for check_for_duplicate_attribute_definitions. Checks
+    whether a given configuration contains multilpe settings with the same
+    instance and attribute name, or settings contained in the defns set.
+
+    '''
+    if conf is None:
+        return
+
+    for setting in conf.settings:
+        id = (setting.instance, setting.attribute)
+        if id in defns:
+            raise Exception('malformed specification: attribute %s.%s ' \
+                'is assigned to twice' % id)
+        defns.add(id)
+
 def check_for_duplicate_attribute_definitions(ast):
     '''
     Checks for whether an attribute (either declared or undeclared) has been
-    assigned to twice in the configuration block. Note that we currently assume
-    all attribute definitions end up colocated in the same final configuration.
+    assigned to twice in the configuration block. All configuration sections
+    appearing in assemblies share a single scope as far as attribute names
+    are concerned. Configuration sections in components each have aseparate
+    scope.
     '''
     defns = set()
-    for conf in iter_type(ast, AST.Configuration):
-        for setting in conf.settings:
-            id = (setting.instance, setting.attribute)
-            if id in defns:
-                raise Exception('malformed specification: attribute %s.%s ' \
-                    'is assigned to twice' % id)
-            defns.add(id)
+    for assembly in iter_type(ast, AST.Assembly):
+        check_configuration_for_duplicate_attribute_definitions(
+            assembly.configuration, defns)
+
+    for component in iter_type(ast, AST.Component):
+        # defns is cleared to allow different component configurations to have
+        # different scopes for attributes
+        defns.clear()
+        check_configuration_for_duplicate_attribute_definitions(
+            component.configuration, defns)
+
     return ast
 
 PRE_RESOLUTION, POST_RESOLUTION = range(2)
