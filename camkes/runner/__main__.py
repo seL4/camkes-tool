@@ -680,18 +680,8 @@ def resolve_assembly_hierarchy(original):
        containing instances and connections in which any hierarchy below the
        given original are resolved.'''
 
-    # Work out the settings in advance of constructing a new assembly. The
-    # purpose of this is because the Configuration constructor does some work
-    # that is missed if we create a blank Configuration and then append
-    # settings to it later.
-    if original.configuration is not None:
-        settings = original.configuration.settings
-    else:
-        settings = None
-
     # create empty assembly to populate
-    resolved = AST.Assembly(composition = AST.Composition(),
-        configuration = AST.Configuration(settings=settings))
+    resolved = AST.Assembly(composition = AST.Composition(), configuration = AST.Configuration())
 
     # non-composite components don't have any instances or connections
     if original.composition is None:
@@ -702,6 +692,9 @@ def resolve_assembly_hierarchy(original):
     resolved.composition.connections.extend(original.composition.connections)
     resolved.composition.groups.extend(original.composition.groups)
 
+    if original.configuration is not None:
+        resolved.configuration.settings.extend(original.configuration.settings)
+    
     # recursively resolve hierarchy of instances
     for i in original.composition.instances:
 
