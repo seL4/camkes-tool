@@ -312,12 +312,19 @@ def p_setting_defn(t):
     '''setting_defn : ID DOT ID EQUALS ID SEMI
                     | ID DOT ID EQUALS NUMBER SEMI
                     | ID DOT ID EQUALS DECIMAL SEMI
+                    | ID DOT ID LARROW ID SEMI
                     | setting_defn_string'''
     if len(t) == 2:
         t[0] = t[1]
     else:
         assert len(t) == 7
-        t[0] = Setting(t[1], t[3], t[5], filename=t.lexer.filename, \
+        if t[4] == '<-':
+            # handle hierarchical attribute case
+            value = {'reference': t[5]}
+        else:
+            value = t[5]
+
+        t[0] = Setting(t[1], t[3], value, filename=t.lexer.filename, \
             lineno=t.lexer.lineno)
 
 def p_setting_defn_string(t):

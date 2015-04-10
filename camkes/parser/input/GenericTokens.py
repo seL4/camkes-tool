@@ -24,6 +24,7 @@ t_RBRACE = r'}'
 t_RPAREN = r'\)'
 t_RSQUARE = r'\]'
 t_SEMI = r';'
+t_LARROW = r'<-'
 
 # Ignore whitespace.
 t_ignore = ' \t\r'

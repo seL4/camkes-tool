@@ -614,7 +614,21 @@ def merge_assembly(dest, source, instance):
     # copy instances, groups and configuration settings
     dest.composition.instances.extend(source.composition.instances)
     dest.composition.groups.extend(source.composition.groups)
-    dest.configuration.settings.extend(source.configuration.settings)
+
+    # resolve hierarchical attributes
+    for s in source.configuration.settings:
+        if isinstance(s.value, dict):
+            reference = s.value['reference']
+            if instance.name in dest.configuration and \
+                reference in dest.configuration[instance.name]:
+
+                s.value = dest.configuration[instance.name][reference]
+            else:
+                # The attribute wasn't set for the parent so drop the virtual attribute
+                continue
+
+        dest.configuration.settings.append(s)
+
     dest.configuration.update_mapping()
 
     # create dict mapping exported interface name -> source connector
