@@ -694,6 +694,7 @@ def resolve_assembly_hierarchy(original):
 
     if original.configuration is not None:
         resolved.configuration.settings.extend(original.configuration.settings)
+        resolved.configuration.update_mapping()
     
     # recursively resolve hierarchy of instances
     for i in original.composition.instances:
