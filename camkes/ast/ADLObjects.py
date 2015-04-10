@@ -257,6 +257,7 @@ class Component(ADLObject):
             'mutexes':' '.join(map(str, self.mutexes)),
             'semaphores':' '.join(map(str, self.semaphores)),
             'includes':' '.join(map(str, self.includes)),
+            'attributes':' '.join(map(str, self.attributes)),
             'composition':self.composition or '',
             'configuration':self.configuration or ''
         }
