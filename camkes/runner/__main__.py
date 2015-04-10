@@ -615,6 +615,7 @@ def merge_assembly(dest, source, instance):
     dest.composition.instances.extend(source.composition.instances)
     dest.composition.groups.extend(source.composition.groups)
     dest.configuration.settings.extend(source.configuration.settings)
+    dest.configuration.update_mapping()
 
     # create dict mapping exported interface name -> source connector
     exports = {}
@@ -671,6 +672,8 @@ def prefix_children(prefix, assembly):
     for s in assembly.configuration.settings:
         s.instance = '%s_%s' % (prefix, s.instance)
 
+    assembly.configuration.update_mapping()
+
 def resolve_assembly_hierarchy(original):
     '''Given something that has a composition and optionally a configuration
        (ie. an assembly or composite original), this returns a new Assembly
@@ -683,6 +686,8 @@ def resolve_assembly_hierarchy(original):
     # settings to it later.
     if original.configuration is not None:
         settings = original.configuration.settings
+    else:
+        settings = None
 
     # create empty assembly to populate
     resolved = AST.Assembly(composition = AST.Composition(),

@@ -101,6 +101,9 @@ class Configuration(ADLObject, collections.Mapping):
         super(Configuration, self).__init__(filename=filename, lineno=lineno)
         self.name = name
         self.settings = settings or []
+        self.update_mapping()
+
+    def update_mapping(self):
         # Build a two-level dictionary of the attributes, the first level keyed
         # on instance name and the second level keyed on attribute name. This
         # allows more optimised lookups of attributes from templates.
@@ -243,7 +246,7 @@ class Component(ADLObject):
 
 
     def __repr__(self):
-        s = '{ %(control)s %(hardware)s %(provides)s %(uses)s %(emits)s %(consumes)s %(dataports)s %(mutexes)s %(semaphores)s %(includes)s }' % {
+        s = '{ %(control)s %(hardware)s %(provides)s %(uses)s %(emits)s %(consumes)s %(dataports)s %(mutexes)s %(semaphores)s %(includes)s %(composition)s %(configuration)s}' % {
             'control':'control;' if self.control else '',
             'hardware':'hardware;' if self.hardware else '',
             'provides':' '.join(map(str, self.provides)),
@@ -254,6 +257,8 @@ class Component(ADLObject):
             'mutexes':' '.join(map(str, self.mutexes)),
             'semaphores':' '.join(map(str, self.semaphores)),
             'includes':' '.join(map(str, self.includes)),
+            'composition':self.composition or '',
+            'configuration':self.configuration or ''
         }
         if self.name:
             s = 'component %(name)s %(defn)s' % {

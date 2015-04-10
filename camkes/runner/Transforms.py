@@ -83,7 +83,6 @@ def check_configuration_for_duplicate_attribute_definitions(conf, defns):
     Helper function for check_for_duplicate_attribute_definitions. Checks
     whether a given configuration contains multilpe settings with the same
     instance and attribute name, or settings contained in the defns set.
-
     '''
     if conf is None:
         return
