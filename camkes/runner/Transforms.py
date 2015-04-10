@@ -81,7 +81,7 @@ def check_for_unresolved_references(ast):
 def check_configuration_for_duplicate_attribute_definitions(conf, defns):
     '''
     Helper function for check_for_duplicate_attribute_definitions. Checks
-    whether a given configuration contains multilpe settings with the same
+    whether a given configuration contains multiple settings with the same
     instance and attribute name, or settings contained in the defns set.
     '''
     if conf is None:
@@ -99,20 +99,16 @@ def check_for_duplicate_attribute_definitions(ast):
     Checks for whether an attribute (either declared or undeclared) has been
     assigned to twice in the configuration block. All configuration sections
     appearing in assemblies share a single scope as far as attribute names
-    are concerned. Configuration sections in components each have aseparate
+    are concerned. Configuration sections in components each have a separate
     scope.
     '''
-    defns = set()
-    for assembly in iter_type(ast, AST.Assembly):
-        check_configuration_for_duplicate_attribute_definitions(
-            assembly.configuration, defns)
 
-    for component in iter_type(ast, AST.Component):
-        # defns is cleared to allow different component configurations to have
-        # different scopes for attributes
-        defns.clear()
-        check_configuration_for_duplicate_attribute_definitions(
-            component.configuration, defns)
+    defns = set()
+    [check_configuration_for_duplicate_attribute_definitions(a.configuration, defns) \
+        for a in iter_type(ast, AST.Assembly)]
+
+    [check_configuration_for_duplicate_attribute_definitions(a.configuration, set()) \
+        for a in iter_type(ast, AST.Component)]
 
     return ast
 
