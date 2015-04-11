@@ -1618,13 +1618,15 @@ int m_unlock(void);
 /* Wait on semaphore s */
 int s_wait(void);
 
+/* Try to wait on semaphore s */
+int s_trywait(void);
+
 /* Post to semaphore s */
 int s_post(void);
 ```
 
-Note that there is no try-wait operation. This operation may be provided in
-future. Other than this limitation, the CAmkES mutexes and semaphores have the
-behaviour you would expect from a seL4 or pthreads implementation.
+The CAmkES mutexes and semaphores have the behaviour you would expect from an
+seL4 or pthreads implementation.
 
 There is no native support for inter-component locks. However, it is possible
 to construct these on top of the CAmkES platform. An example of how you would
