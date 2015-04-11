@@ -1991,6 +1991,13 @@ name of the interface and the suffix ``_priority'':
       }
     }
 
+If you want to adjust the priority of every thread within a given component
+instance, you can use a general component attribute:
+
+    configuration {
+      f.priority = 100;
+    }
+
 For more information about the specifics of the seL4 scheduler, please refer to
 the seL4 documentation.
 

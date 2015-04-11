@@ -22,6 +22,7 @@ syn keyword CamkesKeyword assembly composition from to configuration control
     \ cnode_size_bits
 syn match CamkesUntypedPool "untyped[0-9]\+_pool"
 syn match CamkesStackSize "[a-zA-Z0-9_]\+_stack_size"
+syn match CamkesPriority "\<\(priority\|[a-zA-Z][a-zA-Z0-9_]*_priority\|_control_priority\)\>"
 syn keyword CamkesType component connection attribute connector Procedure Event
     \ Dataport
 syn keyword CamkesCType int string char character unsigned signed
@@ -40,6 +41,7 @@ hi def link CamkesCPP PreProc
 hi def link CamkesKeyword Statement
 hi def link CamkesUntypedPool Statement
 hi def link CamkesStackSize Statement
+hi def link CamkesPriority Statement
 hi def link CamkesType Type
 hi def link CamkesCType Type
 hi def link CamkesDependency Type

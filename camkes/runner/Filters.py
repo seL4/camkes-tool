@@ -681,6 +681,11 @@ def tcb_priorities(ast, obj_space, cspaces, *_):
             prio = assembly.configuration[name].get(prio_attribute)
             if prio is not None:
                 tcb.prio = prio
+            else:
+                # See if the user assigned a general priority to this component.
+                prio = assembly.configuration[name].get('priority')
+                if prio is not None:
+                    tcb.prio = prio
 
 def tcb_domains(ast, obj_space, cspaces, *_):
     '''Set the domain of a TCB if the user has specified this in an
