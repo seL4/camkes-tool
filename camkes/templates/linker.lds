@@ -48,16 +48,16 @@ SECTIONS {
 
     /*- for c in me.composition.connections -*/
     /*- if c.type.name == 'seL4SharedData' -*/
-    shared_/*? c.from_interface.name ?*/ (NOLOAD) : ALIGN(0x1000000) {
+    shared_/*? c.from_interface.name ?*/ (NOLOAD) : ALIGN(0x1000) {
         *(shared_/*? c.from_interface.name ?*/)
     }
-    shared_/*? c.to_interface.name ?*/ (NOLOAD) : ALIGN(0x1000000) {
+    shared_/*? c.to_interface.name ?*/ (NOLOAD) : ALIGN(0x1000) {
         *(shared_/*? c.to_interface.name ?*/)
     }
     /*- endif -*/
     /*- endfor -*/
 
-    persistent (NOLOAD) : ALIGN(0x1000000) {
+    persistent (NOLOAD) : ALIGN(0x1000) {
 	 *(persistent)
     }
 
