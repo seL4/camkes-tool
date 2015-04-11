@@ -34,6 +34,7 @@ syn match CamkesMultiLineComment "\/\*\_.\{-}\*\/"
 syn match CamkesSingleLineComment "\/\/.*$"
 syn region CamkesString start='"' end='"'
 syn region CamkesBuiltin start='<' end='>'
+syn match CamkesNumber "\<\(0x\x\+\|-\?\d\+\(\.\d\+\)\?\)\>"
 
 hi def link CamkesCPP PreProc
 hi def link CamkesKeyword Statement
@@ -47,3 +48,4 @@ hi def link CamkesMultiLineComment Comment
 hi def link CamkesSingleLineComment Comment
 hi def link CamkesString Constant
 hi def link CamkesBuiltin Constant
+hi def link CamkesNumber Constant
