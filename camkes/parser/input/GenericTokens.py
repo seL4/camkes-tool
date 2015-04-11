@@ -14,6 +14,7 @@ more information.'''
 import sys
 from .. import util
 
+t_COLON = r':'
 t_COMMA = r','
 t_DOT = r'\.'
 t_EQUALS = r'='
