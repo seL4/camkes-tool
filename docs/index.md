@@ -2385,6 +2385,7 @@ A procedural interface could then be defined to use the type:
     }
 
 C source files that need access to this data type can include the file with:
+
 ```c
 #include <vector.h>
 ```
@@ -2427,6 +2428,7 @@ A component could declare a port of this type:
 
 This would give the implementation access to a global pointer, which points to
 an appropriately large region of memory for the data type:
+
 ```c
 extern volatile IntArray * int_arr;
 ```
@@ -2882,6 +2884,7 @@ for this to include the header file defining complex numbers.
     };
 
 The implementation of this method is added to the `Math` component implementation:
+
 ```c
 /* components/Math/src/main.c */
 
@@ -2908,6 +2911,7 @@ int m_compute_roots_of_unity(int n) {
 ```
 
 The method is called from the `Client` component implementation:
+
 ```c
 /* apps/pythagoras/components/Client/src/main.c */
 
