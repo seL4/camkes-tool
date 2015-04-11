@@ -1931,6 +1931,30 @@ default.
       }
     }
 
+### Thread Model
+
+CAmkES components are typically multithreaded and, to prevent race conditions,
+it is often necessary to understand what threads exist in your system.
+
+Firstly there is a single active thread. This is the thread of control that
+calls the component's entry point for components declared `control`. This
+thread is present even in non-control components in order to perform
+initialisation actions.
+
+Each interface your component interacts with, either as an incoming or outgoing
+interface, induces another thread within the component. Initial synchronisation
+of these threads and their various setup activities is all handled by generated
+code. Note that this per-interface thread is present even for interfaces that
+you may think of as passive. For example, dataports. This is merely an
+implementation artefact and may change in future.
+
+One thing that may not be intuitive for users is that you have no guarantee as
+to which thread will invoke an event callback. If you have registered a
+callback for an event you are receiving, you should not assume that any
+thread-local state persists between invocations. This is because the thread
+which invokes a callback may not be the same thread as was used last time the
+callback was invoked.
+
 ### Thread Priorities
 
 Each thread in a CAmkES system has a priority that determines how it is
