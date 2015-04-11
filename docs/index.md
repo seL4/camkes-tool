@@ -1405,7 +1405,7 @@ The following types are available at runtime from the C context of a component:
 **`camkes_error_handler_t`** (`#include <camkes/error.h>`)
 > The type of an error handler for dealing with errors originating in glue
   code. For more information about this see
-  [Error Handling](#Error%20Handling).
+  [Error Handling](#error-handling).
 
 **`camkes_tls_t`** (`#include <camkes/tls.h>`)
 
@@ -1436,7 +1436,7 @@ The following functions are available at runtime:
 > Register a component-wide or interface-specific error handler, respectively.
   These functions return the previous error handler or `NULL` if there was no
   previously installed error handler. For more information see
-  [Error Handling](#Error%20Handling).
+  [Error Handling](#error-handling).
 
 **`dataport_ptr_t dataport_wrap_ptr(void *ptr)`** (`#include <camkes/dataport.h>`)  
 **`void *dataport_unwrap_ptr(dataport_ptr_t ptr)`** (`#include <camkes/dataport.h>`)
@@ -1683,7 +1683,7 @@ mode is generally the only relevant one you will need. It allows for runtime
 handling of errors. By default, all errors cause a diagnostic message and a
 system halt on a debug kernel. To alter this behaviour, user code can call the
 function `camkes_register_error_handler` (described in
-[Runtime API](#Runtime%20API)) and provide their own error handling function.
+[Runtime API](#runtime-api)) and provide their own error handling function.
 The user's error handling will thenceforth be invoked by glue code whenever an
 error is detected. The error handling function should return one of the
 following values, documented further in `camkes/error.h`, that indicate to the
