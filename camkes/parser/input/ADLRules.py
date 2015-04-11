@@ -312,6 +312,7 @@ def p_setting_defn(t):
     '''setting_defn : ID DOT ID EQUALS ID SEMI
                     | ID DOT ID EQUALS NUMBER SEMI
                     | ID DOT ID EQUALS DECIMAL SEMI
+                    | ID DOT ID EQUALS list SEMI
                     | setting_defn_string'''
     if len(t) == 2:
         t[0] = t[1]
