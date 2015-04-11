@@ -471,9 +471,6 @@ def replace_dma_frames(ast, obj_space, cspaces, elfs, _, options):
         base_vaddrs = map(lambda x: PAGE_SIZE * x + base,
             range(int(sz / PAGE_SIZE)))
 
-        # Unlike collapse_shared_frames, this *does* support the region
-        # crossing page table boundaries.
-
         for index, v in enumerate(base_vaddrs):
             # Locate the mapping.
             pt_index = page_table_index(get_elf_arch(elf), v, options.hyp)
