@@ -1994,6 +1994,28 @@ name of the interface and the suffix ``_priority'':
 For more information about the specifics of the seL4 scheduler, please refer to
 the seL4 documentation.
 
+### Thread Stacks
+
+Each CAmkES thread has a stack provided for it for use at runtime, as is
+typical. Stack size defaults to 4K, but this default can be adjusted through
+the relevant build system configuration option. Additionally the stacks of
+individual threads within a component can be set with attributes:
+
+    configuration {
+
+      // Assign foo's control thread an 8K stack
+      foo._control_stack_size = 8192;
+
+      // Assign the interface thread for inf in foo a 16K stack
+      foo.inf_stack_size = 16384;
+
+    }
+
+Note that stacks must have a size that is 4K aligned, so if you assign a thread
+a stack size that is not 4K aligned it will be rounded up. Stacks have a 4K
+unmapped "guard page" either side of them. This is a debugging aid to force a
+virtual memory fault when threads underrun or overrun their stacks.
+
 ### Scheduling Domains
 
 In CAmkES, it is possible to specify the domain each thread belongs to, by setting attributes.

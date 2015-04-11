@@ -19,12 +19,12 @@ def header_guard(filename):
 def header_file(filename):
     return '.'.join(filename.split('.')[:-1]) + '.h'
 
-def thread_stack(sym):
-    return 'char %s[ROUND_UP_UNSAFE(CONFIG_CAMKES_DEFAULT_STACK_SIZE, ' \
+def thread_stack(sym, size='CONFIG_CAMKES_DEFAULT_STACK_SIZE'):
+    return 'char %s[ROUND_UP_UNSAFE(%s, ' \
                 'PAGE_SIZE_4K) + PAGE_SIZE_4K * 2]\n' \
            '    __attribute__((externally_visible))\n' \
            '    __attribute__((section("guarded")))\n' \
-           '    __attribute__((aligned(PAGE_SIZE_4K)));\n' % sym
+           '    __attribute__((aligned(PAGE_SIZE_4K)));\n' % (sym, size)
 
 def ipc_buffer(sym):
     return 'char %s[PAGE_SIZE_4K * 3]\n' \

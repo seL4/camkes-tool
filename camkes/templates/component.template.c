@@ -337,10 +337,12 @@ static void /*? init ?*/(void) {
 
 /* Thread stacks */
 /*- set p = Perspective(instance=me.name, control=True) -*/
-/*? macros.thread_stack(p['stack_symbol']) ?*/
+/*- set stack_size = configuration[me.name].get('_control_stack_size', 'CONFIG_CAMKES_DEFAULT_STACK_SIZE') -*/
+/*? macros.thread_stack(p['stack_symbol'], stack_size) ?*/
 /*- for i in all_interfaces -*/
     /*- set p = Perspective(instance=me.name, interface=i.name) -*/
-    /*? macros.thread_stack(p['stack_symbol']) ?*/
+    /*- set stack_size = configuration[me.name].get('%s_stack_size' % i.name, 'CONFIG_CAMKES_DEFAULT_STACK_SIZE') -*/
+    /*? macros.thread_stack(p['stack_symbol'], stack_size) ?*/
 /*- endfor -*/
 
 /* IPC buffers */
