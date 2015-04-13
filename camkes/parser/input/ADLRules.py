@@ -320,7 +320,7 @@ def p_setting_defn(t):
         assert len(t) == 7
         if t[4] == '<-':
             # handle hierarchical attribute case
-            value = {'reference': t[5]}
+            value = Reference(t[5], Attribute)
         else:
             value = t[5]
 

@@ -617,8 +617,8 @@ def merge_assembly(dest, source, instance):
 
     # resolve hierarchical attributes
     for s in source.configuration.settings:
-        if isinstance(s.value, dict):
-            reference = s.value['reference']
+        if isinstance(s.value, AST.Reference):
+            reference = str(s.value)
             if instance.name in dest.configuration and \
                 reference in dest.configuration[instance.name]:
 
