@@ -615,17 +615,36 @@ def merge_assembly(dest, source, instance):
     dest.composition.instances.extend(source.composition.instances)
     dest.composition.groups.extend(source.composition.groups)
 
+    # dict mapping attribute names to attributes for the component of 'instance'
+    instance_attributes = {a.name: a for a in instance.type.attributes}
+
+    # dict mapping nested instance names to dicts mapping attribute names for instance
+    # components to the attributes they represent
+    nested_instance_attributes = {i.name: {a.name: a for a in i.type.attributes} \
+        for i in source.composition.instances}
+
     # resolve hierarchical attributes
     for s in source.configuration.settings:
         if isinstance(s.value, AST.Reference):
             reference = str(s.value)
-            if instance.name in dest.configuration and \
-                reference in dest.configuration[instance.name]:
 
-                s.value = dest.configuration[instance.name][reference]
-            else:
-                # The attribute wasn't set for the parent so drop the virtual attribute
-                continue
+            if instance.name not in dest.configuration or \
+                reference not in dest.configuration[instance.name]:
+
+                # The attribute wasn't set for the parent
+                raise Exception("Attribute %s is not set but is referenced "
+                                "by nested component instance %s"
+                                % (s.value, instance.name))
+
+            # Check that the types of the referer and referant are the same
+            referer_type = nested_instance_attributes[s.instance][s.attribute].type
+            referant_type = instance_attributes[reference].type
+            if referer_type != referant_type:
+                raise Exception("Attribute type mismatch: attribute %s (%s) refers to "
+                                "attribute %s (%s)."
+                                % (s.attribute, referer_type, reference, referant_type))
+
+            s.value = dest.configuration[instance.name][reference]
 
         dest.configuration.settings.append(s)
 
@@ -709,7 +728,7 @@ def resolve_assembly_hierarchy(original):
     if original.configuration is not None:
         resolved.configuration.settings.extend(original.configuration.settings)
         resolved.configuration.update_mapping()
-    
+
     # recursively resolve hierarchy of instances
     for i in original.composition.instances:
 
