@@ -35,10 +35,14 @@ static void *head;
 static uintptr_t (*to_paddr)(void *ptr);
 
 /* A node in the free list. Note that the free list is stored as a linked-list
- * of such nodes *within* the DMA pages themselves. We aggresively pack this
- * structure to avoid wasting space if we need to round up to this size during
- * allocation, and we tweak its alignment to tell the compiler we will be
- * accessing it through unaligned pointers.
+ * of such nodes *within* the DMA pages themselves. This struct is deliberately
+ * arranged to be tightly packed (the non-word sized member at the end) so that
+ * it consumes as little size as possible. The size of this struct determines
+ * the minimum region we can track, and we'd like to be as permissive as
+ * possible. Ordinarily this would be achievable in a straightforward way with
+ * `__attribute__((packed, aligned(1)))`, but unaligned accesses to uncached
+ * memory (which these will live in) are UNPREDICTABLE on some of our platforms
+ * like ARMv7.
  */
 typedef struct {
 
@@ -50,6 +54,12 @@ typedef struct {
      *  void *vaddr;
      */
 
+    /* The size in bytes of this region. */
+    size_t size;
+
+    /* The next node in the list. */
+    void *next;
+
     /* The upper bits of the physical address of this region. We don't need to
      * store the lower bits (the offset into the physical frame) because we can
      * reconstruct these from the offset into the page, obtainable as described
@@ -57,13 +67,7 @@ typedef struct {
      */
     uintptr_t paddr_upper:sizeof(uintptr_t) * 8 - PAGE_BITS_4K;
 
-    /* The size in bytes of this region. */
-    size_t size;
-
-    /* The next node in the list. */
-    void *next;
-
-} __attribute__((aligned(1), packed)) region_t;
+} region_t;
 
 static void save_paddr(region_t *r, uintptr_t paddr) {
     assert(r != NULL);
@@ -220,18 +224,18 @@ static void check_consistency(void) {
  *
  *  ┌─────────────┐   ┌─────────────┐   ┌─────────────┐
  *  │vaddr: 0x4000│   │vaddr: 0x7000│   │vaddr: 0x2000│
- *  │paddr: 0x6000│   │paddr: 0x8000│   │paddr: 0x4000│
  *  │size : 0x1000│   │size : 0x2000│   │size : 0x2000│
  *  │next :       ┼──→│next :       ┼──→│next :   NULL│
+ *  │paddr: 0x6000│   │paddr: 0x8000│   │paddr: 0x4000│
  *  └─────────────┘   └─────────────┘   └─────────────┘
  *
  * after defragmentation, the free list will look like:
  *
  *  ┌─────────────┐   ┌─────────────┐
  *  │vaddr: 0x2000│   │vaddr: 0x7000│
- *  │paddr: 0x4000│   │paddr: 0x8000│
  *  │size : 0x3000│   │size : 0x2000│
  *  │next :       ┼──→│next :   NULL│
+ *  │paddr: 0x4000│   │paddr: 0x8000│
  *  └─────────────┘   └─────────────┘
  */
 static void defrag(void) {
@@ -323,6 +327,26 @@ int camkes_dma_init(void *dma_pool, size_t dma_pool_sz, size_t page_size,
         return -1;
     }
 
+    /* Bail out if the caller gave us an insufficiently aligned pool. */
+    if (dma_pool == NULL || (uintptr_t)dma_pool % __alignof__(region_t) != 0) {
+        return -1;
+    }
+
+    /* We're going to store bookkeeping in the DMA pages, that we expect to be
+     * power-of-2-sized, so the bookkeeping struct better be
+     * power-of-2-aligned. Your compiler should always guarantee this.
+     */
+    _Static_assert(IS_POWER_OF_2(__alignof__(region_t)),
+        "region_t is not power-of-2-aligned");
+
+    /* The page size the caller has given us should be a power of 2 and at least
+     * the alignment of `region_t`.
+     */
+    if (page_size != 0 && (!IS_POWER_OF_2(page_size) ||
+                           page_size < __alignof__(region_t))) {
+        return -1;
+    }
+
     to_paddr = get_paddr;
 
     STATS(stats.heap_size = dma_pool_sz);
@@ -336,6 +360,9 @@ int camkes_dma_init(void *dma_pool, size_t dma_pool_sz, size_t page_size,
          */
         for (void *base = dma_pool; base < dma_pool + dma_pool_sz;
                 base += page_size) {
+            assert((uintptr_t)base % __alignof__(region_t) == 0 &&
+                "we misaligned the DMA pool base address during "
+                "initialisation");
             camkes_dma_free(base, page_size);
         }
     } else {
@@ -373,9 +400,17 @@ int camkes_dma_init(void *dma_pool, size_t dma_pool_sz, size_t page_size,
              * necessary metadata.
              */
             if (base + sizeof(region_t) >= limit) {
+                assert((uintptr_t)base % __alignof__(region_t) == 0 &&
+                    "we misaligned the DMA pool base address during "
+                    "initialisation");
                 camkes_dma_free(base, limit - base);
             }
-            base = limit;
+
+            /* Move to the next region. We always need to be considering a
+             * region aligned for bookkeeping, so bump the address up if
+             * necessary.
+             */
+            base = (void*)ALIGN_UP((uintptr_t)limit, __alignof__(region_t));
         }
     }
 
@@ -396,6 +431,18 @@ static void *alloc(size_t size, int align) {
 
     /* Our caller should have rounded 'size' up. */
     assert(size >= sizeof(region_t));
+
+    /* The caller should have ensured 'size' is aligned to the bookkeeping
+     * struct, so that the bookkeeping we may have to write for the remainder
+     * chunk of a region is aligned.
+     */
+    assert(size % __alignof__(region_t) == 0);
+
+    /* The caller should have ensured that the alignment requirements are
+     * sufficient that any chunk we ourselves allocate, can later host
+     * bookkeeping in its initial bytes when it is freed.
+     */
+    assert(align >= __alignof__(region_t));
 
     /* For each region in the free list... */
     for (region_t *prev = NULL, *p = head; p != NULL; prev = p, p = p->next) {
@@ -510,6 +557,15 @@ void *camkes_dma_alloc(size_t size, int align) {
         align = 1;
     }
 
+    if (align < __alignof__(region_t)) {
+        /* Allocating something with a weaker alignment constraint than our
+         * bookkeeping data may lead to us giving out a chunk of memory that is
+         * not sufficiently aligned to host bookkeeping data when it is
+         * returned to us. Bump it up in this case.
+         */
+        align = __alignof__(region_t);
+    }
+
     if (size < sizeof(region_t)) {
         /* We need to bump up smaller allocations because they may be freed at
          * a point when they cannot be conjoined with another chunk in the heap
@@ -562,6 +618,11 @@ void camkes_dma_free(void *ptr, size_t size) {
     if (size < sizeof(region_t)) {
         size = sizeof(region_t);
     }
+
+    /* We should have never allocated memory that is insufficiently aligned to
+     * host bookkeeping data now that it has been returned to us.
+     */
+    assert((uintptr_t)ptr % __alignof__(region_t) == 0);
 
     STATS(stats.current_outstanding -= size);
 
