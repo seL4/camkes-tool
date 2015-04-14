@@ -15,12 +15,16 @@
 
 /*- set p = Perspective(dataport=me.to_interface.name) -*/
 #define SHM_ALIGN (1 << 12)
-char /*? p['dataport_symbol'] ?*/[ROUND_UP_UNSAFE(sizeof(/*? show(me.to_interface.type) ?*/), PAGE_SIZE_4K)]
+struct {
+    char content[ROUND_UP_UNSAFE(sizeof(/*? show(me.to_interface.type) ?*/),
+        PAGE_SIZE_4K)];
+} /*? p['dataport_symbol'] ?*/
         __attribute__((aligned(SHM_ALIGN)))
         __attribute__((section("shared_/*? me.to_interface.name ?*/")))
         __attribute__((externally_visible));
 
-volatile /*? show(me.to_interface.type) ?*/ * /*? me.to_interface.name ?*/ = (volatile /*? show(me.to_interface.type) ?*/ *) /*? p['dataport_symbol'] ?*/;
+volatile /*? show(me.to_interface.type) ?*/ * /*? me.to_interface.name ?*/ =
+    (volatile /*? show(me.to_interface.type) ?*/ *) & /*? p['dataport_symbol'] ?*/;
 
 int /*? me.to_interface.name ?*/__run(void) {
     /* Nothing required. */
@@ -28,18 +32,18 @@ int /*? me.to_interface.name ?*/__run(void) {
 }
 
 int /*? me.to_interface.name ?*/_wrap_ptr(dataport_ptr_t *p, void *ptr) {
-    if ((uintptr_t)ptr < (uintptr_t)/*? p['dataport_symbol'] ?*/ ||
-            (uintptr_t)ptr >= (uintptr_t)/*? p['dataport_symbol'] ?*/ + sizeof(/*? show(me.to_interface.type) ?*/)) {
+    if ((uintptr_t)ptr < (uintptr_t)/*? me.to_interface.name ?*/ ||
+            (uintptr_t)ptr >= (uintptr_t)/*? me.to_interface.name ?*/ + sizeof(/*? show(me.to_interface.type) ?*/)) {
         return -1;
     }
     p->id = /*? id ?*/;
-    p->offset =  (off_t)((uintptr_t)ptr - (uintptr_t)/*? p['dataport_symbol'] ?*/);
+    p->offset =  (off_t)((uintptr_t)ptr - (uintptr_t)/*? me.to_interface.name ?*/);
     return 0;
 }
 
 void * /*? me.to_interface.name ?*/_unwrap_ptr(dataport_ptr_t *p) {
     if (p->id == /*? id ?*/) {
-        return (void*)((uintptr_t)/*? p['dataport_symbol'] ?*/ + (uintptr_t)p->offset);
+        return (void*)((uintptr_t)/*? me.to_interface.name ?*/ + (uintptr_t)p->offset);
     } else {
         return NULL;
     }
