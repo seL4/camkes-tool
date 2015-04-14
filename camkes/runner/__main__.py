@@ -636,13 +636,13 @@ def merge_assembly(dest, source, instance):
                                 "by nested component instance %s"
                                 % (s.value, instance.name))
 
-            # Check that the types of the referer and referant are the same
+            # Check that the types of the referer and referent are the same
             referer_type = nested_instance_attributes[s.instance][s.attribute].type
-            referant_type = instance_attributes[reference].type
-            if referer_type != referant_type:
+            referent_type = instance_attributes[reference].type
+            if referer_type != referent_type:
                 raise Exception("Attribute type mismatch: attribute %s (%s) refers to "
                                 "attribute %s (%s)."
-                                % (s.attribute, referer_type, reference, referant_type))
+                                % (s.attribute, referer_type, reference, referent_type))
 
             s.value = dest.configuration[instance.name][reference]
 
