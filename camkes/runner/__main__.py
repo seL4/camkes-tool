@@ -626,7 +626,7 @@ def merge_assembly(dest, source, instance):
     # resolve hierarchical attributes
     for s in source.configuration.settings:
         if isinstance(s.value, AST.Reference):
-            reference = str(s.value)
+            reference = s.value._symbol
 
             if instance.name not in dest.configuration or \
                 reference not in dest.configuration[instance.name]:
