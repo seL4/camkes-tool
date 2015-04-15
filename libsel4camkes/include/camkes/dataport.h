@@ -15,7 +15,20 @@
 #include <sys/types.h>
 #include <utils/util.h>
 
-typedef char Buf[PAGE_SIZE_4K];
+/** \brief A convenience type for CAmkES dataports.
+ *
+ * The default dataport type in CAmkES is `Buf`, a generic type for a
+ * page-sized shared memory region. While the user is provided with a typed
+ * pointer, this should never be directly dereferenced. The only legal things
+ * to do with a `Buf` are to call `sizeof` or cast a pointer to one to a
+ * pointer of another type. E.g.
+ *
+ *     char my_buffer[sizeof(Buf)];
+ *     strncpy(my_char, buf_ptr, sizeof(Buf));
+ */
+typedef struct Buf_ {
+    char content[PAGE_SIZE_4K] DEPRECATED("Buf type incorrectly accessed directly");
+} Buf;
 
 /* This type is intended to be used opaquely by a user. */
 typedef struct dataport_ptr_ {

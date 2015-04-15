@@ -18,12 +18,16 @@
  */
 /*- set p = Perspective(dataport=me.from_interface.name) -*/
 #define MMIO_ALIGN (1 << 12)
-char /*? p['dataport_symbol'] ?*/[ROUND_UP_UNSAFE(sizeof(/*? show(me.from_interface.type) ?*/), PAGE_SIZE_4K)]
+struct {
+    char content[ROUND_UP_UNSAFE(sizeof(/*? show(me.from_interface.type) ?*/),
+        PAGE_SIZE_4K)];
+} /*? p['dataport_symbol'] ?*/
         __attribute__((aligned(MMIO_ALIGN)))
         __attribute__((section("ignore_/*? me.from_interface.name ?*/")))
         __attribute__((externally_visible));
 
-volatile /*? show(me.from_interface.type) ?*/ * /*? me.from_interface.name ?*/ = (volatile /*? show(me.from_interface.type) ?*/ *) /*? p['dataport_symbol'] ?*/;
+volatile /*? show(me.from_interface.type) ?*/ * /*? me.from_interface.name ?*/ =
+    (volatile /*? show(me.from_interface.type) ?*/ *) & /*? p['dataport_symbol'] ?*/;
 
 int /*? me.from_interface.name ?*/__run(void) {
     /* Nothing required. */
@@ -32,7 +36,7 @@ int /*? me.from_interface.name ?*/__run(void) {
 
 int /*? me.from_interface.name ?*/_wrap_ptr(dataport_ptr_t *p, void *ptr) {
     /*- set offset = c_symbol('offset') -*/
-    off_t /*? offset ?*/ = (off_t)((uintptr_t)ptr - (uintptr_t)/*? p['dataport_symbol'] ?*/);
+    off_t /*? offset ?*/ = (off_t)((uintptr_t)ptr - (uintptr_t)/*? me.from_interface.name ?*/);
     if (/*? offset ?*/ < sizeof(/*? show(me.from_interface.type) ?*/)) {
         p->id = /*? id ?*/;
         p->offset = /*? offset ?*/;
@@ -44,7 +48,7 @@ int /*? me.from_interface.name ?*/_wrap_ptr(dataport_ptr_t *p, void *ptr) {
 
 void * /*? me.from_interface.name ?*/_unwrap_ptr(dataport_ptr_t *p) {
     if (p->id == /*? id ?*/) {
-        return (void*)((uintptr_t)/*? p['dataport_symbol'] ?*/ + (uintptr_t)p->offset);
+        return (void*)((uintptr_t)/*? me.from_interface.name ?*/ + (uintptr_t)p->offset);
     } else {
         return NULL;
     }
