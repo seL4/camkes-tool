@@ -739,7 +739,7 @@ def remove_virtual_interfaces(component):
             elif isinstance(i, AST.Consumes):
                 component.consumes.remove(i)
             elif isinstance(i, AST.Dataport):
-                component.dataport.remove(i)
+                component.dataports.remove(i)
             elif isinstance(i, AST.Mutex):
                 component.mutexes.remove(i)
             elif isinstance(i, AST.Semaphore):
