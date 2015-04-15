@@ -333,7 +333,7 @@ $(/*? i.name ?*/_CFILES:%.c=%.c_pp): ${/*? i.name ?*/_HFILES} ${/*? i.name ?*/_C
     -e _camkes_start \
     -Wl,--script=$(abspath ${BUILD_DIR})/ld//*? i.name ?*//generated/linker.lds
 
-/*? rule_gen('$(abspath ${BUILD_DIR})/ld/%s/generated/linker.lds' % i.name, ' '.join(imported), 'linker') ?*/
+/*? rule_gen('$(abspath ${BUILD_DIR})/ld/%s/generated/linker.lds' % i.name, ' '.join(imported), '%s.linker' % i.name) ?*/
 
 /*# Only incrementally link if this instance is going on to become part of a
  *# group.

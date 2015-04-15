@@ -24,6 +24,7 @@ TEMPLATES = {
             'source':'component.template.c',
             'header':'component.template.h',
             'simple':'component.simple.c',
+            'linker':'linker.lds',
         },
         Guard(lambda x: isinstance(x, Connection) and x.type.name == 'seL4RPC'):{
             # Direction
@@ -132,7 +133,6 @@ TEMPLATES = {
             },
         },
         'Makefile':'Makefile',
-        'linker':'linker.lds',
         'capdl':'capdl-spec.cdl',
         'label-mapping':'label-mapping.json',
     },
