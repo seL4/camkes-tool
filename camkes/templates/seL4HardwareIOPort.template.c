@@ -24,8 +24,8 @@
 /*- set attr = configuration[me.to_instance.name].get(p['hardware_attribute']) -*/
 /*- if attr is not none -*/
     /*- set start, end = attr.strip('"').split(':') -*/
-    /*- set start = int(start, 16) -*/
-    /*- set end = int(end, 16) -*/
+    /*- set start = int(start, 0) -*/
+    /*- set end = int(end, 0) -*/
     /*- do ioport.append(alloc('ioport', seL4_IA32_IOPort)) -*/
     /*- do cap_space.cnode[ioport[0]].set_ports(range(start, end + 1)) -*/
     int /*? me.from_interface.name ?*/_in_range(unsigned int port) {

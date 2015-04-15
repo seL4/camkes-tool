@@ -56,8 +56,8 @@
     /*- set ioport_list = ioport_list.strip('"').split(',') -*/
     /*- for ioport in ioport_list -*/
         /*- set start, end = ioport.split(':') -*/
-        /*- set start = int(start, 16) -*/
-        /*- set end = int(end, 16) -*/
+        /*- set start = int(start, 0) -*/
+        /*- set end = int(end, 0) -*/
         /*- set ioport_cap = alloc("ioport%d_%d" % (start, end), seL4_IA32_IOPort) -*/
         /*- do cap_space.cnode[ioport_cap].set_ports(range(start, end +1)) -*/
         /*- do ioports.append( (ioport_cap, start, end) ) -*/
@@ -71,7 +71,7 @@
     /*- set mmio_region_list = mmio_region_list.split(',') -*/
     /*- for mmio_region in mmio_region_list -*/
         /*- set paddr, size, bits = mmio_region.strip('"').split(':') -*/
-        /*- do mmio_regions.append( (int(paddr, 16), int(size, 16),int(bits, 10)) ) -*/
+        /*- do mmio_regions.append( (int(paddr, 0), int(size, 0),int(bits, 0)) ) -*/
     /*- endfor -*/
 /*- endif -*/
 
@@ -116,10 +116,10 @@
     /*- set iospace_list = iospace_list.strip('"').split(',') -*/
     /*- for iospace in iospace_list -*/
         /*- set domain, bus, dev, fun = iospace.split(':') -*/
-        /*- set domain = int(domain, 16) -*/
-        /*- set bus = int(bus, 16) -*/
-        /*- set dev = int(dev, 16) -*/
-        /*- set fun = int(fun, 10) -*/
+        /*- set domain = int(domain, 0) -*/
+        /*- set bus = int(bus, 0) -*/
+        /*- set dev = int(dev, 0) -*/
+        /*- set fun = int(fun, 0) -*/
         /*- set pciid = bus * 256 + dev * 8 + fun -*/
         /*- set devid = domain * 65536 + pciid -*/
         /*- set iospace_cap = alloc('iospace_%d' % devid, seL4_IA32_IOSpace, domainID=domain, bus=bus, dev=dev, fun=fun) -*/
@@ -139,7 +139,7 @@
 /*- if irq_list is not none -*/
     /*- set irq_list = irq_list.strip('"').split(',') -*/
     /*- for irq in irq_list -*/
-        /*- set irq = int(irq, 10) -*/
+        /*- set irq = int(irq, 0) -*/
         /*- set irq_cap = alloc('irq_%d' % irq, seL4_IRQControl, number=irq, aep=irqaep_object) -*/
         /*- do irqs.append( (irq, irq_cap) ) -*/
     /*- endfor -*/

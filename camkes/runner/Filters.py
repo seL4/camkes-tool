@@ -159,7 +159,7 @@ def set_tcb_caps(ast, obj_space, cspaces, elfs, _, options):
             cnode_size = assembly.configuration[group].get('cnode_size_bits')
             if cnode_size is not None:
                 try:
-                    size = int(cnode_size)
+                    size = int(cnode_size, 0)
                 except ValueError:
                     raise Exception('illegal value for CNode size for %s' % \
                         group)
@@ -317,8 +317,8 @@ def collapse_shared_frames(ast, obj_space, cspaces, elfs, _, options):
                 assert conf is not None
                 paddr, size = conf.strip('"').split(':')
                 # Round up the MMIO size to PAGE_SIZE
-                paddr = int(paddr, 16)
-                size = int(size, 16)
+                paddr = int(paddr, 0)
+                size = int(size, 0)
 
                 instance_name = connections[0].to_instance.name
 
