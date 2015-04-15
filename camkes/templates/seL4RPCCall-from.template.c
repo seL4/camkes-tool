@@ -71,8 +71,11 @@
 /*- endif -*/
 /*- set userspace_buffer_ep = userspace_buffer_ep[0] -*/
 
+/*- include 'array-typedef-check.c' -*/
+
 int /*? me.from_interface.name ?*/__run(void) {
-    /* No setup required */
+    /*# Check any typedefs we have been given are not arrays. #*/
+    /*- include 'call-array-typedef-check.c' -*/
     return 0;
 }
 
