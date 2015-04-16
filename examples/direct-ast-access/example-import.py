@@ -31,15 +31,15 @@ def main():
     ast = camkes.parse_to_ast(s)
 
     # At this point, ast contains a list of objects whose types are defined in
-    # GenericObjects.py, IDLObjects.py and ADLObjects.py. If you want to
-    # manipulate the AST you will want to import these.
+    # Objects.py. If you want to manipulate the AST you will want to import the
+    # AST module.
 
     # 3. If your input contains import statements that refer to other files,
     # you can use resolve_imports to inline and parse these into your ast.
     ast, _ = camkes.resolve_imports(ast, curdir)
 
     # 4. If your input contains any references these will be present in the AST
-    # as objects of type GenericObjects.Reference. For example, in the input in
+    # as objects of type camkes.ast.Reference. For example, in the input in
     # this example the component type 'foo' is a reference to a component
     # definition that is expected to be provided elsewhere. After performing
     # reference resolution there may still be references in the AST. This

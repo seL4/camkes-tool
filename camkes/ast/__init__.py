@@ -8,12 +8,10 @@
 # @TAG(NICTA_BSD)
 #
 
-from GenericObjects import ASTObject, Import, Include, Reference
-from ADLObjects import ADLObject, Assembly, Composition, Configuration, \
-    Instance, Connection, Setting, Component, Interface, \
-    Provides, Uses, Emits, Consumes, Dataport, Connector, Mutex, Semaphore, \
-    Group
-from IDLObjects import IDLObject, Procedure, Method, Attribute, Parameter, \
-    Type, Direction, Event, Port
+from Objects import ASTObject, Import, Include, Reference, Assembly, \
+    Composition, Configuration, Instance, Connection, Setting, Component, \
+    Interface, Provides, Uses, Emits, Consumes, Dataport, Connector, Mutex, \
+    Semaphore, Group, Procedure, Method, Attribute, Parameter, Type, \
+    Direction, Event, Port
 from traversal import traverse, CONTINUE as TRAVERSAL_CONTINUE, \
     BREAK as TRAVERSAL_BREAK, RECURSE as TRAVERSAL_RECURSE

@@ -10,7 +10,7 @@
 
 '''Functionality related to traversing a CAmkES AST with user-provided functions.'''
 
-from GenericObjects import ASTObject
+from Objects import ASTObject
 
 # Enum used below.
 CONTINUE, BREAK, RECURSE = range(3)

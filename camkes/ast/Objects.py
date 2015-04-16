@@ -8,16 +8,151 @@
 # @TAG(NICTA_BSD)
 #
 
-'''ADL-relevant AST objects. See accompanying docs for more information.'''
+'''
+Objects that can appear in the derived AST. See accompanying docs for more
+information.
+'''
 
-from GenericObjects import ASTObject, Reference
-import IDLObjects as IDL
 import collections
 
-class ADLObject(ASTObject):
-    pass
+class ASTObject(object):
+    def __init__(self, filename=None, lineno=-1):
+        self.filename = filename
+        self.lineno = lineno
 
-class Assembly(ADLObject):
+    def unresolved(self):
+        '''Unresolved references rooted at this element.'''
+        return reduce(lambda a, x: a.union(x.unresolved()), self.children(), set())
+
+    @staticmethod
+    def externally_resolved():
+        '''Whether references to this type should be considered resolved even
+        when they are not. Although this sounds like it makes no sense, this is
+        actually the behaviour we want for types that are resolved to entities
+        outside CAmkES. E.g. port types that typically reference C struct
+        types.'''
+        return False
+
+    def children(self):
+        '''Returns the contained descendents of this object. Override this
+        function in types that have children.'''
+        return []
+
+    def collapse_references(self):
+        pass
+
+    def __eq__(self, other):
+        '''Determine if two AST objects are identical. Used for deduping AST
+        entries after parsing.'''
+        # AST objects must at least have the same type.
+        if type(self) != type(other):
+            return False
+
+        # Attributes to ignore in comparison.
+        ignore = set(['filename', 'lineno'])
+
+        attrs = set(self.__dict__.keys()).difference(ignore)
+        other_attrs = set(other.__dict__.keys()).difference(ignore)
+        if attrs != other_attrs:
+            # The two objects have different attribute NAMES.
+            return False
+        for i in attrs:
+            if getattr(self, i) != getattr(other, i):
+                # The two objects have different attribute VALUES.
+                return False
+
+        return True
+
+    def __ne__(self, other):
+        '''I hate you, Python'''
+        return not self == other
+
+    def try_collapse(self, member):
+        r = getattr(self, member)
+        if isinstance(r, Reference) and r._referent is not None:
+            setattr(self, member, r._referent)
+        r = getattr(self, member)
+        if not isinstance(r, Reference):
+            r.collapse_references()
+
+    def try_collapse_list(self, member):
+        r = getattr(self, member)
+        for i, j in enumerate(r):
+            if isinstance(j, Reference) and j._referent is not None:
+                r[i] = j._referent
+            if not isinstance(r[i], Reference):
+                r[i].collapse_references()
+
+class Import(ASTObject):
+    def __init__(self, source, relative=True, filename=None, lineno=-1):
+        assert isinstance(source, str)
+        super(Import, self).__init__(filename=filename, lineno=lineno)
+        self.source = source
+        self.relative = relative
+
+    def __repr__(self):
+        return 'import %(open)s%(source)s%(close)s;' % {
+            'open':'"' if self.relative else '<',
+            'source':self.source,
+            'close':'"' if self.relative else '>',
+        }
+
+class Include(ASTObject):
+    def __init__(self, source, relative=True, filename=None, lineno=-1):
+        assert isinstance(source, str)
+        super(Include, self).__init__(filename=filename, lineno=lineno)
+        self.source = source
+        self.relative = relative
+
+    def __repr__(self):
+        return 'include %(open)s%(source)s%(close)s;' % {
+            'open':'"' if self.relative else '<',
+            'source':self.source,
+            'close':'"' if self.relative else '>',
+        }
+
+class Reference(ASTObject):
+    '''This class encapsulates references to other entities that have been
+    parsed. It can also be used to represent forward references in the input.
+    '''
+    def __init__(self, symbol, symbol_type, filename=None, lineno=-1):
+        super(Reference, self).__init__(filename=filename, lineno=lineno)
+        assert isinstance(symbol, str)
+        self._symbol = symbol
+        assert isinstance(symbol_type, type)
+        self._type = symbol_type
+        self._referent = None
+
+    def unresolved(self):
+        if not self._type.externally_resolved() and self._referent is None:
+            return set([self])
+        else:
+            return super(Reference, self).unresolved()
+
+    def children(self):
+        # The referent's children if this reference is resolved.
+        if self._referent:
+            return self._referent.children()
+        return []
+
+    def collapse_references(self):
+        raise Exception('Collapse references called on a reference itself')
+
+    def resolve_to(self, obj):
+        assert isinstance(obj, self._type)
+        self._referent = obj
+
+    def __repr__(self):
+        # TODO: Can't do this branching until all objects are in one file.
+        #if isinstance(self.symbol_type, Composition):
+        #    return 'composition %(_symbol)s;' % self.__dict__
+        #elif isinstance(self._symbol_type, Configuration):
+        #    return 'configuration %(_symbol)s;' % self.__dict__
+        #else:
+        #    return self._symbol
+        return self._symbol
+
+class Assembly(ASTObject):
     def __init__(self, name=None, composition=None, configuration=None, filename=None, lineno=-1):
         assert composition is None or isinstance(composition, Composition) \
             or isinstance(composition, Reference)
@@ -44,7 +179,7 @@ class Assembly(ADLObject):
             'configuration':self.configuration or '',
         }
 
-class Composition(ADLObject):
+class Composition(ASTObject):
     def __init__(self, name=None, instances=None, connections=None, groups=None, filename=None, lineno=-1):
         assert instances is None or isinstance(instances, list)
         assert connections is None or isinstance(connections, list)
@@ -94,7 +229,7 @@ class Composition(ADLObject):
             'connections':' '.join(map(str, self.connections)),
         }
 
-class Configuration(ADLObject, collections.Mapping):
+class Configuration(ASTObject, collections.Mapping):
     def __init__(self, name=None, settings=None, filename=None, lineno=-1):
         assert settings is None or isinstance(settings, list)
         assert name is None or isinstance(name, str)
@@ -135,7 +270,7 @@ class Configuration(ADLObject, collections.Mapping):
     def __len__(self):
         return self.mapping.__len__()
 
-class Instance(ADLObject):
+class Instance(ASTObject):
     def __init__(self, type, name, filename=None, lineno=-1):
         assert isinstance(type, Component) or isinstance(type, Reference)
         assert isinstance(name, str)
@@ -153,7 +288,7 @@ class Instance(ADLObject):
     def __repr__(self):
         return 'component %(type)s %(name)s;' % self.__dict__
 
-class Connection(ADLObject):
+class Connection(ASTObject):
     def __init__(self, type, name, from_instance, from_interface, to_instance, to_interface, filename=None, lineno=-1):
         assert isinstance(type, Connector) or isinstance(type, Reference)
         assert isinstance(name, str)
@@ -185,7 +320,7 @@ class Connection(ADLObject):
             '%(from_instance)s.%(from_interface)s, to ' \
             '%(to_instance)s.%(to_interface)s);' % self.__dict__
 
-class Setting(ADLObject):
+class Setting(ASTObject):
     def __init__(self, instance, attribute, value, filename=None, lineno=-1):
         assert isinstance(instance, str)
         assert isinstance(attribute, str)
@@ -197,7 +332,7 @@ class Setting(ADLObject):
     def __repr__(self):
         return '%(instance)s.%(attribute)s = %(value)s;' % self.__dict__
 
-class Component(ADLObject):
+class Component(ASTObject):
     def __init__(self, name=None, includes=None, control=False, hardware=False, \
             provides=None, uses=None, emits=None, consumes=None, dataports=None, \
             attributes=[], mutexes=None, semaphores=None, composition=None, \
@@ -268,7 +403,7 @@ class Component(ADLObject):
             }
         return s
 
-class Interface(ADLObject):
+class Interface(ASTObject):
     def __init__(self, filename=None, lineno=-1):
         super(Interface, self).__init__(filename=filename, lineno=lineno)
         self.type = None
@@ -281,7 +416,7 @@ class Interface(ADLObject):
 
 class Provides(Interface):
     def __init__(self, type, name, filename=None, lineno=-1):
-        assert isinstance(type, IDL.Procedure) or isinstance(type, Reference)
+        assert isinstance(type, Procedure) or isinstance(type, Reference)
         assert isinstance(name, str)
         super(Provides, self).__init__(filename=filename, lineno=lineno)
         self.type = type
@@ -292,7 +427,7 @@ class Provides(Interface):
 
 class Uses(Interface):
     def __init__(self, type, name, optional=False, filename=None, lineno=-1):
-        assert isinstance(type, IDL.Procedure) or isinstance(type, Reference)
+        assert isinstance(type, Procedure) or isinstance(type, Reference)
         assert isinstance(name, str)
         super(Uses, self).__init__(filename=filename, lineno=lineno)
         self.type = type
@@ -304,7 +439,7 @@ class Uses(Interface):
 
 class Emits(Interface):
     def __init__(self, type, name, filename=None, lineno=-1):
-        assert isinstance(type, IDL.Event) or isinstance(type, Reference)
+        assert isinstance(type, Event) or isinstance(type, Reference)
         assert isinstance(name, str)
         super(Emits, self).__init__(filename=filename, lineno=lineno)
         self.type = type
@@ -315,7 +450,7 @@ class Emits(Interface):
 
 class Consumes(Interface):
     def __init__(self, type, name, optional=False, filename=None, lineno=-1):
-        assert isinstance(type, IDL.Event) or isinstance(type, Reference)
+        assert isinstance(type, Event) or isinstance(type, Reference)
         assert isinstance(name, str)
         super(Consumes, self).__init__(filename=filename, lineno=lineno)
         self.type = type
@@ -327,7 +462,7 @@ class Consumes(Interface):
 
 class Dataport(Interface):
     def __init__(self, type, name, optional=False, filename=None, lineno=-1):
-        assert isinstance(type, IDL.Port) or isinstance(type, Reference)
+        assert isinstance(type, Port) or isinstance(type, Reference)
         assert isinstance(name, str)
         super(Dataport, self).__init__(filename=filename, lineno=lineno)
         self.type = type
@@ -337,7 +472,7 @@ class Dataport(Interface):
     def __repr__(self):
         return 'dataport %(type)s %(name)s;' % self.__dict__
 
-class Mutex(ADLObject):
+class Mutex(ASTObject):
     def __init__(self, name, filename=None, lineno=-1):
         super(Mutex, self).__init__(filename=filename, lineno=lineno)
         self.name = name
@@ -345,7 +480,7 @@ class Mutex(ADLObject):
     def __repr__(self):
         return 'has mutex %s;' % self.name
 
-class Semaphore(ADLObject):
+class Semaphore(ASTObject):
     def __init__(self, name, filename=None, lineno=-1):
         super(Semaphore, self).__init__(filename=filename, lineno=lineno)
         self.name = name
@@ -353,7 +488,7 @@ class Semaphore(ADLObject):
     def __repr__(self):
         return 'has semaphore %s;' % self.name
 
-class Connector(ADLObject):
+class Connector(ASTObject):
     def __init__(self, name=None, from_type='Interface', to_type='Interface', from_template=None, to_template=None, filename=None, lineno=-1):
         assert isinstance(from_type, str) and \
             from_type in ['Event', 'Interface', 'Procedure', 'Dataport']
@@ -378,7 +513,7 @@ class Connector(ADLObject):
             }
         return s
 
-class Group(ADLObject):
+class Group(ASTObject):
     def __init__(self, name=None, instances=None, filename=None, lineno=-1):
         super(Group, self).__init__(filename=filename, lineno=lineno)
         self.name = name
@@ -393,3 +528,161 @@ class Group(ADLObject):
             s += '%s ' % self.name
         s += '{ %s }' % ''.join(map(str, self.instances))
         return s
+
+class Procedure(ASTObject):
+    def __init__(self, name=None, includes=None, methods=None, attributes=None, filename=None, lineno=-1):
+        assert name is None or isinstance(name, str)
+        assert methods is None or isinstance(methods, list)
+        assert attributes is None or isinstance(attributes, list)
+        super(Procedure, self).__init__(filename=filename, lineno=lineno)
+        self.name = name
+        self.includes = includes or []
+        self.methods = methods or []
+        self.attributes = attributes or []
+
+    def children(self):
+        return self.includes + self.methods + self.attributes
+
+    def collapse_references(self):
+        for i in ['includes', 'methods', 'attributes']:
+            self.try_collapse_list(i)
+
+    def __repr__(self):
+        s = '{ %s }' % ' '.join(map(str, self.methods))
+        if self.name:
+            s = 'procedure %(name)s %(defn)s' % {
+                'name':self.name,
+                'defn':s,
+            }
+        return s
+
+class Method(ASTObject):
+    def __init__(self, name, return_type, parameters, filename=None, lineno=-1):
+        assert isinstance(name, str)
+        assert isinstance(parameters, list)
+        for i in parameters: assert isinstance(i, Parameter)
+        super(Method, self).__init__(filename=filename, lineno=lineno)
+        self.name = name
+        self.return_type = return_type
+        self.parameters = parameters
+
+    def children(self):
+        return ([self.return_type] if self.return_type else []) + self.parameters
+
+    def collapse_references(self):
+        if self.return_type is not None:
+            self.try_collapse('return_type')
+        self.try_collapse_list('parameters')
+
+    def __repr__(self):
+        return '%(return_type)s %(name)s(%(parameters)s);' % {
+            'return_type':self.return_type or 'void',
+            'name':self.name,
+            'parameters':' '.join(map(str, self.parameters)),
+        }
+
+class Attribute(ASTObject):
+    def __init__(self, type, name, filename=None, lineno=-1):
+        assert isinstance(name, str)
+        super(Attribute, self).__init__(filename=filename, lineno=lineno)
+        self.name = name
+        self.type = type
+
+    def __repr__(self):
+        return 'attribute %(type)s %(name)s;' % self.__dict__
+
+class Parameter(ASTObject):
+    def __init__(self, name, direction, type, array=False, filename=None, lineno=-1):
+        assert isinstance(name, str)
+        super(Parameter, self).__init__(filename=filename, lineno=lineno)
+        self.name = name
+        self.direction = direction
+        self.type = type
+        self.array = array
+
+    def __repr__(self):
+        return '%(direction)s %(type)s %(name)s' % self.__dict__
+
+class Type(ASTObject):
+    def __init__(self, type, filename=None, lineno=-1):
+        # Map of all the possible parsed input types to their canonical form
+        normalisation = {
+            'int'              : 'int',
+            'integer'          : 'int',
+            'signed int'       : 'int',
+            'unsigned int'     : 'unsigned int',
+            'unsigned integer' : 'unsigned int',
+            'int8_t'           : 'int8_t',
+            'int16_t'          : 'int16_t',
+            'int32_t'          : 'int32_t',
+            'int64_t'          : 'int64_t',
+            'uint8_t'          : 'uint8_t',
+            'uint16_t'         : 'uint16_t',
+            'uint32_t'         : 'uint32_t',
+            'uint64_t'         : 'uint64_t',
+            'real'             : 'real',
+            'double'           : 'double',
+            'float'            : 'float',
+            'uintptr_t'        : 'uintptr_t',
+            'char'             : 'char',
+            'character'        : 'character',
+            'boolean'          : 'boolean',
+            'bool'             : 'boolean',
+            'string'           : 'string',
+        }
+        assert isinstance(type, str)
+        assert type in normalisation
+        super(Type, self).__init__(filename=filename, lineno=lineno)
+        self.type = normalisation[type]
+
+    @staticmethod
+    def externally_resolved():
+        return True
+
+    def __repr__(self):
+        return self.type
+
+class Direction(ASTObject):
+    def __init__(self, direction, filename=None, lineno=-1):
+        assert isinstance(direction, str)
+        assert direction in ['refin', 'in', 'inout', 'out']
+        super(Direction, self).__init__(filename=filename, lineno=lineno)
+        self.direction = direction
+
+    def __repr__(self):
+        return self.direction
+
+class Event(ASTObject):
+    def __init__(self, name=None, id=0, filename=None, lineno=-1):
+        assert name is None or isinstance(name, str)
+        assert isinstance(id, int)
+        super(Event, self).__init__(filename=filename, lineno=lineno)
+        self.name = name
+        self.id = id
+
+    @staticmethod
+    def externally_resolved():
+        return True
+
+    def __repr__(self):
+        # TODO: Standardise this as CAmkES currently has no syntax for defining
+        # events.
+        return 'event %(name)s = %(id)s;' % self.__dict__
+
+class Port(ASTObject):
+    def __init__(self, name=None, type=None, filename=None, lineno=-1):
+        assert name is None or isinstance(name, str)
+        assert type is None or isinstance(type, str)
+        super(Port, self).__init__(filename=filename, lineno=lineno)
+        self.name = name
+        self.type = None if type in ['None', 'Buf'] else type
+
+    @staticmethod
+    def externally_resolved():
+        return True
+
+    def __repr__(self):
+        return 'dataport %(type)s %(name)s;' % {
+            'type':self.type or 'Buf',
+            'name':self.name,
+        }
