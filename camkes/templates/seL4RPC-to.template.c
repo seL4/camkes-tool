@@ -43,11 +43,28 @@
 /*- for m in me.to_interface.type.methods -*/
     extern
     /*- if m.return_type -*/
-        /*? show(m.return_type) ?*/
+        /*- if m.return_type.array -*/
+            /*- if isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string' -*/
+                char **
+            /*- else -*/
+                /*? show(m.return_type) ?*/ *
+            /*- endif -*/
+        /*- elif isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string' -*/
+            char *
+        /*- else -*/
+            /*? show(m.return_type) ?*/
+        /*- endif -*/
     /*- else -*/
         void
     /*- endif -*/
     /*? me.to_interface.name ?*/_/*? m.name ?*/(
+      /*- if m.return_type and m.return_type.array -*/
+          /*- set ret_sz = c_symbol('ret_sz') -*/
+          size_t * /*? ret_sz ?*/
+          /*- if len(m.parameters) > 0 -*/
+              ,
+          /*- endif -*/
+      /*- endif -*/
     /*- for p in m.parameters -*/
       /*- if p.direction.direction == 'in' -*/
         /*- if p.array -*/
