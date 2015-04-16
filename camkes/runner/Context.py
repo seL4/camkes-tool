@@ -350,21 +350,6 @@ def show(obj):
             return 'bool'
         else:
             return obj.type
-    elif isinstance(obj, AST.Direction):
-        if obj.direction in ['inout', 'out']:
-            return '*'
-        else:
-            return ''
-    elif isinstance(obj, AST.Parameter):
-        return '%(size)s %(type)s %(pointer)s %(array)s %(name)s' % \
-            {'size':('size_t %(ptr)s%(name)s_sz,' % {
-                'name':obj.name,
-                'ptr':show(obj.direction),
-             }) if obj.array else '',
-             'type':show(obj.type),
-             'pointer':show(obj.direction),
-             'name':obj.name,
-             'array':'*' if obj.array else ''}
     else:
         raise NotImplementedError
 
