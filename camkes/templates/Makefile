@@ -331,7 +331,9 @@ $(/*? i.name ?*/_CFILES:%.c=%.c_pp): ${/*? i.name ?*/_HFILES} ${/*? i.name ?*/_C
     -static -nostdlib \
     -u _camkes_start \
     -e _camkes_start \
-    -Wl,--script=${BUILD_DIR}/linker.lds
+    -Wl,--script=$(abspath ${BUILD_DIR})/ld//*? i.name ?*//generated/linker.lds
+
+/*? rule_gen('$(abspath ${BUILD_DIR})/ld/%s/generated/linker.lds' % i.name, ' '.join(imported), '%s.linker' % i.name) ?*/
 
 /*# Only incrementally link if this instance is going on to become part of a
  *# group.
@@ -354,7 +356,7 @@ FINOBJFILES ?= $(shell $(CC) $(CFLAGS) $(CPPFLAGS) -print-file-name=crtend.o) $(
                              $(/*? i.name ?*/_ASMFILES:%.S=%.o) \
                              $(/*? i.name ?*/_OFILES) \
                              $(/*? i.name ?*/_instance_LIBS:%=%.a) \
-                             ${BUILD_DIR}/linker.lds
+                             $(abspath ${BUILD_DIR})/ld//*? i.name ?*//generated/linker.lds
 	@echo " [LD] $(notdir $@)"
 	${Q}${CC} $(CRTOBJFILES) $(filter %.o,$^) $(FINOBJFILES) ${/*? i.name ?*/_instance_LDFLAGS} -o $@
 /*- set p = Perspective(group=i.address_space) -*/

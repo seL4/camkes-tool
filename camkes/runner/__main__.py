@@ -354,7 +354,8 @@ def main():
                 label=i.address_space)
             pds[i.address_space] = pd
 
-        for t in ['%s.source' % i.name, '%s.header' % i.name]:
+        for t in ['%s.source' % i.name, '%s.header' % i.name,
+                '%s.linker' % i.name]:
             try:
                 template = templates.lookup(t, i)
                 g = ''

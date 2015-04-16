@@ -46,14 +46,18 @@ SECTIONS {
 	 *(guarded)
     }
 
-    /*- for c in me.composition.connections -*/
+    /*- for c in composition.connections -*/
     /*- if c.type.name == 'seL4SharedData' -*/
+      /*- if c.from_instance == me -*/
     shared_/*? c.from_interface.name ?*/ (NOLOAD) : ALIGN(0x1000) {
         *(shared_/*? c.from_interface.name ?*/)
     }
+      /*- endif -*/
+      /*- if c.to_instance == me -*/
     shared_/*? c.to_interface.name ?*/ (NOLOAD) : ALIGN(0x1000) {
         *(shared_/*? c.to_interface.name ?*/)
     }
+      /*- endif -*/
     /*- endif -*/
     /*- endfor -*/
 
@@ -61,8 +65,8 @@ SECTIONS {
 	 *(persistent)
     }
 
-    /*- for c in me.composition.connections -*/
-    /*- if c.type.name == 'seL4HardwareMMIO' -*/
+    /*- for c in composition.connections -*/
+    /*- if c.type.name == 'seL4HardwareMMIO' and c.from_instance == me -*/
     /*- if arch == 'arm' -*/
     ignore_/*? c.from_interface.name ?*/ (NOLOAD) : ALIGN(0x100000) { /*# ARM Section Size #*/
     /*- else -*/
