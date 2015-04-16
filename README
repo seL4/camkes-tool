@@ -18,7 +18,6 @@ This repository contains various CAmkES tools.
   templates/ Templates themselves
  docs/       User and developer information about the tools
  examples/   Some examples of how to use the parser
- grammars/   Formal specifications of different CAmkES grammars
  misc/       Some 'useful' odds and ends
  tests/      Test suite for the parser
  tools/      Scripts to ease development on the parser
