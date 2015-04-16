@@ -29,12 +29,22 @@
         void
     /*- endif -*/
     /*? me.to_interface.name ?*/_/*? m.name ?*/(
+      /*- if m.return_type and m.return_type.array -*/
+        /*? raise(NotImplementedError()) ?*/
+      /*- endif -*/
       /*- for p in m.parameters -*/
         /*- if isinstance(p.type, camkes.ast.Reference) or p.array or p.type.type == 'string' or p.direction.direction == 'refin' -*/
           /*? raise(NotImplementedError()) ?*/
+        /*- elif p.direction.direction == 'in' -*/
+          /*? show(p.type) ?*/ /*? p.name ?*/
+        /*- else -*/
+          /*? assert(p.direction.direction in ['out', 'inout']) ?*/
+          /*? show(p.type) ?*/ * /*? p.name ?*/
+        /*- endif -*/
+        /*- if not loop.last -*/
+          ,
         /*- endif -*/
       /*- endfor -*/
-      /*? ', '.join(map(show, m.parameters)) ?*/
     );
 /*- endfor -*/
 
