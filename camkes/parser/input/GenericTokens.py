@@ -35,7 +35,7 @@ def t_STRING(t):
     return t
 
 def t_NUMBER(t):
-    r'-?(0x(([0-9a-f][0-9a-f]*)|([0-9A-F][0-9A-F]*)))|([0-9][0-9]*)'
+    r'-?(0x([0-9a-fA-F]+)|(\d+))'
     t.value = int(t.value, 0)
     return t
 
