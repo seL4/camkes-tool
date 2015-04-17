@@ -131,10 +131,10 @@ def main():
             key = [version(), os.path.abspath(f.name), s,
                 cache_relevant_options(options), options.platform, options.item]
             value = cache.get(key)
+            assert value is None or isinstance(value, FileSet), \
+                'illegally cached a value for %s that is not a FileSet' % options.item
             if value is not None and value.valid():
                 # Cache hit.
-                assert isinstance(value, FileSet), \
-                    'illegally cached a value for %s that is not a FileSet' % options.item
                 log.debug('Retrieved %(platform)s.%(item)s from cache' % \
                     options.__dict__)
                 done(value.output)
