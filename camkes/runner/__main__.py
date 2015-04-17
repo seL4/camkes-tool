@@ -308,22 +308,6 @@ def main():
         if c.to_template:
             templates.add(c.name, 'to.source', c.to_template)
 
-    # The user can pass settings on the command line as '--set=foo' or
-    # '--set=foo=bar', which makes the variable 'foo' available inside the
-    # template context. Using the first syntax it is set to 'True', while in
-    # the second it is set to the string 'bar'. We need to set this up in a bit
-    # of a convoluted way to guard against the user setting variables that
-    # inadvertently override named parameters to `render` and/or `new_context`.
-    cmdln_opts = {}
-    for s in options.set:
-        key, value = (s.split('=', 1) + [True])[:2]
-        cmdln_opts[key] = value
-    conflict = set(cmdln_opts).intersection( \
-        set(r.render.func_code.co_varnames).union( \
-            set(Context.new_context.func_code.co_varnames))) #pylint: disable=E1101
-    if conflict:
-        die('Attempt to set restricted option(s) %s' % ', '.join(conflict))
-
     # We're now ready to instantiate the template the user requested, but there
     # are a few wrinkles in the process. Namely,
     #  1. Template instantiation needs to be done in a deterministic order. The
@@ -362,8 +346,7 @@ def main():
                 if template:
                     with profiler('Rendering %s' % t):
                         g = r.render(i, assembly, template, obj_space, cspaces[i.address_space], \
-                            shmem, options=options, id=id, my_pd=pds[i.address_space], \
-                            **cmdln_opts)
+                            shmem, options=options, id=id, my_pd=pds[i.address_space])
                 save(t, g)
                 if options.item == t:
                     if not template:
@@ -405,8 +388,7 @@ def main():
                 if template:
                     with profiler('Rendering %s' % t[0]):
                         g = r.render(c, assembly, template, obj_space, cspaces[t[1]], \
-                            shmem, options=options, id=id, my_pd=pds[t[1]], \
-                            **cmdln_opts)
+                            shmem, options=options, id=id, my_pd=pds[t[1]])
                 save(t[0], g)
                 if options.item == t[0]:
                     if not template:
@@ -440,8 +422,7 @@ def main():
                     raise Exception('no registered template for %s' % options.item)
                 with profiler('Rendering %s' % options.item):
                     g = r.render(c, assembly, template, obj_space, cspaces[t[1]], \
-                        shmem, options=options, id=id, my_pd=pds[t[1]], \
-                        **cmdln_opts)
+                        shmem, options=options, id=id, my_pd=pds[t[1]])
                 save(options.item, g)
                 done(g)
             except Exception as inst:
@@ -464,8 +445,7 @@ def main():
                     if template:
                         with profiler('Rendering %s' % t):
                             g = r.render(i, assembly, template, obj_space, cspaces[i.address_space], \
-                                shmem, options=options, id=id, my_pd=pds[i.address_space],
-                                **cmdln_opts)
+                                shmem, options=options, id=id, my_pd=pds[i.address_space])
                     save(t, g)
                     if options.item == t:
                         if not template:
@@ -531,7 +511,7 @@ def main():
         if template:
             with profiler('Rendering %s' % options.item):
                 g = r.render(assembly, assembly, template, obj_space, None, \
-                    shmem, imported=imported, options=options, **cmdln_opts)
+                    shmem, imported=imported, options=options)
             save(options.item, g)
             done(g)
     except Exception as inst:
