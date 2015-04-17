@@ -2353,6 +2353,91 @@ This example compiles to:
       }
     }
 
+### Hierarchical Attributes
+
+Attributes of internal instances and internal connections declared in the composition section
+of a compound component may be set to refer to attributes of that compound component. During
+hierarchy resolution, values of referring attributes are set to copies of the values of
+their corresponding referent attributes.
+
+#### Syntax
+
+The `<-` operator is used to set an attribute to refer to another. Lines of the following form
+may appear in the configuration section of a compound component:
+
+```
+entity_name.attribute_name <- local_attribute_name;
+```
+
+Here, `entity_name` is the name of a component instance or connection declared in the component's
+composition section, `attribute_name` is the name of an attribute of the entity, and
+`local_attribute_name` is the name of an attribute of the composition component.
+
+#### Example
+
+```
+
+component B {
+    ...
+    attribute string b_str;
+}
+
+component A {
+    ...
+    attribute string a_str;
+
+    composition {
+        ...
+        component B b;
+    }
+    configuration {
+        ...
+        b.b_str <- a_str;
+    }
+}
+
+assembly {
+    composition {
+        ...
+        component A a;
+    }
+    configuration {
+        ...
+        a.a_str = "Hello, World!";
+    }
+}
+
+```
+
+This example is resolved to the following:
+
+```
+
+component B {
+    ...
+    attribute string b_str;
+}
+
+component A {
+    ...
+    attribute string a_str;
+}
+
+assembly {
+    composition {
+        ...
+        component A a;
+        component B a_b;
+    }
+    configuration {
+        ...
+        a.a_str = "Hello, World!";
+        a_b.b_str = "Hello, World!";
+    }
+}
+
+```
+
 ### Custom Data Types
 
 CAmkES allows the definition of custom data types for procedure method arguments and ports.
