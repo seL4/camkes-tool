@@ -18,7 +18,7 @@ available to the template code.
 
 from functools import partial
 from copy import deepcopy
-import code, collections, inspect, itertools, math, os, pdb, re, textwrap
+import code, collections, inspect, itertools, math, os, pdb, re, sys, textwrap
 
 from capdl.Allocator import seL4_TCBObject, seL4_EndpointObject, \
     seL4_AsyncEndpointObject, seL4_CanRead, seL4_CanWrite, seL4_AllRights, \
@@ -182,6 +182,9 @@ def new_context(entity, assembly, obj_space, cap_space, shmem, **kwargs):
 
         # Debugging functions
         'breakpoint':_breakpoint,
+        'print':lambda x: sys.stdout.write('%s\n' % x) or '',
+        'sys':collections.namedtuple('sys', ['stdout', 'stderr'])(sys.stdout,
+            sys.stderr),
 
         # Helper for generating lists.
         'Joiner':Joiner,
