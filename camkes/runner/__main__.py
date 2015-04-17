@@ -165,29 +165,6 @@ def main():
     except Exception as inst:
         die('While combining assemblies: %s' % str(inst))
 
-    orig_ast = deepcopy(ast)
-    ast = parser.dedupe(ast)
-    try:
-        ast = parser.resolve_references(ast)
-    except Exception as inst:
-        die('While resolving references of \'%s\': %s' % (f.name, inst))
-
-    try:
-        parser.collapse_references(ast)
-    except Exception as inst:
-        die('While collapsing references of \'%s\': %s' % (f.name, inst))
-
-    try:
-        for t in AST_TRANSFORMS[POST_RESOLUTION]:
-            ast = t(ast)
-    except Exception as inst:
-        die('While transforming AST: %s' % str(inst))
-
-    try:
-        resolve_hierarchy(ast)
-    except Exception as inst:
-        die('While resolving hierarchy: %s' % str(inst))
-
     # If we have a readable cache check if our current target is in the cache.
     # The previous check will 'miss' and this one will 'hit' when the input
     # spec is identical to some previous execution modulo a semantically
@@ -195,7 +172,7 @@ def main():
     # matches when the input is exactly the same and this one matches when the
     # AST is unchanged.
     if options.cache in ('on', 'readonly'):
-        key = [version(), orig_ast, cache_relevant_options(options),
+        key = [version(), ast, cache_relevant_options(options),
             options.platform, options.item]
         value = cache.get(key)
         if value is not None:
@@ -207,6 +184,7 @@ def main():
 
     # If we have a writable cache, allow outputs to be saved to it.
     if options.cache in ('on', 'writeonly'):
+        orig_ast = deepcopy(ast)
         fs = FileSet(imported)
         def save(item, value):
             # Save an input-keyed cache entry. This one is based on the
@@ -228,6 +206,28 @@ def main():
     else:
         def save(item, value):
             pass
+
+    ast = parser.dedupe(ast)
+    try:
+        ast = parser.resolve_references(ast)
+    except Exception as inst:
+        die('While resolving references of \'%s\': %s' % (f.name, inst))
+
+    try:
+        parser.collapse_references(ast)
+    except Exception as inst:
+        die('While collapsing references of \'%s\': %s' % (f.name, inst))
+
+    try:
+        for t in AST_TRANSFORMS[POST_RESOLUTION]:
+            ast = t(ast)
+    except Exception as inst:
+        die('While transforming AST: %s' % str(inst))
+
+    try:
+        resolve_hierarchy(ast)
+    except Exception as inst:
+        die('While resolving hierarchy: %s' % str(inst))
 
     # All references in the AST need to be resolved for us to continue.
     unresolved = reduce(lambda a, x: a.union(x),
