@@ -159,7 +159,10 @@ def set_tcb_caps(ast, obj_space, cspaces, elfs, _, options):
             cnode_size = assembly.configuration[group].get('cnode_size_bits')
             if cnode_size is not None:
                 try:
-                    size = int(cnode_size, 0)
+                    if isinstance(cnode_size, str):
+                        size = int(cnode_size, 0)
+                    else:
+                        size = cnode_size
                 except ValueError:
                     raise Exception('illegal value for CNode size for %s' % \
                         group)
