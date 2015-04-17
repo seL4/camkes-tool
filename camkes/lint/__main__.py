@@ -43,7 +43,7 @@ def main():
 
     if args.resolve_references:
         try:
-            ast = parser.resolve_references(ast, args.allow_forward_references)
+            ast = parser.resolve_references(ast)
         except Exception as inst:
             log.critical('Failed to resolve references: %s' % str(inst))
             return CRITICAL

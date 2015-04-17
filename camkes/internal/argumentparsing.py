@@ -30,9 +30,7 @@ TOOLS = {
         'python -m camkes.lint',
         'Detect inconsistencies and errors in a CAmkES specification.',
         set([
-            '--allow-forward-references',
             '--debug',
-            '--disallow-forward-references',
             '--dont-resolve-references',
             '--dont-resolve-imports',
             '--file',
@@ -47,11 +45,9 @@ TOOLS = {
         'python -m camkes.parser',
         'Parse and output a CAmkES specification.',
         set([
-            '--allow-forward-references',
             '--cpp',
             '--cpp-flag',
             '--debug',
-            '--disallow-forward-references',
             '--dont-resolve-imports',
             '--dont-resolve-references',
             '--file',
@@ -67,14 +63,12 @@ TOOLS = {
         'python -m camkes.runner',
         'Instantiate templates based on a CAmkES specification.',
         set([
-            '--allow-forward-references',
             '--cache',
             '--cache-dir',
             '--cpp',
             '--cpp-flag',
             '--debug',
             '--default-priority',
-            '--disallow-forward-references',
             '--elf',
             '--file',
             '--frpc-lock-elision',
@@ -121,20 +115,12 @@ def parse_args(tool):
         help='Add this file to the list of input files to parse. Files are parsed in the order in which they are encountered on the command line.', \
         action='append', \
         type=argparse.FileType('r'))
-    add_arg('--allow-forward-references', \
-        dest='allow_forward_references', \
-        help='When resolving references, allow resolution of a symbol to a definition that is specified later in the input. This option has no effect unless you pass -R/--resolve-references.', \
-        action='store_true')
     add_arg('--cpp', action='store_true',
         help='Pre-process the source with CPP')
     add_arg('--nocpp', action='store_false', dest='cpp',
         help='Do not pre-process the source with CPP')
     add_arg('--cpp-flag', action='append', default=[],
         help='Specify a flag to pass to CPP')
-    add_arg('--disallow-forward-references', \
-        dest='allow_forward_references', \
-        help='When resolving references, only resolve symbols to definitions that appear earlier in the input. This is the default. This option has no effect unless you pass -R/--resolve-references.', \
-        action='store_false')
     add_arg('--dont-resolve-imports', '-d', \
         help='When encountering an import statement, record it as such and pass this information through to the final output. That is, don\'t look up and try to parse the imported file.', \
         dest='resolve_imports', \

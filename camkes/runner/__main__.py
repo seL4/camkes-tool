@@ -65,7 +65,6 @@ def cache_relevant_options(opts):
     # mistakenly missing entry will cause an (safe) unnecessary cache miss, as
     # opposed to an incorrect cache hit.
     CACHE_IRRELEVANT_OPTIONS = frozenset([
-        'allow_forward_references',
         'cache',
         'cache_dir',
         'cpp',
@@ -186,7 +185,7 @@ def main():
         ast = parser.dedupe(ast)
     try:
         with profiler('Resolving references'):
-            ast = parser.resolve_references(ast, False)
+            ast = parser.resolve_references(ast)
     except Exception as inst:
         die('While resolving references of \'%s\': %s' % (f.name, str(inst)))
 

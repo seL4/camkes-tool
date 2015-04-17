@@ -951,16 +951,6 @@ are described below. When an argument is only accepted by some of the tools,
 this is noted. If no limitation is mentioned then the argument is accepted by
 all tools.
 
-**--allow-forward-references**  
-**--disallow-forward-references**
-
-> Some tokens in a CAmkES specification can represent references to an entity
-  defined elsewhere. For example, in `connection Foo foo(from a.b, to c.d);` the
-  token `Foo` refers to a connector that is defined elsewhere in the spec. The
-  default behaviour is to only accept references to entities that have been
-  _previously_ defined. These options allow more permisive references to entities
-  defined anywhere or restore the default behaviour, respectively.
-
 **--cache**, **-c**  
 **--cache-dir**
 
@@ -1301,7 +1291,7 @@ API.
 > The function returns a pair, containing the AST as the first member and a
   list of files that were read during the resolution as the second member.
 
-**`resolve_references(ast, allow_forward)`**
+**`resolve_references(ast)`**
 
 > Some input grammars, like "camkes" support referring to grammar entities by
   reference. E.g. a statement like `component foo bar;` instantiates a
@@ -1310,9 +1300,8 @@ API.
   as objects of type `Reference`.
 
 > This function attempts to resolve these to objects defined elsewhere in the
-  AST. `allow_forward` indicates whether objects after the current point should
-  be considered when resolving symbols. Note that references can still exist in
-  the returned AST if they could not be resolved to any existing object.
+  AST. Note that references can still exist in the returned AST if they could
+  not be resolved to any existing object.
 
 **`show(o)`**
 

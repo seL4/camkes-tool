@@ -87,8 +87,8 @@ def pretty(s):
                 start_of_line = True
     return p
 
-def resolve_references(ast, allow_forward):
-    return Resolution.resolve_references(ast, allow_forward)
+def resolve_references(ast):
+    return Resolution.resolve_references(ast)
 
 def assign_filenames(ast, filename):
     '''Set the given filename as the source for any items in the AST that don't

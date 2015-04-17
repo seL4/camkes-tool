@@ -58,7 +58,7 @@ def main():
     ast = dedupe(ast)
 
     if options.resolve_references:
-        ast = resolve_references(ast, options.allow_forward_references)
+        ast = resolve_references(ast)
 
     # Generate the output and print this.
     out = show(ast)
