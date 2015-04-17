@@ -148,12 +148,12 @@ locale /*? thy ?*/_pruned_glue = /*? thy ?*/_pruned +
     /*- for t in range(1, threads + 1) -*/
       /*- do disjs.append('%s = Ptr (symbol_table \'\'%s_%s_%d\'\')' % (param, m.name, p.name, t)) -*/
     /*- endfor -*/
-    /*- if p.direction.direction == 'in' -*/
+    /*- if p.direction == 'in' -*/
       /*- do precondition_type.append(param_type[0]) -*/
       /*- do precondition_params.append(param) -*/
       /*- do postcondition_type.append(param_type[0]) -*/
       /*- do postcondition_params.append(param) -*/
-    /*- elif p.direction.direction == 'inout' -*/
+    /*- elif p.direction == 'inout' -*/
       /*- set value_in = '%s_in' % param -*/
       /*- set value_out = '%s_out' % param -*/
       /*- do bound.append(value_in) -*/
@@ -165,7 +165,7 @@ locale /*? thy ?*/_pruned_glue = /*? thy ?*/_pruned +
       /*- do postcondition_params.extend([value_in, value_out]) -*/
       /*- do bound_conjs.append(deref[0] % (value_out, 's', param)) -*/
     /*- else -*/
-      /*? assert(p.direction.direction == 'out') ?*/
+      /*? assert(p.direction == 'out') ?*/
       /*- set value_out = '%s_out' % param -*/
       /*- do exist_bound.append(value_out) -*/
       /*- do preconditions.extend([ptr_valid[0], '(%s)' % ' \<or> '.join(disjs)]) -*/
@@ -233,12 +233,12 @@ locale /*? thy ?*/_pruned_glue = /*? thy ?*/_pruned +
   /*- endif -*/
   /*- for i, p in enumerate(m.parameters) -*/
     /*- set param = 'p%d' % i -*/
-    /*- if p.direction.direction == 'inout' -*/
+    /*- if p.direction == 'inout' -*/
       /*- do params.extend(['%s_in' % param, '%s_out' % param]) -*/
     /*- else -*/
       /*- do params.append(param) -*/
     /*- endif -*/
-    /*- if p.direction.direction in ['out', 'inout'] -*/
+    /*- if p.direction in ['out', 'inout'] -*/
       /*- if p.type.type == 'int8_t' -*/
         /*- do ptr_valids.add('ptr_valid_s8') -*/
       /*- elif p.type.type in ['uint8_t', 'char'] -*/
@@ -282,8 +282,8 @@ begin
 
 /*- for method_index, m in enumerate(interface.methods) -*/
 
-/*- set input_parameters = filter(lambda('x: x.direction.direction in [\'in\', \'inout\']'), m.parameters) -*/
-/*- set output_parameters = filter(lambda('x: x.direction.direction in [\'out\', \'inout\']'), m.parameters) -*/
+/*- set input_parameters = filter(lambda('x: x.direction in [\'in\', \'inout\']'), m.parameters) -*/
+/*- set output_parameters = filter(lambda('x: x.direction in [\'out\', \'inout\']'), m.parameters) -*/
 
 (** TPP: condense = True *)
 /*- set preconditions = ['inv s'] -*/
@@ -489,7 +489,7 @@ lemma /*? me.to_interface.name ?*/_/*? m.name ?*/_invoke_subst:
 
 /*- set postprocessing = [] -*/
 /*- for p in m.parameters -*/
-  /*- if p.direction.direction == 'inout' -*/
+  /*- if p.direction == 'inout' -*/
     /*- do postprocessing.append('THEN all_pair_unwrap[THEN iffD2]') -*/
   /*- endif -*/
 /*- endfor -*/
@@ -623,7 +623,7 @@ lemma /*? me.to_interface.name ?*/_/*? m.name ?*/_marshal_wp[THEN validNF_make_s
 /*- for i, p in enumerate(m.parameters) -*/
   /*- set param = 'p%d' % i -*/
   /*- do postcondition_params.append(param) -*/
-  /*- if p.direction.direction == 'in' -*/
+  /*- if p.direction == 'in' -*/
     /*- do bound.append(param) -*/
     /*- do postprocessing.insert(0, 'THEN all_pair_unwrap[THEN iffD2]') -*/
     /*- do precondition_params.append(param) -*/
@@ -648,7 +648,7 @@ lemma /*? me.to_interface.name ?*/_/*? m.name ?*/_marshal_wp[THEN validNF_make_s
     /*- else -*/
       /*? raise(NotImplementedError()) ?*/
     /*- endif -*/
-  /*- elif p.direction.direction == 'inout' -*/
+  /*- elif p.direction == 'inout' -*/
     /*- do bound.append(param) -*/
     /*- do precondition_params.append(param) -*/
     /*- do postprocessing.insert(0, 'THEN all_pair_unwrap[THEN iffD2]') -*/
@@ -686,7 +686,7 @@ lemma /*? me.to_interface.name ?*/_/*? m.name ?*/_marshal_wp[THEN validNF_make_s
       /*? raise(NotImplementedError()) ?*/
     /*- endif -*/
   /*- else -*/
-    /*? assert(p.direction.direction == 'out') ?*/
+    /*? assert(p.direction == 'out') ?*/
     /*- do exist_bound.append(param) -*/
     /*- if p.type.type == 'int8_t' -*/
       /*- do post_packed.append('scast %s' % param) -*/
@@ -827,7 +827,7 @@ lemma /*? me.to_interface.name ?*/_/*? m.name ?*/_internal_wp[/*? ', '.join(post
     /*# We'll consume these as we bottom out in the case distinction. #*/
     /*- set instantiations = [] -*/
     /*- for p in m.parameters -*/
-      /*- if p.direction.direction == 'out' -*/
+      /*- if p.direction == 'out' -*/
         /*- for t in range(1, threads + 1) -*/
           /*- do instantiations.append('Ptr (symbol_table \'\'%s_%s_%d\'\')' % (m.name, p.name, t)) -*/
         /*- endfor -*/
@@ -850,7 +850,7 @@ lemma /*? me.to_interface.name ?*/_/*? m.name ?*/_internal_wp[/*? ', '.join(post
   /*? ' ' * (subgoals[0] - 1) ?*/(* Instantiate the contents of the IPC buffer. *)
         /*- for i, p in enumerate(m.parameters) -*/
           /*- set param = 'p%d' % i -*/
-          /*- if p.direction.direction in ['in', 'inout'] -*/
+          /*- if p.direction in ['in', 'inout'] -*/
             /*- if p.type.type == 'int8_t' -*/
   /*? ' ' * (subgoals[0] - 1) ?*/apply (rule_tac x="scast /*? param ?*/" in exI)
             /*- elif p.type.type in ['uint8_t', 'char'] -*/
@@ -881,7 +881,7 @@ lemma /*? me.to_interface.name ?*/_/*? m.name ?*/_internal_wp[/*? ', '.join(post
          #*/
         /*- set shown_comment = [False] -*/
         /*- for i, p in enumerate(m.parameters) -*/
-          /*- if p.direction.direction == 'inout' -*/
+          /*- if p.direction == 'inout' -*/
             /*- if not shown_comment[0] -*/
   /*? ' ' * (subgoals[0] - 1) ?*/(* Instantiate inout parameters. *)
               /*- do shown_comment.__setitem__(0, True) -*/
@@ -1005,7 +1005,7 @@ lemma /*? me.to_interface.name ?*/_/*? m.name ?*/_internal_wp[/*? ', '.join(post
            #*/
           /*? assert(i == 0 or len(goal['params'][i]) == 1) ?*/
           /*- set param = goal['params'][i][0] -*/
-          /*- if p.direction.direction in ['inout', 'out'] -*/
+          /*- if p.direction in ['inout', 'out'] -*/
             /*- set deref = [None] -*/
             /*- if p.type.type == 'int8_t' -*/
               /*- do deref.__setitem__(0, 'ucast (heap_w8 s\' (ptr_coerce %s))') -*/
@@ -1026,7 +1026,7 @@ lemma /*? me.to_interface.name ?*/_/*? m.name ?*/_internal_wp[/*? ', '.join(post
             /*- else -*/
               /*? raise(NotImplementedError()) ?*/
             /*- endif -*/
-            /*- if i == 0 and p.direction.direction == 'inout' -*/
+            /*- if i == 0 and p.direction == 'inout' -*/
   /*? ' ' * (subgoals[0] - 1) ?*/apply (rule_tac x="/*? deref[0] % 'rv' ?*/" in exI)
             /*- else -*/
   /*? ' ' * (subgoals[0] - 1) ?*/apply (rule_tac x="/*? deref[0] % '(Ptr (symbol_table \'\'%s\'\'))' % param ?*/" in exI)
@@ -1229,12 +1229,12 @@ lemma /*? me.from_interface.name ?*/_/*? m.name ?*/_unmarshal_wp[/*? ', '.join(p
 /*- for i, p in enumerate(m.parameters) -*/
   /*- set param = 'p%d' % i -*/
 
-  /*- if p.direction.direction == 'in' -*/
+  /*- if p.direction == 'in' -*/
     /*- do precondition_params.append(param) -*/
     /*- do marshal_params.append(param) -*/
     /*- do postcondition_params.append(param) -*/
 
-  /*- elif p.direction.direction == 'inout' -*/
+  /*- elif p.direction == 'inout' -*/
     /*- do precondition_params.append(param) -*/
     /*- do marshal_params.append(param) -*/
     /*- do postcondition_params.append(param) -*/
@@ -1300,7 +1300,7 @@ lemma /*? me.from_interface.name ?*/_/*? m.name ?*/_unmarshal_wp[/*? ', '.join(p
     /*- endif -*/
 
   /*- else -*/
-    /*? assert(p.direction.direction == 'out') ?*/
+    /*? assert(p.direction == 'out') ?*/
     /*- do unmarshal_params.append(param) -*/
     /*- if p.type.type == 'int8_t' -*/
       /*- do postcondition_params.append('(ucast (heap_w8 s (ptr_coerce %s)))' % param) -*/
@@ -1377,9 +1377,9 @@ lemma /*? me.from_interface.name ?*/_/*? m.name ?*/_unmarshal_wp[/*? ', '.join(p
 
 /*- set orthogonal_updates = [] -*/
 /*- for i, p in enumerate(m.parameters) -*/
-  /*- if p.direction.direction in ['inout', 'out'] -*/
+  /*- if p.direction in ['inout', 'out'] -*/
     /*- set param = [None] -*/
-    /*- if p.direction.direction == 'inout' -*/
+    /*- if p.direction == 'inout' -*/
       /*- do param.__setitem__(0, 'p%d_out' % i) -*/
     /*- else -*/
       /*- do param.__setitem__(0, 'p%d' % i) -*/
@@ -1426,7 +1426,7 @@ lemma /*? me.from_interface.name ?*/_/*? me.to_interface.name ?*/_/*? m.name ?*/
             /*? me.from_interface.name ?*/_/*? m.name ?*/_marshal_wp)
   apply clarsimp
   /*- for i, p in enumerate(m.parameters) -*/
-    /*- if p.direction.direction in ['in', 'inout'] -*/
+    /*- if p.direction in ['in', 'inout'] -*/
   apply (rule_tac x=p/*? i ?*/ in exI)
     /*- endif -*/
   /*- endfor -*/
@@ -1487,12 +1487,12 @@ lemma /*? me.from_interface.name ?*/_/*? me.to_interface.name ?*/_/*? m.name ?*/
 
   /*- set heap_update_fns = set() -*/
   /*- for i, p in enumerate(m.parameters) -*/
-    /*- if p.direction.direction in ['inout', 'out'] -*/
+    /*- if p.direction in ['inout', 'out'] -*/
       /*- set param = [None] -*/
-      /*- if p.direction.direction == 'inout' -*/
+      /*- if p.direction == 'inout' -*/
         /*- do param.__setitem__(0, 'p%d_outa' % i) -*/
       /*- else -*/
-        /*? assert(p.direction.direction == 'out') ?*/
+        /*? assert(p.direction == 'out') ?*/
         /*- do param.__setitem__(0, 'p%da' % i) -*/
       /*- endif -*/
       /*- if p.type.type == 'int8_t' -*/

@@ -33,12 +33,12 @@
         /*? raise(NotImplementedError()) ?*/
       /*- endif -*/
       /*- for p in m.parameters -*/
-        /*- if isinstance(p.type, camkes.ast.Reference) or p.array or p.type.type == 'string' or p.direction.direction == 'refin' -*/
+        /*- if isinstance(p.type, camkes.ast.Reference) or p.array or p.type.type == 'string' or p.direction == 'refin' -*/
           /*? raise(NotImplementedError()) ?*/
-        /*- elif p.direction.direction == 'in' -*/
+        /*- elif p.direction == 'in' -*/
           /*? show(p.type) ?*/ /*? p.name ?*/
         /*- else -*/
-          /*? assert(p.direction.direction in ['out', 'inout']) ?*/
+          /*? assert(p.direction in ['out', 'inout']) ?*/
           /*? show(p.type) ?*/ * /*? p.name ?*/
         /*- endif -*/
         /*- if not loop.last -*/
@@ -67,7 +67,7 @@
         /*- endif -*/
     /*- endfor -*/
 
-/*- set input_parameters = filter(lambda('x: x.direction.direction in [\'in\', \'inout\']'), m.parameters) -*/
+/*- set input_parameters = filter(lambda('x: x.direction in [\'in\', \'inout\']'), m.parameters) -*/
 static void /*? me.to_interface.name ?*/_/*? m.name ?*/_unmarshal(
     /*- for p in input_parameters -*/
         /*- if isinstance(p.type, camkes.ast.Reference) or p.array or p.type.type == 'string' -*/
@@ -112,7 +112,7 @@ static
         /*- else -*/
             /*? p.type.type ?*/
         /*- endif -*/
-        /*- if p.direction.direction in ['inout', 'out'] -*/
+        /*- if p.direction in ['inout', 'out'] -*/
             *
         /*- endif -*/
         /*? p.name ?*/
@@ -139,7 +139,7 @@ static
     );
 }
 
-/*- set output_parameters = filter(lambda('x: x.direction.direction in [\'inout\', \'out\']'), m.parameters) -*/
+/*- set output_parameters = filter(lambda('x: x.direction in [\'inout\', \'out\']'), m.parameters) -*/
 static unsigned int /*? me.to_interface.name ?*/_/*? m.name ?*/_marshal(
     /*- set ret = c_symbol('ret') -*/
     /*- if m.return_type -*/
@@ -220,7 +220,7 @@ static unsigned int /*? me.to_interface.name ?*/_/*? m.name ?*/_internal(void) {
     /*- endif -*/
     /*? me.to_interface.name ?*/_/*? m.name ?*/_invoke(
         /*- for p in m.parameters -*/
-            /*- if p.direction.direction == 'in' -*/
+            /*- if p.direction == 'in' -*/
                 * /*? p.name ?*/
             /*- else -*/
                 /*? p.name ?*/

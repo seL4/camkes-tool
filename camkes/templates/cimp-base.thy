@@ -87,14 +87,14 @@ datatype inst
         /*- for i, m in enumerate(u.type.methods) -*/
             definition
                 Call_/*? c.name ?*/_/*? u.name ?*/_/*? m.name ?*/ :: "(/*? c.name ?*/_channel \<Rightarrow> channel) \<Rightarrow>
-                /*- for p in filter(lambda('x: x.direction.direction in [\'in\', \'inout\']'), m.parameters) -*/
+                /*- for p in filter(lambda('x: x.direction in [\'in\', \'inout\']'), m.parameters) -*/
                     ('cs local_state \<Rightarrow> /*? show_native_type(p.type) ?*/) \<Rightarrow>
                 /*- endfor -*/
                 /*- set j = Joiner('(\'cs local_state \\<Rightarrow>', '\\<Rightarrow>') -*/
                 /*- if m.return_type -*/
                     /*? j ?*/ /*? show_native_type(m.return_type) ?*/
                 /*- endif -*/
-                /*- for p in filter(lambda('x: x.direction.direction in [\'out\', \'inout\']'), m.parameters) -*/
+                /*- for p in filter(lambda('x: x.direction in [\'out\', \'inout\']'), m.parameters) -*/
                     /*? j ?*/ /*? show_native_type(p.type) ?*/
                 /*- endfor -*/
                 /*- if str(j) == '\\<Rightarrow>' -*/
@@ -105,15 +105,15 @@ datatype inst
             where
                 /*- set ch = isabelle_symbol('ch') -*/
                 "Call_/*? c.name ?*/_/*? u.name ?*/_/*? m.name ?*/ /*? ch ?*/
-                /*- for p in filter(lambda('x: x.direction.direction in [\'in\', \'inout\']'), m.parameters) -*/
+                /*- for p in filter(lambda('x: x.direction in [\'in\', \'inout\']'), m.parameters) -*/
                     /*? p.name ?*/\<^isub>P
                 /*- endfor -*/
-                /*- if m.return_type or filter(lambda('x: x.direction.direction in [\'out\', \'inout\']'), m.parameters) -*/
+                /*- if m.return_type or filter(lambda('x: x.direction in [\'out\', \'inout\']'), m.parameters) -*/
                     embed
                 /*- endif -*/
                 /*- set s = isabelle_symbol('s') -*/
                 \<equiv> Request (\<lambda>/*? s ?*/. {\<lparr>q_channel = /*? ch ?*/ /*? c.name ?*/_/*? u.name ?*/, q_data = Call /*? i ?*/ (
-                /*- for p in filter(lambda('x: x.direction.direction in [\'in\', \'inout\']'), m.parameters) -*/
+                /*- for p in filter(lambda('x: x.direction in [\'in\', \'inout\']'), m.parameters) -*/
                     /*? show_wrapped_type(p.type) ?*/ (/*? p.name ?*/\<^isub>P /*? s ?*/) #
                 /*- endfor -*/
                 [])\<rparr>}) discard ;;
@@ -121,13 +121,13 @@ datatype inst
                 /*- set s = isabelle_symbol() -*/
                 /*- set xs = isabelle_symbol() -*/
                 Response (\<lambda>/*? q ?*/ /*? s ?*/. case q_data /*? q ?*/ of Return /*? xs ?*/ \<Rightarrow>
-                /*- if m.return_type or filter(lambda('x: x.direction.direction in [\'out\', \'inout\']'), m.parameters) -*/
+                /*- if m.return_type or filter(lambda('x: x.direction in [\'out\', \'inout\']'), m.parameters) -*/
                     {(embed /*? s ?*/
                     /*- if m.return_type -*/
                         /*- set v = isabelle_symbol() -*/
                         (case hd /*? xs ?*/ of /*? show_wrapped_type(m.return_type) ?*/ /*? v ?*/ \<Rightarrow> /*? v ?*/)
                     /*- endif -*/
-                    /*- for i, p in enumerate(filter(lambda('x: x.direction.direction in [\'out\', \'inout\']'), m.parameters)) -*/
+                    /*- for i, p in enumerate(filter(lambda('x: x.direction in [\'out\', \'inout\']'), m.parameters)) -*/
                         /*- set v = isabelle_symbol() -*/
                         (case /*? xs ?*/ ! /*? i + (1 if m.return_type else 0) ?*/ of /*? show_wrapped_type(p.type) ?*/ /*? v ?*/ \<Rightarrow> /*? v ?*/)
                     /*- endfor -*/
@@ -143,9 +143,9 @@ datatype inst
         definition
             Recv_/*? c.name ?*/_/*? u.name ?*/ :: "(/*? c.name ?*/_channel \<Rightarrow> channel) \<Rightarrow>
             /*- for m in u.type.methods -*/
-                /*- if filter(lambda('x: x.direction.direction in [\'in\', \'inout\']'), m.parameters) -*/
+                /*- if filter(lambda('x: x.direction in [\'in\', \'inout\']'), m.parameters) -*/
                     ('cs local_state \<Rightarrow>
-                    /*- for p in filter(lambda('x: x.direction.direction in [\'in\', \'inout\']'), m.parameters) -*/
+                    /*- for p in filter(lambda('x: x.direction in [\'in\', \'inout\']'), m.parameters) -*/
                         /*? show_native_type(p.type) ?*/ \<Rightarrow>
                     /*- endfor -*/
                     'cs local_state) \<Rightarrow>
@@ -154,7 +154,7 @@ datatype inst
                 /*- if m.return_type -*/
                     ('cs local_state \<Rightarrow> /*? show_native_type(m.return_type) ?*/) \<Rightarrow>
                 /*- endif -*/
-                /*- for p in filter(lambda('x: x.direction.direction in [\'out\', \'inout\']'), m.parameters) -*/
+                /*- for p in filter(lambda('x: x.direction in [\'out\', \'inout\']'), m.parameters) -*/
                     ('cs local_state \<Rightarrow> /*? show_native_type(p.type) ?*/) \<Rightarrow>
                 /*- endfor -*/
             /*- endfor -*/
@@ -163,14 +163,14 @@ datatype inst
             /*- set ch = isabelle_symbol('ch') -*/
             "Recv_/*? c.name ?*/_/*? u.name ?*/ /*? ch ?*/
             /*- for m in u.type.methods -*/
-                /*- if filter(lambda('x: x.direction.direction in [\'in\', \'inout\']'), m.parameters) -*/
+                /*- if filter(lambda('x: x.direction in [\'in\', \'inout\']'), m.parameters) -*/
                     /*? m.name ?*/\<^isub>E
                 /*- endif -*/
                 /*? c.name ?*/_/*? u.name ?*/_/*? m.name ?*/
                 /*- if m.return_type -*/
                     /*? m.name ?*/_return\<^isub>P
                 /*- endif -*/
-                /*- for p in filter(lambda('x: x.direction.direction in [\'out\', \'inout\']'), m.parameters) -*/
+                /*- for p in filter(lambda('x: x.direction in [\'out\', \'inout\']'), m.parameters) -*/
                     /*? m.name ?*/_/*? p.name ?*/\<^isub>P
                 /*- endfor -*/
             /*- endfor -*/
@@ -184,9 +184,9 @@ datatype inst
                 /*- set n = isabelle_symbol() -*/
                 /*- set xs = isabelle_symbol() -*/
                 (Response (\<lambda>/*? q ?*/ /*? s ?*/. case q_data /*? q ?*/ of Call /*? n ?*/ /*? xs ?*/ \<Rightarrow> (if /*? n ?*/ = /*? i ?*/ then {(
-                /*- if filter(lambda('x: x.direction.direction in [\'in\', \'inout\']'), m.parameters) -*/
+                /*- if filter(lambda('x: x.direction in [\'in\', \'inout\']'), m.parameters) -*/
                     /*? m.name ?*/\<^isub>E /*? s ?*/
-                    /*- for k, p in enumerate(filter(lambda('x: x.direction.direction in [\'in\', \'inout\']'), m.parameters)) -*/
+                    /*- for k, p in enumerate(filter(lambda('x: x.direction in [\'in\', \'inout\']'), m.parameters)) -*/
                         /*- set v = isabelle_symbol() -*/
                         (case /*? xs ?*/ ! /*? k ?*/ of /*? show_wrapped_type(p.type) ?*/ /*? v ?*/ \<Rightarrow> /*? v ?*/)
                     /*- endfor -*/
@@ -200,7 +200,7 @@ datatype inst
                 /*- if m.return_type -*/
                     /*? show_wrapped_type(m.return_type) ?*/ (/*? m.name ?*/_return\<^isub>P /*? s ?*/) #
                 /*- endif -*/
-                /*- for p in filter(lambda('x: x.direction.direction in [\'out\', \'inout\']'), m.parameters) -*/
+                /*- for p in filter(lambda('x: x.direction in [\'out\', \'inout\']'), m.parameters) -*/
                     /*? show_wrapped_type(p.type) ?*/ (/*? m.name ?*/_/*? p.name ?*/\<^isub>P /*? s ?*/) #
                 /*- endfor -*/
                 [])\<rparr>}) discard)
@@ -262,14 +262,14 @@ datatype inst
         /*- for m in u.type.methods -*/
             definition
                 Call_/*? i.name ?*/_/*? u.name ?*/_/*? m.name ?*/ :: "
-                /*- for p in filter(lambda('x: x.direction.direction in [\'in\', \'inout\']'), m.parameters) -*/
+                /*- for p in filter(lambda('x: x.direction in [\'in\', \'inout\']'), m.parameters) -*/
                     ('cs local_state \<Rightarrow> /*? show_native_type(p.type) ?*/) \<Rightarrow>
                 /*- endfor -*/
                 /*- set j = Joiner('(\'cs local_state \\<Rightarrow>', '\\<Rightarrow>') -*/
                 /*- if m.return_type -*/
                     /*? j ?*/ /*? show_native_type(m.return_type) ?*/
                 /*- endif -*/
-                /*- for p in filter(lambda('x: x.direction.direction in [\'out\', \'inout\']'), m.parameters) -*/
+                /*- for p in filter(lambda('x: x.direction in [\'out\', \'inout\']'), m.parameters) -*/
                     /*? j ?*/ /*? show_native_type(p.type) ?*/
                 /*- endfor -*/
                 /*- if str(j) == '\\<Rightarrow>' -*/
@@ -298,9 +298,9 @@ datatype inst
         definition
             Recv_/*? i.name ?*/_/*? u.name ?*/ :: "
             /*- for m in u.type.methods -*/
-                /*- if filter(lambda('x: x.direction.direction in [\'in\', \'inout\']'), m.parameters) -*/
+                /*- if filter(lambda('x: x.direction in [\'in\', \'inout\']'), m.parameters) -*/
                     ('cs local_state \<Rightarrow>
-                    /*- for p in filter(lambda('x: x.direction.direction in [\'in\', \'inout\']'), m.parameters) -*/
+                    /*- for p in filter(lambda('x: x.direction in [\'in\', \'inout\']'), m.parameters) -*/
                         /*? show_native_type(p.type) ?*/ \<Rightarrow>
                     /*- endfor -*/
                     'cs local_state) \<Rightarrow>
@@ -309,7 +309,7 @@ datatype inst
                 /*- if m.return_type -*/
                     ('cs local_state \<Rightarrow> /*? show_native_type(m.return_type) ?*/) \<Rightarrow>
                 /*- endif -*/
-                /*- for p in filter(lambda('x: x.direction.direction in [\'out\', \'inout\']'), m.parameters) -*/
+                /*- for p in filter(lambda('x: x.direction in [\'out\', \'inout\']'), m.parameters) -*/
                     ('cs local_state \<Rightarrow> /*? show_native_type(p.type) ?*/) \<Rightarrow>
                 /*- endfor -*/
             /*- endfor -*/

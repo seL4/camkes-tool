@@ -433,7 +433,7 @@ lemma /*? me.from_interface.name ?*/_/*? m.name ?*/_nf:
 
   /*# Any 'out' or 'inout' parameters are passed to us as valid pointers. #*/
   /*- for p in m.parameters -*/
-    /*- if p.direction.direction in ['out', 'inout'] -*/
+    /*- if p.direction in ['out', 'inout'] -*/
       /*- set size = sizeof(p) -*/
       /*# The size must be something AutoCorres can handle. #*/
       /*? assert(size in [1, 2, 4, 8]) ?*/
@@ -459,7 +459,7 @@ lemma /*? me.from_interface.name ?*/_/*? m.name ?*/_nf:
 
   /*# Any 'out' or 'inout' parameter pointers are still valid. #*/
   /*- for p in m.parameters -*/
-    /*- if p.direction.direction in ['out', 'inout'] -*/
+    /*- if p.direction in ['out', 'inout'] -*/
       /*- set size = sizeof(p) -*/
       /*# The size must be something AutoCorres can handle. #*/
       /*? assert(size in [1, 2, 4, 8]) ?*/

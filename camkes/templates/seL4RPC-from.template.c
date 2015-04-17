@@ -61,8 +61,8 @@ int /*? me.from_interface.name ?*/__run(void) {
 
 /*- for i, m in enumerate(me.from_interface.type.methods) -*/
 
-/*- set input_parameters = filter(lambda('x: x.direction.direction in [\'refin\', \'in\', \'inout\']'), m.parameters) -*/
-/*- set output_parameters = filter(lambda('x: x.direction.direction in [\'out\', \'inout\']'), m.parameters) -*/
+/*- set input_parameters = filter(lambda('x: x.direction in [\'refin\', \'in\', \'inout\']'), m.parameters) -*/
+/*- set output_parameters = filter(lambda('x: x.direction in [\'out\', \'inout\']'), m.parameters) -*/
 
 /*# If we're meant to be timing this method, map its timestamps to the real
  *# measurement functionality. Otherwise, make this a no-op.
@@ -130,7 +130,7 @@ int /*? me.from_interface.name ?*/__run(void) {
     /*- endif -*/
 /*- endif -*/
 /*- for p in m.parameters -*/
-  /*- if p.direction.direction == 'in' -*/
+  /*- if p.direction == 'in' -*/
     /*- if p.array -*/
       size_t /*? p.name ?*/_sz,
       /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
@@ -144,9 +144,9 @@ int /*? me.from_interface.name ?*/__run(void) {
       /*? show(p.type) ?*/
     /*- endif -*/
   /*- else -*/
-    /*? assert(p.direction.direction in ['refin', 'out', 'inout']) ?*/
+    /*? assert(p.direction in ['refin', 'out', 'inout']) ?*/
     /*- if p.array -*/
-      /*- if p.direction.direction == 'refin' -*/
+      /*- if p.direction == 'refin' -*/
         const
       /*- endif -*/
       size_t * /*? p.name ?*/_sz,
@@ -158,7 +158,7 @@ int /*? me.from_interface.name ?*/__run(void) {
     /*- elif isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
       char **
     /*- else -*/
-      /*- if p.direction.direction == 'refin' -*/
+      /*- if p.direction == 'refin' -*/
         const
       /*- endif -*/
       /*? show(p.type) ?*/ *

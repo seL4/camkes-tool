@@ -14,7 +14,7 @@
 
 /*- set name_backup = name -*/
 /*- for p in input_parameters -*/
-  /*- if p.direction.direction == 'in' -*/
+  /*- if p.direction == 'in' -*/
     /*- if p.array -*/
       /*- set array = False -*/
       /*- set type = 'size_t' -*/
@@ -33,7 +33,7 @@
 /*- for p in input_parameters -*/
   /*- set offset = c_symbol('offset') -*/
   static unsigned int /*? function ?*/_/*? p.name ?*/(unsigned int /*? offset ?*/,
-    /*- if p.direction.direction == 'in' -*/
+    /*- if p.direction == 'in' -*/
       /*- if p.array -*/
         size_t /*? p.name ?*/_sz,
         /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
@@ -47,7 +47,7 @@
         /*? show(p.type) ?*/ /*? p.name ?*/
       /*- endif -*/
     /*- else -*/
-      /*? assert(p.direction.direction in ['refin', 'inout']) ?*/
+      /*? assert(p.direction in ['refin', 'inout']) ?*/
       /*- if p.array -*/
         const size_t * /*? p.name ?*/_sz,
         /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
@@ -74,7 +74,7 @@
     /*- set ptr_sz = c_symbol('ptr_sz') -*/
     /*- set ptr_str = c_symbol('ptr_str') -*/
     /*- set ptr_arr = c_symbol('ptr_arr') -*/
-    /*- if p.direction.direction == 'in' -*/
+    /*- if p.direction == 'in' -*/
       /*- if p.array -*/
         size_t * /*? ptr_sz ?*/ = TLS_PTR(/*? name ?*/_/*? p.name ?*/_sz_from, /*? p.name ?*/_sz);
         * /*? ptr_sz ?*/ = /*? p.name ?*/_sz;
@@ -204,7 +204,7 @@
 
 static unsigned int /*? function ?*/(
 /*- for p in input_parameters -*/
-  /*- if p.direction.direction == 'in' -*/
+  /*- if p.direction == 'in' -*/
     /*- if p.array -*/
       size_t /*? p.name ?*/_sz,
       /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
@@ -218,7 +218,7 @@ static unsigned int /*? function ?*/(
       /*? show(p.type) ?*/ /*? p.name ?*/
     /*- endif -*/
   /*- else -*/
-    /*? assert(p.direction.direction in ['refin', 'inout']) ?*/
+    /*? assert(p.direction in ['refin', 'inout']) ?*/
     /*- if p.array -*/
       const size_t * /*? p.name ?*/_sz,
       /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/

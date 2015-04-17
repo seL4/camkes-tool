@@ -77,12 +77,12 @@ where
         /*- for p in m.parameters -*/
             \<lparr> p_type = /*? param_type(p.type) ?*/,
             p_direction =
-            /*- if p.direction.direction == 'in' -*/
+            /*- if p.direction == 'in' -*/
                 InParameter
-            /*- elif p.direction.direction == 'out' -*/
+            /*- elif p.direction == 'out' -*/
                 OutParameter
             /*- else -*/
-                /*? assert(p.direction.direction == 'inout') ?*/
+                /*? assert(p.direction == 'inout') ?*/
                 InOutParameter
             /*- endif -*/
             , p_name = ''/*? p.name ?*/'' \<rparr> #

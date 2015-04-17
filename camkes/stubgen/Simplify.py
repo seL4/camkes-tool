@@ -44,7 +44,7 @@ def simplify_type(t):
 def simplify_parameter(p):
     assert isinstance(p, ast.Parameter), \
         'illegal type passed to simplify_parameter()'
-    return Parameter(p.name, simplify_type(p.type), p.direction.direction)
+    return Parameter(p.name, simplify_type(p.type), p.direction)
 
 def simplify_method(m):
     assert isinstance(m, ast.Method), \

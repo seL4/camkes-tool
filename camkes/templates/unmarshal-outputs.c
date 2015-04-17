@@ -204,7 +204,7 @@
         }));
       memcpy(/*? p.name ?*/_sz, /*? base ?*/ + /*? offset ?*/, sizeof(* /*? p.name ?*/_sz));
       /*? offset ?*/ += sizeof(* /*? p.name ?*/_sz);
-      /*- if p.direction.direction == 'inout' -*/
+      /*- if p.direction == 'inout' -*/
         /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
           /*- set mcount = c_symbol() -*/
           for (int /*? mcount ?*/ = 0; /*? mcount ?*/ < * /*? p.name ?*/_sz; /*? mcount ?*/ ++) {
@@ -290,7 +290,7 @@
         /*? offset ?*/ += sizeof((* /*? p.name ?*/)[0]) * (* /*? p.name ?*/_sz);
       /*- endif -*/
     /*- elif isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
-      /*- if p.direction.direction == 'inout' -*/
+      /*- if p.direction == 'inout' -*/
         free(* /*? p.name ?*/);
       /*- endif -*/
       /*- set strlen = c_symbol('strlen') -*/

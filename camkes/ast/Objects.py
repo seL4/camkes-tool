@@ -642,16 +642,6 @@ class Type(ASTObject):
     def __repr__(self):
         return self.type
 
-class Direction(ASTObject):
-    def __init__(self, direction, filename=None, lineno=-1):
-        assert isinstance(direction, str)
-        assert direction in ['refin', 'in', 'inout', 'out']
-        super(Direction, self).__init__(filename=filename, lineno=lineno)
-        self.direction = direction
-
-    def __repr__(self):
-        return self.direction
-
 class Event(ASTObject):
     def __init__(self, name=None, id=0, filename=None, lineno=-1):
         assert name is None or isinstance(name, str)

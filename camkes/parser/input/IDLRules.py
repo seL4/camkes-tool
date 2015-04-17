@@ -9,7 +9,7 @@
 #
 
 from camkes.ast import Event, Port, Procedure, Method, Attribute, \
-    Parameter, Type, Reference, Direction, Include
+    Parameter, Type, Reference, Include
 
 '''IDL parsing rules. See accompanying docs for more information.'''
 
@@ -165,7 +165,7 @@ def p_direction(t):
                  | in
                  | inout
                  | out'''
-    t[0] = Direction(t[1], filename=t.lexer.filename, lineno=t.lexer.lineno)
+    t[0] = t[1]
 
 def p_type(t):
     '''type : int

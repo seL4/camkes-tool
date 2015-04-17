@@ -54,7 +54,7 @@ const char *get_instance_name(void);
                 /*- endif -*/
             /*- endif -*/
             /*- for p in m.parameters -*/
-              /*- if p.direction.direction == 'in' -*/
+              /*- if p.direction == 'in' -*/
                 /*- if p.array -*/
                   size_t /*? p.name ?*/_sz,
                   /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
@@ -69,9 +69,9 @@ const char *get_instance_name(void);
                 /*- endif -*/
                 /*? p.name ?*/
               /*- else -*/
-                /*? assert(p.direction.direction in ['refin', 'out', 'inout']) ?*/
+                /*? assert(p.direction in ['refin', 'out', 'inout']) ?*/
                 /*- if p.array -*/
-                  /*- if p.direction.direction == 'refin' -*/
+                  /*- if p.direction == 'refin' -*/
                     const
                   /*- endif -*/
                   size_t * /*? p.name ?*/_sz,
@@ -83,7 +83,7 @@ const char *get_instance_name(void);
                 /*- elif isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
                   char **
                 /*- else -*/
-                  /*- if p.direction.direction == 'refin' -*/
+                  /*- if p.direction == 'refin' -*/
                     const
                   /*- endif -*/
                   /*? show(p.type) ?*/ *

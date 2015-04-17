@@ -29,7 +29,7 @@ int /*? me.from_interface.name ?*/__run(void) {
 
 /*- for i, m in enumerate(me.from_interface.type.methods) -*/
 
-/*- set input_parameters = filter(lambda('x: x.direction.direction in [\'in\', \'inout\']'), m.parameters) -*/
+/*- set input_parameters = filter(lambda('x: x.direction in [\'in\', \'inout\']'), m.parameters) -*/
 static unsigned int /*? me.from_interface.name ?*/_/*? m.name ?*/_marshal(
     /*- for p in input_parameters -*/
         /*- if isinstance(p.type, camkes.ast.Reference) or p.array or p.type.type == 'string' -*/
@@ -69,7 +69,7 @@ static void /*? me.from_interface.name ?*/_/*? m.name ?*/_call(unsigned int leng
     (void)seL4_Call(/*? ep ?*/, info);
 }
 
-/*- set output_parameters = filter(lambda('x: x.direction.direction in [\'inout\', \'out\']'), m.parameters) -*/
+/*- set output_parameters = filter(lambda('x: x.direction in [\'inout\', \'out\']'), m.parameters) -*/
 static
 /*- if m.return_type -*/
     /*? m.return_type.type ?*/
@@ -132,12 +132,12 @@ static
   /*? raise(NotImplementedError()) ?*/
 /*- endif -*/
 /*- for p in m.parameters -*/
-  /*- if isinstance(p.type, camkes.ast.Reference) or p.array or p.type.type == 'string' or p.direction.direction == 'refin' -*/
+  /*- if isinstance(p.type, camkes.ast.Reference) or p.array or p.type.type == 'string' or p.direction == 'refin' -*/
     /*? raise(NotImplementedError()) ?*/
-  /*- elif p.direction.direction == 'in' -*/
+  /*- elif p.direction == 'in' -*/
     /*? show(p.type) ?*/
   /*- else -*/
-    /*? assert(p.direction.direction in ['out', 'inout']) ?*/
+    /*? assert(p.direction in ['out', 'inout']) ?*/
     /*? show(p.type) ?*/ *
   /*- endif -*/
   /*? p.name ?*/
@@ -150,7 +150,7 @@ static
     /*- set mr = c_symbol('mr_index') -*/
     unsigned int /*? mr ?*/ = /*? me.from_interface.name ?*/_/*? m.name ?*/_marshal(
         /*- for p in input_parameters -*/
-            /*- if p.direction.direction == 'inout' -*/
+            /*- if p.direction == 'inout' -*/
                 *
             /*- endif -*/
             /*? p.name ?*/
