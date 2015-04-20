@@ -13,9 +13,9 @@
 the common errors of either mismatching /*- ... -*/ blocks or using /*? ... ?*/
 instead of /*- ... -*/.'''
 
-import re, sys
+import collections, re, sys
 
-class Tokeniser:
+class Tokeniser(collections.Iterator):
     def __init__(self, filename):
         with open(filename, 'r') as f:
             self.data = f.read()
