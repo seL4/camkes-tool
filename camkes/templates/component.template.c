@@ -13,12 +13,8 @@
 #include <platsupport/io.h>
 #include <sel4/types.h>
 #include <sel4/sel4.h>
-/*- if len(me.type.mutexes) > 0 -*/
-    #include <sync/mutex.h>
-/*- endif -*/
-/*- if len(me.type.semaphores) > 0 -*/
-    #include <sync/sem.h>
-/*- endif -*/
+#include <sync/mutex.h>
+#include <sync/sem.h>
 #include <sel4platsupport/platsupport.h>
 #include <camkes/allocator.h>
 #include <camkes/dataport.h>
