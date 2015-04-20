@@ -615,7 +615,47 @@ def merge_assembly(dest, source, instance):
     # copy instances, groups and configuration settings
     dest.composition.instances.extend(source.composition.instances)
     dest.composition.groups.extend(source.composition.groups)
-    dest.configuration.settings.extend(source.configuration.settings)
+
+    # dict mapping attribute names to attributes for the component of 'instance'
+    instance_attributes = {a.name: a for a in instance.type.attributes}
+
+    # dict mapping nested instance names to dicts mapping attribute names for instance
+    # components to the attributes they represent
+    nested_instance_attributes = {i.name: {a.name: a for a in i.type.attributes} \
+        for i in source.composition.instances}
+
+    # resolve hierarchical attributes
+    for s in source.configuration.settings:
+        if isinstance(s.value, AST.Reference):
+            reference = s.value._symbol
+
+            if instance.name not in dest.configuration or \
+                reference not in dest.configuration[instance.name]:
+
+                # The attribute wasn't set for the parent
+                raise Exception("Attribute %s is not set but is referenced "
+                                "by nested component instance %s"
+                                % (s.value, instance.name))
+
+            if s.instance in nested_instance_attributes and \
+                s.atttribute in nested_instance_attributes[s.instance] and \
+                reference in instance_attributes:
+
+                # the referer and referent are both user-defined types, so they
+                # can be type checked
+
+                # Check that the types of the referer and referent are the same
+                referer_type = nested_instance_attributes[s.instance][s.attribute].type
+                referent_type = instance_attributes[reference].type
+                if referer_type != referent_type:
+                    raise Exception("Attribute type mismatch: attribute %s (%s) refers to "
+                                    "attribute %s (%s)."
+                                    % (s.attribute, referer_type, reference, referent_type))
+
+            s.value = dest.configuration[instance.name][reference]
+
+        dest.configuration.settings.append(s)
+
     dest.configuration.update_mapping()
 
     # create dict mapping exported interface name -> source connector
