@@ -53,17 +53,17 @@ begin
 /*- set components = reduce(lambda('xs, b: xs + ([b.type] if b.type not in xs else [])'), instances, []) -*/
 
 (* Connections *)
-datatype channel
-/*- set j = Joiner('=', '|') -*/
+datatype channel =
+/*- set j = joiner('|') -*/
 /*- for c in connections -*/
-    /*? j ?*/ /*? c.name ?*/
+    /*? j() ?*/ /*? c.name ?*/
 /*- endfor -*/
 
 (* Component instances *)
-datatype inst
-/*- set j = Joiner('=', '|') -*/
+datatype inst =
+/*- set j = joiner('|') -*/
 /*- for i in instances -*/
-    /*? j ?*/ /*? i.name ?*/
+    /*? j() ?*/ /*? i.name ?*/
 /*- endfor -*/
 /*- for c in connections -*/
     /*- if c.type.from_type == 'Event' -*/
@@ -76,10 +76,10 @@ datatype inst
 /*- for c in components -*/
 
     (* /*? c.name ?*/'s interfaces *)
-    datatype /*? c.name ?*/_channel
-    /*- set j = Joiner('=', '|') -*/
+    datatype /*? c.name ?*/_channel =
+    /*- set j = joiner('|') -*/
     /*- for i in c.children() -*/
-        /*? j ?*/ /*? c.name ?*/_/*? i.name ?*/
+        /*? j() ?*/ /*? c.name ?*/_/*? i.name ?*/
     /*- endfor -*/
 
     /*# Glue code for each outgoing procedural interface. #*/
@@ -90,14 +90,16 @@ datatype inst
                 /*- for p in filter(lambda('x: x.direction in [\'in\', \'inout\']'), m.parameters) -*/
                     ('cs local_state \<Rightarrow> /*? show_native_type(p.type) ?*/) \<Rightarrow>
                 /*- endfor -*/
-                /*- set j = Joiner('(\'cs local_state \\<Rightarrow>', '\\<Rightarrow>') -*/
+                /*- if m.return_type is not none or len(filter(lambda('x: x.direction in [\'out\', \'inout\']'), m.parameters)) > 0 -*/
+                    ('cs local_state
+                /*- endif -*/
                 /*- if m.return_type -*/
-                    /*? j ?*/ /*? show_native_type(m.return_type) ?*/
+                    \<Rightarrow> /*? show_native_type(m.return_type) ?*/
                 /*- endif -*/
                 /*- for p in filter(lambda('x: x.direction in [\'out\', \'inout\']'), m.parameters) -*/
-                    /*? j ?*/ /*? show_native_type(p.type) ?*/
+                    \<Rightarrow> /*? show_native_type(p.type) ?*/
                 /*- endfor -*/
-                /*- if str(j) == '\\<Rightarrow>' -*/
+                /*- if m.return_type is not none or len(filter(lambda('x: x.direction in [\'out\', \'inout\']'), m.parameters)) > 0 -*/
                     /*# We had to unmarshal at least one parameter. #*/
                     \<Rightarrow> 'cs local_state) \<Rightarrow>
                 /*- endif -*/
@@ -265,14 +267,16 @@ datatype inst
                 /*- for p in filter(lambda('x: x.direction in [\'in\', \'inout\']'), m.parameters) -*/
                     ('cs local_state \<Rightarrow> /*? show_native_type(p.type) ?*/) \<Rightarrow>
                 /*- endfor -*/
-                /*- set j = Joiner('(\'cs local_state \\<Rightarrow>', '\\<Rightarrow>') -*/
+                /*- if m.return_type is not none or len(filter(lambda('x: x.direction in [\'out\', \'inout\']'), m.parameters)) > 0 -*/
+                    ('cs local_state \<Rightarrow>
+                /*- endif -*/
                 /*- if m.return_type -*/
-                    /*? j ?*/ /*? show_native_type(m.return_type) ?*/
+                    \<Rightarrow> /*? show_native_type(m.return_type) ?*/
                 /*- endif -*/
                 /*- for p in filter(lambda('x: x.direction in [\'out\', \'inout\']'), m.parameters) -*/
-                    /*? j ?*/ /*? show_native_type(p.type) ?*/
+                    \<Rightarrow> /*? show_native_type(p.type) ?*/
                 /*- endfor -*/
-                /*- if str(j) == '\\<Rightarrow>' -*/
+                /*- if m.return_type is not none or len(filter(lambda('x: x.direction in [\'out\', \'inout\']'), m.parameters)) > 0 -*/
                     /*# We had to unmarshal at least one parameter. #*/
                     \<Rightarrow> 'cs local_state) \<Rightarrow>
                 /*- endif -*/
@@ -281,13 +285,13 @@ datatype inst
                 "Call_/*? i.name ?*/_/*? u.name ?*/_/*? m.name ?*/ \<equiv>
                     /*- set l = isabelle_symbol() -*/
                     Call_/*? c.name ?*/_/*? u.name ?*/_/*? m.name ?*/ (\<lambda>/*? l ?*/. case /*? l ?*/ of
-                    /*- set j = Joiner('', '|') -*/
+                    /*- set j = joiner('|') -*/
                     /*- for conn in connections -*/
                         /*- if conn.from_instance.name == i.name -*/
-                            /*? j ?*/ /*? c.name ?*/_/*? conn.from_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
+                            /*? j() ?*/ /*? c.name ?*/_/*? conn.from_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
                         /*- endif -*/
                         /*- if conn.to_instance.name == i.name -*/
-                            /*? j ?*/ /*? c.name ?*/_/*? conn.to_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
+                            /*? j() ?*/ /*? c.name ?*/_/*? conn.to_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
                         /*- endif -*/
                     /*- endfor -*/
                     )"
@@ -318,13 +322,13 @@ datatype inst
             "Recv_/*? i.name ?*/_/*? u.name ?*/ \<equiv>
                 /*- set l = isabelle_symbol() -*/
                 Recv_/*? c.name ?*/_/*? u.name ?*/ (\<lambda>/*? l ?*/. case /*? l ?*/ of
-                /*- set j = Joiner('', '|') -*/
+                /*- set j = joiner('|') -*/
                 /*- for conn in connections -*/
                     /*- if conn.from_instance.name == i.name -*/
-                        /*? j ?*/ /*? c.name ?*/_/*? conn.from_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
+                        /*? j() ?*/ /*? c.name ?*/_/*? conn.from_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
                     /*- endif -*/
                     /*- if conn.to_instance.name == i.name -*/
-                        /*? j ?*/ /*? c.name ?*/_/*? conn.to_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
+                        /*? j() ?*/ /*? c.name ?*/_/*? conn.to_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
                     /*- endif -*/
                 /*- endfor -*/
                 )"
@@ -336,13 +340,13 @@ datatype inst
         where
             /*- set l = isabelle_symbol() -*/
             "Emit_/*? i.name ?*/_/*? u.name ?*/ \<equiv> Emit_/*? c.name ?*/_/*? u.name ?*/ (\<lambda>/*? l ?*/. case /*? l ?*/ of
-            /*- set j = Joiner('', '|') -*/
+            /*- set j = joiner('|') -*/
             /*- for conn in connections -*/
                 /*- if conn.from_instance.name == i.name -*/
-                    /*? j ?*/ /*? c.name ?*/_/*? conn.from_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
+                    /*? j() ?*/ /*? c.name ?*/_/*? conn.from_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
                 /*- endif -*/
                 /*- if conn.to_instance.name == i.name -*/
-                    /*? j ?*/ /*? c.name ?*/_/*? conn.to_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
+                    /*? j() ?*/ /*? c.name ?*/_/*? conn.to_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
                 /*- endif -*/
             /*- endfor -*/
             )"
@@ -354,13 +358,13 @@ datatype inst
         where
             /*- set l = isabelle_symbol() -*/
             "Poll_/*? i.name ?*/_/*? u.name ?*/ \<equiv> Poll_/*? c.name ?*/_/*? u.name ?*/ (\<lambda>/*? l ?*/. case /*? l ?*/ of
-            /*- set j = Joiner('', '|') -*/
+            /*- set j = joiner('|') -*/
             /*- for conn in connections -*/
                 /*- if conn.from_instance.name == i.name -*/
-                    /*? j ?*/ /*? c.name ?*/_/*? conn.from_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
+                    /*? j() ?*/ /*? c.name ?*/_/*? conn.from_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
                 /*- endif -*/
                 /*- if conn.to_instance.name == i.name -*/
-                    /*? j ?*/ /*? c.name ?*/_/*? conn.to_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
+                    /*? j() ?*/ /*? c.name ?*/_/*? conn.to_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
                 /*- endif -*/
             /*- endfor -*/
             )"
@@ -370,13 +374,13 @@ datatype inst
         where
             /*- set l = isabelle_symbol() -*/
             "Wait_/*? i.name ?*/_/*? u.name ?*/ \<equiv> Wait_/*? c.name ?*/_/*? u.name ?*/ (\<lambda>/*? l ?*/. case /*? l ?*/ of
-            /*- set j = Joiner('', '|') -*/
+            /*- set j = joiner('|') -*/
             /*- for conn in connections -*/
                 /*- if conn.from_instance.name == i.name -*/
-                    /*? j ?*/ /*? c.name ?*/_/*? conn.from_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
+                    /*? j() ?*/ /*? c.name ?*/_/*? conn.from_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
                 /*- endif -*/
                 /*- if conn.to_instance.name == i.name -*/
-                    /*? j ?*/ /*? c.name ?*/_/*? conn.to_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
+                    /*? j() ?*/ /*? c.name ?*/_/*? conn.to_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
                 /*- endif -*/
             /*- endfor -*/
             )"
@@ -388,13 +392,13 @@ datatype inst
         where
             /*- set l = isabelle_symbol() -*/
             "Read_/*? i.name ?*/_/*? u.name ?*/ \<equiv> Read_/*? c.name ?*/_/*? u.name ?*/ (\<lambda>/*? l ?*/. case /*? l ?*/ of
-            /*- set j = Joiner('', '|') -*/
+            /*- set j = joiner('|') -*/
             /*- for conn in connections -*/
                 /*- if conn.from_instance.name == i.name -*/
-                    /*? j ?*/ /*? c.name ?*/_/*? conn.from_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
+                    /*? j() ?*/ /*? c.name ?*/_/*? conn.from_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
                 /*- endif -*/
                 /*- if conn.to_instance.name == i.name -*/
-                    /*? j ?*/ /*? c.name ?*/_/*? conn.to_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
+                    /*? j() ?*/ /*? c.name ?*/_/*? conn.to_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
                 /*- endif -*/
             /*- endfor -*/
             )"
@@ -404,13 +408,13 @@ datatype inst
         where
             /*- set l = isabelle_symbol() -*/
             "Write_/*? i.name ?*/_/*? u.name ?*/ \<equiv> Write_/*? c.name ?*/_/*? u.name ?*/ (\<lambda>/*? l ?*/. case /*? l ?*/ of
-            /*- set j = Joiner('', '|') -*/
+            /*- set j = joiner('|') -*/
             /*- for conn in connections -*/
                 /*- if conn.from_instance.name == i.name -*/
-                    /*? j ?*/ /*? c.name ?*/_/*? conn.from_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
+                    /*? j() ?*/ /*? c.name ?*/_/*? conn.from_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
                 /*- endif -*/
                 /*- if conn.to_instance.name == i.name -*/
-                    /*? j ?*/ /*? c.name ?*/_/*? conn.to_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
+                    /*? j() ?*/ /*? c.name ?*/_/*? conn.to_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
                 /*- endif -*/
             /*- endfor -*/
             )"
@@ -474,13 +478,13 @@ begin
     where
         /*- set l = isabelle_symbol() -*/
         "/*? i.name ?*/_untrusted \<equiv> /*? c.name ?*/_untrusted (\<lambda>/*? l ?*/. case /*? l ?*/ of
-        /*- set j = Joiner('', '|') -*/
+        /*- set j = joiner('|') -*/
         /*- for conn in connections -*/
             /*- if conn.from_instance.name == i.name -*/
-                /*? j ?*/ /*? c.name ?*/_/*? conn.from_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
+                /*? j() ?*/ /*? c.name ?*/_/*? conn.from_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
             /*- endif -*/
             /*- if conn.to_instance.name == i.name -*/
-                /*? j ?*/ /*? c.name ?*/_/*? conn.to_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
+                /*? j() ?*/ /*? c.name ?*/_/*? conn.to_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
             /*- endif -*/
         /*- endfor -*/
         )"
@@ -513,15 +517,15 @@ where
     /*- set p = isabelle_symbol('p') -*/
     /*- set s = isabelle_symbol() -*/
     "gs\<^isub>0 /*? p ?*/ \<equiv> case trusted /*? p ?*/ of Some /*? s ?*/ \<Rightarrow> Some /*? s ?*/ | _ \<Rightarrow> (case /*? p ?*/ of
-    /*- set j = Joiner('', '|') -*/
+    /*- set j = joiner('|') -*/
     /*- for i in instances -*/
-        /*? j ?*/ /*? i.name ?*/ \<Rightarrow> Some (/*? i.name ?*/_untrusted, Component init_component_state)
+        /*? j() ?*/ /*? i.name ?*/ \<Rightarrow> Some (/*? i.name ?*/_untrusted, Component init_component_state)
     /*- endfor -*/
     /*- for c in connections -*/
         /*- if c.type.from_type == 'Event' -*/
-            /*? j ?*/ /*? c.name ?*/\<^isub>e \<Rightarrow> Some (/*? c.name ?*/\<^isub>e_instance, init_event_state)
+            /*? j() ?*/ /*? c.name ?*/\<^isub>e \<Rightarrow> Some (/*? c.name ?*/\<^isub>e_instance, init_event_state)
         /*- elif c.type.from_type == 'Dataport' -*/
-            /*? j ?*/ /*? c.name ?*/\<^isub>d \<Rightarrow> Some (/*? c.name ?*/\<^isub>d_instance, init_memory_state)
+            /*? j() ?*/ /*? c.name ?*/\<^isub>d \<Rightarrow> Some (/*? c.name ?*/\<^isub>d_instance, init_memory_state)
         /*- endif -*/
     /*- endfor -*/
     )"
