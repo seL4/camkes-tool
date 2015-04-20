@@ -233,7 +233,7 @@ class Templates(object):
                 # elements.
                 return None
 
-            # Do I naive lookup first under the assumption that this is fast
+            # Do a naive lookup first under the assumption that this is fast
             # and we may match a literal string key.
             next_level = remaining.get(atom)
 
