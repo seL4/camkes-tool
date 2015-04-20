@@ -38,7 +38,6 @@ import camkes.ast as AST
 from camkes.internal.DeterministicSet import DeterministicSet
 from camkes.internal.Counter import Counter
 from camkes.templates import macros
-from Joiner import Joiner
 from apply import apply, by, done, oops, sorry
 from NameMangling import TEMPLATES, FILTERS, Perspective
 
@@ -185,9 +184,6 @@ def new_context(entity, assembly, obj_space, cap_space, shmem, **kwargs):
         'print':lambda x: sys.stdout.write('%s\n' % x) or '',
         'sys':collections.namedtuple('sys', ['stdout', 'stderr'])(sys.stdout,
             sys.stderr),
-
-        # Helper for generating lists.
-        'Joiner':Joiner,
 
         # Work around for Jinja's bizarre scoping rules.
         'Counter':Counter,
