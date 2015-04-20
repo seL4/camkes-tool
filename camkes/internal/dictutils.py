@@ -12,14 +12,6 @@
 
 import itertools
 
-def safe(f, *args, **kwargs):
-    '''Take an arbitrary function that returns a bool and force it to return
-    False if it hits an exception.'''
-    try:
-        return f(*args, **kwargs)
-    except:
-        return False
-
 def get_fields(s):
     '''Return a set of field names referenced as formatting keys in the given
     string. I thought there would be an easier way to get this, but I can't
