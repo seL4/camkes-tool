@@ -497,8 +497,10 @@ def main():
         for f in CAPDL_FILTERS:
             try:
                 with profiler('Running CapDL filter %s' % f.__name__):
-                    f(ast, obj_space, cspaces, elfs,
-                        profiler, options)
+                    # Pass everything as named arguments to allow filters to
+                    # easily ignore what they don't want.
+                    f(ast=ast, obj_space=obj_space, cspaces=cspaces, elfs=elfs,
+                        profiler=profiler, options=options)
             except Exception as inst:
                 die('While forming CapDL spec: %s' % str(inst))
 

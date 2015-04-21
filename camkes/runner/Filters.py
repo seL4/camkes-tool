@@ -61,7 +61,7 @@ def get_entry_point(elf):
 def get_elf_arch(elf):
     return elf[1].get_arch()
 
-def set_tcb_info(ast, obj_space, cspaces, elfs, *_):
+def set_tcb_info(cspaces, elfs, **_):
     '''Set relevant extra info for TCB objects.'''
 
     for group, space in cspaces.items():
@@ -139,7 +139,7 @@ def set_tcb_info(ast, obj_space, cspaces, elfs, *_):
                 raise Exception('TLS symbol, %s, of %s not found' % (tls_setup, tcb.name))
             tcb.init.append(vaddr)
 
-def set_tcb_caps(ast, obj_space, cspaces, elfs, _, options):
+def set_tcb_caps(ast, obj_space, cspaces, elfs, options, **_):
     assembly = find_assembly(ast)
 
     for group, space in cspaces.items():
@@ -222,7 +222,7 @@ def set_tcb_caps(ast, obj_space, cspaces, elfs, _, options):
 
             # Currently no fault EP (fault_ep_slot).
 
-def collapse_shared_frames(ast, obj_space, cspaces, elfs, _, options):
+def collapse_shared_frames(ast, obj_space, elfs, options, **_):
     """Find regions in virtual address spaces that are intended to be backed by
     shared frames and adjust the capability distribution to reflect this."""
 
@@ -431,7 +431,7 @@ def collapse_shared_frames(ast, obj_space, cspaces, elfs, _, options):
                 pts[j].slots[p_indices[j]] = Cap(f, read, write, execute)
                 obj_space.relabel(conn_name, f)
 
-def replace_dma_frames(ast, obj_space, cspaces, elfs, _, options):
+def replace_dma_frames(ast, obj_space, elfs, options, **_):
     '''Locate the DMA pool (a region that needs to have frames whose mappings
     can be reversed) and replace its backing frames with pre-allocated,
     reversible ones.'''
@@ -506,7 +506,7 @@ def replace_dma_frames(ast, obj_space, cspaces, elfs, _, options):
             # anywhere else. TODO: assert this somehow.
             obj_space.spec.objs.remove(discard_frame)
 
-def guard_cnode_caps(ast, obj_space, cspaces, *_):
+def guard_cnode_caps(cspaces, **_):
     '''If the templates have allocated any caps to CNodes, they will not have
     the correct guards. This is due to the CNodes' sizes being automatically
     calculated (during set_tcb_caps above). Correct them here.'''
@@ -516,7 +516,7 @@ def guard_cnode_caps(ast, obj_space, cspaces, *_):
             for cap in space.cnode.slots.values() \
             if cap is not None and isinstance(cap.referent, CNode)]
 
-def guard_pages(ast, obj_space, cspaces, elfs, _, options):
+def guard_pages(obj_space, cspaces, elfs, options, **_):
     '''Introduce a guard page around each stack and IPC buffer. Note that the
     templates should have ensured a three page region for each stack in order to
     enable this.'''
@@ -653,14 +653,14 @@ def guard_pages(ast, obj_space, cspaces, elfs, _, options):
                 del pt[p_index]
                 obj_space.spec.objs.remove(frame)
 
-def tcb_default_priorities(ast, obj_space, cspaces, elfs, profiler, options):
+def tcb_default_priorities(obj_space, options, **_):
     '''Set up default thread priorities. Note this filter needs to operate
     *before* tcb_priorities.'''
 
     for t in [x for x in obj_space if isinstance(x, TCB)]:
         t.prio = options.default_priority
 
-def tcb_priorities(ast, obj_space, cspaces, *_):
+def tcb_priorities(ast, cspaces, **_):
     ''' Override a TCB's default priority if the user has specified this in an
     attribute.'''
 
@@ -690,7 +690,7 @@ def tcb_priorities(ast, obj_space, cspaces, *_):
                 if prio is not None:
                     tcb.prio = prio
 
-def tcb_domains(ast, obj_space, cspaces, *_):
+def tcb_domains(ast, cspaces, **_):
     '''Set the domain of a TCB if the user has specified this in an
     attribute.'''
 
@@ -715,7 +715,7 @@ def tcb_domains(ast, obj_space, cspaces, *_):
             if dom is not None:
                 tcb.domain = dom
 
-def remove_tcb_caps(ast, obj_space, cspaces, elfs, profiler, options):
+def remove_tcb_caps(cspaces, options, **_):
     '''Remove all TCB caps in the system if requested by the user.'''
     if not options.fprovide_tcb_caps:
         for space in cspaces.values():
