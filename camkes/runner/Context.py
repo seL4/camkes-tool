@@ -103,9 +103,11 @@ def new_context(entity, assembly, obj_space, cap_space, shmem, **kwargs):
         # (deliberately) left to the template authors to ensure global names
         # (gnames) only collide when intended; i.e. when they should map to the
         # same shared variable. The local name (lname) will later be used by us
-        # to locate the relevant ELF frame(s) to remap.
-        'register_shared_variable':(lambda gname, lname: \
-            register_shared_variable(shmem, gname, entity.name, lname)),
+        # to locate the relevant ELF frame(s) to remap. Note that we assume
+        # address spaces and CSpaces are 1-to-1.
+        'register_shared_variable':None if cap_space is None else \
+            (lambda gname, lname: register_shared_variable(shmem, gname,
+                cap_space.cnode.name, lname)),
 
         # A `self`-like reference to the current AST object. It would be nice
         # to actually call this `self` to lead to more pythonic templates, but
@@ -397,8 +399,8 @@ def register_shared_variable(shmem, global_name, local_context, local_name):
     variable.
      shmem - The dictionary to use for tracking
      global_name - The system-wide name for this variable
-     local_context - The caller's identifying name
-     local_name - The name of this variable in the caller's address space
+     local_context - The owner's CNode name
+     local_name - The name of this variable in the owner's address space
     '''
     if global_name not in shmem:
         shmem[global_name] = {}
