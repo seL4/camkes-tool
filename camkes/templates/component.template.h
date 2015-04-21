@@ -94,6 +94,9 @@ const char *get_instance_name(void);
                 ,
               /*- endif -*/
             /*- endfor -*/
+            /*- if (m.return_type is none or not m.return_type.array) and len(m.parameters) == 0 -*/
+              void
+            /*- endif -*/
         ) /*- if u.optional -*/ __attribute__((weak)) /*- endif -*/;
     /*- endfor -*/
 /*- endfor -*/

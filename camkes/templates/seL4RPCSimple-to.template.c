@@ -45,6 +45,9 @@
           ,
         /*- endif -*/
       /*- endfor -*/
+      /*- if (m.return_type is none or not m.return_type.array) and len(m.parameters) == 0 -*/
+        void
+      /*- endif -*/
     );
 /*- endfor -*/
 
@@ -81,6 +84,9 @@ static void /*? me.to_interface.name ?*/_/*? m.name ?*/_unmarshal(
             ,
         /*- endif -*/
     /*- endfor -*/
+    /*- if len(input_parameters) == 0 -*/
+        void
+    /*- endif -*/
 ) {
     /*- set mr = c_symbol('mr') -*/
     unsigned int /*? mr ?*/ = 1; /* 0 contained the method index. */
@@ -120,6 +126,9 @@ static
             ,
         /*- endif -*/
     /*- endfor -*/
+    /*- if len(m.parameters) == 0 -*/
+        void
+    /*- endif -*/
 ) {
 
     /* Call the implementation */
@@ -159,6 +168,9 @@ static unsigned int /*? me.to_interface.name ?*/_/*? m.name ?*/_marshal(
             ,
         /*- endif -*/
     /*- endfor -*/
+    /*- if m.return_type is none and len(output_parameters) == 0 -*/
+        void
+    /*- endif -*/
 ) {
     /*- set mr = c_symbol('mr') -*/
     unsigned int /*? mr ?*/ = 0;

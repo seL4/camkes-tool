@@ -179,6 +179,9 @@ int /*? me.from_interface.name ?*/__run(void) {
     ,
   /*- endif -*/
 /*- endfor -*/
+/*- if (m.return_type is none or not m.return_type.array) and len(m.parameters) == 0 -*/
+  void
+/*- endif -*/
 ) {
 
     /*# The optimisation below is only valid to perform if we do not have any

@@ -169,6 +169,9 @@ int /*? me.from_interface.name ?*/__run(void) {
     ,
   /*- endif -*/
 /*- endfor -*/
+/*- if (m.return_type is none or not m.return_type.array) and len(m.parameters) == 0 -*/
+  void
+/*- endif -*/
 ) {
     _TIMESTAMP("glue code entry");
 

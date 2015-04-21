@@ -236,6 +236,9 @@ static unsigned int /*? function ?*/(
     ,
   /*- endif -*/
 /*- endfor -*/
+/*- if len(input_parameters) == 0 -*/
+  void
+/*- endif -*/
 ) {
 
   /*- set length = c_symbol('length') -*/

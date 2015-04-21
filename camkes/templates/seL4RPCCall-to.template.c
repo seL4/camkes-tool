@@ -124,6 +124,9 @@
           ,
         /*- endif -*/
       /*- endfor -*/
+      /*- if (m.return_type is none or not m.return_type.array) and len(m.parameters) == 0 -*/
+        void
+      /*- endif -*/
     );
 
 /*- set name = m.name -*/

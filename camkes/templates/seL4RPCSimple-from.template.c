@@ -42,6 +42,9 @@ static unsigned int /*? me.from_interface.name ?*/_/*? m.name ?*/_marshal(
             ,
         /*- endif -*/
     /*- endfor -*/
+    /*- if len(input_parameters) == 0 -*/
+        void
+    /*- endif -*/
 ) {
     /*- set length = c_symbol('length') -*/
     unsigned int /*? length ?*/ = 0;
@@ -89,6 +92,9 @@ static
             ,
         /*- endif -*/
     /*- endfor -*/
+    /*- if len(output_parameters) == 0 -*/
+        void
+    /*- endif -*/
 ) {
     /*- set mr = c_symbol('mr') -*/
     unsigned int /*? mr ?*/ = 0;
@@ -145,6 +151,9 @@ static
     ,
   /*- endif -*/
 /*- endfor -*/
+/*- if (m.return_type is none or not m.return_type.array) and len(m.parameters) == 0 -*/
+    void
+/*- endif -*/
 ) {
     /* Marshal input parameters. */
     /*- set mr = c_symbol('mr_index') -*/
