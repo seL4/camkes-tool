@@ -36,6 +36,7 @@ from Transforms import AST_TRANSFORMS, PRE_RESOLUTION, POST_RESOLUTION
 import Context
 
 import functools, os, traceback
+from collections import defaultdict
 from copy import deepcopy
 
 from capdl import seL4_CapTableObject, ObjectAllocator, CSpaceAllocator, \
@@ -275,7 +276,7 @@ def main():
     cspaces = {}
     pds = {}
     conf = assembly.configuration
-    shmem = {}
+    shmem = defaultdict(dict)
 
     # We need to create a phony instance and connection to cope with cases
     # where the user has not defined any instances or connections (this would

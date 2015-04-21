@@ -402,8 +402,6 @@ def register_shared_variable(shmem, global_name, local_context, local_name):
      local_context - The owner's CNode name
      local_name - The name of this variable in the owner's address space
     '''
-    if global_name not in shmem:
-        shmem[global_name] = {}
     shmem[global_name][local_context] = local_name
     return ''
 
