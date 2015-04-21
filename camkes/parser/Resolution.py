@@ -50,7 +50,7 @@ class Context(object):
         # Searched the entire context and didn't find the referent
         return None
 
-def resolve_references(ast, allow_forward=False, context=None):
+def resolve_references(ast, context=None):
     assert isinstance(ast, list)
 
     if not context:
@@ -67,11 +67,6 @@ def resolve_references(ast, allow_forward=False, context=None):
             ref.resolve_to(referent)
 
     context.new_scope()
-
-    if allow_forward:
-        # FIXME: It looks to me like a top-level reference will cause an
-        # assertion failure. This should be legal.
-        map(context.register, ast)
 
     for i in ast:
 
@@ -131,7 +126,7 @@ def resolve_references(ast, allow_forward=False, context=None):
                     if len(interface) == 1:
                         i.to_interface.resolve_to(interface[0])
 
-        resolve_references(i.children(), allow_forward, context)
+        resolve_references(i.children(), context)
 
         if not isinstance(i, Reference):
             # This is a referenceable object

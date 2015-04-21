@@ -113,7 +113,7 @@ class Include(ASTObject):
 
 class Reference(ASTObject):
     '''This class encapsulates references to other entities that have been
-    parsed. It can also be used to represent forward references in the input.
+    parsed.
     '''
     def __init__(self, symbol, symbol_type, filename=None, lineno=-1):
         super(Reference, self).__init__(filename=filename, lineno=lineno)
