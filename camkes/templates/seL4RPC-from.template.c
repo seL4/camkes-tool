@@ -49,8 +49,11 @@
 
 TIMING_DEFS(/*? me.from_interface.name ?*/, "glue code entry", "lock acquired", "marshalling done", "communication done", "lock released", "unmarshalling done")
 
+/*- include 'array-typedef-check.c' -*/
+
 int /*? me.from_interface.name ?*/__run(void) {
-    /* Nothing to be done. */
+    /*# Check any typedefs we have been given are not arrays. #*/
+    /*- include 'call-array-typedef-check.c' -*/
     return 0;
 }
 

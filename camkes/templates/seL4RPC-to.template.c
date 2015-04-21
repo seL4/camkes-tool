@@ -196,7 +196,12 @@
   /*? raise(Exception('too many methods in interface %s' % me.to_interface.name)) ?*/
 /*- endif -*/
 
+/*- include 'array-typedef-check.c' -*/
+
 int /*? me.to_interface.name ?*/__run(void) {
+    /*# Check any typedefs we have been given are not arrays. #*/
+    /*- include 'call-array-typedef-check.c' -*/
+
     while (1) {
         /*- set info = c_symbol('info') -*/
         seL4_MessageInfo_t /*? info ?*/ = seL4_Wait(/*? ep ?*/, NULL);
