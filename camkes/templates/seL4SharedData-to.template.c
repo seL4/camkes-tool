@@ -22,6 +22,7 @@ struct {
         __attribute__((aligned(SHM_ALIGN)))
         __attribute__((section("shared_/*? me.to_interface.name ?*/")))
         __attribute__((externally_visible));
+/*- do register_shared_variable('%s_data' % me.name, p['dataport_symbol']) -*/
 
 volatile /*? show(me.to_interface.type) ?*/ * /*? me.to_interface.name ?*/ =
     (volatile /*? show(me.to_interface.type) ?*/ *) & /*? p['dataport_symbol'] ?*/;
