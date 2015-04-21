@@ -500,7 +500,7 @@ def main():
                     # Pass everything as named arguments to allow filters to
                     # easily ignore what they don't want.
                     f(ast=ast, obj_space=obj_space, cspaces=cspaces, elfs=elfs,
-                        profiler=profiler, options=options)
+                        profiler=profiler, options=options, shmem=shmem)
             except Exception as inst:
                 die('While forming CapDL spec: %s' % str(inst))
 
