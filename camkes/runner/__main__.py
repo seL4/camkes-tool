@@ -329,11 +329,11 @@ def main():
             continue
 
         if i.address_space not in cspaces:
-            cnode = obj_space.alloc(seL4_CapTableObject,
-                name='cnode_%s' % i.address_space, label=i.address_space)
-            cspaces[i.address_space] = CSpaceAllocator(cnode)
             p = Perspective(phase=RUNNER, instance=i.name,
                 group=i.address_space)
+            cnode = obj_space.alloc(seL4_CapTableObject,
+                name=p['cnode'], label=i.address_space)
+            cspaces[i.address_space] = CSpaceAllocator(cnode)
             pd = obj_space.alloc(seL4_PageDirectoryObject, name=p['pd'],
                 label=i.address_space)
             pds[i.address_space] = pd
