@@ -8,7 +8,7 @@
  *# @TAG(NICTA_BSD)
  #*/
 
-/*? macros.header_guard(re.sub('[^_a-zA-Z0-9]', '_', options.outfile.name)) ?*/
+/*? macros.header_guard(re.sub('\\W', '_', options.outfile.name)) ?*/
 #include <camkes/dataport.h>
 #include <stdint.h>
 #include <stdlib.h>
