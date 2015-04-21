@@ -100,7 +100,6 @@ TOOLS = {
             '--profile-log',
             '--prune',
             '--quiet',
-            '--set',
             '--templates',
             '--verbose',
             '--version',
@@ -198,9 +197,6 @@ def parse_args(tool):
         default=sys.stdout)
     add_arg('--templates', '-t', \
         help='Extra directory to search for templates (before builtin templates).')
-    add_arg('--set', '-s', action='append', default=[],
-        help='Set a variable for use in templates. Either \'FOO\' to set FOO ' \
-             'to True or \'FOO=bar\' to set FOO to \'bar\'.')
     add_arg('--cache', '-c', default='off',
         choices=['off', 'on', 'readonly', 'writeonly'],
         help='Set code generation cache mode.')
