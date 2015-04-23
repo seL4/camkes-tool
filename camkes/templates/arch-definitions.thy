@@ -181,8 +181,6 @@ lemma wf_/*? i.name ?*/: "wellformed_component /*? i.name ?*/"
   by eval
 /*- endfor -*/
 
-/*# TODO: User-defined connectors #*/
-
 /*- for c in me.composition.connections -*/
 definition
     /*? c.name ?*/ :: connection
