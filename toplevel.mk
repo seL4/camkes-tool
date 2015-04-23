@@ -13,7 +13,11 @@ ifeq ($(wildcard tools/camkes),)
           top-level directory of the project and run `make` from there)
 endif
 
-export PYTHONPATH:=${PYTHONPATH}:$(abspath tools/python-capdl)
+ifeq (${PYTHONPATH},)
+  export PYTHONPATH:=$(abspath tools/python-capdl)
+else
+  export PYTHONPATH:=${PYTHONPATH}:$(abspath tools/python-capdl)
+endif
 export PATH:=${PATH}:$(abspath tools/camkes)
 
 lib-dirs:=libs

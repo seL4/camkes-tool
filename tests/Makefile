@@ -8,7 +8,11 @@
 # @TAG(NICTA_BSD)
 #
 
-export PYTHONPATH:=${PYTHONPATH}:$(abspath ..)
+ifeq (${PYTHONPATH},)
+  export PYTHONPATH:=$(abspath ..)
+else
+  export PYTHONPATH:=${PYTHONPATH}:$(abspath ..)
+endif
 PARSER?=camkes.parser
 
 SHELL="/bin/bash"

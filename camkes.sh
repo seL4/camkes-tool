@@ -52,7 +52,11 @@ if [ -z "${CONFIG_CAMKES_DISABLE_PYTHON_IMPORT_CHECKS}" ]; then
 
 fi
 
-export PYTHONPATH=${PYTHONPATH}:${DIR}
+if [ -z "${PYTHONPATH}" ]; then
+    export PYTHONPATH=${DIR}
+else
+    export PYTHONPATH=${PYTHONPATH}:${DIR}
+fi
 
 COMMAND=$1
 if [ ! -e "${DIR}/camkes/${COMMAND}/__main__.py" ]; then
