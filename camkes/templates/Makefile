@@ -298,6 +298,13 @@ ${TARGETS}: /*? prefix ?*/_pruned.c_pp
 endif
 /*- endfor -*/
 
+# Architectural formalisation.
+/*- set arch_thy = '$(abspath ${BUILD_DIR})/thy/ArchSpec.thy' -*/
+/*? rule_gen(arch_thy, ' '.join(imported), 'theory', platform='architecture-semantics', preprocessor='${TPP} --in-place "$@"') ?*/
+ifeq (${CONFIG_CAMKES_ARCH_THY},y)
+${TARGETS}: $(abspath ${BUILD_DIR})/thy/ArchSpec.thy
+endif
+
 # Each component file may depend on the per-component generated header.
 /*- for i in instances if not i.type.hardware -*/
     /*- set header = "$(abspath ${BUILD_DIR})/include/%s/generated/%s.h $(abspath ${BUILD_DIR})/include/%s/generated/camkes.h" % (i.name, i.type.name, i.name) -*/

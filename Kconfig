@@ -366,6 +366,13 @@ menu "CAmkES Options"
             Generate an AutoCorred-based theory combining the two glue code halves
             of a connector, resulting in a final correctness statement.
 
+        config CAMKES_ARCH_THY
+        bool "Generate architectural specification"
+        default n
+        help
+            Generate an Isabelle theory specifying the architecture of the
+            system, using the l4.verified formal model of ADL.
+
         config CAMKES_LABEL_MAPPING
         bool "Generate policy label mapping"
         default n
