@@ -91,10 +91,8 @@ where
     /*- endfor -*/
     []"
 
-/*- if LEMMAS -*/
 lemma wf_/*? i.name ?*/: "wellformed_procedure /*? i.name ?*/"
   by eval
-/*- endif -*/
 /*- endfor -*/
 
 (* Event interfaces *)
@@ -104,10 +102,8 @@ definition
 where
     "/*? i.name ?*/ \<equiv> /*? i.id ?*/"
 
-/*- if LEMMAS -*/
 lemma wf_/*? i.name ?*/: "wellformed_event /*? i.name ?*/"
   by eval
-/*- endif -*/
 /*- endfor -*/
 
 (* Dataport interfaces *)
@@ -123,10 +119,8 @@ where
     /*- endif -*/
     "
 
-/*- if LEMMAS -*/
 lemma wf_/*? i.name ?*/: "wellformed_dataport /*? i.name ?*/"
   by eval
-/*- endif -*/
 /*- endfor -*/
 
 /*- for c in uniq(map(lambda('x: x.type'), me.composition.instances)) -*/
@@ -173,10 +167,8 @@ where
         []
     \<rparr>"
 
-/*- if LEMMAS -*/
 lemma wf_/*? c.name ?*/: "wellformed_component /*? c.name ?*/"
   by eval
-/*- endif -*/
 /*- endfor -*/
 
 /*- for i in me.composition.instances -*/
@@ -185,10 +177,8 @@ definition
 where
     "/*? i.name ?*/ \<equiv> /*? i.type.name ?*/"
 
-/*- if LEMMAS -*/
 lemma wf_/*? i.name ?*/: "wellformed_component /*? i.name ?*/"
   by eval
-/*- endif -*/
 /*- endfor -*/
 
 /*# TODO: User-defined connectors #*/
@@ -203,10 +193,8 @@ where
         conn_to = (''/*? c.to_instance.name ?*/'', ''/*? c.to_interface.name ?*/'')
     \<rparr>"
 
-/*- if LEMMAS -*/
 lemma wf_/*? c.name ?*/: "wellformed_connection /*? c.name ?*/"
   by eval
-/*- endif -*/
 /*- endfor -*/
 
 definition
@@ -225,10 +213,8 @@ where
         []
     \<rparr>"
 
-/*- if LEMMAS -*/
 lemma wf_/*? composition ?*/: "wellformed_composition /*? composition ?*/"
   by eval
-/*- endif -*/
 
 definition
     /*? configuration ?*/ :: "configuration option"
@@ -245,7 +231,6 @@ where
     /*- endif -*/
     "
 
-/*- if LEMMAS -*/
 lemma wf_/*? configuration ?*/:
 /*- if me.configuration -*/
     "wellformed_configuration the /*? configuration ?*/"
@@ -254,7 +239,6 @@ lemma wf_/*? configuration ?*/:
     /*# If there is no configuration it is trivially wellformed. #*/
     "True"
     by simp
-/*- endif -*/
 /*- endif -*/
 
 definition
@@ -265,9 +249,7 @@ where
         configuration = /*? configuration ?*/
     \<rparr>"
 
-/*- if LEMMAS -*/
 lemma wf_/*? assembly ?*/: "wellformed_assembly /*? assembly ?*/"
   by eval
-/*- endif -*/
 
 end
