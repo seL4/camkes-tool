@@ -77,7 +77,7 @@ where
         /*- for p in m.parameters -*/
             \<lparr> p_type = /*? param_type(p.type) ?*/,
             p_direction =
-            /*- if p.direction == 'in' -*/
+            /*- if p.direction in ['in', 'refin'] -*/
                 InParameter
             /*- elif p.direction == 'out' -*/
                 OutParameter
