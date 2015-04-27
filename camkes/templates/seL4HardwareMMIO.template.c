@@ -13,9 +13,6 @@
 #include <stdint.h>
 /*? macros.show_includes(me.from_instance.type.includes) ?*/
 
-/* Actual dataport is emitted in the per-component template.
- * TODO: x86 requires 2M or 4M alignment.
- */
 /*- set p = Perspective(dataport=me.from_interface.name) -*/
 #define MMIO_ALIGN (1 << 12)
 struct {
