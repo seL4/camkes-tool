@@ -28,7 +28,7 @@ import "camkes-hardware.idl4";
  * 
  *	connection RPC util_fatfs_FS(from util.fs, to fatfs.fs);
  * 
- * where the RPC conenctor is an instance of util_fatfs_FS connection. It
+ * where the RPC connector is an instance of util_fatfs_FS connection. It
  * connects util.fs interface to fatfs.fs interface.
  * 
  * Please look at fatfs.camkes for more details.
@@ -73,7 +73,7 @@ connector seL4AsynchNative {
 }
 
 /**
- * Asynchronous RPC event coonnector
+ * Asynchronous RPC event connector
  * 
  * This connector works exactly the same as the asynchronous event connector.
  * The consumer and emitter shouldn't notice any difference. But the internal
