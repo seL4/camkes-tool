@@ -240,7 +240,7 @@ connector seL4IOAPICHardwareInterrupt {
  */
 connector seL4HardwareIOPort {
 	from Procedure software_component_port;
-	to Interface hardware_component_port;
+	to Procedure hardware_component_port;
 }
 
 /* This connector is only capable of marshalling primitive values (no arrays,
