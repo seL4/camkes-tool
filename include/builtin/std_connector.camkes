@@ -13,14 +13,14 @@ import "camkes-hardware.idl4";
 /**
  * @file
  * 
- * This file defines a list of connectors. A connector is an instance of a
- * connection, allowing two components communicate with each other. Different
- * connectors are used for different purposes.
+ * This file defines a list of connectors. A connection is an instance of a
+ * connector, allowing two components to communicate with each other.
+ * Different connectors are used for different purposes.
  * 
- * In essence, connector defines how exactly a component connects to another
+ * In essence, a connector defines how exactly a component connects to another
  * component. There are two parts, from and to. Most of the connectors are
- * defined such that the "to" component sends data to the "from" component. So
- * the "to" component is more like a sender and the "from" component is like a
+ * defined such that the "from" component sends data to the "to" component. So
+ * the "from" component is more like a sender and the "to" component is like a
  * receiver. Having said that, a totally different semantic can be implemented.
  * It's really up to the programmer to decide it.
  * 
@@ -28,10 +28,8 @@ import "camkes-hardware.idl4";
  * 
  *	connection RPC util_fatfs_FS(from util.fs, to fatfs.fs);
  * 
- * where the RPC connector is an instance of util_fatfs_FS connection. It
+ * where the util_fatfs_FS connection is an instance of the RPC connector. It
  * connects util.fs interface to fatfs.fs interface.
- * 
- * Please look at fatfs.camkes for more details.
  */
 
 /**
@@ -46,10 +44,6 @@ import "camkes-hardware.idl4";
  * faster than the emitter. The consumer could do other stuff while waiting for
  * the asynchronous signal from the emitter. However it's harder to synchronize
  * the components.
- * 
- * In the current implementation, a component can only use at most 32
- * asynchronous event connectors. Anything more than that may result in
- * unpredictable behaviour.
  */
 connector seL4Asynch {
 	from Event emitter_inf;
@@ -80,24 +74,18 @@ connector seL4AsynchNative {
  * implementation is different. seL4Asynch uses the asynchronous
  * mechanism to send signal, whereas seL4RPCEvent uses the regular RPC
  * to send and imitate the event signal.
- * 
- * seL4Asynch only allows up to 32 connectors per component, whereas
- * there's no limit in seL4RPCEvent.
  */
 connector seL4RPCEvent {
 	from Event emitter_inf;
 	to Event consumer_inf;
 }
 
-
 /**
  * Asynchronous event export connector
  * 
  * This connector connects a composite component's internal event interface to
- * an external event interface. Anything flows through the internal event
+ * an external event interface. Anything that flows through the internal event
  * interface will also flow through the external event interface.
- * 
- * Please look at fatfs.camkes for more details.
  */
 connector ExportAsynch {
 	from Event emitter_inf;
@@ -126,7 +114,7 @@ connector seL4RPCCall {
 /**
  * Direct Call connector
  * 
- * Hacks both components into the same protection domain, so that interface
+ * Situates both components in the same protection domain, so that interface
  * calls are backed by function calls, rather than RPCs.
  */
 connector seL4DirectCall {
@@ -137,7 +125,7 @@ connector seL4DirectCall {
 /**
  * RPC export connector
  * 
- * This connecor works in same way as the asynchronous event export connector
+ * This connector works in same way as the asynchronous event export connector
  * (ExportAsynch) with the only difference that the two instances are
  * dedicated for RPC connections.
  */
@@ -149,13 +137,10 @@ connector ExportRPC {
 /**
  * Dataport connector
  * 
- * This connector allows memory sharing between the provider and user. The user
- * has read/write access to the shared dataport. Data can be stored in the
- * dataport and passed between the provider and user.
+ * This connector allows memory sharing between two components.
  *  
  * The dataport size is not defined in this connector, it's up to the
- * implementation. This connector is not two way, provider doesn't have access
- * to any memory region in the user space.
+ * implementation.
  */
 connector seL4SharedData {
 	from Dataport user_data;
@@ -225,6 +210,7 @@ connector seL4IOAPICHardwareInterrupt {
  * the IOPort range needed, in the following format: "0x<first_port>:0x<last_port>".
  * The interface provided should be "IOPort". E.g.
  *  component foo {
+ *      hardware;
  *      provides IOPort bar;
  *  }
  *  assembly {
@@ -251,4 +237,3 @@ connector seL4RPCSimple {
 	from Procedure user_inf;
 	to Procedure provider_inf;
 }
-
