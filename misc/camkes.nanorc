@@ -1,0 +1,40 @@
+#
+# Copyright 2014, NICTA
+#
+# This software may be distributed and modified according to the terms of
+# the BSD 2-Clause license. Note that NO WARRANTY is provided.
+# See "LICENSE_BSD2.txt" for details.
+#
+# @TAG(NICTA_BSD)
+#
+
+syntax "camkes" "\.camkes"
+
+# C Preprocessor declarations
+color brightcyan "^[ \t]*#.*$"
+# Camkes keywords
+color brightgreen "\<(assembly|composition|from|to|configuration|control|procedure|hardware|maybe|dma_pool|has|mutex|semaphore|group|tcb_pool|ep_pool|aep_pool|from_access|to_access|template|untyped_mmio|trusted|cnode_size_bits)\>"
+# Untyped pool
+color brightyellow "untyped[0-9]+_pool"
+# Stack size
+color brightyellow "[a-zA-Z0-9_]+_stack_size"
+# Priority
+color brightyellow "\<(priority|[a-zA-Z][a-zA-Z0-9_]*_priority|_control_priority)\>"
+# Camkes types
+color green "\<(component|connection|attribute|connector|Procedure|Event|Dataport)\>"
+# C types
+color green "\<(int|string|char|character|unsigned|signed|void|long|refin|in|out|inout|int8_t|uint8_t|int16_t|uint16_t|int32_t|uint32_t|int64_t|uint64_t)\>"
+# Dependency
+color green "\<(uses|provides|emits|consumes)\>"
+# Imports
+color brightcyan "\<(import|include)\>"
+# Builtins
+color brightyellow start="<" end=">"
+# Numbers
+color brightred "\<(0x[0-9A-Fa-f]+|-?[0-9]+(.[0-9]+)?)\>"
+# Strings
+color brightyellow "\".*\""
+# Multi line comment
+color brightblue start="/\*" end="\*/"
+# Single line comment
+color brightblue "//.*"
