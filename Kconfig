@@ -373,6 +373,16 @@ menu "CAmkES Options"
             Generate an Isabelle theory specifying the architecture of the
             system, using the l4.verified formal model of ADL.
 
+        config CAMKES_CAPDL_THY
+        bool "Generate CapDL Isabelle specification"
+        default n
+        help
+            During a CAmkES build, a textual CapDL specification of the system
+            is generated for the purpose of initialisation. Selecting this
+            option causes an Isabelle version of this specification to be
+            generated as well for the purposes of reasoning about the
+            capability distribution of a CAmkES system.
+
         config CAMKES_LABEL_MAPPING
         bool "Generate policy label mapping"
         default n
