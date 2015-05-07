@@ -504,7 +504,7 @@ def replace_dma_frames(ast, obj_space, elfs, options, **_):
 
             # We can now remove the old frame as we know it's not referenced
             # anywhere else. TODO: assert this somehow.
-            obj_space.spec.objs.remove(discard_frame)
+            obj_space.remove(discard_frame)
 
 def guard_cnode_caps(cspaces, **_):
     '''If the templates have allocated any caps to CNodes, they will not have
@@ -575,7 +575,7 @@ def guard_pages(obj_space, cspaces, elfs, options, **_):
                 # Delete the page.
                 frame = pt[p_index].referent
                 del pt[p_index]
-                obj_space.spec.objs.remove(frame)
+                obj_space.remove(frame)
 
                 # Now do the same for the following guard page. We do this
                 # calculation separately just in case the region crosses a PT
@@ -599,7 +599,7 @@ def guard_pages(obj_space, cspaces, elfs, options, **_):
 
                 frame = pt[p_index].referent
                 del pt[p_index]
-                obj_space.spec.objs.remove(frame)
+                obj_space.remove(frame)
 
                 # Now we do the same thing for the preceding guard page of the
                 # thread's stack...
@@ -624,7 +624,7 @@ def guard_pages(obj_space, cspaces, elfs, options, **_):
 
                 frame = pt[p_index].referent
                 del pt[p_index]
-                obj_space.spec.objs.remove(frame)
+                obj_space.remove(frame)
 
                 # ...and the following guard page.
 
@@ -651,7 +651,7 @@ def guard_pages(obj_space, cspaces, elfs, options, **_):
 
                 frame = pt[p_index].referent
                 del pt[p_index]
-                obj_space.spec.objs.remove(frame)
+                obj_space.remove(frame)
 
 def tcb_default_priorities(obj_space, options, **_):
     '''Set up default thread priorities. Note this filter needs to operate
