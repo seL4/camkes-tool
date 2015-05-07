@@ -105,9 +105,3 @@ $(abspath ${BUILD_BASE})/thy/CapDLSpec.thy: capdl-loader-experimental-image pars
 ifeq (${CONFIG_CAMKES_CAPDL_THY},y)
 all: $(abspath ${BUILD_BASE})/thy/CapDLSpec.thy
 endif
-
-.PHONY: tags
-tags:
-	@find . \( -name "*.h" -o -name "*.c" -o -name "*.py" \) > list.txt
-	@ctags-exuberant -L list.txt
-	@rm list.txt
