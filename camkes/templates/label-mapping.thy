@@ -24,7 +24,7 @@ datatype label
 
 (** TPP: condense = True *)
 definition label_of :: "cdl_object_id \<Rightarrow> label option"
-  where "label_of cap \<equiv> empty
+  where "label_of \<equiv> empty
   /*- for label, objs in obj_space.labels.items() -*/
     /*- for o in  objs -*/
       (/*? o.name ?*/_id \<mapsto> /*? label ?*/)
