@@ -63,7 +63,7 @@ ${TARGETS}: /*? ' '.join(imported) ?*/
 
 # Generate the policy label mapping if the user requested it.
 ifeq (${CONFIG_CAMKES_LABEL_MAPPING},y)
-LABEL_MAPPING=$(patsubst %.cdl,%.json,$(firstword ${TARGETS}))
+LABEL_MAPPING=$(dir $(firstword ${TARGETS}))/CapDLLabels.thy
 ${TARGETS}: ${LABEL_MAPPING}
 ${LABEL_MAPPING}: /*? ' '.join(imported) ?*/ /*- for g in groups -*/ /*- set p = Perspective(group=g) -*/ ${SEL4_BINDIR}//*? p['elf_name'] ?*/ /*- endfor -*/
 	@echo " [GEN] $(notdir $@)"
@@ -78,6 +78,7 @@ ${LABEL_MAPPING}: /*? ' '.join(imported) ?*/ /*- for g in groups -*/ /*- set p =
         /*- endfor -*/ \
         --outfile "$@" \
         --platform seL4
+	${Q}${TPP} --in-place "$@"
 endif
 
 # Static component files provided by the user.

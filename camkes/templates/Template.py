@@ -134,7 +134,7 @@ TEMPLATES = {
         },
         'Makefile':'Makefile',
         'capdl':'capdl-spec.cdl',
-        'label-mapping':'label-mapping.json',
+        'label-mapping':'label-mapping.thy',
     },
     'CIMP':{ # Message passing Isabelle formalism
         'base':'cimp-base.thy',
