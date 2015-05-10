@@ -48,7 +48,7 @@ parse-capDL: ${STAGE_BASE}/parse-capDL/parse-capDL
 ${STAGE_BASE}/parse-capDL/parse-capDL:
 	@echo "[$(notdir $@)] building..."
 	$(Q)mkdir -p "${STAGE_BASE}"
-	$(Q)cp -pur tools/capDL $(dir $@)
+	$(Q)cp -pR tools/capDL $(dir $@)
 	$(Q)$(MAKE) --no-print-directory --directory=$(dir $@) 2>&1 \
         | while read line; do echo " $$line"; done; \
         exit $${PIPESTATUS[0]}
@@ -58,8 +58,8 @@ export PATH:=${PATH}:${STAGE_BASE}/cpio-strip
 ${STAGE_BASE}/cpio-strip/cpio-strip:
 	@echo "[$(notdir $@)] building..."
 	$(Q)mkdir -p "$(dir $@)"
-	$(Q)cp -pu tools/common/cpio-strip.c $(dir $@)
-	$(Q)cp -pu tools/common/Makefile.cpio_strip $(dir $@)
+	$(Q)cp -p tools/common/cpio-strip.c $(dir $@)
+	$(Q)cp -p tools/common/Makefile.cpio_strip $(dir $@)
 	$(Q)Q=${Q} CC=gcc $(MAKE) --makefile=Makefile.cpio_strip --no-print-directory \
       --directory=$(dir $@) 2>&1 \
       | while read line; do echo " $$line"; done; \
