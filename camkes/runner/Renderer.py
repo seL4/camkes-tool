@@ -59,7 +59,7 @@ class Renderer(object):
             loaders.append(jinja2.ModuleLoader(template_cache))
 
         # Source templates.
-        loaders.extend(map(jinja2.FileSystemLoader, template_paths))
+        loaders.extend(map(jinja2.FileSystemLoader, map(os.path.abspath, template_paths)))
 
         self.env = jinja2.Environment(
             loader=jinja2.ChoiceLoader(loaders),
