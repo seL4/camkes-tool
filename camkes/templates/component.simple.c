@@ -77,7 +77,7 @@
 
 /*# Allocates capabilities for all the MMIO regions #*/
 /*- set mmio_caps_len = [] -*/
-/*# Map size to seL4 object. The arm HYP kernel has different sizees for
+/*# Map size to seL4 object. The arm HYP kernel has different sizes for
     some objects. But as they do not overlap we can just include both
     and rely on the component author to get it right #*/
 /*- set bits_to_frame_type = { 12:seL4_FrameObject, 20:seL4_ARM_SectionObject, 21:seL4_ARM_SectionObject } -*/
@@ -149,7 +149,7 @@
  * holding slot #*/
 /*- set holding_slot = alloc_cap('temporary_simple_slot', None) -*/
 
-/*# We need to have a known cspace size to instatiate a simple. This logic is
+/*# We need to have a known cspace size to instantiate a simple. This logic is
     more complicated than it strictly needs to be since in practice camkes will
     always have an 'auto' size, but it does not hurt to be general here #*/
 /*- set _cnodesize = [None] -*/
