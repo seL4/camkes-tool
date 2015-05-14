@@ -10,8 +10,15 @@
 
 /*- set thy = splitext(os.path.basename(options.outfile.name))[0] -*/
 theory /*? thy ?*/ imports
-  CapDLSpec
+  "../../spec/capDL/CapDLSpec"
 begin
+
+/*# Ignore the comment below. It is intended to apply to the generated output,
+ *# not this template.
+ #*/
+(* THIS THEORY IS GENERATED. DO NOT EDIT.
+ * It is expected to be hosted in l4v/camkes/cdl-refine.
+ *)
 
 (** TPP: condense = True *)
 datatype label
