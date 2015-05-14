@@ -11,6 +11,7 @@
 /*- set thy = splitext(os.path.basename(options.outfile.name))[0] -*/
 theory /*? thy ?*/ imports
   "../../spec/capDL/CapDLSpec"
+  Generator_CAMKES_CDL
 begin
 
 /*# Ignore the comment below. It is intended to apply to the generated output,
@@ -41,13 +42,37 @@ definition label_of :: "cdl_object_id \<Rightarrow> label option"
 
 (** TPP: condense = True *)
 definition id_of :: "string \<Rightarrow> cdl_object_id option"
-  where "id_of name \<equiv>
+  where "id_of \<equiv> empty
   /*- for obj in obj_space.spec.objs -*/
     /*- if obj.name is not none -*/
-      if name = ''/*? obj.name ?*/'' then Some /*? obj.name ?*/_id else
+      (''/*? obj.name ?*/'' \<mapsto> /*? obj.name ?*/_id)
     /*- endif -*/
   /*- endfor -*/
-      None"
+  "
+(** TPP: condense = False *)
+
+(** TPP: condense = True *)
+lemma ids_distinct': "\<And>n m. \<exists>i. id_of n = Some i \<and> id_of m = Some i \<Longrightarrow> n = m"
+  /*- set to_unfold = set(['id_of_def']) -*/
+  /*- for obj in obj_space.spec.objs -*/
+    /*- if obj.name is not none -*/
+      /*- do to_unfold.add('%s_id_def' % obj.name) -*/
+    /*- endif -*/
+  /*- endfor -*/
+/*? '\n'.join(textwrap.wrap('  apply (unfold %s)' % ' '.join(to_unfold), width=100, subsequent_indent=' ' * len('  apply (unfold '))) ?*/
+  /*- for n in obj_space.spec.objs -*/
+    /*- if n.name is not none -*/
+  apply (case_tac "n = ''/*? n.name ?*/''")
+      /*- for m in obj_space.spec.objs -*/
+        /*- if m.name is not none -*/
+   apply (case_tac "m = ''/*? m.name ?*/''")
+    apply clarsimp
+        /*- endif -*/
+      /*- endfor -*/
+   apply clarsimp
+    /*- endif -*/
+  /*- endfor -*/
+  by clarsimp
 (** TPP: condense = False *)
 
 (** TPP: condense = True *)
@@ -72,7 +97,7 @@ definition ipc_buffer :: "string \<Rightarrow> nat \<Rightarrow> cdl_object_id o
 (** TPP: condense = False *)
 
 (** TPP: condense = True *)
-lemma buffers_distinct:
+lemma buffers_distinct':
   "\<And>n i m j. \<exists>f. ipc_buffer n i = Some f \<and> ipc_buffer m j = Some f \<Longrightarrow> n = m \<and> i = j"
   apply (unfold ipc_buffer_def /*? ' '.join(to_unfold) ?*/)
   /*- for a in tcbs.values() -*/
@@ -85,5 +110,10 @@ lemma buffers_distinct:
   /*- endfor -*/
   by auto[1]
 (** TPP: condense = False *)
+
+interpretation Generator_CAMKES_CDL.cdl_translation ipc_buffer id_of
+  apply unfold_locales
+   apply (simp add:buffers_distinct')
+  by (simp add:ids_distinct')
 
 end
