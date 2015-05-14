@@ -42,13 +42,13 @@ definition label_of :: "cdl_object_id \<Rightarrow> label option"
 
 (** TPP: condense = True *)
 definition id_of :: "string \<Rightarrow> cdl_object_id option"
-  where "id_of \<equiv> empty
+  where "id_of name \<equiv>
   /*- for obj in obj_space.spec.objs -*/
     /*- if obj.name is not none -*/
-      (''/*? obj.name ?*/'' \<mapsto> /*? obj.name ?*/_id)
+      if name = ''/*? obj.name ?*/'' then Some /*? obj.name ?*/_id else
     /*- endif -*/
   /*- endfor -*/
-  "
+      None"
 (** TPP: condense = False *)
 
 /*# We construct the proofs in this file as monolithic `by` invocations. This is
