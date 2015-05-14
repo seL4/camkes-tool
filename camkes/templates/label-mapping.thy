@@ -51,6 +51,12 @@ definition id_of :: "string \<Rightarrow> cdl_object_id option"
   "
 (** TPP: condense = False *)
 
+/*# We construct the proofs in this file as monolithic `by` invocations. This is
+ *# horrible style, but in a large system the thousands of `apply` commands take
+ *# a long time to process and hold up work on further proofs that depend on
+ *# their results.
+ #*/
+
 (** TPP: condense = True *)
 lemma ids_distinct': "\<And>n m. \<exists>i. id_of n = Some i \<and> id_of m = Some i \<Longrightarrow> n = m"
   /*- set to_unfold = set(['id_of_def']) -*/
@@ -59,20 +65,20 @@ lemma ids_distinct': "\<And>n m. \<exists>i. id_of n = Some i \<and> id_of m = S
       /*- do to_unfold.add('%s_id_def' % obj.name) -*/
     /*- endif -*/
   /*- endfor -*/
-/*? '\n'.join(textwrap.wrap('  apply (unfold %s)' % ' '.join(to_unfold), width=100, subsequent_indent=' ' * len('  apply (unfold '))) ?*/
+/*? '\n'.join(textwrap.wrap('  by (unfold %s,' % ' '.join(to_unfold), width=100, subsequent_indent=' ' * len('  by (unfold '))) ?*/
   /*- for n in obj_space.spec.objs -*/
     /*- if n.name is not none -*/
-  apply (case_tac "n = ''/*? n.name ?*/''")
+      case_tac "n = ''/*? n.name ?*/''",
       /*- for m in obj_space.spec.objs -*/
         /*- if m.name is not none -*/
-   apply (case_tac "m = ''/*? m.name ?*/''")
-    apply clarsimp
+       case_tac "m = ''/*? m.name ?*/''",
+        clarsimp,
         /*- endif -*/
       /*- endfor -*/
-   apply clarsimp
+       clarsimp,
     /*- endif -*/
   /*- endfor -*/
-  by clarsimp
+      clarsimp)
 (** TPP: condense = False *)
 
 (** TPP: condense = True *)
@@ -99,16 +105,16 @@ definition ipc_buffer :: "string \<Rightarrow> nat \<Rightarrow> cdl_object_id o
 (** TPP: condense = True *)
 lemma buffers_distinct':
   "\<And>n i m j. \<exists>f. ipc_buffer n i = Some f \<and> ipc_buffer m j = Some f \<Longrightarrow> n = m \<and> i = j"
-  apply (unfold ipc_buffer_def /*? ' '.join(to_unfold) ?*/)
+  by (unfold ipc_buffer_def /*? ' '.join(to_unfold) ?*/,
   /*- for a in tcbs.values() -*/
-  apply (case_tac "n = ''/*? a[0] ?*/'' \<and> i = /*? a[1] ?*/")
+      case_tac "n = ''/*? a[0] ?*/'' \<and> i = /*? a[1] ?*/",
     /*- for b in tcbs.values() -*/
-   apply (case_tac "m = ''/*? b[0] ?*/'' \<and> j = /*? b[1] ?*/")
-    apply clarsimp
+       case_tac "m = ''/*? b[0] ?*/'' \<and> j = /*? b[1] ?*/",
+        clarsimp,
     /*- endfor -*/
-   apply auto[1]
+       force,
   /*- endfor -*/
-  by auto[1]
+      force)
 (** TPP: condense = False *)
 
 interpretation Generator_CAMKES_CDL.cdl_translation ipc_buffer id_of
