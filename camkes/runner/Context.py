@@ -18,7 +18,8 @@ available to the template code.
 
 from functools import partial
 from copy import deepcopy
-import code, collections, inspect, itertools, math, os, pdb, re, sys, textwrap
+import capdl, code, collections, inspect, itertools, math, os, pdb, re, sys, \
+    textwrap
 
 from capdl.Allocator import seL4_TCBObject, seL4_EndpointObject, \
     seL4_AsyncEndpointObject, seL4_CanRead, seL4_CanWrite, seL4_AllRights, \
@@ -223,6 +224,9 @@ def new_context(entity, assembly, obj_space, cap_space, shmem, **kwargs):
         # should never be constructing objects of these types, but they may
         # need to do `isinstance` testing.
         'camkes':collections.namedtuple('camkes', ['ast'])(AST),
+
+        # Expose CapDL module for `isinstance` testing.
+        'capdl':capdl,
 
         # When generating Isabelle apply-style proof scripts, the results can
         # sometimes be fragile in the face of changing code. In particular,
