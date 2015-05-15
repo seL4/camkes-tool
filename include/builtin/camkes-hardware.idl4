@@ -19,9 +19,17 @@ procedure IOPort {
 	uint16_t in16(in uint16_t ioport);
 	uint32_t in32(in uint16_t ioport);
 
+	uint8_t in8_offset(in uint16_t offset);
+	uint16_t in16_offset(in uint16_t offset);
+	uint32_t in32_offset(in uint16_t offset);
+
 	void out8(in uint16_t ioport, in uint8_t value);
 	void out16(in uint16_t ioport, in uint16_t value);
 	void out32(in uint16_t ioport, in uint32_t value);
+
+	void out8_offset(in uint16_t offset, in uint8_t value);
+	void out16_offset(in uint16_t offset, in uint16_t value);
+	void out32_offset(in uint16_t offset, in uint32_t value);
 
     /* This function is expected to return 0 if the given port does not fall in
      * the addressable range of this interface, or non-zero if it does.
