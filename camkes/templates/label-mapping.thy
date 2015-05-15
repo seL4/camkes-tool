@@ -117,6 +117,17 @@ lemma buffers_distinct':
       force)
 (** TPP: condense = False *)
 
+(** TPP: condense = True *)
+definition extra' :: cdl_heap
+  where "extra' identifier \<equiv>
+  /*- for obj in obj_space.spec.objs -*/
+    /*- if obj.name is not none and isinstance(obj, (capdl.Frame, capdl.PageTable, capdl.PageDirectory)) -*/
+    if identifier = /*? obj.name ?*/_id then Some /*? obj.name ?*/ else
+    /*- endif -*/
+  /*- endfor -*/
+    None"
+(** TPP: condense = False *)
+
 interpretation Generator_CAMKES_CDL.cdl_translation ipc_buffer id_of
   apply unfold_locales
    apply (simp add:buffers_distinct')
