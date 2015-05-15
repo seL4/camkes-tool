@@ -239,53 +239,6 @@ menu "CAmkES Options"
             values as they are passed. This timing data can then be retrieved after
             execution.
 
-        choice
-        prompt "Profiler"
-        default CAMKES_PROFILER_NONE
-        help
-            Select the profiling tool to use when instantiating templates. Enabling
-            a profiler can help you diagnose performance bottlenecks in the
-            compilation process. The available profilers are "internal" (basic
-            timing information), "native" (cProfile), "aggregate" (single
-            cProfile measurement across entire execution) and "heartbeat" (just a
-            debugging print out pulse to show progress).
-
-        config CAMKES_PROFILER_NONE
-        bool "none"
-        help
-            No profiler
-
-        config CAMKES_PROFILER_INTERNAL
-        bool "internal"
-        help
-            Basic profiling of CAmkES functionality. This option gives you a
-            summary of time spent in each phase of the CAmkES generator. It can be
-            used to determine, at a fairly coarse granularity, which parts of the
-            generator's execution are expensive.
-
-        config CAMKES_PROFILER_NATIVE
-        bool "native"
-        help
-            Profiler utilising Python's cProfile module. This option gives you
-            comprehensive statistical profiling data per generator phase.
-
-        config CAMKES_PROFILER_AGGREGATE
-        bool "aggregate"
-        help
-            Profiler utilising Python's cProfile module. This option gives you
-            comprehensive statistical profiling data aggregated across an entire
-            execution of the generator.
-
-        config CAMKES_PROFILER_HEARTBEAT
-        bool "heartbeat"
-        help
-            This option causes the CAmkES generator to periodically output where in
-            its source it is currently executing. This is primarily useful for
-            debugging infinite loops caused by inadequate input specification checks
-            or incorrect template code.
-
-        endchoice
-
     endmenu
 
     menu "Debugging"

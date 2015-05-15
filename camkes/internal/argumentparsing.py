@@ -90,8 +90,6 @@ TOOLS = {
             '--platform',
             '--ply-optimise',
             '--post-render-edit',
-            '--profiler',
-            '--profile-log',
             '--prune',
             '--quiet',
             '--templates',
@@ -173,14 +171,6 @@ def parse_args(tool):
     add_arg('--post-render-edit',
         help='Allow the user to edit rendered templates before exiting.',
         action='store_true')
-    add_arg('--profiler',
-        help='Set profiling tool for runtime statistics.',
-        choices=['none', 'internal', 'native', 'aggregate', 'heartbeat'],
-        default='none')
-    add_arg('--profile-log',
-        help='Log profile statistics to the given file (requires --profiler to be set).',
-        type=argparse.FileType('w'),
-        default=sys.stdout)
     add_arg('--templates', '-t', \
         help='Extra directory to search for templates (before builtin templates).')
     add_arg('--cache', '-c', default='off',

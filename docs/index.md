@@ -1051,18 +1051,6 @@ all tools.
   template. The purpose of this is to allow you to manually tweak the output
   of a template on the fly during compilation.
 
-**--profiler**  
-**--profiler-log**
-
-> This option enables profiling of the runner's execution for the purpose of
-  debugging compilation performance. The default is for no profiling. Valid
-  profilers are "internal", "native" and "aggregate". These are respectively,
-  basic profiling timing, fine-grained cProfile data and aggregate cProfile
-  data. If you are experienced with profiling Python code, you will find
-  "native" the most comfortable. Otherwise "internal" is probably more
-  intuitive. The --profiler-log option can be used to redirect the profiling
-  data to somewhere other than stdout.
-
 **-r**, **--resolve-imports**  
 **-d**, **--dont-resolve-imports**
 

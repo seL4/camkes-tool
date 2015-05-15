@@ -53,10 +53,6 @@ CAMKES_FLAGS += \
     $(if ${CONFIG_CAMKES_PROVIDE_TCB_CAPS},--fprovide-tcb-caps,--fno-provide-tcb-caps) \
     $(if ${CONFIG_CAMKES_SUPPORT_INIT},--fsupport-init,--fno-support-init) \
     --default-priority ${CONFIG_CAMKES_DEFAULT_PRIORITY} \
-    $(if ${CONFIG_CAMKES_PROFILER_INTERNAL},--profiler internal,) \
-    $(if ${CONFIG_CAMKES_PROFILER_NATIVE},--profiler native,) \
-    $(if ${CONFIG_CAMKES_PROFILER_AGGREGATE},--profiler aggregate,) \
-    $(if ${CONFIG_CAMKES_PROFILER_HEARTBEAT},--profiler heartbeat,) \
     $(if ${CONFIG_CAMKES_LARGE_FRAME_PROMOTION},--largeframe,) \
     $(if ${CONFIG_CAMKES_PRUNE_GENERATED},--prune,) \
     $(if ${CONFIG_CAMKES_PLY_OPTIMIZE},--ply-optimise,) \
