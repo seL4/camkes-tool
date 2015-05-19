@@ -182,7 +182,9 @@ def parse_args(tool):
         type=argparse.FileType('w'),
         default=sys.stdout)
     add_arg('--templates', '-t', \
-        help='Extra directory to search for templates (before builtin templates).')
+        help='Extra directories to search for templates (before builtin templates).', \
+        action='append', \
+        default=[])
     add_arg('--cache', '-c', default='off',
         choices=['off', 'on', 'readonly', 'writeonly'],
         help='Set code generation cache mode.')
