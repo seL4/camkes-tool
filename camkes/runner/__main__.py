@@ -294,8 +294,7 @@ def main():
             [dummy_instance]), \
         connection=map(lambda x: x.name, assembly.composition.connections + \
             [dummy_connection]))
-    if options.templates:
-        templates.add_root(options.templates)
+    map(templates.add_root, options.templates)
     r = Renderer(templates.get_roots(), options)
 
     # The user may have provided their own connector definitions (with
