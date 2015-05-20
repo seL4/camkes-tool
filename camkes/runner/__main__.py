@@ -738,35 +738,31 @@ def resolve_assembly_hierarchy(original):
 
     return resolved
 
+def remove_interface(component, interface):
+    '''Removes the given interface from the given component'''
+
+    if isinstance(interface, AST.Provides):
+        component.provides.remove(interface)
+    elif isinstance(interface, AST.Uses):
+        component.uses.remove(interface)
+    elif isinstance(interface, AST.Emits):
+        component.emits.remove(interface)
+    elif isinstance(interface, AST.Consumes):
+        component.consumes.remove(interface)
+    elif isinstance(interface, AST.Dataport):
+        component.dataports.remove(interface)
+
 def remove_virtual_interfaces(component):
     '''modifies the component (not an instance), removing all interfaces
        which aren't implemented by that component (ie. implemented by a
        sub component) so no code is generated for those interfaces'''
 
     if component.composition is not None:
-        unimplemented_interfaces = []
         for conn in component.composition.connections:
             if conn.from_instance.name == '__virtual__':
-                unimplemented_interfaces.append(conn.from_interface)
+                remove_interface(component, conn.from_interface)
             if conn.to_instance.name == '__virtual__':
-                unimplemented_interfaces.append(conn.to_interface)
-
-        for i in unimplemented_interfaces:
-            if isinstance(i, AST.Provides):
-                component.provides.remove(i)
-            elif isinstance(i, AST.Uses):
-                component.uses.remove(i)
-            elif isinstance(i, AST.Emits):
-                component.emits.remove(i)
-            elif isinstance(i, AST.Consumes):
-                component.consumes.remove(i)
-            elif isinstance(i, AST.Dataport):
-                component.dataports.remove(i)
-            elif isinstance(i, AST.Mutex):
-                component.mutexes.remove(i)
-            elif isinstance(i, AST.Semaphore):
-                component.semaphores.remove(i)
-
+                remove_interface(component, conn.to_interface)
 
 def remove_empty_components(ast):
     '''Resolving the hierarchy can result in components with no items in them.
