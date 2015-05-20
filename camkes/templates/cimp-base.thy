@@ -48,8 +48,8 @@ begin
     /*- endif -*/
 /*- endmacro -*/
 
-/*- set instances = me.composition.instances -*/
-/*- set connections = me.composition.connections -*/
+/*- set instances = composition.instances -*/
+/*- set connections = composition.connections -*/
 /*- set components = reduce(lambda('xs, b: xs + ([b.type] if b.type not in xs else [])'), instances, []) -*/
 
 (* Connections *)
