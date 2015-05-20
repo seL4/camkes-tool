@@ -181,57 +181,44 @@ int /*? me.from_interface.name ?*/__run(void) {
 /*- endif -*/
 ) {
 
-    /*# The optimisation below is only valid to perform if we do not have any
-     *# reference (typedefed C) types.
-     #*/
-    /*- set contains_reference_type = [False] -*/
-    /*- for p in m.parameters -*/
-      /*- if isinstance(p.type, camkes.ast.Reference) -*/
-        /*- do contains_reference_type.__setitem__(0, True) -*/
-        /*- break -*/
-      /*- endif -*/
-    /*- endfor -*/
-
-    /*- if options.fspecialise_syscall_stubs and not contains_reference_type[0] and len(filter(lambda('x: x.array or x.type.type == \'string\''), m.parameters)) == 0 -*/
+    /*- if options.fspecialise_syscall_stubs and methods_len == 1 and m.return_type is none and len(m.parameters) == 0 -*/
 #ifdef ARCH_ARM
 #ifndef __SWINUM
     #define __SWINUM(x) ((x) & 0x00ffffff)
 #endif
-        /*- if methods_len == 1 and not m.return_type and len(m.parameters) == 0 -*/
-            /* We don't need to send or return any information because this
-             * is the only method in this interface and it has no parameters or
-             * return value. We can use an optimised syscall stub and take an
-             * early exit.
-             *
-             * To explain where this stub deviates from the standard Call stub:
-             *  - No asm clobbers because we're not receiving any arguments in
-             *    the reply (that would usually clobber r2-r5);
-             *  - Message info as an input only because we know the return info
-             *    will be identical, so the compiler can avoid reloading it if
-             *    we need the value after the syscall; and
-             *  - Setup r7 and r1 first because they are preserved across the
-             *    syscall and this helps the compiler emit a backwards branch
-             *    to create a tight loop if we're calling this interface
-             *    repeatedly.
-             */
-            /*- set scno = c_symbol() -*/
-            register seL4_Word /*? scno ?*/ asm("r7") = seL4_SysCall;
-            /*- set tag = c_symbol() -*/
-            register seL4_MessageInfo_t /*? tag ?*/ asm("r1") = seL4_MessageInfo_new(0, 0, 0, 0);
-            /*- set dest = c_symbol() -*/
-            register seL4_Word /*? dest ?*/ asm("r0") = /*? ep ?*/;
-            asm volatile("swi %[swinum]"
-                /*- if trust_partner -*/
-                    :"+r"(/*? dest ?*/)
-                    :[swinum]"i"(__SWINUM(seL4_SysCall)), "r"(/*? scno ?*/), "r"(/*? tag ?*/)
-                /*- else -*/
-                    :"+r"(/*? dest ?*/), "+r"(/*? tag ?*/)
-                    :[swinum]"i"(__SWINUM(seL4_SysCall)), "r"(/*? scno ?*/)
-                    :"r2", "r3", "r4", "r5", "memory"
-                /*- endif -*/
-            );
-            return;
-        /*- endif -*/
+        /* We don't need to send or return any information because this
+         * is the only method in this interface and it has no parameters or
+         * return value. We can use an optimised syscall stub and take an
+         * early exit.
+         *
+         * To explain where this stub deviates from the standard Call stub:
+         *  - No asm clobbers because we're not receiving any arguments in
+         *    the reply (that would usually clobber r2-r5);
+         *  - Message info as an input only because we know the return info
+         *    will be identical, so the compiler can avoid reloading it if
+         *    we need the value after the syscall; and
+         *  - Setup r7 and r1 first because they are preserved across the
+         *    syscall and this helps the compiler emit a backwards branch
+         *    to create a tight loop if we're calling this interface
+         *    repeatedly.
+         */
+        /*- set scno = c_symbol() -*/
+        register seL4_Word /*? scno ?*/ asm("r7") = seL4_SysCall;
+        /*- set tag = c_symbol() -*/
+        register seL4_MessageInfo_t /*? tag ?*/ asm("r1") = seL4_MessageInfo_new(0, 0, 0, 0);
+        /*- set dest = c_symbol() -*/
+        register seL4_Word /*? dest ?*/ asm("r0") = /*? ep ?*/;
+        asm volatile("swi %[swinum]"
+            /*- if trust_partner -*/
+                :"+r"(/*? dest ?*/)
+                :[swinum]"i"(__SWINUM(seL4_SysCall)), "r"(/*? scno ?*/), "r"(/*? tag ?*/)
+            /*- else -*/
+                :"+r"(/*? dest ?*/), "+r"(/*? tag ?*/)
+                :[swinum]"i"(__SWINUM(seL4_SysCall)), "r"(/*? scno ?*/)
+                :"r2", "r3", "r4", "r5", "memory"
+            /*- endif -*/
+        );
+        return;
 #endif
     /*- endif -*/
 
