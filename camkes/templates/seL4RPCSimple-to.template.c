@@ -23,7 +23,7 @@
 
 /*- for m in me.to_interface.type.methods -*/
     extern
-    /*- if m.return_type -*/
+    /*- if m.return_type is not none -*/
         /*? show(m.return_type) ?*/
     /*- else -*/
         void
@@ -106,7 +106,7 @@ static void /*? me.to_interface.name ?*/_/*? m.name ?*/_unmarshal(
 }
 
 static
-/*- if m.return_type -*/
+/*- if m.return_type is not none -*/
     /*? m.return_type ?*/
 /*- else -*/
     void
@@ -132,7 +132,7 @@ static
 ) {
 
     /* Call the implementation */
-    /*- if m.return_type -*/
+    /*- if m.return_type is not none -*/
         return
     /*- endif -*/
     /*? me.to_interface.name ?*/_/*? m.name ?*/(
@@ -151,7 +151,7 @@ static
 /*- set output_parameters = filter(lambda('x: x.direction in [\'inout\', \'out\']'), m.parameters) -*/
 static unsigned int /*? me.to_interface.name ?*/_/*? m.name ?*/_marshal(
     /*- set ret = c_symbol('ret') -*/
-    /*- if m.return_type -*/
+    /*- if m.return_type is not none -*/
         /*? m.return_type ?*/ /*? ret ?*/
         /*- if len(output_parameters) > 0 -*/
             ,
@@ -175,7 +175,7 @@ static unsigned int /*? me.to_interface.name ?*/_/*? m.name ?*/_marshal(
     /*- set mr = c_symbol('mr') -*/
     unsigned int /*? mr ?*/ = 0;
 
-    /*- if m.return_type -*/
+    /*- if m.return_type is not none -*/
         seL4_SetMR(/*? mr ?*/, (seL4_Word)/*? ret ?*/);
         /*? mr ?*/++;
         /*- if sizeof(m.return_type) > __SIZEOF_POINTER__ -*/
@@ -227,7 +227,7 @@ static unsigned int /*? me.to_interface.name ?*/_/*? m.name ?*/_internal(void) {
     );
 
     /*- set ret = c_symbol('ret') -*/
-    /*- if m.return_type -*/
+    /*- if m.return_type is not none -*/
         /*? m.return_type ?*/ /*? ret ?*/ =
     /*- endif -*/
     /*? me.to_interface.name ?*/_/*? m.name ?*/_invoke(
@@ -245,7 +245,7 @@ static unsigned int /*? me.to_interface.name ?*/_/*? m.name ?*/_internal(void) {
 
     /*- set length = c_symbol('length') -*/
     unsigned int /*? length ?*/ = /*? me.to_interface.name ?*/_/*? m.name ?*/_marshal(
-        /*- if m.return_type -*/
+        /*- if m.return_type is not none -*/
             /*? ret ?*/
             /*- if len(output_parameters) > 0 -*/
                 ,

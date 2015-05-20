@@ -80,7 +80,7 @@ locale /*? thy ?*/_pruned_glue = /*? thy ?*/_pruned +
   /*- set postcondition_type = ['lifted_globals', 'lifted_globals'] -*/
   /*- set precondition_params = ['s'] -*/
   /*- set postcondition_params = ['s0', 's'] -*/
-  /*- if m.return_type -*/
+  /*- if m.return_type is not none -*/
     /*- do postcondition_params.append('r') -*/
     /*- if m.return_type.type == 'int8_t' -*/
       /*- do postcondition_type.append('8 sword') -*/
@@ -228,7 +228,7 @@ locale /*? thy ?*/_pruned_glue = /*? thy ?*/_pruned +
    #*/
   /*- set ptr_valids = set() -*/
   /*- set params = ['s', 's\''] -*/
-  /*- if m.return_type -*/
+  /*- if m.return_type is not none -*/
     /*- do params.append('r') -*/
   /*- endif -*/
   /*- for i, p in enumerate(m.parameters) -*/
@@ -502,7 +502,7 @@ lemmas /*? me.to_interface.name ?*/_/*? m.name ?*/_wp = /*? me.to_interface.name
 /*- set effect = ['s0'] -*/
 /*- set mr = Counter() -*/
 /*- set packed_payload = [] -*/
-/*- if m.return_type -*/
+/*- if m.return_type is not none -*/
   /*- set param = 'ret' -*/
   /*- do params.append(param) -*/
   /*- if m.return_type.type in ['int', 'int32_t'] -*/
@@ -594,7 +594,7 @@ lemma /*? me.to_interface.name ?*/_/*? m.name ?*/_marshal_wp[THEN validNF_make_s
 /*- set exist_bound = [] -*/
 /*- set postcondition_params = ['s0', 's'] -*/
 /*- set post_packed = [] -*/
-/*- if m.return_type -*/
+/*- if m.return_type is not none -*/
   /*- set param = 'ru' -*/
   /*- do exist_bound.append(param) -*/
   /*- do postcondition_params.append(param) -*/
@@ -976,7 +976,7 @@ lemma /*? me.to_interface.name ?*/_/*? m.name ?*/_internal_wp[/*? ', '.join(post
   /*? ' ' * (subgoals[0] - 1) ?*/apply clarsimp
 
   /*? ' ' * (subgoals[0] - 1) ?*/(* Instantiate the (post) contents of the IPC buffer. *)
-        /*- if m.return_type -*/
+        /*- if m.return_type is not none -*/
           /*- if m.return_type.type == 'int8_t' -*/
   /*? ' ' * (subgoals[0] - 1) ?*/apply (rule_tac x="scast rva" in exI) /*# FIXME: something more stable than rva here. #*/
           /*- elif m.return_type.type in ['uint8_t', 'char'] -*/
@@ -1071,7 +1071,7 @@ lemma /*? me.to_interface.name ?*/_/*? m.name ?*/_internal_wp[/*? ', '.join(post
 /*- set packed_payload = [] -*/
 /*- set distincts = {} -*/
 /*- set unfold_defs = set() -*/
-/*- if m.return_type -*/
+/*- if m.return_type is not none -*/
   /*- set packed_value = 'ret' -*/
   /*- if m.return_type.type in ['char', 'uint8_t', 'int8_t', 'uint16_t', 'int16_t'] -*/
     /*- do packed_payload.append(packed_value) -*/
@@ -1220,7 +1220,7 @@ lemma /*? me.from_interface.name ?*/_/*? m.name ?*/_unmarshal_wp[/*? ', '.join(p
 /*- set unmarshal_params = [] -*/
 /*- set postcondition_params = ['s0', 's'] -*/
 
-/*- if m.return_type -*/
+/*- if m.return_type is not none -*/
   /*- do postcondition_params.append('r') -*/
 /*- endif -*/
 
@@ -1461,7 +1461,7 @@ lemma /*? me.from_interface.name ?*/_/*? me.to_interface.name ?*/_/*? m.name ?*/
     /*- endif -*/
   /*- endif -*/
 
-  /*- if m.return_type -*/
+  /*- if m.return_type is not none -*/
     /*- if m.return_type.type == 'int8_t' -*/
   apply (rule_tac x="scast ru" in exI)
     /*- elif m.return_type.type in ['uint8_t', 'char'] -*/
@@ -1527,7 +1527,7 @@ lemma /*? me.from_interface.name ?*/_/*? me.to_interface.name ?*/_/*? m.name ?*/
     /*- endif -*/
   /*- endfor -*/
 
-  /*- if m.return_type or len(output_parameters) > 0 -*/
+  /*- if m.return_type is not none or len(output_parameters) > 0 -*/
     /*- if len(heap_update_fns) > 0 -*/
   apply (clarsimp simp:/*? ' '.join(heap_update_fns) ?*/)
     /*- else -*/
@@ -1538,7 +1538,7 @@ lemma /*? me.from_interface.name ?*/_/*? me.to_interface.name ?*/_/*? m.name ?*/
   /*# For some reason that's not clear to me, signed 64-bit return types cause
    *# part of the goal not to be solved by clarsimp alone.
    #*/
-  /*- if m.return_type and m.return_type.type == 'int64_t' -*/
+  /*- if m.return_type is not none and m.return_type.type == 'int64_t' -*/
   apply (metis chunk_64 ucast_scast_id)
   /*- endif -*/
 

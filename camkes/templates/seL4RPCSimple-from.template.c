@@ -74,7 +74,7 @@ static void /*? me.from_interface.name ?*/_/*? m.name ?*/_call(unsigned int leng
 
 /*- set output_parameters = filter(lambda('x: x.direction in [\'inout\', \'out\']'), m.parameters) -*/
 static
-/*- if m.return_type -*/
+/*- if m.return_type is not none -*/
     /*? m.return_type.type ?*/
 /*- else -*/
     void
@@ -100,7 +100,7 @@ static
     unsigned int /*? mr ?*/ = 0;
 
     /*- set ret = c_symbol('ret') -*/
-    /*- if m.return_type -*/
+    /*- if m.return_type is not none -*/
         /*? m.return_type.type ?*/ /*? ret ?*/ =
             (/*? m.return_type.type ?*/)seL4_GetMR(/*? mr ?*/);
         /*? mr ?*/++;
@@ -123,12 +123,12 @@ static
         /*- endif -*/
     /*- endfor -*/
 
-    /*- if m.return_type -*/
+    /*- if m.return_type is not none -*/
         return /*? ret ?*/;
     /*- endif -*/
 }
 
-/*- if m.return_type -*/
+/*- if m.return_type is not none -*/
     /*? show(m.return_type) ?*/
 /*- else -*/
     void
@@ -173,7 +173,7 @@ static
     /*? me.from_interface.name ?*/_/*? m.name ?*/_call(/*? mr ?*/);
 
     /* Unmarshal the response */
-    /*- if m.return_type -*/
+    /*- if m.return_type is not none -*/
         /*- set ret = c_symbol('ret') -*/
         /*? m.return_type.type ?*/ /*? ret ?*/ =
     /*- endif -*/
@@ -186,7 +186,7 @@ static
         /*- endfor -*/
     );
 
-    /*- if m.return_type -*/
+    /*- if m.return_type is not none -*/
         return /*? ret ?*/;
     /*- endif -*/
 }

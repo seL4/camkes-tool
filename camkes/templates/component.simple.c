@@ -174,7 +174,7 @@ typedef struct camkes_untyped {
     int size_bits;
 } camkes_untyped_t;
 typedef struct camkes_simple_data {
-/*- if cnodesize == None -*/
+/*- if cnodesize is none -*/
     int cnodesizebits;
 /*- endif -*/
     camkes_untyped_t untyped[/*? len(untyped_obj_list) ?*/];
@@ -282,7 +282,7 @@ static seL4_CPtr simple_camkes_init_cap(void *data, seL4_CPtr cap) {
 }
 
 static uint8_t simple_camkes_cnode_size(void *data) {
-    /*- if cnodesize == None -*/
+    /*- if cnodesize is none -*/
         camkes_simple_data_t *camkes = (camkes_simple_data_t *)data;
         return camkes->cnodesizebits;
     /*- else -*/
@@ -396,7 +396,7 @@ static uintptr_t make_frame_get_paddr(seL4_CPtr untyped) {
 
 void camkes_make_simple(simple_t *simple) {
     if (!camkes_simple_init) {
-        /*- if cnodesize == None -*/
+        /*- if cnodesize is none -*/
             /* Guess the size of our cnode by rounding */
             /*# If there is no size specified in the configuration then we assume the cnode
                 will be as small as possible to hold all the capabilities that are currently

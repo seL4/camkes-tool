@@ -93,7 +93,7 @@ int /*? me.from_interface.name ?*/__run(void) {
 /*- include 'unmarshal-outputs.c' -*/
 
 /*- set ret_tls_var = c_symbol('ret_tls_var_from') -*/
-/*- if m.return_type -*/
+/*- if m.return_type is not none -*/
   /*# We will need to take the address of a value representing this return
    *# value at some point. Construct a TLS variable.
    #*/
@@ -119,7 +119,7 @@ int /*? me.from_interface.name ?*/__run(void) {
   /*- endif -*/
 /*- endif -*/
 
-/*- if m.return_type -*/
+/*- if m.return_type is not none -*/
     /*? show(m.return_type) ?*/
 /*- else -*/
     void
@@ -199,7 +199,7 @@ int /*? me.from_interface.name ?*/__run(void) {
 
     /*- set ret_val = c_symbol('return') -*/
     /*- set ret_ptr = c_symbol('return_ptr') -*/
-    /*- if m.return_type -*/
+    /*- if m.return_type is not none -*/
       /*- if m.return_type.array -*/
         /*- if isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string' -*/
           char ** /*? ret_val ?*/ UNUSED;
@@ -222,7 +222,7 @@ int /*? me.from_interface.name ?*/__run(void) {
     unsigned int /*? length ?*/ = /*- include 'call-marshal-inputs.c' -*/;
     if (unlikely(/*? length ?*/ == UINT_MAX)) {
         /* Error in marshalling; bail out. */
-        /*- if m.return_type -*/
+        /*- if m.return_type is not none -*/
             /*- if m.return_type.array or (isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string')  -*/
                 return NULL;
             /*- else -*/
@@ -265,7 +265,7 @@ int /*? me.from_interface.name ?*/__run(void) {
     int /*? err ?*/ = /*- include 'call-unmarshal-outputs.c' -*/;
     if (unlikely(/*? err ?*/ != 0)) {
         /* Error in unmarshalling; bail out. */
-        /*- if m.return_type -*/
+        /*- if m.return_type is not none -*/
             /*- if m.return_type.array or (isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string')  -*/
                 return NULL;
             /*- else -*/
@@ -279,7 +279,7 @@ int /*? me.from_interface.name ?*/__run(void) {
 
     _TIMESTAMP("unmarshalling done");
 
-    /*- if m.return_type -*/
+    /*- if m.return_type is not none -*/
         return * /*? ret_ptr ?*/;
     /*- endif -*/
 }

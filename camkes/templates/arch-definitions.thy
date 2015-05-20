@@ -44,19 +44,19 @@ begin
     /*- endif -*/
 /*- endmacro -*/
 
-/*- if me.name -*/
+/*- if me.name is not none -*/
     /*- set assembly = me.name -*/
 /*- else -*/
     /*- set assembly = 'assembly\'' -*/
 /*- endif -*/
 
-/*- if me.composition.name -*/
+/*- if me.composition.name is not none -*/
     /*- set composition = me.composition.name -*/
 /*- else -*/
     /*- set composition = 'composition\'' -*/
 /*- endif -*/
 
-/*- if me.configuration and me.configuration.name -*/
+/*- if me.configuration is not none and me.configuration.name is not none -*/
     /*- set configuration = me.configuration.name -*/
 /*- else -*/
     /*- set configuration = 'configuration\'' -*/

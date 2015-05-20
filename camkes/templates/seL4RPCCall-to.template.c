@@ -21,4 +21,3 @@
 /*- set base = base if buffer is none else buffer -*/
 
 /*- include 'rpc-connector-common-to.c' -*/
-
