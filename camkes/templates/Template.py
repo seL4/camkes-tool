@@ -177,7 +177,7 @@ TEMPLATES = {
 PLATFORMS = TEMPLATES.keys()
 
 class Templates(object):
-    def __init__(self, platform, **kwargs):
+    def __init__(self, platform):
         assert platform in TEMPLATES
         self.base = TEMPLATES[platform]
         self.roots = [os.path.abspath(os.path.dirname(__file__))]
