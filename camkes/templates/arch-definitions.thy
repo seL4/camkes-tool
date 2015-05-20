@@ -8,7 +8,7 @@
  *# @TAG(NICTA_BSD)
  #*/
 
-theory /*? splitext(os.path.basename(options.outfile.name))[0] ?*/ imports
+theory /*? os.path.splitext(os.path.basename(options.outfile.name))[0] ?*/ imports
     Types_CAMKES
     Library_CAMKES
     Wellformed_CAMKES

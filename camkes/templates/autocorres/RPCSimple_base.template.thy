@@ -1,5 +1,5 @@
 /*# Setup #*/
-/*- set thy = splitext(os.path.basename(options.outfile.name))[0] -*/
+/*- set thy = os.path.splitext(os.path.basename(options.outfile.name))[0] -*/
 /*- set interface = me.from_interface.type -*/
 /*- set have_heap = {8: False, 16: False, 32: False, 64: False} -*/
 /*- set used_types = set() -*/
