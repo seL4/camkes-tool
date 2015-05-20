@@ -38,13 +38,12 @@
 
 /*- set BUFFER_BASE = c_symbol('BUFFER_BASE') -*/
 /*- set base = '((void*)&seL4_GetIPCBuffer()->msg[0])' -*/
-/*- set userspace_ipc = False -*/
 /*- set buffer = configuration[me.from_instance.name].get('%s_buffer' % me.from_interface.name) -*/
 /*- if buffer is not none -*/
-    /*- set base = buffer -*/
-    /*- set userspace_ipc = True -*/
-    extern void * /*? base ?*/;
+    extern void * /*? buffer ?*/;
 /*- endif -*/
+/*- set userspace_ipc = buffer is not none -*/
+/*- set base = base if buffer is none else buffer -*/
 #define /*? BUFFER_BASE ?*/ /*? base ?*/
 
 /*- set methods_len = len(me.from_interface.type.methods) -*/
