@@ -8,7 +8,9 @@
 # @TAG(NICTA_BSD)
 #
 
-class DeterministicSet(list):
+import collections
+
+class DeterministicSet(collections.MutableSet):
     '''A replica of the native Python set type, designed to be deterministic in
     the order in which it returns its contents. Python's set type has the
     unfortunate property that contained elements are ordered (in the context of
@@ -17,25 +19,28 @@ class DeterministicSet(list):
     at http://docs.python.org/dev/reference/datamodel.html#object.__hash__).
     The effect of this is that, when we use a set in a template, the template
     can be rendered differently across different executions of the runner. This
-    is undesirable for many reasons.
-
-    Note that only the bare minimum functions we need are implemented below. To
-    make this more complete, the remaining set functions should be implemented
-    and any dangerous underlying list functions should be masked.'''
+    is undesirable for many reasons.'''
 
     def __init__(self, iterable=None):
-        unique = []
+        self._elements = []
         for i in iterable or []:
-            if i not in unique:
-                unique.append(i)
-        super(DeterministicSet, self).__init__(unique)
+            self.add(i)
 
     def add(self, elem):
-        if elem not in self:
-            self.append(elem)
+        if elem not in self._elements:
+            self._elements.append(elem)
 
-    def union(self, *others):
-        for o in others:
-            for i in o:
-                if i not in self:
-                    self.append(i)
+    def __contains__(self, elem):
+        return elem in self._elements
+
+    def discard(self, elem):
+        try:
+            self._elements.remove(elem)
+        except ValueError:
+            pass
+
+    def __iter__(self):
+        return iter(self._elements)
+
+    def __len__(self):
+        return len(self._elements)
