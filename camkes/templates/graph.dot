@@ -13,7 +13,7 @@ digraph {
 /*- endfor -*/
 
 /*- for c in composition.connections -*/
-    /*- if c.type.name == 'seL4RPC' -*/
+    /*- if c.type.name in ('seL4RPC', 'seL4RPCCall') -*/
         /*? c.name ?*/ [shape=circle];
         /*? c.from_instance.name ?*/ -> /*? c.name ?*/;
         /*? c.name ?*/ -> /*? c.to_instance.name ?*/;
