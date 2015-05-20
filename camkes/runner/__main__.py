@@ -619,7 +619,7 @@ def merge_assembly(dest, source, instance):
                                 % (s.value, instance.name))
 
             if s.instance in nested_instance_attributes and \
-                s.atttribute in nested_instance_attributes[s.instance] and \
+                s.attribute in nested_instance_attributes[s.instance] and \
                 reference in instance_attributes:
 
                 # the referer and referent are both user-defined types, so they
