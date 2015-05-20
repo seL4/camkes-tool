@@ -170,7 +170,6 @@ def new_context(entity, assembly, obj_space, cap_space, shmem, **kwargs):
         'reversed':reversed,
         'set':DeterministicSet,
         'str':str,
-        'splitext':os.path.splitext,
         'arch':os.environ.get('ARCH', ''),
         'ord':ord,
         'chr':chr,
