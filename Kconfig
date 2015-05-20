@@ -15,16 +15,6 @@ menuconfig LIB_SEL4_MUSLC_CAMKES
     help
         Minimal Musl C backend for CAmkES.
 
-config LIB_SEL4_MUSLC_CAMKES_MORECORE_BYTES
-    int "Malloc limit"
-    default 1048576
-    depends on LIB_SEL4_MUSLC_CAMKES
-    help
-        This value sets the number of bytes reserved for the region malloc
-        allocates from. Note that you won't actually be able to allocate this
-        entire amount because there is some bookkeeping overhead. This area is
-        allocated statically.
-
 config LIB_SEL4_MUSLC_CAMKES_CPIO_FS
     bool "Implementation of a simple file system using CPIO archives"
     default false

@@ -24,92 +24,6 @@
 #include <sel4utils/util.h>
 #include <sel4utils/mapping.h>
 
-/* If we have a nonzero static morecore then we are just doing dodgy hacky morecore */
-#if CONFIG_LIB_SEL4_MUSLC_CAMKES_MORECORE_BYTES > 0
-
-/*
- * Statically allocated morecore area.
- *
- * This is rather terrible, but is the simplest option without a
- * huge amount of infrastructure.
- */
-char morecore_area[CONFIG_LIB_SEL4_MUSLC_CAMKES_MORECORE_BYTES];
-
-/* Pointer to free space in the morecore area. */
-static uintptr_t morecore_base = (uintptr_t) &morecore_area;
-static uintptr_t morecore_top = (uintptr_t) &morecore_area[CONFIG_LIB_SEL4_MUSLC_CAMKES_MORECORE_BYTES];
-
-/* Actual morecore implementation
-   returns 0 if failure, returns newbrk if success.
-*/
-
-long
-sys_brk(va_list ap)
-{
-
-    uintptr_t ret;
-    uintptr_t newbrk = va_arg(ap, uintptr_t);
-
-    /*if the newbrk is 0, return the bottom of the heap*/
-    if (!newbrk) {
-		ret = morecore_base;
-    } else if (newbrk < morecore_top && newbrk > (uintptr_t)&morecore_area[0]) {
-		ret = morecore_base = newbrk;
-    } else {
-		ret = 0;
-    }
-
-    return ret;
-}
-
-/* Large mallocs will result in muslc calling mmap, so we do a minimal implementation
-   here to support that. We make a bunch of assumptions in the process */
-long
-sys_mmap2(va_list ap)
-{
-    void *addr = va_arg(ap, void*);
-    size_t length = va_arg(ap, size_t);
-    int prot = va_arg(ap, int);
-    int flags = va_arg(ap, int);
-    int fd = va_arg(ap, int);
-    off_t offset = va_arg(ap, off_t);
-    (void)addr;
-    (void)prot;
-    (void)fd;
-    (void)offset;
-
-    if (flags & MAP_ANONYMOUS) {
-        /* Steal from the top */
-        uintptr_t base = morecore_top - length;
-        if (base < morecore_base) {
-            return -ENOMEM;
-        }
-        morecore_top = base;
-        return base;
-    }
-    assert(!"not implemented");
-    return -ENOMEM;
-}
-
-long
-sys_munmap(va_list ap)
-{
-    void *addr = va_arg(ap, void*);
-    size_t length = va_arg(ap, size_t);
-    (void)addr;
-    (void)length;
-    return 0;
-}
-
-long 
-sys_mremap(va_list ap)
-{
-    assert(!"not implemented");
-    return -ENOMEM;
-}
-
-#else
-
 /* dynamic morecore based on a vspace. These need to be defined somewhere (probably in the
  * main function of your app. And setup something like
     sel4utils_reserve_range_no_alloc(&vspace, &muslc_brk_reservation_memory, BRK_VIRTUAL_SIZE, seL4_AllRights, 1, &muslc_brk_reservation_start);
@@ -376,5 +290,3 @@ long sys_munmap(va_list ap)
 	assert(!"sys_munmap not implemented");
 	return 0;
 }
-
-#endif
