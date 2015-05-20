@@ -18,6 +18,13 @@ menu "CAmkES Options"
         Stack size to allocate per-component, in bytes. Note that this value
         should be page-aligned. If not, it will be rounded up.
 
+    config CAMKES_DEFAULT_HEAP_SIZE
+    int "Component heap size"
+    default 1048576
+    range 0 1073741824 # <-- 2^30
+    help
+        Heap size to allocate per-component, in bytes.
+
     config CAMKES_CPP
     bool "Pre-process with CPP"
     default n
