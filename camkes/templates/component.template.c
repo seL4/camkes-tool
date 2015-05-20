@@ -325,7 +325,7 @@ static void /*? init ?*/(void) {
     /*- endif -*/
     /*- for u in untyped_pool -*/
         /*- for i in range(u[1]) -*/
-            /*- if int(u[0]) > 28 or int(u[0]) < 4 -*/
+            /*- if not 4 <= int(u[0]) <= 28 -*/
                 /*? raise(Exception('illegal untyped size')) ?*/
             /*- endif -*/
             /*- set untyped = alloc('untyped_%s_pool_%d' % (u[0], i), seL4_UntypedObject, size_bits=int(u[0]), read=True, write=True) -*/
