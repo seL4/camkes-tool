@@ -148,6 +148,7 @@ def new_context(entity, assembly, obj_space, cap_space, shmem, **kwargs):
         # Expose some library functions
         'assert':_assert,
         'bool':bool,
+        'basestring':basestring,
         'enumerate':enumerate,
         'Exception':Exception,
         'filter':filter,
