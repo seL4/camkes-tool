@@ -1,8 +1,8 @@
 /*# We expect the following variables to be defined when this fragment is
  *# included.
  #*/
-/*? assert(isinstance(interface, str)) ?*/     /*# Name of this interface #*/
-/*? assert(isinstance(error_handler, str)) ?*/ /*# Symbol to use for creating error handler #*/
+/*? assert(isinstance(interface, basestring)) ?*/     /*# Name of this interface #*/
+/*? assert(isinstance(error_handler, basestring)) ?*/ /*# Symbol to use for creating error handler #*/
 
 /* The currently active error handler. This variable is marked UNUSED to squash
  * compiler warnings generated when the user's build configuration causes the

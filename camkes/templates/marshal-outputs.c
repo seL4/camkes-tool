@@ -1,16 +1,16 @@
 /*# We expect the following variables to be defined when this fragment is
  *# included.
  #*/
-/*? assert(isinstance(instance, str)) ?*/      /*# Name of this component instance #*/
-/*? assert(isinstance(interface, str)) ?*/     /*# Name of this interface #*/
-/*? assert(isinstance(name, str)) ?*/          /*# Name of this method #*/
-/*? assert(isinstance(function, str)) ?*/      /*# Name of function to create #*/
-/*? assert(isinstance(buffer, str)) ?*/        /*# Buffer symbol (or expression) to marshal into #*/
-/*? assert(isinstance(size, str)) ?*/          /*# Length of the buffer; possibly not generation-time constant #*/
+/*? assert(isinstance(instance, basestring)) ?*/      /*# Name of this component instance #*/
+/*? assert(isinstance(interface, basestring)) ?*/     /*# Name of this interface #*/
+/*? assert(isinstance(name, basestring)) ?*/          /*# Name of this method #*/
+/*? assert(isinstance(function, basestring)) ?*/      /*# Name of function to create #*/
+/*? assert(isinstance(buffer, basestring)) ?*/        /*# Buffer symbol (or expression) to marshal into #*/
+/*? assert(isinstance(size, basestring)) ?*/          /*# Length of the buffer; possibly not generation-time constant #*/
 /*? assert(isinstance(output_parameters, list)) ?*/   /*# All output parameters to this method #*/
 /*? assert(return_type == None or isinstance(return_type, camkes.ast.Type) or isinstance(return_type, camkes.ast.Reference)) ?*/
                                                /*# Return type of this interface #*/
-/*? assert(isinstance(error_handler, str)) ?*/ /*# Handler to invoke on error #*/
+/*? assert(isinstance(error_handler, basestring)) ?*/ /*# Handler to invoke on error #*/
 
 /*- set ret_fn = c_symbol('ret_fn') -*/
 /*- if return_type is not none -*/
