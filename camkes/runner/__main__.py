@@ -47,9 +47,9 @@ import camkes.parser as parser
 
 # Items that should never be cached as AST_keyed entries in the compilation
 # cache.
-NEVER_AST_CACHE = [
+NEVER_AST_CACHE = frozenset([
     'capdl', # Can't cache because it depends on ELF contents.
-]
+])
 
 def cache_relevant_options(opts):
     '''Return a list of tuples representing the cache-relevant command line
