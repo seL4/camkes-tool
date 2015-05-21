@@ -21,11 +21,6 @@ people wanting to modify the internals of CAmkES itself. Regardless of which
 section is most relevant for you, you should at least familiarise yourself with
 the [Terminology](#terminology) section.
 
-If you are familiar with CAmkES concepts and just need to forward port
-something from the older CAmkES implementation, jump to the
-[Legacy Implementation](#legacy-implementation) section.
-
-
 ## Terminology
 
 Throughout this document some domain specific terminology is used that may have
