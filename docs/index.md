@@ -473,12 +473,12 @@ apps/helloworld/components/Client/Client.camkes.
 Note that each component description needs to import the interface file we
 created above from apps/helloworld/interfaces. Import statements function
 similar to C's `#include`, in that they can be enclosed in double quotes and
-relative to the source file, or enclosed in angle brackets and refer to a
+are relative to the source file, or enclosed in angle brackets and refer to a
 built-in file. The Hello component is to contain an implementation of
 MyInterface and the Client component will expect to be provided with an
-implementation of MyInterface. The control keyword indicates that Client is what
-is called an active component. This means it will contain a main function
-(prototyped as run) and have an active thread of control.
+implementation of MyInterface. The `control` keyword indicates that Client is
+what is called an active component. This means it will contain a main function
+(prototyped as `run`) and have an active thread of control.
 
 Create a file to describe the instantiation and structure of the system at
 apps/helloworld/helloworld.camkes.
@@ -545,7 +545,7 @@ int run(void) {
 }
 ```
 
-The entry point of a CAmkES component is run.
+The entry point of a CAmkES component is `run`.
 
 The final thing is to add some build system boiler plate to be able to build
 the system. Create apps/helloworld/Kconfig for the build system menu:
@@ -617,7 +617,7 @@ it is possible to use another connection type here without modifying the code of
 the components themselves.
 
 CAmkES provides some interface types for other modes of interaction than
-function calls. Events can be used for asynchronous communication and data ports
+function calls. Events can be used for asynchronous communication and dataports
 for shared memory.
 
 #### An Example of Events
@@ -1190,7 +1190,7 @@ camkes.sh parser --input=camkes --output=camkes
 
 ### Modules
 
-Each subset of CAmkES functionality is encapsulate in a Python module that
+Each subset of CAmkES functionality is encapsulated in a Python module that
 defines exactly what functions and variables are exported. The APIs of these
 are described below and usage should be reasonably straightforward. To import
 any of these modules the top-level directory of this distribution should be in
@@ -1452,26 +1452,31 @@ The following functions are available at runtime:
   information, see the [DMA](#direct-memory-access) section below.
 
 **`void *camkes_io_map(void *cookie, uintptr_t paddr, size_t size, int cached, ps_mem_flags_t flags)`** (`#include <camkes/io.h>`)
+
 > Lookup the translation to virtual address from the physical address of a
   memory-mapped IO device. This function is primarily to ease interaction with
   libplatsupport infrastructure, so refer to its documentation where
   appropriate.
 
 **`int camkes_io_mapper(ps_io_mapper_t *mapper)`** (`#include <camkes/io.h>`)
+
 > Construct an IO mapping structure to pass to libplatsupport. See source
   comments for more information about how to use this.
 
 **`int camkes_io_ops(ps_io_ops_t *ops)`** (`#include <camkes/io.h>`)
+
 > Construct an IO operations structure to pass to libplatsupport. See source
   comments for more information about how to use this.
 
 **`int camkes_io_port_in(void *cookie, uint32_t port, int io_size, uint32_t *result)`** (`#include <camkes/io.h>`)
 **`int camkes_io_port_out(void *cookie, uint32_t port, int io_size, uint32_t val)`** (`#include <camkes/io.h>`)
+
 > Read from or write to a hardware IO port. This function is primarily to ease
   interaction with libplatsupport infrastructure, so refer to its documentation
   where appropriate.
 
 **`int camkes_io_port_ops(ps_io_port_ops_t *ops)`** (`#include <camkes/io.h>`)
+
 > Construct an IO port access structure to pass to libplatsupport. See source
   comments for more information about how to use this.
 
@@ -1541,7 +1546,6 @@ The following functions are available at runtime:
   provide. For each method in the procedure you are expected to provide a
   matching implementation. In a component that uses a procedure interface,
   functions of this form are available for you to call.
-  will expect.
 
 **`void`&nbsp;_`event`_`_emit(void)`** (`#include "`_`component`_`"`)
 
@@ -1810,6 +1814,7 @@ Each type of hardware component interface has some configuration required for it
 to work. This is done by setting attributes of instances of device components.
 
 ##### MMIO
+
 The physical address of the memory, and size (in bytes) to make available
 to a connected component must be specified. The example below specifies that
 the port named `mem` of the component instance `d` is a 0x1000 byte region
@@ -1834,6 +1839,7 @@ starting at physical address 0xE0000000.
     }
 
 ##### Interrupts
+
 The interrupt number must be specified. The example below specifies that
 the event will be emitted when interrupt number 2 is received.
 
@@ -1856,6 +1862,7 @@ the event will be emitted when interrupt number 2 is received.
     }
 
 ##### IO Ports
+
 The allowable range of IO Ports must be specified.
 The example below specifies that the hardware component instance
 `d` may access IO ports greater than or equal to 0x60, and less
@@ -2048,7 +2055,7 @@ of the instance can be set.
 
 CAmkES allows programmers to define an arbitrary number of assemblies for their application.
 Different assemblies may appear in different files, provided that they are appropriately
-included in the main ast file. At compile time, the bodies of each
+included in the main ADL file. At compile time, the bodies of each
 assembly are merged together, with all declared names remaining the same.
 Thus, naming conflicts can occur on items declared in different assemblies.
 
@@ -2420,68 +2427,60 @@ composition section, `attribute_name` is the name of an attribute of the entity,
 
 #### Example
 
-```
+    component B {
+      ...
+      attribute string b_str;
+    }
 
-component B {
-    ...
-    attribute string b_str;
-}
+    component A {
+      ...
+      attribute string a_str;
 
-component A {
-    ...
-    attribute string a_str;
-
-    composition {
+      composition {
         ...
         component B b;
-    }
-    configuration {
+      }
+      configuration {
         ...
         b.b_str <- a_str;
+      }
     }
-}
 
-assembly {
-    composition {
+    assembly {
+      composition {
         ...
         component A a;
-    }
-    configuration {
+      }
+      configuration {
         ...
         a.a_str = "Hello, World!";
+      }
     }
-}
-
-```
 
 This example is resolved to the following:
 
-```
+    component B {
+      ...
+      attribute string b_str;
+    }
 
-component B {
-    ...
-    attribute string b_str;
-}
+    component A {
+      ...
+      attribute string a_str;
+    }
 
-component A {
-    ...
-    attribute string a_str;
-}
-
-assembly {
-    composition {
+    assembly {
+      composition {
         ...
         component A a;
         component B a_b;
-    }
-    configuration {
+      }
+      configuration {
         ...
         a.a_str = "Hello, World!";
         a_b.b_str = "Hello, World!";
+      }
     }
-}
-
-```
 
 ### Custom Data Types
 
@@ -3243,7 +3242,7 @@ functionality of CAmkES.
 
 If you are modifying the actual sources of any of the CAmkES modules I've
 attempted
-to leave helpful comments. I've occassionally used tags in the comments that
+to leave helpful comments. I've occasionally used tags in the comments that
 may help you when grepping and whatnot. They mean:
 
 **FIXME**
