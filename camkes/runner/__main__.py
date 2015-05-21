@@ -525,13 +525,7 @@ def resolve_hierarchy(ast):
     assembly = get_assembly(ast)
 
     # modify the ast to resolve the hierarchy
-    new_assembly = resolve_assembly_hierarchy(assembly)
-
-    # remove the assembly from the ast
-    ast.remove(assembly)
-
-    # replace it with the new one
-    ast.append(new_assembly)
+    resolve_assembly_hierarchy(assembly)
 
     # remove all the component interfaces with virtual usage
     for c in [x for x in ast if isinstance(x, AST.Component)]:
@@ -656,41 +650,30 @@ def resolve_assembly_hierarchy(original):
        containing instances and connections in which any hierarchy below the
        given original are resolved.'''
 
-    # create empty assembly to populate
-    resolved = AST.Assembly(composition = AST.Composition(), configuration = AST.Configuration())
-
-    # non-composite components don't have any instances or connections
-    if original.composition is None:
-        return resolved
-
-    # copy the instances, connections, groups and configuration
-    resolved.composition.instances.extend(original.composition.instances)
-    resolved.composition.connections.extend(original.composition.connections)
-    resolved.composition.groups.extend(original.composition.groups)
-
-    if original.configuration is not None:
-        resolved.configuration.settings.extend(original.configuration.settings)
-        resolved.configuration.update_mapping()
+    # create an empty configuration if none exists to simplify merging elements of
+    # configurations of this assembly's children into this assembly's configuration
+    if original.configuration is None:
+        original.configuration = AST.Configuration()
     
     # recursively resolve hierarchy of instances
-    for i in original.composition.instances:
+    for i in original.composition.instances[:]:
 
         # if i is an instance of a compound component
         if i.type.composition is not None:
 
             # get the assembly from that component
-            # deepcopying prevents modifying the original component's composition's
+            # deepcopying prevents modifying the original component's
             # children, which must be preserved for future instantiation of the
             # component
-            resolved_instance = resolve_assembly_hierarchy(deepcopy(i.type))
+            resolved_assembly = deepcopy(i.type)
+            resolve_assembly_hierarchy(resolved_assembly)
 
             # rename assembly elements to indicate them as part of a sub assembly
-            prefix_children(i.name, resolved_instance)
+            prefix_children(i.name, resolved_assembly)
 
-            # merge it into the current assembly
-            merge_assembly(resolved, resolved_instance, i)
-
-    return resolved
+            # add any interfaces, connections, groups and settings of the now
+            # resolved child component to the current component
+            merge_assembly(original, resolved_assembly, i)
 
 def remove_interface(component, interface):
     '''Removes the given interface from the given component'''
