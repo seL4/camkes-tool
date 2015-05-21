@@ -2015,11 +2015,11 @@ virtual memory fault when threads underrun or overrun their stacks.
 ### Scheduling Domains
 
 In CAmkES, it is possible to specify the domain each thread belongs to, by setting attributes.
-Each interface of each component instance will have an associated thread. Additionally, components
-with a thread of control (indicated by the `control` keyword in their component definition) will
-have an additional thread. For interface threads, their domain can be specified by setting the
-attribute `<interface>_domain` of the instance. For control threads, the attribute `_control_domain`
-of the instance can be set.
+Each interface of each component instance will have an associated thread, and
+there will be an additional thread per-component to perform initialisation and
+optionally act as the control thread. For interface threads, their domain can be
+specified by setting the attribute `<interface>_domain` of the instance. For
+control threads, the attribute `_control_domain` of the instance can be set.
 
     component Foo {
       control;
