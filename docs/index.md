@@ -52,7 +52,7 @@ of these terms are made explicit below.
 **Assembly**
 
 > A top-level element that encapsulates a component system description. An
-  assembly can be thought of as a complete description of a full system. 
+  assembly can be thought of as a complete description of a full system.
   A system must contain at least one assembly. A system with more than one
   assembly is equivalent to a system with one assembly whose composition
   and configuration sections are the concatenation of the composition and
@@ -439,7 +439,7 @@ methods. Define an interface that the components will communicate over and save
 this under apps/helloworld/interfaces/MyInterface.idl4:
 
     /* apps/helloworld/interfaces/MyInterface.idl4 */
-     
+
     procedure MyInterface {
       void print(in string message);
     };
@@ -454,7 +454,7 @@ apps/helloworld/components/Hello/Hello.camkes and
 apps/helloworld/components/Client/Client.camkes.
 
     /* apps/helloworld/components/Hello/Hello.camkes */
-     
+
     import "../../interfaces/MyInterface.idl4";
 
     component Hello {
@@ -462,9 +462,9 @@ apps/helloworld/components/Client/Client.camkes.
     }
 
     /* apps/helloworld/components/Client/Client.camkes */
-        
+
     import "../../interfaces/MyInterface.idl4";
-         
+
     component Client {
       control;
       uses MyInterface iface;
@@ -512,10 +512,10 @@ Hello as apps/helloworld/components/Hello/src/hello.c:
 
 #include <Hello.h>
 #include <stdio.h>
- 
+
 void inf__init(void) {
 }
-  
+
 void inf_print(const char *message) {
   printf("Client says: %s\n", message);
 }
@@ -576,7 +576,7 @@ ADL := helloworld.camkes
 
 Client_CFILES = components/Client/src/client.c
 Hello_CFILES = components/Hello/src/hello.c
- 
+
 include ${SOURCE_DIR}/../../tools/camkes/camkes.mk
 ```
 
@@ -678,7 +678,7 @@ Note that this component consumes (handles) an event of the same type. Let's
 instantiate and connect these components together using another ADL file:
 
     /* apps/helloevent/helloevent.camkes */
-        
+
     import <std_connector.camkes>;
     import "components/Emitter/Emitter.camkes";
     import "components/Consumer/Consumer.camkes";
@@ -779,14 +779,14 @@ Let's define a struct that will be used as one of the dataports:
 
 ```c
 /* apps/hellodataport/include/porttype.h */
- 
+
 #ifndef _PORTTYPE_H_
 #define _PORTTYPE_H_
-  
+
 typedef struct MyData {
   char data[10];
 } MyData_t;
-   
+
 #endif
 ```
 
@@ -806,7 +806,7 @@ ln -s ../../../include/porttype.h \
 Now let's create an ADL description of the Ping component:
 
     /* apps/hellodataport/components/Ping/Ping.camkes */
-        
+
     import "Porttype.idl4";
 
     component Ping {
@@ -951,7 +951,7 @@ are described below. When an argument is only accepted by some of the tools,
 this is noted. If no limitation is mentioned then the argument is accepted by
 all tools.
 
-**--cache**, **-c**  
+**--cache**, **-c**
 **--cache-dir**
 
 > In a complicated system, the compilation itself can be quite time intensive.
@@ -971,7 +971,7 @@ all tools.
   runner. For details on how the cache works internally, refer to the
   [Template Cache](#template-cache) section.
 
-**--cpp**  
+**--cpp**
 **--nocpp**
 
 > Whether or not to run the C pre-processor over the ADL input specification
@@ -981,8 +981,8 @@ all tools.
   unlikely to run into any problems in this respect. This option is only
   available for the runner.
 
-**-D**, **--debug**  
-**-q**, **--quiet**  
+**-D**, **--debug**
+**-q**, **--quiet**
 **-v**, **--verbose**
 
 > Set the level of information and error reporting emitted. The last one of
@@ -1051,7 +1051,7 @@ all tools.
   template. The purpose of this is to allow you to manually tweak the output
   of a template on the fly during compilation.
 
-**--profiler**  
+**--profiler**
 **--profiler-log**
 
 > This option enables profiling of the runner's execution for the purpose of
@@ -1063,7 +1063,7 @@ all tools.
   intuitive. The --profiler-log option can be used to redirect the profiling
   data to somewhere other than stdout.
 
-**-r**, **--resolve-imports**  
+**-r**, **--resolve-imports**
 **-d**, **--dont-resolve-imports**
 
 > CAmkES specifications can contain `import` statements that are directives to
@@ -1073,7 +1073,7 @@ all tools.
   With import resolution disabled the imported files will not be opened and the
   resulting AST will still contain the original `import` statements.
 
-**-R**, **--resolve-references**  
+**-R**, **--resolve-references**
 **--dont-resolve-references**
 
 > After parsing the input specification(s) the tools will attempt to resolve
@@ -1099,14 +1099,14 @@ templates. They are only relevant to the runner. Note that most of these are
 highly seL4 specific and would make no sense in the context of another
 platform.
 
-**--frpc-lock-elision**  
+**--frpc-lock-elision**
 **--fno-rpc-lock-elision**
 
 > Locks are used within the seL4RPC connector templates to prevent threads
   interfering with each other's execution. When this option is enabled, CAmkES
   will determine when this lock is not required and remove it at compile-time.
 
-**--fcall-leave-reply-cap**  
+**--fcall-leave-reply-cap**
 **--fno-call-leave-reply-cap**
 
 > The seL4RPCCall connector needs to save a so-called reply cap on the
@@ -1116,7 +1116,7 @@ platform.
   CAmkES will detect these scenarios and operate on the reply cap in place to
   avoid extra syscalls.
 
-**--fspecialise-syscall-stubs**  
+**--fspecialise-syscall-stubs**
 **--fno-specialise-syscall-stubs**
 
 > In a system involving many small procedural interfaces which are individually
@@ -1130,7 +1130,7 @@ platform.
 The following options are all related to verification of templates outputs and
 are only relevant to the runner.
 
-**--fprovide-tcb-caps**  
+**--fprovide-tcb-caps**
 **--fno-provide-tcb-caps**
 
 > By default each thread gets a cap to its own TCB. The only purpose of this is
@@ -1138,7 +1138,7 @@ are only relevant to the runner.
   reasoning about a generated CapDL specification. This option elides these TCB
   caps at the cost of threads messily VM faulting when they exit.
 
-**--fsupport-init**  
+**--fsupport-init**
 **--fno-support-init**
 
 > By default, CAmkES provides a fairly rich initialisation environment. This
@@ -1419,7 +1419,7 @@ The following variables are available:
 
 The following functions are available at runtime:
 
-**`camkes_error_handler_t camkes_register_error_handler(camkes_error_handler_t handler)`** (`#include <camkes/error.h>`)  
+**`camkes_error_handler_t camkes_register_error_handler(camkes_error_handler_t handler)`** (`#include <camkes/error.h>`)
 **`camkes_error_handler_t `&nbsp;_`interface`_`_register_error_handler(camkes_error_handler_t handler)`** (`#include <camkes/error.h>`)
 
 > Register a component-wide or interface-specific error handler, respectively.
@@ -1427,7 +1427,7 @@ The following functions are available at runtime:
   previously installed error handler. For more information see
   [Error Handling](#error-handling).
 
-**`dataport_ptr_t dataport_wrap_ptr(void *ptr)`** (`#include <camkes/dataport.h>`)  
+**`dataport_ptr_t dataport_wrap_ptr(void *ptr)`** (`#include <camkes/dataport.h>`)
 **`void *dataport_unwrap_ptr(dataport_ptr_t ptr)`** (`#include <camkes/dataport.h>`)
 
 > Utility functions for creating and destroying a component-independent
@@ -1436,7 +1436,7 @@ The following functions are available at runtime:
   Unwrapping will fail if the underlying pointer is not into a dataport that is
   shared with the receiver. `dataport_unwrap_ptr` returns `NULL` on failure.
 
-**`void *camkes_dma_alloc(size_t size, int align)`** (`#include <camkes/dma.h>`)  
+**`void *camkes_dma_alloc(size_t size, int align)`** (`#include <camkes/dma.h>`)
 **`void camkes_dma_free(void *ptr, size_t size)`** (`#include <camkes/dma.h>`)
 
 > Allocator for DMA device operations. These are closely linked with the DMA
@@ -1755,7 +1755,7 @@ Declaring a component with the `hardware` keyword creates a hardware component.
     }
 
 When an interface of a device component instance is connected to a regular
-component, that component gets access to that device via some 
+component, that component gets access to that device via some
 hardware interface (interface here refers to a means of interacting with
 hardware - not a CAmkES interface).
 The type of hardware interface depends on the type of CAmkES interface,
@@ -1766,8 +1766,8 @@ corresponding hardware interfaces are listed below.
 **Keyword:** `provides`               \
 **Connector:** `seL4HardwareIOPort`   \
 **Description:**
-When using `IOPort` as the interface type, this provides access to IO ports. The connected 
-component gets access to the methods in the `IOPort` interface, which allow sending and receiving 
+When using `IOPort` as the interface type, this provides access to IO ports. The connected
+component gets access to the methods in the `IOPort` interface, which allow sending and receiving
 data over IO ports. This is specific to the IA32 architecture.
 
 **Interface:** event                    \
@@ -1858,12 +1858,12 @@ the event will be emitted when interrupt number 2 is received.
 ##### IO Ports
 The allowable range of IO Ports must be specified.
 The example below specifies that the hardware component instance
-`d` may access IO ports greater than or equal to 0x60, and less 
+`d` may access IO ports greater than or equal to 0x60, and less
 than 0x64.
 
     component Device {
       hardware;
-        
+
       provides IOPort io_port;
       ...
     }
@@ -2069,7 +2069,7 @@ Thus, naming conflicts can occur on items declared in different assemblies.
     }
 
 The example above is equivalent to:
-    
+
     assembly {
       composition {
         component Foo f;
@@ -2102,7 +2102,7 @@ if there is a composition.
       composition {
         component Foo_Impl fi;
         connection ExportRPC exp(from a, to fi.a_impl);
-      } 
+      }
       configuration {
         fi.str = "Hello, World!";
       }
@@ -2127,11 +2127,11 @@ which is exported from the interface `a_impl` of the component instance `fi` of 
 #### Hierarchy Resolution
 
 Prior to compilation, the AST representing the system is transformed to remove all
-hierarchical components. For each instance of a compound component, any internal instances 
+hierarchical components. For each instance of a compound component, any internal instances
 and internal connections declared
 inside the component are copied into the top-level assembly with the compound component instance's
-name prepended to their own. 
-Each appearance of a virtual interface of some compound component instance 
+name prepended to their own.
+Each appearance of a virtual interface of some compound component instance
 in a connection in the top-level assembly, is replaced
 with the exported interface of the internal instance copied into the top-level assembly
 while resolving that compound component instance.
@@ -2140,12 +2140,12 @@ If this results in any components with no interfaces, these components, and all 
 of such components, are removed from the specification.
 
 The example above would be converted into the following:
-     
+
     component Foo_Impl {
       provides iface_a a_impl;
       attribute string str;
     }
-    
+
     component Bar {
       control;
       uses iface_a a;
@@ -2164,7 +2164,7 @@ The example above would be converted into the following:
 #### Export Connectors
 
 The `ExportRPC` connector in the example above is an Export Connector.
-Recall from the [Terminology](#terminology) section, that an export connector associates 
+Recall from the [Terminology](#terminology) section, that an export connector associates
 a virtual interface of a compound component
 with an interface of an internal instance declared in the composition section
 of that component. `ExportRPC` can be used to export procedural interfaces.
@@ -2185,10 +2185,10 @@ appear on the `to` side, or the `from` side of their respective connections.
 
       composition {
         component Foo_Impl fi;
-        
+
         // fi.a_impl is the exported interface, and appears on the 'to' side
-        connection ExportRPC exp(from a, to fi.a_impl); 
-      } 
+        connection ExportRPC exp(from a, to fi.a_impl);
+      }
     }
 
     component Bar {
@@ -2200,7 +2200,7 @@ appear on the `to` side, or the `from` side of their respective connections.
       composition {
         component Foo f;
         component Bar b;
-        
+
         // f.a is the virtual interface, and appears on the 'to' side
         connection seL4RPC c(from b.a, to f.a);
       }
@@ -2213,14 +2213,15 @@ definition, and the virtual interface `f.a` in the top-level assembly, both appe
 #### Examples
 
 ##### Connecting multiple compound components
+
 It's possible for both sides of a connection to be virtual interfaces:
-    
+
     component Foo_Impl {
       provides iface_a a_impl;
     }
 
     component Bar_Impl {
-      uses iface_a a_usage; 
+      uses iface_a a_usage;
     }
 
     component Foo {
@@ -2229,7 +2230,7 @@ It's possible for both sides of a connection to be virtual interfaces:
       composition {
         component Foo_Impl fi;
         connection ExportRPC exp(from a, to fi.a_impl);
-      } 
+      }
     }
 
     component Bar {
@@ -2256,7 +2257,7 @@ This example compiles to:
     }
 
     component Bar_Impl {
-      uses iface_a a_usage; 
+      uses iface_a a_usage;
     }
 
     assembly {
@@ -2289,7 +2290,7 @@ A component can have both virtual and implemented interfaces:
       uses iface_a a;
       uses iface_b b;
     }
-    
+
     assembly {
       composition {
         component Foo f;
@@ -2300,7 +2301,7 @@ A component can have both virtual and implemented interfaces:
     }
 
 This example compiles to:
-    
+
     component Foo_Impl {
       provides iface_a a_impl;
     }
@@ -2313,7 +2314,7 @@ This example compiles to:
       uses iface_a a;
       uses iface_b b;
     }
-    
+
     assembly {
       composition {
         component Foo f;
@@ -2388,7 +2389,7 @@ This example compiles to:
     assembly {
       composition {
         component Bar b;
-            
+
         component A_Piece1 f_fi_a1;
         component A_Piece2 f_fi_a2;
 
@@ -2505,7 +2506,7 @@ typedef struct {
 ```
 
 A procedural interface could then be defined to use the type:
-    
+
     procedure algebra_iface {
       include <vector.h>;
       Vector add(Vector a, Vector b);
@@ -2603,7 +2604,7 @@ global components and interfaces.
 #### Simple Example
 
 This example will demonstrate an application called pythagoras that computes
-the length of the hypotenuse of a right-angle triangle using the Pythagorean 
+the length of the hypotenuse of a right-angle triangle using the Pythagorean
 theorem. All paths in this example are relative to the project root.
 
 Two additional directories are created in the project root directory:
@@ -2633,9 +2634,7 @@ some global include directory (in this case, the components directory).
     /* apps/pythagoras/pythagoras.camkes */
 
     import <std_connector.camkes>;
-
     import <Math/Math.camkes>;
-
     import "components/Client/Client.camkes";
 
     assembly {
@@ -2647,7 +2646,7 @@ some global include directory (in this case, the components directory).
       }
     }
 
-The client's component definition (.camkes) is located inside the application 
+The client's component definition (.camkes) is located inside the application
 directory. Note again the angle brackets around MathIface/MathIface.camkes.
 This file contains the interface provided by the Math component, and is
 located in a global include directory (the interfaces directory).
@@ -2678,7 +2677,7 @@ int run(void) {
   double a = 3;
   double b = 4;
   double c = pythag(a, b);
-  
+
   printf("pythag(%2f, %2f) == %2f\n", a, b, c);
 
   return 0;
@@ -2687,7 +2686,7 @@ int run(void) {
 
 The .c file implementing the externally-defined Math component must be known
 to the build system so it can be compiled. This is achieved by including
-a component Makefile (Math.mk) in the application's Makefile. 
+a component Makefile (Math.mk) in the application's Makefile.
 A component Makefile lists the .c and .h files required by a global component,
 in the same way as the application Makefile below lists the .c and .h
 files required by the local component `Client`.
@@ -2709,7 +2708,7 @@ include ${PWD}/tools/camkes/camkes.mk
 ```
 
 The interface `MathIface` is defined as normal:
-    
+
     /* interfaces/MathIface/MathIface.camkes */
 
     procedure MathIface {
@@ -2774,7 +2773,7 @@ Math_HFILES := $(wildcard ${BASE_DIR}/include/*.h)
 #### Example involving Custom Procedure Type
 
 The example above will be extended to include some basic vector arithmetic
-operations. This will require the definition of a vector data type. 
+operations. This will require the definition of a vector data type.
 The vector type is defined with the `MathIface` interface:
 
 ```c
@@ -2793,14 +2792,13 @@ typedef struct {
 
 The client source will be modified to include an implementation
 of vector projection composed from simpler vector operations, which will
-be implemented in the `Math` global component. 
+be implemented in the `Math` global component.
 
 ```c
 /* apps/pythagoras/components/Client/src/main.c */
 
 #include <Client.h>
 #include <stdio.h>
-
 #include <vec.h>
 
 double pythag(double a, double b) {
@@ -2816,7 +2814,7 @@ int run(void) {
   double a = 3;
   double b = 4;
   double c = pythag(a, b);
-  
+
   printf("pythag(%2f, %2f) == %2f\n", a, b, c);
 
   vec_t x_axis = (vec_t) {.x = 1, .y = 0};
@@ -2830,7 +2828,7 @@ int run(void) {
 }
 ```
 
-Note that vec.h is included in the above code listing. 
+Note that vec.h is included in the above code listing.
 The process by which vec.h is added to the include path for this
 project is as follows.
 
@@ -2925,10 +2923,10 @@ include ${PWD}/tools/camkes/camkes.mk
 
 The example in this section will demonstrate defining a custom type
 for a port in a global component. The previous
-example will be extended to include a method which computes the nth 
-complex roots of unity for an argument `n` - an operation which results 
+example will be extended to include a method which computes the nth
+complex roots of unity for an argument `n` - an operation which results
 in `n` values. For each positive integer `n`, the nth roots of unity are the
-`n` complex numbers which, when raised to the power of `n`, result in a value of 1. 
+`n` complex numbers which, when raised to the power of `n`, result in a value of 1.
 A port will be used to pass the results of this operation from the `Math`
 global component to the `Client` component.
 
@@ -2964,7 +2962,7 @@ A new port interface must be added to the `Math` and `Client` components:
 
     component Math {
       provides MathIface m;
-      
+
       include <complex_arr.h>;
       dataport complex_arr_t complex_data;
     }
@@ -2978,7 +2976,7 @@ A new port interface must be added to the `Math` and `Client` components:
       control;
 
       uses MathIface math;
-      
+
       include <complex_arr.h>;
       dataport complex_arr_t complex_data;
     }
@@ -2991,7 +2989,7 @@ A new connection is added to the top level .camkes file:
     assembly {
       composition {
         ...
-        connection seL4SharedData d(from client.complex_data, 
+        connection seL4SharedData d(from client.complex_data,
                                     to math.complex_data);
       }
     }
@@ -3004,7 +3002,7 @@ for this to include the header file defining complex numbers.
     /* interfaces/MathIface/MathIface.camkes */
 
     procedure MathIface {
-      
+
       ...
 
       int compute_roots_of_unity(in int n);
@@ -3054,7 +3052,7 @@ int run(void) {
   if (math_compute_roots_of_unity(4) == 0) {
     printf("%dth roots of unity:\n", n);
     for (int i=0;i<4;i++) {
-      printf("%2f + %2fi\n", complex_data->data[i].real, 
+      printf("%2f + %2fi\n", complex_data->data[i].real,
                              complex_data->data[i].imaginary);
     }
   }
@@ -3100,7 +3098,6 @@ Client_HFILES := ${MathIface_EXPORT_HFILES} \
 
 include ${PWD}/tools/camkes/camkes.mk
 ```
-
 
 ## Templating
 
