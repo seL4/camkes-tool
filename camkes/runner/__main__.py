@@ -507,7 +507,6 @@ def main():
     # point, we know the user did not request a code template.
     try:
         template = templates.lookup(options.item)
-        g = ''
         if template:
             with profiler('Rendering %s' % options.item):
                 g = r.render(assembly, assembly, template, obj_space, None, \
