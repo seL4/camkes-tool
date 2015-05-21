@@ -146,6 +146,8 @@ def new_context(entity, assembly, obj_space, cap_space, shmem, **kwargs):
         'isabelle_symbol':partial(symbol, '%(tag)s%(counter)d\'', 's'),
 
         # Expose some library functions
+        'any':any,
+        'all':all,
         'assert':_assert,
         'bool':bool,
         'enumerate':enumerate,
