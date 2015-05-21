@@ -475,45 +475,34 @@ def main():
     die('No valid element matching --item %s' % options.item)
 
 def compose_assemblies(ast):
-    # parts of assembly
-    instances = []
-    connections = []
-    groups = []
-    settings = []
 
-    filename = None
-    lineno = -1
+    assemblies = [x for x in ast if isinstance(x, AST.Assembly)]
+    num_assemblies = len(assemblies)
 
-    # collect pieces from all assemblies
-    for a in [x for x in ast if isinstance(x, AST.Assembly)]:
+    if num_assemblies == 0:
+        raise Exception("No assembly found")
+    elif num_assemblies == 1:
+        # no need to combine assemblies
+        return
 
-        if filename == None:
-            filename = a.filename
+    first_assembly = assemblies[0]
 
-        if lineno == -1:
-            lineno = a.lineno
+    # make sure the first assembly has a configuration to simplify merging other
+    # assemblies into it
+    if first_assembly.configuration is None:
+        first_assembly.configuration = AST.Configuration()
 
-        instances.extend(a.composition.instances)
-        connections.extend(a.composition.connections)
-        groups.extend(a.composition.groups)
+    for a in assemblies[1:]:
+        first_assembly.composition.instances.extend(a.composition.instances)
+        first_assembly.composition.connections.extend(a.composition.connections)
+        first_assembly.composition.groups.extend(a.composition.groups)
 
         if a.configuration is not None:
-            settings.extend(a.configuration.settings)
+            first_assembly.configuration.settings.extend(a.configuration.settings)
 
-    # create an assembly composed from all the pieces
-    composite_assembly = AST.Assembly(None,
-                            AST.Composition(None, instances, connections, groups),
-                            AST.Configuration(None, settings),
-                            filename, lineno
-                        )
-
-    # remove all the assemblies from ast
-    assemblies = [x for x in ast if isinstance(x, AST.Assembly)]
-    for a in assemblies:
         ast.remove(a)
 
-    # add the new composite assembly
-    ast.append(composite_assembly)
+    first_assembly.configuration.update_mapping()
 
 def get_assembly(ast):
     assembly = [x for x in ast if isinstance(x, AST.Assembly)]
