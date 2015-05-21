@@ -1037,8 +1037,10 @@ all tools.
 
 > The target output platform. This determines some aspects of the environment
   that the template being rendered is expected to function in. This option is
-  only relevant to the runner. Valid platforms are "seL4", "Linux" and "CIMP",
-  the last being a verification framework.
+  only relevant to the runner. Valid platforms are "architecture-semantics",
+  "autocorres", "CIMP", "GraphViz" and "seL4". The "GraphViz" option is for
+  producing visual representations of a system and the "seL4" option is for
+  producing binaries. All other platforms are verification frameworks.
 
 **--post-render-edit**
 
