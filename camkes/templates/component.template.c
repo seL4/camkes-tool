@@ -314,18 +314,16 @@ static void /*? init ?*/(void) {
     /*- endfor -*/
     /*- set untyped_pool = [] -*/
     /*- if configuration is not none -*/
-        /*- for s in configuration.settings -*/
-            /*- if s.instance == me.name -*/
-                /*- set r = re.match('untyped([0-9]+)_pool', s.attribute) -*/
-                /*- if r is not none -*/
-                    /*- do untyped_pool.append((r.group(1), s.value)) -*/
-                /*- endif -*/
+        /*- for attribute, value in configuration[me.name].items() -*/
+            /*- set r = re.match('untyped(\\d+)_pool', attribute) -*/
+            /*- if r is not none -*/
+                /*- do untyped_pool.append((r.group(1), value)) -*/
             /*- endif -*/
         /*- endfor -*/
     /*- endif -*/
     /*- for u in untyped_pool -*/
         /*- for i in range(u[1]) -*/
-            /*- if int(u[0]) > 28 or int(u[0]) < 4 -*/
+            /*- if not 4 <= int(u[0]) <= 28 -*/
                 /*? raise(Exception('illegal untyped size')) ?*/
             /*- endif -*/
             /*- set untyped = alloc('untyped_%s_pool_%d' % (u[0], i), seL4_UntypedObject, size_bits=int(u[0]), read=True, write=True) -*/
