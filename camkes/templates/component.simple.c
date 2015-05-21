@@ -32,20 +32,17 @@
 
 /*# Find any untyped pools #*/
 /*- set untyped_obj_list = [] -*/
-/*- for s in configuration.settings -*/
-    /*- if s.instance == me.name -*/
-        /*- set r = re.match('simple_untyped([0-9]+)_pool', s.attribute) -*/
-        /*- if r is not none -*/
-            /*- set bits = r.group(1) -*/
-            /*- set count = s.value -*/
-            /*- for i in range(count) -*/
-                /*- if int(bits) > 28 or int(bits) < 4 -*/
-                    /*? raise(Exception('illegal untyped size')) ?*/
-                /*- endif -*/
-                /*- set untyped = alloc('simple_untyped_%s_pool_%d' % (bits, i), seL4_UntypedObject, size_bits=int(bits), read=True, write=True) -*/
-                /*- do untyped_obj_list.append((untyped, bits)) -*/
-            /*- endfor -*/
-        /*- endif -*/
+/*- for attribute, value in configuration[me.name].items() -*/
+    /*- set r = re.match('simple_untyped(\\d+)_pool', attribute) -*/
+    /*- if r is not none -*/
+        /*- set bits = int(r.group(1)) -*/
+        /*- for i in range(value) -*/
+            /*- if not 4 <= bits <= 28 -*/
+                /*? raise(Exception('illegal untyped size')) ?*/
+            /*- endif -*/
+            /*- set untyped = alloc('simple_untyped_%d_pool_%d' % (bits, i), seL4_UntypedObject, size_bits=bits, read=True, write=True) -*/
+            /*- do untyped_obj_list.append((untyped, bits)) -*/
+        /*- endfor -*/
     /*- endif -*/
 /*- endfor -*/
 
