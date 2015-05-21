@@ -1233,15 +1233,14 @@ There is no active functionality in this module, and thus no real API as such.
 It simply defines a set of types to be used in an AST derived from parsed
 input.
 
-One of the AST objects is a class, `Reference`, which is inherited by a couple
-of other classes. Objects of these classes are used in the AST to represent
-symbols that refer to entities that are defined elsewhere. References can be
-either resolved or unresolved, meaning they can point at an entity whose
-definition has been located or they can point at an as-yet undiscovered entity.
-When you encounter a reference you can test whether it is resolved or not based
-on its `_referent` member. Resolved references will have their `_referent` set
-to the entity they reference, which unresolved references will have their
-`_referent` set to `None`.
+One of the AST objects is a class, `Reference`. Objects of this class are used 
+in the AST to represent symbols that refer to entities that are defined
+elsewhere. References can be either resolved or unresolved, meaning they can
+point at an entity whose definition has been located or they can point at an
+as-yet undiscovered entity. When you encounter a reference you can test whether
+it is resolved or not based on its `_referent` member. Resolved references will
+have their `_referent` set to the entity they reference, which unresolved
+references will have their `_referent` set to `None`.
 
 In the code and in this document there is some discussion of 'collapsing' AST
 references. This is meant to refer to replacing the `Reference` object in the
