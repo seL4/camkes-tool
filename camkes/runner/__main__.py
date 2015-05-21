@@ -156,7 +156,7 @@ def main():
         e.set_column(s)
         die('%s:%s' % (f.name, str(e)))
     except Exception as inst:
-        die('While parsing \'%s\': %s' % (f.name, str(inst)))
+        die('While parsing \'%s\': %s' % (f.name, inst))
 
     try:
         for t in AST_TRANSFORMS[PRE_RESOLUTION]:
@@ -171,7 +171,7 @@ def main():
                 os.path.dirname(os.path.abspath(f.name)), options.import_path,
                 options.cpp, options.cpp_flag, options.ply_optimise)
     except Exception as inst:
-        die('While resolving imports of \'%s\': %s' % (f.name, str(inst)))
+        die('While resolving imports of \'%s\': %s' % (f.name, inst))
 
     try:
         with profiler('Combining assemblies'):
@@ -188,13 +188,13 @@ def main():
         with profiler('Resolving references'):
             ast = parser.resolve_references(ast)
     except Exception as inst:
-        die('While resolving references of \'%s\': %s' % (f.name, str(inst)))
+        die('While resolving references of \'%s\': %s' % (f.name, inst))
 
     try:
         with profiler('Collapsing references'):
             parser.collapse_references(ast)
     except Exception as inst:
-        die('While collapsing references of \'%s\': %s' % (f.name, str(inst)))
+        die('While collapsing references of \'%s\': %s' % (f.name, inst))
 
     try:
         for t in AST_TRANSFORMS[POST_RESOLUTION]:
@@ -352,7 +352,7 @@ def main():
                         log.warning('Warning: no template for %s' % options.item)
                     done(g)
             except Exception as inst:
-                die('While rendering %s: %s' % (i.name, str(inst)))
+                die('While rendering %s: %s' % (i.name, inst))
 
     # Instantiate the per-connection files.
     conn_dict = {}
@@ -394,7 +394,7 @@ def main():
                         log.warning('Warning: no template for %s' % options.item)
                     done(g)
             except Exception as inst:
-                die('While rendering %s: %s' % (t[0], str(inst)))
+                die('While rendering %s: %s' % (t[0], inst))
         c.name = tmp_name
 
         # The following block handles instantiations of per-connection
@@ -425,7 +425,7 @@ def main():
                 save(options.item, g)
                 done(g)
             except Exception as inst:
-                die('While rendering %s: %s' % (options.item, str(inst)))
+                die('While rendering %s: %s' % (options.item, inst))
 
     # Perform any per component simple generation. This needs to happen last
     # as this template needs to run after all other capabilities have been
@@ -451,7 +451,7 @@ def main():
                             log.warning('Warning: no template for %s' % options.item)
                         done(g)
                 except Exception as inst:
-                    die('While rendering %s: %s' % (i.name, str(inst)))
+                    die('While rendering %s: %s' % (i.name, inst))
 
     # Derive a set of usable ELF objects from the filenames we were passed.
     elfs = {}
@@ -486,7 +486,7 @@ def main():
                 obj_space.merge(elf_spec, label=group)
             elfs[name] = (e, elf)
         except Exception as inst:
-            die('While opening \'%s\': %s' % (e, str(inst)))
+            die('While opening \'%s\': %s' % (e, inst))
 
     if options.item in ('capdl', 'label-mapping'):
         # It's only relevant to run these filters if the final target is CapDL.
@@ -516,7 +516,7 @@ def main():
             save(options.item, g)
             done(g)
     except Exception as inst:
-        die('While rendering %s: %s' % (options.item, str(inst)))
+        die('While rendering %s: %s' % (options.item, inst))
 
     die('No valid element matching --item %s' % options.item)
 
