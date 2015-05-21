@@ -21,6 +21,12 @@ people wanting to modify the internals of CAmkES itself. Regardless of which
 section is most relevant for you, you should at least familiarise yourself with
 the [Terminology](#terminology) section.
 
+CAmkES' primary target platform is the
+[seL4 microkernel](http://sel4.systems/). The seL4 kernel and its functionality
+are not discussed in this document. It is assumed that the reader has read the
+seL4 programming references and is familiar with how this kernel operates and
+the mechanisms it provides.
+
 ## Terminology
 
 Throughout this document some domain specific terminology is used that may have
