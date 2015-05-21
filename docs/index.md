@@ -345,6 +345,12 @@ dependencies. These are:
 > A Haskell package providing extra standard library functionality. This is a
   dependency of the CapDL translator. It is installable from cabal.
 
+**QEMU**
+
+> A system emulator, like [QEMU](http://wiki.qemu.org/), is required if you
+  want to run CAmkES systems without available hardware. It should be widely
+  available.
+
 **split**
 
 > A Haskell package providing some extra functionality for splitting
