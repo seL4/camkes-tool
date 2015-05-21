@@ -10,7 +10,7 @@
 
 /*# C fragment that represents the base of the buffer used for storing IPC messages #*/
 /*? assert(isinstance(base, str)) ?*/
-/*# Whether 'base' is a separate memory region instead of the threads IPC buffer #*/
+/*# Whether 'base' is a separate memory region instead of the thread's IPC buffer #*/
 /*? assert(isinstance(userspace_ipc, bool)) ?*/
 /*# Whether or not we trust our partner #*/
 /*? assert(isinstance(trust_partner, bool)) ?*/
