@@ -172,6 +172,7 @@ def new_context(entity, assembly, obj_space, cap_space, shmem, **kwargs):
         'set':DeterministicSet,
         'str':str,
         'splitext':os.path.splitext,
+        'tuple':tuple,
         'arch':os.environ.get('ARCH', ''),
         'ord':ord,
         'chr':chr,
