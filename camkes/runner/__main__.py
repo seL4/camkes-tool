@@ -111,7 +111,7 @@ def main():
                 ret = subprocess.call([editor, options.outfile.name])
         sys.exit(ret)
 
-    if not options.platform or options.platform in ['?', 'help'] \
+    if not options.platform or options.platform in ('?', 'help') \
             or options.platform not in PLATFORMS:
         die('Valid --platform arguments are %s' % ', '.join(PLATFORMS))
 
@@ -125,7 +125,7 @@ def main():
 
     # Construct the compilation cache if requested.
     cache = None
-    if options.cache in ['on', 'readonly', 'writeonly']:
+    if options.cache in ('on', 'readonly', 'writeonly'):
         cache = Cache(options.cache_dir)
 
     f = options.file[0]
@@ -136,7 +136,7 @@ def main():
         # one of two places that we check in the cache. This check will 'hit'
         # if the source files representing the input spec are identical to some
         # previous execution.
-        if options.cache in ['on', 'readonly']:
+        if options.cache in ('on', 'readonly'):
             with profiler('Looking for a cached version of this output'):
                 key = [version(), os.path.abspath(f.name), s,
                     cache_relevant_options(options), options.platform,
@@ -215,7 +215,7 @@ def main():
     # irrelevant element (e.g. an introduced comment). I.e. the previous check
     # matches when the input is exactly the same and this one matches when the
     # AST is unchanged.
-    if options.cache in ['on', 'readonly']:
+    if options.cache in ('on', 'readonly'):
         with profiler('Looking for a cached version of this output'):
             key = [version(), orig_ast, cache_relevant_options(options),
                 options.platform, options.item]
@@ -228,7 +228,7 @@ def main():
                 done(value)
 
     # If we have a writable cache, allow outputs to be saved to it.
-    if options.cache in ['on', 'writeonly']:
+    if options.cache in ('on', 'writeonly'):
         fs = FileSet(imported)
         def save(item, value):
             # Save an input-keyed cache entry. This one is based on the
@@ -301,7 +301,7 @@ def main():
     # associated) templates, in which case they won't be in the built-in lookup
     # dictionary. Let's add them now. Note, definitions here that conflict with
     # existing lookup entries will overwrite the existing entries.
-    for c in [x for x in ast if isinstance(x, AST.Connector)]:
+    for c in (x for x in ast if isinstance(x, AST.Connector)):
         if c.from_template:
             templates.add(c.name, 'from.source', c.from_template)
         if c.to_template:
@@ -337,8 +337,8 @@ def main():
                 label=i.address_space)
             pds[i.address_space] = pd
 
-        for t in ['%s.source' % i.name, '%s.header' % i.name,
-                '%s.linker' % i.name]:
+        for t in ('%s.source' % i.name, '%s.header' % i.name,
+                '%s.linker' % i.name):
             try:
                 template = templates.lookup(t, i)
                 g = ''
@@ -377,10 +377,10 @@ def main():
         else:
             continue
 
-        for t in [('%s.from.source' % tmp_name, c.from_instance.address_space),
+        for t in (('%s.from.source' % tmp_name, c.from_instance.address_space),
                   ('%s.from.header' % tmp_name, c.from_instance.address_space),
                   ('%s.to.source' % tmp_name, c.to_instance.address_space),
-                  ('%s.to.header' % tmp_name, c.to_instance.address_space)]:
+                  ('%s.to.header' % tmp_name, c.to_instance.address_space)):
             try:
                 template = templates.lookup(t[0], c)
                 g = ''
@@ -408,8 +408,8 @@ def main():
         # where the per-component templates, the per-connection template loop
         # above, and this loop could all be done in a single unified control
         # flow.
-        for t in [('%s.from.' % c.name, c.from_instance.address_space),
-                  ('%s.to.' % c.name, c.to_instance.address_space)]:
+        for t in (('%s.from.' % c.name, c.from_instance.address_space),
+                  ('%s.to.' % c.name, c.to_instance.address_space)):
             if not options.item.startswith(t[0]):
                 # This is not the item we're looking for.
                 continue
@@ -437,7 +437,7 @@ def main():
         assert i.address_space in cspaces
         if conf and conf.settings and [x for x in conf.settings if \
                 x.instance == i.name and x.attribute == 'simple' and x.value]:
-            for t in ['%s.simple' % i.name]:
+            for t in ('%s.simple' % i.name,):
                 try:
                     template = templates.lookup(t, i)
                     g = ''
@@ -488,7 +488,7 @@ def main():
         except Exception as inst:
             die('While opening \'%s\': %s' % (e, str(inst)))
 
-    if options.item in ['capdl', 'label-mapping']:
+    if options.item in ('capdl', 'label-mapping'):
         # It's only relevant to run these filters if the final target is CapDL.
         # Note, this will no longer be true if we add any other templates that
         # depend on a fully formed CapDL spec. Guarding this loop with an if
