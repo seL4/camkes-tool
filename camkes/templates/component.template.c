@@ -49,7 +49,7 @@ void __arch_putchar(int c) {
         return;
     }
 #ifdef SEL4_DEBUG_KERNEL
-	seL4_DebugPutChar(c);
+    seL4_DebugPutChar(c);
 #endif
 }
 

@@ -41,8 +41,8 @@
 
 uint8_t /*? me.from_interface.name ?*/_in8(uint16_t port)
 {
-	assert(/*? me.from_interface.name ?*/_in_range(port));
-	seL4_IA32_IOPort_In8_t reply = seL4_IA32_IOPort_In8(/*? ioport[0] ?*/, port);
+    assert(/*? me.from_interface.name ?*/_in_range(port));
+    seL4_IA32_IOPort_In8_t reply = seL4_IA32_IOPort_In8(/*? ioport[0] ?*/, port);
 
     ERR_IF(reply.error != 0, /*? error_handler ?*/, ((camkes_error_t){
             .type = CE_SYSCALL_FAILED,
@@ -55,7 +55,7 @@ uint8_t /*? me.from_interface.name ?*/_in8(uint16_t port)
             return 0;
         }));
 
-	return reply.result;
+    return reply.result;
 }
 
 uint8_t /*? me.from_interface.name ?*/_in8_offset(uint16_t offset)
@@ -65,8 +65,8 @@ uint8_t /*? me.from_interface.name ?*/_in8_offset(uint16_t offset)
 
 uint16_t /*? me.from_interface.name ?*/_in16(uint16_t port)
 {
-	assert(/*? me.from_interface.name ?*/_in_range(port));
-	seL4_IA32_IOPort_In16_t reply = seL4_IA32_IOPort_In16(/*? ioport[0] ?*/, port);
+    assert(/*? me.from_interface.name ?*/_in_range(port));
+    seL4_IA32_IOPort_In16_t reply = seL4_IA32_IOPort_In16(/*? ioport[0] ?*/, port);
 
     ERR_IF(reply.error != 0, /*? error_handler ?*/, ((camkes_error_t){
             .type = CE_SYSCALL_FAILED,
@@ -79,7 +79,7 @@ uint16_t /*? me.from_interface.name ?*/_in16(uint16_t port)
             return 0;
         }));
 
-	return reply.result;
+    return reply.result;
 }
 
 uint16_t /*? me.from_interface.name ?*/_in16_offset(uint16_t offset)
@@ -89,8 +89,8 @@ uint16_t /*? me.from_interface.name ?*/_in16_offset(uint16_t offset)
 
 uint32_t /*? me.from_interface.name ?*/_in32(uint16_t port)
 {
-	assert(/*? me.from_interface.name ?*/_in_range(port));
-	seL4_IA32_IOPort_In32_t reply = seL4_IA32_IOPort_In32(/*? ioport[0] ?*/, port);
+    assert(/*? me.from_interface.name ?*/_in_range(port));
+    seL4_IA32_IOPort_In32_t reply = seL4_IA32_IOPort_In32(/*? ioport[0] ?*/, port);
 
     ERR_IF(reply.error != 0, /*? error_handler ?*/, ((camkes_error_t){
             .type = CE_SYSCALL_FAILED,
@@ -103,7 +103,7 @@ uint32_t /*? me.from_interface.name ?*/_in32(uint16_t port)
             return 0;
         }));
 
-	return reply.result;
+    return reply.result;
 }
 
 uint32_t /*? me.from_interface.name ?*/_in32_offset(uint16_t offset)
@@ -113,8 +113,8 @@ uint32_t /*? me.from_interface.name ?*/_in32_offset(uint16_t offset)
 
 void /*? me.from_interface.name ?*/_out8(uint16_t port, uint8_t value)
 {
-	assert(/*? me.from_interface.name ?*/_in_range(port));
-	int reply = seL4_IA32_IOPort_Out8(/*? ioport[0] ?*/, port, value);
+    assert(/*? me.from_interface.name ?*/_in_range(port));
+    int reply = seL4_IA32_IOPort_Out8(/*? ioport[0] ?*/, port, value);
 
     ERR_IF(reply != 0, /*? error_handler ?*/, ((camkes_error_t){
             .type = CE_SYSCALL_FAILED,
@@ -135,8 +135,8 @@ void /*? me.from_interface.name ?*/_out8_offset(uint16_t offset, uint8_t value)
 
 void /*? me.from_interface.name ?*/_out16(uint16_t port, uint16_t value)
 {
-	assert(/*? me.from_interface.name ?*/_in_range(port));
-	int reply = seL4_IA32_IOPort_Out16(/*? ioport[0] ?*/, port, value);
+    assert(/*? me.from_interface.name ?*/_in_range(port));
+    int reply = seL4_IA32_IOPort_Out16(/*? ioport[0] ?*/, port, value);
 
     ERR_IF(reply != 0, /*? error_handler ?*/, ((camkes_error_t){
             .type = CE_SYSCALL_FAILED,
@@ -157,8 +157,8 @@ void /*? me.from_interface.name ?*/_out16_offset(uint16_t offset, uint16_t value
 
 void /*? me.from_interface.name ?*/_out32(uint16_t port, uint32_t value)
 {
-	assert(/*? me.from_interface.name ?*/_in_range(port));
-	int reply = seL4_IA32_IOPort_Out32(/*? ioport[0] ?*/, port, value);
+    assert(/*? me.from_interface.name ?*/_in_range(port));
+    int reply = seL4_IA32_IOPort_Out32(/*? ioport[0] ?*/, port, value);
 
     ERR_IF(reply != 0, /*? error_handler ?*/, ((camkes_error_t){
             .type = CE_SYSCALL_FAILED,

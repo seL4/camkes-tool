@@ -43,7 +43,7 @@ SECTIONS {
     }
 
     guarded (NOLOAD) : ALIGN(4096) {
-	 *(guarded)
+        *(guarded)
     }
 
     /*- for c in composition.connections -*/
@@ -62,7 +62,7 @@ SECTIONS {
     /*- endfor -*/
 
     persistent (NOLOAD) : ALIGN(0x1000) {
-	 *(persistent)
+        *(persistent)
     }
 
     /*- for c in composition.connections -*/

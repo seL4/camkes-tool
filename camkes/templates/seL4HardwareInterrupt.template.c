@@ -93,8 +93,8 @@ int /*? me.to_interface.name ?*/_reg_callback(void (*callback)(void*), void *arg
     for (int i = 0; i < MAX_CALLBACKS; ++i) {
         if (CAS(&callbacks[i], NULL, callback) == NULL) {
             callback_args[i] = arg;
-	    error = seL4_IRQHandler_Ack(/*? irq ?*/);
-	    assert(!error);
+            error = seL4_IRQHandler_Ack(/*? irq ?*/);
+            assert(!error);
             return 0;
         }
     }
