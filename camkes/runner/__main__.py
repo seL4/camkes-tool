@@ -240,7 +240,7 @@ def main():
                 item]
             specialised = fs.specialise(value)
             if item == 'capdl':
-                specialised.extend(options.elf or [])
+                specialised.extend(options.elf)
             cache[key] = specialised
             if item not in NEVER_AST_CACHE:
                 # Save an AST-keyed cache entry. This corresponds to the second
@@ -456,7 +456,7 @@ def main():
     # Derive a set of usable ELF objects from the filenames we were passed.
     elfs = {}
     arch = None
-    for e in options.elf or []:
+    for e in options.elf:
         try:
             name = os.path.basename(e)
             if name in elfs:
