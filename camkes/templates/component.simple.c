@@ -14,7 +14,7 @@
  * really not possible any other way. This template is also highly experimental and
  * unsupported / undocumented */
 
-/*- if configuration is not none and configuration[me.name].get('simple') == 'true' -*/
+/*- if configuration[me.name].get('simple') == 'true' -*/
 
 #include <autoconf.h>
 #include <assert.h>
@@ -330,7 +330,7 @@ static void simple_camkes_print(void *data) {
 }
 
 static seL4_Error simple_camkes_set_ASID(void *data, seL4_CPtr vspace) {
-    /*- if configuration is not none and configuration[me.name].get('asid_pool') == 'true' -*/
+    /*- if configuration[me.name].get('asid_pool') == 'true' -*/
 #ifdef CONFIG_ARCH_IA32
         return seL4_IA32_ASIDPool_Assign(/*? asidpool ?*/, vspace);
 #elif CONFIG_ARCH_ARM

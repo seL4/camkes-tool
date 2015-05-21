@@ -487,18 +487,11 @@ def compose_assemblies(ast):
 
     first_assembly = assemblies[0]
 
-    # make sure the first assembly has a configuration to simplify merging other
-    # assemblies into it
-    if first_assembly.configuration is None:
-        first_assembly.configuration = AST.Configuration()
-
     for a in assemblies[1:]:
         first_assembly.composition.instances.extend(a.composition.instances)
         first_assembly.composition.connections.extend(a.composition.connections)
         first_assembly.composition.groups.extend(a.composition.groups)
-
-        if a.configuration is not None:
-            first_assembly.configuration.settings.extend(a.configuration.settings)
+        first_assembly.configuration.settings.extend(a.configuration.settings)
 
         ast.remove(a)
 
@@ -639,11 +632,6 @@ def resolve_assembly_hierarchy(original):
        containing instances and connections in which any hierarchy below the
        given original are resolved.'''
 
-    # create an empty configuration if none exists to simplify merging elements of
-    # configurations of this assembly's children into this assembly's configuration
-    if original.configuration is None:
-        original.configuration = AST.Configuration()
-    
     # recursively resolve hierarchy of instances
     for i in original.composition.instances[:]:
 
