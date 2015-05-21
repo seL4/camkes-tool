@@ -305,8 +305,7 @@ another OS.
 
 > PyElftools contains Python disassembly functionality for ELF files. The
   [runner](#runner) uses this to derive virtual address information for CapDL
-  specifications. You will need a fairly up to date version that supports ARM
-  files, so you may need to build and install this from source.
+  specifications.
 
 **[CapDL Python module](https://github.com/seL4/python-capdl-tool)**
 
