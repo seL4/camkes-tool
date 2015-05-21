@@ -102,7 +102,7 @@ def main():
     def done(s):
         ret = 0
         if s:
-            print >>options.outfile, s
+            options.outfile.write(s)
             options.outfile.close()
             if options.post_render_edit and \
                     raw_input('Edit rendered template %s [y/N]? ' % \
