@@ -185,18 +185,12 @@ of these terms are made explicit below.
 
 **Port**
 
-> The interface type that represents shared memory semantics. This was
-  previously referred to as 'dataport', but an attempt has been made to use that
-  term only for the dependency of a component on a port in the sources. Some
-  other documentation may still use 'dataport' to refer to one of these
-  interfaces.
+> The interface type that represents shared memory semantics.
 
 **Procedure**
 
-> An interface with function call semantics. This was previously referred to as
-  just 'interface.' This older terminology is
-  deprecated. Procedures consist of a series of methods that can be invoked
-  independently.
+> An interface with function call semantics. Procedures consist of a series of
+  methods that can be invoked independently.
 
 **Provides**
 
