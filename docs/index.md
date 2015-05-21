@@ -1308,13 +1308,9 @@ API.
 
 This module contains functionality for looking up builtin templates. The
 templates themselves are actually stored in this directory (camkes/templates)
-as well to reduce confusion. As a brief disclaimer, despite containing the
-least code of any of the CAmkES modules, camkes.templates is by far the most
-dense and complicated part of the CAmkES ecosystem. This is not intended to put
-you off using or modifying this module, but is just a word of caution. The
-description below only describes the externally facing behaviour of this
-module. If you need to understand how template lookups actually work you will
-need to read the source code and comments.
+as well to reduce confusion. The description below only describes the externally
+facing behaviour of this module. If you need to understand how template lookups
+actually work you will need to read the source code and comments.
 
 The API only contains a single class through which all access is intended to
 flow.
