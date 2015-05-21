@@ -476,11 +476,10 @@ def main():
                 # All ELF files we're parsing should be the same format.
                 if arch != elf.get_arch():
                     raise Exception('ELF files are not all the same architecture')
-            # Pass 'False' to avoid inferring a TCB as we've already created
-            # our own.
             p = Perspective(phase=RUNNER, elf_name=name)
             group = p['group']
             with profiler('Deriving CapDL spec from %s' % e):
+                # Avoid inferring a TCB as we've already created our own.
                 elf_spec = elf.get_spec(infer_tcb=False, infer_asid=False,
                     pd=pds[group], use_large_frames=options.largeframe)
                 obj_space.merge(elf_spec, label=group)
