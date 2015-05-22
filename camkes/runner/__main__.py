@@ -686,7 +686,7 @@ def prefix_children(prefix, assembly):
 
     for i in assembly.composition.instances:
         i.name = '%s_%s' % (prefix, i.name)
-        i.address_space = i.name
+        i.address_space = '%s_%s' % (prefix, i.address_space)
     for c in assembly.composition.connections:
         c.name = '%s_%s' % (prefix, c.name)
     for g in assembly.composition.groups:
