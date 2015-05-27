@@ -122,8 +122,11 @@ long sys_accept(va_list ap)
 		fdt = get_fd_struct(fd);
 		sockfd = *(int*)fdt->data;
 
-		memcpy((char*)sock_data_data, addr, sizeof(struct sockaddr));
-		memcpy((char*)sock_data_data + sizeof(struct sockaddr), addrlen, sizeof(socklen_t));
+		/* addr can be NULL, which means ignore the peer address. */
+		if (addr) {
+			memcpy((char*)sock_data_data, addr, sizeof(struct sockaddr));
+			memcpy((char*)sock_data_data + sizeof(struct sockaddr), addrlen, sizeof(socklen_t));
+		}
 		
 		newsockfd = sock_accept(sockfd);
 
@@ -133,8 +136,10 @@ long sys_accept(va_list ap)
 			return newsockfd;
 		}
 		
-		memcpy(addr, (char*)sock_data_data, sizeof(struct sockaddr));
-		memcpy(addrlen, (char*)sock_data_data + sizeof(struct sockaddr), sizeof(socklen_t));
+		if (addr) {
+			memcpy(addr, (char*)sock_data_data, sizeof(struct sockaddr));
+			memcpy(addrlen, (char*)sock_data_data + sizeof(struct sockaddr), sizeof(socklen_t));
+		}
 
 		/*
 		 * Accept returns a new socket file descriptor, so we need to
