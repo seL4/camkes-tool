@@ -23,7 +23,6 @@ if platform.python_implementation() != 'CPython':
 
 from camkes.templates import Templates, PLATFORMS
 from camkes.internal.argumentparsing import parse_args
-from camkes.internal.profile import get_profiler
 from camkes.internal.cache import Cache
 from camkes.internal.FileSet import FileSet
 import camkes.internal.log as log
@@ -61,7 +60,7 @@ def cache_relevant_options(opts):
     # the following justifications for being in this set:
     #  1. It is already accounted for in the cache key (e.g. platform);
     #  2. It affects the AST, which is already in the cache key (e.g. cpp); or
-    #  3. It has no affect on code generation (e.g. profiler).
+    #  3. It has no affect on code generation (e.g. verbosity).
     # We do this as an exclude list, rather than an include list so a
     # mistakenly missing entry will cause an (safe) unnecessary cache miss, as
     # opposed to an incorrect cache hit.
@@ -78,8 +77,6 @@ def cache_relevant_options(opts):
         'platform',
         'ply-optimise',
         'post_render_edit',
-        'profile_log',
-        'profiler',
         'verbosity',
     ])
     return sorted([x for x in opts.__dict__.items() if \
@@ -118,11 +115,6 @@ def main():
     if not options.file or len(options.file) > 1:
         die('A single input file must be provided for this operation')
 
-    try:
-        profiler = get_profiler(options.profiler, options.profile_log)
-    except Exception as inst:
-        die('Failed to create profiler: %s' % str(inst))
-
     # Construct the compilation cache if requested.
     cache = None
     if options.cache in ['on', 'readonly', 'writeonly']:
@@ -130,28 +122,24 @@ def main():
 
     f = options.file[0]
     try:
-        with profiler('Reading input'):
-            s = f.read()
+        s = f.read()
         # Try to find this output in the compilation cache if possible. This is
         # one of two places that we check in the cache. This check will 'hit'
         # if the source files representing the input spec are identical to some
         # previous execution.
         if options.cache in ['on', 'readonly']:
-            with profiler('Looking for a cached version of this output'):
-                key = [version(), os.path.abspath(f.name), s,
-                    cache_relevant_options(options), options.platform,
-                    options.item]
-                value = cache.get(key)
-                if value is not None and value.valid():
-                    # Cache hit.
-                    assert isinstance(value, FileSet), \
-                        'illegally cached a value for %s that is not a FileSet' % options.item
-                    log.debug('Retrieved %(platform)s.%(item)s from cache' % \
-                        options.__dict__)
-                    done(value.output)
-        with profiler('Parsing input'):
-            ast = parser.parse_to_ast(s, options.cpp, options.cpp_flag, options.ply_optimise)
-            parser.assign_filenames(ast, f.name)
+            key = [version(), os.path.abspath(f.name), s,
+                cache_relevant_options(options), options.platform, options.item]
+            value = cache.get(key)
+            if value is not None and value.valid():
+                # Cache hit.
+                assert isinstance(value, FileSet), \
+                    'illegally cached a value for %s that is not a FileSet' % options.item
+                log.debug('Retrieved %(platform)s.%(item)s from cache' % \
+                    options.__dict__)
+                done(value.output)
+        ast = parser.parse_to_ast(s, options.cpp, options.cpp_flag, options.ply_optimise)
+        parser.assign_filenames(ast, f.name)
     except parser.CAmkESSyntaxError as e:
         e.set_column(s)
         die('%s:%s' % (f.name, str(e)))
@@ -160,52 +148,43 @@ def main():
 
     try:
         for t in AST_TRANSFORMS[PRE_RESOLUTION]:
-            with profiler('Running AST transform %s' % t.__name__):
-                ast = t(ast)
+            ast = t(ast)
     except Exception as inst:
         die('While transforming AST: %s' % str(inst))
 
     try:
-        with profiler('Resolving imports'):
-            ast, imported = parser.resolve_imports(ast, \
-                os.path.dirname(os.path.abspath(f.name)), options.import_path,
-                options.cpp, options.cpp_flag, options.ply_optimise)
+        ast, imported = parser.resolve_imports(ast, \
+            os.path.dirname(os.path.abspath(f.name)), options.import_path,
+            options.cpp, options.cpp_flag, options.ply_optimise)
     except Exception as inst:
         die('While resolving imports of \'%s\': %s' % (f.name, str(inst)))
 
     try:
-        with profiler('Combining assemblies'):
-            # if there are multiple assemblies, combine them now
-            compose_assemblies(ast)
+        # if there are multiple assemblies, combine them now
+        compose_assemblies(ast)
     except Exception as inst:
         die('While combining assemblies: %s' % str(inst))
 
-    with profiler('Caching original AST'):
-        orig_ast = deepcopy(ast)
-    with profiler('Deduping AST'):
-        ast = parser.dedupe(ast)
+    orig_ast = deepcopy(ast)
+    ast = parser.dedupe(ast)
     try:
-        with profiler('Resolving references'):
-            ast = parser.resolve_references(ast)
+        ast = parser.resolve_references(ast)
     except Exception as inst:
         die('While resolving references of \'%s\': %s' % (f.name, str(inst)))
 
     try:
-        with profiler('Collapsing references'):
-            parser.collapse_references(ast)
+        parser.collapse_references(ast)
     except Exception as inst:
         die('While collapsing references of \'%s\': %s' % (f.name, str(inst)))
 
     try:
         for t in AST_TRANSFORMS[POST_RESOLUTION]:
-            with profiler('Running AST transform %s' % t.__name__):
-                ast = t(ast)
+            ast = t(ast)
     except Exception as inst:
         die('While transforming AST: %s' % str(inst))
 
     try:
-        with profiler('Resolving hierarchy'):
-            resolve_hierarchy(ast)
+        resolve_hierarchy(ast)
     except Exception as inst:
         die('While resolving hierarchy: %s' % str(inst))
 
@@ -216,16 +195,15 @@ def main():
     # matches when the input is exactly the same and this one matches when the
     # AST is unchanged.
     if options.cache in ['on', 'readonly']:
-        with profiler('Looking for a cached version of this output'):
-            key = [version(), orig_ast, cache_relevant_options(options),
-                options.platform, options.item]
-            value = cache.get(key)
-            if value is not None:
-                assert options.item not in NEVER_AST_CACHE, \
-                    '%s, that is marked \'never cache\' is in your cache' % options.item
-                log.debug('Retrieved %(platform)s.%(item)s from cache' % \
-                    options.__dict__)
-                done(value)
+        key = [version(), orig_ast, cache_relevant_options(options),
+            options.platform, options.item]
+        value = cache.get(key)
+        if value is not None:
+            assert options.item not in NEVER_AST_CACHE, \
+                '%s, that is marked \'never cache\' is in your cache' % options.item
+            log.debug('Retrieved %(platform)s.%(item)s from cache' % \
+                options.__dict__)
+            done(value)
 
     # If we have a writable cache, allow outputs to be saved to it.
     if options.cache in ['on', 'writeonly']:
@@ -343,9 +321,8 @@ def main():
                 template = templates.lookup(t, i)
                 g = ''
                 if template:
-                    with profiler('Rendering %s' % t):
-                        g = r.render(i, assembly, template, obj_space, cspaces[i.address_space], \
-                            shmem, options=options, id=id, my_pd=pds[i.address_space])
+                    g = r.render(i, assembly, template, obj_space, cspaces[i.address_space], \
+                        shmem, options=options, id=id, my_pd=pds[i.address_space])
                 save(t, g)
                 if options.item == t:
                     if not template:
@@ -385,9 +362,8 @@ def main():
                 template = templates.lookup(t[0], c)
                 g = ''
                 if template:
-                    with profiler('Rendering %s' % t[0]):
-                        g = r.render(c, assembly, template, obj_space, cspaces[t[1]], \
-                            shmem, options=options, id=id, my_pd=pds[t[1]])
+                    g = r.render(c, assembly, template, obj_space, cspaces[t[1]], \
+                        shmem, options=options, id=id, my_pd=pds[t[1]])
                 save(t[0], g)
                 if options.item == t[0]:
                     if not template:
@@ -419,9 +395,8 @@ def main():
                 template = templates.lookup(options.item, c)
                 if template is None:
                     raise Exception('no registered template for %s' % options.item)
-                with profiler('Rendering %s' % options.item):
-                    g = r.render(c, assembly, template, obj_space, cspaces[t[1]], \
-                        shmem, options=options, id=id, my_pd=pds[t[1]])
+                g = r.render(c, assembly, template, obj_space, cspaces[t[1]], \
+                    shmem, options=options, id=id, my_pd=pds[t[1]])
                 save(options.item, g)
                 done(g)
             except Exception as inst:
@@ -442,9 +417,8 @@ def main():
                     template = templates.lookup(t, i)
                     g = ''
                     if template:
-                        with profiler('Rendering %s' % t):
-                            g = r.render(i, assembly, template, obj_space, cspaces[i.address_space], \
-                                shmem, options=options, id=id, my_pd=pds[i.address_space])
+                        g = r.render(i, assembly, template, obj_space, cspaces[i.address_space], \
+                            shmem, options=options, id=id, my_pd=pds[i.address_space])
                     save(t, g)
                     if options.item == t:
                         if not template:
@@ -480,10 +454,9 @@ def main():
             # our own.
             p = Perspective(phase=RUNNER, elf_name=name)
             group = p['group']
-            with profiler('Deriving CapDL spec from %s' % e):
-                elf_spec = elf.get_spec(infer_tcb=False, infer_asid=False,
-                    pd=pds[group], use_large_frames=options.largeframe)
-                obj_space.merge(elf_spec, label=group)
+            elf_spec = elf.get_spec(infer_tcb=False, infer_asid=False,
+                pd=pds[group], use_large_frames=options.largeframe)
+            obj_space.merge(elf_spec, label=group)
             elfs[name] = (e, elf)
         except Exception as inst:
             die('While opening \'%s\': %s' % (e, str(inst)))
@@ -496,11 +469,10 @@ def main():
         # desired.
         for f in CAPDL_FILTERS:
             try:
-                with profiler('Running CapDL filter %s' % f.__name__):
-                    # Pass everything as named arguments to allow filters to
-                    # easily ignore what they don't want.
-                    f(ast=ast, obj_space=obj_space, cspaces=cspaces, elfs=elfs,
-                        profiler=profiler, options=options, shmem=shmem)
+                # Pass everything as named arguments to allow filters to
+                # easily ignore what they don't want.
+                f(ast=ast, obj_space=obj_space, cspaces=cspaces, elfs=elfs,
+                    options=options, shmem=shmem)
             except Exception as inst:
                 die('While forming CapDL spec: %s' % str(inst))
 
@@ -510,9 +482,8 @@ def main():
         template = templates.lookup(options.item)
         g = ''
         if template:
-            with profiler('Rendering %s' % options.item):
-                g = r.render(assembly, assembly, template, obj_space, None, \
-                    shmem, imported=imported, options=options)
+            g = r.render(assembly, assembly, template, obj_space, None, \
+                shmem, imported=imported, options=options)
             save(options.item, g)
             done(g)
     except Exception as inst:
