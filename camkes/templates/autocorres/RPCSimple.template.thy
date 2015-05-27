@@ -359,7 +359,7 @@ lemma /*? me.from_interface.name ?*/_/*? m.name ?*/_marshal_wp[THEN validNF_make
     /*- do preconditions.append('ptr_valid_s32 s %s' % param) -*/
     /*- do postconditions.append('ptr_contains_s32 s %s (ucast %s)' % (param, packed_value)) -*/
     /*- do effect.__setitem__(0, 'update_s32 (%s) %s (ucast %s)' % (effect[0], param, packed_value)) -*/
-    /*- do unfold_defs.union(['ptr_valid_s32_def', 'ptr_contains_s32_def', 'update_s32_def']) -*/
+    /*- do map(unfold_defs.add, ('ptr_valid_s32_def', 'ptr_contains_s32_def', 'update_s32_def')) -*/
     /*- if 32 not in distincts -*/
       /*- do distincts.__setitem__(32, []) -*/
     /*- endif -*/
@@ -371,7 +371,7 @@ lemma /*? me.from_interface.name ?*/_/*? m.name ?*/_marshal_wp[THEN validNF_make
     /*- do preconditions.append('ptr_valid_u32 s %s' % param) -*/
     /*- do postconditions.append('ptr_contains_u32 s %s %s' % (param, packed_value)) -*/
     /*- do effect.__setitem__(0, 'update_u32 (%s) %s %s' % (effect[0], param, packed_value)) -*/
-    /*- do unfold_defs.union(['ptr_valid_u32_def', 'ptr_contains_u32_def', 'update_u32_def']) -*/
+    /*- do map(unfold_defs.add, ('ptr_valid_u32_def', 'ptr_contains_u32_def', 'update_u32_def')) -*/
     /*- if 32 not in distincts -*/
       /*- do distincts.__setitem__(32, []) -*/
     /*- endif -*/
@@ -383,7 +383,7 @@ lemma /*? me.from_interface.name ?*/_/*? m.name ?*/_marshal_wp[THEN validNF_make
     /*- do preconditions.append('ptr_valid_u16 s %s' % param) -*/
     /*- do postconditions.append('ptr_contains_u16 s %s (ucast %s)' % (param, packed_value)) -*/
     /*- do effect.__setitem__(0, 'update_u16 (%s) %s (ucast %s)' % (effect[0], param, packed_value)) -*/
-    /*- do unfold_defs.union(['ptr_valid_u16_def', 'ptr_contains_u16_def', 'update_u16_def']) -*/
+    /*- do map(unfold_defs.add, ('ptr_valid_u16_def', 'ptr_contains_u16_def', 'update_u16_def')) -*/
     /*- if 16 not in distincts -*/
       /*- do distincts.__setitem__(16, []) -*/
     /*- endif -*/
@@ -395,7 +395,7 @@ lemma /*? me.from_interface.name ?*/_/*? m.name ?*/_marshal_wp[THEN validNF_make
     /*- do preconditions.append('ptr_valid_s16 s %s' % param) -*/
     /*- do postconditions.append('ptr_contains_s16 s %s (ucast %s)' % (param, packed_value)) -*/
     /*- do effect.__setitem__(0, 'update_s16 (%s) %s (ucast %s)' % (effect[0], param, packed_value)) -*/
-    /*- do unfold_defs.union(['ptr_valid_s16_def', 'ptr_contains_s16_def', 'update_s16_def']) -*/
+    /*- do map(unfold_defs.add, ('ptr_valid_s16_def', 'ptr_contains_s16_def', 'update_s16_def')) -*/
     /*- if 16 not in distincts -*/
       /*- do distincts.__setitem__(16, []) -*/
     /*- endif -*/
@@ -407,7 +407,7 @@ lemma /*? me.from_interface.name ?*/_/*? m.name ?*/_marshal_wp[THEN validNF_make
     /*- do preconditions.append('ptr_valid_u8 s %s' % param) -*/
     /*- do postconditions.append('ptr_contains_u8 s %s (ucast %s)' % (param, packed_value)) -*/
     /*- do effect.__setitem__(0, 'update_u8 (%s) %s (ucast %s)' % (effect[0], param, packed_value)) -*/
-    /*- do unfold_defs.union(['ptr_valid_u8_def', 'ptr_contains_u8_def', 'update_u8_def']) -*/
+    /*- do map(unfold_defs.add, ('ptr_valid_u8_def', 'ptr_contains_u8_def', 'update_u8_def')) -*/
     /*- if 8 not in distincts -*/
       /*- do distincts.__setitem__(8, []) -*/
     /*- endif -*/
@@ -419,7 +419,7 @@ lemma /*? me.from_interface.name ?*/_/*? m.name ?*/_marshal_wp[THEN validNF_make
     /*- do preconditions.append('ptr_valid_s8 s %s' % param) -*/
     /*- do postconditions.append('ptr_contains_s8 s %s (ucast %s)' % (param, packed_value)) -*/
     /*- do effect.__setitem__(0, 'update_s8 (%s) %s (ucast %s)' % (effect[0], param, packed_value)) -*/
-    /*- do unfold_defs.union(['ptr_valid_s8_def', 'ptr_contains_s8_def', 'update_s8_def']) -*/
+    /*- do map(unfold_defs.add, ('ptr_valid_s8_def', 'ptr_contains_s8_def', 'update_s8_def')) -*/
     /*- if 8 not in distincts -*/
       /*- do distincts.__setitem__(8, []) -*/
     /*- endif -*/
@@ -432,7 +432,7 @@ lemma /*? me.from_interface.name ?*/_/*? m.name ?*/_marshal_wp[THEN validNF_make
     /*- do preconditions.append('ptr_valid_u64 s %s' % param) -*/
     /*- do postconditions.append('ptr_contains_u64 s %s ((ucast %s) || ((ucast %s) << 32))' % (param, packed_lower, packed_upper)) -*/
     /*- do effect.__setitem__(0, 'update_u64 (%s) %s ((ucast %s) || ((ucast %s) << 32))' % (effect[0], param, packed_lower, packed_upper)) -*/
-    /*- do unfold_defs.union(['ptr_valid_u64_def', 'ptr_contains_u64_def', 'update_u64_def']) -*/
+    /*- do map(unfold_defs.add, ('ptr_valid_u64_def', 'ptr_contains_u64_def', 'update_u64_def')) -*/
     /*- if 64 not in distincts -*/
       /*- do distincts.__setitem__(64, []) -*/
     /*- endif -*/
@@ -445,7 +445,7 @@ lemma /*? me.from_interface.name ?*/_/*? m.name ?*/_marshal_wp[THEN validNF_make
     /*- do preconditions.append('ptr_valid_s64 s %s' % param) -*/
     /*- do postconditions.append('ptr_contains_s64 s %s (ucast (((ucast %s)::64 word) || (((ucast %s)::64 word) << 32)))' % (param, packed_lower, packed_upper)) -*/
     /*- do effect.__setitem__(0, 'update_s64 (%s) %s (ucast (((ucast %s)::64 word) || (((ucast %s)::64 word) << 32)))' % (effect[0], param, packed_lower, packed_upper)) -*/
-    /*- do unfold_defs.union(['ptr_valid_s64_def', 'ptr_contains_s64_def', 'update_s64_def']) -*/
+    /*- do map(unfold_defs.add, ('ptr_valid_s64_def', 'ptr_contains_s64_def', 'update_s64_def')) -*/
     /*- if 64 not in distincts -*/
       /*- do distincts.__setitem__(64, []) -*/
     /*- endif -*/
@@ -1107,7 +1107,7 @@ lemma /*? me.to_interface.name ?*/_/*? m.name ?*/_internal_wp[/*? ', '.join(post
       /*- do distincts.__setitem__(8, []) -*/
     /*- endif -*/
     /*- do distincts[8].append('((ptr_coerce %s)::8 word ptr)' % param) -*/
-    /*- do unfold_defs.union(['ptr_contains_u8_def', 'update_u8_def', 'ptr_valid_u8_def']) -*/
+    /*- do map(unfold_defs.add, ('ptr_contains_u8_def', 'update_u8_def', 'ptr_valid_u8_def')) -*/
   /*- elif p.type.type == 'int8_t' -*/
     /*- do preconditions.append('ptr_valid_s8 s %s' % param) -*/
     /*- do packed_payload.append(packed_value) -*/
@@ -1117,7 +1117,7 @@ lemma /*? me.to_interface.name ?*/_/*? m.name ?*/_internal_wp[/*? ', '.join(post
       /*- do distincts.__setitem__(8, []) -*/
     /*- endif -*/
     /*- do distincts[8].append('((ptr_coerce %s)::8 word ptr)' % param) -*/
-    /*- do unfold_defs.union(['ptr_contains_s8_def', 'update_s8_def', 'ptr_valid_s8_def']) -*/
+    /*- do map(unfold_defs.add, ('ptr_contains_s8_def', 'update_s8_def', 'ptr_valid_s8_def')) -*/
   /*- elif p.type.type == 'uint16_t' -*/
     /*- do preconditions.append('ptr_valid_u16 s %s' % param) -*/
     /*- do packed_payload.append(packed_value) -*/
@@ -1127,7 +1127,7 @@ lemma /*? me.to_interface.name ?*/_/*? m.name ?*/_internal_wp[/*? ', '.join(post
       /*- do distincts.__setitem__(16, []) -*/
     /*- endif -*/
     /*- do distincts[16].append('((ptr_coerce %s)::16 word ptr)' % param) -*/
-    /*- do unfold_defs.union(['ptr_contains_u16_def', 'update_u16_def', 'ptr_valid_u16_def']) -*/
+    /*- do map(unfold_defs.add, ('ptr_contains_u16_def', 'update_u16_def', 'ptr_valid_u16_def')) -*/
   /*- elif p.type.type == 'int16_t' -*/
     /*- do preconditions.append('ptr_valid_s16 s %s' % param) -*/
     /*- do packed_payload.append(packed_value) -*/
@@ -1137,7 +1137,7 @@ lemma /*? me.to_interface.name ?*/_/*? m.name ?*/_internal_wp[/*? ', '.join(post
       /*- do distincts.__setitem__(16, []) -*/
     /*- endif -*/
     /*- do distincts[16].append('((ptr_coerce %s)::16 word ptr)' % param) -*/
-    /*- do unfold_defs.union(['ptr_contains_s16_def', 'update_s16_def', 'ptr_valid_s16_def']) -*/
+    /*- do map(unfold_defs.add, ('ptr_contains_s16_def', 'update_s16_def', 'ptr_valid_s16_def')) -*/
   /*- elif p.type.type in ['unsigned int', 'uint32_t'] -*/
     /*- do preconditions.append('ptr_valid_u32 s %s' % param) -*/
     /*- do packed_payload.append(packed_value) -*/
@@ -1147,7 +1147,7 @@ lemma /*? me.to_interface.name ?*/_/*? m.name ?*/_internal_wp[/*? ', '.join(post
       /*- do distincts.__setitem__(32, []) -*/
     /*- endif -*/
     /*- do distincts[32].append('((ptr_coerce %s)::32 word ptr)' % param) -*/
-    /*- do unfold_defs.union(['ptr_contains_u32_def', 'update_u32_def', 'ptr_valid_u32_def']) -*/
+    /*- do map(unfold_defs.add, ('ptr_contains_u32_def', 'update_u32_def', 'ptr_valid_u32_def')) -*/
   /*- elif p.type.type in ['int', 'int32_t'] -*/
     /*- do preconditions.append('ptr_valid_s32 s %s' % param) -*/
     /*- do packed_payload.append(packed_value) -*/
@@ -1157,7 +1157,7 @@ lemma /*? me.to_interface.name ?*/_/*? m.name ?*/_internal_wp[/*? ', '.join(post
       /*- do distincts.__setitem__(32, []) -*/
     /*- endif -*/
     /*- do distincts[32].append('((ptr_coerce %s)::32 word ptr)' % param) -*/
-    /*- do unfold_defs.union(['ptr_contains_s32_def', 'update_s32_def', 'ptr_valid_s32_def']) -*/
+    /*- do map(unfold_defs.add, ('ptr_contains_s32_def', 'update_s32_def', 'ptr_valid_s32_def')) -*/
   /*- elif p.type.type == 'uint64_t' -*/
     /*- set packed_lower = '%s_lower' % packed_value -*/
     /*- set packed_upper = '%s_upper' % packed_value -*/
@@ -1169,7 +1169,7 @@ lemma /*? me.to_interface.name ?*/_/*? m.name ?*/_internal_wp[/*? ', '.join(post
       /*- do distincts.__setitem__(64, []) -*/
     /*- endif -*/
     /*- do distincts[64].append('((ptr_coerce %s)::64 word ptr)' % param) -*/
-    /*- do unfold_defs.union(['ptr_contains_u64_def', 'update_u64_def', 'ptr_valid_u64_def']) -*/
+    /*- do map(unfold_defs.add, ('ptr_contains_u64_def', 'update_u64_def', 'ptr_valid_u64_def')) -*/
   /*- elif p.type.type == 'int64_t' -*/
     /*- set packed_lower = '%s_lower' % packed_value -*/
     /*- set packed_upper = '%s_upper' % packed_value -*/
@@ -1181,7 +1181,7 @@ lemma /*? me.to_interface.name ?*/_/*? m.name ?*/_internal_wp[/*? ', '.join(post
       /*- do distincts.__setitem__(64, []) -*/
     /*- endif -*/
     /*- do distincts[64].append('((ptr_coerce %s)::64 word ptr)' % param) -*/
-    /*- do unfold_defs.union(['ptr_contains_s64_def', 'update_s64_def', 'ptr_valid_s64_def']) -*/
+    /*- do map(unfold_defs.add, ('ptr_contains_s64_def', 'update_s64_def', 'ptr_valid_s64_def')) -*/
   /*- endif -*/
   /*- do params.append(param) -*/
 /*- endfor -*/
