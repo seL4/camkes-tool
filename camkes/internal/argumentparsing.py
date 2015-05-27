@@ -162,7 +162,7 @@ def parse_args(tool):
         required=True)
     add_arg('--elf', '-E', \
         help='ELF files to contribute to a CapDL specification.', \
-        action='append')
+        action='append', default=[])
     add_arg('--item', '-T', \
         help='AST entity to produce code for.', required=True)
     add_arg('--platform', '-p', \

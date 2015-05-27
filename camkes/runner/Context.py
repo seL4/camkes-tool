@@ -146,6 +146,8 @@ def new_context(entity, assembly, obj_space, cap_space, shmem, **kwargs):
         'isabelle_symbol':partial(symbol, '%(tag)s%(counter)d\'', 's'),
 
         # Expose some library functions
+        'any':any,
+        'all':all,
         'assert':_assert,
         'bool':bool,
         'enumerate':enumerate,
@@ -169,6 +171,7 @@ def new_context(entity, assembly, obj_space, cap_space, shmem, **kwargs):
         'set':DeterministicSet,
         'str':str,
         'splitext':os.path.splitext,
+        'tuple':tuple,
         'arch':os.environ.get('ARCH', ''),
         'ord':ord,
         'chr':chr,

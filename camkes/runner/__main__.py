@@ -46,9 +46,9 @@ import camkes.parser as parser
 
 # Items that should never be cached as AST_keyed entries in the compilation
 # cache.
-NEVER_AST_CACHE = [
+NEVER_AST_CACHE = frozenset([
     'capdl', # Can't cache because it depends on ELF contents.
-]
+])
 
 def cache_relevant_options(opts):
     '''Return a list of tuples representing the cache-relevant command line
@@ -99,7 +99,7 @@ def main():
     def done(s):
         ret = 0
         if s:
-            print >>options.outfile, s
+            options.outfile.write(s)
             options.outfile.close()
             if options.post_render_edit and \
                     raw_input('Edit rendered template %s [y/N]? ' % \
@@ -108,7 +108,7 @@ def main():
                 ret = subprocess.call([editor, options.outfile.name])
         sys.exit(ret)
 
-    if not options.platform or options.platform in ['?', 'help'] \
+    if not options.platform or options.platform in ('?', 'help') \
             or options.platform not in PLATFORMS:
         die('Valid --platform arguments are %s' % ', '.join(PLATFORMS))
 
@@ -117,7 +117,7 @@ def main():
 
     # Construct the compilation cache if requested.
     cache = None
-    if options.cache in ['on', 'readonly', 'writeonly']:
+    if options.cache in ('on', 'readonly', 'writeonly'):
         cache = Cache(options.cache_dir)
 
     f = options.file[0]
@@ -127,7 +127,7 @@ def main():
         # one of two places that we check in the cache. This check will 'hit'
         # if the source files representing the input spec are identical to some
         # previous execution.
-        if options.cache in ['on', 'readonly']:
+        if options.cache in ('on', 'readonly'):
             key = [version(), os.path.abspath(f.name), s,
                 cache_relevant_options(options), options.platform, options.item]
             value = cache.get(key)
@@ -144,7 +144,7 @@ def main():
         e.set_column(s)
         die('%s:%s' % (f.name, str(e)))
     except Exception as inst:
-        die('While parsing \'%s\': %s' % (f.name, str(inst)))
+        die('While parsing \'%s\': %s' % (f.name, inst))
 
     try:
         for t in AST_TRANSFORMS[PRE_RESOLUTION]:
@@ -157,7 +157,7 @@ def main():
             os.path.dirname(os.path.abspath(f.name)), options.import_path,
             options.cpp, options.cpp_flag, options.ply_optimise)
     except Exception as inst:
-        die('While resolving imports of \'%s\': %s' % (f.name, str(inst)))
+        die('While resolving imports of \'%s\': %s' % (f.name, inst))
 
     try:
         # if there are multiple assemblies, combine them now
@@ -170,12 +170,12 @@ def main():
     try:
         ast = parser.resolve_references(ast)
     except Exception as inst:
-        die('While resolving references of \'%s\': %s' % (f.name, str(inst)))
+        die('While resolving references of \'%s\': %s' % (f.name, inst))
 
     try:
         parser.collapse_references(ast)
     except Exception as inst:
-        die('While collapsing references of \'%s\': %s' % (f.name, str(inst)))
+        die('While collapsing references of \'%s\': %s' % (f.name, inst))
 
     try:
         for t in AST_TRANSFORMS[POST_RESOLUTION]:
@@ -194,7 +194,7 @@ def main():
     # irrelevant element (e.g. an introduced comment). I.e. the previous check
     # matches when the input is exactly the same and this one matches when the
     # AST is unchanged.
-    if options.cache in ['on', 'readonly']:
+    if options.cache in ('on', 'readonly'):
         key = [version(), orig_ast, cache_relevant_options(options),
             options.platform, options.item]
         value = cache.get(key)
@@ -206,7 +206,7 @@ def main():
             done(value)
 
     # If we have a writable cache, allow outputs to be saved to it.
-    if options.cache in ['on', 'writeonly']:
+    if options.cache in ('on', 'writeonly'):
         fs = FileSet(imported)
         def save(item, value):
             # Save an input-keyed cache entry. This one is based on the
@@ -218,7 +218,7 @@ def main():
                 item]
             specialised = fs.specialise(value)
             if item == 'capdl':
-                specialised.extend(options.elf or [])
+                specialised.extend(options.elf)
             cache[key] = specialised
             if item not in NEVER_AST_CACHE:
                 # Save an AST-keyed cache entry. This corresponds to the second
@@ -264,7 +264,7 @@ def main():
     # associated) templates, in which case they won't be in the built-in lookup
     # dictionary. Let's add them now. Note, definitions here that conflict with
     # existing lookup entries will overwrite the existing entries.
-    for c in [x for x in ast if isinstance(x, AST.Connector)]:
+    for c in (x for x in ast if isinstance(x, AST.Connector)):
         if c.from_template:
             templates.add(c.name, 'from.source', c.from_template)
         if c.to_template:
@@ -300,8 +300,8 @@ def main():
                 label=i.address_space)
             pds[i.address_space] = pd
 
-        for t in ['%s.source' % i.name, '%s.header' % i.name,
-                '%s.linker' % i.name]:
+        for t in ('%s.source' % i.name, '%s.header' % i.name,
+                '%s.linker' % i.name):
             try:
                 template = templates.lookup(t, i)
                 g = ''
@@ -314,7 +314,7 @@ def main():
                         log.warning('Warning: no template for %s' % options.item)
                     done(g)
             except Exception as inst:
-                die('While rendering %s: %s' % (i.name, str(inst)))
+                die('While rendering %s: %s' % (i.name, inst))
 
     # Instantiate the per-connection files.
     conn_dict = {}
@@ -339,10 +339,10 @@ def main():
         else:
             continue
 
-        for t in [('%s.from.source' % tmp_name, c.from_instance.address_space),
+        for t in (('%s.from.source' % tmp_name, c.from_instance.address_space),
                   ('%s.from.header' % tmp_name, c.from_instance.address_space),
                   ('%s.to.source' % tmp_name, c.to_instance.address_space),
-                  ('%s.to.header' % tmp_name, c.to_instance.address_space)]:
+                  ('%s.to.header' % tmp_name, c.to_instance.address_space)):
             try:
                 template = templates.lookup(t[0], c)
                 g = ''
@@ -355,7 +355,7 @@ def main():
                         log.warning('Warning: no template for %s' % options.item)
                     done(g)
             except Exception as inst:
-                die('While rendering %s: %s' % (t[0], str(inst)))
+                die('While rendering %s: %s' % (t[0], inst))
         c.name = tmp_name
 
         # The following block handles instantiations of per-connection
@@ -369,8 +369,8 @@ def main():
         # where the per-component templates, the per-connection template loop
         # above, and this loop could all be done in a single unified control
         # flow.
-        for t in [('%s.from.' % c.name, c.from_instance.address_space),
-                  ('%s.to.' % c.name, c.to_instance.address_space)]:
+        for t in (('%s.from.' % c.name, c.from_instance.address_space),
+                  ('%s.to.' % c.name, c.to_instance.address_space)):
             if not options.item.startswith(t[0]):
                 # This is not the item we're looking for.
                 continue
@@ -385,7 +385,7 @@ def main():
                 save(options.item, g)
                 done(g)
             except Exception as inst:
-                die('While rendering %s: %s' % (options.item, str(inst)))
+                die('While rendering %s: %s' % (options.item, inst))
 
     # Perform any per component simple generation. This needs to happen last
     # as this template needs to run after all other capabilities have been
@@ -397,7 +397,7 @@ def main():
         assert i.address_space in cspaces
         if conf and conf.settings and [x for x in conf.settings if \
                 x.instance == i.name and x.attribute == 'simple' and x.value]:
-            for t in ['%s.simple' % i.name]:
+            for t in ('%s.simple' % i.name,):
                 try:
                     template = templates.lookup(t, i)
                     g = ''
@@ -410,12 +410,12 @@ def main():
                             log.warning('Warning: no template for %s' % options.item)
                         done(g)
                 except Exception as inst:
-                    die('While rendering %s: %s' % (i.name, str(inst)))
+                    die('While rendering %s: %s' % (i.name, inst))
 
     # Derive a set of usable ELF objects from the filenames we were passed.
     elfs = {}
     arch = None
-    for e in options.elf or []:
+    for e in options.elf:
         try:
             name = os.path.basename(e)
             if name in elfs:
@@ -435,18 +435,17 @@ def main():
                 # All ELF files we're parsing should be the same format.
                 if arch != elf.get_arch():
                     raise Exception('ELF files are not all the same architecture')
-            # Pass 'False' to avoid inferring a TCB as we've already created
-            # our own.
             p = Perspective(phase=RUNNER, elf_name=name)
             group = p['group']
+            # Avoid inferring a TCB as we've already created our own.
             elf_spec = elf.get_spec(infer_tcb=False, infer_asid=False,
                 pd=pds[group], use_large_frames=options.largeframe)
             obj_space.merge(elf_spec, label=group)
             elfs[name] = (e, elf)
         except Exception as inst:
-            die('While opening \'%s\': %s' % (e, str(inst)))
+            die('While opening \'%s\': %s' % (e, inst))
 
-    if options.item in ['capdl', 'label-mapping']:
+    if options.item in ('capdl', 'label-mapping'):
         # It's only relevant to run these filters if the final target is CapDL.
         # Note, this will no longer be true if we add any other templates that
         # depend on a fully formed CapDL spec. Guarding this loop with an if
@@ -465,14 +464,13 @@ def main():
     # point, we know the user did not request a code template.
     try:
         template = templates.lookup(options.item)
-        g = ''
         if template:
             g = r.render(assembly, assembly, template, obj_space, None, \
                 shmem, imported=imported, options=options)
             save(options.item, g)
             done(g)
     except Exception as inst:
-        die('While rendering %s: %s' % (options.item, str(inst)))
+        die('While rendering %s: %s' % (options.item, inst))
 
     die('No valid element matching --item %s' % options.item)
 

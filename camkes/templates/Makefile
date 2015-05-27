@@ -428,7 +428,7 @@ endif
 # into a flattened binary in order to avoid symbol collision. Note that when we
 # mangle symbols, we use the prefix 'camkes ' to avoid colliding with any
 # user-provided symbols.
-/*- set instancelist = [] -*/
+/*- set instancelist = set() -*/
 /*- for i in instances if not i.type.hardware -*/
 /*- set pre = NameMangling.Perspective(phase=NameMangling.TEMPLATES, instance=i.name, group=i.address_space) -*/
 /*- set post = NameMangling.Perspective(phase=NameMangling.FILTERS, instance=i.name, group=i.address_space) -*/
@@ -485,7 +485,7 @@ endif
 		/*- if "%s_%s" % (i.name, c.to_interface.name) in instancelist -*/ \
 		    /*- continue -*/ \
 		/*- endif -*/ \
-		/*- do instancelist.append("%s_%s" % (i.name, c.to_interface.name)) -*/ \
+		/*- do instancelist.add("%s_%s" % (i.name, c.to_interface.name)) -*/ \
                     /*- for m in c.to_interface.type.methods -*/ \
                         --redefine-sym /*? c.to_interface.name ?*/_/*? m.name ?*/="camkes /*? c.to_instance.name ?*/_/*? c.to_interface.name ?*/_/*? m.name ?*/" \
                         --keep-global-symbol "camkes /*? c.to_instance.name ?*/_/*? c.to_interface.name ?*/_/*? m.name ?*/" \
