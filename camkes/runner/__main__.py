@@ -256,22 +256,7 @@ def main():
     conf = assembly.configuration
     shmem = defaultdict(dict)
 
-    # We need to create a phony instance and connection to cope with cases
-    # where the user has not defined any instances or connections (this would
-    # be an arguably useless system, but we should still support it). We append
-    # these to the template's view of the system below to ensure we always get
-    # a usable template dictionary. Note that this doesn't cause any problems
-    # because the phony items are named '' and thus unaddressable in ADL.
-    dummy_instance = AST.Instance(AST.Reference('', AST.Instance), '')
-    dummy_connection = AST.Connection(AST.Reference('', AST.Connector), '', \
-        AST.Reference('', AST.Instance), AST.Reference('', AST.Interface), \
-        AST.Reference('', AST.Instance), AST.Reference('', AST.Interface))
-
-    templates = Templates(options.platform,
-        instance=map(lambda x: x.name, assembly.composition.instances + \
-            [dummy_instance]), \
-        connection=map(lambda x: x.name, assembly.composition.connections + \
-            [dummy_connection]))
+    templates = Templates(options.platform)
     map(templates.add_root, options.templates)
     r = Renderer(templates.get_roots(), options)
 

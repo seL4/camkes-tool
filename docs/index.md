@@ -1303,15 +1303,12 @@ actually work you will need to read the source code and comments.
 The API only contains a single class through which all access is intended to
 flow.
 
-`Templates.`**`__init__(self, platform, **kwargs)`**
+`Templates.`**`__init__(self, platform)`**
 
 > Create a new template store in which templates can later be looked up. The
   category of templates that are available from this store is specialised via
   **`platform`**. At time of writing the valid values of **`platform`** are
-  'seL4', 'CIMP' and 'GraphViz'. When templates are looked up the lookup itself
-  is narrowed by the extra parameters passed in **`kwargs`**. It may be
-  difficult to follow the effects of this, so if in doubt refer to the usage in
-  `camkes/runner/__main__.py`.
+  'seL4', 'CIMP' and 'GraphViz'.
 
 `Templates.`**`add_root(self, root)`**
 
