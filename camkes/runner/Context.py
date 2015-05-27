@@ -159,7 +159,6 @@ def new_context(entity, assembly, obj_space, cap_space, shmem, **kwargs):
         'len':len,
         'list':list,
         'map':map,
-        'math':collections.namedtuple('math', ['pow'])(math.pow),
         'NotImplementedError':lambda x='NotImplementedError': NotImplementedError(x),
         'os':collections.namedtuple('os', ['path'])(os.path),
         'pdb':collections.namedtuple('pdb', ['set_trace'])(_set_trace),
