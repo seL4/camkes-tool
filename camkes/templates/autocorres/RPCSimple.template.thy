@@ -960,7 +960,7 @@ lemma /*? me.to_interface.name ?*/_/*? m.name ?*/_internal_wp[/*? ', '.join(post
           /*- elif p.type.type in ['uint32_t', 'unsigned int'] -*/
             /*- do ptr_contains.add('ptr_contains_u32_def') -*/
           /*- elif p.type.type == 'int64_t' -*/
-            /*- do ptr_contains.extend(['ptr_contains_s64_def']) -*/
+            /*- do ptr_contains.add('ptr_contains_s64_def') -*/
           /*- elif p.type.type == 'uint64_t' -*/
             /*- do ptr_contains.add('ptr_contains_u64_def') -*/
           /*- else -*/
