@@ -10,6 +10,7 @@
 
 #include <autoconf.h>
 #include <assert.h>
+#include <camkes.h> /* generated header */
 #include <platsupport/io.h>
 #include <sel4/types.h>
 #include <sel4/sel4.h>
@@ -29,10 +30,6 @@
 #include <sel4debug/identity.h>
 #include <sel4utils/mapping.h>
 #include <utils/util.h>
-
-/*# Include path based on logic in the Makefile template. #*/
-/* Include the generated per-component header. */
-#include "../../../include//*? me.name ?*//generated//*? me.type.name ?*/.h"
 
 /*? macros.show_includes(me.type.includes) ?*/
 
