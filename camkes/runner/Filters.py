@@ -311,8 +311,7 @@ def collapse_shared_frames(ast, obj_space, elfs, options, **_):
                 execute = False
 
             # Check if the dataport is connected *TO* a hardware component.
-            if connections[0].to_instance.type.hardware and \
-                    assembly.configuration is not None:
+            if connections[0].to_instance.type.hardware:
                 p = Perspective(to_interface=connections[0].to_interface.name)
                 hardware_attribute = p['hardware_attribute']
                 conf = assembly.configuration[connections[0].to_instance.name].get(hardware_attribute)

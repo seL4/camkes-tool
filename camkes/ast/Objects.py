@@ -162,15 +162,14 @@ class Assembly(ASTObject):
         super(Assembly, self).__init__(filename=filename, lineno=lineno)
         self.name = name
         self.composition = composition
-        self.configuration = configuration
+        self.configuration = configuration or Configuration()
 
     def children(self):
         return [self.composition] + ([self.configuration] if self.configuration else [])
 
     def collapse_references(self):
         self.try_collapse('composition')
-        if self.configuration is not None:
-            self.try_collapse('configuration')
+        self.try_collapse('configuration')
 
     def __repr__(self):
         return 'assembly %(name)s { %(composition)s %(configuration)s }' % {
@@ -359,15 +358,14 @@ class Component(ASTObject):
         self.mutexes = mutexes or []
         self.semaphores = semaphores or []
         self.composition = composition
-        self.configuration = configuration
+        self.configuration = configuration or Configuration()
 
     def children(self):
         ret = self.includes + self.provides + self.uses + self.emits + \
             self.consumes + self.dataports + self.mutexes + self.semaphores
         if self.composition is not None:
             ret.append(self.composition)
-        if self.configuration is not None:
-            ret.append(self.configuration)
+        ret.append(self.configuration)
         return ret
 
     def collapse_references(self):
@@ -376,8 +374,7 @@ class Component(ASTObject):
 
         if self.composition is not None:
             self.try_collapse('composition')
-        if self.configuration is not None:
-            self.try_collapse('configuration')
+        self.try_collapse('configuration')
 
 
     def __repr__(self):

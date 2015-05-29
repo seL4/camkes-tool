@@ -313,14 +313,12 @@ static void /*? init ?*/(void) {
             }));
     /*- endfor -*/
     /*- set untyped_pool = [] -*/
-    /*- if configuration is not none -*/
-        /*- for attribute, value in configuration[me.name].items() -*/
-            /*- set r = re.match('untyped(\\d+)_pool', attribute) -*/
-            /*- if r is not none -*/
-                /*- do untyped_pool.append((r.group(1), value)) -*/
-            /*- endif -*/
-        /*- endfor -*/
-    /*- endif -*/
+    /*- for attribute, value in configuration[me.name].items() -*/
+        /*- set r = re.match('untyped(\\d+)_pool', attribute) -*/
+        /*- if r is not none -*/
+            /*- do untyped_pool.append((r.group(1), value)) -*/
+        /*- endif -*/
+    /*- endfor -*/
     /*- for u in untyped_pool -*/
         /*- for i in range(u[1]) -*/
             /*- if not 4 <= int(u[0]) <= 28 -*/
@@ -366,16 +364,14 @@ static void /*? init ?*/(void) {
     /*? macros.ipc_buffer(p['ipc_buffer_symbol']) ?*/
 /*- endfor -*/
 
-/*- if configuration is not none -*/
-    /* Attributes */
-    /*- set myconf = configuration[me.name] -*/
-    /*- for a in me.type.attributes -*/
-        /*- set value = myconf.get(a.name) -*/
-        /*- if value is not none -*/
-            const /*? show(a.type) ?*/ /*? a.name ?*/ = /*? value ?*/;
-        /*- endif -*/
-    /*- endfor -*/
-/*- endif -*/
+/* Attributes */
+/*- set myconf = configuration[me.name] -*/
+/*- for a in me.type.attributes -*/
+    /*- set value = myconf.get(a.name) -*/
+    /*- if value is not none -*/
+        const /*? show(a.type) ?*/ /*? a.name ?*/ = /*? value ?*/;
+    /*- endif -*/
+/*- endfor -*/
 
 /*- set p = Perspective(instance=me.name) -*/
 void USED /*? p['tls_symbol'] ?*/(int thread_id) {

@@ -475,45 +475,27 @@ def main():
     die('No valid element matching --item %s' % options.item)
 
 def compose_assemblies(ast):
-    # parts of assembly
-    instances = []
-    connections = []
-    groups = []
-    settings = []
 
-    filename = None
-    lineno = -1
-
-    # collect pieces from all assemblies
-    for a in [x for x in ast if isinstance(x, AST.Assembly)]:
-
-        if filename == None:
-            filename = a.filename
-
-        if lineno == -1:
-            lineno = a.lineno
-
-        instances.extend(a.composition.instances)
-        connections.extend(a.composition.connections)
-        groups.extend(a.composition.groups)
-
-        if a.configuration is not None:
-            settings.extend(a.configuration.settings)
-
-    # create an assembly composed from all the pieces
-    composite_assembly = AST.Assembly(None,
-                            AST.Composition(None, instances, connections, groups),
-                            AST.Configuration(None, settings),
-                            filename, lineno
-                        )
-
-    # remove all the assemblies from ast
     assemblies = [x for x in ast if isinstance(x, AST.Assembly)]
-    for a in assemblies:
+    num_assemblies = len(assemblies)
+
+    if num_assemblies == 0:
+        raise Exception("No assembly found")
+    elif num_assemblies == 1:
+        # no need to combine assemblies
+        return
+
+    first_assembly = assemblies[0]
+
+    for a in assemblies[1:]:
+        first_assembly.composition.instances.extend(a.composition.instances)
+        first_assembly.composition.connections.extend(a.composition.connections)
+        first_assembly.composition.groups.extend(a.composition.groups)
+        first_assembly.configuration.settings.extend(a.configuration.settings)
+
         ast.remove(a)
 
-    # add the new composite assembly
-    ast.append(composite_assembly)
+    first_assembly.configuration.update_mapping()
 
 def get_assembly(ast):
     assembly = [x for x in ast if isinstance(x, AST.Assembly)]
@@ -525,13 +507,7 @@ def resolve_hierarchy(ast):
     assembly = get_assembly(ast)
 
     # modify the ast to resolve the hierarchy
-    new_assembly = resolve_assembly_hierarchy(assembly)
-
-    # remove the assembly from the ast
-    ast.remove(assembly)
-
-    # replace it with the new one
-    ast.append(new_assembly)
+    resolve_assembly_hierarchy(assembly)
 
     # remove all the component interfaces with virtual usage
     for c in [x for x in ast if isinstance(x, AST.Component)]:
@@ -656,41 +632,25 @@ def resolve_assembly_hierarchy(original):
        containing instances and connections in which any hierarchy below the
        given original are resolved.'''
 
-    # create empty assembly to populate
-    resolved = AST.Assembly(composition = AST.Composition(), configuration = AST.Configuration())
-
-    # non-composite components don't have any instances or connections
-    if original.composition is None:
-        return resolved
-
-    # copy the instances, connections, groups and configuration
-    resolved.composition.instances.extend(original.composition.instances)
-    resolved.composition.connections.extend(original.composition.connections)
-    resolved.composition.groups.extend(original.composition.groups)
-
-    if original.configuration is not None:
-        resolved.configuration.settings.extend(original.configuration.settings)
-        resolved.configuration.update_mapping()
-    
     # recursively resolve hierarchy of instances
-    for i in original.composition.instances:
+    for i in original.composition.instances[:]:
 
         # if i is an instance of a compound component
         if i.type.composition is not None:
 
             # get the assembly from that component
-            # deepcopying prevents modifying the original component's composition's
+            # deepcopying prevents modifying the original component's
             # children, which must be preserved for future instantiation of the
             # component
-            resolved_instance = resolve_assembly_hierarchy(deepcopy(i.type))
+            resolved_assembly = deepcopy(i.type)
+            resolve_assembly_hierarchy(resolved_assembly)
 
             # rename assembly elements to indicate them as part of a sub assembly
-            prefix_children(i.name, resolved_instance)
+            prefix_children(i.name, resolved_assembly)
 
-            # merge it into the current assembly
-            merge_assembly(resolved, resolved_instance, i)
-
-    return resolved
+            # add any interfaces, connections, groups and settings of the now
+            # resolved child component to the current component
+            merge_assembly(original, resolved_assembly, i)
 
 def remove_interface(component, interface):
     '''Removes the given interface from the given component'''

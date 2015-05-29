@@ -117,7 +117,7 @@ endif
 # group's initial assembly entry point.
 /*- for i in instances -*/
 /*? rule_gen('$(abspath ${BUILD_DIR})/src/' + i.name + '/generated/' + i.type.name + '.c', ' '.join(imported), i.name + '.source', i.name) ?*/
-/*- if configuration is not none and configuration[i.name].get('simple') == 'true' -*/
+/*- if configuration[i.name].get('simple') == 'true' -*/
     /*? rule_gen('$(abspath ${BUILD_DIR})/src/' + i.name + '/generated/' + i.type.name + '.simple.c', ' '.join(imported), i.name + '.simple', i.name) ?*/
 /*- endif -*/
 /*? rule_gen('$(abspath ${BUILD_DIR})/include/' + i.name + '/generated/' + i.type.name + '.h', ' '.join(imported), i.name + '.header') ?*/
