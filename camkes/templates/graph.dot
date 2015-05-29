@@ -8,12 +8,12 @@
  *# @TAG(NICTA_BSD)
  #*/
 digraph {
-/*- for i in me.composition.instances -*/
+/*- for i in composition.instances -*/
     /*? i.name ?*/ [label="/*? i.name ?*/::/*? i.type.name ?*/", shape=box,style=rounded];
 /*- endfor -*/
 
-/*- for c in me.composition.connections -*/
-    /*- if c.type.name == 'seL4RPC' -*/
+/*- for c in composition.connections -*/
+    /*- if c.type.name in ('seL4RPC', 'seL4RPCCall') -*/
         /*? c.name ?*/ [shape=circle];
         /*? c.from_instance.name ?*/ -> /*? c.name ?*/;
         /*? c.name ?*/ -> /*? c.to_instance.name ?*/;

@@ -1,16 +1,16 @@
 /*# We expect the following variables to be defined when this fragment is
  *# included.
  #*/
-/*? assert(isinstance(instance, str)) ?*/      /*# Name of this component instance #*/
-/*? assert(isinstance(interface, str)) ?*/     /*# Name of this interface #*/
-/*? assert(isinstance(name, str)) ?*/          /*# Name of this method #*/
-/*? assert(isinstance(function, str)) ?*/      /*# Name of function to create #*/
-/*? assert(isinstance(buffer, str)) ?*/        /*# Buffer symbol (or expression) to marshal into #*/
-/*? assert(isinstance(size, str)) ?*/          /*# Length of the buffer; possibly not generation-time constant #*/
+/*? assert(isinstance(instance, basestring)) ?*/      /*# Name of this component instance #*/
+/*? assert(isinstance(interface, basestring)) ?*/     /*# Name of this interface #*/
+/*? assert(isinstance(name, basestring)) ?*/          /*# Name of this method #*/
+/*? assert(isinstance(function, basestring)) ?*/      /*# Name of function to create #*/
+/*? assert(isinstance(buffer, basestring)) ?*/        /*# Buffer symbol (or expression) to marshal into #*/
+/*? assert(isinstance(size, basestring)) ?*/          /*# Length of the buffer; possibly not generation-time constant #*/
 /*? assert(isinstance(method_index, int)) ?*/  /*# Index of this method in the containing interface #*/
 /*? assert(isinstance(methods_len, int)) ?*/   /*# Total number of methods in this interface #*/
 /*? assert(isinstance(input_parameters, list)) ?*/   /*# All input parameters to this method #*/
-/*? assert(isinstance(error_handler, str)) ?*/ /*# Handler to invoke on error #*/
+/*? assert(isinstance(error_handler, basestring)) ?*/ /*# Handler to invoke on error #*/
 
 /*- set name_backup = name -*/
 /*- for p in input_parameters -*/

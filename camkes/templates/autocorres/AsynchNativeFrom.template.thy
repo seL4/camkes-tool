@@ -8,7 +8,7 @@
  *# @TAG(NICTA_BSD)
  #*/
 
-/*- set thy = splitext(os.path.basename(options.outfile.name))[0] -*/
+/*- set thy = os.path.splitext(os.path.basename(options.outfile.name))[0] -*/
 header {* Event Send *}
 (*<*)
 theory /*? thy ?*/ imports

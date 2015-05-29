@@ -42,7 +42,7 @@
 
 /*- for m in me.to_interface.type.methods -*/
     extern
-    /*- if m.return_type -*/
+    /*- if m.return_type is not none -*/
         /*- if m.return_type.array -*/
             /*- if isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string' -*/
                 char **
@@ -121,7 +121,7 @@
 /*- set return_type = m.return_type -*/
 /*- include 'marshal-outputs.c' -*/
 
-/*- if m.return_type -*/
+/*- if m.return_type is not none -*/
   /*- if m.return_type.array -*/
     /*- set name = '%s_ret_sz_to' % m.name -*/
     /*- set type = 'size_t' -*/
@@ -287,7 +287,7 @@ int /*? me.to_interface.name ?*/__run(void) {
                     /*- set ret_sz = c_symbol('ret_sz') -*/
                     /*- set ret_ptr = c_symbol('ret_ptr') -*/
                     /*_ set ret_sz_ptr = c_symbol('ret_sz_ptr') -*/
-                    /*- if m.return_type -*/
+                    /*- if m.return_type is not none -*/
                         /*- if m.return_type.array -*/
                             size_t /*? ret_sz ?*/ UNUSED;
                             size_t * /*? ret_sz_ptr ?*/ = TLS_PTR(/*? m.name ?*/_ret_sz_to, /*? ret_sz ?*/);
@@ -337,7 +337,7 @@ int /*? me.to_interface.name ?*/__run(void) {
                     unsigned int /*? length ?*/ = /*- include 'call-marshal-outputs.c' -*/;
 
                     /*# We no longer need anything we previously malloced #*/
-                    /*- if m.return_type -*/
+                    /*- if m.return_type is not none -*/
                       /*- if m.return_type.array -*/
                         /*- if isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string' -*/
                           /*- set mcount = c_symbol() -*/

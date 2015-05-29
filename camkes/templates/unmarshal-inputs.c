@@ -1,11 +1,11 @@
 /*# We expect the following variables to be defined when this fragment is
  *# included.
  #*/
-/*? assert(isinstance(instance, str)) ?*/      /*# Name of this component instance #*/
-/*? assert(isinstance(interface, str)) ?*/     /*# Name of this interface #*/
-/*? assert(isinstance(name, str)) ?*/          /*# Name of this method #*/
-/*? assert(isinstance(function, str)) ?*/      /*# Name of function to create #*/
-/*? assert(isinstance(buffer, str)) ?*/        /*# Buffer symbol (or expression) to marshal into #*/
+/*? assert(isinstance(instance, basestring)) ?*/      /*# Name of this component instance #*/
+/*? assert(isinstance(interface, basestring)) ?*/     /*# Name of this interface #*/
+/*? assert(isinstance(name, basestring)) ?*/          /*# Name of this method #*/
+/*? assert(isinstance(function, basestring)) ?*/      /*# Name of function to create #*/
+/*? assert(isinstance(buffer, basestring)) ?*/        /*# Buffer symbol (or expression) to marshal into #*/
 /*? assert(isinstance(methods_len, int)) ?*/   /*# Total number of methods in this interface #*/
 /*? assert(isinstance(input_parameters, list)) ?*/   /*# All input parameters to this method #*/
 

@@ -1,8 +1,8 @@
 /*# We expect the following variables to be defined when this fragment is
  *# included.
  #*/
-/*? assert(isinstance(function, str)) ?*/      /*# Name of function to create #*/
-/*? assert(isinstance(size, str)) ?*/          /*# Name of a variable storing the byte length of the message #*/
+/*? assert(isinstance(function, basestring)) ?*/      /*# Name of function to create #*/
+/*? assert(isinstance(size, basestring)) ?*/          /*# Name of a variable storing the byte length of the message #*/
 /*? assert(isinstance(output_parameters, list)) ?*/   /*# All output parameters to this method #*/
 /*? assert(return_type == None or isinstance(return_type, camkes.ast.Type) or isinstance(return_type, camkes.ast.Reference)) ?*/
                                                /*# Return type of this interface #*/
@@ -11,12 +11,12 @@
 
 /*? function ?*/(
 /*? size ?*/
-/*- if return_type or len(output_parameters) > 0 -*/
+/*- if return_type is not none or len(output_parameters) > 0 -*/
   ,
 /*- endif -*/
 /*- if return_type is not none -*/
   /*- if return_type.array -*/
-    /*? assert(isinstance(ret_sz, str)) ?*/
+    /*? assert(isinstance(ret_sz, basestring)) ?*/
     /*? ret_sz ?*/,
   /*- endif -*/
   /*? ret_ptr ?*/

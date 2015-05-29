@@ -53,8 +53,8 @@
 # All targets need to be rebuilt if the source CAmkES descriptions change.
 ${TARGETS}: /*? ' '.join(imported) ?*/
 
-/*- set instances = me.composition.instances -*/
-/*- set connections = me.composition.connections -*/
+/*- set instances = composition.instances -*/
+/*- set connections = composition.connections -*/
 
 /*# The terms 'group' and 'address space' are currently synonymous. We can
  *# derive the groups by collecting all the instances' address spaces.

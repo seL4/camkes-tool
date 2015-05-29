@@ -52,7 +52,7 @@
 
 /*- for m in me.to_interface.type.methods -*/
     extern
-    /*- if m.return_type -*/
+    /*- if m.return_type is not none -*/
         /*- if m.return_type.array -*/
             /*- if isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string' -*/
                 char **
@@ -134,7 +134,7 @@
 /*- set return_type = m.return_type -*/
 /*- include 'marshal-outputs.c' -*/
 
-/*- if m.return_type -*/
+/*- if m.return_type is not none -*/
   /*- if m.return_type.array -*/
     /*- set name = '%s_ret_sz_to' % m.name -*/
     /*- set type = 'size_t' -*/
@@ -335,7 +335,7 @@ int /*? me.to_interface.name ?*/__run(void) {
                     /*- set ret_sz = c_symbol('ret_sz') -*/
                     /*- set ret_ptr = c_symbol('ret_ptr') -*/
                     /*- set ret_sz_ptr = c_symbol('ret_sz_ptr') -*/
-                    /*- if m.return_type -*/
+                    /*- if m.return_type is not none -*/
                         /*- if m.return_type.array -*/
                             size_t /*? ret_sz ?*/ UNUSED;
                             size_t * /*? ret_sz_ptr ?*/ = TLS_PTR(/*? m.name ?*/_ret_sz_to, /*? ret_sz ?*/);
@@ -385,7 +385,7 @@ int /*? me.to_interface.name ?*/__run(void) {
                     unsigned int /*? length ?*/ = /*- include 'call-marshal-outputs.c' -*/;
 
                     /*# We no longer need anything we previously malloced #*/
-                    /*- if m.return_type -*/
+                    /*- if m.return_type is not none -*/
                       /*- if m.return_type.array -*/
                         /*- if isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string' -*/
                           /*- set mcount = c_symbol() -*/
@@ -436,55 +436,42 @@ int /*? me.to_interface.name ?*/__run(void) {
                         /*? info ?*/ = seL4_Wait(/*? ep ?*/, & /*? me.to_interface.name ?*/_badge);
                     /*- else -*/
 
-                        /*# The optimisation below is only valid to perform if we do not have any
-                         *# reference (typedefed C) types.
-                         #*/
-                        /*- set contains_reference_type = [False] -*/
-                        /*- for p in m.parameters -*/
-                          /*- if isinstance(p.type, camkes.ast.Reference) -*/
-                            /*- do contains_reference_type.__setitem__(0, True) -*/
-                            /*- break -*/
-                          /*- endif -*/
-                        /*- endfor -*/
-
-                        /*- if options.fspecialise_syscall_stubs and not contains_reference_type[0] and len(filter(lambda('x: x.array or x.type.type == \'string\''), m.parameters)) == 0 -*/
+                        /*- if options.fspecialise_syscall_stubs and methods_len == 1 and m.return_type is none and len(m.parameters) == 0 -*/
 #ifdef ARCH_ARM
 #ifndef __SWINUM
     #define __SWINUM(x) ((x) & 0x00ffffff)
 #endif
-                            /*- if methods_len == 1 and not m.return_type and len(m.parameters) == 0 -*/
-                                /* We don't need to send or receive any information, so
-                                 * we can call ReplyWait with a custom syscall stub
-                                 * that reduces the overhead of the call. To explain
-                                 * where this deviates from the standard ReplyWait
-                                 * stub:
-                                 *  - No asm clobbers because we're not receiving any
-                                 *    arguments in the message;
-                                 *  - The MessageInfo as an input only because we know
-                                 *    the return (a new Call) will be 0 as well; and
-                                 *  - Setup r7 and r1 first because they are preserved
-                                 *    across the syscall and this helps the compiler
-                                 *    make a tighter loop if necessary.
-                                 */
-                                /*- set scno = c_symbol() -*/
-                                register seL4_Word /*? scno ?*/ asm("r7") = seL4_SysReplyWait;
-                                /*- set info2 = c_symbol() -*/
-                                register seL4_MessageInfo_t /*? info2 ?*/ asm("r1") = seL4_MessageInfo_new(0, 0, 0, 0);
-                                /*- set src = c_symbol() -*/
-                                register seL4_Word /*? src ?*/ asm("r0") = /*? ep ?*/;
-                                asm volatile("swi %[swinum]"
-                                    /*- if trust_partner -*/
-                                        :"+r"(/*? src ?*/)
-                                        :[swinum]"i"(__SWINUM(seL4_SysReplyWait)), "r"(/*? scno ?*/), "r"(/*? info2 ?*/)
-                                    /*- else -*/
-                                        :"+r"(/*? src ?*/), "+r"(/*? info2 ?*/)
-                                        :[swinum]"i"(__SWINUM(seL4_SysReplyWait)), "r"(/*? scno ?*/)
-                                        :"r2", "r3", "r4", "r5", "memory"
-                                    /*- endif -*/
-                                );
-                                /*? info ?*/ = /*? info2 ?*/; /*# Most probably, not necessary. #*/
-                                break;
-                            /*- endif -*/
+                            /* We don't need to send or receive any information, so
+                             * we can call ReplyWait with a custom syscall stub
+                             * that reduces the overhead of the call. To explain
+                             * where this deviates from the standard ReplyWait
+                             * stub:
+                             *  - No asm clobbers because we're not receiving any
+                             *    arguments in the message;
+                             *  - The MessageInfo as an input only because we know
+                             *    the return (a new Call) will be 0 as well; and
+                             *  - Setup r7 and r1 first because they are preserved
+                             *    across the syscall and this helps the compiler
+                             *    make a tighter loop if necessary.
+                             */
+                            /*- set scno = c_symbol() -*/
+                            register seL4_Word /*? scno ?*/ asm("r7") = seL4_SysReplyWait;
+                            /*- set info2 = c_symbol() -*/
+                            register seL4_MessageInfo_t /*? info2 ?*/ asm("r1") = seL4_MessageInfo_new(0, 0, 0, 0);
+                            /*- set src = c_symbol() -*/
+                            register seL4_Word /*? src ?*/ asm("r0") = /*? ep ?*/;
+                            asm volatile("swi %[swinum]"
+                                /*- if trust_partner -*/
+                                    :"+r"(/*? src ?*/)
+                                    :[swinum]"i"(__SWINUM(seL4_SysReplyWait)), "r"(/*? scno ?*/), "r"(/*? info2 ?*/)
+                                /*- else -*/
+                                    :"+r"(/*? src ?*/), "+r"(/*? info2 ?*/)
+                                    :[swinum]"i"(__SWINUM(seL4_SysReplyWait)), "r"(/*? scno ?*/)
+                                    :"r2", "r3", "r4", "r5", "memory"
+                                /*- endif -*/
+                            );
+                            /*? info ?*/ = /*? info2 ?*/; /*# Most probably, not necessary. #*/
+                            break;
 #endif
                         /*- endif -*/
                         /*? info ?*/ = seL4_ReplyWait(/*? ep ?*/, /*? info ?*/, & /*? me.to_interface.name ?*/_badge);
