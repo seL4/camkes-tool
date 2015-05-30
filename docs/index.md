@@ -1389,7 +1389,7 @@ The following types are available at runtime from the C context of a component:
 
 The following variables are available:
 
-**_`dataport`_** (`#include "`_`component`_`"`)
+**_`dataport`_** (`#include <camkes.h>`)
 
 > If a component has a dataport they will be provided with a symbol of the
   dataport's name that is a pointer of the type they specified in their CAmkES
@@ -1458,7 +1458,7 @@ The following functions are available at runtime:
 > Construct an IO port access structure to pass to libplatsupport. See source
   comments for more information about how to use this.
 
-**`const char *get_instance_name(void)`** (`#include "`_`component`_`"`)
+**`const char *get_instance_name(void)`** (`#include <camkes.h>`)
 
 > Returns the name of this component instance. This can be helpful if you want
   to write component functionality that has different behaviour depending on
@@ -1517,7 +1517,7 @@ The following functions are available at runtime:
   is present, it will be invoked after all pre- and post-init functions have
   run.
 
-**_`return`_&nbsp;_`procedure`_`_`_`method`_`(`_`args...`_`)`** (`#include "`_`component`_`"`)
+**_`return`_&nbsp;_`procedure`_`_`_`method`_`(`_`args...`_`)`** (`#include <camkes.h>`)
 
 > In a component that provides a procedure interface, things are somewhat
   reversed and the implementation calls functions that you are expected to
@@ -1525,18 +1525,18 @@ The following functions are available at runtime:
   matching implementation. In a component that uses a procedure interface,
   functions of this form are available for you to call.
 
-**`void`&nbsp;_`event`_`_emit(void)`** (`#include "`_`component`_`"`)
+**`void`&nbsp;_`event`_`_emit(void)`** (`#include <camkes.h>`)
 
 > In a component that emits an event a function prefixed with the event's name
   is available that causes the event to be sent.
 
-**`void`&nbsp;_`event`_`_poll(void)`** (`#include "`_`component`_`"`)
+**`void`&nbsp;_`event`_`_poll(void)`** (`#include <camkes.h>`)
 
 > In a component that consumes an event a function prefixed with the event's
   name is available that returns whether there is a pending event. Note, this
   function never blocks.
 
-**`int`&nbsp;_`event`_`_reg_callback(void (*callback)(void*), void *arg)`** (`#include "`_`component`_`"`)
+**`int`&nbsp;_`event`_`_reg_callback(void (*callback)(void*), void *arg)`** (`#include <camkes.h>`)
 
 > In a component that consumes an event a function prefixed with the event's
   name is available for registering a callback for this event. When the event
@@ -1546,7 +1546,7 @@ The following functions are available at runtime:
   _`event`_`_reg_callback` returns 0 on success and non-zero if the callback
   could not be registered.
 
-**`void`&nbsp;_`event`_`_wait(void)`** (`#include "`_`component`_`"`)
+**`void`&nbsp;_`event`_`_wait(void)`** (`#include <camkes.h>`)
 
 > In a component that consumes an event a function prefixed with the event's
   name is available that blocks until the event is received.
