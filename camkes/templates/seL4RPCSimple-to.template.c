@@ -94,13 +94,13 @@ static void /*? me.to_interface.name ?*/_/*? m.name ?*/_unmarshal(
     /*- for p in input_parameters -*/
         /*- if isinstance(p.type, camkes.ast.Reference) or p.array or p.type.type == 'string' -*/
             /*? raise(NotImplementedError()) ?*/
-        /*- elif sizeof(p) <= __WORDSIZE / 8 -*/
+        /*- elif sizeof(p) <= options.word_size / 8 -*/
             * /*? p.name ?*/ = seL4_GetMR(/*? mr ?*/);
             /*? mr ?*/++;
         /*- else -*/
             * /*? p.name ?*/ = (/*? p.type.type ?*/)(((uint64_t)seL4_GetMR(/*? mr ?*/)) | (((uint64_t)seL4_GetMR(/*? mr ?*/ + 1)) << __WORDSIZE));
             /*? mr ?*/ += 2;
-            /*? assert(sizeof(p) <= 2 * __WORDSIZE / 8) ?*/
+            /*? assert(sizeof(p) <= 2 * options.word_size / 8) ?*/
         /*- endif -*/
     /*- endfor -*/
 }
@@ -178,10 +178,10 @@ static unsigned int /*? me.to_interface.name ?*/_/*? m.name ?*/_marshal(
     /*- if m.return_type is not none -*/
         seL4_SetMR(/*? mr ?*/, (seL4_Word)/*? ret ?*/);
         /*? mr ?*/++;
-        /*- if sizeof(m.return_type) > __WORDSIZE / 8 -*/
+        /*- if sizeof(m.return_type) > options.word_size / 8 -*/
             seL4_SetMR(/*? mr ?*/, (seL4_Word)(((uint64_t)/*? ret ?*/) >> __WORDSIZE));
             /*? mr ?*/++;
-            /*? assert(sizeof(m.return_type) <= 2 * __WORDSIZE / 8) ?*/
+            /*? assert(sizeof(m.return_type) <= 2 * options.word_size / 8) ?*/
         /*- endif -*/
     /*- endif -*/
 
@@ -191,10 +191,10 @@ static unsigned int /*? me.to_interface.name ?*/_/*? m.name ?*/_marshal(
         /*- else -*/
             seL4_SetMR(/*? mr ?*/, (seL4_Word)/*? p.name ?*/);
             /*? mr ?*/++;
-            /*- if sizeof(p) > __WORDSIZE / 8 -*/
+            /*- if sizeof(p) > options.word_size / 8 -*/
                 seL4_SetMR(/*? mr ?*/, (seL4_Word)(((uint64_t)/*? p.name ?*/) >> __WORDSIZE));
                 /*? mr ?*/++;
-                /*? assert(sizeof(p) <= 2 * __WORDSIZE / 8) ?*/
+                /*? assert(sizeof(p) <= 2 * options.word_size / 8) ?*/
             /*- endif -*/
         /*- endif -*/
     /*- endfor -*/

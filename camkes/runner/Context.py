@@ -78,7 +78,6 @@ def new_context(entity, assembly, obj_space, cap_space, shmem, **kwargs):
         # Some C familiars.
         'PAGE_SIZE':4096,
         'ROUND_UP':lambda x, y: int(int(math.ceil(int(x) / float(y))) * y),
-        '__WORDSIZE':32,
         # Calculate the size of a type at template instantiation time. In
         # general, you should prefer emitting a call to C's sizeof over this
         # because it leads to more readable and portable output. This is only
