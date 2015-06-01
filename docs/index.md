@@ -1132,34 +1132,6 @@ are only relevant to the runner.
   can be disabled at an obvious loss of functionality, but with a less
   complicated resulting capability distribution and control flow.
 
-#### Lint
-
-CAmkES provides a lint tool, similar to [pylint](http://www.pylint.org/) or
-[xmllint](http://xmlsoft.org/xmllint.html) that checks a CAmkES description for
-syntax errors and inconsistencies. It is intended to be run as an interactive
-sanity check over your specification and may generate both false positives and
-false negatives. To run the tool, execute:
-
-```bash
-camkes.sh lint args...
-```
-
-A list of valid arguments is given in the [Tools](#tools) section above. When
-reviewing a list of warnings or errors emitted the filename and line number may
-be slightly off. This information comes from the lexer and the inaccuracy seems
-to be unavoidable as it does not provide exact line numbers that correspond to
-token locations.
-
-The lint tool is designed to be easily extensible by adding extra checks. You
-can see the existing checks in camkes/lint/checks.py. To implement a new check
-add a function to this file that accepts a list of `ASTObject`s and yields
-instances of the class `Problem`. The checks that are executed are determined
-by the `CHECKS` list in this file, so remember to add your function to this list
-to enable it.
-
-Note that the current checks are very limited as this tool has not seen much
-use.
-
 #### Parser
 
 The standalone parser can be used for normalising specifications. To run it:
@@ -1192,12 +1164,6 @@ your `PYTHONPATH` environment variable. The available modules are:
 
 > Functionality used by other CAmkES modules. You should not import this
   module.
-
-**[camkes.lint](#camkes.lint)**
-
-> It is unlikely you would want to import the functionality of the
-  [lint](#lint) tool to use programmatically as it is primarily an end user
-  debugging aid. However, if you do so want to it is available.
 
 **[camkes.parser](#camkes.parser)**
 
@@ -3381,9 +3347,8 @@ libraries.
 ### Testing
 
 Currently there are only tests for the [parser](#parser); that is, the test
-suite does not cover the functionality of the [runner](#runner) or the
-[lint](#lint) tool. Unit tests are also lacking and should be implemented in
-the future.
+suite does not cover the functionality of the [runner](#runner). Unit tests are
+also lacking and should be implemented in the future.
 
 The test framework and tests themselves can be found in tests/. Use one
 of the following invocations to run the test suite:
