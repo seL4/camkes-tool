@@ -363,7 +363,7 @@ FINOBJFILES ?= $(shell $(CC) $(CFLAGS) $(CPPFLAGS) -print-file-name=crtend.o) $(
                              $(/*? i.name ?*/_CXXFILES:%.cxx=%.o) \
                              $(/*? i.name ?*/_ASMFILES:%.S=%.o) \
                              $(/*? i.name ?*/_OFILES) \
-                             $(/*? i.name ?*/_instance_LIBS:%=%.a) \
+                             $(/*? i.name ?*/_instance_LIBS:%=lib%.a) \
                              $(abspath ${BUILD_DIR})/ld//*? i.name ?*//generated/linker.lds
 	@echo " [LD] $(notdir $@)"
 	${Q}${CC} $(CRTOBJFILES) $(filter %.o,$^) $(FINOBJFILES) ${/*? i.name ?*/_instance_LDFLAGS} -o $@
