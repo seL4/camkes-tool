@@ -78,14 +78,13 @@ def new_context(entity, assembly, obj_space, cap_space, shmem, **kwargs):
         # Some C familiars.
         'PAGE_SIZE':4096,
         'ROUND_UP':lambda x, y: int(int(math.ceil(int(x) / float(y))) * y),
-        '__WORDSIZE':32,
-        '__SIZEOF_POINTER__':4,
         # Calculate the size of a type at template instantiation time. In
         # general, you should prefer emitting a call to C's sizeof over this
         # because it leads to more readable and portable output. This is only
         # provided for cases where you explicitly need to know the size of a
         # type ahead of compilation time.
-        'sizeof':sizeof,
+        'sizeof':partial(sizeof,
+            kwargs['options'].word_size if 'options' in kwargs else 32),
 
         # Batched object and cap allocation for when you don't need a reference
         # to the object. Probably best not to look directly at this one. When
@@ -413,10 +412,9 @@ def register_shared_variable(shmem, global_name, local_context, local_name):
 
 # XXX: Types should really be modelled in a cleaner way so we know their size
 # without this hack.
-# XXX: Assumes 32-bit platform.
-def sizeof(t):
+def sizeof(word_size, t):
     if isinstance(t, AST.Parameter):
-        return sizeof(t.type)
+        return sizeof(word_size, t.type)
 
     # HACK: We want to be able to call sizeof on Buf dataports. We should have
     # a more principled way of doing this.
@@ -426,7 +424,9 @@ def sizeof(t):
     assert isinstance(t, AST.Type)
     if t.type in ['int64_t', 'uint64_t', 'double']:
         return 8
-    elif t.type in ['int', 'unsigned int', 'int32_t', 'uint32_t', 'float', 'uintptr_t']:
+    elif t.type == 'uintptr_t':
+        return word_size / 8
+    elif t.type in ['int', 'unsigned int', 'int32_t', 'uint32_t', 'float']:
         return 4
     elif t.type in ['int16_t', 'uint16_t']:
         return 2

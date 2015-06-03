@@ -381,8 +381,8 @@ definition
 where
   "update_global_w/*? width ?*/ symbol v s \<equiv>
      heap_w/*? width ?*/_update (\<lambda>c. c(Ptr (symbol_table symbol) := (ucast v))) s"
-/*- if width > __WORDSIZE -*/
-/*# For types of a greater width than /*? __WORDSIZE ?*/ bits, we need a separate definition for
+/*- if width > options.word_size -*/
+/*# For types of a greater width than /*? options.word_size ?*/ bits, we need a separate definition for
  * setting the high bits.
 #*/
 definition
@@ -502,7 +502,7 @@ lemma /*? thy ?*/_run_internal_wp[wp_unsafe]:
       /*- set width = sizeof(p) * 8 -*/
       /*- if width not in update_global_used -*/
         update_global_w/*? width ?*/_def
-        /*- if width > __WORDSIZE -*/
+        /*- if width > options.word_size -*/
           update_global_w/*? width ?*/_high_def
         /*- endif -*/
         /*- do update_global_used.add(width) -*/

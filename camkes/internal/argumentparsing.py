@@ -80,6 +80,7 @@ TOOLS = {
             '--templates',
             '--verbose',
             '--version',
+            '--word-size',
         ])),
 }
 
@@ -204,5 +205,7 @@ def parse_args(tool):
         help='Try to use large frames when possible.')
     add_arg('--hyp', action='store_true',
         help='Assume the target platform\'s kernel is running in HYP mode.')
+    add_arg('--word-size', type=int, default=32,
+        help='Native word size of the target platform.')
 
     return p.parse_args()
