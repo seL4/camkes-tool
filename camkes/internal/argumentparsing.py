@@ -26,21 +26,6 @@ class Tool(object):
 # Each tool gets a subset of the available arguments. This map determines which
 # they get.
 TOOLS = {
-    constants.TOOL_LINT : Tool(
-        'python -m camkes.lint',
-        'Detect inconsistencies and errors in a CAmkES specification.',
-        set([
-            '--debug',
-            '--dont-resolve-references',
-            '--dont-resolve-imports',
-            '--file',
-            '--import-path',
-            '--quiet',
-            '--resolve-imports',
-            '--resolve-references',
-            '--verbose',
-            '--version',
-        ])),
     constants.TOOL_PARSER : Tool(
         'python -m camkes.parser',
         'Parse and output a CAmkES specification.',
