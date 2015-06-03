@@ -15,7 +15,6 @@
 /*# Whether or not we trust our partner #*/
 /*? assert(isinstance(trust_partner, bool)) ?*/
 
-#define _POSIX_SOURCE /* stpcpy */
 #include <sel4/sel4.h>
 #include <assert.h>
 #include <limits.h>

@@ -8,7 +8,6 @@
  *# @TAG(NICTA_BSD)
  #*/
 
-#define _POSIX_SOURCE /* stpcpy */
 #include <assert.h>
 #include <limits.h>
 #include <stddef.h>
