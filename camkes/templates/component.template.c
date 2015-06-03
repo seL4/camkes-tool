@@ -311,7 +311,7 @@ static void /*? init ?*/(void) {
     /*- endfor -*/
     /*- set untyped_pool = [] -*/
     /*- for attribute, value in configuration[me.name].items() -*/
-        /*- set r = re.match('untyped(\\d+)_pool', attribute) -*/
+        /*- set r = re.match('untyped(\\d+)_pool$', attribute) -*/
         /*- if r is not none -*/
             /*- do untyped_pool.append((r.group(1), value)) -*/
         /*- endif -*/
