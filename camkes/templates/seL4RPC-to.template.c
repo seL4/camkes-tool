@@ -42,13 +42,7 @@
 /*- for m in me.to_interface.type.methods -*/
     extern
     /*- if m.return_type is not none -*/
-        /*- if m.return_type.array -*/
-            /*- if isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string' -*/
-                char **
-            /*- else -*/
-                /*? show(m.return_type) ?*/ *
-            /*- endif -*/
-        /*- elif isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string' -*/
+        /*- if isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string' -*/
             char *
         /*- else -*/
             /*? show(m.return_type) ?*/
@@ -57,13 +51,6 @@
         void
     /*- endif -*/
     /*? me.to_interface.name ?*/_/*? m.name ?*/(
-      /*- if m.return_type and m.return_type.array -*/
-          /*- set ret_sz = c_symbol('ret_sz') -*/
-          size_t * /*? ret_sz ?*/
-          /*- if len(m.parameters) > 0 -*/
-              ,
-          /*- endif -*/
-      /*- endif -*/
     /*- for p in m.parameters -*/
       /*- if p.direction == 'in' -*/
         /*- if p.array -*/
@@ -105,7 +92,7 @@
         ,
       /*- endif -*/
     /*- endfor -*/
-    /*- if (m.return_type is none or not m.return_type.array) and len(m.parameters) == 0 -*/
+    /*- if len(m.parameters) == 0 -*/
       void
     /*- endif -*/
     );
@@ -121,20 +108,7 @@
 /*- include 'marshal-outputs.c' -*/
 
 /*- if m.return_type is not none -*/
-  /*- if m.return_type.array -*/
-    /*- set name = '%s_ret_sz_to' % m.name -*/
-    /*- set type = 'size_t' -*/
-    /*- include 'thread_local.c' -*/
-    /*- if isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string' -*/
-      /*- set name = '%s_ret_to' % m.name -*/
-      /*- set type = 'char**' -*/
-      /*- include 'thread_local.c' -*/
-    /*- else -*/
-      /*- set name = '%s_ret_to' % m.name -*/
-      /*- set type = '%s*' % show(m.return_type) -*/
-      /*- include 'thread_local.c' -*/
-    /*- endif -*/
-  /*- elif isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string' -*/
+  /*- if isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string' -*/
     /*- set name = '%s_ret_to' % m.name -*/
     /*- set type = 'char*' -*/
     /*- include 'thread_local.c' -*/
@@ -287,17 +261,7 @@ int /*? me.to_interface.name ?*/__run(void) {
                     /*- set ret_ptr = c_symbol('ret_ptr') -*/
                     /*_ set ret_sz_ptr = c_symbol('ret_sz_ptr') -*/
                     /*- if m.return_type is not none -*/
-                        /*- if m.return_type.array -*/
-                            size_t /*? ret_sz ?*/ UNUSED;
-                            size_t * /*? ret_sz_ptr ?*/ = TLS_PTR(/*? m.name ?*/_ret_sz_to, /*? ret_sz ?*/);
-                            /*- if isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string' -*/
-                                char ** /*? ret ?*/ UNUSED;
-                                char *** /*? ret_ptr ?*/ = TLS_PTR(/*? m.name ?*/_ret_to, /*? ret ?*/);
-                            /*- else -*/
-                                /*? show(m.return_type) ?*/ * /*? ret ?*/ UNUSED;
-                                /*? show(m.return_type) ?*/ ** /*? ret_ptr ?*/ = TLS_PTR(/*? m.name ?*/_ret_to, /*? ret ?*/);
-                            /*- endif -*/
-                        /*- elif isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string' -*/
+                        /*- if isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string' -*/
                             char * /*? ret ?*/ UNUSED;
                             char ** /*? ret_ptr ?*/ = TLS_PTR(/*? m.name ?*/_ret_to, /*? ret ?*/);
                         /*- else -*/
@@ -307,12 +271,6 @@ int /*? me.to_interface.name ?*/__run(void) {
                         * /*? ret_ptr ?*/ =
                     /*- endif -*/
                     /*? me.to_interface.name ?*/_/*? m.name ?*/(
-                        /*- if m.return_type and m.return_type.array -*/
-                            /*? ret_sz_ptr ?*/
-                            /*- if len(m.parameters) > 0 -*/
-                                ,
-                            /*- endif -*/
-                        /*- endif -*/
                         /*- for p in m.parameters -*/
                             /*- if p.array -*/
                                 /*- if p.direction == 'in' -*/
@@ -337,15 +295,7 @@ int /*? me.to_interface.name ?*/__run(void) {
 
                     /*# We no longer need anything we previously malloced #*/
                     /*- if m.return_type is not none -*/
-                      /*- if m.return_type.array -*/
-                        /*- if isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string' -*/
-                          /*- set mcount = c_symbol() -*/
-                          for (int /*? mcount ?*/ = 0; /*? mcount ?*/ < * /*? ret_sz_ptr ?*/; /*? mcount ?*/ ++) {
-                            free((* /*? ret_ptr ?*/)[/*? mcount ?*/]);
-                          }
-                        /*- endif -*/
-                        free(* /*? ret_ptr ?*/);
-                      /*- elif isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string' -*/
+                      /*- if isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string' -*/
                         free(* /*? ret_ptr ?*/);
                       /*- endif -*/
                     /*- endif -*/

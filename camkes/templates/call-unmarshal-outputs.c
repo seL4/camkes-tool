@@ -7,7 +7,6 @@
 /*? assert(return_type == None or isinstance(return_type, camkes.ast.Type) or isinstance(return_type, camkes.ast.Reference)) ?*/
                                                /*# Return type of this interface #*/
 /*# ret_ptr #*/                                /*# Pointer for the return value #*/
-/*# ret_sz #*/                                 /*# Symbol for the size of the return if it is an array #*/
 
 /*? function ?*/(
 /*? size ?*/
@@ -15,10 +14,6 @@
   ,
 /*- endif -*/
 /*- if return_type is not none -*/
-  /*- if return_type.array -*/
-    /*? assert(isinstance(ret_sz, basestring)) ?*/
-    /*? ret_sz ?*/,
-  /*- endif -*/
   /*? ret_ptr ?*/
   /*- if len(output_parameters) > 0 -*/
     ,

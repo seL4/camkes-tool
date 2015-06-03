@@ -29,9 +29,6 @@
         void
     /*- endif -*/
     /*? me.to_interface.name ?*/_/*? m.name ?*/(
-      /*- if m.return_type and m.return_type.array -*/
-        /*? raise(NotImplementedError()) ?*/
-      /*- endif -*/
       /*- for p in m.parameters -*/
         /*- if isinstance(p.type, camkes.ast.Reference) or p.array or p.type.type == 'string' or p.direction == 'refin' -*/
           /*? raise(NotImplementedError()) ?*/
@@ -45,7 +42,7 @@
           ,
         /*- endif -*/
       /*- endfor -*/
-      /*- if (m.return_type is none or not m.return_type.array) and len(m.parameters) == 0 -*/
+      /*- if len(m.parameters) == 0 -*/
         void
       /*- endif -*/
     );
