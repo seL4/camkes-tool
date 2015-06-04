@@ -445,6 +445,21 @@ lemma irqs_dom_distinct:
 (** TPP: condense = False *)
 
 (** TPP: condense = True *)
+lemma irqs_dom_distinct_extra: "dom extra' \<inter> {x. /*? min(irq_ids) ?*/ \<le> x \<and> x \<le> /*? max(irq_ids) ?*/} = {}"
+  /*? open_proof ?*/rule disjointI/*? A ?*/
+  /*? a ?*/rename_tac x y/*? A ?*/
+  /*? a ?*/drule domD/*? A ?*/
+  /*- for obj in obj_space.spec.objs -*/
+    /*- if obj.name is not none and isinstance(obj, (capdl.Frame, capdl.PageTable, capdl.PageDirectory)) -*/
+  /*? a ?*/case_tac "x = /*? obj.name ?*/_id"/*? A ?*/
+   /*? a ?*/simp add:extra'_def /*? obj.name ?*/_id_def/*? A ?*/
+   /*? a ?*/fastforce/*? A ?*/
+    /*- endif -*/
+  /*- endfor -*/
+  /*? a ?*/simp add:extra'_def/*? close_proof ?*/
+(** TPP: condense = False *)
+
+(** TPP: condense = True *)
 lemma irqs_is_valid: "valid_irqs (generate' ArchSpec.assembly') extra' irqs"
   apply (simp add:valid_irqs_def irqs_def CapDLSpec.empty_irq_objects_def)
   apply (subst dom_expand)+
@@ -454,6 +469,8 @@ lemma irqs_is_valid: "valid_irqs (generate' ArchSpec.assembly') extra' irqs"
    apply (rule refl)
   apply (rule conjI)
    apply (simp add:irqs_dom_distinct)
+  apply (rule conjI)
+   apply (simp add:irqs_dom_distinct_extra)
   sorry (* TODO *)
 
 /*? gc ?*/
