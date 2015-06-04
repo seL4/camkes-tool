@@ -460,18 +460,29 @@ lemma irqs_dom_distinct_extra: "dom extra' \<inter> {x. /*? min(irq_ids) ?*/ \<l
 (** TPP: condense = False *)
 
 (** TPP: condense = True *)
+lemma ran_expand: "\<exists>x. P x \<Longrightarrow> ran (\<lambda>x. if P x then Some y else None) = {y}"
+  /*? open_proof ?*/rule subset_antisym/*? A ?*/
+   /*? a ?*/(clarsimp simp:ran_def)+/*? close_proof ?*/
+
+/*? gc ?*/
+(** TPP: condense = False *)
+
+(** TPP: condense = True *)
 lemma irqs_is_valid: "valid_irqs (generate' ArchSpec.assembly') extra' irqs"
-  apply (simp add:valid_irqs_def irqs_def CapDLSpec.empty_irq_objects_def)
-  apply (subst dom_expand)+
-  apply (rule conjI)
-   apply (subst range_irqs_eq)
-   apply (subst range_irqs_def2)
-   apply (rule refl)
-  apply (rule conjI)
-   apply (simp add:irqs_dom_distinct)
-  apply (rule conjI)
-   apply (simp add:irqs_dom_distinct_extra)
-  sorry (* TODO *)
+  /*? open_proof ?*/simp add:valid_irqs_def irqs_def CapDLSpec.empty_irq_objects_def/*? A ?*/
+  /*? a ?*/(subst dom_expand)+/*? A ?*/
+  /*? a ?*/rule conjI/*? A ?*/
+   /*? a ?*/subst range_irqs_eq/*? A ?*/
+   /*? a ?*/subst range_irqs_def2/*? A ?*/
+   /*? a ?*/rule refl/*? A ?*/
+  /*? a ?*/rule conjI/*? A ?*/
+   /*? a ?*/simp add:irqs_dom_distinct/*? A ?*/
+  /*? a ?*/rule conjI/*? A ?*/
+   /*? a ?*/simp add:irqs_dom_distinct_extra/*? A ?*/
+  /*? a ?*/simp/*? A ?*/
+  /*? a ?*/subst ran_expand/*? A ?*/
+   /*? a ?*/rule exI, force/*? A ?*/
+  /*? a ?*/simp add:CapDLSpec.empty_irq_node_def/*? close_proof ?*/
 
 /*? gc ?*/
 (** TPP: condense = False *)
