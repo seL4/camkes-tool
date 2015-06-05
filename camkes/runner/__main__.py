@@ -497,6 +497,10 @@ def compose_assemblies(ast):
 
     first_assembly.configuration.update_mapping()
 
+    # ensure the assembly is the last element in the ast
+    ast.remove(first_assembly)
+    ast.append(first_assembly)
+
 def get_assembly(ast):
     assembly = [x for x in ast if isinstance(x, AST.Assembly)]
     assert len(assembly) == 1
