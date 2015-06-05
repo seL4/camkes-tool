@@ -14,7 +14,7 @@
 
 which python &>/dev/null || { echo "python not found" >&2 ; exit 1 ; }
 
-for i in ast parser runner templates lint; do
+for i in ast parser runner templates; do
     echo "Importing camkes.${i}..."
     python -c "import camkes.${i}"
     if [ $? -ne 0 ]; then

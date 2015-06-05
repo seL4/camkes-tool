@@ -17,14 +17,7 @@
   /*- set offset = c_symbol('offset') -*/
   /*- set ret = c_symbol('return') -*/
   static unsigned int /*? function ?*/_/*? ret_fn ?*/(unsigned int /*? offset ?*/,
-    /*- if return_type.array -*/
-      const size_t * /*? ret ?*/_sz,
-      /*- if isinstance(return_type, camkes.ast.Type) and return_type.type == 'string' -*/
-        char *** /*? ret ?*/
-      /*- else -*/
-        /*? show(return_type) ?*/ ** /*? ret ?*/
-      /*- endif -*/
-    /*- elif isinstance(return_type, camkes.ast.Type) and return_type.type == 'string' -*/
+    /*- if isinstance(return_type, camkes.ast.Type) and return_type.type == 'string' -*/
       char ** /*? ret ?*/
     /*- else -*/
       const /*? show(return_type) ?*/ * /*? ret ?*/
@@ -35,53 +28,7 @@
     void * /*? base ?*/ UNUSED = (void*)(/*? buffer ?*/);
 
     /* Marshal the return value. */
-    /*- if return_type.array -*/
-      ERR_IF(/*? offset ?*/ + sizeof(* /*? ret ?*/_sz) > /*? size ?*/, /*? error_handler ?*/, ((camkes_error_t){
-          .type = CE_BUFFER_LENGTH_EXCEEDED,
-          .instance = "/*? instance ?*/",
-          .interface = "/*? interface ?*/",
-          .description = "buffer exceeded while marshalling return value for /*? name ?*/",
-          .current_length = /*? offset ?*/,
-          .target_length = /*? offset ?*/ + sizeof(* /*? ret ?*/_sz),
-        }), ({
-          return UINT_MAX;
-        }));
-      memcpy(/*? base ?*/ + /*? offset ?*/, /*? ret ?*/_sz, sizeof(* /*? ret ?*/_sz));
-      /*? offset ?*/ += sizeof(* /*? ret ?*/_sz);
-      /*- if isinstance(return_type, camkes.ast.Type) and return_type.type == 'string' -*/
-        /*- set lcount = c_symbol() -*/
-        for (int /*? lcount ?*/ = 0; /*? lcount ?*/ < * /*? ret ?*/_sz; /*? lcount ?*/ ++) {
-          /*- set strlen = c_symbol('strlen') -*/
-          size_t /*? strlen ?*/ = strnlen((* /*? ret ?*/)[/*? lcount ?*/], /*? size ?*/ - /*? offset ?*/);
-          ERR_IF(/*? strlen ?*/ >= /*? size ?*/ - /*? offset ?*/, /*? error_handler ?*/, ((camkes_error_t){
-              .type = CE_BUFFER_LENGTH_EXCEEDED,
-              .instance = "/*? instance ?*/",
-              .interface = "/*? interface ?*/",
-              .description = "buffer exceeded while marshalling return value for /*? name ?*/",
-              .current_length = /*? offset ?*/,
-              .target_length = /*? offset ?*/ + /*? strlen ?*/ + 1,
-            }), ({
-              return UINT_MAX;
-            }));
-          /* If we didn't trigger an error, we now know this strcpy is safe. */
-          (void)strcpy(/*? base ?*/ + /*? offset ?*/, (* /*? ret ?*/)[/*? lcount ?*/]);
-          /*? offset ?*/ += /*? strlen ?*/ + 1;
-        }
-      /*- else -*/
-        ERR_IF(/*? offset ?*/ + sizeof((* /*? ret ?*/)[0]) * (* /*? ret ?*/_sz) > /*? size ?*/, /*? error_handler ?*/, ((camkes_error_t){
-            .type = CE_BUFFER_LENGTH_EXCEEDED,
-            .instance = "/*? instance ?*/",
-            .interface = "/*? interface ?*/",
-            .description = "buffer exceeded while marshalling return value for /*? name ?*/",
-            .current_length = /*? offset ?*/,
-            .target_length = /*? offset ?*/ + sizeof((* /*? ret ?*/)[0]) * (* /*? ret ?*/_sz),
-          }), ({
-            return UINT_MAX;
-          }));
-        memcpy(/*? base ?*/ + /*? offset ?*/, (* /*? ret ?*/), sizeof((* /*? ret ?*/)[0]) * (* /*? ret ?*/_sz));
-        /*? offset ?*/ += sizeof((* /*? ret ?*/)[0]) * (* /*? ret ?*/_sz);
-      /*- endif -*/
-    /*- elif isinstance(return_type, camkes.ast.Type) and return_type.type == 'string' -*/
+    /*- if isinstance(return_type, camkes.ast.Type) and return_type.type == 'string' -*/
       /*- set strlen = c_symbol('strlen') -*/
       size_t /*? strlen ?*/ = strnlen(* /*? ret ?*/, /*? size ?*/ - /*? offset ?*/);
       ERR_IF(/*? strlen ?*/ >= /*? size ?*/ - /*? offset ?*/, /*? error_handler ?*/, ((camkes_error_t){
@@ -219,14 +166,7 @@
 static unsigned int /*? function ?*/(
 /*- set ret = c_symbol('return') -*/
 /*- if return_type is not none -*/
-  /*- if return_type.array -*/
-    const size_t * /*? ret ?*/_sz,
-    /*- if isinstance(return_type, camkes.ast.Type) and return_type.type == 'string' -*/
-      char *** /*? ret ?*/
-    /*- else -*/
-      /*? show(return_type) ?*/ ** /*? ret ?*/
-    /*- endif -*/
-  /*- elif isinstance(return_type, camkes.ast.Type) and return_type.type == 'string' -*/
+  /*- if isinstance(return_type, camkes.ast.Type) and return_type.type == 'string' -*/
     char ** /*? ret ?*/
   /*- else -*/
     const /*? show(return_type) ?*/ * /*? ret ?*/
@@ -262,9 +202,6 @@ static unsigned int /*? function ?*/(
 
   /*- if return_type is not none -*/
     /*? length ?*/ = /*? function ?*/_/*? ret_fn ?*/(/*? length ?*/,
-      /*- if return_type.array -*/
-        /*? ret ?*/_sz,
-      /*- endif -*/
       /*? ret ?*/
     );
     if (/*? length ?*/ == UINT_MAX) {

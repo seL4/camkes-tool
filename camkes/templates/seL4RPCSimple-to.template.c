@@ -29,9 +29,6 @@
         void
     /*- endif -*/
     /*? me.to_interface.name ?*/_/*? m.name ?*/(
-      /*- if m.return_type and m.return_type.array -*/
-        /*? raise(NotImplementedError()) ?*/
-      /*- endif -*/
       /*- for p in m.parameters -*/
         /*- if isinstance(p.type, camkes.ast.Reference) or p.array or p.type.type == 'string' or p.direction == 'refin' -*/
           /*? raise(NotImplementedError()) ?*/
@@ -45,7 +42,7 @@
           ,
         /*- endif -*/
       /*- endfor -*/
-      /*- if (m.return_type is none or not m.return_type.array) and len(m.parameters) == 0 -*/
+      /*- if len(m.parameters) == 0 -*/
         void
       /*- endif -*/
     );
@@ -94,13 +91,13 @@ static void /*? me.to_interface.name ?*/_/*? m.name ?*/_unmarshal(
     /*- for p in input_parameters -*/
         /*- if isinstance(p.type, camkes.ast.Reference) or p.array or p.type.type == 'string' -*/
             /*? raise(NotImplementedError()) ?*/
-        /*- elif sizeof(p) <= __SIZEOF_POINTER__ -*/
+        /*- elif sizeof(p) <= options.word_size / 8 -*/
             * /*? p.name ?*/ = seL4_GetMR(/*? mr ?*/);
             /*? mr ?*/++;
         /*- else -*/
             * /*? p.name ?*/ = (/*? p.type.type ?*/)(((uint64_t)seL4_GetMR(/*? mr ?*/)) | (((uint64_t)seL4_GetMR(/*? mr ?*/ + 1)) << __WORDSIZE));
             /*? mr ?*/ += 2;
-            /*? assert(sizeof(p) <= 2 * __SIZEOF_POINTER__) ?*/
+            /*? assert(sizeof(p) <= 2 * options.word_size / 8) ?*/
         /*- endif -*/
     /*- endfor -*/
 }
@@ -178,10 +175,10 @@ static unsigned int /*? me.to_interface.name ?*/_/*? m.name ?*/_marshal(
     /*- if m.return_type is not none -*/
         seL4_SetMR(/*? mr ?*/, (seL4_Word)/*? ret ?*/);
         /*? mr ?*/++;
-        /*- if sizeof(m.return_type) > __SIZEOF_POINTER__ -*/
+        /*- if sizeof(m.return_type) > options.word_size / 8 -*/
             seL4_SetMR(/*? mr ?*/, (seL4_Word)(((uint64_t)/*? ret ?*/) >> __WORDSIZE));
             /*? mr ?*/++;
-            /*? assert(sizeof(m.return_type) <= 2 * __SIZEOF_POINTER__) ?*/
+            /*? assert(sizeof(m.return_type) <= 2 * options.word_size / 8) ?*/
         /*- endif -*/
     /*- endif -*/
 
@@ -191,10 +188,10 @@ static unsigned int /*? me.to_interface.name ?*/_/*? m.name ?*/_marshal(
         /*- else -*/
             seL4_SetMR(/*? mr ?*/, (seL4_Word)/*? p.name ?*/);
             /*? mr ?*/++;
-            /*- if sizeof(p) > __SIZEOF_POINTER__ -*/
+            /*- if sizeof(p) > options.word_size / 8 -*/
                 seL4_SetMR(/*? mr ?*/, (seL4_Word)(((uint64_t)/*? p.name ?*/) >> __WORDSIZE));
                 /*? mr ?*/++;
-                /*? assert(sizeof(p) <= 2 * __SIZEOF_POINTER__) ?*/
+                /*? assert(sizeof(p) <= 2 * options.word_size / 8) ?*/
             /*- endif -*/
         /*- endif -*/
     /*- endfor -*/

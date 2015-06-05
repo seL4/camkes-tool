@@ -33,7 +33,7 @@
 /*# Find any untyped pools #*/
 /*- set untyped_obj_list = [] -*/
 /*- for attribute, value in configuration[me.name].items() -*/
-    /*- set r = re.match('simple_untyped(\\d+)_pool', attribute) -*/
+    /*- set r = re.match('simple_untyped(\\d+)_pool$', attribute) -*/
     /*- if r is not none -*/
         /*- set bits = int(r.group(1)) -*/
         /*- for i in range(value) -*/

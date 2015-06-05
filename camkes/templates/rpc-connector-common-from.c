@@ -15,7 +15,6 @@
 /*# Whether or not we trust our partner #*/
 /*? assert(isinstance(trust_partner, bool)) ?*/
 
-#define _POSIX_SOURCE /* stpcpy */
 #include <sel4/sel4.h>
 #include <assert.h>
 #include <limits.h>
@@ -101,17 +100,7 @@ int /*? me.from_interface.name ?*/__run(void) {
    *# value at some point. Construct a TLS variable.
    #*/
   /*- set name = ret_tls_var -*/
-  /*- if m.return_type.array -*/
-    /*- if isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string' -*/
-      /*- set array = False -*/
-      /*- set type = 'char**' -*/
-      /*- include 'thread_local.c' -*/
-    /*- else -*/
-      /*- set array = False -*/
-      /*- set type = '%s*' % show(m.return_type) -*/
-      /*- include 'thread_local.c' -*/
-    /*- endif -*/
-  /*- elif isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string' -*/
+  /*- if isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string' -*/
     /*- set array = False -*/
     /*- set type = 'char*' -*/
     /*- include 'thread_local.c' -*/
@@ -128,13 +117,6 @@ int /*? me.from_interface.name ?*/__run(void) {
     void
 /*- endif -*/
 /*? me.from_interface.name ?*/_/*? m.name ?*/(
-/*- set ret_sz = c_symbol('ret_sz') -*/
-/*- if m.return_type and m.return_type.array -*/
-    size_t * /*? ret_sz ?*/
-    /*- if len(m.parameters) > 0 -*/
-        ,
-    /*- endif -*/
-/*- endif -*/
 /*- for p in m.parameters -*/
   /*- if p.direction == 'in' -*/
     /*- if p.array -*/
@@ -176,7 +158,7 @@ int /*? me.from_interface.name ?*/__run(void) {
     ,
   /*- endif -*/
 /*- endfor -*/
-/*- if (m.return_type is none or not m.return_type.array) and len(m.parameters) == 0 -*/
+/*- if len(m.parameters) == 0 -*/
   void
 /*- endif -*/
 ) {
@@ -233,15 +215,7 @@ int /*? me.from_interface.name ?*/__run(void) {
     /*- set ret_val = c_symbol('return') -*/
     /*- set ret_ptr = c_symbol('return_ptr') -*/
     /*- if m.return_type is not none -*/
-      /*- if m.return_type.array -*/
-        /*- if isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string' -*/
-          char ** /*? ret_val ?*/ UNUSED;
-          char *** /*? ret_ptr ?*/ = TLS_PTR(/*? ret_tls_var ?*/, /*? ret_val ?*/);
-        /*- else -*/
-          /*? show(m.return_type) ?*/ * /*? ret_val ?*/ UNUSED;
-          /*? show(m.return_type) ?*/ ** /*? ret_ptr ?*/ = TLS_PTR(/*? ret_tls_var ?*/, /*? ret_val ?*/);
-        /*- endif -*/
-      /*- elif isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string' -*/
+      /*- if isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string' -*/
         char * /*? ret_val ?*/ UNUSED;
         char ** /*? ret_ptr ?*/ = TLS_PTR(/*? ret_tls_var ?*/, /*? ret_val ?*/);
       /*- else -*/
@@ -257,7 +231,7 @@ int /*? me.from_interface.name ?*/__run(void) {
     if (unlikely(/*? length ?*/ == UINT_MAX)) {
         /* Error in marshalling; bail out. */
         /*- if m.return_type is not none -*/
-            /*- if m.return_type.array or (isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string')  -*/
+            /*- if isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string' -*/
                 return NULL;
             /*- else -*/
                 memset(/*? ret_ptr ?*/, 0, sizeof(* /*? ret_ptr ?*/));
@@ -296,7 +270,7 @@ int /*? me.from_interface.name ?*/__run(void) {
     if (unlikely(/*? err ?*/ != 0)) {
         /* Error in unmarshalling; bail out. */
         /*- if m.return_type is not none -*/
-            /*- if m.return_type.array or (isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string')  -*/
+            /*- if isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string' -*/
                 return NULL;
             /*- else -*/
                 memset(/*? ret_ptr ?*/, 0, sizeof(* /*? ret_ptr ?*/));

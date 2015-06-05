@@ -56,10 +56,10 @@ static unsigned int /*? me.from_interface.name ?*/_/*? m.name ?*/_marshal(
     /*- for p in input_parameters -*/
         seL4_SetMR(/*? length ?*/, (seL4_Word)/*? p.name ?*/);
         /*? length ?*/++;
-        /*- if sizeof(p) > __SIZEOF_POINTER__ -*/
+        /*- if sizeof(p) > options.word_size / 8 -*/
             seL4_SetMR(/*? length ?*/, (seL4_Word)(((uint64_t)/*? p.name ?*/) >> __WORDSIZE));
             /*? length ?*/++;
-            /*? assert(sizeof(p) <= 2 * __SIZEOF_POINTER__) ?*/
+            /*? assert(sizeof(p) <= 2 * options.word_size / 8) ?*/
         /*- endif -*/
     /*- endfor -*/
 
@@ -104,22 +104,22 @@ static
         /*? m.return_type.type ?*/ /*? ret ?*/ =
             (/*? m.return_type.type ?*/)seL4_GetMR(/*? mr ?*/);
         /*? mr ?*/++;
-        /*- if sizeof(m.return_type) > __SIZEOF_POINTER__ -*/
+        /*- if sizeof(m.return_type) > options.word_size / 8 -*/
             /*? ret ?*/ |=
                 (/*? m.return_type.type ?*/)(((uint64_t)seL4_GetMR(/*? mr ?*/)) << __WORDSIZE);
             /*? mr ?*/++;
-            /*? assert(sizeof(m.return_type) <= 2 * __SIZEOF_POINTER__) ?*/
+            /*? assert(sizeof(m.return_type) <= 2 * options.word_size / 8) ?*/
         /*- endif -*/
     /*- endif -*/
 
     /*- for p in output_parameters -*/
         * /*? p.name ?*/ = (/*? p.type.type ?*/)seL4_GetMR(/*? mr ?*/);
         /*? mr ?*/++;
-        /*- if sizeof(p) > __SIZEOF_POINTER__ -*/
+        /*- if sizeof(p) > options.word_size / 8 -*/
             * /*? p.name ?*/ |=
                 (/*? p.type.type ?*/)(((uint64_t)seL4_GetMR(/*? mr ?*/)) << __WORDSIZE);
             /*? mr ?*/++;
-            /*? assert(sizeof(p) <= 2 * __SIZEOF_POINTER__) ?*/
+            /*? assert(sizeof(p) <= 2 * options.word_size / 8) ?*/
         /*- endif -*/
     /*- endfor -*/
 
@@ -134,9 +134,6 @@ static
     void
 /*- endif -*/
 /*? me.from_interface.name ?*/_/*? m.name ?*/(
-/*- if m.return_type and m.return_type.array -*/
-  /*? raise(NotImplementedError()) ?*/
-/*- endif -*/
 /*- for p in m.parameters -*/
   /*- if isinstance(p.type, camkes.ast.Reference) or p.array or p.type.type == 'string' or p.direction == 'refin' -*/
     /*? raise(NotImplementedError()) ?*/
@@ -151,7 +148,7 @@ static
     ,
   /*- endif -*/
 /*- endfor -*/
-/*- if (m.return_type is none or not m.return_type.array) and len(m.parameters) == 0 -*/
+/*- if len(m.parameters) == 0 -*/
     void
 /*- endif -*/
 ) {

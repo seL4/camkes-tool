@@ -12,4 +12,4 @@
 
 # Enum to use when identifying which context you are calling from when you
 # invoke common functions.
-TOOL_LINT, TOOL_PARSER, TOOL_RUNNER = range(3)
+TOOL_PARSER, TOOL_RUNNER = range(2)

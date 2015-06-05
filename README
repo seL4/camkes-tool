@@ -12,7 +12,6 @@ This repository contains various CAmkES tools.
 
  camkes/     Implementation of the tools themselves
   ast/       Abstract Syntax Tree objects
-  lint/      AST correctness checker
   parser/    Grammar import and export
   runner/    Template instantiator
   templates/ Templates themselves
