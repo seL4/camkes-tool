@@ -16,7 +16,7 @@ than sed-style manipulations here. Anything more complicated needs a proper
 semantic understanding of Isabelle theories.
 '''
 
-import argparse, re, StringIO, subprocess, sys, textwrap
+import argparse, re, subprocess, sys, textwrap
 
 class Pass(object):
     '''A line-wise pre-processor pass. Extend this to specify a line
@@ -161,8 +161,6 @@ def main():
     p = argparse.ArgumentParser(description='Isabelle theory pre-processor')
     p.add_argument('--output', '-o', type=argparse.FileType('w'),
         default=sys.stdout, help='output to a file rather than stdout')
-    p.add_argument('--in-place', '-i', action='store_true',
-        help='overwrite file in place')
     p.add_argument('input', type=argparse.FileType('r'), nargs='?',
         default=sys.stdin, help='input file')
 
@@ -187,13 +185,6 @@ def main():
 
     # Parse the command line arguments.
     options = p.parse_args()
-
-    if options.in_place:
-        if options.output != sys.stdout:
-            print >>sys.stderr, 'you cannot use --in-place and --output together'
-            return -1
-        # Ensure we write the output to memory, which we'll dump later.
-        options.output = StringIO.StringIO()
 
     # Directives can be provided in the input in the form:
     #  (** TPP: property = value *)
@@ -254,15 +245,6 @@ def main():
 
         if line is not None:
             print >>options.output, line
-
-    if options.in_place:
-        # The data will have been written into a StringIO that we now need to
-        # overwrite the input file with.
-        name = options.input.name
-        options.input.close()
-        with open(name, 'w') as f:
-            f.write(options.output.getvalue())
-        options.output.close()
 
     return 0
 
