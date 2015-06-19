@@ -143,10 +143,8 @@ lemma setMR_preserves_inv[simp]:"inv s \<Longrightarrow> inv (setMR s i x)"
   apply (clarsimp simp:inv_defs setMR_def)
   done
 
-/*- if tls -*/
 lemma tls_mr_distinct[simp]:"tls (setMR s x y) = tls s"
   apply (clarsimp simp:tls_def tls_ptr_def setMR_def ipc_buffer_ptr_def ipc_buffer_def)
   done
-/*- endif -*/
 
 /*- endif -*/
