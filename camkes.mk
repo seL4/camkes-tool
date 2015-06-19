@@ -45,7 +45,6 @@ CAMKES_FLAGS += \
     --cache $(if ${CONFIG_CAMKES_CACHE_READWRITE},on,$(if ${CONFIG_CAMKES_CACHE_READONLY},readonly,$(if ${CONFIG_CAMKES_CACHE_WRITEONLY},writeonly,off))) \
     $(if ${CONFIG_CAMKES_CPP},--cpp,) \
     --cpp-flag=-I${KERNEL_ROOT_PATH}/../include/generated \
-    $(if ${CONFIG_CAMKES_DEBUG_POST_RENDER_EDIT},--post-render-edit,) \
     $(foreach path, ${PWD}/tools/camkes/include/builtin ${CONFIG_CAMKES_IMPORT_PATH}, --import-path=${path}) \
     $(if ${TEMPLATES}, $(patsubst %,--templates "${SOURCE_DIR}/%",${TEMPLATES}),) \
     $(if ${CONFIG_CAMKES_OPTIMISATION_RPC_LOCK_ELISION},--frpc-lock-elision,--fno-rpc-lock-elision) \

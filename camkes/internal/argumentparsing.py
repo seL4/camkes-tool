@@ -74,7 +74,6 @@ TOOLS = {
             '--outfile',
             '--platform',
             '--ply-optimise',
-            '--post-render-edit',
             '--prune',
             '--quiet',
             '--templates',
@@ -154,9 +153,6 @@ def parse_args(tool):
     add_arg('--platform', '-p', \
         help='Platform to produce code for. Pass \'help\' to see valid platforms.', \
         default='seL4')
-    add_arg('--post-render-edit',
-        help='Allow the user to edit rendered templates before exiting.',
-        action='store_true')
     add_arg('--templates', '-t', \
         help='Extra directories to search for templates (before builtin templates).', \
         action='append', \

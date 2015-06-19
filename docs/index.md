@@ -1042,13 +1042,6 @@ all tools.
   producing visual representations of a system and the "seL4" option is for
   producing binaries. All other platforms are verification frameworks.
 
-**--post-render-edit**
-
-> This option is only relevant to the runner and is used for debugging. When
-  enabled, it drops you into an editor following the rendering of each
-  template. The purpose of this is to allow you to manually tweak the output
-  of a template on the fly during compilation.
-
 **-r**, **--resolve-imports**
 **-d**, **--dont-resolve-imports**
 

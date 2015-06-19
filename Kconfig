@@ -270,15 +270,6 @@ menu "CAmkES Options"
             This option instruments memory allocation functions to catch heap
             corruption. Use this for debugging dynamic memory problems.
 
-        config CAMKES_DEBUG_POST_RENDER_EDIT
-        bool "Allow editing each template after rendering"
-        default n
-        help
-            After each template is rendered, you will be prompted as to whether you
-            want to edit the rendered output before the runner exits. If you choose
-            to do so, the output will be opened in the editor determined by the
-            value of your environment variable EDITOR.
-
     endmenu
 
     menu "Verification"
