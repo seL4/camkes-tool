@@ -227,7 +227,7 @@ def set_tcb_caps(ast, obj_space, cspaces, elfs, options, **_):
                         'not appear to be backed by a frame' % (tcb.name, group))
                 frame = pt[p_index].referent
 
-                tcb['ipc_buffer_slot'] = Cap(frame, True, True, True) # RWG
+                tcb['ipc_buffer_slot'] = Cap(frame, True, True, False) # RW
 
             # Currently no fault EP (fault_ep_slot).
 
