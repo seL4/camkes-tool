@@ -109,10 +109,12 @@
 
 /*- if m.return_type is not none -*/
   /*- if isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string' -*/
+    /*- set array = False -*/
     /*- set name = '%s_ret_to' % m.name -*/
     /*- set type = 'char*' -*/
     /*- include 'thread_local.c' -*/
   /*- else -*/
+    /*- set array = False -*/
     /*- set name = '%s_ret_to' % m.name -*/
     /*- set type = show(m.return_type) -*/
     /*- include 'thread_local.c' -*/
@@ -120,23 +122,28 @@
 /*- endif -*/
 /*- for p in m.parameters -*/
   /*- if p.array -*/
+    /*- set array = False -*/
     /*- set name = '%s_%s_sz_to' % (m.name, p.name) -*/
     /*- set type = 'size_t' -*/
     /*- include 'thread_local.c' -*/
     /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+      /*- set array = False -*/
       /*- set name = '%s_%s_to' % (m.name, p.name) -*/
       /*- set type = 'char**' -*/
       /*- include 'thread_local.c' -*/
     /*- else -*/
+      /*- set array = False -*/
       /*- set name = '%s_%s_to' % (m.name, p.name) -*/
       /*- set type = '%s*' % show(p.type) -*/
       /*- include 'thread_local.c' -*/
     /*- endif -*/
   /*- elif isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+    /*- set array = False -*/
     /*- set name = '%s_%s_to' % (m.name, p.name) -*/
     /*- set type = 'char*' -*/
     /*- include 'thread_local.c' -*/
   /*- else -*/
+    /*- set array = False -*/
     /*- set name = '%s_%s_to' % (m.name, p.name) -*/
     /*- set type = show(p.type) -*/
     /*- include 'thread_local.c' -*/
