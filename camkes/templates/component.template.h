@@ -84,7 +84,7 @@ const char *get_instance_name(void);
             /*- if len(m.parameters) == 0 -*/
               void
             /*- endif -*/
-        ) /*- if u.optional -*/ __attribute__((weak)) /*- endif -*/;
+        ) /*- if isinstance(u, camkes.ast.Uses) and u.optional -*/ __attribute__((weak)) /*- endif -*/;
     /*- endfor -*/
 /*- endfor -*/
 
