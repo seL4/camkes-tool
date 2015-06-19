@@ -1,6 +1,6 @@
 /*- macro call_array_typedef_check(interface, method, parameter, type) -*/
   /*- set tmp = c_symbol() -*/
-  /*? type ?*/ /*? tmp ?*/;
+  static /*? type ?*/ /*? tmp ?*/;
   /*? interface ?*/_/*? method ?*/_/*? parameter ?*/_array_typedef_check(/*? tmp ?*/);
 /*- endmacro -*/
 
