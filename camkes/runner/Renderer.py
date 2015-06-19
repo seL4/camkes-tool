@@ -70,7 +70,8 @@ class Renderer(object):
             variable_start_string=START_VARIABLE,
             variable_end_string=END_VARIABLE,
             comment_start_string=START_COMMENT,
-            comment_end_string=END_COMMENT)
+            comment_end_string=END_COMMENT,
+            auto_reload=False)
 
         if options.cache in ['on', 'writeonly'] and \
                 not os.path.exists(template_cache):
