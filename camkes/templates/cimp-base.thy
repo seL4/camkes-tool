@@ -28,7 +28,7 @@ begin
     /*- elif type.type == 'string' -*/
         string
     /*- else -*/
-        <UNIMPLEMENTED TYPE>
+        /*? raise(NotImplementedError()) ?*/
     /*- endif -*/
 /*- endmacro -*/
 
@@ -44,7 +44,7 @@ begin
     /*- elif type.type == 'string' -*/
         String
     /*- else -*/
-        <UNIMPLEMENTED TYPE>
+        /*? raise(NotImplementedError()) ?*/
     /*- endif -*/
 /*- endmacro -*/
 
