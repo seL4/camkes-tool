@@ -451,9 +451,8 @@ def replace_dma_frames(ast, obj_space, elfs, options, **_):
 
     assembly = find_assembly(ast)
 
-    for i in assembly.composition.instances:
-        if i.type.hardware:
-            continue
+    for i in (x for x in assembly.composition.instances
+            if not x.type.hardware):
 
         perspective = Perspective(instance=i.name, group=i.address_space)
 
