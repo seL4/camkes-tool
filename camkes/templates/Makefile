@@ -31,7 +31,6 @@
 /*- if cfiles_append is not none -*/
 /*? cfiles_append ?*/_CFILES += /*? target ?*/
 /*- endif -*/
-.DELETE_ON_ERROR: /*? target ?*/
 /*? target ?*/: /*? dependencies ?*/
 	@echo " [GEN] $(notdir $@)"
 	${Q}mkdir -p $(dir $@)
@@ -390,7 +389,6 @@ FINOBJFILES ?= $(shell $(CC) $(CFLAGS) $(CPPFLAGS) -print-file-name=crtend.o) $(
 
 # CapDL generation. This assumes that the last element in TARGETS is a CapDL
 # spec.
-.DELETE_ON_ERROR: $(lastword ${TARGETS})
 $(firstword ${TARGETS}): /*- for g in groups -*/ /*- set p = Perspective(group=g) -*/ ${SEL4_BINDIR}//*? p['elf_name'] ?*/ /*- endfor -*/
 	@echo " [GEN] $(notdir $@)"
 	$(Q)mkdir -p $(SEL4_BINDIR)

@@ -124,7 +124,6 @@ PRUNER_BLACKLIST = FILE fpos_t opterr optind optopt stderr stdin stdout \
 # bottom of this Makefile.
 include ${BUILD_DIR}/camkes-gen.mk
 
-.DELETE_ON_ERROR: ${BUILD_DIR}/camkes-gen.mk
 ${BUILD_DIR}/camkes-gen.mk: ${SOURCE_DIR}/${ADL}
 	@echo " [GEN] $(notdir $@)"
 	camkes.sh runner \
@@ -132,3 +131,6 @@ ${BUILD_DIR}/camkes-gen.mk: ${SOURCE_DIR}/${ADL}
         --file $< \
         --item Makefile \
         --outfile "$@"
+
+# Delete the targets of any rules that fail.
+.DELETE_ON_ERROR:
