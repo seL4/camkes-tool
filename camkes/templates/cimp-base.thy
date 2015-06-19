@@ -125,7 +125,7 @@ datatype inst =
                 Response (\<lambda>/*? q ?*/ /*? s ?*/. case q_data /*? q ?*/ of Return /*? xs ?*/ \<Rightarrow>
                 /*- if m.return_type is not none or filter(lambda('x: x.direction in [\'out\', \'inout\']'), m.parameters) -*/
                     {(embed /*? s ?*/
-                    /*- if m.return_type -*/
+                    /*- if m.return_type is not none -*/
                         /*- set v = isabelle_symbol() -*/
                         (case hd /*? xs ?*/ of /*? show_wrapped_type(m.return_type) ?*/ /*? v ?*/ \<Rightarrow> /*? v ?*/)
                     /*- endif -*/

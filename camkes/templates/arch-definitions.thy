@@ -115,7 +115,7 @@ definition
     /*? i.name ?*/ :: dataport
 where
     "/*? i.name ?*/ \<equiv>
-    /*- if i.type -*/
+    /*- if i.type is not none -*/
         Some ''/*? i.type ?*/''
     /*- else -*/
         None
