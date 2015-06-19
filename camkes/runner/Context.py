@@ -39,7 +39,6 @@ import camkes.ast as AST
 from camkes.internal.DeterministicSet import DeterministicSet
 from camkes.internal.Counter import Counter
 from camkes.templates import macros
-from apply import apply, by, done, oops, sorry
 from NameMangling import TEMPLATES, FILTERS, Perspective
 
 def new_context(entity, assembly, obj_space, cap_space, shmem, **kwargs):
@@ -193,13 +192,6 @@ def new_context(entity, assembly, obj_space, cap_space, shmem, **kwargs):
 
         # Work around for Jinja's bizarre scoping rules.
         'Counter':Counter,
-
-        # Helper functions for generating apply-style Isabelle proof scripts.
-        'apply':apply,
-        'by':by,
-        'done':done,
-        'oops':oops,
-        'sorry':sorry,
 
         # Support for name mangling in the templates. See existing usage for
         # examples.
