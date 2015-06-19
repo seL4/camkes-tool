@@ -166,7 +166,6 @@ def main():
 
     # Add each of the processing passes.
     PASSES = [
-        RemoveDuplicateNewlines(),
         Rstrip(),
         DropLeadingBlankLines(),
         Condense(),
@@ -176,6 +175,7 @@ def main():
         CompressBrackets(),
         CompressBraces(),
         CompressCommas(),
+        RemoveDuplicateNewlines(),
     ]
     for i in PASSES:
         p.add_argument('--f%s' % i.arg, action='store_true', default=i.default,
