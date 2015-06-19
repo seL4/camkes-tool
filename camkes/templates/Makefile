@@ -75,7 +75,7 @@ ${LABEL_MAPPING}: /*? ' '.join(imported) ?*/ /*- for g in groups -*/ /*- set p =
         /*- endfor -*/ \
         --outfile "$@" \
         --platform seL4
-	${Q}${TPP} --in-place "$@"
+	${Q}${TPP} "$@" | ${SPONGE} "$@"
 endif
 
 # Static component files provided by the user.
