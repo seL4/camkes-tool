@@ -11,8 +11,7 @@
 
 
 # Wrapper script for calling any of the standalone parts of CAmkES. You should
-# use this as an entry point in preference to calling Python files directly
-# because it checks the dependencies for you.
+# use this as an entry point in preference to calling Python files directly.
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
@@ -30,26 +29,6 @@ elif [ "$1" = "--help" ]; then
     done
     echo ""
     exit 0
-fi
-
-if [ -z "${CONFIG_CAMKES_DISABLE_PYTHON_IMPORT_CHECKS}" ]; then
-
-    # Check we can import dependencies.
-    for i in elftools capdl jinja2 ply; do
-        python -c "import $i" &>/dev/null
-        if [ $? -ne 0 ]; then
-            echo "Python $i module not found in your PYTHONPATH" >&2
-            exit 1
-        fi
-    done
-
-    # We need a quite up to date version of the Python ELF tools with ARM support.
-    python -c "import elftools.elf.enums as e; e.ENUM_E_MACHINE['EM_ARM']" &>/dev/null
-    if [ $? -ne 0 ]; then
-        echo "The available version of Python elftools does not have ARM support; please update" >&2
-        exit 1
-    fi
-
 fi
 
 if [ -z "${PYTHONPATH}" ]; then

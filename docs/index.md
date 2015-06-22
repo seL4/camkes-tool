@@ -936,7 +936,7 @@ these you will need to refer to the [Developers](#developers) section.
 
 This section discusses the standalone tools that are part of the CAmkES
 ecosystem. Each of these can be run from the command line with a shell script
-wrapper that checks their dependencies:
+wrapper:
 
 ```bash
 camkes.sh toolname args...
