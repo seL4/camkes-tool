@@ -105,3 +105,7 @@ $(abspath ${BUILD_BASE})/thy/CapDLSpec.thy: capdl-loader-experimental-image pars
 ifeq (${CONFIG_CAMKES_CAPDL_THY},y)
 all: $(abspath ${BUILD_BASE})/thy/CapDLSpec.thy
 endif
+
+.PHONY: check-deps
+check-deps:
+	${Q}./tools/camkes/tools/check_deps.py
