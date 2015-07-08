@@ -26,6 +26,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sync/sem-bare.h>
 #include <sel4debug/identity.h>
 #include <sel4utils/mapping.h>
@@ -399,6 +400,14 @@ void USED /*? p['tls_symbol'] ?*/(int thread_id) {
 
 /*- set p = Perspective(instance=me.name) -*/
 int USED /*? p['entry_symbol'] ?*/(int thread_id) {
+#if defined(SEL4_DEBUG_KERNEL) && defined(CONFIG_CAMKES_PROVIDE_TCB_CAPS)
+    /*- set thread_name = c_symbol() -*/
+    char /*? thread_name ?*/[seL4_MsgMaxLength * sizeof(seL4_Word)];
+    snprintf(/*? thread_name ?*/, sizeof(/*? thread_name ?*/), "%s(%d)",
+        get_instance_name(), thread_id);
+    /*? thread_name ?*/[sizeof(/*? thread_name ?*/) - 1] = '\0';
+    seL4_DebugNameThread(camkes_get_tls()->tcb_cap, /*? thread_name ?*/);
+#endif
 
     /*- if options.fsupport_init -*/
         /*# Locks for synchronising init ops. #*/
