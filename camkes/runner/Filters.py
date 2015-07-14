@@ -565,9 +565,9 @@ def guard_pages(obj_space, cspaces, elfs, options, **_):
                 pt_index = page_table_index(get_elf_arch(elf), pre_guard,
                     options.hyp)
                 if pt_index not in pd:
-                    raise Exception('IPC buffer region of TCB %s in ' \
-                        'group %s does not appear to be backed by a frame' \
-                        % (tcb.name, group))
+                    raise Exception('IPC buffer region of TCB %s in group %s '
+                        'does not appear to be backed by a page table' %
+                        (tcb.name, group))
                 pt = pd[pt_index].referent
 
                 # Continue on to infer the page.
@@ -591,9 +591,9 @@ def guard_pages(obj_space, cspaces, elfs, options, **_):
                 pt_index = page_table_index(get_elf_arch(elf), post_guard,
                     options.hyp)
                 if pt_index not in pd:
-                    raise Exception('IPC buffer region of TCB %s in ' \
-                        'group %s does not appear to be backed by a frame' \
-                        % (tcb.name, group))
+                    raise Exception('IPC buffer region of TCB %s in group %s '
+                        'does not appear to be backed by a page table' %
+                        (tcb.name, group))
                 pt = pd[pt_index].referent
 
                 p_index = page_index(get_elf_arch(elf), post_guard, options.hyp)
@@ -616,9 +616,9 @@ def guard_pages(obj_space, cspaces, elfs, options, **_):
                 pt_index = page_table_index(get_elf_arch(elf), pre_guard,
                     options.hyp)
                 if pt_index not in pd:
-                    raise Exception('stack region of TCB %s in ' \
-                        'group %s does not appear to be backed by a frame' \
-                        % (tcb.name, group))
+                    raise Exception('stack region of TCB %s in group %s does '
+                        'not appear to be backed by a page table' % (tcb.name,
+                        group))
                 pt = pd[pt_index].referent
 
                 p_index = page_index(get_elf_arch(elf), pre_guard, options.hyp)
@@ -643,9 +643,9 @@ def guard_pages(obj_space, cspaces, elfs, options, **_):
                 pt_index = page_table_index(get_elf_arch(elf), post_guard,
                     options.hyp)
                 if pt_index not in pd:
-                    raise Exception('stack region of TCB %s in ' \
-                        'group %s does not appear to be backed by a frame' \
-                        % (tcb.name, group))
+                    raise Exception('stack region of TCB %s in group %s does '
+                        'not appear to be backed by a page table' % (tcb.name,
+                        group))
                 pt = pd[pt_index].referent
 
                 p_index = page_index(get_elf_arch(elf), post_guard, options.hyp)
