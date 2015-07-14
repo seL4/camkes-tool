@@ -102,8 +102,8 @@ uintptr_t /*? get_paddr ?*/(void *ptr) {
 }
 
 /* MMIO related functionality for interaction with libplatsupport. */
-void *camkes_io_map(void *cookie UNUSED, uintptr_t paddr, size_t size,
-        int cached UNUSED, ps_mem_flags_t flags UNUSED) {
+void *camkes_io_map(void *cookie UNUSED, uintptr_t paddr UNUSED,
+        size_t size UNUSED, int cached UNUSED, ps_mem_flags_t flags UNUSED) {
 
     /*- for d in me.type.dataports -*/
         extern void * /*? d.name ?*/_translate_paddr(uintptr_t paddr,
@@ -121,8 +121,8 @@ void *camkes_io_map(void *cookie UNUSED, uintptr_t paddr, size_t size,
 }
 
 /* IO port related functionality for interaction with libplatsupport. */
-int camkes_io_port_in(void *cookie UNUSED, uint32_t port, int io_size,
-    uint32_t *result) {
+int camkes_io_port_in(void *cookie UNUSED, uint32_t port UNUSED,
+        int io_size UNUSED, uint32_t *result UNUSED) {
     /*- for u in me.type.uses -*/
         /*- if u.type.name == 'IOPort' -*/ /*# XXX: awkward hardcoding of connector type name #*/
             if (/*? u.name ?*/_in_range(port)) {
@@ -143,8 +143,8 @@ int camkes_io_port_in(void *cookie UNUSED, uint32_t port, int io_size,
     /*- endfor -*/
     return -1;
 }
-int camkes_io_port_out(void *cookie UNUSED, uint32_t port, int io_size,
-        uint32_t val) {
+int camkes_io_port_out(void *cookie UNUSED, uint32_t port UNUSED,
+        int io_size UNUSED, uint32_t val UNUSED) {
     /*- for u in me.type.uses -*/
         /*- if u.type.name == 'IOPort' -*/ /*# XXX: awkward hardcoding of connector type name #*/
             if (/*? u.name ?*/_in_range(port)) {
@@ -506,7 +506,7 @@ int USED /*? p['entry_symbol'] ?*/(int thread_id) {
     /*- endif -*/
     ;
 /*- endfor -*/
-dataport_ptr_t dataport_wrap_ptr(void *ptr) {
+dataport_ptr_t dataport_wrap_ptr(void *ptr UNUSED) {
     dataport_ptr_t p = { .id = -1 };
     /*- for d in me.type.dataports -*/
         if (
@@ -528,7 +528,7 @@ dataport_ptr_t dataport_wrap_ptr(void *ptr) {
     /*- endif -*/
     ;
 /*- endfor -*/
-void *dataport_unwrap_ptr(dataport_ptr_t p) {
+void *dataport_unwrap_ptr(dataport_ptr_t p UNUSED) {
     void *ptr = NULL;
     /*- for d in me.type.dataports -*/
         /*- if d.optional -*/
