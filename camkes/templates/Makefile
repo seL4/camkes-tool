@@ -36,7 +36,6 @@
 	${Q}mkdir -p $(dir $@)
 	${Q}camkes.sh runner \
         ${CAMKES_FLAGS} \
-        /*- for inc in options.import_path -*/ --import-path /*? inc ?*/ /*- endfor -*/ \
         --file /*? options.file[0].name ?*/ \
         --item /*? item ?*/ \
         --outfile "$@" \
@@ -67,7 +66,6 @@ ${LABEL_MAPPING}: /*? ' '.join(imported) ?*/ /*- for g in groups -*/ /*- set p =
 	$(Q)camkes.sh runner \
         ${CAMKES_FLAGS} \
         --file /*? options.file[0].name ?*/ \
-        /*- for inc in options.import_path -*/ --import-path /*? inc ?*/ /*- endfor -*/ \
         --item label-mapping \
         /*- for g in groups -*/ \
             /*- set p = Perspective(group=g) -*/ \
@@ -393,7 +391,6 @@ $(firstword ${TARGETS}): /*- for g in groups -*/ /*- set p = Perspective(group=g
 	$(Q)camkes.sh runner \
         ${CAMKES_FLAGS} \
         --file "${SOURCE_DIR}/${ADL}" \
-        --import-path ${SOURCE_DIR}/../../tools/camkes/include/builtin \
         --item capdl \
         /*- for g in groups -*/ \
             /*- set p = Perspective(group=g) -*/ \
