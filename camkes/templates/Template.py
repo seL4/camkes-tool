@@ -76,14 +76,6 @@ TEMPLATES = {
                 'source':'seL4AsynchBind-to.template.c',
             },
         },
-        Guard(lambda x: isinstance(x, Connection) and x.type.name == 'seL4AsynchSpin'):{
-            'from':{
-                'source':'seL4Asynch-from.template.c',
-            },
-            'to':{
-                'source':'seL4AsynchSpin-to.template.c',
-            },
-        },
         Guard(lambda x: isinstance(x, Connection) and x.type.name == 'seL4AsynchQueue'):{
             'from':{
                 'source':'seL4AsynchQueue-from.template.c',

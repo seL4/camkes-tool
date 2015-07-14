@@ -53,10 +53,6 @@ connector seL4AsynchBind {
     from Event emitter_inf;
     to Event consumer_inf;
 }
-connector seL4AsynchSpin {
-    from Event emitter_inf;
-    to Event consumer_inf;
-}
 connector seL4AsynchQueue {
     from Event emitter_inf;
     to Event consumer_inf;
