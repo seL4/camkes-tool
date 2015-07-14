@@ -90,7 +90,7 @@ ${STAGE_BASE}/pruner/prune:
 	@echo "[$(notdir $@)] building..."
 	$(Q)mkdir -p "${STAGE_BASE}"
 	$(Q)cp -pur tools/pruner $(dir $@)
-	$(Q)CC=${HOSTCC} $(MAKE) V=$V --no-print-directory --directory=$(dir $@) 2>&1 \
+	$(Q)CC="${HOSTCC}" $(MAKE) V=$V --no-print-directory --directory=$(dir $@) 2>&1 \
         | while read line; do echo " $$line"; done; \
         exit $${PIPESTATUS[0]}
 	@echo "[$(notdir $@)] done."
