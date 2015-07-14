@@ -143,6 +143,7 @@ def new_context(entity, assembly, obj_space, cap_space, shmem, **kwargs):
 
         # Expose some library functions
         'assert':_assert,
+        'itertools':itertools,
         'lambda':lambda s: eval('lambda %s' % s),
         'os':os,
         'pdb':pdb,
