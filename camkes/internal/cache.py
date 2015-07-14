@@ -11,6 +11,7 @@
 '''Compilation caching infrastructure for the code generator. Nothing in here
 is actually CAmkES-specific.'''
 
+from .mkdirp import mkdirp
 import hash, os, cPickle
 
 class Cache(object):
@@ -25,8 +26,7 @@ class Cache(object):
     def __setitem__(self, key, value):
         path = self.get_file(key)
         dirname = os.path.dirname(path)
-        if not os.path.exists(dirname):
-            os.makedirs(dirname)
+        mkdirp(dirname)
         with open(path, 'w') as f:
             cPickle.dump(value, f)
 

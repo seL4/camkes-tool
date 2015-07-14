@@ -11,6 +11,7 @@
 '''Brief wrapper around the jinja2 templating engine.'''
 
 import Context
+from camkes.internal.mkdirp import mkdirp
 from camkes.internal.version import version
 from camkes.templates import TEMPLATES
 
@@ -83,7 +84,7 @@ class Renderer(object):
             # garbage in the template directory (vim swp files, pycs, ...).
             templates = list(get_leaves(TEMPLATES))
 
-            os.makedirs(template_cache)
+            mkdirp(template_cache)
             self.env.compile_templates(template_cache,
                 filter_func=(lambda x: x in templates), zip=None,
                 ignore_errors=False, py_compile=True)
