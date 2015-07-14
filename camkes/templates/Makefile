@@ -65,12 +65,12 @@ ${LABEL_MAPPING}: /*? ' '.join(imported) ?*/ /*- for g in groups -*/ /*- set p =
 	@echo " [GEN] $(notdir $@)"
 	$(Q)camkes.sh runner \
         ${CAMKES_FLAGS} \
-        --file /*? options.file[0].name ?*/ \
-        --item label-mapping \
         /*- for g in groups -*/ \
             /*- set p = Perspective(group=g) -*/ \
             --elf /*? p['elf_name'] ?*/ \
         /*- endfor -*/ \
+        --file /*? options.file[0].name ?*/ \
+        --item label-mapping \
         --outfile "$@" \
         --platform seL4
 	${Q}${TPP} "$@" | ${SPONGE} "$@"
@@ -390,13 +390,14 @@ $(firstword ${TARGETS}): /*- for g in groups -*/ /*- set p = Perspective(group=g
 	$(Q)mkdir -p $(SEL4_BINDIR)
 	$(Q)camkes.sh runner \
         ${CAMKES_FLAGS} \
-        --file "${SOURCE_DIR}/${ADL}" \
-        --item capdl \
         /*- for g in groups -*/ \
             /*- set p = Perspective(group=g) -*/ \
             --elf /*? p['elf_name'] ?*/ \
         /*- endfor -*/ \
-        --outfile "$@"
+        --file "${SOURCE_DIR}/${ADL}" \
+        --item capdl \
+        --outfile "$@" \
+        --platform seL4
 
 /*- for g in groups -*/
 /*# This weird re-staging of everything in SEL4_BINDIR is here because the
