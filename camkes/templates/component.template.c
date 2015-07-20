@@ -345,7 +345,7 @@ static void /*? init ?*/(void) {
 
 /* Thread stacks */
 /*- set p = Perspective(instance=me.name, control=True) -*/
-/*- set stack_size = configuration[me.name].get('_control_stack_size', 'CONFIG_CAMKES_DEFAULT_STACK_SIZE') -*/
+/*- set stack_size = configuration[me.name].get('_stack_size', 'CONFIG_CAMKES_DEFAULT_STACK_SIZE') -*/
 /*? macros.thread_stack(p['stack_symbol'], stack_size) ?*/
 /*- for i in all_interfaces -*/
     /*- set p = Perspective(instance=me.name, interface=i.name) -*/
@@ -373,7 +373,7 @@ static void /*? init ?*/(void) {
 /*- set p = Perspective(instance=me.name) -*/
 void USED /*? p['tls_symbol'] ?*/(int thread_id) {
     switch (thread_id) {
-        /*- set tcb_control = alloc('tcb__control', seL4_TCBObject) -*/
+        /*- set tcb_control = alloc('tcb_0_control', seL4_TCBObject) -*/
         case /*? tcb_control ?*/ : /* Control thread */
             /*- set p = Perspective(instance=me.name, control=True) -*/
             /*? macros.save_ipc_buffer_address(p['ipc_buffer_symbol']) ?*/
@@ -423,7 +423,7 @@ int USED /*? p['entry_symbol'] ?*/(int thread_id) {
             assert(!"invalid thread ID");
             return -1;
 
-        /*- set tcb_control = alloc('tcb__control', seL4_TCBObject) -*/
+        /*- set tcb_control = alloc('tcb_0_control', seL4_TCBObject) -*/
         case /*? tcb_control ?*/ : /* Control thread */
             /*? init ?*/();
             /*- if options.fsupport_init -*/

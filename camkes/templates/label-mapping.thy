@@ -104,7 +104,7 @@ definition ipc_buffer :: "string \<Rightarrow> nat \<Rightarrow> cdl_object_id o
   /*- set tcbs = {} -*/
   /*- set to_unfold = set() -*/
   /*- for i in composition.instances -*/
-    /*- do tcbs.__setitem__('%s_tcb__control' % i.name, (i.name, 0)) -*/
+    /*- do tcbs.__setitem__('%s_tcb_0_control' % i.name, (i.name, 0)) -*/
     /*- for index, inf in enumerate(i.type.provides + i.type.uses + i.type.emits + i.type.consumes + i.type.dataports) -*/
       /*- do tcbs.__setitem__('%s_tcb_%s' % (i.name, inf.name), (i.name, index + 1)) -*/
     /*- endfor -*/
@@ -400,7 +400,7 @@ lemma irqs_dom_distinct_cnodes:
 lemma irqs_dom_distinct_tcbs:
 /*- set to_unfold = set(('tcb_objs_def', 'ArchSpec.assembly\'_def', 'ArchSpec.composition\'_def', 'ArchSpec.composition\'_def', 'id_of_def', 'CapDLSpec.empty_irq_objects_def')) -*/
 /*- for i in composition.instances -*/
-  /*- do to_unfold.add('CapDLSpec.%s_tcb__control_id_def' % i.name) -*/
+  /*- do to_unfold.add('CapDLSpec.%s_tcb_0_control_id_def' % i.name) -*/
   /*- do to_unfold.add('ArchSpec.%s_def' % i.name) -*/
   /*- do to_unfold.add('ArchSpec.%s_def' % i.type.name) -*/
   /*- for inf in i.type.provides + i.type.uses + i.type.emits + i.type.consumes + i.type.dataports -*/

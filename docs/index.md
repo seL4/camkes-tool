@@ -1895,7 +1895,7 @@ scheduled by seL4. These priorities default to a value given by the
 `--default-priority` command-line argument to the runner. In a given system, it
 it possible to adjust the priority of a specific thread with an attribute that
 has specific semantics. To adjust the priority of the control thread (the
-thread that calls `run`), use the `_control_priority` attribute:
+thread that calls `run`), use the `_priority` attribute:
 
     assembly {
       composition {
@@ -1903,7 +1903,7 @@ thread that calls `run`), use the `_control_priority` attribute:
         ...
       }
       configuration {
-        f._control_priority = 100;
+        f._priority = 100;
       }
     }
 
@@ -1944,7 +1944,7 @@ individual threads within a component can be set with attributes:
     configuration {
 
       // Assign foo's control thread an 8K stack
-      foo._control_stack_size = 8192;
+      foo._stack_size = 8192;
 
       // Assign the interface thread for inf in foo a 16K stack
       foo.inf_stack_size = 16384;
@@ -1963,7 +1963,7 @@ Each interface of each component instance will have an associated thread, and
 there will be an additional thread per-component to perform initialisation and
 optionally act as the control thread. For interface threads, their domain can be
 specified by setting the attribute `<interface>_domain` of the instance. For
-control threads, the attribute `_control_domain` of the instance can be set.
+control threads, the attribute `_domain` of the instance can be set.
 
     component Foo {
       control;
@@ -1982,7 +1982,7 @@ control threads, the attribute `_control_domain` of the instance can be set.
         ...
       }
       configuration {
-        f._control_domain = 0;  // domain of control thread of f
+        f._domain = 0;  // domain of control thread of f
         b.o_domain = 1;         // domain of o interface of b
         ...
       }

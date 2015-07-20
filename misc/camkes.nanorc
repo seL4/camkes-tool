@@ -19,7 +19,7 @@ color brightyellow "untyped[0-9]+_pool"
 # Stack size
 color brightyellow "[a-zA-Z0-9_]+_stack_size"
 # Priority
-color brightyellow "\<(priority|[a-zA-Z][a-zA-Z0-9_]*_priority|_control_priority)\>"
+color brightyellow "\<(priority|[a-zA-Z][a-zA-Z0-9_]*_priority|_priority)\>"
 # Camkes types
 color green "\<(component|connection|attribute|connector|Procedure|Event|Dataport)\>"
 # C types
