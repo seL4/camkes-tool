@@ -17,9 +17,8 @@ available to the template code.
 '''
 
 from functools import partial
-from copy import deepcopy
-import capdl, code, collections, inspect, itertools, math, os, pdb, re, sys, \
-    textwrap
+import capdl, code, collections, copy, inspect, itertools, math, os, pdb, re, \
+    sys, textwrap
 
 from capdl.Allocator import seL4_TCBObject, seL4_EndpointObject, \
     seL4_AsyncEndpointObject, seL4_CanRead, seL4_CanWrite, seL4_AllRights, \
@@ -39,12 +38,11 @@ import camkes.ast as AST
 from camkes.internal.DeterministicSet import DeterministicSet
 from camkes.internal.Counter import Counter
 from camkes.templates import macros
-from apply import apply, by, done, oops, sorry
 from NameMangling import TEMPLATES, FILTERS, Perspective
 
 def new_context(entity, assembly, obj_space, cap_space, shmem, **kwargs):
     '''Create a new default context for rendering.'''
-    return dict({
+    return dict(__builtins__.items() + {
         # Kernel object allocator
         'alloc_obj':(lambda name, type, **kwargs:
             alloc_obj((entity, obj_space), obj_space,
@@ -138,46 +136,22 @@ def new_context(entity, assembly, obj_space, cap_space, shmem, **kwargs):
         '_stash':partial(stash, ''),
         '_pop':partial(pop, ''),
         'exec':_exec,
-        'eval':eval,
 
         # Helpers for creating unique symbols within templates.
         'c_symbol':partial(symbol, '_camkes_%(tag)s_%(counter)d'),
         'isabelle_symbol':partial(symbol, '%(tag)s%(counter)d\'', 's'),
 
         # Expose some library functions
-        'any':any,
-        'all':all,
         'assert':_assert,
-        'bool':bool,
-        'basestring':basestring,
-        'enumerate':enumerate,
-        'Exception':Exception,
-        'filter':filter,
-        'float':float,
-        'hex':hex,
-        'int':int,
-        'isinstance':isinstance,
         'lambda':lambda s: eval('lambda %s' % s),
-        'len':len,
-        'list':list,
-        'map':map,
-        'max':max,
-        'min':min,
-        'NotImplementedError':lambda x='NotImplementedError': NotImplementedError(x),
-        'os':collections.namedtuple('os', ['path'])(os.path),
-        'pdb':collections.namedtuple('pdb', ['set_trace'])(_set_trace),
+        'os':os,
+        'pdb':pdb,
         'raise':_raise,
-        're':collections.namedtuple('re', ['sub', 'match'])(re.sub, re.match),
-        'reduce':reduce,
-        'reversed':reversed,
+        're':re,
         'set':DeterministicSet,
-        'str':str,
-        'tuple':tuple,
         'arch':os.environ.get('ARCH', ''),
-        'ord':ord,
-        'chr':chr,
-        'textwrap':collections.namedtuple('textwrap', ['wrap'])(textwrap.wrap),
-        'copy':collections.namedtuple('copy', ['deepcopy'])(deepcopy),
+        'textwrap':textwrap,
+        'copy':copy,
 
         # Allocation pools. In general, do not touch these in templates, but
         # interact with them through the alloc* functions. They are only in the
@@ -188,18 +162,10 @@ def new_context(entity, assembly, obj_space, cap_space, shmem, **kwargs):
         # Debugging functions
         'breakpoint':_breakpoint,
         'print':lambda x: sys.stdout.write('%s\n' % x) or '',
-        'sys':collections.namedtuple('sys', ['stdout', 'stderr'])(sys.stdout,
-            sys.stderr),
+        'sys':sys,
 
         # Work around for Jinja's bizarre scoping rules.
         'Counter':Counter,
-
-        # Helper functions for generating apply-style Isabelle proof scripts.
-        'apply':apply,
-        'by':by,
-        'done':done,
-        'oops':oops,
-        'sorry':sorry,
 
         # Support for name mangling in the templates. See existing usage for
         # examples.
@@ -230,18 +196,6 @@ def new_context(entity, assembly, obj_space, cap_space, shmem, **kwargs):
 
         # Expose CapDL module for `isinstance` testing.
         'capdl':capdl,
-
-        # When generating Isabelle apply-style proof scripts, the results can
-        # sometimes be fragile in the face of changing code. In particular,
-        # sometimes a generated proof can fail because the underlying code
-        # changed, but inadvertently make progress beyond the actual divergence
-        # point, concealing the source of the failure. This function allows you
-        # to assert within an apply-style proof what the current subgoal looks
-        # like. The idea is that this step will fail early when the code
-        # changes, giving you a better idea of where to begin repairing the
-        # proof.
-        'assert_current_goal':lambda prop:'apply (subgoal_tac "%s", assumption)' % prop \
-            if kwargs['options'].verbosity >= 2 else '',
 
         # Give the template authors a mechanism for writing C-style include
         # guards. Use the following idiom to guard an include target:
@@ -306,11 +260,6 @@ def _breakpoint():
 
     # It's possible the template called this from inside a /*? ?*/ block, so
     # make sure we don't mess up the output:
-    return ''
-
-def _set_trace():
-    '''Wrap PDB's set_trace so that you can use it inside a /*? ?*/ block.'''
-    pdb.set_trace()
     return ''
 
 # Functionality for carrying variables between related templates. The idea is

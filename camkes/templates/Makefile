@@ -27,11 +27,10 @@
 	${Q}cat "$<" >>"$@"
 /*- endmacro -*/
 
-/*- macro rule_gen(target, dependencies, item, cfiles_append=None, platform='seL4', preprocessor=None) -*/
+/*- macro rule_gen(target, dependencies, item, cfiles_append=None, platform='seL4') -*/
 /*- if cfiles_append is not none -*/
 /*? cfiles_append ?*/_CFILES += /*? target ?*/
 /*- endif -*/
-.DELETE_ON_ERROR: /*? target ?*/
 /*? target ?*/: /*? dependencies ?*/
 	@echo " [GEN] $(notdir $@)"
 	${Q}mkdir -p $(dir $@)
@@ -42,12 +41,10 @@
         --item /*? item ?*/ \
         --outfile "$@" \
         --platform /*? platform ?*/
-	/*- if preprocessor is not none -*/
-	@echo " [PP] $(notdir $@)"
-	${Q}/*? preprocessor ?*/
-	/*- endif -*/
 	# Reflow the generated file if it's a C source or header.
 	${Q}$(if $(patsubst %.c,,$(patsubst %.h,,/*? target ?*/)),,${FMT} "$@" | ${SPONGE} "$@")
+	# Reflow the generated file if it's an Isabelle theory.
+	${Q}$(if $(patsubst %.thy,,/*? target ?*/),,${TPP} "$@" | ${SPONGE} "$@")
 /*- endmacro -*/
 
 # All targets need to be rebuilt if the source CAmkES descriptions change.
@@ -78,7 +75,7 @@ ${LABEL_MAPPING}: /*? ' '.join(imported) ?*/ /*- for g in groups -*/ /*- set p =
         /*- endfor -*/ \
         --outfile "$@" \
         --platform seL4
-	${Q}${TPP} --in-place "$@"
+	${Q}${TPP} "$@" | ${SPONGE} "$@"
 endif
 
 # Static component files provided by the user.
@@ -224,12 +221,12 @@ endif
 
 /*# Theory generation #*/
 /*- set fromthy = '$(abspath ${BUILD_DIR})/thy/%s/generated/%s.thy' % (c.from_instance.name, c.from_interface.name) -*/
-/*? rule_gen(fromthy, ' '.join(imported), '%s.from.theory' % c.name, platform='autocorres', preprocessor='${TPP} --in-place "$@"') ?*/
+/*? rule_gen(fromthy, ' '.join(imported), '%s.from.theory' % c.name, platform='autocorres') ?*/
 ifeq (${CONFIG_CAMKES_THYS},y)
 ${TARGETS}: /*? fromthy ?*/
 endif
 /*- set tothy = '$(abspath ${BUILD_DIR})/thy/%s/generated/%s.thy' % (c.to_instance.name, c.to_interface.name) -*/
-/*? rule_gen(tothy, ' '.join(imported), '%s.to.theory' % c.name, platform='autocorres', preprocessor='${TPP} --in-place "$@"') ?*/
+/*? rule_gen(tothy, ' '.join(imported), '%s.to.theory' % c.name, platform='autocorres') ?*/
 ifeq (${CONFIG_CAMKES_THYS},y)
 ${TARGETS}: /*? tothy ?*/
 endif
@@ -239,7 +236,7 @@ endif
  *# means connector-based templates need to be assigned to either the 'from' or
  *# 'to' side.
  #*/
-/*? rule_gen(unifiedthy, ' '.join(imported), '%s.from.unifiedtheory' % c.name, platform='autocorres', preprocessor='${TPP} --in-place "$@"') ?*/
+/*? rule_gen(unifiedthy, ' '.join(imported), '%s.from.unifiedtheory' % c.name, platform='autocorres') ?*/
 ifeq (${CONFIG_CAMKES_UNIFIED_THY},y)
 ${TARGETS}: /*? unifiedthy ?*/
 endif
@@ -248,7 +245,7 @@ endif
    *# to generated here.
    #*/
   /*- set unifiedbase = '$(abspath ${BUILD_DIR})/thy/%s/generated/%s_base.thy' % (c.name, c.name) -*/
-/*? rule_gen(unifiedbase, ' '.join(imported), '%s.from.unifiedbase' % c.name, platform='autocorres', preprocessor='${TPP} --in-place "$@"') ?*/
+/*? rule_gen(unifiedbase, ' '.join(imported), '%s.from.unifiedbase' % c.name, platform='autocorres') ?*/
 ifeq (${CONFIG_CAMKES_UNIFIED_THY},y)
 ${TARGETS}: /*? unifiedbase ?*/
 endif
@@ -301,7 +298,7 @@ endif
 
 # Architectural formalisation.
 /*- set arch_thy = '$(abspath ${BUILD_DIR})/thy/ArchSpec.thy' -*/
-/*? rule_gen(arch_thy, ' '.join(imported), 'theory', platform='architecture-semantics', preprocessor='${TPP} --in-place "$@"') ?*/
+/*? rule_gen(arch_thy, ' '.join(imported), 'theory', platform='architecture-semantics') ?*/
 ifeq (${CONFIG_CAMKES_ARCH_THY},y)
 ${TARGETS}: /*? arch_thy ?*/
 endif
@@ -390,7 +387,6 @@ FINOBJFILES ?= $(shell $(CC) $(CFLAGS) $(CPPFLAGS) -print-file-name=crtend.o) $(
 
 # CapDL generation. This assumes that the last element in TARGETS is a CapDL
 # spec.
-.DELETE_ON_ERROR: $(lastword ${TARGETS})
 $(firstword ${TARGETS}): /*- for g in groups -*/ /*- set p = Perspective(group=g) -*/ ${SEL4_BINDIR}//*? p['elf_name'] ?*/ /*- endfor -*/
 	@echo " [GEN] $(notdir $@)"
 	$(Q)mkdir -p $(SEL4_BINDIR)

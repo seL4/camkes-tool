@@ -32,7 +32,7 @@ lemma getmr_packed:"\<lbrakk>packed s xs; i < length xs\<rbrakk> \<Longrightarro
   apply (subst (asm) list_all_iff)
   apply (erule_tac x="(i, xs ! i)" in ballE)
    apply clarsimp
-  apply (subgoal_tac " (i, xs ! i) \<in> set (enumerate 0 xs)")
+  apply (subgoal_tac "(i, xs ! i) \<in> set (enumerate 0 xs)")
    apply simp
   apply (rule enumerate_member[where n=0, simplified])
   apply simp

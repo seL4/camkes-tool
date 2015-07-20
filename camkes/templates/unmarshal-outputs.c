@@ -242,7 +242,7 @@ static int
 /*? function ?*/(
 /*- set size = c_symbol('size') -*/
 unsigned int /*? size ?*/
-/*- if return_type or len(output_parameters) > 0 -*/
+/*- if return_type is not none or len(output_parameters) > 0 -*/
   ,
 /*- endif -*/
 /*- set ret = c_symbol('return') -*/

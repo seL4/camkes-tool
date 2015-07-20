@@ -76,7 +76,6 @@ def cache_relevant_options(opts):
         'outfile',
         'platform',
         'ply-optimise',
-        'post_render_edit',
         'verbosity',
     ])
     return sorted([x for x in opts.__dict__.items() if \
@@ -101,11 +100,6 @@ def main():
         if s:
             options.outfile.write(s)
             options.outfile.close()
-            if options.post_render_edit and \
-                    raw_input('Edit rendered template %s [y/N]? ' % \
-                    options.outfile.name) == 'y':
-                editor = os.environ.get('EDITOR', 'vim')
-                ret = subprocess.call([editor, options.outfile.name])
         sys.exit(ret)
 
     if not options.platform or options.platform in ('?', 'help') \

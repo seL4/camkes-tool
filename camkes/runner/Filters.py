@@ -31,14 +31,23 @@ def find_assembly(ast):
 objdump_output = {}
 @memoized
 def get_symbol(elf, symbol):
-    if os.environ.get('CONFIG_CAMKES_USE_EXTERNAL_OBJDUMP', '') == 'y':
+    objdump = None
+    if os.environ.get('CONFIG_CAMKES_USE_OBJDUMP_ON', '') == 'y':
+        objdump = '%sobjdump' % os.environ.get('TOOLPREFIX', '')
+    elif os.environ.get('CONFIG_CAMKES_USE_OBJDUMP_AUTO', '') == 'y':
+        with open(os.devnull, 'w') as f:
+            try:
+                objdump = subprocess.check_output(['which', '%sobjdump' %
+                    os.environ.get('TOOLPREFIX', '')], stderr=f).strip()
+            except subprocess.CalledProcessError:
+                objdump = None
+    if objdump is not None:
         global objdump_output
         stdout = objdump_output.get(elf[0])
         if stdout is None:
             # We haven't run objdump on this output yet. Need to do it now.
-            toolprefix = os.environ.get('TOOLPREFIX', '')
             # Construct the bash invocation we want
-            argument = "%sobjdump --syms %s | grep -E '^[0-9a-fA-F]{8}' | sed -r 's/^([0-9a-fA-F]{8})[ \\t].*[ \\t]([0-9a-fA-F]{8})[ \\t]+(.*)/\\3 \\1 \\2/'" % (toolprefix, elf[0])
+            argument = "%s --syms %s | grep -E '^[0-9a-fA-F]{8}' | sed -r 's/^([0-9a-fA-F]{8})[ \\t].*[ \\t]([0-9a-fA-F]{8})[ \\t]+(.*)/\\3 \\1 \\2/'" % (objdump, elf[0])
             stdout = subprocess.check_output(['sh','-c',argument])
             # Cache the result for future symbol lookups.
             objdump_output[elf[0]] = stdout
@@ -218,7 +227,7 @@ def set_tcb_caps(ast, obj_space, cspaces, elfs, options, **_):
                         'not appear to be backed by a frame' % (tcb.name, group))
                 frame = pt[p_index].referent
 
-                tcb['ipc_buffer_slot'] = Cap(frame, True, True, True) # RWG
+                tcb['ipc_buffer_slot'] = Cap(frame, True, True, False) # RW
 
             # Currently no fault EP (fault_ep_slot).
 
@@ -442,9 +451,8 @@ def replace_dma_frames(ast, obj_space, elfs, options, **_):
 
     assembly = find_assembly(ast)
 
-    for i in assembly.composition.instances:
-        if i.type.hardware:
-            continue
+    for i in (x for x in assembly.composition.instances
+            if not x.type.hardware):
 
         perspective = Perspective(instance=i.name, group=i.address_space)
 

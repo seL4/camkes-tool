@@ -251,7 +251,7 @@ class Templates(object):
                     return None
             remaining = next_level
 
-        if not isinstance(remaining, str):
+        if not isinstance(remaining, basestring):
             # The path terminated at an item that is not a leaf.
             return None
 

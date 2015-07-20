@@ -27,7 +27,8 @@ endif
 # signatures, so disable warnings for this.
 NK_CFLAGS += -Wno-main
 
-export CONFIG_CAMKES_USE_EXTERNAL_OBJDUMP \
+export CONFIG_CAMKES_USE_OBJDUMP_ON \
+    CONFIG_CAMKES_USE_OBJDUMP_AUTO \
     CONFIG_CAMKES_PYTHON_OPTIMIZE \
     CONFIG_CAMKES_DISABLE_PYTHON_IMPORT_CHECKS \
     CONFIG_CAMKES_PYTHON_INTERPRETER_CPYTHON \
@@ -44,7 +45,6 @@ CAMKES_FLAGS += \
     --cache $(if ${CONFIG_CAMKES_CACHE_READWRITE},on,$(if ${CONFIG_CAMKES_CACHE_READONLY},readonly,$(if ${CONFIG_CAMKES_CACHE_WRITEONLY},writeonly,off))) \
     $(if ${CONFIG_CAMKES_CPP},--cpp,) \
     --cpp-flag=-I${KERNEL_ROOT_PATH}/../include/generated \
-    $(if ${CONFIG_CAMKES_DEBUG_POST_RENDER_EDIT},--post-render-edit,) \
     $(foreach path, ${PWD}/tools/camkes/include/builtin ${CONFIG_CAMKES_IMPORT_PATH}, --import-path=${path}) \
     $(if ${TEMPLATES}, $(patsubst %,--templates "${SOURCE_DIR}/%",${TEMPLATES}),) \
     $(if ${CONFIG_CAMKES_OPTIMISATION_RPC_LOCK_ELISION},--frpc-lock-elision,--fno-rpc-lock-elision) \
@@ -124,7 +124,6 @@ PRUNER_BLACKLIST = FILE fpos_t opterr optind optopt stderr stdin stdout \
 # bottom of this Makefile.
 include ${BUILD_DIR}/camkes-gen.mk
 
-.DELETE_ON_ERROR: ${BUILD_DIR}/camkes-gen.mk
 ${BUILD_DIR}/camkes-gen.mk: ${SOURCE_DIR}/${ADL}
 	@echo " [GEN] $(notdir $@)"
 	camkes.sh runner \
@@ -132,3 +131,6 @@ ${BUILD_DIR}/camkes-gen.mk: ${SOURCE_DIR}/${ADL}
         --file $< \
         --item Makefile \
         --outfile "$@"
+
+# Delete the targets of any rules that fail.
+.DELETE_ON_ERROR:

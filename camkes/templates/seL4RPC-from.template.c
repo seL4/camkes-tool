@@ -69,7 +69,7 @@ int /*? me.from_interface.name ?*/__run(void) {
 /*# If we're meant to be timing this method, map its timestamps to the real
  *# measurement functionality. Otherwise, make this a no-op.
  #*/
-/*- if timing_connector == m.name -*/
+/*- if timing_method == m.name -*/
     #define _TIMESTAMP(x) TIMESTAMP(x)
 /*- else -*/
     #define _TIMESTAMP(x) /* nothing */

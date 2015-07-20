@@ -106,14 +106,27 @@ menu "CAmkES Options"
 
     menu "Optimisation"
 
-        config CAMKES_USE_EXTERNAL_OBJDUMP
-        bool "Call out to objdump for ELF information"
-        default n
+        choice
+        prompt "Call out to objdump for ELF information"
+        default CAMKES_USE_OBJDUMP_AUTO
         help
-            Instead of using the internal ELF parsing functionality, call out to
-            your toolchain's objdump to perform required operations. This is much
-            more fragile than using internal functionality, but can provide a
-            performance boost in compilation times.
+            Instead of using the internal ELF parsing functionality, it is
+            possible to call out to your toolchain's objdump to perform
+            required operations. This is more fragile than using internal
+            functionality, but can provide a performance boost in compilation
+            times. If you set this to auto (default), CAmkES will use your
+            toolchain's objdump if it is in your PATH.
+
+        config CAMKES_USE_OBJDUMP_OFF
+        bool "off"
+
+        config CAMKES_USE_OBJDUMP_AUTO
+        bool "auto"
+
+        config CAMKES_USE_OBJDUMP_ON
+        bool "on"
+
+        endchoice
 
         choice
         prompt "Compilation cache"
@@ -256,15 +269,6 @@ menu "CAmkES Options"
         help
             This option instruments memory allocation functions to catch heap
             corruption. Use this for debugging dynamic memory problems.
-
-        config CAMKES_DEBUG_POST_RENDER_EDIT
-        bool "Allow editing each template after rendering"
-        default n
-        help
-            After each template is rendered, you will be prompted as to whether you
-            want to edit the rendered output before the runner exits. If you choose
-            to do so, the output will be opened in the editor determined by the
-            value of your environment variable EDITOR.
 
     endmenu
 
