@@ -10,21 +10,14 @@
 
 '''Various helpers for doing advanced things with dictionaries.'''
 
+import re
+
 def get_fields(s):
     '''Return a set of field names referenced as formatting keys in the given
     string. I thought there would be an easier way to get this, but I can't
     find one. E.g. get_fields('%(hello)s %(world)s') returns
     set('hello', 'world').'''
-    class FakeDict(dict):
-        def __init__(self):
-            super(FakeDict, self).__init__()
-            self.referenced = set()
-        def __getitem__(self, key):
-            self.referenced.add(key)
-            return ''
-    f = FakeDict()
-    s % f # Value deliberately discarded
-    return f.referenced
+    return set(re.findall(r'%\(([^)]+)\)', s))
 
 class Guard(object):
     '''Representation of a condition required for some action. See usage in
