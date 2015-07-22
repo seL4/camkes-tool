@@ -136,7 +136,7 @@ DERIVATIONS = {
         ForwardDeriver('cnode_%(group)s', 'cnode'),
         BackwardDeriver(r'^cnode_(.+)$', 'cnode', 'group'),
     ], TEMPLATES:[
-        ForwardDeriver('dma_frame_%(dma_frame_index)s', 'dma_frame_symbol'),
+        ForwardDeriver('dma_frame_%(dma_frame_index)04d', 'dma_frame_symbol'),
         DMAFrameIndexDeriver(r'^dma_frame_([0-9]+)$', 'dma_frame_symbol'),
         ForwardDeriver('_camkes_ipc_buffer_%(instance)s_%(interface)s', 'ipc_buffer_symbol'),
         FromControlDeriver('_camkes_ipc_buffer_%(instance)s_0_control', 'ipc_buffer_symbol'),
@@ -186,7 +186,7 @@ DERIVATIONS = {
         BackwardDeriver(r'^(.+)_attributes', 'hardware_attribute', 'to_interface'),
         ForwardDeriver('camkes %(instance)s_dma_pool', 'dma_pool_symbol'),
         BackwardDeriver(r'^camkes (.+)_dma_pool$', 'dma_pool_symbol', 'instance'),
-        ForwardDeriver('%(instance)s_dma_frame_%(dma_frame_index)s', 'dma_frame_symbol'),
+        ForwardDeriver('%(instance)s_dma_frame_%(dma_frame_index)04d', 'dma_frame_symbol'),
         BackwardDeriver(r'^(.+)_dma_frame_[0-9]+$', 'dma_frame_symbol', 'instance'),
         DMAFrameIndexDeriver(r'^.+_dma_frame_([0-9]+)$', 'dma_frame_symbol'),
         ControlDeriver(r'^_priority$', 'priority_attribute'),
