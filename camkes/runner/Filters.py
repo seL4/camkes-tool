@@ -290,7 +290,7 @@ def collapse_shared_frames(ast, obj_space, elfs, options, **_):
             assert vaddr is not None, 'failed to find dataport symbol \'%s\'' \
                 ' in ELF %s' % (sym, elf_name)
             assert vaddr != 0
-            assert vaddr % PAGE_SIZE == 0, 'dataport not page-aligned'
+            assert vaddr % PAGE_SIZE == 0, 'dataport %s not page-aligned' % sym
             sz = get_symbol_size(elf, sym)
             assert sz != 0
 
