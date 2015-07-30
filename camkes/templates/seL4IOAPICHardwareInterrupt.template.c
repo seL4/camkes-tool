@@ -11,6 +11,8 @@
 #include <assert.h>
 #include <camkes/error.h>
 #include <sel4/sel4.h>
+#include <stddef.h>
+#include <stdint.h>
 #include <utils/util.h>
 
 /*? macros.show_includes(me.to_instance.type.includes) ?*/

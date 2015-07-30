@@ -10,6 +10,7 @@
 
 #include <assert.h>
 #include <camkes/error.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <sel4/sel4.h>
