@@ -60,8 +60,8 @@ void * /*? me.from_interface.name ?*/_unwrap_ptr(dataport_ptr_t *p) {
 
     void * /*? me.from_interface.name ?*/_translate_paddr(
             uintptr_t paddr, size_t size) {
-        if (paddr == /*? paddr ?*/ && size == /*? size ?*/) {
-            return (void*)/*? me.from_interface.name ?*/;
+        if (paddr >= /*? paddr ?*/ && paddr + size <= /*? paddr ?*/ + /*? size ?*/) {
+            return (void*)((uintptr_t)/*? me.from_interface.name ?*/ + (paddr - /*? paddr ?*/));
         }
         return NULL;
     }
