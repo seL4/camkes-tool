@@ -13,7 +13,7 @@ syntax "camkes" "\.camkes"
 # C Preprocessor declarations
 color brightcyan "^[ \t]*#.*$"
 # Camkes keywords
-color brightgreen "\<(assembly|composition|from|to|configuration|control|procedure|hardware|maybe|dma_pool|has|mutex|semaphore|group|tcb_pool|ep_pool|aep_pool|from_access|to_access|template|untyped_mmio|trusted|cnode_size_bits)\>"
+color brightgreen "\<(assembly|composition|from|to|configuration|control|procedure|hardware|maybe|dma_pool|has|mutex|semaphore|group|tcb_pool|ep_pool|notification_pool|from_access|to_access|template|untyped_mmio|trusted|cnode_size_bits)\>"
 # Untyped pool
 color brightyellow "untyped[0-9]+_pool"
 # Stack size

@@ -15,11 +15,11 @@
 
 /*? macros.show_includes(me.to_instance.type.includes) ?*/
 /*- set attr = "%s_attributes" % me.from_interface.name -*/
-/*- set aep_obj = alloc_obj('aep', seL4_AsyncEndpointObject) -*/
-/*- set aep = alloc_cap('aep', aep_obj, read=True) -*/
+/*- set notification_obj = alloc_obj('notification', seL4_NotificationObject) -*/
+/*- set notification = alloc_cap('notification', notification_obj, read=True) -*/
 /*- set _irq = configuration[me.from_instance.name].get(attr) -*/
-/*- set irq = alloc('irq', seL4_IRQControl, number=_irq, aep=aep_obj) -*/
-/*- set lock = alloc('lock', seL4_AsyncEndpointObject, read=True, write=True) -*/
+/*- set irq = alloc('irq', seL4_IRQControl, number=_irq, notification=notification_obj) -*/
+/*- set lock = alloc('lock', seL4_NotificationObject, read=True, write=True) -*/
 
 #define MAX_CALLBACKS 10
 
@@ -47,7 +47,7 @@ int /*? me.to_interface.name ?*/__run(void) {
     while (1) {
         int handled = 0;
 
-        (void)seL4_Wait(/*? aep ?*/, NULL);
+        (void)seL4_Wait(/*? notification ?*/, NULL);
 
         /* First preference: callbacks. */
         if (!handled) {

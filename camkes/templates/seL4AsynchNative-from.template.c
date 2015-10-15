@@ -17,8 +17,8 @@
 
 /*? macros.show_includes(me.from_instance.type.includes) ?*/
 
-/*- set aep = alloc('aep', seL4_AsyncEndpointObject, write=True) -*/
-/*- do cap_space.cnode[aep].set_badge(badge_magic) -*/
+/*- set notification = alloc('notification', seL4_NotificationObject, write=True) -*/
+/*- do cap_space.cnode[notification].set_badge(badge_magic) -*/
 
 int /*? me.from_interface.name ?*/__run(void) {
     /* Nothing required. */
@@ -26,5 +26,5 @@ int /*? me.from_interface.name ?*/__run(void) {
 }
 
 void /*? me.from_interface.name ?*/_emit_underlying(void) {
-    seL4_Notify(/*? aep ?*/, /* ignored */ 0);
+    seL4_Notify(/*? notification ?*/, /* ignored */ 0);
 }

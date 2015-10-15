@@ -16,7 +16,7 @@
 
 /*? macros.show_includes(me.to_instance.type.includes) ?*/
 
-/*- set aep = alloc('aep', seL4_AsyncEndpointObject, read=True) -*/
+/*- set notification = alloc('notification', seL4_NotificationObject, read=True) -*/
 
 char /*? me.to_interface.name ?*/_data[ROUND_UP_UNSAFE(sizeof(int), PAGE_SIZE_4K)]
     VISIBLE;
@@ -50,7 +50,7 @@ int /*? me.to_interface.name ?*/__run(void) {
             accept();
         }
         __sync_fetch_and_add(counter, 1);
-        (void)seL4_Wait(/*? aep ?*/, NULL);
+        (void)seL4_Wait(/*? notification ?*/, NULL);
     }
 
     UNREACHABLE();

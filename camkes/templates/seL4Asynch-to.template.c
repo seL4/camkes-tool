@@ -15,8 +15,8 @@
 
 /*? macros.show_includes(me.to_instance.type.includes) ?*/
 
-/*- set aep = alloc('aep', seL4_AsyncEndpointObject, read=True) -*/
-/*- set lock = alloc('lock', seL4_AsyncEndpointObject, read=True, write=True) -*/
+/*- set notification = alloc('notification', seL4_NotificationObject, read=True) -*/
+/*- set lock = alloc('lock', seL4_NotificationObject, read=True, write=True) -*/
 
 #define MAX_CALLBACKS 10
 
@@ -44,7 +44,7 @@ int /*? me.to_interface.name ?*/__run(void) {
     while (1) {
         int handled = 0;
 
-        (void)seL4_Wait(/*? aep ?*/, NULL);
+        (void)seL4_Wait(/*? notification ?*/, NULL);
 
         /* First preference: callbacks. */
         if (!handled) {

@@ -13,7 +13,7 @@
 
 /*? macros.show_includes(me.from_instance.type.includes) ?*/
 
-/*- set aep = alloc('aep', seL4_AsyncEndpointObject, write=True) -*/
+/*- set notification = alloc('notification', seL4_NotificationObject, write=True) -*/
 
 char /*? me.from_interface.name ?*/_data[ROUND_UP_UNSAFE(sizeof(int), PAGE_SIZE_4K)]
     VISIBLE;
@@ -27,5 +27,5 @@ int /*? me.from_interface.name ?*/__run(void) {
 
 void /*? me.from_interface.name ?*/_emit_underlying(void) {
     __sync_fetch_and_add(counter, 1);
-    seL4_Notify(/*? aep ?*/, /* ignored */ 0);
+    seL4_Notify(/*? notification ?*/, /* ignored */ 0);
 }
