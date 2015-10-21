@@ -27,5 +27,5 @@ int /*? me.from_interface.name ?*/__run(void) {
 
 void /*? me.from_interface.name ?*/_emit_underlying(void) {
     __sync_fetch_and_add(counter, 1);
-    seL4_Notify(/*? notification ?*/, /* ignored */ 0);
+    seL4_Signal(/*? notification ?*/);
 }

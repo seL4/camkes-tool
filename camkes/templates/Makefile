@@ -169,7 +169,7 @@ ifeq (${CONFIG_CAMKES_PRUNE_GENERATED},y)
 	  /*# unconditionally keep some things verification refers to. #*/ \
 	  --keep camkes_get_tls \
 	  --keep seL4_Call \
-	  --keep seL4_Notify \
+	  --keep seL4_Signal \
 	  --keep seL4_Poll \
 	  --keep seL4_ReplyWait \
 	  --keep seL4_Wait \
@@ -205,7 +205,7 @@ ifeq (${CONFIG_CAMKES_PRUNE_GENERATED},y)
 	  /*# unconditionally keep some things verification refers to. #*/ \
 	  --keep camkes_get_tls \
 	  --keep seL4_Call \
-	  --keep seL4_Notify \
+	  --keep seL4_Signal \
 	  --keep seL4_Poll \
 	  --keep seL4_ReplyWait \
 	  --keep seL4_Wait \

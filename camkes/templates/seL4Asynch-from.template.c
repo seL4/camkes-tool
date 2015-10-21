@@ -20,5 +20,5 @@ int /*? me.from_interface.name ?*/__run(void) {
 }
 
 void /*? me.from_interface.name ?*/_emit_underlying(void) {
-    seL4_Notify(/*? notification ?*/, /* ignored */ 0);
+    seL4_Signal(/*? notification ?*/);
 }

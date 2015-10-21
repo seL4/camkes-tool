@@ -56,7 +56,7 @@ static volatile int sleepers;
         ATOMIC_DECREMENT(&sleepers); \
     } while (0)
 
-#define WAKE() seL4_Notify(/*? lock ?*/, 0 /* ignored */)
+#define WAKE() seL4_Signal(/*? lock ?*/)
 
 int /*? me.to_interface.name ?*/__run(void) {
     /* Set trigger mode */
