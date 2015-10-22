@@ -60,36 +60,40 @@ TEMPLATES = {
                 'source':'seL4SharedData-to.template.c',
             },
         },
-        Guard(lambda x: isinstance(x, Connection) and x.type.name == 'seL4Asynch'):{
+        # TODO: Remove seL4Asynch option
+        Guard(lambda x: isinstance(x, Connection) and x.type.name in ['seL4Notification', 'seL4Asynch']):{
             'from':{
-                'source':'seL4Asynch-from.template.c',
+                'source':'seL4Notification-from.template.c',
             },
             'to':{
-                'source':'seL4Asynch-to.template.c',
+                'source':'seL4Notification-to.template.c',
             },
         },
-        Guard(lambda x: isinstance(x, Connection) and x.type.name == 'seL4AsynchBind'):{
+        # TODO: Remove seL4AsynchBind option
+        Guard(lambda x: isinstance(x, Connection) and x.type.name in ['seL4NotificationBind', 'seL4AsynchBind']):{
             'from':{
-                'source':'seL4AsynchBind-from.template.c',
+                'source':'seL4NotificationBind-from.template.c',
             },
             'to':{
-                'source':'seL4AsynchBind-to.template.c',
+                'source':'seL4NotificationBind-to.template.c',
             },
         },
-        Guard(lambda x: isinstance(x, Connection) and x.type.name == 'seL4AsynchQueue'):{
+        # TODO: Remove seL4AsynchQueue option
+        Guard(lambda x: isinstance(x, Connection) and x.type.name in ['seL4NotificationQueue', 'seL4AsynchQueue']):{
             'from':{
-                'source':'seL4AsynchQueue-from.template.c',
+                'source':'seL4NotificationQueue-from.template.c',
             },
             'to':{
-                'source':'seL4AsynchQueue-to.template.c',
+                'source':'seL4NotificationQueue-to.template.c',
             },
         },
-        Guard(lambda x: isinstance(x, Connection) and x.type.name == 'seL4AsynchNative'):{
+        # TODO: Remove seL4AsynchNative option
+        Guard(lambda x: isinstance(x, Connection) and x.type.name in ['seL4NotificationNative', 'seL4AsynchNative']):{
             'from':{
-                'source':'seL4AsynchNative-from.template.c',
+                'source':'seL4NotificationNative-from.template.c',
             },
             'to':{
-                'source':'seL4AsynchNative-to.template.c',
+                'source':'seL4NotificationNative-to.template.c',
             },
         },
         Guard(lambda x: isinstance(x, Connection) and x.type.name == 'seL4HardwareMMIO'):{

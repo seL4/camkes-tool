@@ -257,7 +257,7 @@ A concrete example:
         component bar b;
 
         connection RPC c1(from f.t1, to b.t2);
-        connection Asynch c2(from f.s1, to b.s2);
+        connection Notification c2(from f.s1, to b.s2);
         connection SharedData c3(from f.b1, to b.b2);
       }
     }
@@ -278,7 +278,7 @@ A concrete example:
 * `assembly { ... }` is an **assembly**
 * `composition { ... }` is a **composition**
 * `f` and `b` are **instance**s
-* `RPC`, `Asynch` and `SharedData` are **connector**s
+* `RPC`, `Notification` and `SharedData` are **connector**s
 * `c1`, `c2` and `c3` are **connection**s
 
 ## Usage
@@ -687,11 +687,11 @@ instantiate and connect these components together using another ADL file:
       composition {
         component Emitter source;
         component Consumer sink;
-        connection seL4Asynch channel(from source.e, to sink.s);
+        connection seL4Notification channel(from source.e, to sink.s);
       }
     }
 
-In this file, seL4Asynch is a seL4 specific connector for transmitting
+In this file, seL4Notification is a seL4 specific connector for transmitting
 asynchronous signals. The two instantiated components, source and sink are
 connected over the connection channel.
 

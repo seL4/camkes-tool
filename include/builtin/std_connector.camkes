@@ -45,6 +45,27 @@ import "camkes-hardware.idl4";
  * the asynchronous signal from the emitter. However it's harder to synchronize
  * the components.
  */
+connector seL4Notification {
+    from Event emitter_inf;
+    to Event consumer_inf;
+}
+connector seL4NotificationBind {
+    from Event emitter_inf;
+    to Event consumer_inf;
+}
+connector seL4NotificationQueue {
+    from Event emitter_inf;
+    to Event consumer_inf;
+}
+connector seL4NotificationNative {
+    from Event emitter_inf;
+    to Event consumer_inf;
+}
+
+/* Legacy connectors for backwards compatibility. Functionally identical to
+ * the above connectors.
+ * TODO: Remove these definitions after a reasonable amount of time
+ */
 connector seL4Asynch {
     from Event emitter_inf;
     to Event consumer_inf;
