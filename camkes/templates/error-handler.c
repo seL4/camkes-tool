@@ -1,8 +1,18 @@
+/*#
+ *# Copyright 2015, NICTA
+ *#
+ *# This software may be distributed and modified according to the terms of
+ *# the BSD 2-Clause license. Note that NO WARRANTY is provided.
+ *# See "LICENSE_BSD2.txt" for details.
+ *#
+ *# @TAG(NICTA_BSD)
+ #*/
+
 /*# We expect the following variables to be defined when this fragment is
  *# included.
  #*/
-/*? assert(isinstance(interface, basestring)) ?*/     /*# Name of this interface #*/
-/*? assert(isinstance(error_handler, basestring)) ?*/ /*# Symbol to use for creating error handler #*/
+/*? assert(isinstance(interface, six.string_types)) ?*/     /*# Name of this interface #*/
+/*? assert(isinstance(error_handler, six.string_types)) ?*/ /*# Symbol to use for creating error handler #*/
 
 /* The currently active error handler. This variable is marked UNUSED to squash
  * compiler warnings generated when the user's build configuration causes the

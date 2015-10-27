@@ -1,5 +1,5 @@
 /*#
- *# Copyright 2014, NICTA
+ *# Copyright 2015, NICTA
  *#
  *# This software may be distributed and modified according to the terms of
  *# the BSD 2-Clause license. Note that NO WARRANTY is provided.
@@ -23,7 +23,7 @@
 /*? target ?*/: /*? dependencies ?*/
 	@echo " [CP] $(notdir $@)"
 	${Q}mkdir -p $(dir $@)
-	${Q}echo "#line 1 \"$<\"" >$@
+	${Q}$(if $(or $(filter %.c,$<),$(filter %.h,$<),$(filter %.cpp,$<),$(filter %.hpp,$<)),echo "#line 1 \"$<\"" >$@,)
 	${Q}cat "$<" >>"$@"
 /*- endmacro -*/
 
@@ -34,9 +34,9 @@
 /*? target ?*/: /*? dependencies ?*/
 	@echo " [GEN] $(notdir $@)"
 	${Q}mkdir -p $(dir $@)
-	${Q}camkes.sh runner \
+	${Q}camkes.sh \
         ${CAMKES_FLAGS} \
-        --file /*? options.file[0].name ?*/ \
+        --file /*? options.file.name ?*/ \
         --item /*? item ?*/ \
         --outfile "$@" \
         --platform /*? platform ?*/
@@ -63,13 +63,13 @@ LABEL_MAPPING=$(dir $(firstword ${TARGETS}))/CapDLLabels.thy
 ${TARGETS}: ${LABEL_MAPPING}
 ${LABEL_MAPPING}: /*? ' '.join(imported) ?*/ /*- for g in groups -*/ /*- set p = Perspective(group=g) -*/ ${SEL4_BINDIR}//*? p['elf_name'] ?*/ /*- endfor -*/
 	@echo " [GEN] $(notdir $@)"
-	$(Q)camkes.sh runner \
+	$(Q)camkes.sh \
         ${CAMKES_FLAGS} \
         /*- for g in groups -*/ \
             /*- set p = Perspective(group=g) -*/ \
             --elf /*? p['elf_name'] ?*/ \
         /*- endfor -*/ \
-        --file /*? options.file[0].name ?*/ \
+        --file /*? options.file.name ?*/ \
         --item label-mapping \
         --outfile "$@" \
         --platform seL4
@@ -103,34 +103,24 @@ endif
 /*- for i in instances -*/
 /*? i.name ?*/_instance_LIBS += ${/*? i.type.name ?*/_LIBS} ${CAMKES_CORE_LIBS}
 /*- endfor -*/
-/*- for g in groups -*/
-/*? g ?*/_group_LIBS = ${CAMKES_CORE_LIBS}
-/*- endfor -*/
 
-# Instance entry point generation. Note that this is the instance's C entry
-# point, as distinct from both its containing group's C entry point and the
-# group's initial assembly entry point.
+# Instance entry point generation.
 /*- for i in instances -*/
-/*? rule_gen('$(abspath ${BUILD_DIR})/src/' + i.name + '/generated/' + i.type.name + '.c', ' '.join(imported), i.name + '.source', i.name) ?*/
+/*? rule_gen('$(abspath ${BUILD_DIR})/src/' + i.name + '/generated/' + i.type.name + '.c', ' '.join(imported), '%s/source' % i.name, i.name) ?*/
 /*- if configuration[i.name].get('simple') == 'true' -*/
-    /*? rule_gen('$(abspath ${BUILD_DIR})/src/' + i.name + '/generated/' + i.type.name + '.simple.c', ' '.join(imported), i.name + '.simple', i.name) ?*/
+    /*? rule_gen('$(abspath ${BUILD_DIR})/src/' + i.name + '/generated/' + i.type.name + '.simple.c', ' '.join(imported), '%s/simple' % i.name, i.name) ?*/
 /*- endif -*/
-/*? rule_gen('$(abspath ${BUILD_DIR})/include/' + i.name + '/generated/' + i.type.name + '.h', ' '.join(imported), i.name + '.header') ?*/
-/*? rule_gen('$(abspath ${BUILD_DIR})/include/' + i.name + '/generated/' + 'camkes.h', ' '.join(imported), i.name + '.header') ?*/
+/*? rule_gen('$(abspath ${BUILD_DIR})/include/' + i.name + '/generated/' + 'camkes.h', ' '.join(imported), '%s/header' % i.name) ?*/
 /*- endfor -*/
 
 # Connection code generation.
-/*- set from_names = [] -*/
-/*- set to_names = [] -*/
 /*- for c in connections -*/
-/*- if not ('%s_%s' % (c.from_instance.name, c.from_interface.name)) in from_names -*/
-/*? rule_gen('$(abspath ${BUILD_DIR})/src/' + c.from_instance.name + '/generated/' + c.from_interface.name + '_' + c.type.name + '.c', ' '.join(imported), c.name + '.from.source', c.from_instance.name) ?*/
-/*- do from_names.append(('%s_%s' % (c.from_instance.name, c.from_interface.name))) -*/
-/*- endif -*/
-/*- if not ('%s_%s' % (c.to_instance.name, c.to_interface.name)) in to_names -*/
-/*? rule_gen('$(abspath ${BUILD_DIR})/src/' + c.to_instance.name + '/generated/' + c.to_interface.name + '_' + c.type.name + '.c', ' '.join(imported), c.name + '.to.source', c.to_instance.name) ?*/
-/*- do to_names.append(('%s_%s' % (c.to_instance.name, c.to_interface.name))) -*/
-/*- endif -*/
+  /*- for id, e in enumerate(c.from_ends) -*/
+/*? rule_gen('$(abspath ${BUILD_DIR})/src/%s/generated/%s_%s_%d.c' % (e.instance.name, e.interface.name, c.type.name, id), ' '.join(imported), '%s/from/source/%d' % (c.name, id), e.instance.name) ?*/
+  /*- endfor -*/
+  /*- for id, e in enumerate(c.to_ends) -*/
+/*? rule_gen('$(abspath ${BUILD_DIR})/src/%s/generated/%s_%s_%d.c' % (e.instance.name, e.interface.name, c.type.name, id), ' '.join(imported), '%s/to/source/%d' % (c.name, id), e.instance.name) ?*/
+  /*- endfor -*/
 
 ifeq (${CONFIG_CAMKES_PRUNE_GENERATED},y)
 /*# We need to provide specialised targets for the pruned c_pp files *and* o
@@ -138,7 +128,8 @@ ifeq (${CONFIG_CAMKES_PRUNE_GENERATED},y)
  #*/
 
 /*# Pruned C files (from) #*/
-/*- set prefix = '$(abspath ${BUILD_DIR})/src/%s/generated/%s_%s' % (c.from_instance.name, c.from_interface.name, c.type.name) -*/
+  /*- for id, e in enumerate(c.from_ends) -*/
+/*- set prefix = '$(abspath ${BUILD_DIR})/src/%s/generated/%s_%s_%d' % (e.instance.name, e.interface.name, c.type.name, id) -*/
 /*? prefix ?*/.o: /*? prefix ?*/_pruned.c_pp
 	@$(if $(filter-out 0,${V}),$(warning Using CAmkES generic .o target),)
 	@echo " [CC] $(notdir $@)"
@@ -146,12 +137,12 @@ ifeq (${CONFIG_CAMKES_PRUNE_GENERATED},y)
 	$(Q)$(CC) -x c $(CFLAGS) $(foreach v,$(filter-out $<,$^),$(patsubst %,-I%,$(abspath $(dir ${v})))) -c $< -o $@
 /*? prefix ?*/_pruned.c_pp: /*? prefix ?*/.c_pp
 	@echo " [PRUNE] $(notdir $@)"
-	${Q}LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${CONFIG_CAMKES_LLVM_PATH}/lib prune --keep /*? c.from_interface.name ?*/__run \
-	/*- if c.from_interface in c.from_instance.type.emits -*/ \
-	    --keep /*? c.from_interface.name ?*/_emit_underlying \
-	/*- elif c.from_interface in c.from_instance.type.dataports -*/ \
-	    --keep /*? c.from_interface.name ?*/_wrap_ptr \
-	    --keep /*? c.from_interface.name ?*/_unwrap_ptr \
+	${Q}LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${CONFIG_CAMKES_LLVM_PATH}/lib prune --keep /*? e.interface.name ?*/__run \
+	/*- if e.interface in e.instance.type.emits -*/ \
+	    --keep /*? e.interface.name ?*/_emit_underlying \
+	/*- elif e.interface in e.instance.type.dataports -*/ \
+	    --keep /*? e.interface.name ?*/_wrap_ptr \
+	    --keep /*? e.interface.name ?*/_unwrap_ptr \
 	    /*# XXX: When pruning generated code involving dataports, the attributes
 	     *# of the dataport are discarded. This is a problem because dataports
 	     *# need to be page-aligned for the shared memory remapping done by the
@@ -159,29 +150,31 @@ ifeq (${CONFIG_CAMKES_PRUNE_GENERATED},y)
 	     *# attributes. Note that these are expected to match the original
 	     *# attributes from whatever template you're using.
 	     #*/ \
-	    --add-attribute '/*? c.from_interface.name ?*/_data:aligned(1 << 12)' \
-	    --add-attribute '/*? c.from_interface.name ?*/_data:section("shared_/*? c.from_interface.name ?*/")' \
-	/*- elif c.from_interface in c.from_instance.type.uses -*/ \
-	    /*- for m in c.from_interface.type.methods -*/ \
-	        --keep /*? c.from_interface.name ?*/_/*? m.name ?*/ \
+	    --add-attribute 'from_/*? id ?*/_/*? e.interface.name ?*/_data:aligned(1 << 12)' \
+	    --add-attribute 'from_/*? id ?*/_/*? e.interface.name ?*/_data:section("shared_from_/*? id ?*/_/*? e.interface.name ?*/")' \
+	/*- elif e.interface in e.instance.type.uses -*/ \
+	    /*- for m in e.interface.type.methods -*/ \
+	        --keep /*? e.interface.name ?*/_/*? m.name ?*/ \
 	    /*- endfor -*/ \
 	/*- endif -*/ \
 	  /*# unconditionally keep some things verification refers to. #*/ \
 	  --keep camkes_get_tls \
 	  --keep seL4_Call \
-	  --keep seL4_Signal \
+	  --keep seL4_Notify \
 	  --keep seL4_Poll \
 	  --keep seL4_ReplyWait \
 	  --keep seL4_Wait \
 	$(foreach i,${PRUNER_BLACKLIST},--blacklist $i) \
-      --blacklist /*? c.from_interface.name ?*/_error_handler_fn \
+      --blacklist /*? e.interface.name ?*/_error_handler_fn \
       --output "$@" "$<"
 	@# We prepend a declaration of abort because it gets pruned and is needed for
 	@# verification.
 	$(Q)sh -c "echo 'void abort(void);'; cat $@" | ${FMT} | ${SPONGE} "$@"
+  /*- endfor -*/
 
 /*# Pruned C files (to) #*/
-/*- set prefix = '$(abspath ${BUILD_DIR})/src/%s/generated/%s_%s' % (c.to_instance.name, c.to_interface.name, c.type.name) -*/
+  /*- for id, e in enumerate(c.to_ends) -*/
+/*- set prefix = '$(abspath ${BUILD_DIR})/src/%s/generated/%s_%s_%d' % (e.instance.name, e.interface.name, c.type.name, id) -*/
 /*? prefix ?*/.o: /*? prefix ?*/_pruned.c_pp
 	@$(if $(filter-out 0,${V}),$(warning Using CAmkES generic .o target),)
 	@echo " [CC] $(notdir $@)"
@@ -189,75 +182,84 @@ ifeq (${CONFIG_CAMKES_PRUNE_GENERATED},y)
 	$(Q)$(CC) -x c $(CFLAGS) $(foreach v,$(filter-out $<,$^),$(patsubst %,-I%,$(abspath $(dir ${v})))) -c $< -o $@
 /*? prefix ?*/_pruned.c_pp: /*? prefix ?*/.c_pp
 	@echo " [PRUNE] $(notdir $@)"
-	${Q}LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${CONFIG_CAMKES_LLVM_PATH}/lib prune --keep /*? c.to_interface.name ?*/__run \
-	/*- if c.to_interface in c.to_instance.type.consumes -*/ \
-	    --keep /*? c.to_interface.name ?*/_poll \
-	    --keep /*? c.to_interface.name ?*/_wait \
-	/*- elif c.to_interface in c.to_instance.type.dataports -*/ \
-	    --keep /*? c.to_interface.name ?*/_wrap_ptr \
-	    --keep /*? c.to_interface.name ?*/_unwrap_ptr \
+	${Q}LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${CONFIG_CAMKES_LLVM_PATH}/lib prune --keep /*? e.interface.name ?*/__run \
+	/*- if e.interface in e.instance.type.consumes -*/ \
+	    --keep /*? e.interface.name ?*/_poll \
+	    --keep /*? e.interface.name ?*/_wait \
+	/*- elif e.interface in e.instance.type.dataports -*/ \
+	    --keep /*? e.interface.name ?*/_wrap_ptr \
+	    --keep /*? e.interface.name ?*/_unwrap_ptr \
         /*# See note above. #*/ \
-	    --add-attribute '/*? c.to_interface.name ?*/_data:aligned(1 << 12)' \
-	    --add-attribute '/*? c.to_interface.name ?*/_data:section("shared_/*? c.to_interface.name ?*/")' \
-	/*- elif c.to_interface in c.to_instance.type.provides -*/ \
+	    --add-attribute 'to_/*? id ?*/_/*? e.interface.name ?*/_data:aligned(1 << 12)' \
+	    --add-attribute 'to_/*? id ?*/_/*? e.interface.name ?*/_data:section("shared_to_/*? id ?*/_/*? e.interface.name ?*/")' \
+	/*- elif e.interface in e.instance.type.provides -*/ \
 	    /*# nothing extra required #*/ \
 	/*- endif -*/ \
 	  /*# unconditionally keep some things verification refers to. #*/ \
 	  --keep camkes_get_tls \
 	  --keep seL4_Call \
-	  --keep seL4_Signal \
+	  --keep seL4_Notify \
 	  --keep seL4_Poll \
 	  --keep seL4_ReplyWait \
 	  --keep seL4_Wait \
 	$(foreach i,${PRUNER_BLACKLIST},--blacklist $i) \
-      --blacklist /*? c.to_interface.name ?*/_error_handler_fn \
+      --blacklist /*? e.interface.name ?*/_error_handler_fn \
       --output "$@" "$<"
 	@# We prepend a declaration of abort because it gets pruned and is needed for
 	@# verification.
 	$(Q)sh -c "echo 'void abort(void);'; cat $@" | ${FMT} | ${SPONGE} "$@"
+  /*- endfor -*/
 endif
 
+  /*- for e in c.from_ends -*/
 /*# Theory generation #*/
-/*- set fromthy = '$(abspath ${BUILD_DIR})/thy/%s/generated/%s.thy' % (c.from_instance.name, c.from_interface.name) -*/
-/*? rule_gen(fromthy, ' '.join(imported), '%s.from.theory' % c.name, platform='autocorres') ?*/
+/*- set fromthy = '$(abspath ${BUILD_DIR})/thy/%s/generated/%s.thy' % (e.instance.name, e.interface.name) -*/
+/*? rule_gen(fromthy, ' '.join(imported), '%s/from/theory' % c.name, platform='autocorres') ?*/
 ifeq (${CONFIG_CAMKES_THYS},y)
 ${TARGETS}: /*? fromthy ?*/
 endif
-/*- set tothy = '$(abspath ${BUILD_DIR})/thy/%s/generated/%s.thy' % (c.to_instance.name, c.to_interface.name) -*/
-/*? rule_gen(tothy, ' '.join(imported), '%s.to.theory' % c.name, platform='autocorres') ?*/
+  /*- endfor -*/
+
+  /*- for e in c.to_ends -*/
+/*- set tothy = '$(abspath ${BUILD_DIR})/thy/%s/generated/%s.thy' % (e.instance.name, e.interface.name) -*/
+/*? rule_gen(tothy, ' '.join(imported), '%s/to/theory' % c.name, platform='autocorres') ?*/
 ifeq (${CONFIG_CAMKES_THYS},y)
 ${TARGETS}: /*? tothy ?*/
 endif
+  /*- endfor -*/
+
 /*- set unifiedthy = '$(abspath ${BUILD_DIR})/thy/%s/generated/%s.thy' % (c.name, c.name) -*/
 /*# It's completely arbitrary that we've stuck the unified theory in the 'from'
  *# side of the template dictionary (see Template.py), but a quirk of CAmkES
  *# means connector-based templates need to be assigned to either the 'from' or
  *# 'to' side.
  #*/
-/*? rule_gen(unifiedthy, ' '.join(imported), '%s.from.unifiedtheory' % c.name, platform='autocorres') ?*/
+/*? rule_gen(unifiedthy, ' '.join(imported), '%s/from/unifiedtheory' % c.name, platform='autocorres') ?*/
 ifeq (${CONFIG_CAMKES_UNIFIED_THY},y)
 ${TARGETS}: /*? unifiedthy ?*/
 endif
 /*- if options.verbosity >= 2 -*/
   /*# With debugging on, the unified theory imports a base theory that we need
-   *# to generated here.
+   *# to generate here.
    #*/
   /*- set unifiedbase = '$(abspath ${BUILD_DIR})/thy/%s/generated/%s_base.thy' % (c.name, c.name) -*/
-/*? rule_gen(unifiedbase, ' '.join(imported), '%s.from.unifiedbase' % c.name, platform='autocorres') ?*/
+/*? rule_gen(unifiedbase, ' '.join(imported), '%s/from/unifiedbase' % c.name, platform='autocorres') ?*/
 ifeq (${CONFIG_CAMKES_UNIFIED_THY},y)
 ${TARGETS}: /*? unifiedbase ?*/
 endif
 /*- endif -*/
+
+/*- if len(c.from_ends) == 1 and len(c.to_ends) == 1 -*/
 # Unified version of the connector code.
 /*- set prefix = '$(abspath ${BUILD_DIR})/thy/%s/generated/%s' % (c.name, c.name) -*/
 /*? prefix ?*/.c: \
-  /*? '$(abspath ${BUILD_DIR})/src/%s/generated/%s_%s.c' % (c.from_instance.name, c.from_interface.name, c.type.name) ?*/ \
-  /*? '$(abspath ${BUILD_DIR})/src/%s/generated/%s_%s.c' % (c.to_instance.name, c.to_interface.name, c.type.name) ?*/
+  /*? '$(abspath ${BUILD_DIR})/src/%s/generated/%s_%s_0.c' % (c.from_instance.name, c.from_interface.name, c.type.name) ?*/ \
+  /*? '$(abspath ${BUILD_DIR})/src/%s/generated/%s_%s_0.c' % (c.to_instance.name, c.to_interface.name, c.type.name) ?*/
 	@echo " [CAT] $(notdir $@)"
 	$(Q)mkdir -p $(dir $@)
 	${Q}cat >"$@" \
-  /*? '$(abspath ${BUILD_DIR})/src/%s/generated/%s_%s.c' % (c.from_instance.name, c.from_interface.name, c.type.name) ?*/ \
-  /*? '$(abspath ${BUILD_DIR})/src/%s/generated/%s_%s.c' % (c.to_instance.name, c.to_interface.name, c.type.name) ?*/
+  /*? '$(abspath ${BUILD_DIR})/src/%s/generated/%s_%s_0.c' % (c.from_instance.name, c.from_interface.name, c.type.name) ?*/ \
+  /*? '$(abspath ${BUILD_DIR})/src/%s/generated/%s_%s_0.c' % (c.to_instance.name, c.to_interface.name, c.type.name) ?*/
 /*? prefix ?*/_pruned.c_pp: /*? prefix ?*/.c_pp
 	@echo " [PRUNE] $(notdir $@)"
 	${Q}LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${CONFIG_CAMKES_LLVM_PATH}/lib prune \
@@ -292,6 +294,8 @@ endif
 ifeq (${CONFIG_CAMKES_UNIFIED_THY},y)
 ${TARGETS}: /*? prefix ?*/_pruned.c_pp
 endif
+/*- endif -*/
+
 /*- endfor -*/
 
 # Architectural formalisation.
@@ -303,7 +307,7 @@ endif
 
 # Each component file may depend on the per-component generated header.
 /*- for i in instances if not i.type.hardware -*/
-    /*- set header = "$(abspath ${BUILD_DIR})/include/%s/generated/%s.h $(abspath ${BUILD_DIR})/include/%s/generated/camkes.h" % (i.name, i.type.name, i.name) -*/
+    /*- set header = '$(abspath ${BUILD_DIR})/include/%s/generated/camkes.h' % i.name -*/
 $(/*? i.name ?*/_CFILES:%.c=%.o): /*? header ?*/
 $(/*? i.name ?*/_CXXFILES:%.cxx=%.o): /*? header ?*/
 # In case we are running CPP separately:
@@ -336,12 +340,18 @@ $(/*? i.name ?*/_CFILES:%.c=%.c_pp): ${/*? i.name ?*/_HFILES} ${/*? i.name ?*/_C
     -e _camkes_start \
     -Wl,--script=$(abspath ${BUILD_DIR})/ld//*? i.name ?*//generated/linker.lds
 
-/*? rule_gen('$(abspath ${BUILD_DIR})/ld/%s/generated/linker.lds' % i.name, ' '.join(imported), '%s.linker' % i.name) ?*/
+/*? rule_gen('$(abspath ${BUILD_DIR})/ld/%s/generated/linker.lds' % i.name, ' '.join(imported), '%s/linker' % i.name) ?*/
 
 /*# Only incrementally link if this instance is going on to become part of a
  *# group.
  #*/
-/*- if i.address_space != i.name -*/
+/*- set grouped = [False] -*/
+/*- for inst in instances if not i.type.hardware -*/
+  /*- if id(i) != id(inst) and inst.address_space == i.address_space -*/
+    /*- do grouped.__setitem__(0, True) -*/
+  /*- endif -*/
+/*- endfor -*/
+/*- if grouped[0] -*/
 /*? i.name ?*/_instance_LDFLAGS += -Wl,--relocatable
 /*- endif -*/
 
@@ -370,17 +380,14 @@ FINOBJFILES ?= $(shell $(CC) $(CFLAGS) $(CPPFLAGS) -print-file-name=crtend.o) $(
 /*- endfor -*/
 
 /*- for g in groups -*/
+# Flags to use when linking /*? g ?*/. Note that we deliberately give groups a
+# broken entry point so that, if they are incorrectly loaded without correct
+# initial instruction pointers, threads will immediately fault.
 /*? g ?*/_group_LDFLAGS += \
     ${NK_LDFLAGS} \
-    $(SEL4_LIBDIR:%=-L%) \
     $(CFLAGS:-flto= ) \
-    ${STARTGROUP} \
-    $(/*? g ?*/_group_LIBS:%=-l%) \
-    ${LIBGCC} \
-    ${ENDGROUP} \
     -static -nostdlib \
-    -u _camkes_start \
-    -e _camkes_start
+    --entry=0x0
 /*- endfor -*/
 
 # CapDL generation. This assumes that the last element in TARGETS is a CapDL
@@ -388,7 +395,7 @@ FINOBJFILES ?= $(shell $(CC) $(CFLAGS) $(CPPFLAGS) -print-file-name=crtend.o) $(
 $(firstword ${TARGETS}): /*- for g in groups -*/ /*- set p = Perspective(group=g) -*/ ${SEL4_BINDIR}//*? p['elf_name'] ?*/ /*- endfor -*/
 	@echo " [GEN] $(notdir $@)"
 	$(Q)mkdir -p $(SEL4_BINDIR)
-	$(Q)camkes.sh runner \
+	$(Q)camkes.sh \
         ${CAMKES_FLAGS} \
         /*- for g in groups -*/ \
             /*- set p = Perspective(group=g) -*/ \
@@ -426,17 +433,10 @@ endif
 /*- for i in instances if not i.type.hardware -*/
 /*- set pre = NameMangling.Perspective(phase=NameMangling.TEMPLATES, instance=i.name, group=i.address_space) -*/
 /*- set post = NameMangling.Perspective(phase=NameMangling.FILTERS, instance=i.name, group=i.address_space) -*/
-/*? i.name ?*/.instance-copy.bin: /*- for i in instances if not i.type.hardware -*/ /*? i.name ?*/.instance.bin /*- endfor -*/
+/*? i.name ?*/.instance-copy.bin: /*? i.name ?*/.instance.bin
 	@echo " [OBJCOPY] $@"
 	# Brace yourself. This is going to be a bumpy ride.
 	${OBJCOPY} \
-        \
-        /*# Rename mains that will need to be located (by symbol name) by logic
-         *# in the runner.
-         #*/ \
-        --redefine-sym "/*? pre['entry_symbol'] ?*/"="/*? post['entry_symbol'] ?*/" \
-        --redefine-sym "/*? pre['tls_symbol'] ?*/"="/*? post['tls_symbol'] ?*/" \
-        \
         /*# Use a dummy impossible symbol of the empty string here, because
          *# marking one symbol as 'keep global' causes all others to be demoted
          *# to local. This allows us to avoid symbol collisions from
@@ -444,17 +444,28 @@ endif
          #*/ \
         --keep-global-symbol "" \
         \
+        /*# Rename the entry point to avoid symbol conflicts when we are
+         *# colocated with other components. Note that we will still use this as
+         *# the entry point.
+         #*/ \
+        --redefine-sym _camkes_start="/*? post['entry_symbol'] ?*/" \
+        \
         /*# Rename the DMA pools so they don't collide. #*/ \
         --redefine-sym "/*? pre['dma_pool_symbol'] ?*/"="/*? post['dma_pool_symbol'] ?*/" \
         \
-        /*# Rename dataports so they don't collide. These symbols can be
-         *# localised, but they need to be uniquely locatable for the filter
-         *# that ensures they map to the same underlying frame.
+        /*# Rename shared memory symbols so they don't collide. While doing so,
+         *# we update their information in the shared memory metadata so they
+         *# can still be located by the CapDL filters.
          #*/ \
-        /*- for d in i.type.dataports -*/ \
-            /*- set pre = NameMangling.Perspective(phase=NameMangling.TEMPLATES, instance=i.name, dataport=d.name) -*/ \
-            /*- set post = NameMangling.Perspective(phase=NameMangling.FILTERS, instance=i.name, dataport=d.name) -*/ \
-            --redefine-sym "/*? pre['dataport_symbol'] ?*/"="/*? post['dataport_symbol'] ?*/" \
+        /*- for mappings in shmem.values() -*/ \
+            /*- set new_mappings = [] -*/ \
+            /*- for local in mappings[i.name] -*/ \
+                /*- set old_name = local[0] -*/ \
+                /*- set new_name = 'camkes shmem %s %s' % (i.name, local[0]) -*/ \
+                --redefine-sym "/*? old_name ?*/"="/*? new_name ?*/" \
+                /*- do new_mappings.append((new_name, local[1], local[2])) -*/ \
+            /*- endfor -*/ \
+            /*- do mappings.__setitem__(i.name, new_mappings) -*/ \
         /*- endfor -*/ \
         \
         /*- for c in connections -*/ \
@@ -465,28 +476,46 @@ endif
                  *# rename the symbols so they will correctly link to the
                  *# implementations provided by the 'to' side.
                  #*/ \
-                /*- if c.from_instance == i -*/ \
-                    /*- for m in c.from_interface.type.methods -*/ \
-                        --redefine-sym /*? c.from_interface.name ?*/_/*? m.name ?*/="camkes /*? c.to_instance.name ?*/_/*? c.to_interface.name ?*/_/*? m.name ?*/" \
-                    /*- endfor -*/ \
-                \
+                /*- for e in c.from_ends -*/ \
+                    /*- if e.instance == i -*/ \
+                        /*- for m in e.interface.type.methods -*/ \
+                            --redefine-sym /*? e.interface.name ?*/_/*? m.name ?*/="camkes connection /*? e.parent.name ?*/_/*? m.name ?*/" \
+                        /*- endfor -*/ \
+                    /*- endif -*/ \
+                /*- endfor -*/ \
                 /*# For all 'to' connection ends (implementations of procedures),
                  *# rename the symbols so they will be found during the next
                  *# linking stage. Note we need to mark them as 'keep global' or
                  *# they will not be visible during the next link.
                  #*/ \
-                /*- elif c.to_instance == i -*/ \
-		/*- if "%s_%s" % (i.name, c.to_interface.name) in instancelist -*/ \
-		    /*- continue -*/ \
-		/*- endif -*/ \
-		/*- do instancelist.add("%s_%s" % (i.name, c.to_interface.name)) -*/ \
-                    /*- for m in c.to_interface.type.methods -*/ \
-                        --redefine-sym /*? c.to_interface.name ?*/_/*? m.name ?*/="camkes /*? c.to_instance.name ?*/_/*? c.to_interface.name ?*/_/*? m.name ?*/" \
-                        --keep-global-symbol "camkes /*? c.to_instance.name ?*/_/*? c.to_interface.name ?*/_/*? m.name ?*/" \
-                    /*- endfor -*/ \
-                /*- endif -*/ \
+                /*- for e in c.to_ends -*/ \
+                    /*- if e.instance == i -*/ \
+                        /*- if '%s_%s' % (i.name, e.interface.name) in instancelist -*/ \
+                            /*- continue -*/ \
+                        /*- endif -*/ \
+                        /*- do instancelist.add('%s_%s' % (i.name, e.interface.name)) -*/ \
+                        /*- for m in e.interface.type.methods -*/ \
+                            --redefine-sym /*? e.interface.name ?*/_/*? m.name ?*/="camkes connection /*? e.parent.name ?*/_/*? m.name ?*/" \
+                            --keep-global-symbol "camkes connection /*? e.parent.name ?*/_/*? m.name ?*/" \
+                        /*- endfor -*/ \
+                    /*- endif -*/ \
+                /*- endfor -*/ \
             /*- endif -*/ \
             \
         /*- endfor -*/ \
-        /*? i.name ?*/.instance.bin $@ # Can't use $^ because it's polluted by common.mk :(
+        /*? i.name ?*/.instance.bin $@
+	@# Some toolchains insert exception handling infrastructure whether we ask
+	@# for it or not. The preceding `objcopy` step breaks references in
+	@# implicit `.eh_frame`s and friends, which then goes on to cause a linker
+	@# warning. Rather than attempt some complicated gymnastics to repair these
+	@# references, we just strip the exception handling pieces. To further
+	@# complicate the process, some architectures require an `.eh_frame` and
+	@# attempting to remove it causes errors. To handle this we just blindly
+	@# try to remove it and mask errors. We can't do this unconditionally in
+	@# the preceding `objcopy` because it fails when our toolchain has *not*
+	@# inserted exception handling pieces or when we're targeting an
+	@# architecture that requires `.eh_frame`.
+	${Q}-${OBJCOPY} --remove-section .eh_frame --remove-section .eh_frame_hdr \
+      --remove-section .rel.eh_frame --remove-section .rela.eh_frame $@ \
+      >/dev/null 2>/dev/null
 /*- endfor -*/

@@ -1,5 +1,5 @@
 /*#
- *# Copyright 2014, NICTA
+ *# Copyright 2015, NICTA
  *#
  *# This software may be distributed and modified according to the terms of
  *# the BSD 2-Clause license. Note that NO WARRANTY is provided.
@@ -10,31 +10,33 @@
 
 /*? macros.header_guard(re.sub('\\W', '_', options.outfile.name)) ?*/
 #include <camkes/dataport.h>
+#include <camkes/error.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <utils/util.h>
 
 /*? macros.show_includes(me.type.includes) ?*/
 /*- for i in me.type.uses -*/
-    /*? macros.show_includes(i.type.includes, '../static/components/' + me.type.name + '/') ?*/
+    /*? macros.show_includes(i.type.includes) ?*/
 /*- endfor -*/
 /*- for i in me.type.provides -*/
-    /*? macros.show_includes(i.type.includes, '../static/components/' + me.type.name + '/') ?*/
+    /*? macros.show_includes(i.type.includes) ?*/
 /*- endfor -*/
 
 const char *get_instance_name(void);
 
 /* Attributes */
 /*- for a in me.type.attributes -*/
-    extern const /*? show(a.type) ?*/ /*? a.name ?*/;
+    extern const /*? macros.show_type(a.type) ?*/ /*? a.name ?*/;
 /*- endfor -*/
 
 /*- for u in me.type.uses + me.type.provides -*/
     /*- for m in u.type.methods -*/
         /*- if m.return_type is not none -*/
-            /*- if isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string' -*/
+            /*- if m.return_type == 'string' -*/
                 char *
             /*- else -*/
-                /*? show(m.return_type) ?*/
+                /*? macros.show_type(m.return_type) ?*/
             /*- endif -*/
         /*- else -*/
             void
@@ -44,15 +46,15 @@ const char *get_instance_name(void);
               /*- if p.direction == 'in' -*/
                 /*- if p.array -*/
                   size_t /*? p.name ?*/_sz,
-                  /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+                  /*- if p.type == 'string' -*/
                     char **
                   /*- else -*/
-                    const /*? show(p.type) ?*/ *
+                    const /*? macros.show_type(p.type) ?*/ *
                   /*- endif -*/
-                /*- elif isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+                /*- elif p.type == 'string' -*/
                   const char *
                 /*- else -*/
-                  /*? show(p.type) ?*/
+                  /*? macros.show_type(p.type) ?*/
                 /*- endif -*/
                 /*? p.name ?*/
               /*- else -*/
@@ -62,18 +64,18 @@ const char *get_instance_name(void);
                     const
                   /*- endif -*/
                   size_t * /*? p.name ?*/_sz,
-                  /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+                  /*- if p.type == 'string' -*/
                     char ***
                   /*- else -*/
-                    /*? show(p.type) ?*/ **
+                    /*? macros.show_type(p.type) ?*/ **
                   /*- endif -*/
-                /*- elif isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+                /*- elif p.type == 'string' -*/
                   char **
                 /*- else -*/
                   /*- if p.direction == 'refin' -*/
                     const
                   /*- endif -*/
-                  /*? show(p.type) ?*/ *
+                  /*? macros.show_type(p.type) ?*/ *
                 /*- endif -*/
                 /*? p.name ?*/
               /*- endif -*/
@@ -84,17 +86,41 @@ const char *get_instance_name(void);
             /*- if len(m.parameters) == 0 -*/
               void
             /*- endif -*/
-        ) /*- if isinstance(u, camkes.ast.Uses) and u.optional -*/ __attribute__((weak)) /*- endif -*/;
+        ) /*- if isinstance(u, camkes.ast.Uses) and u.optional -*/ WEAK /*- endif -*/;
     /*- endfor -*/
 /*- endfor -*/
 
 /*- for c in me.type.consumes -*/
+    /*# HACK: Connection-specific check here to just be nice to the user and
+     *# trigger a compile-time warning if they try to use functions that aren't
+     *# implemented.
+     #*/
+    /*- set irq = [False] -*/
+    /*- for conn in composition.connections -*/
+      /*- if conn.type.name == 'seL4HardwareInterrupt' and conn.to_ends[0].interface == c -*/
+        /*- do irq.__setitem__(0, True) -*/
+        /*- break -*/
+      /*- endif -*/
+    /*- endfor -*/
     void /*? c.name ?*/_wait(void)
-        /*- if c.optional -*/ __attribute__((weak)) /*- endif -*/;
+        /*- if c.optional -*/ WEAK /*- endif -*/
+        /*- if irq[0] -*/ WARNING("/*? c.name ?*/_wait is not provided by "
+            "seL4HardwareInterrupt") /*- endif -*/
+        ;
     int /*? c.name ?*/_poll(void)
-        /*- if c.optional -*/ __attribute__((weak)) /*- endif -*/;
+        /*- if c.optional -*/ WEAK /*- endif -*/
+        /*- if irq[0] -*/ WARNING("/*? c.name ?*/_poll is not provided by "
+            "seL4HardwareInterrupt") /*- endif -*/
+        ;
     int /*? c.name ?*/_reg_callback(void (*callback)(void*), void *arg)
-        /*- if c.optional -*/ __attribute__((weak)) /*- endif -*/;
+        /*- if c.optional -*/ WEAK /*- endif -*/
+        /*- if irq[0] -*/ WARNING("/*? c.name ?*/_reg_callback is not provided "
+            "by seL4HardwareInterrupt") /*- endif -*/
+        ;
+    int /*? c.name ?*/_acknowledge(void)
+        /*- if c.optional -*/ WEAK /*- endif -*/;
+    /* Implemented by user code. */
+    void /*? c.name ?*/_handle(void);
 /*- endfor -*/
 
 /*- for e in me.type.emits -*/
@@ -102,9 +128,9 @@ const char *get_instance_name(void);
 /*- endfor -*/
 
 /*- for d in me.type.dataports -*/
-    extern volatile /*? show(d.type) ?*/ * /*? d.name ?*/
+    extern volatile /*? macros.dataport_type(d.type) ?*/ * /*? d.name ?*/
     /*- if d.optional -*/
-        __attribute__((weak))
+        WEAK
     /*- endif -*/;
 /*- endfor -*/
 
@@ -125,10 +151,10 @@ int run(void);
 /*- set all_interfaces = me.type.provides + me.type.uses + me.type.emits + me.type.consumes + me.type.dataports -*/
 
 /* Optional init functions provided by the user. */
-void pre_init(void) __attribute__((weak));
-void post_init(void) __attribute__((weak));
+void pre_init(void) WEAK;
+void post_init(void) WEAK;
 /*- for i in all_interfaces -*/
-    void /*? i.name ?*/__init(void) __attribute__((weak));
+    void /*? i.name ?*/__init(void) WEAK;
 
     void /*? i.name ?*/_timing_get_points(char ***points, size_t *size);
     uint64_t /*? i.name ?*/_timing_get_entry(unsigned int iteration, char *point);
@@ -136,5 +162,10 @@ void post_init(void) __attribute__((weak));
 /*- endfor -*/
 
 void set_putchar(void (*putchar)(int c));
+
+/*- for i in all_interfaces -*/
+  camkes_error_handler_t /*? i.name ?*/_register_error_handler(
+    camkes_error_handler_t handler);
+/*- endfor -*/
 
 #endif

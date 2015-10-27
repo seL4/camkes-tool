@@ -1,0 +1,3 @@
+procedure foo {
+    unsigned int bar(in unsigned int x);
+}

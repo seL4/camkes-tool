@@ -1,6 +1,8 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 #
-# Copyright 2014, NICTA
+# Copyright 2015, NICTA
 #
 # This software may be distributed and modified according to the terms of
 # the BSD 2-Clause license. Note that NO WARRANTY is provided.
@@ -13,6 +15,9 @@
 up to date version of parcon to generate diagrams correctly. At time of writing,
 you need to get this from https://github.com/javawizard/parcon.
 '''
+
+from __future__ import absolute_import, division, print_function, \
+    unicode_literals
 
 import os, sys
 
@@ -176,7 +181,7 @@ def main():
     elif len(sys.argv) == 1:
         out = os.curdir
     else:
-        print >>sys.stderr, 'Usage: %s [output directory]' % sys.argv[0]
+        sys.stderr.write('Usage: %s [output directory]\n' % sys.argv[0])
         return -1
 
     # Tweak options to hide the title we don't need.
@@ -187,7 +192,7 @@ def main():
 
     # Dump each diagram as a PNG.
     for d in DIAGRAMS:
-        path = os.path.join(out, '%s.png' % d.keys()[0])
+        path = os.path.join(out, '%s.png' % list(d.keys())[0])
         draw_to_png(d, options, path, True)
 
     return 0

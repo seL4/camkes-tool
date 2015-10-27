@@ -1,5 +1,5 @@
 /*
- * Copyright 2014, NICTA
+ * Copyright 2015, NICTA
  *
  * This software may be distributed and modified according to the terms of
  * the BSD 2-Clause license. Note that NO WARRANTY is provided.
@@ -15,6 +15,7 @@
 #include <assert.h>
 #include <limits.h>
 #include <platsupport/io.h>
+#include <stdalign.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -328,7 +329,7 @@ int camkes_dma_init(void *dma_pool, size_t dma_pool_sz, size_t page_size,
     }
 
     /* Bail out if the caller gave us an insufficiently aligned pool. */
-    if (dma_pool == NULL || (uintptr_t)dma_pool % __alignof__(region_t) != 0) {
+    if (dma_pool == NULL || (uintptr_t)dma_pool % alignof(region_t) != 0) {
         return -1;
     }
 
@@ -336,14 +337,14 @@ int camkes_dma_init(void *dma_pool, size_t dma_pool_sz, size_t page_size,
      * power-of-2-sized, so the bookkeeping struct better be
      * power-of-2-aligned. Your compiler should always guarantee this.
      */
-    _Static_assert(IS_POWER_OF_2(__alignof__(region_t)),
+    static_assert(IS_POWER_OF_2(alignof(region_t)),
         "region_t is not power-of-2-aligned");
 
     /* The page size the caller has given us should be a power of 2 and at least
      * the alignment of `region_t`.
      */
     if (page_size != 0 && (!IS_POWER_OF_2(page_size) ||
-                           page_size < __alignof__(region_t))) {
+                           page_size < alignof(region_t))) {
         return -1;
     }
 
@@ -360,7 +361,7 @@ int camkes_dma_init(void *dma_pool, size_t dma_pool_sz, size_t page_size,
          */
         for (void *base = dma_pool; base < dma_pool + dma_pool_sz;
                 base += page_size) {
-            assert((uintptr_t)base % __alignof__(region_t) == 0 &&
+            assert((uintptr_t)base % alignof(region_t) == 0 &&
                 "we misaligned the DMA pool base address during "
                 "initialisation");
             camkes_dma_free(base, page_size);
@@ -400,7 +401,7 @@ int camkes_dma_init(void *dma_pool, size_t dma_pool_sz, size_t page_size,
              * necessary metadata.
              */
             if (base + sizeof(region_t) >= limit) {
-                assert((uintptr_t)base % __alignof__(region_t) == 0 &&
+                assert((uintptr_t)base % alignof(region_t) == 0 &&
                     "we misaligned the DMA pool base address during "
                     "initialisation");
                 camkes_dma_free(base, limit - base);
@@ -410,7 +411,7 @@ int camkes_dma_init(void *dma_pool, size_t dma_pool_sz, size_t page_size,
              * region aligned for bookkeeping, so bump the address up if
              * necessary.
              */
-            base = (void*)ALIGN_UP((uintptr_t)limit, __alignof__(region_t));
+            base = (void*)ALIGN_UP((uintptr_t)limit, alignof(region_t));
         }
     }
 
@@ -436,13 +437,13 @@ static void *alloc(size_t size, int align) {
      * struct, so that the bookkeeping we may have to write for the remainder
      * chunk of a region is aligned.
      */
-    assert(size % __alignof__(region_t) == 0);
+    assert(size % alignof(region_t) == 0);
 
     /* The caller should have ensured that the alignment requirements are
      * sufficient that any chunk we ourselves allocate, can later host
      * bookkeeping in its initial bytes when it is freed.
      */
-    assert(align >= __alignof__(region_t));
+    assert(align >= (int)alignof(region_t));
 
     /* For each region in the free list... */
     for (region_t *prev = NULL, *p = head; p != NULL; prev = p, p = p->next) {
@@ -557,13 +558,13 @@ void *camkes_dma_alloc(size_t size, int align) {
         align = 1;
     }
 
-    if (align < __alignof__(region_t)) {
+    if (align < (int)alignof(region_t)) {
         /* Allocating something with a weaker alignment constraint than our
          * bookkeeping data may lead to us giving out a chunk of memory that is
          * not sufficiently aligned to host bookkeeping data when it is
          * returned to us. Bump it up in this case.
          */
-        align = __alignof__(region_t);
+        align = alignof(region_t);
     }
 
     if (size < sizeof(region_t)) {
@@ -622,9 +623,15 @@ void camkes_dma_free(void *ptr, size_t size) {
     /* We should have never allocated memory that is insufficiently aligned to
      * host bookkeeping data now that it has been returned to us.
      */
-    assert((uintptr_t)ptr % __alignof__(region_t) == 0);
+    assert((uintptr_t)ptr % alignof(region_t) == 0);
 
-    STATS(stats.current_outstanding -= size);
+    STATS(({
+            if (size >= stats.current_outstanding) {
+                stats.current_outstanding = 0;
+            } else {
+                stats.current_outstanding -= size;
+            }
+        }));
 
     region_t *p = ptr;
     p->paddr_upper = 0;

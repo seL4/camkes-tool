@@ -1,5 +1,5 @@
 #
-# Copyright 2014, NICTA
+# Copyright 2015, NICTA
 #
 # This software may be distributed and modified according to the terms of
 # the BSD 2-Clause license. Note that NO WARRANTY is provided.
@@ -29,12 +29,15 @@ NK_CFLAGS += -Wno-main
 
 export CONFIG_CAMKES_USE_OBJDUMP_ON \
     CONFIG_CAMKES_USE_OBJDUMP_AUTO \
-    CONFIG_CAMKES_PYTHON_OPTIMIZE \
-    CONFIG_CAMKES_DISABLE_PYTHON_IMPORT_CHECKS \
+    CONFIG_CAMKES_PYTHON_OPTIMISE_BASIC \
+    CONFIG_CAMKES_PYTHON_OPTIMISE_MORE \
     CONFIG_CAMKES_PYTHON_INTERPRETER_CPYTHON \
+    CONFIG_CAMKES_PYTHON_INTERPRETER_CPYTHON2 \
+    CONFIG_CAMKES_PYTHON_INTERPRETER_CPYTHON3 \
     CONFIG_CAMKES_PYTHON_INTERPRETER_PYPY \
     CONFIG_CAMKES_PYTHON_INTERPRETER_FIGLEAF \
-    CONFIG_CAMKES_PYTHON_INTERPRETER_COVERAGE
+    CONFIG_CAMKES_PYTHON_INTERPRETER_COVERAGE \
+    CONFIG_CAMKES_ACCELERATOR \
 
 # Strip the quotes from the string CONFIG_CAMKES_IMPORT_PATH.
 CONFIG_CAMKES_IMPORT_PATH:=$(patsubst %",%,$(patsubst "%,%,${CONFIG_CAMKES_IMPORT_PATH}))
@@ -42,7 +45,7 @@ CONFIG_CAMKES_IMPORT_PATH:=$(patsubst %",%,$(patsubst "%,%,${CONFIG_CAMKES_IMPOR
 
 CAMKES_FLAGS += \
     $(if ${V},--debug,) \
-    --cache $(if ${CONFIG_CAMKES_CACHE_READWRITE},on,$(if ${CONFIG_CAMKES_CACHE_READONLY},readonly,$(if ${CONFIG_CAMKES_CACHE_WRITEONLY},writeonly,off))) \
+    $(if ${CONFIG_CAMKES_CACHE},--cache,) \
     $(if ${CONFIG_CAMKES_CPP},--cpp,) \
     --cpp-flag=-I${KERNEL_ROOT_PATH}/../include/generated \
     $(foreach path, ${PWD}/tools/camkes/include/builtin ${CONFIG_CAMKES_IMPORT_PATH}, --import-path=${path}) \
@@ -54,10 +57,11 @@ CAMKES_FLAGS += \
     $(if ${CONFIG_CAMKES_SUPPORT_INIT},--fsupport-init,--fno-support-init) \
     --default-priority ${CONFIG_CAMKES_DEFAULT_PRIORITY} \
     $(if ${CONFIG_CAMKES_LARGE_FRAME_PROMOTION},--largeframe,) \
+    $(if ${CONFIG_CAMKES_DMA_LARGE_FRAME_PROMOTION},--largeframe-dma,) \
     $(if ${CONFIG_CAMKES_PRUNE_GENERATED},--prune,) \
-    $(if ${CONFIG_CAMKES_PLY_OPTIMIZE},--ply-optimise,) \
-    $(if ${ARM_HYP},--hyp,) \
-    $(if ${CONFIG_WORD_SIZE},--word-size ${CONFIG_WORD_SIZE},) \
+    $(if ${ARM_HYP},--architecture arm-hyp,$(if ${CONFIG_ARCH_IA32},--architecture ia32,)) \
+    $(if ${CONFIG_CAMKES_ALLOW_FORWARD_REFERENCES},--allow-forward-references,) \
+    $(if ${CONFIG_CAMKES_FAULT_HANDLERS},--debug-fault-handlers,) \
 
 include ${SEL4_COMMON}/common.mk
 
@@ -78,7 +82,7 @@ else
 	$(Q)mkdir -p $(dir $@)
 	@# Abuse second parameter of make-depend to extend CFLAGS.
 	$(Q)$(call make-depend,$<,$@ $(foreach v,$(filter-out $<,$^),$(patsubst %,-I%,$(abspath $(dir ${v})))),$(patsubst %.o,%.d,$@))
-	$(Q)$(CC) -x c $(CFLAGS) $(CPPFLAGS) $(foreach v,$(filter-out $<,$^),$(patsubst %,-I%,$(abspath $(dir ${v})))) -c $< -o $@
+	$(Q)$(CC) $(CFLAGS) $(CPPFLAGS) $(foreach v,$(filter-out $<,$^),$(patsubst %,-I%,$(abspath $(dir ${v})))) -c $< -o $@
 endif
 
 %.o: %.cxx $(HFILES) | install-headers
@@ -87,7 +91,7 @@ endif
 	$(Q)mkdir -p $(dir $@)
 	@# Abuse second parameter of make-depend to extend CXXFLAGS.
 	$(Q)$(call make-cxx-depend,$<,$@ $(foreach v,$(filter-out $<,$^),$(patsubst %,-I%,$(abspath $(dir ${v})))),$(patsubst %.o,%.d,$@))
-	$(Q)$(CXX) -x c++ $(CXXFLAGS) $(CPPFLAGS) $(foreach v,$(filter-out $<,$^),$(patsubst %,-I%,$(abspath $(dir ${v})))) -c $< -o $@
+	$(Q)$(CXX) $(CXXFLAGS) $(CPPFLAGS) $(foreach v,$(filter-out $<,$^),$(patsubst %,-I%,$(abspath $(dir ${v})))) -c $< -o $@
 
 .PRECIOUS: %.c_pp
 %.c_pp: %.c $(HFILES) | install-headers
@@ -113,7 +117,7 @@ endif
 # come before sel4platsupport to make sure we get the sel4camkes _start, not
 # the sel4platsupport one.
 CAMKES_CORE_LIBS = sel4 sel4debug c $(patsubst "%",%,${CONFIG_CAMKES_SYSLIB}) sel4camkes \
-    sel4sync utils sel4vka sel4utils sel4platsupport platsupport sel4vspace
+    sel4sync utils sel4vka sel4utils sel4platsupport platsupport
 
 PRUNER_BLACKLIST = FILE fpos_t opterr optind optopt stderr stdin stdout \
   va_list __isoc_va_list max_align_t camkes_error_t camkes_error_handler_t \
@@ -126,11 +130,12 @@ include ${BUILD_DIR}/camkes-gen.mk
 
 ${BUILD_DIR}/camkes-gen.mk: ${SOURCE_DIR}/${ADL}
 	@echo " [GEN] $(notdir $@)"
-	camkes.sh runner \
+	camkes.sh \
         ${CAMKES_FLAGS} \
         --file $< \
         --item Makefile \
-        --outfile "$@"
+        --outfile "$@" \
+        --platform seL4
 
 # Delete the targets of any rules that fail.
 .DELETE_ON_ERROR:

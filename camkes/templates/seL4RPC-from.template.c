@@ -1,5 +1,5 @@
 /*#
- *# Copyright 2014, NICTA
+ *# Copyright 2015, NICTA
  *#
  *# This software may be distributed and modified according to the terms of
  *# the BSD 2-Clause license. Note that NO WARRANTY is provided.
@@ -21,36 +21,42 @@
 #include <camkes/timing.h>
 #include <camkes/tls.h>
 #include <sync/sem-bare.h>
+#include <utils/util.h>
 
-/*? macros.show_includes(me.from_instance.type.includes) ?*/
-/*? macros.show_includes(me.from_interface.type.includes, '../static/components/' + me.from_instance.type.name + '/') ?*/
+/*? macros.show_includes(me.instance.type.includes) ?*/
+/*? macros.show_includes(me.interface.type.includes) ?*/
 
 /*- set ep = alloc('ep', seL4_EndpointObject, read=True, write=True) -*/
 
 /*- set BUFFER_BASE = c_symbol('BUFFER_BASE') -*/
 #define /*? BUFFER_BASE ?*/ ((void*)&seL4_GetIPCBuffer()->msg[0])
 
-/*- set methods_len = len(me.from_interface.type.methods) -*/
-/*- set instance = me.from_instance.name -*/
-/*- set interface = me.from_interface.name -*/
-/*- set threads = list(range(1, 2 + len(me.from_instance.type.provides) + len(me.from_instance.type.uses) + len(me.from_instance.type.emits) + len(me.from_instance.type.consumes))) -*/
+/*- set methods_len = len(me.interface.type.methods) -*/
+/*- set instance = me.instance.name -*/
+/*- set interface = me.interface.name -*/
+/*- set threads = list(six.moves.range(1, 2 + len(me.instance.type.provides) + len(me.instance.type.uses) + len(me.instance.type.emits) + len(me.instance.type.consumes))) -*/
 
 /* Interface-specific error handling */
-/*- set error_handler = '%s_error_handler' % me.from_interface.name -*/
+/*- set error_handler = '%s_error_handler' % me.interface.name -*/
 /*- include 'error-handler.c' -*/
 
-/*- if not options.frpc_lock_elision or len([me.from_instance.type.control] + me.from_instance.type.provides + me.from_instance.type.consumes) > 1 -*/
+/*- if not options.frpc_lock_elision or 1 + len(me.instance.type.provides) + len(me.instance.type.consumes) > 1 -*/
     /*# See below for an explanation of this conditional. #*/
     /*- set lock_ep = alloc('lock', seL4_EndpointObject, read=True, write=True) -*/
     /*- set lock = c_symbol('lock') -*/
     static volatile int /*? lock ?*/ = 1;
 /*- endif -*/
 
-TIMING_DEFS(/*? me.from_interface.name ?*/, "glue code entry", "lock acquired", "marshalling done", "communication done", "lock released", "unmarshalling done")
+TIMING_DEFS(/*? me.interface.name ?*/, "glue code entry", "lock acquired", "marshalling done", "communication done", "lock released", "unmarshalling done")
 
 /*- include 'array-typedef-check.c' -*/
 
-int /*? me.from_interface.name ?*/__run(void) {
+int /*? me.interface.name ?*/__run(void) {
+    /* This function is never actually executed, but we still emit it for the
+     * purpose of type checking RPC parameters.
+     */
+    UNREACHABLE();
+
     /*# Check any typedefs we have been given are not arrays. #*/
     /*- include 'call-array-typedef-check.c' -*/
     return 0;
@@ -59,12 +65,12 @@ int /*? me.from_interface.name ?*/__run(void) {
 /*# Find the method (if any) that has been marked to be instrumented with
  *# timing points.
  #*/
-/*- set timing_method = configuration[me.from_instance.name].get('%s_timing' % me.from_interface.name) -*/
+/*- set timing_method = configuration[me.instance.name].get('%s_timing' % me.interface.name) -*/
 
-/*- for i, m in enumerate(me.from_interface.type.methods) -*/
+/*- for i, m in enumerate(me.interface.type.methods) -*/
 
-/*- set input_parameters = filter(lambda('x: x.direction in [\'refin\', \'in\', \'inout\']'), m.parameters) -*/
-/*- set output_parameters = filter(lambda('x: x.direction in [\'out\', \'inout\']'), m.parameters) -*/
+/*- set input_parameters = list(filter(lambda('x: x.direction in [\'refin\', \'in\', \'inout\']'), m.parameters)) -*/
+/*- set output_parameters = list(filter(lambda('x: x.direction in [\'out\', \'inout\']'), m.parameters)) -*/
 
 /*# If we're meant to be timing this method, map its timestamps to the real
  *# measurement functionality. Otherwise, make this a no-op.
@@ -97,36 +103,36 @@ int /*? me.from_interface.name ?*/__run(void) {
    *# value at some point. Construct a TLS variable.
    #*/
   /*- set name = ret_tls_var -*/
-  /*- if isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string' -*/
+  /*- if m.return_type == 'string' -*/
     /*- set array = False -*/
     /*- set type = 'char*' -*/
     /*- include 'thread_local.c' -*/
   /*- else -*/
     /*- set array = False -*/
-    /*- set type = show(m.return_type) -*/
+    /*- set type = macros.show_type(m.return_type) -*/
     /*- include 'thread_local.c' -*/
   /*- endif -*/
 /*- endif -*/
 
 /*- if m.return_type is not none -*/
-    /*? show(m.return_type) ?*/
+    /*? macros.show_type(m.return_type) ?*/
 /*- else -*/
     void
 /*- endif -*/
-/*? me.from_interface.name ?*/_/*? m.name ?*/(
+/*? me.interface.name ?*/_/*? m.name ?*/(
 /*- for p in m.parameters -*/
   /*- if p.direction == 'in' -*/
     /*- if p.array -*/
       size_t /*? p.name ?*/_sz,
-      /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+      /*- if p.type == 'string' -*/
         char **
       /*- else -*/
-        const /*? show(p.type) ?*/ *
+        const /*? macros.show_type(p.type) ?*/ *
       /*- endif -*/
-    /*- elif isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+    /*- elif p.type == 'string' -*/
       const char *
     /*- else -*/
-      /*? show(p.type) ?*/
+      /*? macros.show_type(p.type) ?*/
     /*- endif -*/
   /*- else -*/
     /*? assert(p.direction in ['refin', 'out', 'inout']) ?*/
@@ -135,18 +141,18 @@ int /*? me.from_interface.name ?*/__run(void) {
         const
       /*- endif -*/
       size_t * /*? p.name ?*/_sz,
-      /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+      /*- if p.type == 'string' -*/
         char ***
       /*- else -*/
-        /*? show(p.type) ?*/ **
+        /*? macros.show_type(p.type) ?*/ **
       /*- endif -*/
-    /*- elif isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+    /*- elif p.type == 'string' -*/
       char **
     /*- else -*/
       /*- if p.direction == 'refin' -*/
         const
       /*- endif -*/
-      /*? show(p.type) ?*/ *
+      /*? macros.show_type(p.type) ?*/ *
     /*- endif -*/
   /*- endif -*/
   /*? p.name ?*/
@@ -160,7 +166,7 @@ int /*? me.from_interface.name ?*/__run(void) {
 ) {
     _TIMESTAMP("glue code entry");
 
-    /*- if not options.frpc_lock_elision or len([me.from_instance.type.control] + me.from_instance.type.provides + me.from_instance.type.consumes) > 1 -*/
+    /*- if not options.frpc_lock_elision or 1 + len(me.instance.type.provides) + len(me.instance.type.consumes) > 1 -*/
         /* We need to surround the send/wait sequence with a lock because this code
          * is potentially concurrent. Without the lock the following sequence can
          * occur:
@@ -174,6 +180,7 @@ int /*? me.from_interface.name ?*/__run(void) {
          * elided in the case when only a single thread will ever be executing
          * inside this function. This is what the conditional above is checking.
          */
+        camkes_protect_reply_cap();
         sync_sem_bare_wait(/*? lock_ep ?*/, &/*? lock ?*/);
     /*- endif -*/
 
@@ -182,12 +189,12 @@ int /*? me.from_interface.name ?*/__run(void) {
     /*- set ret_val = c_symbol('return') -*/
     /*- set ret_ptr = c_symbol('return_ptr') -*/
     /*- if m.return_type is not none -*/
-      /*- if isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string' -*/
+      /*- if m.return_type == 'string' -*/
         char * /*? ret_val ?*/ UNUSED;
         char ** /*? ret_ptr ?*/ = TLS_PTR(/*? ret_tls_var ?*/, /*? ret_val ?*/);
       /*- else -*/
-        /*? show(m.return_type) ?*/ /*? ret_val ?*/ UNUSED;
-        /*? show(m.return_type) ?*/ * /*? ret_ptr ?*/ = TLS_PTR(/*? ret_tls_var ?*/, /*? ret_val ?*/);
+        /*? macros.show_type(m.return_type) ?*/ /*? ret_val ?*/ UNUSED;
+        /*? macros.show_type(m.return_type) ?*/ * /*? ret_ptr ?*/ = TLS_PTR(/*? ret_tls_var ?*/, /*? ret_val ?*/);
       /*- endif -*/
     /*- endif -*/
 
@@ -197,7 +204,7 @@ int /*? me.from_interface.name ?*/__run(void) {
     if (unlikely(/*? length ?*/ == UINT_MAX)) {
         /* Error in marshalling; bail out. */
         /*- if m.return_type is not none -*/
-            /*- if isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string' -*/
+            /*- if m.return_type == 'string' -*/
                 return NULL;
             /*- else -*/
                 memset(/*? ret_ptr ?*/, 0, sizeof(* /*? ret_ptr ?*/));
@@ -216,11 +223,14 @@ int /*? me.from_interface.name ?*/__run(void) {
         ROUND_UP_UNSAFE(/*? length ?*/, sizeof(seL4_Word)) / sizeof(seL4_Word));
 
     seL4_Send(/*? ep ?*/, /*? info ?*/);
+    /*- if options.frpc_lock_elision and 1 + len(me.instance.type.provides) + len(me.instance.type.consumes) > 1 -*/
+      camkes_protect_reply_cap();
+    /*- endif -*/
     /*? info ?*/ = seL4_Wait(/*? ep ?*/, NULL);
 
     _TIMESTAMP("communication done");
 
-    /*- if not options.frpc_lock_elision or len([me.from_instance.type.control] + me.from_instance.type.provides + me.from_instance.type.consumes) > 1 -*/
+    /*- if not options.frpc_lock_elision or 1 + len(me.instance.type.provides) + len(me.instance.type.consumes) > 1 -*/
         /* It's safe to release the lock here because releasing does not touch our
          * IPC buffer.
          */
@@ -240,7 +250,7 @@ int /*? me.from_interface.name ?*/__run(void) {
     if (unlikely(/*? err ?*/ != 0)) {
         /* Error in unmarshalling; bail out. */
         /*- if m.return_type is not none -*/
-            /*- if isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string' -*/
+            /*- if m.return_type == 'string' -*/
                 return NULL;
             /*- else -*/
                 memset(/*? ret_ptr ?*/, 0, sizeof(* /*? ret_ptr ?*/));

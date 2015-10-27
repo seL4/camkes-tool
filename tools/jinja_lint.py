@@ -1,6 +1,8 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 #
-# Copyright 2014, NICTA
+# Copyright 2015, NICTA
 #
 # This software may be distributed and modified according to the terms of
 # the BSD 2-Clause license. Note that NO WARRANTY is provided.
@@ -13,13 +15,20 @@
 the common errors of either mismatching /*- ... -*/ blocks or using /*? ... ?*/
 instead of /*- ... -*/.'''
 
-import collections, re, sys
+from __future__ import absolute_import, division, print_function, \
+    unicode_literals
 
-class Tokeniser(collections.Iterator):
+import abc, collections, re, six, sys
+
+class Tokeniser(six.with_metaclass(abc.ABCMeta, collections.Iterator)):
+    '''
+    Basic Jinja file tokeniser interface. Two implementations of this follow
+    below.
+    '''
     def __init__(self, filename):
-        with open(filename, 'r') as f:
+        with open(filename, 'rt') as f:
             self.data = f.read()
-        self.regex = re.compile(r'(?:(\n)|/\*-[\s]*([\S]+)\s.*?-\*/)', flags=re.MULTILINE)
+        self.regex = None
         self.index = 0
         self.line = 1
 
@@ -27,6 +36,7 @@ class Tokeniser(collections.Iterator):
         return self
 
     def __next__(self):
+        assert self.regex is not None
         while True:
             token = self.regex.search(self.data, self.index)
             if token is None:
@@ -42,63 +52,114 @@ class Tokeniser(collections.Iterator):
     def next(self):
         return self.__next__()
 
+class LowTokeniser(Tokeniser):
+    '''
+    A tokeniser for recognising the matching Jinja special symbols ("/*-" and
+    friends.
+    '''
+    def __init__(self, filename):
+        super(LowTokeniser, self).__init__(filename)
+        self.regex = re.compile(r'(?:(\n)|(/\*[-\?#]|[-\?#]\*/))',
+            flags=re.MULTILINE)
+
+class HighTokeniser(Tokeniser):
+    '''
+    A tokeniser for recognising Jinja directives ("/*- if .... -*/" and
+    friends).
+    '''
+    def __init__(self, filename):
+        super(HighTokeniser, self).__init__(filename)
+        self.regex = re.compile(r'(?:(\n)|/\*-[\s]*([\S]+)\s.*?-\*/)',
+            flags=re.MULTILINE)
+
 def main():
     if len(sys.argv) < 2:
-        print >>sys.stderr, 'Usage: %s template' % sys.argv[0]
+        sys.stderr.write('Usage: %s template\n' % sys.argv[0])
         return -1
+
+    # First try to find any low-level errors (mismatched /*. .*/). We do this
+    # first because, if there are problems here, it will likely cause a high
+    # level error that will be harder to trace back to the source.
+
+    t = LowTokeniser(sys.argv[1])
+
+    last = None
+    starter = re.compile(r'/\*.$')
+
+    for token in t:
+        if starter.match(token) is not None:
+            if last is not None:
+                raise SyntaxError('%s:%d: opening %s while still inside '
+                    'preceding %s' % (sys.argv[1], t.line, token, last))
+            last = token
+        elif last is None:
+            raise SyntaxError('%s:%d: closing %s while not inside a Jinja '
+                'directive' % (sys.argv[1], t.line, token))
+        else:
+            assert last in ('/*-', '/*#', '/*?'), 'unexpected last token ' \
+                '\'%s\' recorded (bug in linter?)' % last
+            assert token in ('-*/', '#*/', '?*/'), 'unexpected token \'%s\' ' \
+                'recognised (bug in linter?)' % token
+            if last[2] != token[0]:
+                raise SyntaxError('%s:%d: closing %s while inside %s block' %
+                    (sys.argv[1], t.line, token, last))
+            last = None
+
+    # Now try to find any high-level errors (mismatched valid Jinja
+    # directives).
 
     stack = []
 
-    t = Tokeniser(sys.argv[1])
+    t = HighTokeniser(sys.argv[1])
 
     for token in t:
         if token in ['if', 'for', 'macro']:
             stack.append(token)
         elif token == 'endif':
             if len(stack) == 0:
-                raise SyntaxError('%s:%d: endif while not inside a block' % \
+                raise SyntaxError('%s:%d: endif while not inside a block' %
                     (sys.argv[1], t.line))
             context = stack.pop()
             if context != 'if':
-                raise SyntaxError('%s:%d: endif while inside a %s block' % \
+                raise SyntaxError('%s:%d: endif while inside a %s block' %
                     (sys.argv[1], t.line, context))
         elif token in ['elif', 'else']:
             if len(stack) == 0 or stack[-1] != 'if':
-                raise SyntaxError('%s:%d: %s while not inside an if block' % \
+                raise SyntaxError('%s:%d: %s while not inside an if block' %
                     (sys.argv[1], t.line, token))
         elif token == 'endfor':
             if len(stack) == 0:
-                raise SyntaxError('%s:%d: endfor while not inside a block' % \
+                raise SyntaxError('%s:%d: endfor while not inside a block' %
                     (sys.argv[1], t.line))
             context = stack.pop()
             if context != 'for':
-                raise SyntaxError('%s:%d: endfor while inside a %s block' % \
+                raise SyntaxError('%s:%d: endfor while inside a %s block' %
                     (sys.argv[1], t.line, context))
         elif token == 'endmacro':
             if len(stack) == 0:
-                raise SyntaxError('%s:%d: endmacro while not inside a block' % \
+                raise SyntaxError('%s:%d: endmacro while not inside a block' %
                     (sys.argv[1], t.line))
             context = stack.pop()
             if context != 'macro':
-                raise SyntaxError('%s:%d: endmacro while inside a %s block' % \
+                raise SyntaxError('%s:%d: endmacro while inside a %s block' %
                     (sys.argv[1], t.line, context))
         elif token == 'break':
             if len(stack) == 0 or stack[-1] not in ['for', 'if']:
-                raise SyntaxError('%s:%d: break while not inside a for or if' % \
+                raise SyntaxError('%s:%d: break while not inside a for or if' %
                     (sys.argv[1], t.line))
         elif token == 'continue':
             if 'for' not in stack:
-                raise SyntaxError('%s:%d: continue while not inside a for' % \
+                raise SyntaxError('%s:%d: continue while not inside a for' %
                     (sys.argv[1], t.line))
         elif token in ['do', 'import', 'include', 'set']:
             # Ignore; allowable anywhere.
             pass
         else:
-            raise SyntaxError('%s:%d: unknown directive %s' % \
+            raise SyntaxError('%s:%d: unknown directive %s' %
                 (sys.argv[1], t.line, token))
 
     if len(stack) != 0:
-        raise SyntaxError('%s: open %s when reaching end of file' % \
+        raise SyntaxError('%s: open %s when reaching end of file' %
             (sys.argv[1], stack[-1]))
 
     return 0
@@ -107,5 +168,5 @@ if __name__ == '__main__':
     try:
         sys.exit(main())
     except SyntaxError as e:
-        print >>sys.stderr, str(e)
+        sys.stderr.write('%s\n' % str(e))
         sys.exit(-1)

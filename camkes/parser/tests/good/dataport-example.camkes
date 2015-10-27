@@ -1,0 +1,14 @@
+component A {
+    dataport Buf d;
+}
+connector Q {
+    from Dataport;
+    to Dataport;
+}
+assembly {
+    composition {
+        component A a1;
+        component A a2;
+        connection Q c(from a1.d, to a2.d);
+    }
+}

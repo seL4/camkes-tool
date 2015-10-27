@@ -1,5 +1,5 @@
 /*
- * Copyright 2014, NICTA
+ * Copyright 2015, NICTA
  *
  * This software may be distributed and modified according to the terms of
  * the BSD 2-Clause license. Note that NO WARRANTY is provided.
@@ -32,7 +32,7 @@ typedef struct Buf_ {
 
 /* This type is intended to be used opaquely by a user. */
 typedef struct dataport_ptr_ {
-    uint32_t id;
+    int32_t id;
     off_t offset;
 } dataport_ptr_t;
 

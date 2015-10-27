@@ -1,5 +1,5 @@
 /*#
- *# Copyright 2014, NICTA
+ *# Copyright 2015, NICTA
  *#
  *# This software may be distributed and modified according to the terms of
  *# the BSD 2-Clause license. Note that NO WARRANTY is provided.
@@ -38,9 +38,9 @@
     /*- set r = re.match('simple_untyped(\\d+)_pool$', attribute) -*/
     /*- if r is not none -*/
         /*- set bits = int(r.group(1)) -*/
-        /*- for i in range(value) -*/
+        /*- for i in six.moves.range(value) -*/
             /*- if not 4 <= bits <= 28 -*/
-                /*? raise(Exception('illegal untyped size')) ?*/
+                /*? raise(TemplateError('illegal untyped size')) ?*/
             /*- endif -*/
             /*- set untyped = alloc('simple_untyped_%d_pool_%d' % (bits, i), seL4_UntypedObject, size_bits=bits, read=True, write=True) -*/
             /*- do untyped_obj_list.append((untyped, bits)) -*/
@@ -58,7 +58,7 @@
         /*- set start = int(start, 0) -*/
         /*- set end = int(end, 0) -*/
         /*- set ioport_cap = alloc("ioport%d_%d" % (start, end), seL4_IA32_IOPort) -*/
-        /*- do cap_space.cnode[ioport_cap].set_ports(range(start, end +1)) -*/
+        /*- do cap_space.cnode[ioport_cap].set_ports(list(six.moves.range(start, end +1))) -*/
         /*- do ioports.append( (ioport_cap, start, end) ) -*/
     /*- endfor -*/
 /*- endif -*/
@@ -84,7 +84,7 @@
 /*- for paddr, size, bits in mmio_regions -*/
     /*- set mmio_key = '%d%d' % (paddr, size) -*/
     static seL4_CPtr mmio_cap_lookup_/*? mmio_key ?*/[] = {
-    /*- for frame_offset in range(0, size, 2 ** bits) -*/
+    /*- for frame_offset in six.moves.range(0, size, 2 ** bits) -*/
         /*- set frames = paddr + frame_offset -*/
         /*- set temp_object=alloc_obj('mmio_frame_%d' % frames, bits_to_frame_type[bits], paddr=frames) -*/
         /*- set temp_cap = alloc_cap('mmio_frame_%d' % frames, temp_object, read=true, write=true) -*/
@@ -131,15 +131,15 @@
     /*- set asidpool = alloc('asid_pool', seL4_ASID_Pool) -*/
 /*- endif -*/
 
-/*- set irqnotification_object = alloc_obj('irq_notification_obj', seL4_NotificationObject) -*/
-/*- set irqnotification = alloc_cap('irq_notification_obj', irqnotification_object, read=True) -*/
+/*- set irqaep_object = alloc_obj('irq_aep_obj', seL4_AsyncEndpointObject) -*/
+/*- set irqaep = alloc_cap('irq_aep_obj', irqaep_object, read=True) -*/
 /*- set irqs = [] -*/
 /*- set irq_list = configuration[me.name].get('irqs') -*/
 /*- if irq_list is not none -*/
     /*- set irq_list = irq_list.strip('"').split(',') -*/
     /*- for irq in irq_list -*/
         /*- set irq = int(irq, 0) -*/
-        /*- set irq_cap = alloc('irq_%d' % irq, seL4_IRQControl, number=irq, notification=irqnotification_object) -*/
+        /*- set irq_cap = alloc('irq_%d' % irq, seL4_IRQControl, number=irq, aep=my_cnode[irqaep]) -*/
         /*- do irqs.append( (irq, irq_cap) ) -*/
     /*- endfor -*/
 /*- endif -*/
@@ -151,19 +151,18 @@
 /*# We need to have a known cspace size to instantiate a simple. This logic is
     more complicated than it strictly needs to be since in practice camkes will
     always have an 'auto' size, but it does not hurt to be general here #*/
-/*- set _cnodesize = [None] -*/
 /*- if cap_space.cnode.size_bits == 'auto' -*/
     /*- set size_bits = configuration[me.name].get('cnode_size_bits') -*/
     /*- if size_bits is not none -*/
-        /*- do _cnodesize.__setitem__(0, size_bits) -*/
+        /*- set cnodesize = size_bits -*/
     /*- else -*/
         /*# We will determine the size at run time #*/
+        /*- set cnodesize = None -*/
     /*- endif -*/
 /*- else -*/
-    /*- do _cnodesize.__setitem__(0, cap_space.cnode.size_bits) -*/
+    /*- set cnodesize = cap_space.cnode.size_bits -*/
     simple_data.cnodesizebits = /*? cap_space.cnode.size_bits ?*/;
 /*- endif -*/
-/*- set cnodesize = _cnodesize[0] -*/
 
 /* Static declaration for our cap information. We will populate this when we make
  * the simple */
@@ -236,7 +235,7 @@ static seL4_CPtr simple_camkes_nth_cap(void *data, int n) {
     /*- do mmio_counter.append(0) -*/
     /*- for paddr, size, bits in mmio_regions -*/
         /*- set mmio_key = '%d%d' % (paddr, size) -*/
-        /*- set mmio_range_len = len(range(0, size, 2 ** bits)) -*/
+        /*- set mmio_range_len = len(list(six.moves.range(0, size, 2 ** bits))) -*/
         case /*? 2 + len(untyped_obj_list) + mmio_counter[0] ?*/ ... /*? 2 + len(untyped_obj_list) + mmio_counter[0] + mmio_range_len - 1 ?*/:
             return mmio_cap_lookup_/*? mmio_key ?*/[n - /*? 2 + len(untyped_obj_list) + mmio_counter[0] ?*/];
         /*- do mmio_counter.append(mmio_counter.pop() + mmio_range_len) -*/

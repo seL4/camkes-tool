@@ -1,10 +1,24 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+#
+# Copyright 2015, NICTA
+#
+# This software may be distributed and modified according to the terms of
+# the BSD 2-Clause license. Note that NO WARRANTY is provided.
+# See "LICENSE_BSD2.txt" for details.
+#
+# @TAG(NICTA_BSD)
+#
 
 '''
 Run pylint on a Jinja 2 template.
 '''
 
-import jinja2, os, subprocess, sys, tempfile
+from __future__ import absolute_import, division, print_function, \
+    unicode_literals
+
+import atexit, jinja2, os, shutil, subprocess, sys, tempfile
 
 # Clagged pieces from the runner.
 START_BLOCK = '/*-'
@@ -16,11 +30,11 @@ END_COMMENT = '#*/'
 
 def main(argv, out, err):
     if len(argv) < 2 or argv[1] in ['--help', '-?']:
-        print >>err, 'usage: %s file pylint_args...' % argv[0]
+        err.write('%s file pylint_args...\n' % argv[0])
         return -1
 
     if not os.path.exists(argv[1]):
-        print >>err, '%s not found' % argv[1]
+        err.write('%s not found\n' % argv[1])
         return -1
 
     root, template = os.path.split(os.path.abspath(argv[1]))
@@ -38,13 +52,14 @@ def main(argv, out, err):
 
     # Compile the template requested to a temporary directory.
     tmp = tempfile.mkdtemp()
-    print >>out, 'compiling to %s...' % tmp
+    atexit.register(shutil.rmtree, tmp)
+    out.write('compiling to %s...\n' % tmp)
     env.compile_templates(tmp, filter_func=lambda x: x == template, zip=None,
         ignore_errors=False)
 
     # Find it and run pylint on it.
     py = os.path.join(tmp, os.listdir(tmp)[0])
-    print 'running pylint on %s...' % py
+    out.write('running pylint on %s...\n' % py)
     return subprocess.call(['pylint', py] + argv[2:])
 
 if __name__ == '__main__':

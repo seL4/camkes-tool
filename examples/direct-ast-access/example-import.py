@@ -1,6 +1,8 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 #
-# Copyright 2014, NICTA
+# Copyright 2015, NICTA
 #
 # This software may be distributed and modified according to the terms of
 # the BSD 2-Clause license. Note that NO WARRANTY is provided.
@@ -15,6 +17,9 @@ to the AST. The parser is designed to run either standalone or to be imported
 from another python file. This file gives an example of how to do the latter.
 '''
 
+from __future__ import absolute_import, division, print_function, \
+    unicode_literals
+
 # 1. Include the CAmkES parser module.
 import sys
 sys.path.append('../..')
@@ -25,7 +30,7 @@ from os import curdir
 def main():
     # Input text.
     s = 'assembly { composition { component foo bar; } }'
-    print 'Input:\n%s\n' % s
+    sys.stdout.write('Input:\n%s\n\n' % s)
 
     # 2. Translate your input into an AST.
     ast = camkes.parse_to_ast(s)
@@ -49,11 +54,11 @@ def main():
 
     # 5. If you want to get the AST in an output format call show(). This
     # accepts the AST itself.
-    print 'Output:\n%s\n' % camkes.show(ast)
+    sys.stdout.write('Output:\n%s\n\n' % camkes.show(ast))
 
     # 6. Some output printers implement a pretty printing function to format the
     # output in a human-readable way. Access this with pretty().
-    print 'Pretty printed:\n%s\n' % camkes.pretty(camkes.show(ast))
+    sys.stdout.write('Pretty printed:\n%s\n\n' % camkes.pretty(camkes.show(ast)))
 
     return 0
 

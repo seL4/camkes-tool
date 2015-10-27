@@ -1,0 +1,13 @@
+component Foo {}
+component Bar {}
+assembly Yo {
+    composition {
+        component Foo foo;
+    }
+}
+
+assembly Yo {
+    composition {
+        component Bar bar;
+    }
+}

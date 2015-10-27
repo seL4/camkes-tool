@@ -1,0 +1,20 @@
+connector C {
+    from Procedure;
+    to Procedure;
+}
+procedure P {
+}
+component Foo {
+    provides P p;
+}
+component Bar {
+    uses P p;
+}
+assembly {
+    composition {
+        component Foo f;
+        component Bar b;
+        connection C c(from b.p, to f.p);
+    }
+}
+import "self-import.camkes";

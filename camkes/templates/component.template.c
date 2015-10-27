@@ -1,5 +1,5 @@
 /*#
- *# Copyright 2014, NICTA
+ *# Copyright 2015, NICTA
  *#
  *# This software may be distributed and modified according to the terms of
  *# the BSD 2-Clause license. Note that NO WARRANTY is provided.
@@ -21,12 +21,14 @@
 #include <camkes/dataport.h>
 #include <camkes/dma.h>
 #include <camkes/error.h>
+#include <camkes/fault.h>
 #include <camkes/io.h>
 #include <camkes/tls.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include <sync/sem-bare.h>
 #include <sel4debug/identity.h>
 #include <sel4utils/mapping.h>
@@ -63,24 +65,33 @@ const char *get_instance_name(void) {
  *# the top of this file. If the component actually has a declared attribute
  *# 'dma_pool' then they will get access to this variable at runtime.
  #*/
-/*- set dma_pool = configuration[me.name].get('dma_pool', 0) -*/
+/*- set dma_pool = macros.ROUND_UP(configuration[me.name].get('dma_pool', 0), macros.PAGE_SIZE) -*/
+/*- set page_size = [macros.PAGE_SIZE] -*/
+/*- if options.largeframe_dma -*/
+  /*- for sz in reversed(macros.page_sizes(options.architecture)) -*/
+    /*- if dma_pool >= sz -*/
+      /*- do page_size.__setitem__(0, sz) -*/
+      /*- break -*/
+    /*- endif -*/
+  /*- endfor -*/
+/*- endif -*/
 
 /*- set p = Perspective() -*/
-static char /*? p['dma_pool_symbol'] ?*/[ROUND_UP_UNSAFE(/*? dma_pool ?*/, PAGE_SIZE_4K)]
+static char /*? p['dma_pool_symbol'] ?*/[/*? dma_pool ?*/]
     __attribute__((section("persistent")))
-    __attribute__((aligned(PAGE_SIZE_4K)));
+    ALIGN(/*? page_size[0] ?*/);
 
 /*- set get_paddr = c_symbol('get_paddr') -*/
 uintptr_t /*? get_paddr ?*/(void *ptr) {
-    uintptr_t base UNUSED = (uintptr_t)ptr & ~MASK(PAGE_BITS_4K);
-    uintptr_t offset UNUSED = (uintptr_t)ptr & MASK(PAGE_BITS_4K);
-    /*- for i in range(int(ROUND_UP(dma_pool, PAGE_SIZE) / PAGE_SIZE)) -*/
+    uintptr_t base UNUSED = (uintptr_t)ptr & ~MASK(ffs(/*? page_size[0] ?*/) - 1);
+    uintptr_t offset UNUSED = (uintptr_t)ptr & MASK(ffs(/*? page_size[0] ?*/) - 1);
+    /*- for i in six.moves.range(int(macros.ROUND_UP(dma_pool, page_size[0]) // page_size[0])) -*/
         /*- if not loop.first -*/
             else
         /*- endif -*/
-        if (base == (uintptr_t)/*? p['dma_pool_symbol'] ?*/ + /*? i ?*/ * PAGE_SIZE_4K) {
+        if (base == (uintptr_t)/*? p['dma_pool_symbol'] ?*/ + /*? i ?*/ * /*? page_size[0] ?*/) {
             /*- set p = Perspective(dma_frame_index=i) -*/
-            /*- set frame = alloc(p['dma_frame_symbol'], seL4_FrameObject) -*/
+            /*- set frame = alloc(p['dma_frame_symbol'], seL4_FrameObject, size=page_size[0]) -*/
             /*- set paddr_sym = c_symbol('paddr') -*/
             static uintptr_t /*? paddr_sym ?*/;
             if (/*? paddr_sym ?*/ == 0) {
@@ -108,7 +119,7 @@ void *camkes_io_map(void *cookie UNUSED, uintptr_t paddr UNUSED,
 
     /*- for d in me.type.dataports -*/
         extern void * /*? d.name ?*/_translate_paddr(uintptr_t paddr,
-            size_t size) __attribute__((weak));
+            size_t size) WEAK;
         if (/*? d.name ?*/_translate_paddr != NULL) {
             void *p = /*? d.name ?*/_translate_paddr(paddr, size);
             if (p != NULL) {
@@ -174,8 +185,8 @@ int camkes_io_port_out(void *cookie UNUSED, uint32_t port UNUSED,
 static sync_mutex_t /*? mutex ?*/;
 
 static int mutex_/*? m.name ?*/_init(void) {
-    /*- set notification = alloc(m.name, seL4_NotificationObject, read=True, write=True) -*/
-    return sync_mutex_init(&/*? mutex ?*/, /*? notification ?*/);
+    /*- set aep = alloc(m.name, seL4_AsyncEndpointObject, read=True, write=True) -*/
+    return sync_mutex_init(&/*? mutex ?*/, /*? aep ?*/);
 }
 
 int /*? m.name ?*/_lock(void) {
@@ -201,6 +212,7 @@ static int semaphore_/*? s.name ?*/_init(void) {
 }
 
 int /*? s.name ?*/_wait(void) {
+    camkes_protect_reply_cap();
     return sync_sem_wait(&/*? semaphore ?*/);
 }
 
@@ -241,9 +253,8 @@ static void /*? init ?*/(void) {
     /* The user has actually had no opportunity to install any error handlers at
      * this point, so any error triggered below will certainly be fatal.
      */
-    int res = camkes_dma_init(/*? p['dma_pool_symbol'] ?*/,
-        ROUND_UP(/*? dma_pool ?*/, PAGE_SIZE_4K), PAGE_SIZE_4K,
-        /*? get_paddr ?*/);
+    int res = camkes_dma_init(/*? p['dma_pool_symbol'] ?*/, /*? dma_pool ?*/,
+        /*? page_size[0] ?*/, /*? get_paddr ?*/);
     ERR_IF(res != 0, camkes_error, ((camkes_error_t){
             .type = CE_ALLOCATION_FAILURE,
             .instance = "/*? me.name ?*/",
@@ -275,7 +286,7 @@ static void /*? init ?*/(void) {
 
     /* Initialise cap allocator. */
     /*- set tcb_pool = configuration[me.name].get('tcb_pool', 0) -*/
-    /*- for i in range(tcb_pool) -*/
+    /*- for i in six.moves.range(tcb_pool) -*/
         /*- set tcb = alloc('tcb_pool_%d' % i, seL4_TCBObject, read=True, write=True) -*/
         res = camkes_provide(seL4_TCBObject, /*? tcb ?*/, 0, seL4_CanRead|seL4_CanWrite);
         ERR_IF(res != 0, camkes_error, ((camkes_error_t){
@@ -287,7 +298,7 @@ static void /*? init ?*/(void) {
             }));
     /*- endfor -*/
     /*- set ep_pool = configuration[me.name].get('ep_pool', 0) -*/
-    /*- for i in range(ep_pool) -*/
+    /*- for i in six.moves.range(ep_pool) -*/
         /*- set ep = alloc('ep_pool_%d' % i, seL4_EndpointObject, read=True, write=True) -*/
         res = camkes_provide(seL4_EndpointObject, /*? ep ?*/, 0, seL4_CanRead|seL4_CanWrite);
         ERR_IF(res != 0, camkes_error, ((camkes_error_t){
@@ -298,14 +309,14 @@ static void /*? init ?*/(void) {
                 return;
             }));
     /*- endfor -*/
-    /*- set notification_pool = configuration[me.name].get('notification_pool', 0) -*/
-    /*- for i in range(notification_pool) -*/
-        /*- set notification = alloc('notification_pool_%d' % i, seL4_NotificationObject, read=True, write=True) -*/
-        res = camkes_provide(seL4_NotificationObject, /*? notification ?*/, 0, seL4_CanRead|seL4_CanWrite);
+    /*- set aep_pool = configuration[me.name].get('aep_pool', 0) -*/
+    /*- for i in six.moves.range(aep_pool) -*/
+        /*- set aep = alloc('aep_pool_%d' % i, seL4_AsyncEndpointObject, read=True, write=True) -*/
+        res = camkes_provide(seL4_AsyncEndpointObject, /*? aep ?*/, 0, seL4_CanRead|seL4_CanWrite);
         ERR_IF(res != 0, camkes_error, ((camkes_error_t){
                 .type = CE_ALLOCATION_FAILURE,
                 .instance = "/*? me.name ?*/",
-                .description = "failed to add notification /*? notification + 1 ?*/ to cap allocation pool",
+                .description = "failed to add AEP /*? aep + 1 ?*/ to cap allocation pool",
             }), ({
                 return;
             }));
@@ -318,9 +329,9 @@ static void /*? init ?*/(void) {
         /*- endif -*/
     /*- endfor -*/
     /*- for u in untyped_pool -*/
-        /*- for i in range(u[1]) -*/
+        /*- for i in six.moves.range(u[1]) -*/
             /*- if not 4 <= int(u[0]) <= 28 -*/
-                /*? raise(Exception('illegal untyped size')) ?*/
+                /*? raise(TemplateError('illegal untyped size')) ?*/
             /*- endif -*/
             /*- set untyped = alloc('untyped_%s_pool_%d' % (u[0], i), seL4_UntypedObject, size_bits=int(u[0]), read=True, write=True) -*/
             res = camkes_provide(seL4_UntypedObject, /*? untyped ?*/, 1U << /*? u[0] ?*/, seL4_CanRead|seL4_CanWrite);
@@ -339,42 +350,68 @@ static void /*? init ?*/(void) {
     #define CONFIG_CAMKES_DEFAULT_STACK_SIZE PAGE_SIZE_4K
 #endif
 
-/*- set all_interfaces = me.type.provides + me.type.uses + me.type.emits + me.type.consumes + me.type.dataports -*/
-/*- for i in all_interfaces -*/
-    /*? macros.show_includes(i.type.includes, '../static/components/' + me.type.name + '/') ?*/
+/*- for i in me.type.provides + me.type.uses -*/
+    /*? macros.show_includes(i.type.includes) ?*/
 /*- endfor -*/
+
+/*- set threads = macros.threads(composition, me) -*/
 
 /* Thread stacks */
 /*- set p = Perspective(instance=me.name, control=True) -*/
 /*- set stack_size = configuration[me.name].get('_stack_size', 'CONFIG_CAMKES_DEFAULT_STACK_SIZE') -*/
 /*? macros.thread_stack(p['stack_symbol'], stack_size) ?*/
-/*- for i in all_interfaces -*/
-    /*- set p = Perspective(instance=me.name, interface=i.name) -*/
-    /*- set stack_size = configuration[me.name].get('%s_stack_size' % i.name, 'CONFIG_CAMKES_DEFAULT_STACK_SIZE') -*/
+/*- for t in threads[1:] -*/
+    /*- set p = Perspective(instance=me.name, interface=t.interface.name, intra_index=t.intra_index) -*/
+    /*- set stack_size = configuration[me.name].get('%s_stack_size' % t.interface.name, 'CONFIG_CAMKES_DEFAULT_STACK_SIZE') -*/
     /*? macros.thread_stack(p['stack_symbol'], stack_size) ?*/
 /*- endfor -*/
+/*- if options.debug_fault_handlers -*/
+    /*- set p = Perspective(instance=me.name, interface='0_fault_handler', intra_index=0) -*/
+    /*? macros.thread_stack(p['stack_symbol'], 'CONFIG_CAMKES_DEFAULT_STACK_SIZE') ?*/
+/*- endif -*/
 
 /* IPC buffers */
 /*- set p = Perspective(instance=me.name, control=True) -*/
 /*? macros.ipc_buffer(p['ipc_buffer_symbol']) ?*/
-/*- for i in all_interfaces -*/
-    /*- set p = Perspective(instance=me.name, interface=i.name) -*/
+/*- for t in threads[1:] -*/
+    /*- set p = Perspective(instance=me.name, interface=t.interface.name, intra_index=t.intra_index) -*/
     /*? macros.ipc_buffer(p['ipc_buffer_symbol']) ?*/
 /*- endfor -*/
+/*- if options.debug_fault_handlers -*/
+    /*- set p = Perspective(instance=me.name, interface='0_fault_handler', intra_index=0) -*/
+    /*? macros.ipc_buffer(p['ipc_buffer_symbol']) ?*/
+/*- endif -*/
 
 /* Attributes */
 /*- set myconf = configuration[me.name] -*/
 /*- for a in me.type.attributes -*/
     /*- set value = myconf.get(a.name) -*/
     /*- if value is not none -*/
-        const /*? show(a.type) ?*/ /*? a.name ?*/ = /*? value ?*/;
+        const /*? macros.show_type(a.type) ?*/ /*? a.name ?*/ =
+        /*- if isinstance(value, six.string_types) -*/
+            "/*? value ?*/"
+        /*- else -*/
+            /*? value ?*/
+        /*- endif -*/
+        ;
     /*- endif -*/
 /*- endfor -*/
 
-/*- set p = Perspective(instance=me.name) -*/
-void USED /*? p['tls_symbol'] ?*/(int thread_id) {
+/*- if options.debug_fault_handlers -*/
+  /*- set fault_ep = alloc_obj('fault_ep', seL4_EndpointObject) -*/
+/*- endif -*/
+
+/* This function is called from crt0.S *prior* to `main`. */
+void USED _camkes_tls_init(int thread_id) {
     switch (thread_id) {
-        /*- set tcb_control = alloc('tcb_0_control', seL4_TCBObject) -*/
+        /*- set _tcb_control = alloc_obj('tcb_0_control', seL4_TCBObject) -*/
+        /*- set tcb_control = alloc_cap('tcb_0_control', _tcb_control) -*/
+        /*- if options.debug_fault_handlers -*/
+          /*? assert(fault_ep is defined and fault_ep is not none) ?*/
+          /*- set fault_ep_cap = alloc_cap('fault_ep_0_control', fault_ep, read=True, write=True, grant=True) -*/
+          /*- do my_cnode[fault_ep_cap].set_badge(tcb_control) -*/
+          /*- do setattr(_tcb_control, 'fault_ep_slot', fault_ep_cap) -*/
+        /*- endif -*/
         case /*? tcb_control ?*/ : /* Control thread */
             /*- set p = Perspective(instance=me.name, control=True) -*/
             /*? macros.save_ipc_buffer_address(p['ipc_buffer_symbol']) ?*/
@@ -383,30 +420,271 @@ void USED /*? p['tls_symbol'] ?*/(int thread_id) {
             break;
 
         /*# Interface threads #*/
-        /*- for index, i in enumerate(all_interfaces) -*/
-            /*- set tcb = alloc('tcb_%s' % i.name, seL4_TCBObject) -*/
-            case /*? tcb ?*/ : { /* Interface /*? i.name ?*/ */
-                /*- set p = Perspective(instance=me.name, interface=i.name) -*/
+        /*- for index, t in enumerate(threads[1:]) -*/
+            /*- set _tcb = alloc_obj('tcb_%s_%04d' % (t.interface.name, t.intra_index), seL4_TCBObject) -*/
+            /*- set tcb = alloc_cap('tcb_%s_%04d' % (t.interface.name, t.intra_index), _tcb) -*/
+            /*- if options.debug_fault_handlers -*/
+              /*? assert(fault_ep is defined and fault_ep is not none) ?*/
+              /*- set fault_ep_cap = alloc_cap('fault_ep_%s_%04d' % (t.interface.name, t.intra_index), fault_ep, read=True, write=True, grant=True) -*/
+              /*- do my_cnode[fault_ep_cap].set_badge(tcb) -*/
+              /*- do setattr(_tcb, 'fault_ep_slot', fault_ep_cap) -*/
+            /*- endif -*/
+            case /*? tcb ?*/ : { /* Interface /*? t.interface.name ?*/ */
+                /*- set p = Perspective(instance=me.name, interface=t.interface.name, intra_index=t.intra_index) -*/
                 /*? macros.save_ipc_buffer_address(p['ipc_buffer_symbol']) ?*/
                 camkes_get_tls()->tcb_cap = /*? tcb ?*/;
                 camkes_get_tls()->thread_index = /*? index ?*/ + 2;
                 break;
             }
         /*- endfor -*/
+
+        /*- if options.debug_fault_handlers -*/
+            /*- set tcb = alloc('tcb_0_fault_handler_0000', seL4_TCBObject) -*/
+            case /*? tcb ?*/ : { /* Fault handler thread */
+                /*- set p = Perspective(instance=me.name, interface='0_fault_handler', intra_index=0) -*/
+                /*? macros.save_ipc_buffer_address(p['ipc_buffer_symbol']) ?*/
+                camkes_get_tls()->tcb_cap = /*? tcb ?*/;
+                camkes_get_tls()->thread_index = /*? len(threads) ?*/ + 1;
+                break;
+            }
+        /*- endif -*/
+
         default:
             assert(!"invalid thread ID");
     }
 }
 
-/*- set p = Perspective(instance=me.name) -*/
-int USED /*? p['entry_symbol'] ?*/(int thread_id) {
+/*- if options.debug_fault_handlers -*/
+    /*- set fault_handler = c_symbol('fault_handler') -*/
+    static void /*? fault_handler ?*/(void) UNUSED NORETURN;
+    static void /*? fault_handler ?*/(void) {
+        while (true) {
+            seL4_Word badge;
+
+            /* Wait for a fault from one of the component's threads. */
+            /*- set fault_ep_cap = alloc_cap('fault_ep__fault_handler', fault_ep, read=True, write=True, grant=True) -*/
+            seL4_MessageInfo_t info = seL4_Wait(/*? fault_ep_cap ?*/, &badge);
+
+            /* Various symbols that are provided by the linker script. */
+            extern char __executable_start[1];
+            extern char guarded[1] UNUSED;
+            extern char persistent[1] UNUSED;
+            extern char _end[1] UNUSED;
+
+            /* Thread name and address space map relevant for this fault. Note
+             * that we describe a simplified version of the component's address
+             * space below (e.g. we only describe the stack of the current
+             * thread). The assumption is that the full address space will
+             * confuse the user and most likely not be relevant for diagnosing
+             * the fault. E.g. you may have faulted on another thread's guard
+             * page, which will not be revealed to you in the memory map, but
+             * it is unlikely this information will help you diagnose the cause
+             * of the fault anyway.
+             */
+            const char *thread_name;
+            const camkes_memory_region_t *memory_map;
+
+            /* Each of the component's threads have a badged endpoint, so we
+             * can determine from the badge of the message we just received
+             * which thread was responsible for the fault.
+             */
+            switch (badge) {
+
+                /*- set tcb_control = alloc('tcb_0_control', seL4_TCBObject) -*/
+                /*- set p = Perspective(instance=me.name, control=True) -*/
+                case /*? tcb_control ?*/ : {
+                    thread_name = "control";
+                    /*- if options.architecture in ('arm', 'arm-hyp') and options.largeframe_dma and page_size[0] > 2 ** 15 -*/
+                      /*# XXX: The short version is, we can't do accurate memory maps under these
+                       *# circumstances.
+                       *#
+                       *# The long version is, with a large DMA pool, the DMA pool array needs to be
+                       *# aligned to the (large) page size in use. On ARM, for reasons that are
+                       *# unclear to me, GAS rejects alignment constraints beyond 15-bit. CAmkES
+                       *# contains a compiler wrapper and build system support for working around
+                       *# this by detecting such an issue and calling Clang, which does not have
+                       *# this limitation. Unfortunately this prevents the section symbols,
+                       *# `guarded` and `persistent` from being visible at runtime. To cope with
+                       *# this, we can mark them as weak and do runtime detection of their
+                       *# existence. However, all my attempts to do this have resulted in the linker
+                       *# segfaulting while trying to build the component. Instead of continuing
+                       *# down this dark and ever-narrowing road, we just provide an inaccurate
+                       *# memory map. Sorry, folks.
+                       #*/
+                      memory_map = (camkes_memory_region_t[]){
+                          { .start = (uintptr_t)__executable_start,
+                            .end = (uintptr_t)&/*? p['stack_symbol'] ?*/ - 1,
+                            .name = "code and data" },
+                          { .start = (uintptr_t)&/*? p['stack_symbol'] ?*/,
+                            .end = (uintptr_t)&/*? p['stack_symbol'] ?*/ + PAGE_SIZE_4K - 1,
+                            .name = "guard page" },
+                          { .start = (uintptr_t)&/*? p['stack_symbol'] ?*/ + PAGE_SIZE_4K,
+                            .end = (uintptr_t)&/*? p['stack_symbol'] ?*/ +
+                              sizeof(/*? p['stack_symbol'] ?*/) - PAGE_SIZE_4K - 1,
+                            .name = "stack" },
+                          { .start = (uintptr_t)&/*? p['stack_symbol'] ?*/ +
+                              sizeof(/*? p['stack_symbol'] ?*/) - PAGE_SIZE_4K,
+                            .end = (uintptr_t)&/*? p['stack_symbol'] ?*/ +
+                              sizeof(/*? p['stack_symbol'] ?*/) - 1,
+                            .name = "guard page" },
+                          { .start = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/,
+                            .end = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/ + PAGE_SIZE_4K - 1,
+                            .name = "guard page" },
+                          { .start = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/ + PAGE_SIZE_4K,
+                            .end = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/ +
+                              sizeof(/*? p['ipc_buffer_symbol'] ?*/) - PAGE_SIZE_4K - 1,
+                            .name = "IPC buffer" },
+                          { .start = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/ +
+                              sizeof(/*? p['ipc_buffer_symbol'] ?*/) - PAGE_SIZE_4K,
+                            .end = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/ +
+                              sizeof(/*? p['ipc_buffer_symbol'] ?*/) - 1,
+                            .name = "guard page" },
+                          { .start = 0, .end = 0, .name = NULL },
+                      };
+                    /*- else -*/
+                      memory_map = (camkes_memory_region_t[]){
+                          { .start = (uintptr_t)__executable_start,
+                            .end = (uintptr_t)guarded - 1,
+                            .name = "code and data" },
+                          { .start = (uintptr_t)&/*? p['stack_symbol'] ?*/,
+                            .end = (uintptr_t)&/*? p['stack_symbol'] ?*/ + PAGE_SIZE_4K - 1,
+                            .name = "guard page" },
+                          { .start = (uintptr_t)&/*? p['stack_symbol'] ?*/ + PAGE_SIZE_4K,
+                            .end = (uintptr_t)&/*? p['stack_symbol'] ?*/ +
+                              sizeof(/*? p['stack_symbol'] ?*/) - PAGE_SIZE_4K - 1,
+                            .name = "stack" },
+                          { .start = (uintptr_t)&/*? p['stack_symbol'] ?*/ +
+                              sizeof(/*? p['stack_symbol'] ?*/) - PAGE_SIZE_4K,
+                            .end = (uintptr_t)&/*? p['stack_symbol'] ?*/ +
+                              sizeof(/*? p['stack_symbol'] ?*/) - 1,
+                            .name = "guard page" },
+                          { .start = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/,
+                            .end = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/ + PAGE_SIZE_4K - 1,
+                            .name = "guard page" },
+                          { .start = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/ + PAGE_SIZE_4K,
+                            .end = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/ +
+                              sizeof(/*? p['ipc_buffer_symbol'] ?*/) - PAGE_SIZE_4K - 1,
+                            .name = "IPC buffer" },
+                          { .start = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/ +
+                              sizeof(/*? p['ipc_buffer_symbol'] ?*/) - PAGE_SIZE_4K,
+                            .end = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/ +
+                              sizeof(/*? p['ipc_buffer_symbol'] ?*/) - 1,
+                            .name = "guard page" },
+                          { .start = persistent == _end ? 0 : (uintptr_t)persistent,
+                            .end = persistent == _end ? 0 : (uintptr_t)_end,
+                            .name = "data" },
+                          { .start = 0, .end = 0, .name = NULL },
+                      };
+                    /*- endif -*/
+                    break;
+                }
+
+                /*- for t in threads[1:] -*/
+                    /*- set tcb = alloc('tcb_%s_%04d' % (t.interface.name, t.intra_index), seL4_TCBObject) -*/
+                    /*- set p = Perspective(instance=me.name, interface=t.interface.name, intra_index=t.intra_index) -*/
+                    case /*? tcb ?*/ : {
+                        thread_name = "/*? t.interface.name ?*/";
+                        /*- if options.architecture in ('arm', 'arm-hyp') and options.largeframe_dma and page_size[0] > 2 ** 15 -*/
+                          /*# See comment above. #*/
+                          memory_map = (camkes_memory_region_t[]){
+                              { .start = (uintptr_t)__executable_start,
+                                .end = (uintptr_t)&/*? p['stack_symbol'] ?*/ - 1,
+                                .name = "code and data" },
+                              { .start = (uintptr_t)&/*? p['stack_symbol'] ?*/,
+                                .end = (uintptr_t)&/*? p['stack_symbol'] ?*/ + PAGE_SIZE_4K - 1,
+                                .name = "guard page" },
+                              { .start = (uintptr_t)&/*? p['stack_symbol'] ?*/ + PAGE_SIZE_4K,
+                                .end = (uintptr_t)&/*? p['stack_symbol'] ?*/ +
+                                  sizeof(/*? p['stack_symbol'] ?*/) - PAGE_SIZE_4K - 1,
+                                .name = "stack" },
+                              { .start = (uintptr_t)&/*? p['stack_symbol'] ?*/ +
+                                  sizeof(/*? p['stack_symbol'] ?*/) - PAGE_SIZE_4K,
+                                .end = (uintptr_t)&/*? p['stack_symbol'] ?*/ +
+                                  sizeof(/*? p['stack_symbol'] ?*/) - 1,
+                                .name = "guard page" },
+                              { .start = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/,
+                                .end = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/ + PAGE_SIZE_4K - 1,
+                                .name = "guard page" },
+                              { .start = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/ + PAGE_SIZE_4K,
+                                .end = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/ +
+                                  sizeof(/*? p['ipc_buffer_symbol'] ?*/) - PAGE_SIZE_4K - 1,
+                                .name = "IPC buffer" },
+                              { .start = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/ +
+                                  sizeof(/*? p['ipc_buffer_symbol'] ?*/) - PAGE_SIZE_4K,
+                                .end = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/ +
+                                  sizeof(/*? p['ipc_buffer_symbol'] ?*/) - 1,
+                                .name = "guard page" },
+                              { .start = 0, .end = 0, .name = NULL },
+                          };
+                        /*- else -*/
+                          memory_map = (camkes_memory_region_t[]){
+                              { .start = (uintptr_t)__executable_start,
+                                .end = (uintptr_t)guarded - 1,
+                                .name = "code and data" },
+                              { .start = (uintptr_t)&/*? p['stack_symbol'] ?*/,
+                                .end = (uintptr_t)&/*? p['stack_symbol'] ?*/ + PAGE_SIZE_4K - 1,
+                                .name = "guard page" },
+                              { .start = (uintptr_t)&/*? p['stack_symbol'] ?*/ + PAGE_SIZE_4K,
+                                .end = (uintptr_t)&/*? p['stack_symbol'] ?*/ +
+                                  sizeof(/*? p['stack_symbol'] ?*/) - PAGE_SIZE_4K - 1,
+                                .name = "stack" },
+                              { .start = (uintptr_t)&/*? p['stack_symbol'] ?*/ +
+                                  sizeof(/*? p['stack_symbol'] ?*/) - PAGE_SIZE_4K,
+                                .end = (uintptr_t)&/*? p['stack_symbol'] ?*/ +
+                                  sizeof(/*? p['stack_symbol'] ?*/) - 1,
+                                .name = "guard page" },
+                              { .start = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/,
+                                .end = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/ + PAGE_SIZE_4K - 1,
+                                .name = "guard page" },
+                              { .start = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/ + PAGE_SIZE_4K,
+                                .end = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/ +
+                                  sizeof(/*? p['ipc_buffer_symbol'] ?*/) - PAGE_SIZE_4K - 1,
+                                .name = "IPC buffer" },
+                              { .start = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/ +
+                                  sizeof(/*? p['ipc_buffer_symbol'] ?*/) - PAGE_SIZE_4K,
+                                .end = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/ +
+                                  sizeof(/*? p['ipc_buffer_symbol'] ?*/) - 1,
+                                .name = "guard page" },
+                              { .start = persistent == _end ? 0 : (uintptr_t)persistent,
+                                .end = persistent == _end ? 0 : (uintptr_t)_end,
+                                .name = "data" },
+                              { .start = 0, .end = 0, .name = NULL },
+                          };
+                        /*- endif -*/
+                        break;
+                    }
+                /*- endfor -*/
+
+                default:
+                    thread_name = "<unknown>";
+                    memory_map = NULL;
+                    break;
+            }
+
+            camkes_show_fault(info, (seL4_CPtr)badge, thread_name,
+                /*- if options.fprovide_tcb_caps -*/
+                    true,
+                /*- else -*/
+                    false,
+                /*- endif -*/
+                memory_map);
+        }
+    }
+/*- endif -*/
+
+int USED main(int argc UNUSED, char *argv[]) {
+    assert(argc == 2);
+    assert(strcmp(argv[0], "camkes") == 0);
+
+    int thread_id = (int)(argv[1]);
+
 #if defined(SEL4_DEBUG_KERNEL) && defined(CONFIG_CAMKES_PROVIDE_TCB_CAPS)
-    /*- set thread_name = c_symbol() -*/
-    char /*? thread_name ?*/[seL4_MsgMaxLength * sizeof(seL4_Word)];
-    snprintf(/*? thread_name ?*/, sizeof(/*? thread_name ?*/), "%s(%d)",
-        get_instance_name(), thread_id);
-    /*? thread_name ?*/[sizeof(/*? thread_name ?*/) - 1] = '\0';
-    seL4_DebugNameThread(camkes_get_tls()->tcb_cap, /*? thread_name ?*/);
+   /*- set thread_name = c_symbol() -*/
+   char /*? thread_name ?*/[seL4_MsgMaxLength * sizeof(seL4_Word)];
+   snprintf(/*? thread_name ?*/, sizeof(/*? thread_name ?*/), "%s(%d)",
+       get_instance_name(), thread_id);
+   /*? thread_name ?*/[sizeof(/*? thread_name ?*/) - 1] = '\0';
+   seL4_DebugNameThread(camkes_get_tls()->tcb_cap, /*? thread_name ?*/);
 #endif
 
     /*- if options.fsupport_init -*/
@@ -440,18 +718,18 @@ int USED /*? p['entry_symbol'] ?*/(int thread_id) {
                     pre_init();
                 }
                 /* Wake all the interface threads. */
-                /*- for i in all_interfaces -*/
+                /*- for _ in threads[1:] -*/
                     sync_sem_bare_post(/*? pre_init_ep ?*/, &/*? pre_init_lock ?*/);
                 /*- endfor -*/
                 /* wait for all the interface threads to run their inits. */
-                /*- for i in all_interfaces -*/
+                /*- for _ in threads[1:] -*/
                     sync_sem_bare_wait(/*? interface_init_ep ?*/, &/*? interface_init_lock ?*/);
                 /*- endfor -*/
                 if (post_init) {
                     post_init();
                 }
                 /* Wake all the interface threads. */
-                /*- for i in all_interfaces -*/
+                /*- for _ in threads[1:] -*/
                     sync_sem_bare_post(/*? post_init_ep ?*/, &/*? post_init_lock ?*/);
                 /*- endfor -*/
             /*- endif -*/
@@ -462,29 +740,38 @@ int USED /*? p['entry_symbol'] ?*/(int thread_id) {
             /*- endif -*/
 
         /*# Interface threads #*/
-        /*- for index, i in enumerate(all_interfaces) -*/
-            /*- set tcb = alloc('tcb_%s' % i.name, seL4_TCBObject) -*/
-            case /*? tcb ?*/ : { /* Interface /*? i.name ?*/ */
+        /*- for t in threads[1:] -*/
+            /*- set tcb = alloc('tcb_%s_%04d' % (t.interface.name, t.intra_index), seL4_TCBObject) -*/
+            case /*? tcb ?*/ : { /* Interface /*? t.interface.name ?*/ */
                 /*- if options.fsupport_init -*/
                     /* Wait for `pre_init` to complete. */
                     sync_sem_bare_wait(/*? pre_init_ep ?*/, &/*? pre_init_lock ?*/);
-                    if (/*? i.name ?*/__init) {
-                        /*? i.name ?*/__init();
+                    if (/*? t.interface.name ?*/__init) {
+                        /*? t.interface.name ?*/__init();
                     }
                     /* Notify the control thread that we've completed init. */
                     sync_sem_bare_post(/*? interface_init_ep ?*/, &/*? interface_init_lock ?*/);
                     /* Wait for the `post_init` to complete. */
                     sync_sem_bare_wait(/*? post_init_ep ?*/, &/*? post_init_lock ?*/);
                 /*- endif -*/
-                extern int /*? i.name ?*/__run(void) __attribute__((weak));
-                if (/*? i.name ?*/__run) {
-                    return /*? i.name ?*/__run();
+                extern int /*? t.interface.name ?*/__run(void) WEAK;
+                if (/*? t.interface.name ?*/__run) {
+                    return /*? t.interface.name ?*/__run();
                 } else {
                     /* Interface not connected. */
                     return 0;
                 }
             }
         /*- endfor -*/
+
+        /*- if options.debug_fault_handlers -*/
+            /*- set tcb = alloc('tcb_0_fault_handler_0000', seL4_TCBObject) -*/
+            case /*? tcb ?*/ : { /* Fault handler thread */
+                /*? fault_handler ?*/();
+                UNREACHABLE();
+                return 0;
+            }
+        /*- endif -*/
 
         default:
             /* If we reach this point, the initialiser gave us a thread we
@@ -496,7 +783,7 @@ int USED /*? p['entry_symbol'] ?*/(int thread_id) {
 }
 
 /*- for e in me.type.emits -*/
-    void /*? e.name ?*/_emit_underlying(void) __attribute__((weak));
+    void /*? e.name ?*/_emit_underlying(void) WEAK;
     void /*? e.name ?*/_emit(void) {
         /* If the interface is not connected, the 'underlying' function will
          * not exist.
@@ -511,7 +798,7 @@ int USED /*? p['entry_symbol'] ?*/(int thread_id) {
 /*- for d in me.type.dataports -*/
     extern int /*? d.name ?*/_wrap_ptr(dataport_ptr_t *p, void *ptr)
     /*- if d.optional -*/
-        __attribute__((weak))
+        WEAK
     /*- endif -*/
     ;
 /*- endfor -*/
@@ -533,7 +820,7 @@ dataport_ptr_t dataport_wrap_ptr(void *ptr UNUSED) {
 /*- for d in me.type.dataports -*/
     extern void * /*? d.name ?*/_unwrap_ptr(dataport_ptr_t *p)
     /*- if d.optional -*/
-        __attribute__((weak))
+        WEAK
     /*- endif -*/
     ;
 /*- endfor -*/

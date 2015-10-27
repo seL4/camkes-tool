@@ -1,5 +1,8 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 #
-# Copyright 2014, NICTA
+# Copyright 2015, NICTA
 #
 # This software may be distributed and modified according to the terms of
 # the BSD 2-Clause license. Note that NO WARRANTY is provided.
@@ -8,42 +11,38 @@
 # @TAG(NICTA_BSD)
 #
 
-'''Compilation caching infrastructure for the code generator. Nothing in here
-is actually CAmkES-specific.'''
+'''
+Base cache API that implementations are expected to provide.
+'''
 
-from .mkdirp import mkdirp
-import hash, os, cPickle
+from __future__ import absolute_import, division, print_function, \
+    unicode_literals
+from camkes.internal.seven import cmp, filter, map, zip
 
-class Cache(object):
-    def __init__(self, root):
-        self.root = root
+import abc, six
 
-    def get_file(self, key):
-        assert isinstance(key, list), 'argument expected to be a list'
-        return os.path.join(*([self.root] +
-            [hash.content_hash(repr(k)) for k in key]))
+class Cache(six.with_metaclass(abc.ABCMeta, object)):
 
-    def __setitem__(self, key, value):
-        path = self.get_file(key)
-        dirname = os.path.dirname(path)
-        mkdirp(dirname)
-        with open(path, 'w') as f:
-            cPickle.dump(value, f)
+    # Inheritors are expected to have specific, custom arguments they want to
+    # receive for `load` and `save`.
 
-    def _get(self, path):
-        with open(path, 'r') as f:
-            return cPickle.load(f)
+    @abc.abstractmethod
+    def load(self, *args, **kwargs):
+        '''
+        Load an entry from the cache. Returns `None` on cache miss.
+        '''
+        raise NotImplementedError
 
-    def __getitem__(self, key):
-        path = self.get_file(key)
-        return self._get(path)
+    @abc.abstractmethod
+    def save(self, *args, **kwargs):
+        '''
+        Save an entry to the cache.
+        '''
+        raise NotImplementedError
 
-    def get(self, key, default=None):
-        path = self.get_file(key)
-        if os.path.exists(path):
-            return self._get(path)
-        return default
-
-    def __contains__(self, key):
-        path = self.get_file(key)
-        return os.path.exists(path)
+    def flush(self):
+        '''
+        Flush saved results to persistent cache. If inheritors implement a
+        write-through cache, they do not need to override this method.
+        '''
+        pass

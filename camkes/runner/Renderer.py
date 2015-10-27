@@ -1,5 +1,8 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 #
-# Copyright 2014, NICTA
+# Copyright 2015, NICTA
 #
 # This software may be distributed and modified according to the terms of
 # the BSD 2-Clause license. Note that NO WARRANTY is provided.
@@ -10,12 +13,16 @@
 
 '''Brief wrapper around the jinja2 templating engine.'''
 
+from __future__ import absolute_import, division, print_function, \
+    unicode_literals
+from camkes.internal.seven import cmp, filter, map, zip
+
 import Context
 from camkes.internal.mkdirp import mkdirp
 from camkes.internal.version import version
-from camkes.templates import TEMPLATES
+from camkes.templates import TemplateError, TEMPLATES
 
-import jinja2, os
+import jinja2, os, platform, six, sys
 
 # Jinja is setup by default for HTML templating. We tweak the delimiters to
 # make it more suitable for C.
@@ -54,14 +61,13 @@ class Renderer(object):
             'precompiled-templates')
 
         loaders = []
-        if options.cache in ['on', 'readonly'] and \
-                os.path.exists(template_cache):
+        if options.cache and os.path.exists(template_cache):
             # Pre-compiled templates.
             loaders.append(jinja2.ModuleLoader(template_cache))
 
         # Source templates.
-        loaders.extend(map(jinja2.FileSystemLoader,
-            [os.path.abspath(x) for x in template_paths]))
+        loaders.extend(jinja2.FileSystemLoader(os.path.abspath(x)) for x in
+            template_paths)
 
         self.env = jinja2.Environment(
             loader=jinja2.ChoiceLoader(loaders),
@@ -72,10 +78,10 @@ class Renderer(object):
             variable_end_string=END_VARIABLE,
             comment_start_string=START_COMMENT,
             comment_end_string=END_COMMENT,
-            auto_reload=False)
+            auto_reload=False,
+            undefined=jinja2.StrictUndefined)
 
-        if options.cache in ['on', 'writeonly'] and \
-                not os.path.exists(template_cache):
+        if options.cache and not os.path.exists(template_cache):
             # The pre-compiled template cache is enabled but does not exist.
             # We build it here for next time.
 
@@ -85,9 +91,13 @@ class Renderer(object):
             templates = list(get_leaves(TEMPLATES))
 
             mkdirp(template_cache)
+
+            # Compile the templates. Note that we only compile them to PYCs on
+            # Python 2, because this has no effect on Python 3 or PyPy.
             self.env.compile_templates(template_cache,
                 filter_func=(lambda x: x in templates), zip=None,
-                ignore_errors=False, py_compile=True)
+                ignore_errors=False, py_compile=
+                platform.python_implementation() == 'CPython' and six.PY2)
 
     def render(self, me, assembly, template, obj_space, cap_space, shmem,
             **kwargs):
@@ -95,4 +105,13 @@ class Renderer(object):
             shmem, **kwargs)
 
         t = self.env.get_template(template)
-        return t.render(context)
+        try:
+            return t.render(context)
+        except TemplateError:
+            raise
+        except Exception as e:
+            # Catch and re-cast any other exceptions to allow the runner to
+            # handle them as usual and prevent us barfing stack traces when
+            # exceptions aren't our fault.
+            six.reraise(TemplateError, TemplateError('unhandled exception in '
+                'template %s: %s' % (template, e)), sys.exc_info()[2])

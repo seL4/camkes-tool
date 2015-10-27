@@ -1,5 +1,5 @@
 /*
- * Copyright 2014, NICTA
+ * Copyright 2015, NICTA
  *
  * This software may be distributed and modified according to the terms of
  * the BSD 2-Clause license. Note that NO WARRANTY is provided.
@@ -45,42 +45,21 @@ import "camkes-hardware.idl4";
  * the asynchronous signal from the emitter. However it's harder to synchronize
  * the components.
  */
-connector seL4Notification {
-    from Event emitter_inf;
-    to Event consumer_inf;
-}
-connector seL4NotificationBind {
-    from Event emitter_inf;
-    to Event consumer_inf;
-}
-connector seL4NotificationQueue {
-    from Event emitter_inf;
-    to Event consumer_inf;
-}
-connector seL4NotificationNative {
-    from Event emitter_inf;
-    to Event consumer_inf;
-}
-
-/* Legacy connectors for backwards compatibility. Functionally identical to
- * the above connectors.
- * TODO: Remove these definitions after a reasonable amount of time
- */
 connector seL4Asynch {
-    from Event emitter_inf;
-    to Event consumer_inf;
+    from Event;
+    to Events;
 }
 connector seL4AsynchBind {
-    from Event emitter_inf;
-    to Event consumer_inf;
+    from Events with 0 threads;
+    to Event;
 }
 connector seL4AsynchQueue {
-    from Event emitter_inf;
-    to Event consumer_inf;
+    from Event with 0 threads;
+    to Events;
 }
 connector seL4AsynchNative {
-    from Event emitter_inf;
-    to Event consumer_inf;
+    from Event with 0 threads;
+    to Event;
 }
 
 /**
@@ -93,20 +72,8 @@ connector seL4AsynchNative {
  * to send and imitate the event signal.
  */
 connector seL4RPCEvent {
-    from Event emitter_inf;
-    to Event consumer_inf;
-}
-
-/**
- * Asynchronous event export connector
- *
- * This connector connects a composite component's internal event interface to
- * an external event interface. Anything that flows through the internal event
- * interface will also flow through the external event interface.
- */
-connector ExportAsynch {
-    from Event emitter_inf;
-    to Event consumer_inf;
+    from Event;
+    to Event;
 }
 
 /**
@@ -117,13 +84,13 @@ connector ExportAsynch {
  * blocked.
  */
 connector seL4RPC {
-    from Procedure user_inf;
-    to Procedure provider_inf;
+    from Procedure with 0 threads;
+    to Procedure;
 }
 
 connector seL4RPCCall {
-    from Procedure user_inf;
-    to Procedure provider_inf;
+    from Procedures with 0 threads;
+    to Procedure;
 }
 
 
@@ -135,20 +102,8 @@ connector seL4RPCCall {
  * calls are backed by function calls, rather than RPCs.
  */
 connector seL4DirectCall {
-    from Procedure user_inf;
-    to Procedure provider_inf;
-}
-
-/**
- * RPC export connector
- *
- * This connector works in same way as the asynchronous event export connector
- * (ExportAsynch) with the only difference that the two instances are
- * dedicated for RPC connections.
- */
-connector ExportRPC {
-    from Procedure user_inf;
-    to Procedure provider_inf;
+    from Procedure;
+    to Procedure;
 }
 
 /**
@@ -160,20 +115,8 @@ connector ExportRPC {
  * implementation.
  */
 connector seL4SharedData {
-    from Dataport user_data;
-    to Dataport provider_data;
-}
-
-/**
- * Dataport export connector
- *
- * This connector works in same way as the asynchronous event export connector
- * (ExportAsynch) with the only difference that two two interfaces are
- * for dataport connections.
- */
-connector ExportData {
-    from Dataport a_data;
-    to Dataport b_data;
+    from Dataports with 0 threads;
+    to Dataports with 0 threads;
 }
 
 /**
@@ -190,8 +133,8 @@ connector ExportData {
  * "0x<address>:0x<size>"
  */
 connector seL4HardwareMMIO {
-    from Dataport software_component_data;
-    to Dataport hardware_component_data;
+    from Dataports with 0 threads;
+    to hardware Dataport;
 }
 
 /**
@@ -206,12 +149,12 @@ connector seL4HardwareMMIO {
  * hexadecimal.
  */
 connector seL4HardwareInterrupt {
-    from Event hardware_component_interrupt;
-    to Event software_component_interrupt;
+    from hardware Event;
+    to Event;
 }
 connector seL4IOAPICHardwareInterrupt {
-    from Event hardware_component_interrupt;
-    to Event software_component_interrupt;
+    from hardware Event;
+    to Event;
 }
 
 /**
@@ -242,8 +185,8 @@ connector seL4IOAPICHardwareInterrupt {
  *  }
  */
 connector seL4HardwareIOPort {
-    from Procedure software_component_port;
-    to Procedure hardware_component_port;
+    from Procedure with 0 threads;
+    to hardware Procedure;
 }
 
 /* This connector is only capable of marshalling primitive values (no arrays,
@@ -251,6 +194,6 @@ connector seL4HardwareIOPort {
  * assignment rather than memcpys so as to be easier to verify.
  */
 connector seL4RPCSimple {
-    from Procedure user_inf;
-    to Procedure provider_inf;
+    from Procedure with 0 threads;
+    to Procedure;
 }

@@ -1,5 +1,19 @@
+/*#
+ *# Copyright 2015, NICTA
+ *#
+ *# This software may be distributed and modified according to the terms of
+ *# the BSD 2-Clause license. Note that NO WARRANTY is provided.
+ *# See "LICENSE_BSD2.txt" for details.
+ *#
+ *# @TAG(NICTA_BSD)
+ #*/
+
 /*- if 'autocorres/inv.thy' not in included -*/
 /*- do included.add('autocorres/inv.thy') -*/
+
+/*- if len(me.parent.to_ends) != 1 -*/
+  /*? raise(TemplateError('connections without a single to end are not supported', me.parent)) ?*/
+/*- endif -*/
 
 (* Pointer to the IPC buffer. *)
 definition
@@ -48,7 +62,7 @@ where
 /*# Note that this is calculated based on the to side, because only it uses TLS
  *# pointers.
  #*/
-/*- set threads = 1 + len(me.to_instance.type.provides + me.to_instance.type.uses + me.to_instance.type.emits + me.to_instance.type.consumes + me.to_instance.type.dataports) -*/
+/*- set threads = 1 + len(me.parent.to_instance.type.provides + me.parent.to_instance.type.uses + me.parent.to_instance.type.emits + me.parent.to_instance.type.consumes + me.parent.to_instance.type.dataports) -*/
 (* Number of threads in the system. *)
 definition
   thread_count :: "32 word"
@@ -70,21 +84,20 @@ where
 /*- set inv_elims = {} -*/
 /*- for m in interface.methods -*/
   /*- for p in m.parameters -*/
-    /*- for t in range(1, threads + 1) -*/
-      /*- set fn = [None] -*/
-      /*- if p.type.type in ['int8_t', 'uint8_t', 'char'] -*/
-        /*- do fn.__setitem__(0, 'is_valid_w8') -*/
-      /*- elif p.type.type in ['int16_t', 'uint16_t'] -*/
-        /*- do fn.__setitem__(0, 'is_valid_w16') -*/
-      /*- elif p.type.type in ['int32_t', 'uint32_t', 'int', 'unsigned int'] -*/
-        /*- do fn.__setitem__(0, 'is_valid_w32') -*/
-      /*- elif p.type.type in ['int64_t', 'uint64_t'] -*/
-        /*- do fn.__setitem__(0, 'is_valid_w64') -*/
+    /*- for t in six.moves.range(1, threads + 1) -*/
+      /*- if p.type in ['int8_t', 'uint8_t', 'char'] -*/
+        /*- set fn = 'is_valid_w8' -*/
+      /*- elif p.type in ['int16_t', 'uint16_t'] -*/
+        /*- set fn = 'is_valid_w16' -*/
+      /*- elif p.type in ['int32_t', 'uint32_t', 'int', 'unsigned int'] -*/
+        /*- set fn = 'is_valid_w32' -*/
+      /*- elif p.type in ['int64_t', 'uint64_t'] -*/
+        /*- set fn = 'is_valid_w64' -*/
       /*- else -*/
-        /*? raise(NotImplementedError()) ?*/
+        /*? raise(TemplateError('unsupported')) ?*/
       /*- endif -*/
-      /*- do invs.append('%s s (Ptr (symbol_table \'\'%s_%s_%d\'\'))' % (fn[0], m.name, p.name, t)) -*/
-      /*- do inv_elims.__setitem__('inv_imp_%s_%s_%d_valid' % (m.name, p.name, t), 'inv s \<Longrightarrow> %s s (Ptr (symbol_table \'\'%s_%s_%d\'\'))' % (fn[0], m.name, p.name, t)) -*/
+      /*- do invs.append('%s s (Ptr (symbol_table \'\'%s_%s_%d\'\'))' % (fn, m.name, p.name, t)) -*/
+      /*- do inv_elims.__setitem__('inv_imp_%s_%s_%d_valid' % (m.name, p.name, t), 'inv s \<Longrightarrow> %s s (Ptr (symbol_table \'\'%s_%s_%d\'\'))' % (fn, m.name, p.name, t)) -*/
       /*- do distincts.append('symbol_table \'\'%s_%s_%d\'\'' % (m.name, p.name, t)) -*/
     /*- endfor -*/
   /*- endfor -*/
@@ -114,26 +127,25 @@ lemma /*? name ?*/:"/*? body ?*/"
 /*- for m in interface.methods -*/
   /*- for p in m.parameters -*/
     /*- set ptrs = [] -*/
-    /*- for t in range(1, threads + 1) -*/
+    /*- for t in six.moves.range(1, threads + 1) -*/
       /*- do ptrs.append('Ptr (symbol_table \'\'%s_%s_%d\'\')' % (m.name, p.name, t)) -*/
     /*- endfor -*/
-    /*- set fn = [None] -*/
-    /*- if p.type.type in ['int8_t', 'uint8_t', 'char'] -*/
-      /*- do fn.__setitem__(0, 'is_valid_w8') -*/
-    /*- elif p.type.type in ['int16_t', 'uint16_t'] -*/
-      /*- do fn.__setitem__(0, 'is_valid_w16') -*/
-    /*- elif p.type.type in ['int32_t', 'uint32_t', 'int', 'unsigned int'] -*/
-      /*- do fn.__setitem__(0, 'is_valid_w32') -*/
-    /*- elif p.type.type in ['int64_t', 'uint64_t'] -*/
-      /*- do fn.__setitem__(0, 'is_valid_w64') -*/
+    /*- if p.type in ['int8_t', 'uint8_t', 'char'] -*/
+      /*- set fn = 'is_valid_w8' -*/
+    /*- elif p.type in ['int16_t', 'uint16_t'] -*/
+      /*- set fn = 'is_valid_w16' -*/
+    /*- elif p.type in ['int32_t', 'uint32_t', 'int', 'unsigned int'] -*/
+      /*- set fn = 'is_valid_w32' -*/
+    /*- elif p.type in ['int64_t', 'uint64_t'] -*/
+      /*- set fn = 'is_valid_w64' -*/
     /*- else -*/
-      /*? raise(NotImplementedError()) ?*/
+      /*? raise(TemplateError('unsupported')) ?*/
     /*- endif -*/
 (** TPP: condense = True *)
 lemma inv_imp_/*? m.name ?*/_/*? p.name ?*/_valid1:
-  "\<lbrakk>p \<in> {/*? ', '.join(ptrs) ?*/}; inv s\<rbrakk> \<Longrightarrow> /*? fn[0] ?*/ s p"
+  "\<lbrakk>p \<in> {/*? ', '.join(ptrs) ?*/}; inv s\<rbrakk> \<Longrightarrow> /*? fn ?*/ s p"
   apply clarsimp
-    /*- for t in range(1, threads + 1) -*/
+    /*- for t in six.moves.range(1, threads + 1) -*/
       /*- if loop.last -*/
   apply (simp add:inv_imp_/*? m.name ?*/_/*? p.name ?*/_/*? t ?*/_valid)
       /*- else -*/
@@ -145,9 +157,9 @@ lemma inv_imp_/*? m.name ?*/_/*? p.name ?*/_valid1:
 
 (** TPP: condense = True *)
 lemma inv_imp_/*? m.name ?*/_/*? p.name ?*/_valid2:
-  "\<lbrakk>p \<in> {/*? ', '.join(ptrs) ?*/}; inv s\<rbrakk> \<Longrightarrow> /*? fn[0] ?*/ s (ptr_coerce p)"
+  "\<lbrakk>p \<in> {/*? ', '.join(ptrs) ?*/}; inv s\<rbrakk> \<Longrightarrow> /*? fn ?*/ s (ptr_coerce p)"
   apply clarsimp
-    /*- for t in range(1, threads + 1) -*/
+    /*- for t in six.moves.range(1, threads + 1) -*/
       /*- if loop.last -*/
   apply (simp add:inv_imp_/*? m.name ?*/_/*? p.name ?*/_/*? t ?*/_valid)
       /*- else -*/

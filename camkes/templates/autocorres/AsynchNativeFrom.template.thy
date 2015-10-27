@@ -1,5 +1,5 @@
 /*#
- *# Copyright 2014, NICTA
+ *# Copyright 2015, NICTA
  *#
  *# This software may be distributed and modified according to the terms of
  *# the BSD 2-Clause license. Note that NO WARRANTY is provided.
@@ -8,13 +8,17 @@
  *# @TAG(NICTA_BSD)
  #*/
 
+/*- if len(me.parent.from_ends) != 1 -*/
+  /*? raise(TemplateError('connections without a single from end are not supported', me.parent)) ?*/
+/*- endif -*/
+
 /*- set thy = os.path.splitext(os.path.basename(options.outfile.name))[0] -*/
 header {* Event Send *}
 (*<*)
 theory /*? thy ?*/ imports
-  "../../tools/c-parser/CTranslation"
-  "../../tools/autocorres/AutoCorres"
-  "../../tools/autocorres/NonDetMonadEx"
+  "~~/../l4v/tools/c-parser/CTranslation"
+  "~~/../l4v/tools/autocorres/AutoCorres"
+  "~~/../l4v/tools/autocorres/NonDetMonadEx"
 begin
 
 (* THIS THEORY IS GENERATED. DO NOT EDIT.
@@ -30,8 +34,8 @@ autocorres [ts_rules = nondet] "/*? thy ?*/_seL4AsynchNative_pruned.c_pp"
 locale /*? thy ?*/_seL4AsynchNative_glue = /*? thy ?*/_seL4AsynchNative_pruned
 begin
 
-lemma /*? me.from_interface.name ?*/__run_nf: "\<lbrace>\<lambda>s. \<forall>r. P r s\<rbrace> /*? me.from_interface.name ?*/__run' \<lbrace>P\<rbrace>!"
-  apply (unfold /*? me.from_interface.name ?*/__run'_def)
+lemma /*? me.interface.name ?*/__run_nf: "\<lbrace>\<lambda>s. \<forall>r. P r s\<rbrace> /*? me.interface.name ?*/__run' \<lbrace>P\<rbrace>!"
+  apply (unfold /*? me.interface.name ?*/__run'_def)
   apply wp
   apply simp
   done
@@ -53,8 +57,8 @@ text {*
 
   The safety of this function is straightforward to show as follows.
 *}
-lemma /*? me.from_interface.name ?*/_emit_nf: "\<lbrace>\<lambda>s. \<forall>r. P r s\<rbrace> /*? me.from_interface.name ?*/_emit_underlying' \<lbrace>P\<rbrace>!"
-  apply (simp add:/*? me.from_interface.name ?*/_emit_underlying'_def)
+lemma /*? me.interface.name ?*/_emit_nf: "\<lbrace>\<lambda>s. \<forall>r. P r s\<rbrace> /*? me.interface.name ?*/_emit_underlying' \<lbrace>P\<rbrace>!"
+  apply (simp add:/*? me.interface.name ?*/_emit_underlying'_def)
   apply (wp seL4_Notify_wp)
   apply simp
   done

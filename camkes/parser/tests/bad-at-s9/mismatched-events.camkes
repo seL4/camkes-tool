@@ -1,0 +1,20 @@
+connector Conn {
+    from Event;
+    to Event;
+}
+
+component A {
+    emits Foo f;
+}
+
+component B {
+    consumes Bar g;
+}
+
+assembly {
+    composition {
+        component A a;
+        component B b;
+        connection Conn conn(from a.f, to b.g);
+    }
+}

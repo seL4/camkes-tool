@@ -1,0 +1,16 @@
+procedure P {
+    void method(void);
+}
+
+component Foo {
+    provides P a;
+}
+
+component Bar {
+    provides P b;
+
+    composition {
+        component Foo f;
+        export f.a -> b;
+    }
+}

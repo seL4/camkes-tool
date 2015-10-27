@@ -18,6 +18,10 @@ For some reason, there does not seem to be a simpler way of achieving thread-
 safe directory creation in Python.
 '''
 
+from __future__ import absolute_import, division, print_function, \
+    unicode_literals
+from camkes.internal.seven import cmp, filter, map, zip
+
 import errno, os
 
 def mkdirp(path):

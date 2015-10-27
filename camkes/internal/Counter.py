@@ -1,5 +1,8 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 #
-# Copyright 2014, NICTA
+# Copyright 2015, NICTA
 #
 # This software may be distributed and modified according to the terms of
 # the BSD 2-Clause license. Note that NO WARRANTY is provided.
@@ -13,6 +16,10 @@ An object representation of an integer. This is frustratingly necessary for
 expressing things like a counter in a Jinja template that can be modified
 within a loop.
 '''
+
+from __future__ import absolute_import, division, print_function, \
+    unicode_literals
+from camkes.internal.seven import cmp, filter, map, zip
 
 class Counter(object):
     def __init__(self):

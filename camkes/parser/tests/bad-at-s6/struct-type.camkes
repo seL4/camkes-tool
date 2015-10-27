@@ -1,0 +1,3 @@
+procedure {
+    struct foo my_method(in struct bar x);
+}

@@ -1,6 +1,24 @@
+/*#
+ *# Copyright 2015, NICTA
+ *#
+ *# This software may be distributed and modified according to the terms of
+ *# the BSD 2-Clause license. Note that NO WARRANTY is provided.
+ *# See "LICENSE_BSD2.txt" for details.
+ *#
+ *# @TAG(NICTA_BSD)
+ #*/
+
 /*# Setup #*/
 /*- set thy = os.path.splitext(os.path.basename(options.outfile.name))[0] -*/
-/*- set interface = me.from_interface.type -*/
+
+/*- if len(me.parent.from_ends) != 1 -*/
+  /*? raise(TemplateError('connections without a single from end are not supported', me.parent)) ?*/
+/*- endif -*/
+/*- if len(me.parent.to_ends) != 1 -*/
+  /*? raise(TemplateError('connections without a single to end are not supported', me.parent)) ?*/
+/*- endif -*/
+
+/*- set interface = me.parent.from_interface.type -*/
 /*- set have_heap = {8: False, 16: False, 32: False, 64: False} -*/
 /*- set used_types = set() -*/
 /*- include 'autocorres/have_heap.thy' -*/
@@ -12,9 +30,9 @@ theory /*? thy ?*/ imports
   /*- if options.verbosity >= 2 -*/
   /*? thy ?*/_base
   /*- else -*/
-  "../../tools/autocorres/AutoCorres"
-  "../../lib/LemmaBucket"
-  "../../lib/WordBitwiseSigned"
+  "~~/../l4v/tools/autocorres/AutoCorres"
+  "~~/../l4v/lib/LemmaBucket"
+  "~~/../l4v/lib/WordBitwiseSigned"
   /*- endif -*/
 begin
 (** TPP: condense = False *)
@@ -51,7 +69,7 @@ lemma chunk_s64[simp]:
 lemma validNF_intro_binder:"\<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace>! \<Longrightarrow> \<forall>s. \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace>!"
   by simp
 
-/*- set threads = 1 + len(me.to_instance.type.provides + me.to_instance.type.uses + me.to_instance.type.emits + me.to_instance.type.consumes + me.to_instance.type.dataports) -*/
+/*- set threads = 1 + len(me.parent.to_instance.type.provides + me.parent.to_instance.type.uses + me.parent.to_instance.type.emits + me.parent.to_instance.type.consumes + me.parent.to_instance.type.dataports) -*/
 
 /*- include 'autocorres/debug_abbrevs.thy' -*/
 
@@ -82,96 +100,93 @@ locale /*? thy ?*/_pruned_glue = /*? thy ?*/_pruned +
   /*- set postcondition_params = ['s0', 's'] -*/
   /*- if m.return_type is not none -*/
     /*- do postcondition_params.append('r') -*/
-    /*- if m.return_type.type == 'int8_t' -*/
+    /*- if m.return_type == 'int8_t' -*/
       /*- do postcondition_type.append('8 sword') -*/
-    /*- elif m.return_type.type in ['char', 'uint8_t'] -*/
+    /*- elif m.return_type in ['char', 'uint8_t'] -*/
       /*- do postcondition_type.append('8 word') -*/
-    /*- elif m.return_type.type == 'int16_t' -*/
+    /*- elif m.return_type == 'int16_t' -*/
       /*- do postcondition_type.append('16 sword') -*/
-    /*- elif m.return_type.type == 'uint16_t' -*/
+    /*- elif m.return_type == 'uint16_t' -*/
       /*- do postcondition_type.append('16 word') -*/
-    /*- elif m.return_type.type in ['int', 'int32_t'] -*/
+    /*- elif m.return_type in ['int', 'int32_t'] -*/
       /*- do postcondition_type.append('32 sword') -*/
-    /*- elif m.return_type.type in ['unsigned int', 'uint32_t'] -*/
+    /*- elif m.return_type in ['unsigned int', 'uint32_t'] -*/
       /*- do postcondition_type.append('32 word') -*/
-    /*- elif m.return_type.type == 'int64_t' -*/
+    /*- elif m.return_type == 'int64_t' -*/
       /*- do postcondition_type.append('64 sword') -*/
-    /*- elif m.return_type.type == 'uint64_t' -*/
+    /*- elif m.return_type == 'uint64_t' -*/
       /*- do postcondition_type.append('64 word') -*/
     /*- else -*/
-      /*? raise(NotImplementedError()) ?*/
+      /*? raise(TemplateError('unsupported')) ?*/
     /*- endif -*/
   /*- endif -*/
   /*- for p in m.parameters -*/
     /*- set param = 'p%s' % str(pcount) -*/
     /*- do pcount.increment() -*/
     /*- do params.append(param) -*/
-    /*- set param_type = [None] -*/
-    /*- set deref = [None] -*/
-    /*- set ptr_valid = [None] -*/
-    /*- if p.type.type == 'int8_t' -*/
-      /*- do param_type.__setitem__(0, '8 sword') -*/
-      /*- do deref.__setitem__(0, '%s = ucast (heap_w8 %s (ptr_coerce %s))') -*/
-      /*- do ptr_valid.__setitem__(0, 'ptr_valid_s8 s %s' % param) -*/
-    /*- elif p.type.type in ['uint8_t', 'char'] -*/
-      /*- do param_type.__setitem__(0, '8 word') -*/
-      /*- do deref.__setitem__(0, '%s = heap_w8 %s %s') -*/
-      /*- do ptr_valid.__setitem__(0, 'ptr_valid_u8 s %s' % param) -*/
-    /*- elif p.type.type == 'int16_t' -*/
-      /*- do param_type.__setitem__(0, '16 sword') -*/
-      /*- do deref.__setitem__(0, '%s = ucast (heap_w16 %s (ptr_coerce %s))') -*/
-      /*- do ptr_valid.__setitem__(0, 'ptr_valid_s16 s %s' % param) -*/
-    /*- elif p.type.type == 'uint16_t' -*/
-      /*- do param_type.__setitem__(0, '16 word') -*/
-      /*- do deref.__setitem__(0, '%s = heap_w16 %s %s') -*/
-      /*- do ptr_valid.__setitem__(0, 'ptr_valid_u16 s %s' % param) -*/
-    /*- elif p.type.type in ['int32_t', 'int'] -*/
-      /*- do param_type.__setitem__(0, '32 sword') -*/
-      /*- do deref.__setitem__(0, '%s = ucast (heap_w32 %s (ptr_coerce %s))') -*/
-      /*- do ptr_valid.__setitem__(0, 'ptr_valid_s32 s %s' % param) -*/
-    /*- elif p.type.type in ['uint32_t', 'unsigned int'] -*/
-      /*- do param_type.__setitem__(0, '32 word') -*/
-      /*- do deref.__setitem__(0, '%s = heap_w32 %s %s') -*/
-      /*- do ptr_valid.__setitem__(0, 'ptr_valid_u32 s %s' % param) -*/
-    /*- elif p.type.type == 'int64_t' -*/
-      /*- do param_type.__setitem__(0, '64 sword') -*/
-      /*- do deref.__setitem__(0, '%s = ucast (heap_w64 %s (ptr_coerce %s))') -*/
-      /*- do ptr_valid.__setitem__(0, 'ptr_valid_s64 s %s' % param) -*/
-    /*- elif p.type.type == 'uint64_t' -*/
-      /*- do param_type.__setitem__(0, '64 word') -*/
-      /*- do deref.__setitem__(0, '%s = heap_w64 %s %s') -*/
-      /*- do ptr_valid.__setitem__(0, 'ptr_valid_u64 s %s' % param) -*/
+    /*- if p.type == 'int8_t' -*/
+      /*- set param_type = '8 sword' -*/
+      /*- set deref = '%s = ucast (heap_w8 %s (ptr_coerce %s))' -*/
+      /*- set ptr_valid = 'ptr_valid_s8 s %s' % param -*/
+    /*- elif p.type in ['uint8_t', 'char'] -*/
+      /*- set param_type = '8 word' -*/
+      /*- set deref = '%s = heap_w8 %s %s' -*/
+      /*- set ptr_valid = 'ptr_valid_u8 s %s' % param -*/
+    /*- elif p.type == 'int16_t' -*/
+      /*- set param_type = '16 sword' -*/
+      /*- set deref = '%s = ucast (heap_w16 %s (ptr_coerce %s))' -*/
+      /*- set ptr_valid = 'ptr_valid_s16 s %s' % param -*/
+    /*- elif p.type == 'uint16_t' -*/
+      /*- set param_type = '16 word' -*/
+      /*- set deref = '%s = heap_w16 %s %s' -*/
+      /*- set ptr_valid = 'ptr_valid_u16 s %s' % param -*/
+    /*- elif p.type in ['int32_t', 'int'] -*/
+      /*- set param_type = '32 sword' -*/
+      /*- set deref = '%s = ucast (heap_w32 %s (ptr_coerce %s))' -*/
+      /*- set ptr_valid = 'ptr_valid_s32 s %s' % param -*/
+    /*- elif p.type in ['uint32_t', 'unsigned int'] -*/
+      /*- set param_type = '32 word' -*/
+      /*- set deref = '%s = heap_w32 %s %s' -*/
+      /*- set ptr_valid = 'ptr_valid_u32 s %s' % param -*/
+    /*- elif p.type == 'int64_t' -*/
+      /*- set param_type = '64 sword' -*/
+      /*- set deref = '%s = ucast (heap_w64 %s (ptr_coerce %s))' -*/
+      /*- set ptr_valid = 'ptr_valid_s64 s %s' % param -*/
+    /*- elif p.type == 'uint64_t' -*/
+      /*- set param_type = '64 word' -*/
+      /*- set deref = '%s = heap_w64 %s %s' -*/
+      /*- set ptr_valid = 'ptr_valid_u64 s %s' % param -*/
     /*- else -*/
-      /*? raise(NotImplementedError()) ?*/
+      /*? raise(TemplateError('unsupported')) ?*/
     /*- endif -*/
     /*- set disjs = [] -*/
-    /*- for t in range(1, threads + 1) -*/
+    /*- for t in six.moves.range(1, threads + 1) -*/
       /*- do disjs.append('%s = Ptr (symbol_table \'\'%s_%s_%d\'\')' % (param, m.name, p.name, t)) -*/
     /*- endfor -*/
     /*- if p.direction == 'in' -*/
-      /*- do precondition_type.append(param_type[0]) -*/
+      /*- do precondition_type.append(param_type) -*/
       /*- do precondition_params.append(param) -*/
-      /*- do postcondition_type.append(param_type[0]) -*/
+      /*- do postcondition_type.append(param_type) -*/
       /*- do postcondition_params.append(param) -*/
     /*- elif p.direction == 'inout' -*/
       /*- set value_in = '%s_in' % param -*/
       /*- set value_out = '%s_out' % param -*/
       /*- do bound.append(value_in) -*/
       /*- do exist_bound.append(value_out) -*/
-      /*- do precondition_type.append(param_type[0]) -*/
+      /*- do precondition_type.append(param_type) -*/
       /*- do precondition_params.append(value_in) -*/
-      /*- do preconditions.extend([ptr_valid[0], deref[0] % (value_in, 's', param), '(%s)' % ' \<or> '.join(disjs)]) -*/
-      /*- do postcondition_type.extend([param_type[0], param_type[0]]) -*/
+      /*- do preconditions.extend([ptr_valid, deref % (value_in, 's', param), '(%s)' % ' \<or> '.join(disjs)]) -*/
+      /*- do postcondition_type.extend([param_type, param_type]) -*/
       /*- do postcondition_params.extend([value_in, value_out]) -*/
-      /*- do bound_conjs.append(deref[0] % (value_out, 's', param)) -*/
+      /*- do bound_conjs.append(deref % (value_out, 's', param)) -*/
     /*- else -*/
       /*? assert(p.direction == 'out') ?*/
       /*- set value_out = '%s_out' % param -*/
       /*- do exist_bound.append(value_out) -*/
-      /*- do preconditions.extend([ptr_valid[0], '(%s)' % ' \<or> '.join(disjs)]) -*/
-      /*- do postcondition_type.append(param_type[0]) -*/
+      /*- do preconditions.extend([ptr_valid, '(%s)' % ' \<or> '.join(disjs)]) -*/
+      /*- do postcondition_type.append(param_type) -*/
       /*- do postcondition_params.append(value_out) -*/
-      /*- do bound_conjs.append(deref[0] % (value_out, 's', param)) -*/
+      /*- do bound_conjs.append(deref % (value_out, 's', param)) -*/
     /*- endif -*/
   /*- endfor -*/
   /*- do precondition_type.append('bool') -*/
@@ -185,7 +200,7 @@ locale /*? thy ?*/_pruned_glue = /*? thy ?*/_pruned +
   /*- endif -*/
   fixes /*? user_preconditions[m.name] ?*/ :: "/*? ' \<Rightarrow> '.join(precondition_type) ?*/"
   fixes /*? user_postconditions[m.name] ?*/ :: "/*? ' \<Rightarrow> '.join(postcondition_type) ?*/"
-  assumes /*? me.to_interface.name ?*/_/*? m.name ?*/_wp':"\<forall>/*? ' '.join(bound) ?*/. \<lbrace>\<lambda>s. /*? ' \<and> '.join(preconditions) ?*/\<rbrace> /*? me.to_interface.name ?*/_/*? m.name ?*/' /*? ' '.join(params) ?*/ \<lbrace>\<lambda>r s. /*? ' \<and> '.join(postconditions) ?*/\<rbrace>!"
+  assumes /*? me.parent.to_interface.name ?*/_/*? m.name ?*/_wp':"\<forall>/*? ' '.join(bound) ?*/. \<lbrace>\<lambda>s. /*? ' \<and> '.join(preconditions) ?*/\<rbrace> /*? me.parent.to_interface.name ?*/_/*? m.name ?*/' /*? ' '.join(params) ?*/ \<lbrace>\<lambda>r s. /*? ' \<and> '.join(postconditions) ?*/\<rbrace>!"
 
   /*# Assume that setMR is orthogonal to the pre- and post-conditions. #*/
   assumes /*? m.name ?*/_pre_stable_setmr[simp]:"\<And>s i x. /*? user_preconditions[m.name] ?*/ (setMR s i x) = /*? user_preconditions[m.name] ?*/ s"
@@ -196,30 +211,29 @@ locale /*? thy ?*/_pruned_glue = /*? thy ?*/_pruned +
    *# post-conditions.
    #*/
   /*- for p in m.parameters -*/
-    /*- set update_fn = [None] -*/
-    /*- if p.type.type == 'int8_t' -*/
-      /*- do update_fn.__setitem__(0, 'update_s8') -*/
-    /*- elif p.type.type in ['uint8_t', 'char'] -*/
-      /*- do update_fn.__setitem__(0, 'update_u8') -*/
-    /*- elif p.type.type == 'int16_t' -*/
-      /*- do update_fn.__setitem__(0, 'update_s16') -*/
-    /*- elif p.type.type == 'uint16_t' -*/
-      /*- do update_fn.__setitem__(0, 'update_s16') -*/
-    /*- elif p.type.type in ['int32_t', 'int'] -*/
-      /*- do update_fn.__setitem__(0, 'update_s32') -*/
-    /*- elif p.type.type in ['uint32_t', 'unsigned int'] -*/
-      /*- do update_fn.__setitem__(0, 'update_u32') -*/
-    /*- elif p.type.type == 'int64_t' -*/
-      /*- do update_fn.__setitem__(0, 'update_s64') -*/
-    /*- elif p.type.type == 'uint64_t' -*/
-      /*- do update_fn.__setitem__(0, 'update_u64') -*/
+    /*- if p.type == 'int8_t' -*/
+      /*- set update_fn = 'update_s8' -*/
+    /*- elif p.type in ['uint8_t', 'char'] -*/
+      /*- set update_fn = 'update_u8' -*/
+    /*- elif p.type == 'int16_t' -*/
+      /*- set update_fn = 'update_s16' -*/
+    /*- elif p.type == 'uint16_t' -*/
+      /*- set update_fn = 'update_s16' -*/
+    /*- elif p.type in ['int32_t', 'int'] -*/
+      /*- set update_fn = 'update_s32' -*/
+    /*- elif p.type in ['uint32_t', 'unsigned int'] -*/
+      /*- set update_fn = 'update_u32' -*/
+    /*- elif p.type == 'int64_t' -*/
+      /*- set update_fn = 'update_s64' -*/
+    /*- elif p.type == 'uint64_t' -*/
+      /*- set update_fn = 'update_u64' -*/
     /*- endif -*/
     /*- set disjs = [] -*/
-    /*- for t in range(1, threads + 1) -*/
+    /*- for t in six.moves.range(1, threads + 1) -*/
       /*- do disjs.append('p = Ptr (symbol_table \'\'%s_%s_%d\'\')' % (m.name, p.name, t)) -*/
     /*- endfor -*/
-  assumes /*? m.name ?*/_pre_stable_update_/*? p.name ?*/[simp]:"\<And>v s p. \<lbrakk>/*? ' \<or> '.join(disjs) ?*/\<rbrakk> \<Longrightarrow> /*? user_preconditions[m.name] ?*/ (/*? update_fn[0] ?*/ s p v) = /*? user_preconditions[m.name] ?*/ s"
-  assumes /*? m.name ?*/_post_stable_update_/*? p.name ?*/[simp]:"\<And>v s p. \<lbrakk>/*? ' \<or> '.join(disjs) ?*/\<rbrakk> \<Longrightarrow> /*? user_postconditions[m.name] ?*/ (/*? update_fn[0] ?*/ s p v) = /*? user_postconditions[m.name] ?*/ s"
+  assumes /*? m.name ?*/_pre_stable_update_/*? p.name ?*/[simp]:"\<And>v s p. \<lbrakk>/*? ' \<or> '.join(disjs) ?*/\<rbrakk> \<Longrightarrow> /*? user_preconditions[m.name] ?*/ (/*? update_fn ?*/ s p v) = /*? user_preconditions[m.name] ?*/ s"
+  assumes /*? m.name ?*/_post_stable_update_/*? p.name ?*/[simp]:"\<And>v s p. \<lbrakk>/*? ' \<or> '.join(disjs) ?*/\<rbrakk> \<Longrightarrow> /*? user_postconditions[m.name] ?*/ (/*? update_fn ?*/ s p v) = /*? user_postconditions[m.name] ?*/ s"
   /*- endfor -*/
 
   /*# We need to demand that the user's function leaves all valid pointers
@@ -239,24 +253,24 @@ locale /*? thy ?*/_pruned_glue = /*? thy ?*/_pruned +
       /*- do params.append(param) -*/
     /*- endif -*/
     /*- if p.direction in ['out', 'inout'] -*/
-      /*- if p.type.type == 'int8_t' -*/
+      /*- if p.type == 'int8_t' -*/
         /*- do ptr_valids.add('ptr_valid_s8') -*/
-      /*- elif p.type.type in ['uint8_t', 'char'] -*/
+      /*- elif p.type in ['uint8_t', 'char'] -*/
         /*- do ptr_valids.add('ptr_valid_u8') -*/
-      /*- elif p.type.type == 'int16_t' -*/
+      /*- elif p.type == 'int16_t' -*/
         /*- do ptr_valids.add('ptr_valid_s16') -*/
-      /*- elif p.type.type == 'uint16_t' -*/
+      /*- elif p.type == 'uint16_t' -*/
         /*- do ptr_valids.add('ptr_valid_u16') -*/
-      /*- elif p.type.type in ['int32_t', 'int'] -*/
+      /*- elif p.type in ['int32_t', 'int'] -*/
         /*- do ptr_valids.add('ptr_valid_s32') -*/
-      /*- elif p.type.type in ['uint32_t', 'unsigned int'] -*/
+      /*- elif p.type in ['uint32_t', 'unsigned int'] -*/
         /*- do ptr_valids.add('ptr_valid_u32') -*/
-      /*- elif p.type.type == 'int64_t' -*/
+      /*- elif p.type == 'int64_t' -*/
         /*- do ptr_valids.add('ptr_valid_s64') -*/
-      /*- elif p.type.type == 'uint64_t' -*/
+      /*- elif p.type == 'uint64_t' -*/
         /*- do ptr_valids.add('ptr_valid_u64') -*/
       /*- else -*/
-        /*? raise(NotImplementedError()) ?*/
+        /*? raise(TemplateError('unsupported')) ?*/
       /*- endif -*/
     /*- endif -*/
   /*- endfor -*/
@@ -266,9 +280,9 @@ locale /*? thy ?*/_pruned_glue = /*? thy ?*/_pruned +
 
   /*# Assume the globals are in distinct memory. #*/
   /*- for i, p in enumerate(m.parameters) -*/
-    /*- for t1 in range(1, threads + 1) -*/
+    /*- for t1 in six.moves.range(1, threads + 1) -*/
       /*- for j, q in enumerate(m.parameters) -*/
-        /*- for t2 in range(1, threads + 1) -*/
+        /*- for t2 in six.moves.range(1, threads + 1) -*/
           /*- if i < j or (i == j and t1 < t2) -*/
   assumes /*? m.name ?*/_/*? p.name ?*/_/*? t1 ?*/_/*? m.name ?*/_/*? q.name ?*/_/*? t2 ?*/_distinct[simplified eq_commute, simp]:"symbol_table ''/*? m.name ?*/_/*? p.name ?*/_/*? t1 ?*/'' \<noteq> symbol_table ''/*? m.name ?*/_/*? q.name ?*/_/*? t2 ?*/''"
           /*- endif -*/
@@ -282,8 +296,8 @@ begin
 
 /*- for method_index, m in enumerate(interface.methods) -*/
 
-/*- set input_parameters = filter(lambda('x: x.direction in [\'in\', \'inout\']'), m.parameters) -*/
-/*- set output_parameters = filter(lambda('x: x.direction in [\'out\', \'inout\']'), m.parameters) -*/
+/*- set input_parameters = list(filter(lambda('x: x.direction in [\'in\', \'inout\']'), m.parameters)) -*/
+/*- set output_parameters = list(filter(lambda('x: x.direction in [\'out\', \'inout\']'), m.parameters)) -*/
 
 (** TPP: condense = True *)
 /*- set preconditions = ['inv s'] -*/
@@ -295,30 +309,30 @@ begin
 /*- do mr.increment() -*/ /*# skip method index #*/
 /*- for i, p in enumerate(input_parameters) -*/
   /*- set param = 'p%d' % i -*/
-  /*- if p.type.type in ['int', 'int32_t'] -*/
+  /*- if p.type in ['int', 'int32_t'] -*/
     /*- do setmrs.__setitem__(0, 'setMR (%s) %s (scast %s)' % (setmrs[0], mr, param)) -*/
     /*- do mr.increment() -*/
     /*- do packed_payload.append('scast %s' % param) -*/
-  /*- elif p.type.type in ['unsigned int', 'uint32_t'] -*/
+  /*- elif p.type in ['unsigned int', 'uint32_t'] -*/
     /*- do setmrs.__setitem__(0, 'setMR (%s) %s %s' % (setmrs[0], mr, param)) -*/
     /*- do mr.increment() -*/
     /*- do packed_payload.append(param) -*/
-  /*- elif p.type.type in ['char', 'uint8_t', 'uint16_t'] -*/
+  /*- elif p.type in ['char', 'uint8_t', 'uint16_t'] -*/
     /*- do setmrs.__setitem__(0, 'setMR (%s) %s (ucast %s)' % (setmrs[0], mr, param)) -*/
     /*- do mr.increment() -*/
     /*- do packed_payload.append('ucast %s' % param) -*/
-  /*- elif p.type.type in ['int8_t', 'int16_t'] -*/
+  /*- elif p.type in ['int8_t', 'int16_t'] -*/
     /*- do setmrs.__setitem__(0, 'setMR (%s) %s (scast %s)' % (setmrs[0], mr, param)) -*/
     /*- do mr.increment() -*/
     /*- do packed_payload.append('scast %s' % param) -*/
-  /*- elif p.type.type == 'uint64_t' -*/
+  /*- elif p.type == 'uint64_t' -*/
     /*- set lower = str(mr) -*/
     /*- do mr.increment() -*/
     /*- set upper = str(mr) -*/
     /*- do setmrs.__setitem__(0, 'setMR (setMR (%s) %s (ucast %s)) %s (ucast (%s >> 32))' % (setmrs[0], lower, param, upper, param)) -*/
     /*- do mr.increment() -*/
     /*- do packed_payload.extend(['ucast %s' % param, 'ucast (%s >> 32)' % param]) -*/
-  /*- elif p.type.type == 'int64_t' -*/
+  /*- elif p.type == 'int64_t' -*/
     /*- set lower = str(mr) -*/
     /*- do mr.increment() -*/
     /*- set upper = str(mr) -*/
@@ -330,12 +344,12 @@ begin
 /*- endfor -*/
 /*- do preconditions.append('s0 = %s' % setmrs[0]) -*/
 /*- do postconditions.extend(['r = %s' % mr, 'packed s [%s]' % ', '.join(packed_payload)]) -*/
-lemma /*? me.from_interface.name ?*/_/*? m.name ?*/_marshal_wp[THEN validNF_make_schematic_post, simplified]:
+lemma /*? me.parent.from_interface.name ?*/_/*? m.name ?*/_marshal_wp[THEN validNF_make_schematic_post, simplified]:
   "\<forall>s0. \<lbrace>\<lambda>s. /*? ' \<and> '.join(preconditions) ?*/\<rbrace>
-          /*? me.from_interface.name ?*/_/*? m.name ?*/_marshal' /*? ' '.join(params) ?*/
+          /*? me.parent.from_interface.name ?*/_/*? m.name ?*/_marshal' /*? ' '.join(params) ?*/
         \<lbrace>\<lambda>r s. /*? ' \<and> '.join(postconditions) ?*/\<rbrace>!"
   apply (rule allI)
-  unfolding /*? me.from_interface.name ?*/_/*? m.name ?*/_marshal'_def
+  unfolding /*? me.parent.from_interface.name ?*/_/*? m.name ?*/_marshal'_def
   apply (wp seL4_SetMR_wp)
   apply (clarsimp simp:packed_def seL4_MsgMaxLength_def)
   apply (subst getMR_setMR, simp add:seL4_MsgMaxLength_def)+
@@ -354,98 +368,98 @@ lemma /*? me.from_interface.name ?*/_/*? m.name ?*/_marshal_wp[THEN validNF_make
 /*- set update_equivs = set() -*/ /*# heap_w*_update_equivs rules we may need to apply. #*/
 /*- for i, p in enumerate(input_parameters) -*/
   /*- set param = 'p%d' % i -*/
-  /*- if p.type.type in ['int', 'int32_t'] -*/
+  /*- if p.type in ['int', 'int32_t'] -*/
     /*- set packed_value = 'p%d\'' % i -*/
     /*- do preconditions.append('ptr_valid_s32 s %s' % param) -*/
     /*- do postconditions.append('ptr_contains_s32 s %s (ucast %s)' % (param, packed_value)) -*/
     /*- do effect.__setitem__(0, 'update_s32 (%s) %s (ucast %s)' % (effect[0], param, packed_value)) -*/
-    /*- do map(unfold_defs.add, ('ptr_valid_s32_def', 'ptr_contains_s32_def', 'update_s32_def')) -*/
+    /*- do list(map(unfold_defs.add, ('ptr_valid_s32_def', 'ptr_contains_s32_def', 'update_s32_def'))) -*/
     /*- if 32 not in distincts -*/
       /*- do distincts.__setitem__(32, []) -*/
     /*- endif -*/
     /*- do distincts[32].append('((ptr_coerce %s)::32 word ptr)' % param) -*/
     /*- do packed_payload.append(packed_value) -*/
     /*- do update_equivs.add('heap_w32_update_equiv') -*/
-  /*- elif p.type.type in ['unsigned int', 'uint32_t'] -*/
+  /*- elif p.type in ['unsigned int', 'uint32_t'] -*/
     /*- set packed_value = 'p%d\'' % i -*/
     /*- do preconditions.append('ptr_valid_u32 s %s' % param) -*/
     /*- do postconditions.append('ptr_contains_u32 s %s %s' % (param, packed_value)) -*/
     /*- do effect.__setitem__(0, 'update_u32 (%s) %s %s' % (effect[0], param, packed_value)) -*/
-    /*- do map(unfold_defs.add, ('ptr_valid_u32_def', 'ptr_contains_u32_def', 'update_u32_def')) -*/
+    /*- do list(map(unfold_defs.add, ('ptr_valid_u32_def', 'ptr_contains_u32_def', 'update_u32_def'))) -*/
     /*- if 32 not in distincts -*/
       /*- do distincts.__setitem__(32, []) -*/
     /*- endif -*/
     /*- do distincts[32].append('((ptr_coerce %s)::32 word ptr)' % param) -*/
     /*- do packed_payload.append(packed_value) -*/
     /*- do update_equivs.add('heap_w32_update_equiv') -*/
-  /*- elif p.type.type == 'uint16_t' -*/
+  /*- elif p.type == 'uint16_t' -*/
     /*- set packed_value = 'p%d\'' % i -*/
     /*- do preconditions.append('ptr_valid_u16 s %s' % param) -*/
     /*- do postconditions.append('ptr_contains_u16 s %s (ucast %s)' % (param, packed_value)) -*/
     /*- do effect.__setitem__(0, 'update_u16 (%s) %s (ucast %s)' % (effect[0], param, packed_value)) -*/
-    /*- do map(unfold_defs.add, ('ptr_valid_u16_def', 'ptr_contains_u16_def', 'update_u16_def')) -*/
+    /*- do list(map(unfold_defs.add, ('ptr_valid_u16_def', 'ptr_contains_u16_def', 'update_u16_def'))) -*/
     /*- if 16 not in distincts -*/
       /*- do distincts.__setitem__(16, []) -*/
     /*- endif -*/
     /*- do distincts[16].append('((ptr_coerce %s)::16 word ptr)' % param) -*/
     /*- do packed_payload.append(packed_value) -*/
     /*- do update_equivs.add('heap_w16_update_equiv') -*/
-  /*- elif p.type.type == 'int16_t' -*/
+  /*- elif p.type == 'int16_t' -*/
     /*- set packed_value = 'p%d\'' % i -*/
     /*- do preconditions.append('ptr_valid_s16 s %s' % param) -*/
     /*- do postconditions.append('ptr_contains_s16 s %s (ucast %s)' % (param, packed_value)) -*/
     /*- do effect.__setitem__(0, 'update_s16 (%s) %s (ucast %s)' % (effect[0], param, packed_value)) -*/
-    /*- do map(unfold_defs.add, ('ptr_valid_s16_def', 'ptr_contains_s16_def', 'update_s16_def')) -*/
+    /*- do list(map(unfold_defs.add, ('ptr_valid_s16_def', 'ptr_contains_s16_def', 'update_s16_def'))) -*/
     /*- if 16 not in distincts -*/
       /*- do distincts.__setitem__(16, []) -*/
     /*- endif -*/
     /*- do distincts[16].append('((ptr_coerce %s)::16 word ptr)' % param) -*/
     /*- do packed_payload.append(packed_value) -*/
     /*- do update_equivs.add('heap_w16_update_equiv') -*/
-  /*- elif p.type.type in ['char', 'uint8_t'] -*/
+  /*- elif p.type in ['char', 'uint8_t'] -*/
     /*- set packed_value = 'p%d\'' % i -*/
     /*- do preconditions.append('ptr_valid_u8 s %s' % param) -*/
     /*- do postconditions.append('ptr_contains_u8 s %s (ucast %s)' % (param, packed_value)) -*/
     /*- do effect.__setitem__(0, 'update_u8 (%s) %s (ucast %s)' % (effect[0], param, packed_value)) -*/
-    /*- do map(unfold_defs.add, ('ptr_valid_u8_def', 'ptr_contains_u8_def', 'update_u8_def')) -*/
+    /*- do list(map(unfold_defs.add, ('ptr_valid_u8_def', 'ptr_contains_u8_def', 'update_u8_def'))) -*/
     /*- if 8 not in distincts -*/
       /*- do distincts.__setitem__(8, []) -*/
     /*- endif -*/
     /*- do distincts[8].append('((ptr_coerce %s)::8 word ptr)' % param) -*/
     /*- do packed_payload.append(packed_value) -*/
     /*- do update_equivs.add('heap_w8_update_equiv') -*/
-  /*- elif p.type.type == 'int8_t' -*/
+  /*- elif p.type == 'int8_t' -*/
     /*- set packed_value = 'p%d\'' % i -*/
     /*- do preconditions.append('ptr_valid_s8 s %s' % param) -*/
     /*- do postconditions.append('ptr_contains_s8 s %s (ucast %s)' % (param, packed_value)) -*/
     /*- do effect.__setitem__(0, 'update_s8 (%s) %s (ucast %s)' % (effect[0], param, packed_value)) -*/
-    /*- do map(unfold_defs.add, ('ptr_valid_s8_def', 'ptr_contains_s8_def', 'update_s8_def')) -*/
+    /*- do list(map(unfold_defs.add, ('ptr_valid_s8_def', 'ptr_contains_s8_def', 'update_s8_def'))) -*/
     /*- if 8 not in distincts -*/
       /*- do distincts.__setitem__(8, []) -*/
     /*- endif -*/
     /*- do distincts[8].append('((ptr_coerce %s)::8 word ptr)' % param) -*/
     /*- do packed_payload.append(packed_value) -*/
     /*- do update_equivs.add('heap_w8_update_equiv') -*/
-  /*- elif p.type.type == 'uint64_t' -*/
+  /*- elif p.type == 'uint64_t' -*/
     /*- set packed_lower = 'p%d\'_lower' % i -*/
     /*- set packed_upper = 'p%d\'_upper' % i -*/
     /*- do preconditions.append('ptr_valid_u64 s %s' % param) -*/
     /*- do postconditions.append('ptr_contains_u64 s %s ((ucast %s) || ((ucast %s) << 32))' % (param, packed_lower, packed_upper)) -*/
     /*- do effect.__setitem__(0, 'update_u64 (%s) %s ((ucast %s) || ((ucast %s) << 32))' % (effect[0], param, packed_lower, packed_upper)) -*/
-    /*- do map(unfold_defs.add, ('ptr_valid_u64_def', 'ptr_contains_u64_def', 'update_u64_def')) -*/
+    /*- do list(map(unfold_defs.add, ('ptr_valid_u64_def', 'ptr_contains_u64_def', 'update_u64_def'))) -*/
     /*- if 64 not in distincts -*/
       /*- do distincts.__setitem__(64, []) -*/
     /*- endif -*/
     /*- do distincts[64].append('((ptr_coerce %s)::64 word ptr)' % param) -*/
     /*- do packed_payload.extend([packed_lower, packed_upper]) -*/
     /*- do update_equivs.add('heap_w64_update_equiv') -*/
-  /*- elif p.type.type == 'int64_t' -*/
+  /*- elif p.type == 'int64_t' -*/
     /*- set packed_lower = 'p%d\'_lower' % i -*/
     /*- set packed_upper = 'p%d\'_upper' % i -*/
     /*- do preconditions.append('ptr_valid_s64 s %s' % param) -*/
     /*- do postconditions.append('ptr_contains_s64 s %s (ucast (((ucast %s)::64 word) || (((ucast %s)::64 word) << 32)))' % (param, packed_lower, packed_upper)) -*/
     /*- do effect.__setitem__(0, 'update_s64 (%s) %s (ucast (((ucast %s)::64 word) || (((ucast %s)::64 word) << 32)))' % (effect[0], param, packed_lower, packed_upper)) -*/
-    /*- do map(unfold_defs.add, ('ptr_valid_s64_def', 'ptr_contains_s64_def', 'update_s64_def')) -*/
+    /*- do list(map(unfold_defs.add, ('ptr_valid_s64_def', 'ptr_contains_s64_def', 'update_s64_def'))) -*/
     /*- if 64 not in distincts -*/
       /*- do distincts.__setitem__(64, []) -*/
     /*- endif -*/
@@ -465,12 +479,12 @@ lemma /*? me.from_interface.name ?*/_/*? m.name ?*/_marshal_wp[THEN validNF_make
 /*- do postconditions.append('s = %s' % effect[0]) -*/
 /*# Lemmas chain to apply after proof completion. #*/
 /*- set postprocessing = len(packed_payload[1:]) * ['THEN all_pair_unwrap[THEN iffD2]'] + ['THEN validNF_make_schematic_post', 'simplified'] -*/
-lemma /*? me.to_interface.name ?*/_/*? m.name ?*/_unmarshal_wp[/*? ', '.join(postprocessing) ?*/]:
+lemma /*? me.parent.to_interface.name ?*/_/*? m.name ?*/_unmarshal_wp[/*? ', '.join(postprocessing) ?*/]:
   "\<forall>/*? ' '.join(bound) ?*/. \<lbrace>\<lambda>s. /*? ' \<and> '.join(preconditions) ?*/\<rbrace>
-          /*? me.to_interface.name ?*/_/*? m.name ?*/_unmarshal' /*? ' '.join(params) ?*/
+          /*? me.parent.to_interface.name ?*/_/*? m.name ?*/_unmarshal' /*? ' '.join(params) ?*/
         \<lbrace>\<lambda>_ s. /*? ' \<and> '.join(postconditions) ?*/\<rbrace>!"
   apply (rule allI)+
-  unfolding /*? me.to_interface.name ?*/_/*? m.name ?*/_unmarshal'_def
+  unfolding /*? me.parent.to_interface.name ?*/_/*? m.name ?*/_unmarshal'_def
   apply (wp seL4_GetMR_wp)
   apply (clarsimp simp:seL4_MsgMaxLength_def /*? ' '.join(unfold_defs) ?*/)
   apply (clarsimp simp:getmr_packed ucast_id)
@@ -482,9 +496,9 @@ lemma /*? me.to_interface.name ?*/_/*? m.name ?*/_unmarshal_wp[/*? ', '.join(pos
 (** TPP: condense = False *)
 
 (** TPP: condense = True *)
-lemma /*? me.to_interface.name ?*/_/*? m.name ?*/_invoke_subst:
-  "/*? me.to_interface.name ?*/_/*? m.name ?*/_invoke' = /*? me.to_interface.name ?*/_/*? m.name ?*/'"
-  by (clarsimp simp:/*? me.to_interface.name ?*/_/*? m.name ?*/_invoke'_def /*? me.to_interface.name ?*/_/*? m.name ?*/'_def intro!:ext)
+lemma /*? me.parent.to_interface.name ?*/_/*? m.name ?*/_invoke_subst:
+  "/*? me.parent.to_interface.name ?*/_/*? m.name ?*/_invoke' = /*? me.parent.to_interface.name ?*/_/*? m.name ?*/'"
+  by (clarsimp simp:/*? me.parent.to_interface.name ?*/_/*? m.name ?*/_invoke'_def /*? me.parent.to_interface.name ?*/_/*? m.name ?*/'_def intro!:ext)
 (** TPP: condense = False *)
 
 /*- set postprocessing = [] -*/
@@ -494,7 +508,7 @@ lemma /*? me.to_interface.name ?*/_/*? m.name ?*/_invoke_subst:
   /*- endif -*/
 /*- endfor -*/
 /*- do postprocessing.extend(['THEN validNF_make_schematic_post', 'simplified']) -*/
-lemmas /*? me.to_interface.name ?*/_/*? m.name ?*/_wp = /*? me.to_interface.name ?*/_/*? m.name ?*/_wp'[/*? ', '.join(postprocessing) ?*/]
+lemmas /*? me.parent.to_interface.name ?*/_/*? m.name ?*/_wp = /*? me.parent.to_interface.name ?*/_/*? m.name ?*/_wp'[/*? ', '.join(postprocessing) ?*/]
 
 (** TPP: condense = True *)
 /*- set params = [] -*/
@@ -505,30 +519,30 @@ lemmas /*? me.to_interface.name ?*/_/*? m.name ?*/_wp = /*? me.to_interface.name
 /*- if m.return_type is not none -*/
   /*- set param = 'ret' -*/
   /*- do params.append(param) -*/
-  /*- if m.return_type.type in ['int', 'int32_t'] -*/
+  /*- if m.return_type in ['int', 'int32_t'] -*/
     /*- do effect.__setitem__(0, 'setMR (%s) %s (scast %s)' % (effect[0], mr, param)) -*/
     /*- do mr.increment() -*/
     /*- do packed_payload.append('scast %s' % param) -*/
-  /*- elif m.return_type.type in ['unsigned int', 'uint32_t'] -*/
+  /*- elif m.return_type in ['unsigned int', 'uint32_t'] -*/
     /*- do effect.__setitem__(0, 'setMR (%s) %s %s' % (effect[0], mr, param)) -*/
     /*- do mr.increment() -*/
     /*- do packed_payload.append(param) -*/
-  /*- elif m.return_type.type in ['char', 'uint8_t', 'uint16_t'] -*/
+  /*- elif m.return_type in ['char', 'uint8_t', 'uint16_t'] -*/
     /*- do effect.__setitem__(0, 'setMR (%s) %s (ucast %s)' % (effect[0], mr, param)) -*/
     /*- do mr.increment() -*/
     /*- do packed_payload.append('ucast %s' % param) -*/
-  /*- elif m.return_type.type in ['int8_t', 'int16_t'] -*/
+  /*- elif m.return_type in ['int8_t', 'int16_t'] -*/
     /*- do effect.__setitem__(0, 'setMR (%s) %s (scast %s)' % (effect[0], mr, param)) -*/
     /*- do mr.increment() -*/
     /*- do packed_payload.append('scast %s' % param) -*/
-  /*- elif m.return_type.type == 'uint64_t' -*/
+  /*- elif m.return_type == 'uint64_t' -*/
     /*- set mr_lower = str(mr) -*/
     /*- do mr.increment() -*/
     /*- set mr_upper = str(mr) -*/
     /*- do effect.__setitem__(0, 'setMR (setMR (%s) %s (ucast %s)) %s (ucast (%s >> 32))' % (effect[0], mr_lower, param, mr_upper, param)) -*/
     /*- do mr.increment() -*/
     /*- do packed_payload.extend(['ucast %s' % param, 'ucast (%s >> 32)' % param]) -*/
-  /*- elif m.return_type.type == 'int64_t' -*/
+  /*- elif m.return_type == 'int64_t' -*/
     /*- set mr_lower = str(mr) -*/
     /*- do mr.increment() -*/
     /*- set mr_upper = str(mr) -*/
@@ -540,30 +554,30 @@ lemmas /*? me.to_interface.name ?*/_/*? m.name ?*/_wp = /*? me.to_interface.name
 /*- for i, p in enumerate(output_parameters) -*/
   /*- set param = 'p%d' % i -*/
   /*- do params.append(param) -*/
-  /*- if p.type.type in ['int', 'int32_t'] -*/
+  /*- if p.type in ['int', 'int32_t'] -*/
     /*- do effect.__setitem__(0, 'setMR (%s) %s (scast %s)' % (effect[0], mr, param)) -*/
     /*- do mr.increment() -*/
     /*- do packed_payload.append('scast %s' % param) -*/
-  /*- elif p.type.type in ['unsigned int', 'uint32_t'] -*/
+  /*- elif p.type in ['unsigned int', 'uint32_t'] -*/
     /*- do effect.__setitem__(0, 'setMR (%s) %s %s' % (effect[0], mr, param)) -*/
     /*- do mr.increment() -*/
     /*- do packed_payload.append(param) -*/
-  /*- elif p.type.type in ['char', 'uint8_t', 'uint16_t'] -*/
+  /*- elif p.type in ['char', 'uint8_t', 'uint16_t'] -*/
     /*- do effect.__setitem__(0, 'setMR (%s) %s (ucast %s)' % (effect[0], mr, param)) -*/
     /*- do mr.increment() -*/
     /*- do packed_payload.append('ucast %s' % param) -*/
-  /*- elif p.type.type in ['int8_t', 'int16_t'] -*/
+  /*- elif p.type in ['int8_t', 'int16_t'] -*/
     /*- do effect.__setitem__(0, 'setMR (%s) %s (scast %s)' % (effect[0], mr, param)) -*/
     /*- do mr.increment() -*/
     /*- do packed_payload.append('scast %s' % param) -*/
-  /*- elif p.type.type == 'uint64_t' -*/
+  /*- elif p.type == 'uint64_t' -*/
     /*- set mr_lower = str(mr) -*/
     /*- do mr.increment() -*/
     /*- set mr_upper = str(mr) -*/
     /*- do effect.__setitem__(0, 'setMR (setMR (%s) %s (ucast %s)) %s (ucast (%s >> 32))' % (effect[0], mr_lower, param, mr_upper, param)) -*/
     /*- do mr.increment() -*/
     /*- do packed_payload.extend(['ucast %s' % param, 'ucast (%s >> 32)' % param]) -*/
-  /*- elif p.type.type == 'int64_t' -*/
+  /*- elif p.type == 'int64_t' -*/
     /*- set mr_lower = str(mr) -*/
     /*- do mr.increment() -*/
     /*- set mr_upper = str(mr) -*/
@@ -573,12 +587,12 @@ lemmas /*? me.to_interface.name ?*/_/*? m.name ?*/_wp = /*? me.to_interface.name
   /*- endif -*/
 /*- endfor -*/
 /*- do postconditions.extend(['r = %s' % mr, 's = %s' % effect[0], 'packed s [%s]' % ', '.join(packed_payload)]) -*/
-lemma /*? me.to_interface.name ?*/_/*? m.name ?*/_marshal_wp[THEN validNF_make_schematic_post, simplified]:
+lemma /*? me.parent.to_interface.name ?*/_/*? m.name ?*/_marshal_wp[THEN validNF_make_schematic_post, simplified]:
   "\<forall>s0. \<lbrace>\<lambda>s. s = s0 \<and> inv s\<rbrace>
-          /*? me.to_interface.name ?*/_/*? m.name ?*/_marshal' /*? ' '.join(params) ?*/
+          /*? me.parent.to_interface.name ?*/_/*? m.name ?*/_marshal' /*? ' '.join(params) ?*/
         \<lbrace>\<lambda>r s. /*? ' \\<and> '.join(postconditions) ?*/\<rbrace>!"
   apply (rule allI)
-  unfolding /*? me.to_interface.name ?*/_/*? m.name ?*/_marshal'_def
+  unfolding /*? me.parent.to_interface.name ?*/_/*? m.name ?*/_marshal'_def
   apply (wp seL4_SetMR_wp)
   apply (clarsimp simp:packed_def seL4_MsgMaxLength_def getMR_setMR)
   done
@@ -598,26 +612,26 @@ lemma /*? me.to_interface.name ?*/_/*? m.name ?*/_marshal_wp[THEN validNF_make_s
   /*- set param = 'ru' -*/
   /*- do exist_bound.append(param) -*/
   /*- do postcondition_params.append(param) -*/
-  /*- if m.return_type.type == 'int8_t' -*/
+  /*- if m.return_type == 'int8_t' -*/
     /*- do post_packed.append('scast %s' % param) -*/
-  /*- elif m.return_type.type in ['uint8_t', 'char'] -*/
+  /*- elif m.return_type in ['uint8_t', 'char'] -*/
     /*- do post_packed.append('ucast %s' % param) -*/
-  /*- elif m.return_type.type == 'int16_t' -*/
+  /*- elif m.return_type == 'int16_t' -*/
     /*- do post_packed.append('scast %s' % param) -*/
-  /*- elif m.return_type.type == 'uint16_t' -*/
+  /*- elif m.return_type == 'uint16_t' -*/
     /*- do post_packed.append('ucast %s' % param) -*/
-  /*- elif m.return_type.type in ['int32_t', 'int'] -*/
+  /*- elif m.return_type in ['int32_t', 'int'] -*/
     /*- do post_packed.append('scast %s' % param) -*/
-  /*- elif m.return_type.type in ['uint32_t', 'unsigned int'] -*/
+  /*- elif m.return_type in ['uint32_t', 'unsigned int'] -*/
     /*- do post_packed.append(param) -*/
-  /*- elif m.return_type.type == 'int64_t' -*/
+  /*- elif m.return_type == 'int64_t' -*/
     /*- do post_packed.append('scast %s' % param) -*/
     /*- do post_packed.append('ucast (((scast %s)::64 word) >> 32)' % param) -*/
-  /*- elif m.return_type.type == 'uint64_t' -*/
+  /*- elif m.return_type == 'uint64_t' -*/
     /*- do post_packed.append('ucast %s' % param) -*/
     /*- do post_packed.append('ucast (%s >> 32)' % param) -*/
   /*- else -*/
-    /*? raise(NotImplementedError()) ?*/
+    /*? raise(TemplateError('unsupported')) ?*/
   /*- endif -*/
 /*- endif -*/
 /*- for i, p in enumerate(m.parameters) -*/
@@ -627,26 +641,26 @@ lemma /*? me.to_interface.name ?*/_/*? m.name ?*/_marshal_wp[THEN validNF_make_s
     /*- do bound.append(param) -*/
     /*- do postprocessing.insert(0, 'THEN all_pair_unwrap[THEN iffD2]') -*/
     /*- do precondition_params.append(param) -*/
-    /*- if p.type.type == 'int8_t' -*/
+    /*- if p.type == 'int8_t' -*/
       /*- do pre_packed.append('scast %s' % param) -*/
-    /*- elif p.type.type in ['uint8_t', 'char'] -*/
+    /*- elif p.type in ['uint8_t', 'char'] -*/
       /*- do pre_packed.append('ucast %s' % param) -*/
-    /*- elif p.type.type == 'int16_t' -*/
+    /*- elif p.type == 'int16_t' -*/
       /*- do pre_packed.append('scast %s' % param) -*/
-    /*- elif p.type.type == 'uint16_t' -*/
+    /*- elif p.type == 'uint16_t' -*/
       /*- do pre_packed.append('ucast %s' % param) -*/
-    /*- elif p.type.type in ['int32_t', 'int'] -*/
+    /*- elif p.type in ['int32_t', 'int'] -*/
       /*- do pre_packed.append('scast %s' % param) -*/
-    /*- elif p.type.type in ['uint32_t', 'unsigned int'] -*/
+    /*- elif p.type in ['uint32_t', 'unsigned int'] -*/
       /*- do pre_packed.append(param) -*/
-    /*- elif p.type.type == 'int64_t' -*/
+    /*- elif p.type == 'int64_t' -*/
       /*- do pre_packed.append('scast %s' % param) -*/
       /*- do pre_packed.append('ucast (((scast %s)::64 word) >> 32)' % param) -*/
-    /*- elif p.type.type == 'uint64_t' -*/
+    /*- elif p.type == 'uint64_t' -*/
       /*- do pre_packed.append('ucast %s' % param) -*/
       /*- do pre_packed.append('ucast (%s >> 32)' % param) -*/
     /*- else -*/
-      /*? raise(NotImplementedError()) ?*/
+      /*? raise(TemplateError('unsupported')) ?*/
     /*- endif -*/
   /*- elif p.direction == 'inout' -*/
     /*- do bound.append(param) -*/
@@ -654,60 +668,60 @@ lemma /*? me.to_interface.name ?*/_/*? m.name ?*/_marshal_wp[THEN validNF_make_s
     /*- do postprocessing.insert(0, 'THEN all_pair_unwrap[THEN iffD2]') -*/
     /*- do exist_bound.append('%s_out' % param) -*/
     /*- do postcondition_params.append('%s_out' % param) -*/
-    /*- if p.type.type == 'int8_t' -*/
+    /*- if p.type == 'int8_t' -*/
       /*- do pre_packed.append('scast %s' % param) -*/
       /*- do post_packed.append('scast %s_out' % param) -*/
-    /*- elif p.type.type in ['uint8_t', 'char'] -*/
+    /*- elif p.type in ['uint8_t', 'char'] -*/
       /*- do pre_packed.append('ucast %s' % param) -*/
       /*- do post_packed.append('ucast %s_out' % param) -*/
-    /*- elif p.type.type == 'int16_t' -*/
+    /*- elif p.type == 'int16_t' -*/
       /*- do pre_packed.append('scast %s' % param) -*/
       /*- do post_packed.append('scast %s_out' % param) -*/
-    /*- elif p.type.type == 'uint16_t' -*/
+    /*- elif p.type == 'uint16_t' -*/
       /*- do pre_packed.append('ucast %s' % param) -*/
       /*- do post_packed.append('ucast %s_out' % param) -*/
-    /*- elif p.type.type in ['int32_t', 'int'] -*/
+    /*- elif p.type in ['int32_t', 'int'] -*/
       /*- do pre_packed.append('scast %s' % param) -*/
       /*- do post_packed.append('scast %s_out' % param) -*/
-    /*- elif p.type.type in ['uint32_t', 'unsigned int'] -*/
+    /*- elif p.type in ['uint32_t', 'unsigned int'] -*/
       /*- do pre_packed.append(param) -*/
       /*- do post_packed.append('%s_out' % param) -*/
-    /*- elif p.type.type == 'int64_t' -*/
+    /*- elif p.type == 'int64_t' -*/
       /*- do pre_packed.append('scast %s' % param) -*/
       /*- do pre_packed.append('ucast (((scast %s)::64 word) >> 32)' % param) -*/
       /*- do post_packed.append('scast %s_out' % param) -*/
       /*- do post_packed.append('ucast (((scast %s_out)::64 word) >> 32)' % param) -*/
-    /*- elif p.type.type == 'uint64_t' -*/
+    /*- elif p.type == 'uint64_t' -*/
       /*- do pre_packed.append('ucast %s' % param) -*/
       /*- do pre_packed.append('ucast (%s >> 32)' % param) -*/
       /*- do post_packed.append('ucast %s_out' % param) -*/
       /*- do post_packed.append('ucast (%s_out >> 32)' % param) -*/
     /*- else -*/
-      /*? raise(NotImplementedError()) ?*/
+      /*? raise(TemplateError('unsupported')) ?*/
     /*- endif -*/
   /*- else -*/
     /*? assert(p.direction == 'out') ?*/
     /*- do exist_bound.append(param) -*/
-    /*- if p.type.type == 'int8_t' -*/
+    /*- if p.type == 'int8_t' -*/
       /*- do post_packed.append('scast %s' % param) -*/
-    /*- elif p.type.type in ['uint8_t', 'char'] -*/
+    /*- elif p.type in ['uint8_t', 'char'] -*/
       /*- do post_packed.append('ucast %s' % param) -*/
-    /*- elif p.type.type == 'int16_t' -*/
+    /*- elif p.type == 'int16_t' -*/
       /*- do post_packed.append('scast %s' % param) -*/
-    /*- elif p.type.type == 'uint16_t' -*/
+    /*- elif p.type == 'uint16_t' -*/
       /*- do post_packed.append('ucast %s' % param) -*/
-    /*- elif p.type.type in ['int32_t', 'int'] -*/
+    /*- elif p.type in ['int32_t', 'int'] -*/
       /*- do post_packed.append('scast %s' % param) -*/
-    /*- elif p.type.type in ['uint16_t', 'unsigned int'] -*/
+    /*- elif p.type in ['uint16_t', 'unsigned int'] -*/
       /*- do post_packed.append('%s' % param) -*/
-    /*- elif p.type.type == 'int64_t' -*/
+    /*- elif p.type == 'int64_t' -*/
       /*- do post_packed.append('scast %s' % param) -*/
       /*- do post_packed.append('ucast (((scast %s)::64 word) >> 32)' % param) -*/
-    /*- elif p.type.type == 'uint64_t' -*/
+    /*- elif p.type == 'uint64_t' -*/
       /*- do post_packed.append('ucast %s' % param) -*/
       /*- do post_packed.append('ucast (%s >> 32)' % param) -*/
     /*- else -*/
-      /*? raise(NotImplementedError()) ?*/
+      /*? raise(TemplateError('unsupported')) ?*/
     /*- endif -*/
   /*- endif -*/
 /*- endfor -*/
@@ -721,14 +735,14 @@ lemma /*? me.to_interface.name ?*/_/*? m.name ?*/_marshal_wp[THEN validNF_make_s
   /*- do postconditions.append('packed s [%s]' % ', '.join(post_packed)) -*/
   /*- do postconditions.append('%s %s' % (user_postconditions[m.name], ' '.join(postcondition_params))) -*/
 /*- endif -*/
-lemma /*? me.to_interface.name ?*/_/*? m.name ?*/_internal_wp[/*? ', '.join(postprocessing) ?*/]:
+lemma /*? me.parent.to_interface.name ?*/_/*? m.name ?*/_internal_wp[/*? ', '.join(postprocessing) ?*/]:
   "\<forall>/*? ' '.join(bound) ?*/. \<lbrace>\<lambda>s. /*? ' \<and> '.join(preconditions) ?*/\<rbrace>
-          /*? me.to_interface.name ?*/_/*? m.name ?*/_internal'
+          /*? me.parent.to_interface.name ?*/_/*? m.name ?*/_internal'
         \<lbrace>\<lambda>r s. /*? ' \<and> '.join(postconditions) ?*/\<rbrace>!"
   apply (rule allI)+
-  unfolding /*? me.to_interface.name ?*/_/*? m.name ?*/_internal'_def
-  apply (subst /*? me.to_interface.name ?*/_/*? m.name ?*/_invoke_subst)
-  /*- set wps = ['%s_%s_unmarshal_wp' % (me.to_interface.name, m.name), '%s_%s_wp' % (me.to_interface.name, m.name), '%s_%s_marshal_wp' % (me.to_interface.name, m.name)] -*/
+  unfolding /*? me.parent.to_interface.name ?*/_/*? m.name ?*/_internal'_def
+  apply (subst /*? me.parent.to_interface.name ?*/_/*? m.name ?*/_invoke_subst)
+  /*- set wps = ['%s_%s_unmarshal_wp' % (me.parent.to_interface.name, m.name), '%s_%s_wp' % (me.parent.to_interface.name, m.name), '%s_%s_marshal_wp' % (me.parent.to_interface.name, m.name)] -*/
   /*- for p in m.parameters -*/
     /*- do wps.append('get_%s_%s_wp' % (m.name, p.name)) -*/
   /*- endfor -*/
@@ -738,11 +752,11 @@ lemma /*? me.to_interface.name ?*/_/*? m.name ?*/_internal_wp[/*? ', '.join(post
   (* HACK: around Isabelle sucking the outermost conjoined implication into the assumptions. *)
   /*- if len(m.parameters) >= 2 -*/
     /*- set disjs = [] -*/
-    /*- for t in range(1, threads + 1) -*/
+    /*- for t in six.moves.range(1, threads + 1) -*/
       /*- do disjs.append('rv = Ptr (symbol_table \'\'%s_%s_%d\'\')' % (m.name, m.parameters[0].name, t)) -*/
     /*- endfor -*/
     /*- for p in m.parameters[1:] -*/
-      /*- for t in range(1, threads + 1) -*/
+      /*- for t in six.moves.range(1, threads + 1) -*/
   apply (subgoal_tac "/*? ' \<or> '.join(disjs) ?*/ \<longrightarrow> ((ptr_coerce rv)::32 word ptr) \<noteq> Ptr (symbol_table ''/*? m.name ?*/_/*? p.name ?*/_/*? t ?*/'')")
    prefer 2
    apply fastforce
@@ -758,27 +772,27 @@ lemma /*? me.to_interface.name ?*/_/*? m.name ?*/_internal_wp[/*? ', '.join(post
   /*- set rules = set() -*/
   /*- for p in m.parameters -*/
     /*- do rules.add('inv_imp_%s_%s_valid' % (m.name, p.name)) -*/
-    /*- for t in range(1, threads + 1) -*/
+    /*- for t in six.moves.range(1, threads + 1) -*/
       /*- do rules.add('inv_imp_%s_%s_%d_valid' % (m.name, p.name, t)) -*/
     /*- endfor -*/
-    /*- if p.type.type == 'int8_t' -*/
+    /*- if p.type == 'int8_t' -*/
       /*- do rules.add('ptr_valid_s8_def') -*/
-    /*- elif p.type.type in ['uint8_t', 'char'] -*/
+    /*- elif p.type in ['uint8_t', 'char'] -*/
       /*- do rules.add('ptr_valid_u8_def') -*/
-    /*- elif p.type.type == 'int16_t' -*/
+    /*- elif p.type == 'int16_t' -*/
       /*- do rules.add('ptr_valid_s16_def') -*/
-    /*- elif p.type.type == 'uint16_t' -*/
+    /*- elif p.type == 'uint16_t' -*/
       /*- do rules.add('ptr_valid_u16_def') -*/
-    /*- elif p.type.type in ['int32_t', 'int'] -*/
+    /*- elif p.type in ['int32_t', 'int'] -*/
       /*- do rules.add('ptr_valid_s32_def') -*/
-    /*- elif p.type.type in ['uint32_t', 'unsigned int'] -*/
+    /*- elif p.type in ['uint32_t', 'unsigned int'] -*/
       /*- do rules.add('ptr_valid_u32_def') -*/
-    /*- elif p.type.type == 'int64_t' -*/
+    /*- elif p.type == 'int64_t' -*/
       /*- do rules.add('ptr_valid_s64_def') -*/
-    /*- elif p.type.type == 'uint64_t' -*/
+    /*- elif p.type == 'uint64_t' -*/
       /*- do rules.add('ptr_valid_u64_def') -*/
     /*- else -*/
-      /*? raise(NotImplementedError()) ?*/
+      /*? raise(TemplateError('unsupported')) ?*/
     /*- endif -*/
   /*- endfor -*/
   apply (clarsimp simp:/*? wrap_facts(len('  apply (clarsimp simp:'), rules) ?*/)
@@ -811,7 +825,7 @@ lemma /*? me.to_interface.name ?*/_/*? m.name ?*/_internal_wp[/*? ', '.join(post
     /*- do goals[0].__setitem__('params', []) -*/
     /*- for i, p in enumerate(m.parameters) -*/
       /*- do goals[0]['params'].append([]) -*/
-      /*- for t in range(1, threads + 1) -*/
+      /*- for t in six.moves.range(1, threads + 1) -*/
         /*- do goals[0]['params'][i].append('%s_%s_%d' % (m.name, p.name, t)) -*/
       /*- endfor -*/
     /*- endfor -*/
@@ -828,13 +842,13 @@ lemma /*? me.to_interface.name ?*/_/*? m.name ?*/_internal_wp[/*? ', '.join(post
     /*- set instantiations = [] -*/
     /*- for p in m.parameters -*/
       /*- if p.direction == 'out' -*/
-        /*- for t in range(1, threads + 1) -*/
+        /*- for t in six.moves.range(1, threads + 1) -*/
           /*- do instantiations.append('Ptr (symbol_table \'\'%s_%s_%d\'\')' % (m.name, p.name, t)) -*/
         /*- endfor -*/
       /*- endif -*/
     /*- endfor -*/
 
-    /*- for _ in range(10000) -*/ /*# XXX: ~infinite loop #*/
+    /*- for _ in six.moves.range(10000) -*/ /*# XXX: ~infinite loop #*/
       /*- if len(goals) == 0 -*/
         /*- break -*/
       /*- endif -*/
@@ -851,26 +865,26 @@ lemma /*? me.to_interface.name ?*/_/*? m.name ?*/_internal_wp[/*? ', '.join(post
         /*- for i, p in enumerate(m.parameters) -*/
           /*- set param = 'p%d' % i -*/
           /*- if p.direction in ['in', 'inout'] -*/
-            /*- if p.type.type == 'int8_t' -*/
+            /*- if p.type == 'int8_t' -*/
   /*? ' ' * (subgoals[0] - 1) ?*/apply (rule_tac x="scast /*? param ?*/" in exI)
-            /*- elif p.type.type in ['uint8_t', 'char'] -*/
+            /*- elif p.type in ['uint8_t', 'char'] -*/
   /*? ' ' * (subgoals[0] - 1) ?*/apply (rule_tac x="ucast /*? param ?*/" in exI)
-            /*- elif p.type.type == 'int16_t' -*/
+            /*- elif p.type == 'int16_t' -*/
   /*? ' ' * (subgoals[0] - 1) ?*/apply (rule_tac x="scast /*? param ?*/" in exI)
-            /*- elif p.type.type == 'uint16_t' -*/
+            /*- elif p.type == 'uint16_t' -*/
   /*? ' ' * (subgoals[0] - 1) ?*/apply (rule_tac x="ucast /*? param ?*/" in exI)
-            /*- elif p.type.type in ['int32_t', 'int'] -*/
+            /*- elif p.type in ['int32_t', 'int'] -*/
   /*? ' ' * (subgoals[0] - 1) ?*/apply (rule_tac x="scast /*? param ?*/" in exI)
-            /*- elif p.type.type in ['uint32_t', 'unsigned int'] -*/
+            /*- elif p.type in ['uint32_t', 'unsigned int'] -*/
   /*? ' ' * (subgoals[0] - 1) ?*/apply (rule_tac x=/*? param ?*/ in exI)
-            /*- elif p.type.type == 'int64_t' -*/
+            /*- elif p.type == 'int64_t' -*/
   /*? ' ' * (subgoals[0] - 1) ?*/apply (rule_tac x="scast /*? param ?*/" in exI)
   /*? ' ' * (subgoals[0] - 1) ?*/apply (rule_tac x="ucast (((scast /*? param ?*/)::64 word) >> 32)" in exI)
-            /*- elif p.type.type == 'uint64_t' -*/
+            /*- elif p.type == 'uint64_t' -*/
   /*? ' ' * (subgoals[0] - 1) ?*/apply (rule_tac x="ucast /*? param ?*/" in exI)
   /*? ' ' * (subgoals[0] - 1) ?*/apply (rule_tac x="ucast (/*? param ?*/ >> 32)" in exI)
             /*- else -*/
-              /*? raise(NotImplementedError()) ?*/
+              /*? raise(TemplateError('unsupported')) ?*/
             /*- endif -*/
           /*- endif -*/
         /*- endfor -*/
@@ -889,54 +903,53 @@ lemma /*? me.to_interface.name ?*/_/*? m.name ?*/_internal_wp[/*? ', '.join(post
   /*? ' ' * (subgoals[0] - 1) ?*/apply (rule_tac x=p/*? i ?*/ in exI)
   /*? ' ' * (subgoals[0] - 1) ?*/apply (rule conjI)
             /*- do subgoals.__setitem__(0, subgoals[0] + 1) -*/
-            /*- set in_heap = [None] -*/
             /*- set extra_simps = set() -*/
-            /*- if p.type.type == 'int8_t' -*/
-              /*- do in_heap.__setitem__(0, 'heap_w8') -*/
+            /*- if p.type == 'int8_t' -*/
+              /*- set in_heap = 'heap_w8' -*/
               /*- do extra_simps.add('heap_w8_update_s8') -*/
-            /*- elif p.type.type in ['uint8_t', 'char'] -*/
-              /*- do in_heap.__setitem__(0, 'heap_w8') -*/
+            /*- elif p.type in ['uint8_t', 'char'] -*/
+              /*- set in_heap = 'heap_w8' -*/
               /*- do extra_simps.add('heap_w8_update_u8') -*/
-            /*- elif p.type.type == 'int16_t' -*/
-              /*- do in_heap.__setitem__(0, 'heap_w16') -*/
+            /*- elif p.type == 'int16_t' -*/
+              /*- set in_heap = 'heap_w16' -*/
               /*- do extra_simps.add('heap_w16_update_s16') -*/
-            /*- elif p.type.type == 'uint16_t' -*/
-              /*- do in_heap.__setitem__(0, 'heap_w16') -*/
+            /*- elif p.type == 'uint16_t' -*/
+              /*- set in_heap = 'heap_w16' -*/
               /*- do extra_simps.add('heap_w16_update_u16') -*/
-            /*- elif p.type.type in ['int', 'int32_t'] -*/
-              /*- do in_heap.__setitem__(0, 'heap_w32') -*/
+            /*- elif p.type in ['int', 'int32_t'] -*/
+              /*- set in_heap = 'heap_w32' -*/
               /*- do extra_simps.add('heap_w32_update_s32') -*/
-            /*- elif p.type.type in ['unsigned int', 'uint32_t'] -*/
-              /*- do in_heap.__setitem__(0, 'heap_w32') -*/
+            /*- elif p.type in ['unsigned int', 'uint32_t'] -*/
+              /*- set in_heap = 'heap_w32' -*/
               /*- do extra_simps.add('heap_w32_update_u32') -*/
-            /*- elif p.type.type == 'int64_t' -*/
-              /*- do in_heap.__setitem__(0, 'heap_w64') -*/
+            /*- elif p.type == 'int64_t' -*/
+              /*- set in_heap = 'heap_w64' -*/
               /*- do extra_simps.add('heap_w64_update_s64') -*/
-            /*- elif p.type.type == 'uint64_t' -*/
-              /*- do in_heap.__setitem__(0, 'heap_w64') -*/
+            /*- elif p.type == 'uint64_t' -*/
+              /*- set in_heap = 'heap_w64' -*/
               /*- do extra_simps.add('heap_w64_update_u64') -*/
             /*- else -*/
-              /*? raise(NotImplementedError()) ?*/
+              /*? raise(TemplateError('unsupported')) ?*/
             /*- endif -*/
             /*- for q in m.parameters -*/
-              /*- if q.type.type == 'int8_t' -*/
-                /*- do extra_simps.add('%s_update_s8' % in_heap[0]) -*/
-              /*- elif q.type.type in ['uint8_t', 'char'] -*/
-                /*- do extra_simps.add('%s_update_u8' % in_heap[0]) -*/
-              /*- elif q.type.type == 'int16_t' -*/
-                /*- do extra_simps.add('%s_update_s16' % in_heap[0]) -*/
-              /*- elif q.type.type == 'uint16_t' -*/
-                /*- do extra_simps.add('%s_update_u16' % in_heap[0]) -*/
-              /*- elif q.type.type in ['int', 'int32_t'] -*/
-                /*- do extra_simps.add('%s_update_s32' % in_heap[0]) -*/
-              /*- elif q.type.type in ['unsigned int', 'uint32_t'] -*/
-                /*- do extra_simps.add('%s_update_u32' % in_heap[0]) -*/
-              /*- elif q.type.type == 'int64_t' -*/
-                /*- do extra_simps.add('%s_update_s64' % in_heap[0]) -*/
-              /*- elif q.type.type == 'uint64_t' -*/
-                /*- do extra_simps.add('%s_update_u64' % in_heap[0]) -*/
+              /*- if q.type == 'int8_t' -*/
+                /*- do extra_simps.add('%s_update_s8' % in_heap) -*/
+              /*- elif q.type in ['uint8_t', 'char'] -*/
+                /*- do extra_simps.add('%s_update_u8' % in_heap) -*/
+              /*- elif q.type == 'int16_t' -*/
+                /*- do extra_simps.add('%s_update_s16' % in_heap) -*/
+              /*- elif q.type == 'uint16_t' -*/
+                /*- do extra_simps.add('%s_update_u16' % in_heap) -*/
+              /*- elif q.type in ['int', 'int32_t'] -*/
+                /*- do extra_simps.add('%s_update_s32' % in_heap) -*/
+              /*- elif q.type in ['unsigned int', 'uint32_t'] -*/
+                /*- do extra_simps.add('%s_update_u32' % in_heap) -*/
+              /*- elif q.type == 'int64_t' -*/
+                /*- do extra_simps.add('%s_update_s64' % in_heap) -*/
+              /*- elif q.type == 'uint64_t' -*/
+                /*- do extra_simps.add('%s_update_u64' % in_heap) -*/
               /*- else -*/
-                /*? raise(NotImplementedError()) ?*/
+                /*? raise(TemplateError('unsupported')) ?*/
               /*- endif -*/
             /*- endfor -*/
   /*? ' ' * (subgoals[0] - 1) ?*/apply (clarsimp simp:/*? ' '.join(extra_simps) ?*/)
@@ -947,24 +960,24 @@ lemma /*? me.to_interface.name ?*/_/*? m.name ?*/_internal_wp[/*? ', '.join(post
         /*# We'll need this information in a moment. #*/
         /*- set ptr_contains = set() -*/
         /*- for p in m.parameters -*/
-          /*- if p.type.type == 'int8_t' -*/
+          /*- if p.type == 'int8_t' -*/
             /*- do ptr_contains.add('ptr_contains_s8_def') -*/
-          /*- elif p.type.type in ['uint8_t', 'char'] -*/
+          /*- elif p.type in ['uint8_t', 'char'] -*/
             /*- do ptr_contains.add('ptr_contains_u8_def') -*/
-          /*- elif p.type.type == 'int16_t' -*/
+          /*- elif p.type == 'int16_t' -*/
             /*- do ptr_contains.add('ptr_contains_s16_def') -*/
-          /*- elif p.type.type == 'uint16_t' -*/
+          /*- elif p.type == 'uint16_t' -*/
             /*- do ptr_contains.add('ptr_contains_u16_def') -*/
-          /*- elif p.type.type in ['int32_t', 'int'] -*/
+          /*- elif p.type in ['int32_t', 'int'] -*/
             /*- do ptr_contains.add('ptr_contains_s32_def') -*/
-          /*- elif p.type.type in ['uint32_t', 'unsigned int'] -*/
+          /*- elif p.type in ['uint32_t', 'unsigned int'] -*/
             /*- do ptr_contains.add('ptr_contains_u32_def') -*/
-          /*- elif p.type.type == 'int64_t' -*/
+          /*- elif p.type == 'int64_t' -*/
             /*- do ptr_contains.add('ptr_contains_s64_def') -*/
-          /*- elif p.type.type == 'uint64_t' -*/
+          /*- elif p.type == 'uint64_t' -*/
             /*- do ptr_contains.add('ptr_contains_u64_def') -*/
           /*- else -*/
-            /*? raise(NotImplementedError()) ?*/
+            /*? raise(TemplateError('unsupported')) ?*/
           /*- endif -*/
         /*- endfor -*/
 
@@ -977,24 +990,24 @@ lemma /*? me.to_interface.name ?*/_/*? m.name ?*/_internal_wp[/*? ', '.join(post
 
   /*? ' ' * (subgoals[0] - 1) ?*/(* Instantiate the (post) contents of the IPC buffer. *)
         /*- if m.return_type is not none -*/
-          /*- if m.return_type.type == 'int8_t' -*/
+          /*- if m.return_type == 'int8_t' -*/
   /*? ' ' * (subgoals[0] - 1) ?*/apply (rule_tac x="scast rva" in exI) /*# FIXME: something more stable than rva here. #*/
-          /*- elif m.return_type.type in ['uint8_t', 'char'] -*/
+          /*- elif m.return_type in ['uint8_t', 'char'] -*/
   /*? ' ' * (subgoals[0] - 1) ?*/apply (rule_tac x="ucast rva" in exI)
-          /*- elif m.return_type.type == 'int16_t' -*/
+          /*- elif m.return_type == 'int16_t' -*/
   /*? ' ' * (subgoals[0] - 1) ?*/apply (rule_tac x="scast rva" in exI)
-          /*- elif m.return_type.type == 'uint16_t' -*/
+          /*- elif m.return_type == 'uint16_t' -*/
   /*? ' ' * (subgoals[0] - 1) ?*/apply (rule_tac x="ucast rva" in exI)
-          /*- elif m.return_type.type in ['int32_t', 'int'] -*/
+          /*- elif m.return_type in ['int32_t', 'int'] -*/
   /*? ' ' * (subgoals[0] - 1) ?*/apply (rule_tac x="scast rva" in exI)
-          /*- elif m.return_type.type in ['uint32_t', 'unsigned int'] -*/
+          /*- elif m.return_type in ['uint32_t', 'unsigned int'] -*/
   /*? ' ' * (subgoals[0] - 1) ?*/apply (rule_tac x=rva in exI)
-          /*- elif m.return_type.type == 'int64_t' -*/
+          /*- elif m.return_type == 'int64_t' -*/
   /*? ' ' * (subgoals[0] - 1) ?*/apply (rule_tac x="scast rva" in exI)
-          /*- elif m.return_type.type == 'uint64_t' -*/
+          /*- elif m.return_type == 'uint64_t' -*/
   /*? ' ' * (subgoals[0] - 1) ?*/apply (rule_tac x="ucast rva" in exI)
           /*- else -*/
-            /*? raise(NotImplementedError()) ?*/
+            /*? raise(TemplateError('unsupported')) ?*/
           /*- endif -*/
         /*- endif -*/
         /*- for i, p in enumerate(m.parameters) -*/
@@ -1006,30 +1019,29 @@ lemma /*? me.to_interface.name ?*/_/*? m.name ?*/_internal_wp[/*? ', '.join(post
           /*? assert(i == 0 or len(goal['params'][i]) == 1) ?*/
           /*- set param = goal['params'][i][0] -*/
           /*- if p.direction in ['inout', 'out'] -*/
-            /*- set deref = [None] -*/
-            /*- if p.type.type == 'int8_t' -*/
-              /*- do deref.__setitem__(0, 'ucast (heap_w8 s\' (ptr_coerce %s))') -*/
-            /*- elif p.type.type in ['uint8_t', 'char'] -*/
-              /*- do deref.__setitem__(0, 'heap_w8 s\' %s') -*/
-            /*- elif p.type.type == 'int16_t' -*/
-              /*- do deref.__setitem__(0, 'ucast (heap_w16 s\' (ptr_coerce %s))') -*/
-            /*- elif p.type.type == 'uint16_t' -*/
-              /*- do deref.__setitem__(0, 'heap_w16 s\' %s') -*/
-            /*- elif p.type.type in ['int32_t', 'int'] -*/
-              /*- do deref.__setitem__(0, 'ucast (heap_w32 s\' (ptr_coerce %s))') -*/
-            /*- elif p.type.type in ['uint32_t', 'unsigned int'] -*/
-              /*- do deref.__setitem__(0, 'heap_w32 s\' %s') -*/
-            /*- elif p.type.type == 'int64_t' -*/
-              /*- do deref.__setitem__(0, 'ucast (heap_w64 s\' (ptr_coerce %s))') -*/
-            /*- elif p.type.type == 'uint64_t' -*/
-              /*- do deref.__setitem__(0, 'heap_w64 s\' %s') -*/
+            /*- if p.type == 'int8_t' -*/
+              /*- set deref = 'ucast (heap_w8 s\' (ptr_coerce %s))' -*/
+            /*- elif p.type in ['uint8_t', 'char'] -*/
+              /*- set deref = 'heap_w8 s\' %s' -*/
+            /*- elif p.type == 'int16_t' -*/
+              /*- set deref = 'ucast (heap_w16 s\' (ptr_coerce %s))' -*/
+            /*- elif p.type == 'uint16_t' -*/
+              /*- set deref = 'heap_w16 s\' %s' -*/
+            /*- elif p.type in ['int32_t', 'int'] -*/
+              /*- set deref = 'ucast (heap_w32 s\' (ptr_coerce %s))' -*/
+            /*- elif p.type in ['uint32_t', 'unsigned int'] -*/
+              /*- set deref = 'heap_w32 s\' %s' -*/
+            /*- elif p.type == 'int64_t' -*/
+              /*- set deref = 'ucast (heap_w64 s\' (ptr_coerce %s))' -*/
+            /*- elif p.type == 'uint64_t' -*/
+              /*- set deref = 'heap_w64 s\' %s' -*/
             /*- else -*/
-              /*? raise(NotImplementedError()) ?*/
+              /*? raise(TemplateError('unsupported')) ?*/
             /*- endif -*/
             /*- if i == 0 and p.direction == 'inout' -*/
-  /*? ' ' * (subgoals[0] - 1) ?*/apply (rule_tac x="/*? deref[0] % 'rv' ?*/" in exI)
+  /*? ' ' * (subgoals[0] - 1) ?*/apply (rule_tac x="/*? deref % 'rv' ?*/" in exI)
             /*- else -*/
-  /*? ' ' * (subgoals[0] - 1) ?*/apply (rule_tac x="/*? deref[0] % '(Ptr (symbol_table \'\'%s\'\'))' % param ?*/" in exI)
+  /*? ' ' * (subgoals[0] - 1) ?*/apply (rule_tac x="/*? deref % '(Ptr (symbol_table \'\'%s\'\'))' % param ?*/" in exI)
             /*- endif -*/
           /*- endif -*/
         /*- endfor -*/
@@ -1073,21 +1085,21 @@ lemma /*? me.to_interface.name ?*/_/*? m.name ?*/_internal_wp[/*? ', '.join(post
 /*- set unfold_defs = set() -*/
 /*- if m.return_type is not none -*/
   /*- set packed_value = 'ret' -*/
-  /*- if m.return_type.type in ['char', 'uint8_t', 'int8_t', 'uint16_t', 'int16_t'] -*/
+  /*- if m.return_type in ['char', 'uint8_t', 'int8_t', 'uint16_t', 'int16_t'] -*/
     /*- do packed_payload.append(packed_value) -*/
     /*- do postconditions.append('r = ucast %s' % packed_value) -*/
-  /*- elif m.return_type.type in ['unsigned int', 'uint32_t'] -*/
+  /*- elif m.return_type in ['unsigned int', 'uint32_t'] -*/
     /*- do packed_payload.append(packed_value) -*/
     /*- do postconditions.append('r = %s' % packed_value) -*/
-  /*- elif m.return_type.type in ['int', 'int32_t'] -*/
+  /*- elif m.return_type in ['int', 'int32_t'] -*/
     /*- do packed_payload.append(packed_value) -*/
     /*- do postconditions.append('r = ucast %s' % packed_value) -*/
-  /*- elif m.return_type.type == 'uint64_t' -*/
+  /*- elif m.return_type == 'uint64_t' -*/
     /*- set packed_lower = '%s_lower' % packed_value -*/
     /*- set packed_upper = '%s_upper' % packed_value -*/
     /*- do packed_payload.extend([packed_lower, packed_upper]) -*/
     /*- do postconditions.append('r = ((ucast %s) || ((ucast %s) << 32))' % (packed_lower, packed_upper)) -*/
-  /*- elif m.return_type.type == 'int64_t' -*/
+  /*- elif m.return_type == 'int64_t' -*/
     /*- set packed_lower = '%s_lower' % packed_value -*/
     /*- set packed_upper = '%s_upper' % packed_value -*/
     /*- do packed_payload.extend([packed_lower, packed_upper]) -*/
@@ -1098,7 +1110,7 @@ lemma /*? me.to_interface.name ?*/_/*? m.name ?*/_internal_wp[/*? ', '.join(post
 /*- for i, p in enumerate(output_parameters) -*/
   /*- set param = 'p%d' % i -*/
   /*- set packed_value = '%s\'' % param -*/
-  /*- if p.type.type in ['char', 'uint8_t'] -*/
+  /*- if p.type in ['char', 'uint8_t'] -*/
     /*- do preconditions.append('ptr_valid_u8 s %s' % param) -*/
     /*- do packed_payload.append(packed_value) -*/
     /*- do postconditions.append('ptr_contains_u8 s %s (ucast %s)' % (param, packed_value)) -*/
@@ -1107,8 +1119,8 @@ lemma /*? me.to_interface.name ?*/_/*? m.name ?*/_internal_wp[/*? ', '.join(post
       /*- do distincts.__setitem__(8, []) -*/
     /*- endif -*/
     /*- do distincts[8].append('((ptr_coerce %s)::8 word ptr)' % param) -*/
-    /*- do map(unfold_defs.add, ('ptr_contains_u8_def', 'update_u8_def', 'ptr_valid_u8_def')) -*/
-  /*- elif p.type.type == 'int8_t' -*/
+    /*- do list(map(unfold_defs.add, ('ptr_contains_u8_def', 'update_u8_def', 'ptr_valid_u8_def'))) -*/
+  /*- elif p.type == 'int8_t' -*/
     /*- do preconditions.append('ptr_valid_s8 s %s' % param) -*/
     /*- do packed_payload.append(packed_value) -*/
     /*- do postconditions.append('ptr_contains_s8 s %s (ucast %s)' % (param, packed_value)) -*/
@@ -1117,8 +1129,8 @@ lemma /*? me.to_interface.name ?*/_/*? m.name ?*/_internal_wp[/*? ', '.join(post
       /*- do distincts.__setitem__(8, []) -*/
     /*- endif -*/
     /*- do distincts[8].append('((ptr_coerce %s)::8 word ptr)' % param) -*/
-    /*- do map(unfold_defs.add, ('ptr_contains_s8_def', 'update_s8_def', 'ptr_valid_s8_def')) -*/
-  /*- elif p.type.type == 'uint16_t' -*/
+    /*- do list(map(unfold_defs.add, ('ptr_contains_s8_def', 'update_s8_def', 'ptr_valid_s8_def'))) -*/
+  /*- elif p.type == 'uint16_t' -*/
     /*- do preconditions.append('ptr_valid_u16 s %s' % param) -*/
     /*- do packed_payload.append(packed_value) -*/
     /*- do postconditions.append('ptr_contains_u16 s %s (ucast %s)' % (param, packed_value)) -*/
@@ -1127,8 +1139,8 @@ lemma /*? me.to_interface.name ?*/_/*? m.name ?*/_internal_wp[/*? ', '.join(post
       /*- do distincts.__setitem__(16, []) -*/
     /*- endif -*/
     /*- do distincts[16].append('((ptr_coerce %s)::16 word ptr)' % param) -*/
-    /*- do map(unfold_defs.add, ('ptr_contains_u16_def', 'update_u16_def', 'ptr_valid_u16_def')) -*/
-  /*- elif p.type.type == 'int16_t' -*/
+    /*- do list(map(unfold_defs.add, ('ptr_contains_u16_def', 'update_u16_def', 'ptr_valid_u16_def'))) -*/
+  /*- elif p.type == 'int16_t' -*/
     /*- do preconditions.append('ptr_valid_s16 s %s' % param) -*/
     /*- do packed_payload.append(packed_value) -*/
     /*- do postconditions.append('ptr_contains_s16 s %s (ucast %s)' % (param, packed_value)) -*/
@@ -1137,8 +1149,8 @@ lemma /*? me.to_interface.name ?*/_/*? m.name ?*/_internal_wp[/*? ', '.join(post
       /*- do distincts.__setitem__(16, []) -*/
     /*- endif -*/
     /*- do distincts[16].append('((ptr_coerce %s)::16 word ptr)' % param) -*/
-    /*- do map(unfold_defs.add, ('ptr_contains_s16_def', 'update_s16_def', 'ptr_valid_s16_def')) -*/
-  /*- elif p.type.type in ['unsigned int', 'uint32_t'] -*/
+    /*- do list(map(unfold_defs.add, ('ptr_contains_s16_def', 'update_s16_def', 'ptr_valid_s16_def'))) -*/
+  /*- elif p.type in ['unsigned int', 'uint32_t'] -*/
     /*- do preconditions.append('ptr_valid_u32 s %s' % param) -*/
     /*- do packed_payload.append(packed_value) -*/
     /*- do postconditions.append('ptr_contains_u32 s %s %s' % (param, packed_value)) -*/
@@ -1147,8 +1159,8 @@ lemma /*? me.to_interface.name ?*/_/*? m.name ?*/_internal_wp[/*? ', '.join(post
       /*- do distincts.__setitem__(32, []) -*/
     /*- endif -*/
     /*- do distincts[32].append('((ptr_coerce %s)::32 word ptr)' % param) -*/
-    /*- do map(unfold_defs.add, ('ptr_contains_u32_def', 'update_u32_def', 'ptr_valid_u32_def')) -*/
-  /*- elif p.type.type in ['int', 'int32_t'] -*/
+    /*- do list(map(unfold_defs.add, ('ptr_contains_u32_def', 'update_u32_def', 'ptr_valid_u32_def'))) -*/
+  /*- elif p.type in ['int', 'int32_t'] -*/
     /*- do preconditions.append('ptr_valid_s32 s %s' % param) -*/
     /*- do packed_payload.append(packed_value) -*/
     /*- do postconditions.append('ptr_contains_s32 s %s (ucast %s)' % (param, packed_value)) -*/
@@ -1157,8 +1169,8 @@ lemma /*? me.to_interface.name ?*/_/*? m.name ?*/_internal_wp[/*? ', '.join(post
       /*- do distincts.__setitem__(32, []) -*/
     /*- endif -*/
     /*- do distincts[32].append('((ptr_coerce %s)::32 word ptr)' % param) -*/
-    /*- do map(unfold_defs.add, ('ptr_contains_s32_def', 'update_s32_def', 'ptr_valid_s32_def')) -*/
-  /*- elif p.type.type == 'uint64_t' -*/
+    /*- do list(map(unfold_defs.add, ('ptr_contains_s32_def', 'update_s32_def', 'ptr_valid_s32_def'))) -*/
+  /*- elif p.type == 'uint64_t' -*/
     /*- set packed_lower = '%s_lower' % packed_value -*/
     /*- set packed_upper = '%s_upper' % packed_value -*/
     /*- do preconditions.append('ptr_valid_u64 s %s' % param) -*/
@@ -1169,8 +1181,8 @@ lemma /*? me.to_interface.name ?*/_/*? m.name ?*/_internal_wp[/*? ', '.join(post
       /*- do distincts.__setitem__(64, []) -*/
     /*- endif -*/
     /*- do distincts[64].append('((ptr_coerce %s)::64 word ptr)' % param) -*/
-    /*- do map(unfold_defs.add, ('ptr_contains_u64_def', 'update_u64_def', 'ptr_valid_u64_def')) -*/
-  /*- elif p.type.type == 'int64_t' -*/
+    /*- do list(map(unfold_defs.add, ('ptr_contains_u64_def', 'update_u64_def', 'ptr_valid_u64_def'))) -*/
+  /*- elif p.type == 'int64_t' -*/
     /*- set packed_lower = '%s_lower' % packed_value -*/
     /*- set packed_upper = '%s_upper' % packed_value -*/
     /*- do preconditions.append('ptr_valid_s64 s %s' % param) -*/
@@ -1181,7 +1193,7 @@ lemma /*? me.to_interface.name ?*/_/*? m.name ?*/_internal_wp[/*? ', '.join(post
       /*- do distincts.__setitem__(64, []) -*/
     /*- endif -*/
     /*- do distincts[64].append('((ptr_coerce %s)::64 word ptr)' % param) -*/
-    /*- do map(unfold_defs.add, ('ptr_contains_s64_def', 'update_s64_def', 'ptr_valid_s64_def')) -*/
+    /*- do list(map(unfold_defs.add, ('ptr_contains_s64_def', 'update_s64_def', 'ptr_valid_s64_def'))) -*/
   /*- endif -*/
   /*- do params.append(param) -*/
 /*- endfor -*/
@@ -1196,12 +1208,12 @@ lemma /*? me.to_interface.name ?*/_/*? m.name ?*/_internal_wp[/*? ', '.join(post
 /*- do postconditions.append('s = %s' % effect[0]) -*/
 /*# Lemmas chain to apply after proof completion. #*/
 /*- set postprocessing = len(packed_payload) * ['THEN all_pair_unwrap[THEN iffD2]'] + ['THEN validNF_make_schematic_post', 'simplified'] -*/
-lemma /*? me.from_interface.name ?*/_/*? m.name ?*/_unmarshal_wp[/*? ', '.join(postprocessing) ?*/]:
+lemma /*? me.parent.from_interface.name ?*/_/*? m.name ?*/_unmarshal_wp[/*? ', '.join(postprocessing) ?*/]:
   "\<forall>/*? ' '.join(bound) ?*/. \<lbrace>\<lambda>s. /*? ' \\<and> '.join(preconditions) ?*/\<rbrace>
-          /*? me.from_interface.name ?*/_/*? m.name ?*/_unmarshal' /*? ' '.join(params) ?*/
+          /*? me.parent.from_interface.name ?*/_/*? m.name ?*/_unmarshal' /*? ' '.join(params) ?*/
         \<lbrace>\<lambda>r s. /*? ' \\<and> '.join(postconditions) ?*/\<rbrace>!"
   apply (rule allI)+
-  unfolding /*? me.from_interface.name ?*/_/*? m.name ?*/_unmarshal'_def
+  unfolding /*? me.parent.from_interface.name ?*/_/*? m.name ?*/_unmarshal'_def
   apply (wp seL4_GetMR_wp)
   apply (clarsimp simp:packed_def seL4_MsgMaxLength_def ucast_id /*? ' '.join(unfold_defs) ?*/)
   /*# XXX: Really quite upsetting that the simplifier needs an assist here to
@@ -1239,56 +1251,56 @@ lemma /*? me.from_interface.name ?*/_/*? m.name ?*/_unmarshal_wp[/*? ', '.join(p
     /*- do marshal_params.append(param) -*/
     /*- do postcondition_params.append(param) -*/
     /*- do unmarshal_params.append('%s_out' % param) -*/
-    /*- if p.type.type == 'int8_t' -*/
+    /*- if p.type == 'int8_t' -*/
       /*- do postcondition_params.append('(ucast (heap_w8 s (ptr_coerce %s_out)))' % param) -*/
       /*- do preconditions.append('ptr_valid_s8 s %s_out' % param) -*/
       /*- if 8 not in ptr_distincts -*/
         /*- do ptr_distincts.__setitem__(8, []) -*/
       /*- endif -*/
       /*- do ptr_distincts[8].append('%s_out' % param) -*/
-    /*- elif p.type.type in ['uint8_t', 'char'] -*/
+    /*- elif p.type in ['uint8_t', 'char'] -*/
       /*- do postcondition_params.append('(heap_w8 s %s_out)' % param) -*/
       /*- do preconditions.append('ptr_valid_u8 s %s_out' % param) -*/
       /*- if 8 not in ptr_distincts -*/
         /*- do ptr_distincts.__setitem__(8, []) -*/
       /*- endif -*/
       /*- do ptr_distincts[8].append('%s_out' % param) -*/
-    /*- elif p.type.type == 'int16_t' -*/
+    /*- elif p.type == 'int16_t' -*/
       /*- do postcondition_params.append('(ucast (heap_w16 s (ptr_coerce %s_out)))' % param) -*/
       /*- do preconditions.append('ptr_valid_s16 s %s_out' % param) -*/
       /*- if 16 not in ptr_distincts -*/
         /*- do ptr_distincts.__setitem__(16, []) -*/
       /*- endif -*/
       /*- do ptr_distincts[16].append('%s_out' % param) -*/
-    /*- elif p.type.type == 'uint16_t' -*/
+    /*- elif p.type == 'uint16_t' -*/
       /*- do postcondition_params.append('(heap_w16 s %s_out)' % param) -*/
       /*- do preconditions.append('ptr_valid_u16 s %s_out' % param) -*/
       /*- if 16 not in ptr_distincts -*/
         /*- do ptr_distincts.__setitem__(16, []) -*/
       /*- endif -*/
       /*- do ptr_distincts[16].append('%s_out' % param) -*/
-    /*- elif p.type.type in ['int32_t', 'int'] -*/
+    /*- elif p.type in ['int32_t', 'int'] -*/
       /*- do postcondition_params.append('(ucast (heap_w32 s (ptr_coerce %s_out)))' % param) -*/
       /*- do preconditions.append('ptr_valid_s32 s %s_out' % param) -*/
       /*- if 32 not in ptr_distincts -*/
         /*- do ptr_distincts.__setitem__(32, []) -*/
       /*- endif -*/
       /*- do ptr_distincts[32].append('%s_out' % param) -*/
-    /*- elif p.type.type in ['uint32_t', 'unsigned int'] -*/
+    /*- elif p.type in ['uint32_t', 'unsigned int'] -*/
       /*- do postcondition_params.append('(heap_w32 s %s_out)' % param) -*/
       /*- do preconditions.append('ptr_valid_u32 s %s_out' % param) -*/
       /*- if 32 not in ptr_distincts -*/
         /*- do ptr_distincts.__setitem__(32, []) -*/
       /*- endif -*/
       /*- do ptr_distincts[32].append('%s_out' % param) -*/
-    /*- elif p.type.type == 'int64_t' -*/
+    /*- elif p.type == 'int64_t' -*/
       /*- do postcondition_params.append('(ucast (heap_w64 s (ptr_coerce %s_out)))' % param) -*/
       /*- do preconditions.append('ptr_valid_s64 s %s_out' % param) -*/
       /*- if 64 not in ptr_distincts -*/
         /*- do ptr_distincts.__setitem__(64, []) -*/
       /*- endif -*/
       /*- do ptr_distincts[64].append('%s_out' % param) -*/
-    /*- elif p.type.type == 'uint64_t' -*/
+    /*- elif p.type == 'uint64_t' -*/
       /*- do postcondition_params.append('(heap_w64 s %s_out)' % param) -*/
       /*- do preconditions.append('ptr_valid_u64 s %s_out' % param) -*/
       /*- if 64 not in ptr_distincts -*/
@@ -1296,62 +1308,62 @@ lemma /*? me.from_interface.name ?*/_/*? m.name ?*/_unmarshal_wp[/*? ', '.join(p
       /*- endif -*/
       /*- do ptr_distincts[64].append('%s_out' % param) -*/
     /*- else -*/
-      /*? raise(NotImplementedError()) ?*/
+      /*? raise(TemplateError('unsupported')) ?*/
     /*- endif -*/
 
   /*- else -*/
     /*? assert(p.direction == 'out') ?*/
     /*- do unmarshal_params.append(param) -*/
-    /*- if p.type.type == 'int8_t' -*/
+    /*- if p.type == 'int8_t' -*/
       /*- do postcondition_params.append('(ucast (heap_w8 s (ptr_coerce %s)))' % param) -*/
       /*- do preconditions.append('ptr_valid_s8 s %s' % param) -*/
       /*- if 8 not in ptr_distincts -*/
         /*- do ptr_distincts.__setitem__(8, []) -*/
       /*- endif -*/
       /*- do ptr_distincts[8].append(param) -*/
-    /*- elif p.type.type in ['uint8_t', 'char'] -*/
+    /*- elif p.type in ['uint8_t', 'char'] -*/
       /*- do postcondition_params.append('(heap_w8 s %s)' % param) -*/
       /*- do preconditions.append('ptr_valid_u8 s %s' % param) -*/
       /*- if 8 not in ptr_distincts -*/
         /*- do ptr_distincts.__setitem__(8, []) -*/
       /*- endif -*/
       /*- do ptr_distincts[8].append(param) -*/
-    /*- elif p.type.type == 'int16_t' -*/
+    /*- elif p.type == 'int16_t' -*/
       /*- do postcondition_params.append('(ucast (heap_w16 s (ptr_coerce %s)))' % param) -*/
       /*- do preconditions.append('ptr_valid_s16 s %s' % param) -*/
       /*- if 16 not in ptr_distincts -*/
         /*- do ptr_distincts.__setitem__(16, []) -*/
       /*- endif -*/
       /*- do ptr_distincts[16].append(param) -*/
-    /*- elif p.type.type == 'uint16_t' -*/
+    /*- elif p.type == 'uint16_t' -*/
       /*- do postcondition_params.append('(heap_w16 s %s)' % param) -*/
       /*- do preconditions.append('ptr_valid_u16 s %s' % param) -*/
       /*- if 16 not in ptr_distincts -*/
         /*- do ptr_distincts.__setitem__(16, []) -*/
       /*- endif -*/
       /*- do ptr_distincts[16].append(param) -*/
-    /*- elif p.type.type in ['int32_t', 'int'] -*/
+    /*- elif p.type in ['int32_t', 'int'] -*/
       /*- do postcondition_params.append('(ucast (heap_w32 s (ptr_coerce %s)))' % param) -*/
       /*- do preconditions.append('ptr_valid_s32 s %s' % param) -*/
       /*- if 32 not in ptr_distincts -*/
         /*- do ptr_distincts.__setitem__(32, []) -*/
       /*- endif -*/
       /*- do ptr_distincts[32].append(param) -*/
-    /*- elif p.type.type in ['uint32_t', 'unsigned int'] -*/
+    /*- elif p.type in ['uint32_t', 'unsigned int'] -*/
       /*- do postcondition_params.append('(heap_w32 s %s)' % param) -*/
       /*- do preconditions.append('ptr_valid_u32 s %s' % param) -*/
       /*- if 32 not in ptr_distincts -*/
         /*- do ptr_distincts.__setitem__(32, []) -*/
       /*- endif -*/
       /*- do ptr_distincts[32].append(param) -*/
-    /*- elif p.type.type == 'int64_t' -*/
+    /*- elif p.type == 'int64_t' -*/
       /*- do postcondition_params.append('(ucast (heap_w64 s (ptr_coerce %s)))' % param) -*/
       /*- do preconditions.append('ptr_valid_s64 s %s' % param) -*/
       /*- if 64 not in ptr_distincts -*/
         /*- do ptr_distincts.__setitem__(64, []) -*/
       /*- endif -*/
       /*- do ptr_distincts[64].append(param) -*/
-    /*- elif p.type.type == 'uint64_t' -*/
+    /*- elif p.type == 'uint64_t' -*/
       /*- do postcondition_params.append('(heap_w64 s %s)' % param) -*/
       /*- do preconditions.append('ptr_valid_u64 s %s' % param) -*/
       /*- if 64 not in ptr_distincts -*/
@@ -1359,7 +1371,7 @@ lemma /*? me.from_interface.name ?*/_/*? m.name ?*/_unmarshal_wp[/*? ', '.join(p
       /*- endif -*/
       /*- do ptr_distincts[64].append(param) -*/
     /*- else -*/
-      /*? raise(NotImplementedError()) ?*/
+      /*? raise(TemplateError('unsupported')) ?*/
     /*- endif -*/
 
   /*- endif -*/
@@ -1378,31 +1390,29 @@ lemma /*? me.from_interface.name ?*/_/*? m.name ?*/_unmarshal_wp[/*? ', '.join(p
 /*- set orthogonal_updates = [] -*/
 /*- for i, p in enumerate(m.parameters) -*/
   /*- if p.direction in ['inout', 'out'] -*/
-    /*- set param = [None] -*/
     /*- if p.direction == 'inout' -*/
-      /*- do param.__setitem__(0, 'p%d_out' % i) -*/
+      /*- set param = 'p%d_out' % i -*/
     /*- else -*/
-      /*- do param.__setitem__(0, 'p%d' % i) -*/
+      /*- set param = 'p%d' % i -*/
     /*- endif -*/
-    /*- set param = param[0] -*/
-    /*- if p.type.type == 'int8_t' -*/
+    /*- if p.type == 'int8_t' -*/
       /*- do orthogonal_updates.append('update_s8 s2 %s' % param) -*/
-    /*- elif p.type.type in ['uint8_t', 'char'] -*/
+    /*- elif p.type in ['uint8_t', 'char'] -*/
       /*- do orthogonal_updates.append('update_u8 s2 %s' % param) -*/
-    /*- elif p.type.type == 'int16_t' -*/
+    /*- elif p.type == 'int16_t' -*/
       /*- do orthogonal_updates.append('update_s16 s2 %s' % param) -*/
-    /*- elif p.type.type == 'uint16_t' -*/
+    /*- elif p.type == 'uint16_t' -*/
       /*- do orthogonal_updates.append('update_u16 s2 %s' % param) -*/
-    /*- elif p.type.type in ['int32_t', 'int'] -*/
+    /*- elif p.type in ['int32_t', 'int'] -*/
       /*- do orthogonal_updates.append('update_s32 s2 %s' % param) -*/
-    /*- elif p.type.type in ['uint32_t', 'unsigned int'] -*/
+    /*- elif p.type in ['uint32_t', 'unsigned int'] -*/
       /*- do orthogonal_updates.append('update_u32 s2 %s' % param) -*/
-    /*- elif p.type.type == 'int64_t' -*/
+    /*- elif p.type == 'int64_t' -*/
       /*- do orthogonal_updates.append('update_s64 s2 %s' % param) -*/
-    /*- elif p.type.type == 'uint64_t' -*/
+    /*- elif p.type == 'uint64_t' -*/
       /*- do orthogonal_updates.append('update_u64 s2 %s' % param) -*/
     /*- else -*/
-      /*? raise(NotImplementedError()) ?*/
+      /*? raise(TemplateError('unsupported')) ?*/
     /*- endif -*/
   /*- endif -*/
 /*- endfor -*/
@@ -1413,17 +1423,17 @@ lemma /*? me.from_interface.name ?*/_/*? m.name ?*/_unmarshal_wp[/*? ', '.join(p
 /*- do preconditions.append('%s %s' % (user_preconditions[m.name], ' '.join(precondition_params))) -*/
 /*- do postconditions.append('%s %s' % (user_postconditions[m.name], ' '.join(postcondition_params))) -*/
 
-lemma /*? me.from_interface.name ?*/_/*? me.to_interface.name ?*/_/*? m.name ?*/_equiv_wp:
+lemma /*? me.parent.from_interface.name ?*/_/*? me.parent.to_interface.name ?*/_/*? m.name ?*/_equiv_wp:
   "\<forall>s0. \<lbrace>\<lambda>s. /*? ' \<and> '.join(preconditions) ?*/\<rbrace>
-          do /*? me.from_interface.name ?*/_/*? m.name ?*/_marshal' /*? ' '.join(marshal_params) ?*/;
-             /*? me.to_interface.name ?*/_/*? m.name ?*/_internal';
-             /*? me.from_interface.name ?*/_/*? m.name ?*/_unmarshal' /*? ' '.join(unmarshal_params) ?*/
+          do /*? me.parent.from_interface.name ?*/_/*? m.name ?*/_marshal' /*? ' '.join(marshal_params) ?*/;
+             /*? me.parent.to_interface.name ?*/_/*? m.name ?*/_internal';
+             /*? me.parent.from_interface.name ?*/_/*? m.name ?*/_unmarshal' /*? ' '.join(unmarshal_params) ?*/
           od
         \<lbrace>\<lambda>r s. /*? ' \<and> '.join(postconditions) ?*/\<rbrace>!"
   apply (rule allI)+
-  apply (wp /*? me.from_interface.name ?*/_/*? m.name ?*/_unmarshal_wp
-            /*? me.to_interface.name ?*/_/*? m.name ?*/_internal_wp
-            /*? me.from_interface.name ?*/_/*? m.name ?*/_marshal_wp)
+  apply (wp /*? me.parent.from_interface.name ?*/_/*? m.name ?*/_unmarshal_wp
+            /*? me.parent.to_interface.name ?*/_/*? m.name ?*/_internal_wp
+            /*? me.parent.from_interface.name ?*/_/*? m.name ?*/_marshal_wp)
   apply clarsimp
   /*- for i, p in enumerate(m.parameters) -*/
     /*- if p.direction in ['in', 'inout'] -*/
@@ -1433,24 +1443,24 @@ lemma /*? me.from_interface.name ?*/_/*? me.to_interface.name ?*/_/*? m.name ?*/
 
   /*- set ptr_valids = set() -*/
   /*- for p in output_parameters -*/
-    /*- if p.type.type == 'int8_t' -*/
+    /*- if p.type == 'int8_t' -*/
       /*- do ptr_valids.add('ptr_valid_s8_stable_%s' % m.name) -*/
-    /*- elif p.type.type in ['uint8_t', 'char'] -*/
+    /*- elif p.type in ['uint8_t', 'char'] -*/
       /*- do ptr_valids.add('ptr_valid_u8_stable_%s' % m.name) -*/
-    /*- elif p.type.type == 'int16_t' -*/
+    /*- elif p.type == 'int16_t' -*/
       /*- do ptr_valids.add('ptr_valid_s16_stable_%s' % m.name) -*/
-    /*- elif p.type.type == 'uint16_t' -*/
+    /*- elif p.type == 'uint16_t' -*/
       /*- do ptr_valids.add('ptr_valid_u16_stable_%s' % m.name) -*/
-    /*- elif p.type.type in ['int32_t', 'int'] -*/
+    /*- elif p.type in ['int32_t', 'int'] -*/
       /*- do ptr_valids.add('ptr_valid_s32_stable_%s' % m.name) -*/
-    /*- elif p.type.type in ['uint32_t', 'unsigned int'] -*/
+    /*- elif p.type in ['uint32_t', 'unsigned int'] -*/
       /*- do ptr_valids.add('ptr_valid_u32_stable_%s' % m.name) -*/
-    /*- elif p.type.type == 'int64_t' -*/
+    /*- elif p.type == 'int64_t' -*/
       /*- do ptr_valids.add('ptr_valid_s64_stable_%s' % m.name) -*/
-    /*- elif p.type.type == 'uint64_t' -*/
+    /*- elif p.type == 'uint64_t' -*/
       /*- do ptr_valids.add('ptr_valid_u64_stable_%s' % m.name) -*/
     /*- else -*/
-      /*? raise(NotImplementedError()) ?*/
+      /*? raise(TemplateError('unsupported')) ?*/
     /*- endif -*/
   /*- endfor -*/
   /*- if len(input_parameters) > 0 or len(ptr_valids) > 0 -*/
@@ -1462,67 +1472,66 @@ lemma /*? me.from_interface.name ?*/_/*? me.to_interface.name ?*/_/*? m.name ?*/
   /*- endif -*/
 
   /*- if m.return_type is not none -*/
-    /*- if m.return_type.type == 'int8_t' -*/
+    /*- if m.return_type == 'int8_t' -*/
   apply (rule_tac x="scast ru" in exI)
-    /*- elif m.return_type.type in ['uint8_t', 'char'] -*/
+    /*- elif m.return_type in ['uint8_t', 'char'] -*/
   apply (rule_tac x="ucast ru" in exI)
-    /*- elif m.return_type.type == 'int16_t' -*/
+    /*- elif m.return_type == 'int16_t' -*/
   apply (rule_tac x="scast ru" in exI)
-    /*- elif m.return_type.type == 'uint16_t' -*/
+    /*- elif m.return_type == 'uint16_t' -*/
   apply (rule_tac x="ucast ru" in exI)
-    /*- elif m.return_type.type in ['int32_t', 'int'] -*/
+    /*- elif m.return_type in ['int32_t', 'int'] -*/
   apply (rule_tac x="scast ru" in exI)
-    /*- elif m.return_type.type in ['uint32_t', 'unsigned int'] -*/
+    /*- elif m.return_type in ['uint32_t', 'unsigned int'] -*/
   apply (rule_tac x=ru in exI)
-    /*- elif m.return_type.type == 'int64_t' -*/
+    /*- elif m.return_type == 'int64_t' -*/
   apply (rule_tac x="scast ru" in exI)
   apply (rule_tac x="ucast (((scast ru)::64 word) >> 32)" in exI)
-    /*- elif m.return_type.type == 'uint64_t' -*/
+    /*- elif m.return_type == 'uint64_t' -*/
   apply (rule_tac x="ucast ru" in exI)
   apply (rule_tac x="ucast (ru >> 32)" in exI)
     /*- else -*/
-      /*? raise(NotImplementedError()) ?*/
+      /*? raise(TemplateError('unsupported')) ?*/
     /*- endif -*/
   /*- endif -*/
 
   /*- set heap_update_fns = set() -*/
   /*- for i, p in enumerate(m.parameters) -*/
     /*- if p.direction in ['inout', 'out'] -*/
-      /*- set param = [None] -*/
       /*- if p.direction == 'inout' -*/
-        /*- do param.__setitem__(0, 'p%d_outa' % i) -*/
+        /*- set param = 'p%d_outa' % i -*/
       /*- else -*/
         /*? assert(p.direction == 'out') ?*/
-        /*- do param.__setitem__(0, 'p%da' % i) -*/
+        /*- set param = 'p%da' % i -*/
       /*- endif -*/
-      /*- if p.type.type == 'int8_t' -*/
-  apply (rule_tac x="scast /*? param[0] ?*/" in exI)
+      /*- if p.type == 'int8_t' -*/
+  apply (rule_tac x="scast /*? param ?*/" in exI)
         /*- do heap_update_fns.add('heap_w8_update_s8') -*/
-      /*- elif p.type.type in ['uint8_t', 'char'] -*/
-  apply (rule_tac x="ucast /*? param[0] ?*/" in exI)
+      /*- elif p.type in ['uint8_t', 'char'] -*/
+  apply (rule_tac x="ucast /*? param ?*/" in exI)
         /*- do heap_update_fns.add('heap_w8_update_u8') -*/
-      /*- elif p.type.type == 'int16_t' -*/
-  apply (rule_tac x="scast /*? param[0] ?*/" in exI)
+      /*- elif p.type == 'int16_t' -*/
+  apply (rule_tac x="scast /*? param ?*/" in exI)
         /*- do heap_update_fns.add('heap_w16_update_s16') -*/
-      /*- elif p.type.type == 'uint16_t' -*/
-  apply (rule_tac x="ucast /*? param[0] ?*/" in exI)
+      /*- elif p.type == 'uint16_t' -*/
+  apply (rule_tac x="ucast /*? param ?*/" in exI)
         /*- do heap_update_fns.add('heap_w16_update_u16') -*/
-      /*- elif p.type.type in ['int32_t', 'int'] -*/
-  apply (rule_tac x="scast /*? param[0] ?*/" in exI)
+      /*- elif p.type in ['int32_t', 'int'] -*/
+  apply (rule_tac x="scast /*? param ?*/" in exI)
         /*- do heap_update_fns.add('heap_w32_update_s32') -*/
-      /*- elif p.type.type in ['uint32_t', 'unsigned int'] -*/
-  apply (rule_tac x=/*? param[0] ?*/ in exI)
+      /*- elif p.type in ['uint32_t', 'unsigned int'] -*/
+  apply (rule_tac x=/*? param ?*/ in exI)
         /*- do heap_update_fns.add('heap_w32_update_u32') -*/
-      /*- elif p.type.type == 'int64_t' -*/
-  apply (rule_tac x="scast /*? param[0] ?*/" in exI)
-  apply (rule_tac x="ucast (((scast /*? param[0] ?*/)::64 word) >> 32)" in exI)
+      /*- elif p.type == 'int64_t' -*/
+  apply (rule_tac x="scast /*? param ?*/" in exI)
+  apply (rule_tac x="ucast (((scast /*? param ?*/)::64 word) >> 32)" in exI)
         /*- do heap_update_fns.add('heap_w64_update_s64') -*/
-      /*- elif p.type.type == 'uint64_t' -*/
-  apply (rule_tac x="ucast /*? param[0] ?*/" in exI)
-  apply (rule_tac x="ucast (/*? param[0] ?*/ >> 32)" in exI)
+      /*- elif p.type == 'uint64_t' -*/
+  apply (rule_tac x="ucast /*? param ?*/" in exI)
+  apply (rule_tac x="ucast (/*? param ?*/ >> 32)" in exI)
         /*- do heap_update_fns.add('heap_w64_update_u64') -*/
       /*- else -*/
-        /*? raise(NotImplementedError()) ?*/
+        /*? raise(TemplateError('unsupported')) ?*/
       /*- endif -*/
     /*- endif -*/
   /*- endfor -*/
@@ -1538,7 +1547,7 @@ lemma /*? me.from_interface.name ?*/_/*? me.to_interface.name ?*/_/*? m.name ?*/
   /*# For some reason that's not clear to me, signed 64-bit return types cause
    *# part of the goal not to be solved by clarsimp alone.
    #*/
-  /*- if m.return_type is not none and m.return_type.type == 'int64_t' -*/
+  /*- if m.return_type == 'int64_t' -*/
   apply (metis chunk_64 ucast_scast_id)
   /*- endif -*/
 

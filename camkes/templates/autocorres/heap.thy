@@ -1,3 +1,13 @@
+/*#
+ *# Copyright 2015, NICTA
+ *#
+ *# This software may be distributed and modified according to the terms of
+ *# the BSD 2-Clause license. Note that NO WARRANTY is provided.
+ *# See "LICENSE_BSD2.txt" for details.
+ *#
+ *# @TAG(NICTA_BSD)
+ #*/
+
 /*- if 'autocorres/heap.thy' not in included -*/
 /*- do included.add('autocorres/heap.thy') -*/
 
@@ -138,7 +148,7 @@ lemma /*? name ?*/[simp]: "/*? is_valid_fn ?*/ (/*? update_fn ?*/ s p v) = /*? i
 /*- for m in interface.methods -*/
 /*- for p in m.parameters -*/
 
-/*- if p.type.type in ['int', 'int32_t'] -*/
+/*- if p.type in ['int', 'int32_t'] -*/
   /*# Lemmas and defs for signed 32-bit heap. #*/
   /*? update_t_def(heap_lemmas, 32, True) ?*/
   /*? heap_t_update_preserves_inv(heap_lemmas, 32) ?*/
@@ -160,7 +170,7 @@ lemma /*? name ?*/[simp]: "/*? is_valid_fn ?*/ (/*? update_fn ?*/ s p v) = /*? i
     /*? is_valid_update_t(heap_lemmas, 32, True, 64) ?*/
   /*- endif -*/
 
-/*- elif p.type.type in ['unsigned int', 'uint32_t'] -*/
+/*- elif p.type in ['unsigned int', 'uint32_t'] -*/
   /*# Lemmas and defs for unsigned 32-bit heap. #*/
   /*? update_t_def(heap_lemmas, 32, False) ?*/
   /*? heap_t_update_preserves_inv(heap_lemmas, 32) ?*/
@@ -182,7 +192,7 @@ lemma /*? name ?*/[simp]: "/*? is_valid_fn ?*/ (/*? update_fn ?*/ s p v) = /*? i
     /*? is_valid_update_t(heap_lemmas, 32, False, 64) ?*/
   /*- endif -*/
 
-/*- elif p.type.type == 'int8_t' -*/
+/*- elif p.type == 'int8_t' -*/
   /*# Lemmas and defs for signed 8-bit heap. #*/
   /*? update_t_def(heap_lemmas, 8, True) ?*/
   /*? heap_t_update_preserves_inv(heap_lemmas, 8) ?*/
@@ -205,7 +215,7 @@ lemma /*? name ?*/[simp]: "/*? is_valid_fn ?*/ (/*? update_fn ?*/ s p v) = /*? i
     /*? is_valid_update_t(heap_lemmas, 8, True, 64) ?*/
   /*- endif -*/
 
-/*- elif p.type.type in ['char', 'uint8_t'] -*/
+/*- elif p.type in ['char', 'uint8_t'] -*/
   /*# Lemmas and defs for unsigned 8-bit heap. #*/
   /*? update_t_def(heap_lemmas, 8, False) ?*/
   /*? heap_t_update_preserves_inv(heap_lemmas, 8) ?*/
@@ -228,7 +238,7 @@ lemma /*? name ?*/[simp]: "/*? is_valid_fn ?*/ (/*? update_fn ?*/ s p v) = /*? i
     /*? is_valid_update_t(heap_lemmas, 8, False, 64) ?*/
   /*- endif -*/
 
-/*- elif p.type.type == 'int16_t' -*/
+/*- elif p.type == 'int16_t' -*/
   /*# Lemmas and defs for signed 16-bit heap. #*/
   /*? update_t_def(heap_lemmas, 16, True) ?*/
   /*? heap_t_update_preserves_inv(heap_lemmas, 16) ?*/
@@ -251,7 +261,7 @@ lemma /*? name ?*/[simp]: "/*? is_valid_fn ?*/ (/*? update_fn ?*/ s p v) = /*? i
     /*? is_valid_update_t(heap_lemmas, 16, True, 64) ?*/
   /*- endif -*/
 
-/*- elif p.type.type == 'uint16_t' -*/
+/*- elif p.type == 'uint16_t' -*/
   /*# Lemmas and defs for unsigned 16-bit heap. #*/
   /*? update_t_def(heap_lemmas, 16, False) ?*/
   /*? heap_t_update_preserves_inv(heap_lemmas, 16) ?*/
@@ -274,7 +284,7 @@ lemma /*? name ?*/[simp]: "/*? is_valid_fn ?*/ (/*? update_fn ?*/ s p v) = /*? i
     /*? is_valid_update_t(heap_lemmas, 16, False, 64) ?*/
   /*- endif -*/
 
-/*- elif p.type.type == 'uint64_t' -*/
+/*- elif p.type == 'uint64_t' -*/
   /*# Lemmas and defs for unsigned 64-bit heap. #*/
   /*? update_t_def(heap_lemmas, 64, False) ?*/
   /*? heap_t_update_preserves_inv(heap_lemmas, 64) ?*/
@@ -296,7 +306,7 @@ lemma /*? name ?*/[simp]: "/*? is_valid_fn ?*/ (/*? update_fn ?*/ s p v) = /*? i
   /*- endif -*/
   /*? is_valid_update_t(heap_lemmas, 64, False, 64) ?*/
 
-/*- elif p.type.type == 'int64_t' -*/
+/*- elif p.type == 'int64_t' -*/
   /*# Lemmas and defs for unsigned 64-bit heap. #*/
   /*? update_t_def(heap_lemmas, 64, True) ?*/
   /*? heap_t_update_preserves_inv(heap_lemmas, 64) ?*/

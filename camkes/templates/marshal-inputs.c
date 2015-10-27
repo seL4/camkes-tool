@@ -1,16 +1,26 @@
+/*#
+ *# Copyright 2015, NICTA
+ *#
+ *# This software may be distributed and modified according to the terms of
+ *# the BSD 2-Clause license. Note that NO WARRANTY is provided.
+ *# See "LICENSE_BSD2.txt" for details.
+ *#
+ *# @TAG(NICTA_BSD)
+ #*/
+
 /*# We expect the following variables to be defined when this fragment is
  *# included.
  #*/
-/*? assert(isinstance(instance, basestring)) ?*/      /*# Name of this component instance #*/
-/*? assert(isinstance(interface, basestring)) ?*/     /*# Name of this interface #*/
-/*? assert(isinstance(name, basestring)) ?*/          /*# Name of this method #*/
-/*? assert(isinstance(function, basestring)) ?*/      /*# Name of function to create #*/
-/*? assert(isinstance(buffer, basestring)) ?*/        /*# Buffer symbol (or expression) to marshal into #*/
-/*? assert(isinstance(size, basestring)) ?*/          /*# Length of the buffer; possibly not generation-time constant #*/
-/*? assert(isinstance(method_index, int)) ?*/  /*# Index of this method in the containing interface #*/
-/*? assert(isinstance(methods_len, int)) ?*/   /*# Total number of methods in this interface #*/
-/*? assert(isinstance(input_parameters, list)) ?*/   /*# All input parameters to this method #*/
-/*? assert(isinstance(error_handler, basestring)) ?*/ /*# Handler to invoke on error #*/
+/*? assert(isinstance(instance, six.string_types)) ?*/      /*# Name of this component instance #*/
+/*? assert(isinstance(interface, six.string_types)) ?*/     /*# Name of this interface #*/
+/*? assert(isinstance(name, six.string_types)) ?*/          /*# Name of this method #*/
+/*? assert(isinstance(function, six.string_types)) ?*/      /*# Name of function to create #*/
+/*? assert(isinstance(buffer, six.string_types)) ?*/        /*# Buffer symbol (or expression) to marshal into #*/
+/*? assert(isinstance(size, six.string_types)) ?*/          /*# Length of the buffer; possibly not generation-time constant #*/
+/*? assert(isinstance(method_index, six.integer_types)) ?*/         /*# Index of this method in the containing interface #*/
+/*? assert(isinstance(methods_len, six.integer_types)) ?*/          /*# Total number of methods in this interface #*/
+/*? assert(isinstance(input_parameters, (list, tuple))) ?*/    /*# All input parameters to this method #*/
+/*? assert(isinstance(error_handler, six.string_types)) ?*/ /*# Handler to invoke on error #*/
 
 /*- set name_backup = name -*/
 /*- for p in input_parameters -*/
@@ -20,9 +30,9 @@
       /*- set type = 'size_t' -*/
       /*- set name = '%s_%s_sz_from' % (name_backup, p.name) -*/
       /*- include 'thread_local.c' -*/
-    /*- elif not (isinstance(p.type, camkes.ast.Type) and p.type.type == 'string') -*/
+    /*- elif p.type != 'string' -*/
       /*- set array = False -*/
-      /*- set type = show(p.type) -*/
+      /*- set type = macros.show_type(p.type) -*/
       /*- set name = '%s_%s_from' % (name_backup, p.name) -*/
       /*- include 'thread_local.c' -*/
     /*- endif -*/
@@ -36,29 +46,29 @@
     /*- if p.direction == 'in' -*/
       /*- if p.array -*/
         size_t /*? p.name ?*/_sz,
-        /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+        /*- if p.type == 'string' -*/
           char ** /*? p.name ?*/
         /*- else -*/
-          const /*? show(p.type) ?*/ * /*? p.name ?*/
+          const /*? macros.show_type(p.type) ?*/ * /*? p.name ?*/
         /*- endif -*/
-      /*- elif isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+      /*- elif p.type == 'string' -*/
         const char * /*? p.name ?*/
       /*- else -*/
-        /*? show(p.type) ?*/ /*? p.name ?*/
+        /*? macros.show_type(p.type) ?*/ /*? p.name ?*/
       /*- endif -*/
     /*- else -*/
       /*? assert(p.direction in ['refin', 'inout']) ?*/
       /*- if p.array -*/
         const size_t * /*? p.name ?*/_sz,
-        /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+        /*- if p.type == 'string' -*/
           char *** /*? p.name ?*/
         /*- else -*/
-          /*? show(p.type) ?*/ ** /*? p.name ?*/
+          /*? macros.show_type(p.type) ?*/ ** /*? p.name ?*/
         /*- endif -*/
-      /*- elif isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+      /*- elif p.type == 'string' -*/
         char ** /*? p.name ?*/
       /*- else -*/
-        const /*? show(p.type) ?*/ * /*? p.name ?*/
+        const /*? macros.show_type(p.type) ?*/ * /*? p.name ?*/
       /*- endif -*/
     /*- endif -*/
     ) {
@@ -78,29 +88,29 @@
       /*- if p.array -*/
         size_t * /*? ptr_sz ?*/ = TLS_PTR(/*? name ?*/_/*? p.name ?*/_sz_from, /*? p.name ?*/_sz);
         * /*? ptr_sz ?*/ = /*? p.name ?*/_sz;
-        /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+        /*- if p.type == 'string' -*/
           char ** /*? ptr_arr ?*/ = /*? p.name ?*/;
         /*- else -*/
-          const /*? show(p.type) ?*/ * /*? ptr_arr ?*/ = /*? p.name ?*/;
+          const /*? macros.show_type(p.type) ?*/ * /*? ptr_arr ?*/ = /*? p.name ?*/;
         /*- endif -*/
-      /*- elif isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+      /*- elif p.type == 'string' -*/
         const char * /*? ptr_str ?*/ = /*? p.name ?*/;
       /*- else -*/
-        /*? show(p.type) ?*/ * /*? ptr ?*/ = TLS_PTR(/*? name ?*/_/*? p.name ?*/_from, /*? p.name ?*/);
+        /*? macros.show_type(p.type) ?*/ * /*? ptr ?*/ = TLS_PTR(/*? name ?*/_/*? p.name ?*/_from, /*? p.name ?*/);
         * /*? ptr ?*/ = /*? p.name ?*/;
       /*- endif -*/
     /*- else -*/
       /*- if p.array -*/
         const size_t * /*? ptr_sz ?*/ = /*? p.name ?*/_sz;
-        /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+        /*- if p.type == 'string' -*/
           char ** /*? ptr_arr ?*/ = * /*? p.name ?*/;
         /*- else -*/
-          const /*? show(p.type) ?*/ * /*? ptr_arr ?*/ = * /*? p.name ?*/;
+          const /*? macros.show_type(p.type) ?*/ * /*? ptr_arr ?*/ = * /*? p.name ?*/;
         /*- endif -*/
-      /*- elif isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+      /*- elif p.type == 'string' -*/
         const char * /*? ptr_str ?*/ = * /*? p.name ?*/;
       /*- else -*/
-        const /*? show(p.type) ?*/ * /*? ptr ?*/ = /*? p.name ?*/;
+        const /*? macros.show_type(p.type) ?*/ * /*? ptr ?*/ = /*? p.name ?*/;
       /*- endif -*/
     /*- endif -*/
 
@@ -117,7 +127,7 @@
         }));
       memcpy(/*? base ?*/ + /*? offset ?*/, /*? ptr_sz ?*/, sizeof(* /*? ptr_sz ?*/));
       /*? offset ?*/ += sizeof(* /*? ptr_sz ?*/);
-      /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+      /*- if p.type == 'string' -*/
         /*- set lcount = c_symbol() -*/
         for (int /*? lcount ?*/ = 0; /*? lcount ?*/ < * /*? ptr_sz ?*/; /*? lcount ?*/ ++) {
           /*- set strlen = c_symbol('strlen') -*/
@@ -150,7 +160,7 @@
         memcpy(/*? base ?*/ + /*? offset ?*/, /*? ptr_arr ?*/, sizeof(/*? ptr_arr ?*/[0]) * (* /*? ptr_sz ?*/));
         /*? offset ?*/ += sizeof(/*? ptr_arr ?*/[0]) * (* /*? ptr_sz ?*/);
       /*- endif -*/
-    /*- elif isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+    /*- elif p.type == 'string' -*/
       /*- set strlen = c_symbol('strlen') -*/
       size_t /*? strlen ?*/ = strnlen(/*? ptr_str ?*/, /*? size ?*/ - /*? offset ?*/);
       ERR_IF(/*? strlen ?*/ >= /*? size ?*/ - /*? offset ?*/, /*? error_handler ?*/, ((camkes_error_t){
@@ -197,7 +207,7 @@
   /*- elif methods_len <= 2 ** 64 -*/
     uint64_t
   /*- else -*/
-    /*? raise(Exception('too many methods in interface %s' % name)) ?*/
+    /*? raise(TemplateError('too many methods in interface %s' % name)) ?*/
   /*- endif -*/
   /*? call ?*/ = /*? method_index ?*/;
 /*- endif -*/
@@ -207,29 +217,29 @@ static unsigned int /*? function ?*/(
   /*- if p.direction == 'in' -*/
     /*- if p.array -*/
       size_t /*? p.name ?*/_sz,
-      /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+      /*- if p.type == 'string' -*/
         char ** /*? p.name ?*/
       /*- else -*/
-        const /*? show(p.type) ?*/ * /*? p.name ?*/
+        const /*? macros.show_type(p.type) ?*/ * /*? p.name ?*/
       /*- endif -*/
-    /*- elif isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+    /*- elif p.type == 'string' -*/
       const char * /*? p.name ?*/
     /*- else -*/
-      /*? show(p.type) ?*/ /*? p.name ?*/
+      /*? macros.show_type(p.type) ?*/ /*? p.name ?*/
     /*- endif -*/
   /*- else -*/
     /*? assert(p.direction in ['refin', 'inout']) ?*/
     /*- if p.array -*/
       const size_t * /*? p.name ?*/_sz,
-      /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+      /*- if p.type == 'string' -*/
         char *** /*? p.name ?*/
       /*- else -*/
-        /*? show(p.type) ?*/ ** /*? p.name ?*/
+        /*? macros.show_type(p.type) ?*/ ** /*? p.name ?*/
       /*- endif -*/
-    /*- elif isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+    /*- elif p.type == 'string' -*/
       char ** /*? p.name ?*/
     /*- else -*/
-      const /*? show(p.type) ?*/ * /*? p.name ?*/
+      const /*? macros.show_type(p.type) ?*/ * /*? p.name ?*/
     /*- endif -*/
   /*- endif -*/
   /*- if not loop.last -*/
@@ -265,7 +275,7 @@ static unsigned int /*? function ?*/(
 
   /* Marshal the parameters. */
   /*- for p in input_parameters -*/
-    /*? assert(isinstance(p.type, camkes.ast.Type) or isinstance(p.type, camkes.ast.Reference)) ?*/
+    /*? assert(isinstance(p.type, six.string_types)) ?*/
     /*? length ?*/ = /*? function ?*/_/*? p.name ?*/(/*? length ?*/,
       /*- if p.array -*/
         /*? p.name ?*/_sz,

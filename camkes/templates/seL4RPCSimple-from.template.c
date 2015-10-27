@@ -1,5 +1,5 @@
 /*#
- *# Copyright 2014, NICTA
+ *# Copyright 2015, NICTA
  *#
  *# This software may be distributed and modified according to the terms of
  *# the BSD 2-Clause license. Note that NO WARRANTY is provided.
@@ -17,25 +17,20 @@
 #include <sys/reg.h>
 #include <utils/util.h>
 
-/*? macros.show_includes(me.from_instance.type.includes) ?*/
-/*? macros.show_includes(me.from_interface.type.includes, '../static/components/' + me.from_instance.type.name + '/') ?*/
+/*? macros.show_includes(me.instance.type.includes) ?*/
+/*? macros.show_includes(me.interface.type.includes) ?*/
 
 /*- set ep = alloc('ep', seL4_EndpointObject, write=True, grant=True) -*/
 
-int /*? me.from_interface.name ?*/__run(void) {
-    /* Nothing to be done. */
-    return 0;
-}
+/*- for i, m in enumerate(me.interface.type.methods) -*/
 
-/*- for i, m in enumerate(me.from_interface.type.methods) -*/
-
-/*- set input_parameters = filter(lambda('x: x.direction in [\'in\', \'inout\']'), m.parameters) -*/
-static unsigned int /*? me.from_interface.name ?*/_/*? m.name ?*/_marshal(
+/*- set input_parameters = list(filter(lambda('x: x.direction in [\'in\', \'inout\']'), m.parameters)) -*/
+static unsigned int /*? me.interface.name ?*/_/*? m.name ?*/_marshal(
     /*- for p in input_parameters -*/
-        /*- if isinstance(p.type, camkes.ast.Reference) or p.array or p.type.type == 'string' -*/
-            /*? raise(NotImplementedError()) ?*/
+        /*- if p.array or p.type == 'string' -*/
+            /*? raise(TemplateError('unsupported')) ?*/
         /*- else -*/
-            /*? p.type.type ?*/
+            /*? p.type ?*/
         /*- endif -*/
         /*? p.name ?*/
         /*- if not loop.last -*/
@@ -56,35 +51,35 @@ static unsigned int /*? me.from_interface.name ?*/_/*? m.name ?*/_marshal(
     /*- for p in input_parameters -*/
         seL4_SetMR(/*? length ?*/, (seL4_Word)/*? p.name ?*/);
         /*? length ?*/++;
-        /*- if sizeof(p) > options.word_size / 8 -*/
+        /*- if macros.sizeof(p) > macros.sizeof('void*') -*/
             seL4_SetMR(/*? length ?*/, (seL4_Word)(((uint64_t)/*? p.name ?*/) >> __WORDSIZE));
             /*? length ?*/++;
-            /*? assert(sizeof(p) <= 2 * options.word_size / 8) ?*/
+            /*? assert(macros.sizeof(p) <= 2 * macros.sizeof('void*')) ?*/
         /*- endif -*/
     /*- endfor -*/
 
     return /*? length ?*/;
 }
 
-static void /*? me.from_interface.name ?*/_/*? m.name ?*/_call(unsigned int length) {
+static void /*? me.interface.name ?*/_/*? m.name ?*/_call(unsigned int length) {
     /* Call the endpoint */
     seL4_MessageInfo_t info = seL4_MessageInfo_new(0, 0, 0, length);
     (void)seL4_Call(/*? ep ?*/, info);
 }
 
-/*- set output_parameters = filter(lambda('x: x.direction in [\'inout\', \'out\']'), m.parameters) -*/
+/*- set output_parameters = list(filter(lambda('x: x.direction in [\'inout\', \'out\']'), m.parameters)) -*/
 static
 /*- if m.return_type is not none -*/
-    /*? m.return_type.type ?*/
+    /*? m.return_type ?*/
 /*- else -*/
     void
 /*- endif -*/
-/*? me.from_interface.name ?*/_/*? m.name ?*/_unmarshal(
+/*? me.interface.name ?*/_/*? m.name ?*/_unmarshal(
     /*- for p in output_parameters -*/
-        /*- if isinstance(p.type, camkes.ast.Reference) or p.array or p.type.type == 'string' -*/
-            /*? raise(NotImplementedError()) ?*/
+        /*- if p.array or p.type == 'string' -*/
+            /*? raise(TemplateError('unsupported')) ?*/
         /*- else -*/
-            /*? p.type.type ?*/
+            /*? p.type ?*/
         /*- endif -*/
         *
         /*? p.name ?*/
@@ -97,29 +92,29 @@ static
     /*- endif -*/
 ) {
     /*- set mr = c_symbol('mr') -*/
-    unsigned int /*? mr ?*/ = 0;
+    unsigned int /*? mr ?*/ UNUSED = 0;
 
     /*- set ret = c_symbol('ret') -*/
     /*- if m.return_type is not none -*/
-        /*? m.return_type.type ?*/ /*? ret ?*/ =
-            (/*? m.return_type.type ?*/)seL4_GetMR(/*? mr ?*/);
+        /*? m.return_type ?*/ /*? ret ?*/ =
+            (/*? m.return_type ?*/)seL4_GetMR(/*? mr ?*/);
         /*? mr ?*/++;
-        /*- if sizeof(m.return_type) > options.word_size / 8 -*/
+        /*- if macros.sizeof(m.return_type) > macros.sizeof('void*') -*/
             /*? ret ?*/ |=
-                (/*? m.return_type.type ?*/)(((uint64_t)seL4_GetMR(/*? mr ?*/)) << __WORDSIZE);
+                (/*? m.return_type ?*/)(((uint64_t)seL4_GetMR(/*? mr ?*/)) << __WORDSIZE);
             /*? mr ?*/++;
-            /*? assert(sizeof(m.return_type) <= 2 * options.word_size / 8) ?*/
+            /*? assert(macros.sizeof(m.return_type) <= 2 * macros.sizeof('void*')) ?*/
         /*- endif -*/
     /*- endif -*/
 
     /*- for p in output_parameters -*/
-        * /*? p.name ?*/ = (/*? p.type.type ?*/)seL4_GetMR(/*? mr ?*/);
+        * /*? p.name ?*/ = (/*? p.type ?*/)seL4_GetMR(/*? mr ?*/);
         /*? mr ?*/++;
-        /*- if sizeof(p) > options.word_size / 8 -*/
+        /*- if macros.sizeof(p) > macros.sizeof('void*') -*/
             * /*? p.name ?*/ |=
-                (/*? p.type.type ?*/)(((uint64_t)seL4_GetMR(/*? mr ?*/)) << __WORDSIZE);
+                (/*? p.type ?*/)(((uint64_t)seL4_GetMR(/*? mr ?*/)) << __WORDSIZE);
             /*? mr ?*/++;
-            /*? assert(sizeof(p) <= 2 * options.word_size / 8) ?*/
+            /*? assert(macros.sizeof(p) <= 2 * macros.sizeof('void*')) ?*/
         /*- endif -*/
     /*- endfor -*/
 
@@ -129,19 +124,19 @@ static
 }
 
 /*- if m.return_type is not none -*/
-    /*? show(m.return_type) ?*/
+    /*? macros.show_type(m.return_type) ?*/
 /*- else -*/
     void
 /*- endif -*/
-/*? me.from_interface.name ?*/_/*? m.name ?*/(
+/*? me.interface.name ?*/_/*? m.name ?*/(
 /*- for p in m.parameters -*/
-  /*- if isinstance(p.type, camkes.ast.Reference) or p.array or p.type.type == 'string' or p.direction == 'refin' -*/
-    /*? raise(NotImplementedError()) ?*/
+  /*- if p.array or p.type == 'string' or p.direction == 'refin' -*/
+    /*? raise(TemplateError('unsupported')) ?*/
   /*- elif p.direction == 'in' -*/
-    /*? show(p.type) ?*/
+    /*? macros.show_type(p.type) ?*/
   /*- else -*/
     /*? assert(p.direction in ['out', 'inout']) ?*/
-    /*? show(p.type) ?*/ *
+    /*? macros.show_type(p.type) ?*/ *
   /*- endif -*/
   /*? p.name ?*/
   /*- if not loop.last -*/
@@ -152,9 +147,12 @@ static
     void
 /*- endif -*/
 ) {
+    /* Save any pending reply cap, as we'll overwrite it during `seL4_Call`. */
+    camkes_protect_reply_cap();
+
     /* Marshal input parameters. */
     /*- set mr = c_symbol('mr_index') -*/
-    unsigned int /*? mr ?*/ = /*? me.from_interface.name ?*/_/*? m.name ?*/_marshal(
+    unsigned int /*? mr ?*/ = /*? me.interface.name ?*/_/*? m.name ?*/_marshal(
         /*- for p in input_parameters -*/
             /*- if p.direction == 'inout' -*/
                 *
@@ -167,14 +165,14 @@ static
     );
 
     /* Call the endpoint */
-    /*? me.from_interface.name ?*/_/*? m.name ?*/_call(/*? mr ?*/);
+    /*? me.interface.name ?*/_/*? m.name ?*/_call(/*? mr ?*/);
 
     /* Unmarshal the response */
     /*- if m.return_type is not none -*/
         /*- set ret = c_symbol('ret') -*/
-        /*? m.return_type.type ?*/ /*? ret ?*/ =
+        /*? m.return_type ?*/ /*? ret ?*/ =
     /*- endif -*/
-    /*? me.from_interface.name ?*/_/*? m.name ?*/_unmarshal(
+    /*? me.interface.name ?*/_/*? m.name ?*/_unmarshal(
         /*- for p in output_parameters -*/
             /*? p.name ?*/
             /*- if not loop.last -*/

@@ -1,3 +1,13 @@
+/*#
+ *# Copyright 2015, NICTA
+ *#
+ *# This software may be distributed and modified according to the terms of
+ *# the BSD 2-Clause license. Note that NO WARRANTY is provided.
+ *# See "LICENSE_BSD2.txt" for details.
+ *#
+ *# @TAG(NICTA_BSD)
+ #*/
+
 /*- if 'autocorres/ptr.thy' not in included -*/
 /*- do included.add('autocorres/ptr.thy') -*/
 
@@ -60,42 +70,42 @@ lemma /*? name ?*/[simp]:"ptr_valid_/*? 's' if signed else 'u' ?*//*? size ?*/ (
 /*- for m in interface.methods -*/
 /*- for p in m.parameters -*/
 
-/*- if p.type.type in ['int', 'int32_t'] -*/
+/*- if p.type in ['int', 'int32_t'] -*/
   /*? ptr_valid_t(ptr_lemmas, 32, True) ?*/
   /*? ptr_contains_t(ptr_lemmas, 32, True) ?*/
   /*? ptr_contains_t_valid(ptr_lemmas, 32, True) ?*/
   /*? ptr_contains_t_setmr(ptr_lemmas, 32, True) ?*/
   /*? ptr_valid_t_setmr(ptr_lemmas, 32, True) ?*/
 
-/*- elif p.type.type in ['unsigned int', 'uint32_t'] -*/
+/*- elif p.type in ['unsigned int', 'uint32_t'] -*/
   /*? ptr_valid_t(ptr_lemmas, 32, False) ?*/
   /*? ptr_contains_t(ptr_lemmas, 32, False) ?*/
   /*? ptr_contains_t_valid(ptr_lemmas, 32, False) ?*/
   /*? ptr_contains_t_setmr(ptr_lemmas, 32, False) ?*/
   /*? ptr_valid_t_setmr(ptr_lemmas, 32, False) ?*/
 
-/*- elif p.type.type == 'int8_t' -*/
+/*- elif p.type == 'int8_t' -*/
   /*? ptr_valid_t(ptr_lemmas, 8, True) ?*/
   /*? ptr_contains_t(ptr_lemmas, 8, True) ?*/
   /*? ptr_contains_t_valid(ptr_lemmas, 8, True) ?*/
   /*? ptr_contains_t_setmr(ptr_lemmas, 8, True) ?*/
   /*? ptr_valid_t_setmr(ptr_lemmas, 8, True) ?*/
 
-/*- elif p.type.type in ['char', 'uint8_t'] -*/
+/*- elif p.type in ['char', 'uint8_t'] -*/
   /*? ptr_valid_t(ptr_lemmas, 8, False) ?*/
   /*? ptr_contains_t(ptr_lemmas, 8, False) ?*/
   /*? ptr_contains_t_valid(ptr_lemmas, 8, False) ?*/
   /*? ptr_contains_t_setmr(ptr_lemmas, 8, False) ?*/
   /*? ptr_valid_t_setmr(ptr_lemmas, 8, False) ?*/
 
-/*- elif p.type.type == 'uint64_t' -*/
+/*- elif p.type == 'uint64_t' -*/
   /*? ptr_valid_t(ptr_lemmas, 64, False) ?*/
   /*? ptr_contains_t(ptr_lemmas, 64, False) ?*/
   /*? ptr_contains_t_valid(ptr_lemmas, 64, False) ?*/
   /*? ptr_contains_t_setmr(ptr_lemmas, 64, False) ?*/
   /*? ptr_valid_t_setmr(ptr_lemmas, 64, False) ?*/
 
-/*- elif p.type.type == 'int64_t' -*/
+/*- elif p.type == 'int64_t' -*/
   /*? ptr_valid_t(ptr_lemmas, 64, True) ?*/
   /*? ptr_contains_t(ptr_lemmas, 64, True) ?*/
   /*? ptr_contains_t_valid(ptr_lemmas, 64, True) ?*/

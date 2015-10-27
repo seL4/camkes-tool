@@ -1,0 +1,417 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+#
+# Copyright 2015, NICTA
+#
+# This software may be distributed and modified according to the terms of
+# the BSD 2-Clause license. Note that NO WARRANTY is provided.
+# See "LICENSE_BSD2.txt" for details.
+#
+# @TAG(NICTA_BSD)
+#
+
+from __future__ import absolute_import, division, print_function, \
+    unicode_literals
+
+import os, sys, unittest
+
+ME = os.path.abspath(__file__)
+
+# Make CAmkES importable
+sys.path.append(os.path.join(os.path.dirname(ME), '../../..'))
+
+from camkes.internal.tests.utils import CAmkESTest, cpp_available
+from camkes.parser.stage0 import CPP, Reader
+from camkes.parser.stage1 import Parse1
+
+class TestStage1(CAmkESTest):
+    def setUp(self):
+        super(TestStage1, self).setUp()
+        r = Reader()
+        self.parser = Parse1(r)
+
+        r = CPP()
+        self.cpp_parser = Parse1(r)
+
+    def test_empty_string(self):
+        source, content, read = self.parser.parse_string('')
+
+        self.assertEqual(source, '')
+        self.assertEqual(content.head, 'start')
+        self.assertEqual(content.tail, [])
+        self.assertLen(read, 0)
+
+    def test_basic_entity(self):
+        source, content, read = self.parser.parse_string('component foo {}')
+
+        self.assertEqual(source, 'component foo {}')
+        self.assertEqual(content.head, 'start')
+        self.assertLen(content.tail, 1)
+        self.assertEqual(content.tail[0].head, 'component_decl')
+        self.assertLen(content.tail[0].tail, 2)
+        self.assertEqual(content.tail[0].tail[0].head, 'id')
+        self.assertLen(content.tail[0].tail[0].tail, 1)
+        self.assertEqual(content.tail[0].tail[0].tail[0], 'foo')
+        self.assertEqual(content.tail[0].tail[1].head, 'component_defn')
+        self.assertLen(content.tail[0].tail[1].tail, 0)
+        self.assertLen(read, 0)
+
+    def test_numerics_basic(self):
+        source, content, read = self.parser.parse_string(
+            'configuration { hello.world = 1 + 4 - 2; }')
+
+        self.assertEqual(source,
+            'configuration { hello.world = 1 + 4 - 2; }')
+        self.assertEqual(content.head, 'start')
+        self.assertLen(content.tail, 1)
+        self.assertEqual(content.tail[0].head, 'configuration_decl')
+
+        self.assertLen(content.tail[0].tail, 1)
+        self.assertEqual(content.tail[0].tail[0].head, 'configuration_defn')
+        configuration_defn = content.tail[0].tail[0]
+
+        self.assertLen(configuration_defn.tail, 1)
+        self.assertEqual(configuration_defn.tail[0].head, 'setting')
+        setting = configuration_defn.tail[0]
+
+        self.assertLen(setting.tail, 3)
+        self.assertEqual(setting.tail[0].head, 'id')
+        self.assertLen(setting.tail[0].tail, 1)
+        self.assertEqual(setting.tail[0].tail[0], 'hello')
+        self.assertEqual(setting.tail[1].head, 'id')
+        self.assertLen(setting.tail[1].tail, 1)
+        self.assertEqual(setting.tail[1].tail[0], 'world')
+        p = setting.tail[2]
+
+        self.assertEqual(p.head, 'precedence11')
+        self.assertLen(p.tail, 1)
+        p = p.tail[0]
+
+        self.assertEqual(p.head, 'precedence10')
+        self.assertLen(p.tail, 1)
+        p = p.tail[0]
+
+        self.assertEqual(p.head, 'precedence9')
+        self.assertLen(p.tail, 1)
+        p = p.tail[0]
+
+        self.assertEqual(p.head, 'precedence8')
+        self.assertLen(p.tail, 1)
+        p = p.tail[0]
+
+        self.assertEqual(p.head, 'precedence7')
+        self.assertLen(p.tail, 1)
+        p = p.tail[0]
+
+        self.assertEqual(p.head, 'precedence6')
+        self.assertLen(p.tail, 1)
+        p = p.tail[0]
+
+        self.assertEqual(p.head, 'precedence5')
+        self.assertLen(p.tail, 1)
+        p = p.tail[0]
+
+        self.assertEqual(p.head, 'precedence4')
+        self.assertLen(p.tail, 1)
+        p = p.tail[0]
+
+        self.assertEqual(p.head, 'precedence3')
+        self.assertLen(p.tail, 1)
+        p = p.tail[0]
+
+        self.assertEqual(p.head, 'precedence2')
+        self.assertLen(p.tail, 5)
+
+        self.assertEqual(p.tail[0].head, 'precedence1')
+        self.assertLen(p.tail[0].tail, 1)
+        self.assertEqual(p.tail[0].tail[0].head, 'number')
+        self.assertLen(p.tail[0].tail[0].tail, 1)
+        self.assertEqual(p.tail[0].tail[0].tail[0], '1')
+
+        self.assertEqual(p.tail[1].head, 'add')
+
+        self.assertEqual(p.tail[2].head, 'precedence1')
+        self.assertLen(p.tail[2].tail, 1)
+        self.assertEqual(p.tail[2].tail[0].head, 'number')
+        self.assertLen(p.tail[0].tail[0].tail, 1)
+        self.assertEqual(p.tail[2].tail[0].tail[0], '4')
+
+        self.assertEqual(p.tail[3].head, 'sub')
+
+        self.assertEqual(p.tail[4].head, 'precedence1')
+        self.assertLen(p.tail[4].tail, 1)
+        self.assertEqual(p.tail[4].tail[0].head, 'number')
+        self.assertLen(p.tail[4].tail[0].tail, 1)
+        self.assertEqual(p.tail[4].tail[0].tail[0], '2')
+
+    def test_numerics_precedence(self):
+        source, content, read = self.parser.parse_string(
+            'configuration { hello.world = 1 + 4 * 2; }')
+
+        self.assertEqual(source,
+            'configuration { hello.world = 1 + 4 * 2; }')
+
+        self.assertEqual(content.head, 'start')
+        self.assertLen(content.tail, 1)
+        self.assertEqual(content.tail[0].head, 'configuration_decl')
+
+        self.assertLen(content.tail[0].tail, 1)
+        self.assertEqual(content.tail[0].tail[0].head, 'configuration_defn')
+        configuration_defn = content.tail[0].tail[0]
+
+        self.assertLen(configuration_defn.tail, 1)
+        self.assertEqual(configuration_defn.tail[0].head, 'setting')
+        setting = configuration_defn.tail[0]
+
+        self.assertLen(setting.tail, 3)
+        self.assertEqual(setting.tail[0].head, 'id')
+        self.assertLen(setting.tail[0].tail, 1)
+        self.assertEqual(setting.tail[0].tail[0], 'hello')
+        self.assertEqual(setting.tail[1].head, 'id')
+        self.assertLen(setting.tail[1].tail, 1)
+        self.assertEqual(setting.tail[1].tail[0], 'world')
+        p = setting.tail[2]
+
+        self.assertEqual(p.head, 'precedence11')
+        self.assertLen(p.tail, 1)
+        p = p.tail[0]
+
+        self.assertEqual(p.head, 'precedence10')
+        self.assertLen(p.tail, 1)
+        p = p.tail[0]
+
+        self.assertEqual(p.head, 'precedence9')
+        self.assertLen(p.tail, 1)
+        p = p.tail[0]
+
+        self.assertEqual(p.head, 'precedence8')
+        self.assertLen(p.tail, 1)
+        p = p.tail[0]
+
+        self.assertEqual(p.head, 'precedence7')
+        self.assertLen(p.tail, 1)
+        p = p.tail[0]
+
+        self.assertEqual(p.head, 'precedence6')
+        self.assertLen(p.tail, 1)
+        p = p.tail[0]
+
+        self.assertEqual(p.head, 'precedence5')
+        self.assertLen(p.tail, 1)
+        p = p.tail[0]
+
+        self.assertEqual(p.head, 'precedence4')
+        self.assertLen(p.tail, 1)
+        p = p.tail[0]
+
+        self.assertEqual(p.head, 'precedence3')
+        self.assertLen(p.tail, 1)
+        p = p.tail[0]
+
+        self.assertEqual(p.head, 'precedence2')
+        self.assertLen(p.tail, 3)
+
+        self.assertEqual(p.tail[0].head, 'precedence1')
+        self.assertLen(p.tail[0].tail, 1)
+        self.assertEqual(p.tail[0].tail[0].head, 'number')
+        self.assertLen(p.tail[0].tail[0].tail, 1)
+        self.assertEqual(p.tail[0].tail[0].tail[0], '1')
+
+        self.assertEqual(p.tail[1].head, 'add')
+
+        self.assertEqual(p.tail[2].head, 'precedence1')
+        self.assertLen(p.tail[2].tail, 3)
+        self.assertEqual(p.tail[2].tail[0].head, 'number')
+        self.assertLen(p.tail[0].tail[0].tail, 1)
+        self.assertEqual(p.tail[2].tail[0].tail[0], '4')
+
+        self.assertEqual(p.tail[2].tail[1].head, 'mul')
+
+        self.assertEqual(p.tail[2].tail[2].head, 'number')
+        self.assertLen(p.tail[2].tail[2].tail, 1)
+        self.assertEqual(p.tail[2].tail[2].tail[0], '2')
+
+    def test_malformed(self):
+        with self.assertRaises(Exception):
+            self.parser.parse_string('hello world')
+
+    def test_unicode(self):
+        source, content, read = self.parser.parse_string('component foó {}')
+
+        self.assertEqual(source, 'component foó {}')
+        self.assertEqual(content.head, 'start')
+        self.assertLen(content.tail, 1)
+        self.assertEqual(content.tail[0].head, 'component_decl')
+        self.assertLen(content.tail[0].tail, 2)
+        self.assertEqual(content.tail[0].tail[0].head, 'id')
+        self.assertLen(content.tail[0].tail[0].tail, 1)
+        self.assertEqual(content.tail[0].tail[0].tail[0], 'foó')
+        self.assertEqual(content.tail[0].tail[1].head, 'component_defn')
+        self.assertLen(content.tail[0].tail[1].tail, 0)
+        self.assertLen(read, 0)
+
+    def test_from_file(self):
+        tmp = self.mkstemp()
+        with open(tmp, 'wt') as f:
+            f.write('component foo {}')
+
+        source, content, read = self.parser.parse_file(tmp)
+
+        self.assertEqual(source, 'component foo {}')
+        self.assertEqual(content.head, 'start')
+        self.assertLen(content.tail, 1)
+        self.assertEqual(content.tail[0].head, 'component_decl')
+        self.assertLen(content.tail[0].tail, 2)
+        self.assertEqual(content.tail[0].tail[0].head, 'id')
+        self.assertLen(content.tail[0].tail[0].tail, 1)
+        self.assertEqual(content.tail[0].tail[0].tail[0], 'foo')
+        self.assertEqual(content.tail[0].tail[1].head, 'component_defn')
+        self.assertLen(content.tail[0].tail[1].tail, 0)
+        self.assertEqual(read, set([tmp]))
+
+    @unittest.skipIf(not cpp_available(), 'CPP not found')
+    def test_with_cpp(self):
+        parent = self.mkstemp()
+        child = self.mkstemp()
+
+        with open(parent, 'wt') as f:
+            f.write('component foo\n#include "%s"' % child)
+        with open(child, 'wt') as f:
+            f.write('{}')
+
+        _, content, read = self.cpp_parser.parse_file(parent)
+
+        self.assertEqual(content.head, 'start')
+        self.assertLen(content.tail, 1)
+        self.assertEqual(content.tail[0].head, 'component_decl')
+        self.assertLen(content.tail[0].tail, 2)
+        self.assertEqual(content.tail[0].tail[0].head, 'id')
+        self.assertLen(content.tail[0].tail[0].tail, 1)
+        self.assertEqual(content.tail[0].tail[0].tail[0], 'foo')
+        self.assertEqual(content.tail[0].tail[1].head, 'component_defn')
+        self.assertLen(content.tail[0].tail[1].tail, 0)
+
+        self.assertIn(parent, read)
+        self.assertIn(child, read)
+
+    def test_lineno_basic(self):
+        _, content, _ = self.parser.parse_string('component foo {}')
+
+        self.assertEqual(content.head, 'start')
+        self.assertLen(content.tail, 1)
+        self.assertEqual(content.tail[0].head, 'component_decl')
+        component_decl = content.tail[0]
+
+        component_decl.calc_position()
+        self.assertEqual(component_decl.min_line, 1)
+
+    def test_lineno_basic2(self):
+        _, content, _ = self.parser.parse_string('\ncomponent foo {}')
+
+        self.assertEqual(content.head, 'start')
+        self.assertLen(content.tail, 1)
+        self.assertEqual(content.tail[0].head, 'component_decl')
+        component_decl = content.tail[0]
+
+        component_decl.calc_position()
+        self.assertEqual(component_decl.min_line, 2)
+
+    def test_lineno_basic3(self):
+        _, content, _ = self.parser.parse_string('component\nfoo\n{\n}')
+
+        self.assertEqual(content.head, 'start')
+        self.assertLen(content.tail, 1)
+        self.assertEqual(content.tail[0].head, 'component_decl')
+        component_decl = content.tail[0]
+
+        component_decl.calc_position()
+        self.assertIn(component_decl.min_line, (1, 2))
+
+    def test_lineno_comment(self):
+        _, content, _ = self.parser.parse_string('//I\'m a comment\ncomponent foo {}')
+
+        self.assertEqual(content.head, 'start')
+        self.assertLen(content.tail, 1)
+        self.assertEqual(content.tail[0].head, 'component_decl')
+        component_decl = content.tail[0]
+
+        component_decl.calc_position()
+        self.assertEqual(component_decl.min_line, 2)
+
+    def test_lineno_comment2(self):
+        _, content, _ = self.parser.parse_string('/* I\'m a comment */\ncomponent foo {}')
+
+        self.assertEqual(content.head, 'start')
+        self.assertLen(content.tail, 1)
+        self.assertEqual(content.tail[0].head, 'component_decl')
+        component_decl = content.tail[0]
+
+        component_decl.calc_position()
+        self.assertEqual(component_decl.min_line, 2)
+
+    def test_lineno_multiline_comment(self):
+        _, content, _ = self.parser.parse_string('/*I\'m a \nmultiline comment*/\ncomponent foo {}')
+
+        self.assertEqual(content.head, 'start')
+        self.assertLen(content.tail, 1)
+        self.assertEqual(content.tail[0].head, 'component_decl')
+        component_decl = content.tail[0]
+
+        component_decl.calc_position()
+        self.assertEqual(component_decl.min_line, 3)
+
+    def test_lineno_multiline_comment2(self):
+        _, content, _ = self.parser.parse_string('/*I\'m\na\nmultiline\ncomment*/\ncomponent foo {}')
+
+        self.assertEqual(content.head, 'start')
+        self.assertLen(content.tail, 1)
+        self.assertEqual(content.tail[0].head, 'component_decl')
+        component_decl = content.tail[0]
+
+        component_decl.calc_position()
+        self.assertEqual(component_decl.min_line, 5)
+
+    def test_simple_spec_complete(self):
+        _, content, _ = self.parser.parse_string('''
+            procedure Hello {
+                void hello(void);
+            }
+
+            component Foo {
+                provides Hello h;
+            }
+
+            component Bar {
+                control;
+                uses Hello w;
+            }
+
+            assembly {
+                composition {
+                    component Foo f;
+                    component Bar b;
+                    connection Conn conn(from Foo.h, to Bar.w);
+                }
+            }
+            ''')
+
+    def test_multiline_comment_preserves_line_numbers(self):
+        _, content, _ = self.parser.parse_string('''
+            /* multiline comment
+             * that may affect line numbering
+             * if we've messed up
+             */
+            procedure P {}
+            ''')
+
+        self.assertEqual(content.head, 'start')
+        self.assertLen(content.tail, 1)
+        P = content.tail[0]
+        self.assertEqual(P.head, 'procedure_decl')
+
+        P.calc_position()
+        self.assertEqual(P.min_line, 6)
+
+if __name__ == '__main__':
+    unittest.main()

@@ -1,5 +1,5 @@
 /*#
- *# Copyright 2014, NICTA
+ *# Copyright 2015, NICTA
  *#
  *# This software may be distributed and modified according to the terms of
  *# the BSD 2-Clause license. Note that NO WARRANTY is provided.
@@ -13,3 +13,9 @@
  * glue code is actually required. Note, that connecting the relevant symbols
  * at link-time relies on extra logic in the Makefile template.
  */
+
+/*- for end in me.parent.from_ends + me.parent.to_ends -*/
+  /*- if end.instance.address_space != me.instance.address_space -*/
+    /*? raise(TemplateError('%s.%s participating in connection %s is not in address space \'%s\'' % (end.instance.name, end.interface.name, me.parent.name, me.instance.address_space), end)) ?*/
+  /*- endif -*/
+/*- endfor -*/

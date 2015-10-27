@@ -1,3 +1,13 @@
+/*#
+ *# Copyright 2015, NICTA
+ *#
+ *# This software may be distributed and modified according to the terms of
+ *# the BSD 2-Clause license. Note that NO WARRANTY is provided.
+ *# See "LICENSE_BSD2.txt" for details.
+ *#
+ *# @TAG(NICTA_BSD)
+ #*/
+
 /*- macro call_array_typedef_check(interface, method, parameter, type) -*/
   /*- set tmp = c_symbol() -*/
   static /*? type ?*/ /*? tmp ?*/;
@@ -5,15 +15,15 @@
 /*- endmacro -*/
 
 /*- set checked_types = set() -*/
-/*- for m in me.from_interface.type.methods -*/
-  /*- if m.return_type is not none and isinstance(m.return_type, camkes.ast.Reference) and m.return_type._symbol not in checked_types -*/
-    /*? call_array_typedef_check(me.from_interface.type.name, m.name, 'return', m.return_type._symbol) ?*/
-    /*- do checked_types.add(m.return_type._symbol) -*/
+/*- for m in me.interface.type.methods -*/
+  /*- if m.return_type is not none and m.return_type not in checked_types -*/
+    /*? call_array_typedef_check(me.interface.type.name, m.name, 'return', macros.show_type(m.return_type)) ?*/
+    /*- do checked_types.add(m.return_type) -*/
   /*- endif -*/
   /*- for p in m.parameters -*/
-    /*- if isinstance(p.type, camkes.ast.Reference) and p.type._symbol not in checked_types -*/
-      /*? call_array_typedef_check(me.from_interface.type.name, m.name, p.name, p.type._symbol) ?*/
-      /*- do checked_types.add(p.type._symbol) -*/
+    /*- if p.type not in checked_types -*/
+      /*? call_array_typedef_check(me.interface.type.name, m.name, p.name, macros.show_type(p.type)) ?*/
+      /*- do checked_types.add(p.type) -*/
     /*- endif -*/
   /*- endfor -*/
 /*- endfor -*/

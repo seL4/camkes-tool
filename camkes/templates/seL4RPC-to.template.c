@@ -1,5 +1,5 @@
 /*#
- *# Copyright 2014, NICTA
+ *# Copyright 2015, NICTA
  *#
  *# This software may be distributed and modified according to the terms of
  *# the BSD 2-Clause license. Note that NO WARRANTY is provided.
@@ -21,49 +21,49 @@
 #include <camkes/dataport.h>
 #include <utils/util.h>
 
-/*? macros.show_includes(me.to_instance.type.includes) ?*/
-/*? macros.show_includes(me.to_interface.type.includes, '../static/components/' + me.to_instance.type.name + '/') ?*/
+/*? macros.show_includes(me.instance.type.includes) ?*/
+/*? macros.show_includes(me.interface.type.includes) ?*/
 
 /*- set BUFFER_BASE = c_symbol('BUFFER_BASE') -*/
 #define /*? BUFFER_BASE ?*/ ((void*)&seL4_GetIPCBuffer()->msg[0])
 
-/*- set methods_len = len(me.to_interface.type.methods) -*/
-/*- set instance = me.to_instance.name -*/
-/*- set interface = me.to_interface.name -*/
-/*- set threads = list(range(1, 2 + len(me.to_instance.type.provides) + len(me.to_instance.type.uses) + len(me.to_instance.type.emits) + len(me.to_instance.type.consumes))) -*/
+/*- set methods_len = len(me.interface.type.methods) -*/
+/*- set instance = me.instance.name -*/
+/*- set interface = me.interface.name -*/
+/*- set threads = list(six.moves.range(1, 2 + len(me.instance.type.provides) + len(me.instance.type.uses) + len(me.instance.type.emits) + len(me.instance.type.consumes))) -*/
 /*- set buffer = BUFFER_BASE -*/
 /*- set size = 'seL4_MsgMaxLength * sizeof(seL4_Word)' -*/
 /*- set allow_trailing_data = False -*/
 
 /* Interface-specific error handling */
-/*- set error_handler = '%s_error_handler' % me.to_interface.name -*/
+/*- set error_handler = '%s_error_handler' % me.interface.name -*/
 /*- include 'error-handler.c' -*/
 
-/*- for m in me.to_interface.type.methods -*/
+/*- for m in me.interface.type.methods -*/
     extern
-    /*- if m.return_type is not none -*/
-        /*- if isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string' -*/
+    /*- if m.return_type is not none-*/
+        /*- if m.return_type == 'string' -*/
             char *
         /*- else -*/
-            /*? show(m.return_type) ?*/
+            /*? macros.show_type(m.return_type) ?*/
         /*- endif -*/
     /*- else -*/
         void
     /*- endif -*/
-    /*? me.to_interface.name ?*/_/*? m.name ?*/(
+    /*? me.interface.name ?*/_/*? m.name ?*/(
     /*- for p in m.parameters -*/
       /*- if p.direction == 'in' -*/
         /*- if p.array -*/
           size_t /*? p.name ?*/_sz,
-          /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+          /*- if p.type == 'string' -*/
             char **
           /*- else -*/
-            const /*? show(p.type) ?*/ *
+            const /*? macros.show_type(p.type) ?*/ *
           /*- endif -*/
-        /*- elif isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+        /*- elif p.type == 'string' -*/
           const char *
         /*- else -*/
-          /*? show(p.type) ?*/
+          /*? macros.show_type(p.type) ?*/
         /*- endif -*/
         /*? p.name ?*/
       /*- else -*/
@@ -73,18 +73,18 @@
             const
           /*- endif -*/
           size_t * /*? p.name ?*/_sz,
-          /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+          /*- if p.type == 'string' -*/
             char ***
           /*- else -*/
-            /*? show(p.type) ?*/ **
+            /*? macros.show_type(p.type) ?*/ **
           /*- endif -*/
-        /*- elif isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+        /*- elif p.type == 'string' -*/
           char **
         /*- else -*/
           /*- if p.direction == 'refin' -*/
             const
           /*- endif -*/
-          /*? show(p.type) ?*/ *
+          /*? macros.show_type(p.type) ?*/ *
         /*- endif -*/
         /*? p.name ?*/
       /*- endif -*/
@@ -99,16 +99,16 @@
 
 /*- set name = m.name -*/
 /*- set function = '%s_unmarshal_inputs' % m.name -*/
-/*- set input_parameters = filter(lambda('x: x.direction in [\'refin\', \'in\', \'inout\']'), m.parameters) -*/
+/*- set input_parameters = list(filter(lambda('x: x.direction in [\'refin\', \'in\', \'inout\']'), m.parameters)) -*/
 /*- include 'unmarshal-inputs.c' -*/
 
 /*- set function = '%s_marshal_outputs' % m.name -*/
-/*- set output_parameters = filter(lambda('x: x.direction in [\'out\', \'inout\']'), m.parameters) -*/
+/*- set output_parameters = list(filter(lambda('x: x.direction in [\'out\', \'inout\']'), m.parameters)) -*/
 /*- set return_type = m.return_type -*/
 /*- include 'marshal-outputs.c' -*/
 
 /*- if m.return_type is not none -*/
-  /*- if isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string' -*/
+  /*- if m.return_type == 'string' -*/
     /*- set array = False -*/
     /*- set name = '%s_ret_to' % m.name -*/
     /*- set type = 'char*' -*/
@@ -116,7 +116,7 @@
   /*- else -*/
     /*- set array = False -*/
     /*- set name = '%s_ret_to' % m.name -*/
-    /*- set type = show(m.return_type) -*/
+    /*- set type = macros.show_type(m.return_type) -*/
     /*- include 'thread_local.c' -*/
   /*- endif -*/
 /*- endif -*/
@@ -126,7 +126,7 @@
     /*- set name = '%s_%s_sz_to' % (m.name, p.name) -*/
     /*- set type = 'size_t' -*/
     /*- include 'thread_local.c' -*/
-    /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+    /*- if p.type == 'string' -*/
       /*- set array = False -*/
       /*- set name = '%s_%s_to' % (m.name, p.name) -*/
       /*- set type = 'char**' -*/
@@ -134,10 +134,10 @@
     /*- else -*/
       /*- set array = False -*/
       /*- set name = '%s_%s_to' % (m.name, p.name) -*/
-      /*- set type = '%s*' % show(p.type) -*/
+      /*- set type = '%s*' % macros.show_type(p.type) -*/
       /*- include 'thread_local.c' -*/
     /*- endif -*/
-  /*- elif isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+  /*- elif p.type == 'string' -*/
     /*- set array = False -*/
     /*- set name = '%s_%s_to' % (m.name, p.name) -*/
     /*- set type = 'char*' -*/
@@ -145,7 +145,7 @@
   /*- else -*/
     /*- set array = False -*/
     /*- set name = '%s_%s_to' % (m.name, p.name) -*/
-    /*- set type = show(p.type) -*/
+    /*- set type = macros.show_type(p.type) -*/
     /*- include 'thread_local.c' -*/
   /*- endif -*/
 /*- endfor -*/
@@ -173,12 +173,12 @@
   /*- set type = 'uint64_t' -*/
   /*- include 'thread_local.c' -*/
 /*- else -*/
-  /*? raise(Exception('too many methods in interface %s' % me.to_interface.name)) ?*/
+  /*? raise(TemplateError('too many methods in interface %s' % me.interface.name)) ?*/
 /*- endif -*/
 
 /*- include 'array-typedef-check.c' -*/
 
-int /*? me.to_interface.name ?*/__run(void) {
+int /*? me.interface.name ?*/__run(void) {
     /*# Check any typedefs we have been given are not arrays. #*/
     /*- include 'call-array-typedef-check.c' -*/
 
@@ -212,7 +212,7 @@ int /*? me.to_interface.name ?*/__run(void) {
           uint64_t /*? call ?*/ UNUSED;
           uint64_t * /*? call_ptr ?*/ = TLS_PTR(/*? call_tls_var ?*/, /*? call ?*/);
         /*- else -*/
-          /*? raise(Exception('too many methods in interface %s' % me.to_interface.name)) ?*/
+          /*? raise(TemplateError('too many methods in interface %s' % me.interface.name)) ?*/
         /*- endif -*/
         /*- if methods_len > 1 -*/
           ERR_IF(sizeof(* /*? call_ptr ?*/) > /*? size ?*/, /*? error_handler ?*/, ((camkes_error_t){
@@ -229,32 +229,32 @@ int /*? me.to_interface.name ?*/__run(void) {
         /*- endif -*/
 
         switch (* /*? call_ptr ?*/) {
-            /*- for i, m in enumerate(me.to_interface.type.methods) -*/
+            /*- for i, m in enumerate(me.interface.type.methods) -*/
                 case /*? i ?*/: { /*? '/' + '* ' + m.name + ' *' + '/' ?*/
                     /*- for p in m.parameters -*/
                         /*# Declare parameters. #*/
                         /*- if p.array -*/
                             size_t /*? p.name ?*/_sz UNUSED;
                             size_t * /*? p.name ?*/_sz_ptr = TLS_PTR(/*? m.name ?*/_/*? p.name ?*/_sz_to, /*? p.name ?*/_sz);
-                            /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+                            /*- if p.type == 'string' -*/
                                 char ** /*? p.name ?*/ UNUSED = NULL;
                                 char *** /*? p.name ?*/_ptr = TLS_PTR(/*? m.name ?*/_/*? p.name ?*/_to, /*? p.name ?*/);
                             /*- else -*/
-                                /*? show(p.type) ?*/ * /*? p.name ?*/ UNUSED = NULL;
-                                /*? show(p.type) ?*/ ** /*? p.name ?*/_ptr = TLS_PTR(/*? m.name ?*/_/*? p.name ?*/_to, /*? p.name ?*/);
+                                /*? macros.show_type(p.type) ?*/ * /*? p.name ?*/ UNUSED = NULL;
+                                /*? macros.show_type(p.type) ?*/ ** /*? p.name ?*/_ptr = TLS_PTR(/*? m.name ?*/_/*? p.name ?*/_to, /*? p.name ?*/);
                             /*- endif -*/
-                        /*- elif isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+                        /*- elif p.type == 'string' -*/
                             char * /*? p.name ?*/ UNUSED = NULL;
                             char ** /*? p.name ?*/_ptr = TLS_PTR(/*? m.name ?*/_/*? p.name ?*/_to, /*? p.name ?*/);
                         /*- else -*/
-                            /*? show(p.type) ?*/ /*? p.name ?*/ UNUSED;
-                            /*? show(p.type) ?*/ * /*? p.name ?*/_ptr = TLS_PTR(/*? m.name ?*/_/*? p.name ?*/_to, /*? p.name ?*/);
+                            /*? macros.show_type(p.type) ?*/ /*? p.name ?*/ UNUSED;
+                            /*? macros.show_type(p.type) ?*/ * /*? p.name ?*/_ptr = TLS_PTR(/*? m.name ?*/_/*? p.name ?*/_to, /*? p.name ?*/);
                         /*- endif -*/
                     /*- endfor -*/
 
                     /* Unmarshal parameters */
                     /*- set function = '%s_unmarshal_inputs' % m.name -*/
-                    /*- set input_parameters = filter(lambda('x: x.direction in [\'refin\', \'in\', \'inout\']'), m.parameters) -*/
+                    /*- set input_parameters = list(filter(lambda('x: x.direction in [\'refin\', \'in\', \'inout\']'), m.parameters)) -*/
                     /*- set err = c_symbol('error') -*/
                     int /*? err ?*/ = /*- include 'call-unmarshal-inputs.c' -*/;
                     if (unlikely(/*? err ?*/ != 0)) {
@@ -266,18 +266,17 @@ int /*? me.to_interface.name ?*/__run(void) {
                     /*- set ret = c_symbol('ret') -*/
                     /*- set ret_sz = c_symbol('ret_sz') -*/
                     /*- set ret_ptr = c_symbol('ret_ptr') -*/
-                    /*_ set ret_sz_ptr = c_symbol('ret_sz_ptr') -*/
                     /*- if m.return_type is not none -*/
-                        /*- if isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string' -*/
+                        /*- if m.return_type == 'string' -*/
                             char * /*? ret ?*/ UNUSED;
                             char ** /*? ret_ptr ?*/ = TLS_PTR(/*? m.name ?*/_ret_to, /*? ret ?*/);
                         /*- else -*/
-                            /*? show(m.return_type) ?*/ /*? ret ?*/ UNUSED;
-                            /*? show(m.return_type) ?*/ * /*? ret_ptr ?*/ = TLS_PTR(/*? m.name ?*/_ret_to, /*? ret ?*/);
+                            /*? macros.show_type(m.return_type) ?*/ /*? ret ?*/ UNUSED;
+                            /*? macros.show_type(m.return_type) ?*/ * /*? ret_ptr ?*/ = TLS_PTR(/*? m.name ?*/_ret_to, /*? ret ?*/);
                         /*- endif -*/
                         * /*? ret_ptr ?*/ =
                     /*- endif -*/
-                    /*? me.to_interface.name ?*/_/*? m.name ?*/(
+                    /*? me.interface.name ?*/_/*? m.name ?*/(
                         /*- for p in m.parameters -*/
                             /*- if p.array -*/
                                 /*- if p.direction == 'in' -*/
@@ -295,27 +294,27 @@ int /*? me.to_interface.name ?*/__run(void) {
 
                     /* Marshal the response */
                     /*- set function = '%s_marshal_outputs' % m.name -*/
-                    /*- set output_parameters = filter(lambda('x: x.direction in [\'out\', \'inout\']'), m.parameters) -*/
+                    /*- set output_parameters = list(filter(lambda('x: x.direction in [\'out\', \'inout\']'), m.parameters)) -*/
                     /*- set return_type = m.return_type -*/
                     /*- set length = c_symbol('length') -*/
                     unsigned int /*? length ?*/ = /*- include 'call-marshal-outputs.c' -*/;
 
                     /*# We no longer need anything we previously malloced #*/
                     /*- if m.return_type is not none -*/
-                      /*- if isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string' -*/
+                      /*- if m.return_type == 'string' -*/
                         free(* /*? ret_ptr ?*/);
                       /*- endif -*/
                     /*- endif -*/
                     /*- for p in m.parameters -*/
                       /*- if p.array -*/
-                        /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+                        /*- if p.type == 'string' -*/
                           /*- set mcount = c_symbol() -*/
                           for (int /*? mcount ?*/ = 0; /*? mcount ?*/ < * /*? p.name ?*/_sz_ptr; /*? mcount ?*/ ++) {
                             free((* /*? p.name ?*/_ptr)[/*? mcount ?*/]);
                           }
                         /*- endif -*/
                         free(* /*? p.name ?*/_ptr);
-                      /*- elif isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+                      /*- elif p.type == 'string' -*/
                         free(* /*? p.name ?*/_ptr);
                       /*- endif -*/
                     /*- endfor -*/

@@ -1,5 +1,5 @@
 /*#
- *# Copyright 2014, NICTA
+ *# Copyright 2015, NICTA
  *#
  *# This software may be distributed and modified according to the terms of
  *# the BSD 2-Clause license. Note that NO WARRANTY is provided.
@@ -8,12 +8,16 @@
  *# @TAG(NICTA_BSD)
  #*/
 
+/*- if len(me.parent.from_ends) != 1 -*/
+  /*? raise(TemplateError('connections without a single from end are not supported', me.parent)) ?*/
+/*- endif -*/
+
 /*- set thy = os.path.splitext(os.path.basename(options.outfile.name))[0] -*/
 (*<*)
 theory /*? thy ?*/ imports
-  "../../tools/c-parser/CTranslation"
-  "../../tools/autocorres/AutoCorres"
-  "../../tools/autocorres/NonDetMonadEx"
+  "~~/../l4v/tools/c-parser/CTranslation"
+  "~~/../l4v/tools/autocorres/AutoCorres"
+  "~~/../l4v/tools/autocorres/NonDetMonadEx"
 begin
 
 (* THIS THEORY IS GENERATED. DO NOT EDIT.
@@ -325,7 +329,7 @@ text {*
 *}
 
 (*<*)
-/*- set threads = 1 + len(me.from_instance.type.provides + me.from_instance.type.uses + me.from_instance.type.emits + me.from_instance.type.consumes + me.from_instance.type.dataports) -*/
+/*- set threads = 1 + len(me.instance.type.provides + me.instance.type.uses + me.instance.type.emits + me.instance.type.consumes + me.instance.type.dataports) -*/
 definition
   thread_count :: word32
 where
@@ -334,7 +338,7 @@ where
 (* Any array parameters will have caused a TLS array to be generated. Prove a WP lemma for each
  * here.
  *)
-/*- for m in me.from_interface.type.methods -*/
+/*- for m in me.interface.type.methods -*/
 /*- for p in m.parameters -*/
 /*- if p.array -*/
 (** TPP: condense = True *)
@@ -344,8 +348,8 @@ lemma get_/*? m.name ?*/_/*? p.name ?*/_wp[wp_unsafe]:
         ipc_buffer_valid /*? state ?*/ \<and>
         tls_valid /*? state ?*/ \<and>
         thread_index_C (tls /*? state ?*/) \<in> {1..thread_count} \<and>
-        /*- for t in range(threads) -*/
-          is_valid_w/*? sizeof(p) * 8 ?*/'ptr /*? state ?*/ (Ptr (symbol_table ''/*? m.name ?*/_/*? p.name ?*/_ptr_/*? t + 1 ?*/'')) \<and>
+        /*- for t in six.moves.range(threads) -*/
+          is_valid_w/*? macros.sizeof(p) * 8 ?*/'ptr /*? state ?*/ (Ptr (symbol_table ''/*? m.name ?*/_/*? p.name ?*/_ptr_/*? t + 1 ?*/'')) \<and>
         /*- endfor -*/
         /*# Somewhat awkward. We need to know whether the type of the members of this array is
          *# signed or unsigned. Although both signed and unsigned types are consolidated (per
@@ -353,17 +357,17 @@ lemma get_/*? m.name ?*/_/*? p.name ?*/_wp[wp_unsafe]:
          *# the underlying value. We need to use this to constrain the following bound variable or
          *# it does not correctly unify with a later subgoal.
          #*/
-        /*- if p.type.type in ['int', 'int8_t', 'int16_t', 'int32_t', 'int64_t'] -*/
+        /*- if p.type in ['int', 'int8_t', 'int16_t', 'int32_t', 'int64_t'] -*/
             /*- set word_type = 'sword' -*/
         /*- else -*/
             /*- set word_type = 'word' -*/
         /*- endif -*/
-        /*- for t in range(threads) -*/
-          (\<forall>(a :: /*? word_type ?*//*? sizeof(p) * 8 ?*/ ptr)\<in>set (array_addrs (Ptr (symbol_table ''/*? m.name ?*/_/*? p.name ?*/_/*? t + 1 ?*/'')) (uint seL4_MsgMaxLength)). is_valid_w/*? sizeof(p) * 8 ?*/ /*? state ?*/ (ptr_coerce a)) \<and>
+        /*- for t in six.moves.range(threads) -*/
+          (\<forall>(a :: /*? word_type ?*//*? macros.sizeof(p) * 8 ?*/ ptr)\<in>set (array_addrs (Ptr (symbol_table ''/*? m.name ?*/_/*? p.name ?*/_/*? t + 1 ?*/'')) (uint seL4_MsgMaxLength)). is_valid_w/*? macros.sizeof(p) * 8 ?*/ /*? state ?*/ (ptr_coerce a)) \<and>
         /*- endfor -*/
-        /*- for t in range(threads) -*/
+        /*- for t in six.moves.range(threads) -*/
 (** TPP: accumulate = True *)
-          (\<forall>x. P x (heap_w/*? sizeof(p) * 8 ?*/'ptr_update (\<lambda>x. x(Ptr (symbol_table ''/*? m.name ?*/_/*? p.name ?*/_ptr_/*? t + 1 ?*/'') := Ptr (symbol_table ''/*? m.name ?*/_/*? p.name ?*/_/*? t + 1 ?*/''))) /*? state ?*/))
+          (\<forall>x. P x (heap_w/*? macros.sizeof(p) * 8 ?*/'ptr_update (\<lambda>x. x(Ptr (symbol_table ''/*? m.name ?*/_/*? p.name ?*/_ptr_/*? t + 1 ?*/'') := Ptr (symbol_table ''/*? m.name ?*/_/*? p.name ?*/_/*? t + 1 ?*/''))) /*? state ?*/))
           /*- if not loop.last -*/
             \<and>
           /*- endif -*/
@@ -386,11 +390,11 @@ lemma get_/*? m.name ?*/_/*? p.name ?*/_wp[wp_unsafe]:
 
 chapter {* RPC Send *}
 (*<*)
-(* This lemma captures the safety of the /*? me.from_interface.name ?*/__run function
+(* This lemma captures the safety of the /*? me.interface.name ?*/__run function
  * which is invoked on startup in this glue code. It is excluded from the final document because
  * the function itself is trivial and the proof uninteresting.
  *)
-lemma /*? me.from_interface.name ?*/_run_nf: "\<lbrace>\<lambda>s. \<forall>r. P r s\<rbrace> /*? thy ?*/__run' \<lbrace>P\<rbrace>!"
+lemma /*? me.interface.name ?*/_run_nf: "\<lbrace>\<lambda>s. \<forall>r. P r s\<rbrace> /*? thy ?*/__run' \<lbrace>P\<rbrace>!"
   apply (simp add: /*? thy ?*/__run'_def)
   apply wp
   apply simp
@@ -419,13 +423,13 @@ text {*
   assumptions are the properties of the globals frame and TLS region discussed previously and,
   where relevant, that any pointers passed to the glue code can be safely dereferenced.
 *}
-/*- for m in me.from_interface.type.methods -*/
+/*- for m in me.interface.type.methods -*/
 /*- if m.name in ['echo_char', 'increment_parameter'] -*/
     text {* \newpage *}
 /*- endif -*/
 (** TPP: condense = True *)
 /*- set state = isabelle_symbol('s') -*/
-lemma /*? me.from_interface.name ?*/_/*? m.name ?*/_nf:
+lemma /*? me.interface.name ?*/_/*? m.name ?*/_nf:
   notes seL4_SetMR_wp[wp] seL4_GetMR_wp[wp]
   shows
   "\<lbrace>\<lambda>/*? state ?*/. globals_frame_intact /*? state ?*/ \<and>
@@ -434,7 +438,7 @@ lemma /*? me.from_interface.name ?*/_/*? m.name ?*/_nf:
   /*# Any 'out' or 'inout' parameters are passed to us as valid pointers. #*/
   /*- for p in m.parameters -*/
     /*- if p.direction in ['out', 'inout'] -*/
-      /*- set size = sizeof(p) -*/
+      /*- set size = macros.sizeof(p) -*/
       /*# The size must be something AutoCorres can handle. #*/
       /*? assert(size in [1, 2, 4, 8]) ?*/
       is_valid_w/*? size * 8 ?*/ /*? state ?*/ (ptr_coerce /*? p.name ?*/) \<and>
@@ -446,7 +450,7 @@ lemma /*? me.from_interface.name ?*/_/*? m.name ?*/_nf:
 
 (** TPP: accumulate = True *)
     /*# The name of the function as translated into Isabelle. #*/
-   /*? me.from_interface.name ?*/_/*? m.name ?*/'
+   /*? me.interface.name ?*/_/*? m.name ?*/'
 
     /*# The function's parameters. #*/
     /*- for p in m.parameters -*/
@@ -460,7 +464,7 @@ lemma /*? me.from_interface.name ?*/_/*? m.name ?*/_nf:
   /*# Any 'out' or 'inout' parameter pointers are still valid. #*/
   /*- for p in m.parameters -*/
     /*- if p.direction in ['out', 'inout'] -*/
-      /*- set size = sizeof(p) -*/
+      /*- set size = macros.sizeof(p) -*/
       /*# The size must be something AutoCorres can handle. #*/
       /*? assert(size in [1, 2, 4, 8]) ?*/
       is_valid_w/*? size * 8 ?*/ /*? state ?*/ (ptr_coerce /*? p.name ?*/) \<and>
@@ -469,8 +473,8 @@ lemma /*? me.from_interface.name ?*/_/*? m.name ?*/_nf:
 
      ipc_buffer_valid /*? state ?*/\<rbrace>!"
 (** TPP: lock_indent = None *)
-  apply (simp add:/*? me.from_interface.name ?*/_/*? m.name ?*/'_def /*? me.from_interface.name ?*/_/*? m.name ?*/_marshal'_def
-                  /*? me.from_interface.name ?*/_/*? m.name ?*/_call'_def /*? me.from_interface.name ?*/_/*? m.name ?*/_unmarshal'_def)
+  apply (simp add:/*? me.interface.name ?*/_/*? m.name ?*/'_def /*? me.interface.name ?*/_/*? m.name ?*/_marshal'_def
+                  /*? me.interface.name ?*/_/*? m.name ?*/_call'_def /*? me.interface.name ?*/_/*? m.name ?*/_unmarshal'_def)
   apply (wp seL4_Call_wp)
     apply (simp add:seL4_MessageInfo_new'_def)
     apply wp

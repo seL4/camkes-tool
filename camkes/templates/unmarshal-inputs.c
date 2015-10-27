@@ -1,13 +1,23 @@
+/*#
+ *# Copyright 2015, NICTA
+ *#
+ *# This software may be distributed and modified according to the terms of
+ *# the BSD 2-Clause license. Note that NO WARRANTY is provided.
+ *# See "LICENSE_BSD2.txt" for details.
+ *#
+ *# @TAG(NICTA_BSD)
+ #*/
+
 /*# We expect the following variables to be defined when this fragment is
  *# included.
  #*/
-/*? assert(isinstance(instance, basestring)) ?*/      /*# Name of this component instance #*/
-/*? assert(isinstance(interface, basestring)) ?*/     /*# Name of this interface #*/
-/*? assert(isinstance(name, basestring)) ?*/          /*# Name of this method #*/
-/*? assert(isinstance(function, basestring)) ?*/      /*# Name of function to create #*/
-/*? assert(isinstance(buffer, basestring)) ?*/        /*# Buffer symbol (or expression) to marshal into #*/
-/*? assert(isinstance(methods_len, int)) ?*/   /*# Total number of methods in this interface #*/
-/*? assert(isinstance(input_parameters, list)) ?*/   /*# All input parameters to this method #*/
+/*? assert(isinstance(instance, six.string_types)) ?*/      /*# Name of this component instance #*/
+/*? assert(isinstance(interface, six.string_types)) ?*/     /*# Name of this interface #*/
+/*? assert(isinstance(name, six.string_types)) ?*/          /*# Name of this method #*/
+/*? assert(isinstance(function, six.string_types)) ?*/      /*# Name of function to create #*/
+/*? assert(isinstance(buffer, six.string_types)) ?*/        /*# Buffer symbol (or expression) to marshal into #*/
+/*? assert(isinstance(methods_len, six.integer_types)) ?*/          /*# Total number of methods in this interface #*/
+/*? assert(isinstance(input_parameters, (list, tuple))) ?*/    /*# All input parameters to this method #*/
 
 /*- for p in input_parameters -*/
   /*- set size = c_symbol('size') -*/
@@ -15,15 +25,15 @@
   static unsigned int /*? function ?*/_/*? p.name ?*/(unsigned int /*? size ?*/, unsigned int /*? offset ?*/,
     /*- if p.array -*/
       size_t * /*? p.name ?*/_sz,
-      /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+      /*- if p.type == 'string' -*/
         char *** /*? p.name ?*/
       /*- else -*/
-        /*? show(p.type) ?*/ ** /*? p.name ?*/
+        /*? macros.show_type(p.type) ?*/ ** /*? p.name ?*/
       /*- endif -*/
-    /*- elif isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+    /*- elif p.type == 'string' -*/
       char ** /*? p.name ?*/
     /*- else -*/
-      /*? show(p.type) ?*/ * /*? p.name ?*/
+      /*? macros.show_type(p.type) ?*/ * /*? p.name ?*/
     /*- endif -*/
   ) {
 
@@ -43,7 +53,7 @@
         }));
       memcpy(/*? p.name ?*/_sz, /*? base ?*/ + /*? offset ?*/, sizeof(* /*? p.name ?*/_sz));
       /*? offset ?*/ += sizeof(* /*? p.name ?*/_sz);
-      /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+      /*- if p.type == 'string' -*/
         * /*? p.name ?*/ = malloc(sizeof(char*) * (* /*? p.name ?*/_sz));
         ERR_IF(* /*? p.name ?*/ == NULL, /*? error_handler ?*/, ((camkes_error_t){
             .type = CE_ALLOCATION_FAILURE,
@@ -66,7 +76,7 @@
             return UINT_MAX;
           }));
       /*- endif -*/
-      /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+      /*- if p.type == 'string' -*/
         /*- set lcount = c_symbol() -*/
         for (int /*? lcount ?*/ = 0; /*? lcount ?*/ < * /*? p.name ?*/_sz; /*? lcount ?*/ ++) {
           /*- set strlen = c_symbol('strlen') -*/
@@ -119,7 +129,7 @@
         memcpy(* /*? p.name ?*/, /*? base ?*/ + /*? offset ?*/, sizeof((* /*? p.name ?*/)[0]) * (* /*? p.name ?*/_sz));
         /*? offset ?*/ += sizeof((* /*? p.name ?*/)[0]) * (* /*? p.name ?*/_sz);
       /*- endif -*/
-    /*- elif isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+    /*- elif p.type == 'string' -*/
       /*- set strlen = c_symbol('strlen') -*/
       size_t /*? strlen ?*/ = strnlen(/*? base ?*/ + /*? offset ?*/, /*? size ?*/ - /*? offset ?*/);
       ERR_IF(/*? strlen ?*/ >= /*? size ?*/ - /*? offset ?*/, /*? error_handler ?*/, ((camkes_error_t){
@@ -171,15 +181,15 @@ unsigned int /*? size ?*/
 /*- for p in input_parameters -*/
   /*- if p.array -*/
     size_t * /*? p.name ?*/_sz,
-    /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+    /*- if p.type == 'string' -*/
       char *** /*? p.name ?*/
     /*- else -*/
-      /*? show(p.type) ?*/ ** /*? p.name ?*/
+      /*? macros.show_type(p.type) ?*/ ** /*? p.name ?*/
     /*- endif -*/
-  /*- elif isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+  /*- elif p.type == 'string' -*/
     char ** /*? p.name ?*/
   /*- else -*/
-    /*? show(p.type) ?*/ * /*? p.name ?*/
+    /*? macros.show_type(p.type) ?*/ * /*? p.name ?*/
   /*- endif -*/
   /*- if not loop.last -*/
     ,
@@ -205,14 +215,14 @@ unsigned int /*? size ?*/
     /*- elif methods_len <= 2 ** 64 -*/
       uint64_t
     /*- else -*/
-      /*? raise(Exception('too many methods in interface %s' % name)) ?*/
+      /*? raise(TemplateError('too many methods in interface %s' % name)) ?*/
     /*- endif -*/
     );
   /*- endif -*/
 
   /* Unmarshal input parameters. */
   /*- for p in input_parameters -*/
-    /*? assert(isinstance(p.type, camkes.ast.Type) or isinstance(p.type, camkes.ast.Reference)) ?*/
+    /*? assert(isinstance(p.type, six.string_types)) ?*/
     /*? length ?*/ = /*? function ?*/_/*? p.name ?*/(/*? size ?*/, /*? length ?*/,
       /*- if p.array -*/
         /*? p.name ?*/_sz,
@@ -225,14 +235,14 @@ unsigned int /*? size ?*/
           /*- do break -*/
         /*- endif -*/
         /*- if q.array -*/
-          /*- if isinstance(q.type, camkes.ast.Type) and q.type.type == 'string' -*/
+          /*- if q.type == 'string' -*/
             /*- set mcount = c_symbol() -*/
             for (int /*? mcount ?*/ = 0; /*? mcount ?*/ < * /*? q.name ?*/_sz; /*? mcount ?*/ ++) {
               free((* /*? q.name ?*/)[/*? mcount ?*/]);
             }
           /*- endif -*/
           free(* /*? q.name ?*/);
-        /*- elif isinstance(q.type, camkes.ast.Type) and q.type.type == 'string' -*/
+        /*- elif q.type == 'string' -*/
           free(* /*? q.name ?*/);
         /*- endif -*/
       /*- endfor -*/
@@ -251,14 +261,14 @@ unsigned int /*? size ?*/
       }), ({
         /*- for p in input_parameters -*/
           /*- if p.array -*/
-            /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+            /*- if p.type == 'string' -*/
               /*- set mcount = c_symbol() -*/
               for (int /*? mcount ?*/ = 0; /*? mcount ?*/ < * /*? p.name ?*/_sz; /*? mcount ?*/ ++) {
                 free((* /*? p.name ?*/)[/*? mcount ?*/]);
               }
             /*- endif -*/
             free(* /*? p.name ?*/);
-          /*- elif isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+          /*- elif p.type == 'string' -*/
             free(* /*? p.name ?*/);
           /*- endif -*/
         /*- endfor -*/

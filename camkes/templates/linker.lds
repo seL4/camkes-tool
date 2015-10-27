@@ -1,5 +1,5 @@
 /*#
- *# Copyright 2014, NICTA
+ *# Copyright 2015, NICTA
  *#
  *# This software may be distributed and modified according to the terms of
  *# the BSD 2-Clause license. Note that NO WARRANTY is provided.
@@ -26,7 +26,7 @@ SECTIONS {
         *(.rodata*)
     }
 
-    /*- if arch == 'arm' -*/
+    /*- if options.architecture in ('arm', 'arm-hyp') -*/
     PROVIDE_HIDDEN (__exidx_start = .);
     .ARM.exidx   : { *(.ARM.exidx* .gnu.linkonce.armexidx.*) }
     PROVIDE_HIDDEN (__exidx_end = .);
@@ -47,18 +47,22 @@ SECTIONS {
     }
 
     /*- for c in composition.connections -*/
-    /*- if c.type.name == 'seL4SharedData' -*/
-      /*- if c.from_instance == me -*/
-    shared_/*? c.from_interface.name ?*/ (NOLOAD) : ALIGN(0x1000) {
-        *(shared_/*? c.from_interface.name ?*/)
-    }
+      /*- if c.type.name == 'seL4SharedData' -*/
+        /*- for index, e in enumerate(c.from_ends) -*/
+          /*- if e.instance == me -*/
+            shared_from_/*? index ?*/_/*? e.interface.name ?*/ (NOLOAD) : ALIGN(0x1000) {
+              *(shared_from_/*? index ?*/_/*? e.interface.name ?*/)
+            }
+          /*- endif -*/
+        /*- endfor -*/
+        /*- for index, e in enumerate(c.to_ends) -*/
+          /*- if e.instance == me -*/
+            shared_to_/*? index ?*/_/*? e.interface.name ?*/ (NOLOAD) : ALIGN(0x1000) {
+              *(shared_to_/*? index ?*/_/*? e.interface.name ?*/)
+            }
+          /*- endif -*/
+        /*- endfor -*/
       /*- endif -*/
-      /*- if c.to_instance == me -*/
-    shared_/*? c.to_interface.name ?*/ (NOLOAD) : ALIGN(0x1000) {
-        *(shared_/*? c.to_interface.name ?*/)
-    }
-      /*- endif -*/
-    /*- endif -*/
     /*- endfor -*/
 
     persistent (NOLOAD) : ALIGN(0x1000) {
@@ -66,15 +70,19 @@ SECTIONS {
     }
 
     /*- for c in composition.connections -*/
-    /*- if c.type.name == 'seL4HardwareMMIO' and c.from_instance == me -*/
-    /*- if arch == 'arm' -*/
-    ignore_/*? c.from_interface.name ?*/ (NOLOAD) : ALIGN(0x100000) { /*# ARM Section Size #*/
-    /*- else -*/
-    ignore_/*? c.from_interface.name ?*/ (NOLOAD) : ALIGN(0x400000) { /*# IA32 4M Page Size #*/
-    /*- endif -*/
-        *(ignore_/*? c.from_interface.name ?*/)
-    }
-    /*- endif -*/
+      /*- if c.type.name == 'seL4HardwareMMIO' -*/
+        /*- for index, e in enumerate(c.from_ends) -*/
+          /*- if e.instance == me -*/
+            /*- if options.architecture in ('arm', 'arm-hyp') -*/
+              ignore_from_/*? index ?*/_/*? e.interface.name ?*/ (NOLOAD) : ALIGN(0x100000) { /*# ARM Section Size #*/
+            /*- else -*/
+              ignore_from_/*? index ?*/_/*? e.interface.name ?*/ (NOLOAD) : ALIGN(0x400000) { /*# IA32 4M Page Size #*/
+            /*- endif -*/
+                *(ignore_from_/*? index ?*/_/*? e.interface.name ?*/)
+              }
+          /*- endif -*/
+        /*- endfor -*/
+      /*- endif -*/
     /*- endfor -*/
 
     _end = .;

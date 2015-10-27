@@ -1,5 +1,5 @@
 /*
- * Copyright 2014, NICTA
+ * Copyright 2015, NICTA
  *
  * This software may be distributed and modified according to the terms of
  * the BSD 2-Clause license. Note that NO WARRANTY is provided.
@@ -18,6 +18,7 @@
 #include <autoconf.h>
 
     .global _camkes_start
+    .extern _camkes_tls_init
     .extern _start
     .extern sel4_vsyscall
 
@@ -28,26 +29,23 @@ _camkes_start:
 #ifndef CONFIG_CAPDL_LOADER_CC_REGISTERS
     /* If we've been passed the arguments on the stack we need to shuffle them
      * into registers for now */
-    popl    %eax
-    popl    %ebx
     popl    %ecx
+
 #endif
 
-    movw    $IPCBUF_GDT_SELECTOR, %dx
-    movw    %dx, %gs
+    movw    $IPCBUF_GDT_SELECTOR, %ax
+    movw    %ax, %gs
 
     /* Save thread_id and entry_point so we can
      * put them into argv later */
-    pushl %eax
-    pushl %ebx
+    pushl %ecx
 
     /* Setup per thread tls */
-    pushl %eax
-    call *%ecx
+    pushl %ecx
+    call _camkes_tls_init
     addl $4, %esp
 
     /* Restore */
-    popl %ebx
     popl %eax
 
     /* Null terminate auxiliary vector */
@@ -64,12 +62,11 @@ _camkes_start:
     /* Null terminate argument vector */
     pushl $0
     /* Construct arguments */
-    pushl %ebx
     pushl %eax
     leal camkes_name, %ecx
     pushl %ecx
     /* Push argument count */
-    pushl $3
+    pushl $2
     /* No atexit */
     movl $0, %edx
 

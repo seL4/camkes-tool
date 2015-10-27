@@ -1,0 +1,17 @@
+component A {
+    consumes Yo d;
+}
+component B {
+    emits Yo d;
+}
+connector Q {
+    from Event;
+    to Event;
+}
+assembly {
+    composition {
+        component A a1;
+        component B a2;
+        connection Q c(from a2.d, to a1.d);
+    }
+}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014, NICTA
+ * Copyright 2015, NICTA
  *
  * This software may be distributed and modified according to the terms of
  * the BSD 2-Clause license. Note that NO WARRANTY is provided.
@@ -56,6 +56,11 @@ typedef enum {
      * error was triggered.
      */
     CE_ALLOCATION_FAILURE,
+
+    /* A counter would overflow or underflow if execution were to continue from
+     * the current point.
+     */
+    CE_OVERFLOW,
 
 } camkes_error_type_t;
 

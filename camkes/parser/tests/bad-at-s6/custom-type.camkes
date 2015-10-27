@@ -1,0 +1,3 @@
+procedure Foo {
+    void my_method(in MyType_t x);
+}

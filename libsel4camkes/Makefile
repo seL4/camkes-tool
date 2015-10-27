@@ -1,5 +1,5 @@
 #
-# Copyright 2014, NICTA
+# Copyright 2015, NICTA
 #
 # This software may be distributed and modified according to the terms of
 # the BSD 2-Clause license. Note that NO WARRANTY is provided.
@@ -12,14 +12,13 @@
 TARGETS := libsel4camkes.a
 
 # Source files required to build the target
-CFILES := $(patsubst $(SOURCE_DIR)/%,%,$(wildcard ${SOURCE_DIR}/src/*.c))
+CFILES := $(patsubst $(SOURCE_DIR)/%,%,$(wildcard ${SOURCE_DIR}/src/*.c)) \
+          $(patsubst $(SOURCE_DIR)/%,%,$(wildcard ${SOURCE_DIR}/src/arch/${ARCH}/*.c)) \
 
 ASMFILES := $(patsubst $(SOURCE_DIR)/%,%,$(wildcard ${SOURCE_DIR}/src/arch/$(ARCH)/*.S))
 
 # Header files/directories this library provides
 HDRFILES := \
     $(wildcard ${SOURCE_DIR}/include/*)
-
-CFLAGS += -Wno-main
 
 include $(SEL4_COMMON)/common.mk

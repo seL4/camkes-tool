@@ -13,23 +13,23 @@ syntax "camkes" "\.camkes"
 # C Preprocessor declarations
 color brightcyan "^[ \t]*#.*$"
 # Camkes keywords
-color brightgreen "\<(assembly|composition|from|to|configuration|control|procedure|hardware|maybe|dma_pool|has|mutex|semaphore|group|tcb_pool|ep_pool|notification_pool|from_access|to_access|template|untyped_mmio|trusted|cnode_size_bits)\>"
+color brightgreen "\<(assembly|composition|from|to|configuration|control|procedure|hardware|maybe|dma_pool|has|mutex|semaphore|group|tcb_pool|ep_pool|aep_pool|template|untyped_mmios|trusted|with|thread|threads|cnode_size_bits)\>"
 # Untyped pool
-color brightyellow "untyped[0-9]+_pool"
+color brightyellow "\<simple_untyped[0-9]+_pool\>"
 # Stack size
-color brightyellow "[a-zA-Z0-9_]+_stack_size"
+color brightyellow "\<[a-zA-Z0-9_]+_stack_size\>"
 # Priority
-color brightyellow "\<(priority|[a-zA-Z][a-zA-Z0-9_]*_priority|_priority)\>"
+color brightyellow "\<(priority|[a-zA-Z_][a-zA-Z0-9_]*_priority|_priority)\>"
 # Camkes types
-color green "\<(component|connection|attribute|connector|Procedure|Event|Dataport)\>"
+color green "\<(component|connection|attribute|connector|Procedure|Event|Dataport|Events|Procedures|Dataports|export)\>"
 # C types
-color green "\<(int|string|char|character|unsigned|signed|void|long|refin|in|out|inout|int8_t|uint8_t|int16_t|uint16_t|int32_t|uint32_t|int64_t|uint64_t)\>"
+color green "\<(int|string|char|character|unsigned|signed|void|long|refin|in|out|inout|int8_t|uint8_t|int16_t|uint16_t|int32_t|uint32_t|int64_t|uint64_t|integer|struct|Buf)\>"
 # Dependency
-color green "\<(uses|provides|emits|consumes)\>"
+color green "\<(uses|provides|emits|consumes|dataport)\>"
 # Imports
 color brightcyan "\<(import|include)\>"
 # Builtins
-color brightyellow start="<" end=">"
+color brightyellow start="<[^-]" end=">"
 # Numbers
 color brightred "\<(0x[0-9A-Fa-f]+|-?[0-9]+(.[0-9]+)?)\>"
 # Strings
@@ -38,3 +38,7 @@ color brightyellow "\".*\""
 color brightblue start="/\*" end="\*/"
 # Single line comment
 color brightblue "//.*"
+# Operators
+color brightyellow "(<-|->)"
+# C keywords
+color red "\<(auto|break|case|const|continue|default|do|else|enum|extern for|goto|if|inline|register|restrict|return|sizeof|static|switch|typedef|union|volatile|while|_Alignas|_Alignof|_Atomic|_Bool|_Complex|_Generic|_Imaginary|_Noreturn|_Static_assert|_Thread_local|__func__|__objc_yes|__objc_no|asm|_Decimal32|_Decimal64|_Decimal128|__alignof|__attribute|__builtin_choose_expr|__builtin_offsetof|__builtin_types_compatible_p|__builtin_va_arg|__extension__|__imag|__int128|__label__|__real|__thread|__FUNCTION__|__PRETTY_FUNCTION__|typeof|__private_extern__|__module_private__|__declspec|__cdecl|__stdcall|__fastcall|__thiscall|__vectorcall|__pascal|__fp16|__alignof__|__asm|__asm__|__attribute__|__complex|__complex__|__const|__const__|__imag__|__inline|__inline__|__real__|__restrict|__restrict__|__signed|__signed__|__typeof|__typeof__|__volatile|__volatile__|__builtin_convertvector|__unknown_anytype)\>"

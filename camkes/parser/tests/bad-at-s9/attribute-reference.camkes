@@ -1,0 +1,15 @@
+component B {
+    attribute string b_str;
+}
+
+component A {
+    attribute string a_str;
+
+    composition {
+        component B b;
+    }
+    configuration {
+        b.b_str <- a_str;
+    }
+}
+assembly { composition {}}

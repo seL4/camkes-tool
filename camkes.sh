@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright 2014, NICTA
+# Copyright 2015, NICTA
 #
 # This software may be distributed and modified according to the terms of
 # the BSD 2-Clause license. Note that NO WARRANTY is provided.
@@ -10,60 +10,29 @@
 #
 
 
-# Wrapper script for calling any of the standalone parts of CAmkES. You should
-# use this as an entry point in preference to calling Python files directly
-# because it checks the dependencies for you.
+# Wrapper script for calling the CAmkES code generator. You should use this as
+# an entry point in preference to calling Python files directly because it
+# checks the dependencies for you.
+
+
+# If the user has the CAmkES accelerator enabled, first try to see if it can
+# retrieve the requested output from the level A cache. Note that the
+# accelerator returns non-zero on a cache miss and we just fall back on running
+# the CAmkES code generator.
+if [ -n "${CONFIG_CAMKES_ACCELERATOR}" ]; then
+    camkes-accelerator "${@}"
+    if [ $? -eq 0 ]; then
+        exit 0
+    fi
+fi
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-
-if [ $# -lt 1 ]; then
-    echo "Usage: $0 command args..." >&2
-    exit 1
-elif [ "$1" = "--help" ]; then
-    echo "Invoke standalone CAmkES tools." >&2
-    echo " Usage: $0 command args..." >&2
-    echo -n " Valid commands are: "
-    for i in $(ls ${DIR}/camkes/); do
-        if [ -e "${DIR}/camkes/$i/__main__.py" ]; then
-            echo -n "$i "
-        fi
-    done
-    echo ""
-    exit 0
-fi
-
-if [ -z "${CONFIG_CAMKES_DISABLE_PYTHON_IMPORT_CHECKS}" ]; then
-
-    # Check we can import dependencies.
-    for i in elftools capdl jinja2 ply; do
-        python -c "import $i" &>/dev/null
-        if [ $? -ne 0 ]; then
-            echo "Python $i module not found in your PYTHONPATH" >&2
-            exit 1
-        fi
-    done
-
-    # We need a quite up to date version of the Python ELF tools with ARM support.
-    python -c "import elftools.elf.enums as e; e.ENUM_E_MACHINE['EM_ARM']" &>/dev/null
-    if [ $? -ne 0 ]; then
-        echo "The available version of Python elftools does not have ARM support; please update" >&2
-        exit 1
-    fi
-
-fi
 
 if [ -z "${PYTHONPATH}" ]; then
     export PYTHONPATH=${DIR}
 else
     export PYTHONPATH=${PYTHONPATH}:${DIR}
 fi
-
-COMMAND=$1
-if [ ! -e "${DIR}/camkes/${COMMAND}/__main__.py" ]; then
-    echo "Unknown command \"${COMMAND}\"" >&2
-    exit 1
-fi
-shift
 
 # Default optimisation (none).
 O=
@@ -76,10 +45,18 @@ elif [ ! -z "${CONFIG_CAMKES_PYTHON_INTERPRETER_FIGLEAF}" ]; then
 elif [ ! -z "${CONFIG_CAMKES_PYTHON_INTERPRETER_COVERAGE}" ]; then
     PYTHON="python-coverage run"
 else
-    PYTHON=python
-    if [ ! -z "${CONFIG_CAMKES_PYTHON_OPTIMIZE}" ]; then
+    if [ ! -z "${CONFIG_CAMKES_PYTHON_INTERPRETER_CPYTHON2}" ]; then
+        PYTHON=python2
+    elif [ ! -z "${CONFIG_CAMKES_PYTHON_INTERPRETER_CPYTHON3}" ]; then
+        PYTHON=python3
+    else
+        PYTHON=python
+    fi
+    if [ ! -z "${CONFIG_CAMKES_PYTHON_OPTIMISE_BASIC}" ]; then
         O=-O
+    elif [ ! -z "${CONFIG_CAMKES_PYTHON_OPTIMISE_MORE}" ]; then
+        O=-OO
     fi
 fi
 
-${PYTHON} ${O} ${DIR}/camkes/${COMMAND}/__main__.py "${@}"
+${PYTHON} ${O} ${DIR}/camkes/runner/__main__.py "${@}"

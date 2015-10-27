@@ -1,6 +1,8 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 #
-# Copyright 2014, NICTA
+# Copyright 2015, NICTA
 #
 # This software may be distributed and modified according to the terms of
 # the BSD 2-Clause license. Note that NO WARRANTY is provided.
@@ -13,36 +15,39 @@
 An example of how to use the AST traversal functionality.
 '''
 
+from __future__ import absolute_import, division, print_function, \
+    unicode_literals
+
 import os, sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 import camkes.ast as ast
 import camkes.parser as parser
 
 def basic_visit(parent, node, ignored):
-    print ' %s' % type(node)
+    sys.stdout.write(' %s\n' % type(node))
     return ast.TRAVERSAL_RECURSE
 
 def code_gen_enter(parent, node, state):
     if isinstance(node, ast.Method):
         if node.return_type is not None:
-            print node.return_type,
+            sys.stdout.write(node.return_type)
         else:
-            print 'void ',
-        print '%s(' % node.name,
+            sys.stdout.write('void ')
+        sys.stdout.write('%s(' % node.name)
         state['infunction'] = True
         state['firstparameter'] = True
         return ast.TRAVERSAL_RECURSE
     elif isinstance(node, ast.Parameter) and state.get('infunction', False):
         if not state.get('firstparameter', True):
-            print ', ',
-        print '%s %s' % (node.type, node.name),
+            sys.stdout.write(', ')
+        sys.stdout.write('%s %s' % (node.type, node.name))
         state['firstparameter'] = False
         return ast.TRAVERSAL_CONTINUE
     return ast.TRAVERSAL_RECURSE
 
 def code_gen_exit(parent, node, ignored):
     if isinstance(node, ast.Method):
-        print ') {\n  /* hello world */\n}'
+        sys.stdout.write(') {\n  /* hello world */\n}\n')
     return ast.TRAVERSAL_RECURSE
 
 def code_constructor(parent, node, state):
@@ -61,21 +66,21 @@ def code_constructor(parent, node, state):
 
 def main():
     if len(sys.argv) != 2:
-        print >>sys.stderr, 'Usage: %s inputfile' % sys.argv[0]
+        sys.stderr.write('Usage: %s inputfile\n' % sys.argv[0])
         return -1
 
-    with open(sys.argv[1], 'r') as f:
+    with open(sys.argv[1], 'rt') as f:
         s = f.read()
 
     a = parser.parse_to_ast(s)
 
-    print 'Traverse the AST and print the types of nodes:'
+    sys.stdout.write('Traverse the AST and print the types of nodes:\n')
     ast.traverse(a, basic_visit, None, None)
 
-    print '\nNow let\'s try some basic online code generation:'
+    sys.stdout.write('\nNow let\'s try some basic online code generation:\n')
     ast.traverse(a, code_gen_enter, code_gen_exit, {})
 
-    print '\nHow about the same offline:'
+    sys.stdout.write('\nHow about the same offline:\n')
     state = {
         'functions':{},
         'infunction':None,
@@ -83,13 +88,13 @@ def main():
     ast.traverse(a, code_constructor, None, state)
     for k, v in state['functions'].items():
         if v[0] is not None:
-            print v[0],
+            sys.stdout.write(v[0])
         else:
-            print 'void ',
-        print '%(name)s(%(params)s) {\n  /* hello world */\n}' % {
+            sys.stdout.write('void ')
+        sys.stdout.write('%(name)s(%(params)s) {\n  /* hello world */\n}\n' % {
             'name':k,
             'params':', '.join(map(lambda x: '%s %s' % (x.type, x.name), v[1:])),
-        }
+        })
 
     return 0
 

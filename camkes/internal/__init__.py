@@ -1,5 +1,8 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 #
-# Copyright 2014, NICTA
+# Copyright 2015, NICTA
 #
 # This software may be distributed and modified according to the terms of
 # the BSD 2-Clause license. Note that NO WARRANTY is provided.
@@ -10,3 +13,6 @@
 
 # Files in this directory are not intended to be imported outside of the CAmkES
 # module.
+
+from __future__ import absolute_import, division, print_function, \
+    unicode_literals

@@ -1,5 +1,8 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 #
-# Copyright 2014, NICTA
+# Copyright 2015, NICTA
 #
 # This software may be distributed and modified according to the terms of
 # the BSD 2-Clause license. Note that NO WARRANTY is provided.
@@ -18,6 +21,10 @@ Callers should only import and use the Perspective class. When instantiating
 one of these, generally as much information as is known should be provided to
 give Perspective the opportunity to spot internal inconsistencies. See the
 comments in the class itself for further information.'''
+
+from __future__ import absolute_import, division, print_function, \
+    unicode_literals
+from camkes.internal.seven import cmp, filter, map, zip
 
 from camkes.internal.dictutils import get_fields
 import re
@@ -123,7 +130,7 @@ class DMAFrameIndexDeriver(Deriver):
         return int(m.group(1))
 
 # Phases.
-RUNNER, TEMPLATES, FILTERS = range(3)
+RUNNER, TEMPLATES, FILTERS = list(range(3))
 
 # Instantiate the derivers to describe how name mangling happens in CAmkES. If
 # you want to modify the name mangling scheme, this is the place to do it.
@@ -138,39 +145,36 @@ DERIVATIONS = {
     ], TEMPLATES:[
         ForwardDeriver('dma_frame_%(dma_frame_index)04d', 'dma_frame_symbol'),
         DMAFrameIndexDeriver(r'^dma_frame_([0-9]+)$', 'dma_frame_symbol'),
-        ForwardDeriver('_camkes_ipc_buffer_%(instance)s_%(interface)s', 'ipc_buffer_symbol'),
-        FromControlDeriver('_camkes_ipc_buffer_%(instance)s_0_control', 'ipc_buffer_symbol'),
+        ForwardDeriver('_camkes_ipc_buffer_%(safe_instance)s_%(interface)s_%(intra_index)04d', 'ipc_buffer_symbol'),
+        FromControlDeriver('_camkes_ipc_buffer_%(safe_instance)s_0_control', 'ipc_buffer_symbol'),
         ControlDeriver(r'^_camkes_ipc_buffer_.+_0_control$', 'ipc_buffer_symbol'),
-        ForwardDeriver('_camkes_stack_%(instance)s_%(interface)s', 'stack_symbol'),
-        FromControlDeriver('_camkes_stack_%(instance)s_0_control', 'stack_symbol'),
+        ForwardDeriver('_camkes_stack_%(safe_instance)s_%(interface)s_%(intra_index)04d', 'stack_symbol'),
+        FromControlDeriver('_camkes_stack_%(safe_instance)s_0_control', 'stack_symbol'),
         ControlDeriver(r'^_camkes_stack_.+_0_control$', 'stack_symbol'),
-        ForwardDeriver('%(dataport)s_data', 'dataport_symbol'),
-        BackwardDeriver(r'^([^ ]+)_data$', 'dataport_symbol', 'dataport'),
-        ForwardDeriver('%(to_interface)s_attributes', 'hardware_attribute'),
-        BackwardDeriver(r'^(.+)_attributes', 'hardware_attribute', 'to_interface'),
         ForwardDeriver('%(group)s_group_bin', 'elf_name'),
         BackwardDeriver(r'^(.+)_group_bin', 'elf_name', 'group'),
-        ForwardDeriver('%(instance)s_main', 'entry_symbol'),
-        BackwardDeriver(r'^(.+)_main$', 'entry_symbol', 'instance'),
-        ForwardDeriver('%(instance)s_tls_setup', 'tls_symbol'),
-        BackwardDeriver(r'^(.+)_tls_setup$', 'tls_symbol', 'instance'),
         ForwardDeriver('camkes_dma_pool', 'dma_pool_symbol'),
+        BackwardDeriver(r'^.*?\.?([a-zA-Z_]\w*)$', 'instance', 'safe_instance'),
     ], FILTERS:[
-        ForwardDeriver('%(instance)s_tcb_%(interface)s', 'tcb'),
+        ForwardDeriver('%(instance)s_tcb_%(interface)s_%(intra_index)s', 'tcb'),
         FromControlDeriver('%(instance)s_tcb_0_control', 'tcb'),
         BackwardDeriver(r'^(.+)_tcb_.+$', 'tcb', 'instance'),
-        BackwardDeriver(r'^.+_tcb_([a-zA-Z_]\w*)$', 'tcb', 'interface'),
+        BackwardDeriver(r'^.+_tcb_([a-zA-Z_]\w*?)_\d\d\d\d$', 'tcb', 'interface'),
+        BackwardDeriver(r'^.+_tcb_[a-zA-Z_]\w*?_(\d\d\d\d)$', 'tcb', 'intra_index'),
+        # XXX: The following one is a bit of a hack in that '0_fault_handler'
+        # isn't an interface, but its bits and pieces conform to the same
+        # naming convention as interfaces.
+        BackwardDeriver(r'^.+_tcb_(0_fault_handler)_0000$', 'tcb', 'interface'),
+        BackwardDeriver(r'^.+_tcb_0_fault_handler_(0000)$', 'tcb', 'intra_index'),
         ControlDeriver(r'^.+_tcb_0_control$', 'tcb'),
-        ForwardDeriver('_camkes_ipc_buffer_%(instance)s_%(interface)s', 'ipc_buffer_symbol'),
-        FromControlDeriver('_camkes_ipc_buffer_%(instance)s_0_control', 'ipc_buffer_symbol'),
+        ForwardDeriver('_camkes_ipc_buffer_%(safe_instance)s_%(interface)s_%(intra_index)s', 'ipc_buffer_symbol'),
+        FromControlDeriver('_camkes_ipc_buffer_%(safe_instance)s_0_control', 'ipc_buffer_symbol'),
         ControlDeriver(r'^_camkes_ipc_buffer_.+_0_control$', 'ipc_buffer_symbol'),
-        ForwardDeriver('_camkes_stack_%(instance)s_%(interface)s', 'stack_symbol'),
-        FromControlDeriver('_camkes_stack_%(instance)s_0_control', 'stack_symbol'),
+        ForwardDeriver('_camkes_stack_%(safe_instance)s_%(interface)s_%(intra_index)s', 'stack_symbol'),
+        FromControlDeriver('_camkes_stack_%(safe_instance)s_0_control', 'stack_symbol'),
         ControlDeriver(r'^_camkes_stack_.+_0_control$', 'stack_symbol'),
-        ForwardDeriver('camkes %(instance)s_main', 'entry_symbol'),
-        BackwardDeriver(r'^camkes (.+)_main$', 'entry_symbol', 'instance'),
-        ForwardDeriver('camkes %(instance)s_tls_setup', 'tls_symbol'),
-        BackwardDeriver(r'^camkes (.+)_tls_setup$', 'tls_symbol', 'instance'),
+        ForwardDeriver(r'camkes %(instance)s _camkes_start', 'entry_symbol'),
+        BackwardDeriver(r'^camkes ([a-zA-Z_]\w*) _camkes_start$', 'entry_symbol', 'instance'),
         ForwardDeriver('%(group)s_group_bin', 'elf_name'),
         BackwardDeriver(r'^(.+)_group_bin', 'elf_name', 'group'),
         PoolDeriver(r'.+_tcb_pool_[0-9]+$', 'tcb'),
@@ -179,11 +183,6 @@ DERIVATIONS = {
         ForwardDeriver('pd_%(elf_name)s', 'pd'),
         BackwardDeriver(r'^pd_(.+)$', 'pd', 'elf_name'),
         BackwardDeriver(r'^pd_(.+)_group_bin$', 'pd', 'group'),
-        ForwardDeriver('camkes %(instance)s %(dataport)s data', 'dataport_symbol'),
-        BackwardDeriver(r'^camkes ([^ ]+) [^ ]+ data$', 'dataport_symbol', 'instance'),
-        BackwardDeriver(r'^camkes [^ ]+ ([^ ]+) data$', 'dataport_symbol', 'dataport'),
-        ForwardDeriver('%(to_interface)s_attributes', 'hardware_attribute'),
-        BackwardDeriver(r'^(.+)_attributes', 'hardware_attribute', 'to_interface'),
         ForwardDeriver('camkes %(instance)s_dma_pool', 'dma_pool_symbol'),
         BackwardDeriver(r'^camkes (.+)_dma_pool$', 'dma_pool_symbol', 'instance'),
         ForwardDeriver('%(instance)s_dma_frame_%(dma_frame_index)04d', 'dma_frame_symbol'),
@@ -199,6 +198,7 @@ DERIVATIONS = {
         BackwardDeriver(r'^([a-zA-Z_]\w*)_domain$', 'domain_attribute', 'interface'),
         ForwardDeriver('cnode_%(group)s', 'cnode'),
         BackwardDeriver(r'^cnode_(.+)$', 'cnode', 'group'),
+        BackwardDeriver(r'^.*?\.?([a-zA-Z_]\w*)$', 'instance', 'safe_instance'),
     ],
 }
 
@@ -252,7 +252,7 @@ class Perspective(object):
         assert key not in self.kwargs or self.kwargs[key] == value
         # The following assertion is conservative. In the future, it may make
         # sense to set some 'core' strings that we cannot infer.
-        assert key in map(lambda x: x.output(), self.derivations), \
+        assert key in (x.output() for x in self.derivations), \
             'setting \'%s\' that is not inferrable' % key
         self.kwargs[key] = value
         if __debug__:
@@ -260,7 +260,7 @@ class Perspective(object):
 
     def __getitem__(self, key):
         # As for the assertion in __setitem__, this is conservative.
-        assert key in map(lambda x: x.output(), self.derivations), \
+        assert key in (x.output() for x in self.derivations), \
             'getting \'%s\' that is not inferrable' % key
         if key not in self.kwargs:
             self._infer(key)

@@ -1,5 +1,8 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 #
-# Copyright 2014, NICTA
+# Copyright 2015, NICTA
 #
 # This software may be distributed and modified according to the terms of
 # the BSD 2-Clause license. Note that NO WARRANTY is provided.
@@ -8,56 +11,65 @@
 # @TAG(NICTA_BSD)
 #
 
-'''Functionality related to traversing a CAmkES AST with user-provided functions.'''
+'''
+Context types for use with `ASTObject.postorder`.
 
-from Objects import ASTObject
+Traversal of an AST with `postorder`, accepts an optional context that receives
+enter and exit events each time a level of the AST is descended or ascended,
+respectively. See its usage in `postorder` for the exact way in which it is
+called. Any contexts provided by callers should be a descendent of
+`TraversalContext`.
+'''
 
-# Enum used below.
-CONTINUE, BREAK, RECURSE = range(3)
+from __future__ import absolute_import, division, print_function, \
+    unicode_literals
+from camkes.internal.seven import cmp, filter, map, zip
 
-def traverse(ast, enter, exit, data, parent=None):
-    '''Traverse an AST with user-provided functions. This function is expected
-    to be be called with four arguments from user code. 'enter' and 'exit'
-    should be functions that take three arguments, a parent node, a current node
-    and the 'data' parameter that will be passed into it to keep track of state.
-    The functions should return one of the three constants above, indicating how
-    the traversal should proceed.
-     CONTINUE - Do not recurse into the current node's children, but proceed
-       directly to its siblings.
-     BREAK - Terminate traversal here.
-     RECURSE - Recurse into the current node's children before proceeding to its
-       siblings. I.e. proceed with the natural traversal.
+import abc, six
+
+class TraversalAction(six.with_metaclass(abc.ABCMeta, object)):
+    '''
+    Generic traversal action.
     '''
 
-    # Let the user pass None if they don't want to do anything on entry or
-    # exit of a node.
-    if enter is None:
-        def _enter(*args):
-            pass
-        enter = _enter
-    if exit is None:
-        def _exit(*args):
-            pass
-        exit = _exit
+    @abc.abstractmethod
+    def __call__(self, item):
+        raise NotImplementedError
 
-    assert callable(enter)
-    assert callable(exit)
+class TraversalContext(six.with_metaclass(abc.ABCMeta, object)):
+    '''
+    Generic AST traversal context.
+    '''
 
-    if isinstance(ast, ASTObject):
-        enter_action = enter(parent, ast, data)
-        child_action = None
-        if enter_action == RECURSE:
-            child_action = traverse(ast.children(), enter, exit, data, ast)
-        exit_action = exit(parent, ast, data)
-        if BREAK in [enter_action, child_action, exit_action]:
-            return BREAK
-        return exit_action
+    @abc.abstractmethod
+    def __enter__(self):
+        raise NotImplementedError
 
-    elif isinstance(ast, list):
-        for node in ast:
-            action = traverse(node, enter, exit, data, parent)
-            if action == BREAK:
-                return BREAK
-        return RECURSE
+    @abc.abstractmethod
+    def __exit__(self, type, value, traceback):
+        raise NotImplementedError
 
-    raise Exception('ast is neither an ASTObject or a list')
+    @abc.abstractmethod
+    def __call__(self, f):
+        assert isinstance(f, TraversalAction)
+        raise NotImplementedError
+
+class SimpleTraversalContext(six.with_metaclass(abc.ABCMeta, TraversalContext)):
+    '''
+    A traversal context that does not need to interact with the traversal
+    action.
+    '''
+
+    def __call__(self, _):
+        return self
+
+class NullContext(SimpleTraversalContext):
+    '''
+    The default context if none is provided by the caller.
+    '''
+
+    def __enter__(self):
+        pass
+
+    def __exit__(self, *_):
+        pass

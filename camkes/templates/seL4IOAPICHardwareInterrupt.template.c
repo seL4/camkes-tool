@@ -1,5 +1,5 @@
 /*#
- *# Copyright 2014, NICTA
+ *# Copyright 2015, NICTA
  *#
  *# This software may be distributed and modified according to the terms of
  *# the BSD 2-Clause license. Note that NO WARRANTY is provided.
@@ -15,25 +15,22 @@
 #include <stdint.h>
 #include <utils/util.h>
 
-/*? macros.show_includes(me.to_instance.type.includes) ?*/
+/*? macros.show_includes(me.instance.type.includes) ?*/
 
-/*- set instance = me.to_instance.name -*/
-/*- set interface = me.to_interface.name -*/
-
-/*- set attr = "%s_attributes" % me.from_interface.name -*/
+/*- set attr = "%s_attributes" % me.parent.from_interface.name -*/
 /*- set irq= [] -*/
-/*- set notification_obj = alloc_obj('notification', seL4_NotificationObject) -*/
-/*- set notification = alloc_cap('notification', notification_obj, read=True) -*/
-/*- set _irq = configuration[me.from_instance.name].get(attr) -*/
+/*- set aep_obj = alloc_obj('aep', seL4_AsyncEndpointObject) -*/
+/*- set aep = alloc_cap('aep', aep_obj, read=True) -*/
+/*- set _irq = configuration[me.parent.from_instance.name].get(attr) -*/
 /*- if _irq is not none -*/
     /*- set attr_irq, attr_level, attr_trig = _irq.strip('"').split(',') -*/
-    /*- set irq_handler = alloc('irq', seL4_IRQControl, number=int(attr_irq, 0), notification=notification_obj) -*/
+    /*- set irq_handler = alloc('irq', seL4_IRQControl, number=int(attr_irq, 0), aep=my_cnode[aep]) -*/
     /*- do irq.append((irq_handler, int(attr_level, 0), int(attr_trig, 0))) -*/
 /*- endif -*/
-/*- set lock = alloc('lock', seL4_NotificationObject, read=True, write=True) -*/
+/*- set lock = alloc('lock', seL4_AsyncEndpointObject, read=True, write=True) -*/
 
 /* Interface-specific error handling */
-/*- set error_handler = '%s_error_handler' % me.to_interface.name -*/
+/*- set error_handler = '%s_error_handler' % me.interface.name -*/
 /*- include 'error-handler.c' -*/
 
 #define MAX_CALLBACKS 10
@@ -56,15 +53,15 @@ static volatile int sleepers;
         ATOMIC_DECREMENT(&sleepers); \
     } while (0)
 
-#define WAKE() seL4_Signal(/*? lock ?*/)
+#define WAKE() seL4_Notify(/*? lock ?*/, 0 /* ignored */)
 
-int /*? me.to_interface.name ?*/__run(void) {
+int /*? me.interface.name ?*/__run(void) {
     /* Set trigger mode */
     seL4_IRQHandler_SetMode(/*? irq[0][0] ?*/, /*? irq[0][1] ?*/, /*? irq[0][2] ?*/);
     while (1) {
         int handled = 0;
 
-        (void)seL4_Wait(/*? notification ?*/, NULL);
+        (void)seL4_Wait(/*? aep ?*/, NULL);
 
         /* First preference: callbacks. */
         if (!handled) {
@@ -96,17 +93,17 @@ int /*? me.to_interface.name ?*/__run(void) {
     UNREACHABLE();
 }
 
-int /*? me.to_interface.name ?*/_poll(void) {
+int /*? me.interface.name ?*/_poll(void) {
     return CAS(&event_pending, 1, 0);
 }
 
-void /*? me.to_interface.name ?*/_wait(void) {
-    while (!/*? me.to_interface.name ?*/_poll()) {
+void /*? me.interface.name ?*/_wait(void) {
+    while (!/*? me.interface.name ?*/_poll()) {
         SLEEP();
     }
 }
 
-int /*? me.to_interface.name ?*/_reg_callback(void (*callback)(void*), void *arg) {
+int /*? me.interface.name ?*/_reg_callback(void (*callback)(void*), void *arg) {
     int error;
     for (int i = 0; i < MAX_CALLBACKS; ++i) {
         if (CAS(&callbacks[i], NULL, callback) == NULL) {

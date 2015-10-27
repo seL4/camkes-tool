@@ -1,5 +1,5 @@
 /*
- * Copyright 2014, NICTA
+ * Copyright 2015, NICTA
  *
  * This software may be distributed and modified according to the terms of
  * the BSD 2-Clause license. Note that NO WARRANTY is provided.
@@ -13,6 +13,7 @@
  */
 
     .global _camkes_start
+    .extern _camkes_tls_init
     .extern _start
     .extern sel4_vsyscall
 
@@ -22,13 +23,12 @@ _camkes_start:
 
     /* Save thread_id and entry_symbol so we can safely call tls_init */
     push    {r0}
-    push    {r1}
+    push    {r0} /* Maintain stack alignment */
 
     /* call tls_init with our thread_id (which is already in r0) */
-    blx     r2
+    blx     _camkes_tls_init
 
     /* Restore registers */
-    pop     {r1}
     pop     {r0}
 
     /* To ensure we end up with a correctly 8 byte aligned stack at the end we
@@ -52,12 +52,11 @@ _camkes_start:
     /* Null terminate argument vector */
     push    {r5}
     /* Put on arguments */
-    push    {r1}
     push    {r0}
     ldr     r6, =camkes_name
     push    {r6}
     /* Push argument count */
-    mov     r6, #3
+    mov     r6, #2
     push    {r6}
     /* Now go to actual _start */
     ldr     pc, =_start

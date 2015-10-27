@@ -1,5 +1,8 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 #
-# Copyright 2014, NICTA
+# Copyright 2015, NICTA
 #
 # This software may be distributed and modified according to the terms of
 # the BSD 2-Clause license. Note that NO WARRANTY is provided.
@@ -12,6 +15,10 @@
 The purpose of this is to provide template authors with a simpler abstraction
 when referencing the 'me' object. CAmkES AST objects typically contain
 information that is only relevant in the context of CAmkES.'''
+
+from __future__ import absolute_import, division, print_function, \
+    unicode_literals
+from camkes.internal.seven import cmp, filter, map, zip
 
 import camkes.ast as ast
 

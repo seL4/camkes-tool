@@ -1,5 +1,5 @@
 /*#
- *# Copyright 2014, NICTA
+ *# Copyright 2015, NICTA
  *#
  *# This software may be distributed and modified according to the terms of
  *# the BSD 2-Clause license. Note that NO WARRANTY is provided.
@@ -8,33 +8,33 @@
  *# @TAG(NICTA_BSD)
  #*/
 
+#include <assert.h>
 #include <camkes/dataport.h>
 #include <stddef.h>
 #include <stdint.h>
-/*? macros.show_includes(me.from_instance.type.includes) ?*/
+#include <utils/util.h>
+/*? macros.show_includes(me.instance.type.includes) ?*/
 
-/*- set p = Perspective(dataport=me.from_interface.name) -*/
+/*- set index = me.parent.from_ends.index(me) -*/
+
 #define MMIO_ALIGN (1 << 12)
 struct {
-    char content[ROUND_UP_UNSAFE(sizeof(/*? show(me.from_interface.type) ?*/),
+    char content[ROUND_UP_UNSAFE(/*? macros.dataport_size(me.interface.type) ?*/,
         PAGE_SIZE_4K)];
-} /*? p['dataport_symbol'] ?*/
-        __attribute__((aligned(MMIO_ALIGN)))
-        __attribute__((section("ignore_/*? me.from_interface.name ?*/")))
-        __attribute__((externally_visible));
+} from_/*? index ?*/_/*? me.interface.name ?*/_data
+        ALIGN(MMIO_ALIGN)
+        __attribute__((section("ignore_from_/*? index ?*/_/*? me.interface.name ?*/")))
+        VISIBLE;
 
-volatile /*? show(me.from_interface.type) ?*/ * /*? me.from_interface.name ?*/ =
-    (volatile /*? show(me.from_interface.type) ?*/ *) & /*? p['dataport_symbol'] ?*/;
+volatile /*? macros.dataport_type(me.interface.type) ?*/ * /*? me.interface.name ?*/ =
+    (volatile /*? macros.dataport_type(me.interface.type) ?*/ *) & from_/*? index ?*/_/*? me.interface.name ?*/_data;
 
-int /*? me.from_interface.name ?*/__run(void) {
-    /* Nothing required. */
-    return 0;
-}
+/*- set id = composition.connections.index(me.parent) -*/
 
-int /*? me.from_interface.name ?*/_wrap_ptr(dataport_ptr_t *p, void *ptr) {
+int /*? me.interface.name ?*/_wrap_ptr(dataport_ptr_t *p, void *ptr) {
     /*- set offset = c_symbol('offset') -*/
-    off_t /*? offset ?*/ = (off_t)((uintptr_t)ptr - (uintptr_t)/*? me.from_interface.name ?*/);
-    if (/*? offset ?*/ < sizeof(/*? show(me.from_interface.type) ?*/)) {
+    off_t /*? offset ?*/ = (off_t)((uintptr_t)ptr - (uintptr_t)/*? me.interface.name ?*/);
+    if (/*? offset ?*/ < /*? macros.dataport_size(me.interface.type) ?*/) {
         p->id = /*? id ?*/;
         p->offset = /*? offset ?*/;
         return 0;
@@ -43,26 +43,39 @@ int /*? me.from_interface.name ?*/_wrap_ptr(dataport_ptr_t *p, void *ptr) {
     }
 }
 
-void * /*? me.from_interface.name ?*/_unwrap_ptr(dataport_ptr_t *p) {
+void * /*? me.interface.name ?*/_unwrap_ptr(dataport_ptr_t *p) {
     if (p->id == /*? id ?*/) {
-        return (void*)((uintptr_t)/*? me.from_interface.name ?*/ + (uintptr_t)p->offset);
+        return (void*)((uintptr_t)/*? me.interface.name ?*/ + (uintptr_t)p->offset);
     } else {
         return NULL;
     }
 }
 
-/*- set p = Perspective(to_interface=me.to_interface.name) -*/
-/*#Check if we have preserved enough virtual memory for the MMIO. #*/
-/*- set attr = configuration[me.to_instance.name].get(p['hardware_attribute']) -*/
-/*- if attr is not none -*/
-    /*- set paddr, size = attr.strip('"').split(':') -*/
-    _Static_assert(sizeof(/*? show(me.from_interface.type) ?*/) == /*? size ?*/, "Data type mismatch!");
-
-    void * /*? me.from_interface.name ?*/_translate_paddr(
-            uintptr_t paddr, size_t size) {
-        if (paddr >= /*? paddr ?*/ && paddr + size <= /*? paddr ?*/ + /*? size ?*/) {
-            return (void*)((uintptr_t)/*? me.from_interface.name ?*/ + (paddr - /*? paddr ?*/));
-        }
-        return NULL;
-    }
+/*- set paddr = configuration[me.parent.to_instance.name].get('%s_paddr' % me.parent.to_interface.name) -*/
+/*- if paddr is none -*/
+  /*? raise(TemplateError('Setting %s.%s_paddr that should specify the physical address of an MMIO device is not set' % (me.parent.to_instance.name, me.parent.to_interface.name))) ?*/
 /*- endif -*/
+/*- if not isinstance(paddr, numbers.Integral) or paddr < 0 -*/
+  /*? raise(TemplateError('Setting %s.%s_paddr that should specify the physical address of an MMIO device does not appear to be a valid address' % (me.parent.to_instance.name, me.parent.to_interface.name))) ?*/
+/*- endif -*/
+
+/*- set size = configuration[me.parent.to_instance.name].get('%s_size' % me.parent.to_interface.name) -*/
+/*- if size is none -*/
+  /*? raise(TemplateError('Setting %s.%s_size that should specify the size of an MMIO device is not set' % (me.parent.to_instance.name, me.parent.to_interface.name))) ?*/
+/*- endif -*/
+/*- if not isinstance(size, numbers.Integral) or size <= 0 -*/
+  /*? raise(TemplateError('Setting %s.%s_size that should specify the size of an MMIO device does not appear to be a valid size' % (me.parent.to_instance.name, me.parent.to_interface.name))) ?*/
+/*- endif -*/
+
+/*# Check if we have reserved enough virtual memory for the MMIO. #*/
+static_assert(/*? macros.dataport_size(me.interface.type) ?*/ == /*? size ?*/, "Data type mismatch!");
+
+void * /*? me.interface.name ?*/_translate_paddr(
+        uintptr_t paddr, size_t size) {
+    if (paddr == /*? paddr ?*/ && size == /*? size ?*/) {
+        return (void*)/*? me.interface.name ?*/;
+    }
+    return NULL;
+}
+
+/*- do register_shared_variable('%s_data' % me.parent.name, 'from_%d_%s_data' % (index, me.interface.name), 'RW', paddr) -*/

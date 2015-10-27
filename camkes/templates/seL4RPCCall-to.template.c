@@ -1,5 +1,5 @@
 /*#
- *# Copyright 2014, NICTA
+ *# Copyright 2015, NICTA
  *#
  *# This software may be distributed and modified according to the terms of
  *# the BSD 2-Clause license. Note that NO WARRANTY is provided.
@@ -8,14 +8,48 @@
  *# @TAG(NICTA_BSD)
  #*/
 
-/*- set trust_partner = configuration[me.from_instance.name].get('trusted') == '"true"' -*/
+#include <camkes/dataport.h>
 
-/*- set base = '((void*)&seL4_GetIPCBuffer()->msg[0])' -*/
-/*- set buffer = configuration[me.to_instance.name].get('%s_buffer' % me.to_interface.name) -*/
-/*- if buffer is not none -*/
-    extern void * /*? buffer ?*/;
+/*? macros.show_includes(me.instance.type.includes) ?*/
+/*? macros.show_includes(me.interface.type.includes) ?*/
+
+/*# Determine if we trust our partner. If we trust them, we can be more liberal
+ *# with error checking.
+ #*/
+/*- set _trust_partner = [True] -*/
+/*- for f in me.parent.from_ends -*/
+  /*- if configuration[f.instance.name].get('trusted') != '"true"' -*/
+    /*- do _trust_partner.__setitem__(0, False) -*/
+  /*- endif -*/
+/*- endfor -*/
+/*- set trust_partner = _trust_partner[0] -*/
+
+/*- set buffer = configuration[me.parent.name].get('buffer') -*/
+/*- if buffer is none -*/
+  /*- set base = '((void*)&seL4_GetIPCBuffer()->msg[0])' -*/
+  /*- set userspace_ipc = False -*/
+  /*- set buffer_size = '(seL4_MsgMaxLength * sizeof(seL4_Word))' -*/
+/*- else -*/
+  /*- if not isinstance(buffer, six.string_types) -*/
+    /*? raise(TemplateError('invalid non-string setting for userspace buffer to back RPC connection', me.parent)) ?*/
+  /*- endif -*/
+  /*- if len(me.parent.from_ends) != 1 or len(me.parent.to_ends) != 1 -*/
+    /*? raise(TemplateError('invalid use of userspace buffer to back RPC connection that is not 1-to-1', me.parent)) ?*/
+  /*- endif -*/
+  /*- set c = filter(lambda('x: x.name == \'%s\'' % buffer), composition.connections) -*/
+  /*- if len(c) == 0 -*/
+    /*? raise(TemplateError('invalid setting to non-existent connection for userspace buffer to back RPC connection', me.parent)) ?*/
+  /*- endif -*/
+  /*- if len(c[0].from_ends) != 1 or len(c[0].to_ends) != 1 -*/
+    /*? raise(TemplateError('invalid use of userspace buffer that is not 1-to-1 to back RPC connection', me.parent)) ?*/
+  /*- endif -*/
+  /*- if not isinstance(c[0].to_end.interface, camkes.ast.Dataport) -*/
+    /*? raise(TemplateError('invalid use of non-dataport to back RPC connection', me.parent)) ?*/
+  /*- endif -*/
+  /*- set base = '((void*)%s)' % c[0].to_end.interface.name -*/
+  extern /*? macros.dataport_type(c[0].to_end.interface.type) ?*/ * /*? c[0].to_end.interface.name ?*/;
+  /*- set userspace_ipc = True -*/
+  /*- set buffer_size = macros.dataport_size(c[0].to_end.interface.type) -*/
 /*- endif -*/
-/*- set userspace_ipc = buffer is not none -*/
-/*- set base = base if buffer is none else buffer -*/
 
 /*- include 'rpc-connector-common-to.c' -*/

@@ -1,5 +1,5 @@
 /*#
- *# Copyright 2014, NICTA
+ *# Copyright 2015, NICTA
  *#
  *# This software may be distributed and modified according to the terms of
  *# the BSD 2-Clause license. Note that NO WARRANTY is provided.
@@ -9,7 +9,8 @@
  #*/
 
 /*# C fragment that represents the base of the buffer used for storing IPC messages #*/
-/*? assert(isinstance(base, basestring)) ?*/
+/*? assert(isinstance(base, six.string_types)) ?*/
+/*? assert(isinstance(buffer_size, six.string_types)) ?*/
 /*# Whether 'base' is a separate memory region instead of the thread's IPC buffer #*/
 /*? assert(isinstance(userspace_ipc, bool)) ?*/
 /*# Whether or not we trust our partner #*/
@@ -27,69 +28,101 @@
 #include <camkes/error.h>
 #include <camkes/tls.h>
 
-/*? macros.show_includes(me.from_instance.type.includes) ?*/
-/*? macros.show_includes(me.from_interface.type.includes, '../static/components/' + me.from_instance.type.name + '/') ?*/
+/*? macros.show_includes(me.instance.type.includes) ?*/
+/*? macros.show_includes(me.interface.type.includes) ?*/
 
-/*- set ep = alloc('ep', seL4_EndpointObject, write=True, grant=True) -*/
-/*- set badge = configuration[me.from_instance.name].get('%s_attributes' % me.from_interface.name) -*/
-/*- if badge is not none -*/
-    /*- set badge = badge.strip('"') -*/
-    /*- do cap_space.cnode[ep].set_badge(int(badge, 0)) -*/
+/*- set ep_obj = alloc_obj('ep', seL4_EndpointObject) -*/
+/*- set ep = alloc_cap('ep_%s' % me.interface.name, ep_obj, write=True, grant=True) -*/
+
+/*# Find any badges that have been explicitly assigned for this connection. That
+ *# is, any badge identifiers that are not valid for us to assign automatically
+ *# to other ends.
+ #*/
+/*- set used_badges = set() -*/
+/*- for e in me.parent.from_ends -*/
+  /*- set badge = configuration[e.instance.name].get('%s_attributes' % e.interface.name) -*/
+  /*- if isinstance(badge, six.integer_types) -*/
+    /*- do used_badges.add(badge) -*/
+  /*- endif -*/
+/*- endfor -*/
+
+/*# Work out what badge each 'from' end of this connection would be given if no
+ *# badges were specified with attributes. Note that we need to dodge any
+ *# explicitly assigned badges.
+ #*/
+/*- set default_allocated_badges = [] -*/
+/*- set next = [0] -*/
+/*- for _ in me.parent.from_ends -*/
+  /*- for _ in used_badges -*/
+    /*- if next[0] in used_badges -*/
+      /*- do next.__setitem__(0, next[0] + 1) -*/
+    /*- endif -*/
+  /*- endfor -*/
+  /*? assert(next[0] not in used_badges) ?*/
+  /*- do default_allocated_badges.append(next[0]) -*/
+  /*- do next.__setitem__(0, next[0] + 1) -*/
+/*- endfor -*/
+
+/*# Now we're ready to determine the actual badge for this end. #*/
+/*- set badge = configuration[me.instance.name].get('%s_attributes' % me.interface.name) -*/
+/*- if isinstance(badge, six.integer_types) -*/
+  /*- do cap_space.cnode[ep].set_badge(badge) -*/
+/*- else -*/
+  /*- do cap_space.cnode[ep].set_badge(default_allocated_badges[me.parent.from_ends.index(me)]) -*/
 /*- endif -*/
 
 /*- set BUFFER_BASE = c_symbol('BUFFER_BASE') -*/
 #define /*? BUFFER_BASE ?*/ /*? base ?*/
 
-/*- set methods_len = len(me.from_interface.type.methods) -*/
-/*- set instance = me.from_instance.name -*/
-/*- set interface = me.from_interface.name -*/
-/*- set threads = list(range(1, 2 + len(me.from_instance.type.provides) + len(me.from_instance.type.uses) + len(me.from_instance.type.emits) + len(me.from_instance.type.consumes))) -*/
+/*- set methods_len = len(me.interface.type.methods) -*/
+/*- set instance = me.instance.name -*/
+/*- set interface = me.interface.name -*/
+/*- set threads = list(six.moves.range(1, 2 + len(me.instance.type.provides) + len(me.instance.type.uses) + len(me.instance.type.emits) + len(me.instance.type.consumes))) -*/
 
 /* Interface-specific error handling */
-/*- set error_handler = '%s_error_handler' % me.from_interface.name -*/
+/*- set error_handler = '%s_error_handler' % me.interface.name -*/
 /*- include 'error-handler.c' -*/
 
 /*# Conservative calculation of the numbers of threads in this component. #*/
-/*- set thread_count = (1 if me.from_instance.type.control else 0) + len(me.from_instance.type.provides) + len(me.from_instance.type.uses) + len(me.from_instance.type.emits) + len(me.from_instance.type.consumes) -*/
+/*- set thread_count = (1 if me.instance.type.control else 0) + len(me.instance.type.provides) + len(me.instance.type.uses) + len(me.instance.type.emits) + len(me.instance.type.consumes) -*/
 
-/*- set userspace_buffer_ep = [None] -*/
 /*- set userspace_buffer_sem_value = c_symbol() -*/
 /*- if thread_count > 1 and userspace_ipc -*/
   /*# If we have more than one thread and we're using a userspace memory window
    *# in lieu of the IPC buffer, multiple threads can end up racing on accesses
    *# to this window. To prevent this, we use a lock built on an endpoint.
    #*/
-  /*- do userspace_buffer_ep.__setitem__(0, alloc('userspace_buffer_ep', seL4_EndpointObject, write=True, read=True)) -*/
+  /*- set userspace_buffer_ep = alloc('userspace_buffer_ep', seL4_EndpointObject, write=True, read=True) -*/
   static volatile int /*? userspace_buffer_sem_value ?*/ = 1;
+/*- else -*/
+  /*- set userspace_buffer_ep = None -*/
 /*- endif -*/
-/*- set userspace_buffer_ep = userspace_buffer_ep[0] -*/
 
 /*- include 'array-typedef-check.c' -*/
 
-int /*? me.from_interface.name ?*/__run(void) {
+int /*? me.interface.name ?*/__run(void) {
+    /* This function is never actually executed, but we still emit it for the
+     * purpose of type checking RPC parameters.
+     */
+    UNREACHABLE();
+
     /*# Check any typedefs we have been given are not arrays. #*/
     /*- include 'call-array-typedef-check.c' -*/
     return 0;
 }
 
-/*- for i, m in enumerate(me.from_interface.type.methods) -*/
+/*- for i, m in enumerate(me.interface.type.methods) -*/
 
 /*- set name = m.name -*/
 /*- set function = '%s_marshal_inputs' % m.name -*/
 /*- set buffer = base -*/
-/*- set sizes = [None] -*/
-/*- if userspace_ipc -*/
-    /*- do sizes.__setitem__(0, 'PAGE_SIZE_4K') -*/
-/*- else -*/
-    /*- do sizes.__setitem__(0, 'seL4_MsgMaxLength * sizeof(seL4_Word)') -*/
-/*- endif -*/
-/*- set size = sizes[0] -*/
+/*- set size = buffer_size -*/
 /*- set method_index = i -*/
-/*- set input_parameters = filter(lambda('x: x.direction in [\'refin\', \'in\', \'inout\']'), m.parameters) -*/
+/*- set input_parameters = list(filter(lambda('x: x.direction in [\'refin\', \'in\', \'inout\']'), m.parameters)) -*/
 /*- include 'marshal-inputs.c' -*/
 
 /*- set function = '%s_unmarshal_outputs' % m.name -*/
-/*- set output_parameters = filter(lambda('x: x.direction in [\'out\', \'inout\']'), m.parameters) -*/
+/*- set output_parameters = list(filter(lambda('x: x.direction in [\'out\', \'inout\']'), m.parameters)) -*/
 /*- set return_type = m.return_type -*/
 /*- set allow_trailing_data = userspace_ipc -*/
 /*- include 'unmarshal-outputs.c' -*/
@@ -100,36 +133,36 @@ int /*? me.from_interface.name ?*/__run(void) {
    *# value at some point. Construct a TLS variable.
    #*/
   /*- set name = ret_tls_var -*/
-  /*- if isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string' -*/
+  /*- if m.return_type == 'string' -*/
     /*- set array = False -*/
     /*- set type = 'char*' -*/
     /*- include 'thread_local.c' -*/
   /*- else -*/
     /*- set array = False -*/
-    /*- set type = show(m.return_type) -*/
+    /*- set type = macros.show_type(m.return_type) -*/
     /*- include 'thread_local.c' -*/
   /*- endif -*/
 /*- endif -*/
 
 /*- if m.return_type is not none -*/
-    /*? show(m.return_type) ?*/
+    /*? macros.show_type(m.return_type) ?*/
 /*- else -*/
     void
 /*- endif -*/
-/*? me.from_interface.name ?*/_/*? m.name ?*/(
+/*? me.interface.name ?*/_/*? m.name ?*/(
 /*- for p in m.parameters -*/
   /*- if p.direction == 'in' -*/
     /*- if p.array -*/
       size_t /*? p.name ?*/_sz,
-      /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+      /*- if p.type == 'string' -*/
         char **
       /*- else -*/
-        const /*? show(p.type) ?*/ *
+        const /*? macros.show_type(p.type) ?*/ *
       /*- endif -*/
-    /*- elif isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+    /*- elif p.type == 'string' -*/
       const char *
     /*- else -*/
-      /*? show(p.type) ?*/
+      /*? macros.show_type(p.type) ?*/
     /*- endif -*/
     /*? p.name ?*/
   /*- else -*/
@@ -139,18 +172,18 @@ int /*? me.from_interface.name ?*/__run(void) {
         const
       /*- endif -*/
       size_t * /*? p.name ?*/_sz,
-      /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+      /*- if p.type == 'string' -*/
         char ***
       /*- else -*/
-        /*? show(p.type) ?*/ **
+        /*? macros.show_type(p.type) ?*/ **
       /*- endif -*/
-    /*- elif isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
+    /*- elif p.type == 'string' -*/
       char **
     /*- else -*/
       /*- if p.direction == 'refin' -*/
         const
       /*- endif -*/
-      /*? show(p.type) ?*/ *
+      /*? macros.show_type(p.type) ?*/ *
     /*- endif -*/
     /*? p.name ?*/
   /*- endif -*/
@@ -163,7 +196,7 @@ int /*? me.from_interface.name ?*/__run(void) {
 /*- endif -*/
 ) {
 
-    /*- if options.fspecialise_syscall_stubs and methods_len == 1 and m.return_type is none and len(m.parameters) == 0 -*/
+    /*- if options.fcall_leave_reply_cap and len(me.parent.from_ends) == 1 and len(me.parent.to_ends) == 1 and len(me.parent.to_end.instance.type.provides + me.parent.to_end.instance.type.uses + me.parent.to_end.instance.type.consumes + me.parent.to_end.instance.type.mutexes + me.parent.to_end.instance.type.semaphores) <= 1 and options.fspecialise_syscall_stubs and methods_len == 1 and m.return_type is none and len(m.parameters) == 0 -*/
 #ifdef ARCH_ARM
 #ifndef __SWINUM
     #define __SWINUM(x) ((x) & 0x00ffffff)
@@ -208,6 +241,7 @@ int /*? me.from_interface.name ?*/__run(void) {
      *# access.
      #*/
     /*- if userspace_buffer_ep is not none -*/
+      camkes_protect_reply_cap();
       sync_sem_bare_wait(/*? userspace_buffer_ep ?*/,
         &/*? userspace_buffer_sem_value ?*/);
     /*- endif -*/
@@ -215,13 +249,25 @@ int /*? me.from_interface.name ?*/__run(void) {
     /*- set ret_val = c_symbol('return') -*/
     /*- set ret_ptr = c_symbol('return_ptr') -*/
     /*- if m.return_type is not none -*/
-      /*- if isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string' -*/
+      /*- if m.return_type == 'string' -*/
         char * /*? ret_val ?*/ UNUSED;
         char ** /*? ret_ptr ?*/ = TLS_PTR(/*? ret_tls_var ?*/, /*? ret_val ?*/);
       /*- else -*/
-        /*? show(m.return_type) ?*/ /*? ret_val ?*/ UNUSED;
-        /*? show(m.return_type) ?*/ * /*? ret_ptr ?*/ = TLS_PTR(/*? ret_tls_var ?*/, /*? ret_val ?*/);
+        /*? macros.show_type(m.return_type) ?*/ /*? ret_val ?*/ UNUSED;
+        /*? macros.show_type(m.return_type) ?*/ * /*? ret_ptr ?*/ = TLS_PTR(/*? ret_tls_var ?*/, /*? ret_val ?*/);
       /*- endif -*/
+    /*- endif -*/
+
+    /*- if userspace_buffer_ep is none -*/
+      /*# If `userspace_buffer_ep` is not `None` we've already protected the
+       *# reply cap.
+       #*/
+      /* Save any pending reply cap as we'll eventually call seL4_Call which
+       * could overwrite it. Note that we do this here before marshalling
+       * parameters to ensure we don't inadvertently overwrite any marshalled
+       * data with this call.
+       */
+      camkes_protect_reply_cap();
     /*- endif -*/
 
     /* Marshal all the parameters */
@@ -231,7 +277,7 @@ int /*? me.from_interface.name ?*/__run(void) {
     if (unlikely(/*? length ?*/ == UINT_MAX)) {
         /* Error in marshalling; bail out. */
         /*- if m.return_type is not none -*/
-            /*- if isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string' -*/
+            /*- if m.return_type == 'string' -*/
                 return NULL;
             /*- else -*/
                 memset(/*? ret_ptr ?*/, 0, sizeof(* /*? ret_ptr ?*/));
@@ -256,7 +302,7 @@ int /*? me.from_interface.name ?*/__run(void) {
     /*- set size = c_symbol('size') -*/
     unsigned int /*? size ?*/ =
     /*- if userspace_ipc -*/
-        /*? sizes[0] ?*/;
+        /*? buffer_size ?*/;
     /*- else -*/
         seL4_MessageInfo_get_length(/*? info ?*/) * sizeof(seL4_Word);
         assert(/*? size ?*/ <= seL4_MsgMaxLength * sizeof(seL4_Word));
@@ -270,7 +316,7 @@ int /*? me.from_interface.name ?*/__run(void) {
     if (unlikely(/*? err ?*/ != 0)) {
         /* Error in unmarshalling; bail out. */
         /*- if m.return_type is not none -*/
-            /*- if isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string' -*/
+            /*- if m.return_type == 'string' -*/
                 return NULL;
             /*- else -*/
                 memset(/*? ret_ptr ?*/, 0, sizeof(* /*? ret_ptr ?*/));

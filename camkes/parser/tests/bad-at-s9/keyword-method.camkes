@@ -1,0 +1,7 @@
+procedure P {
+    void asm(void);
+}
+assembly {
+    composition {
+    }
+}

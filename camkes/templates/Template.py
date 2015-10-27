@@ -1,5 +1,8 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 #
-# Copyright 2014, NICTA
+# Copyright 2015, NICTA
 #
 # This software may be distributed and modified according to the terms of
 # the BSD 2-Clause license. Note that NO WARRANTY is provided.
@@ -8,9 +11,14 @@
 # @TAG(NICTA_BSD)
 #
 
+from __future__ import absolute_import, division, print_function, \
+    unicode_literals
+from camkes.internal.seven import cmp, filter, map, zip
+
 from camkes.ast import Instance, Connection
 from camkes.internal.dictutils import Guard
-import collections, os
+from .exception import TemplateError
+import collections, os, re, six
 
 # Base dictionary of templates for instantiation. Note that the top-level keys
 # must be strings, while the following levels are either Guards or strings. A
@@ -60,40 +68,36 @@ TEMPLATES = {
                 'source':'seL4SharedData-to.template.c',
             },
         },
-        # TODO: Remove seL4Asynch option
-        Guard(lambda x: isinstance(x, Connection) and x.type.name in ['seL4Notification', 'seL4Asynch']):{
+        Guard(lambda x: isinstance(x, Connection) and x.type.name == 'seL4Asynch'):{
             'from':{
-                'source':'seL4Notification-from.template.c',
+                'source':'seL4Asynch-from.template.c',
             },
             'to':{
-                'source':'seL4Notification-to.template.c',
+                'source':'seL4Asynch-to.template.c',
             },
         },
-        # TODO: Remove seL4AsynchBind option
-        Guard(lambda x: isinstance(x, Connection) and x.type.name in ['seL4NotificationBind', 'seL4AsynchBind']):{
+        Guard(lambda x: isinstance(x, Connection) and x.type.name == 'seL4AsynchBind'):{
             'from':{
-                'source':'seL4NotificationBind-from.template.c',
+                'source':'seL4AsynchBind-from.template.c',
             },
             'to':{
-                'source':'seL4NotificationBind-to.template.c',
+                'source':'seL4AsynchBind-to.template.c',
             },
         },
-        # TODO: Remove seL4AsynchQueue option
-        Guard(lambda x: isinstance(x, Connection) and x.type.name in ['seL4NotificationQueue', 'seL4AsynchQueue']):{
+        Guard(lambda x: isinstance(x, Connection) and x.type.name == 'seL4AsynchQueue'):{
             'from':{
-                'source':'seL4NotificationQueue-from.template.c',
+                'source':'seL4AsynchQueue-from.template.c',
             },
             'to':{
-                'source':'seL4NotificationQueue-to.template.c',
+                'source':'seL4AsynchQueue-to.template.c',
             },
         },
-        # TODO: Remove seL4AsynchNative option
-        Guard(lambda x: isinstance(x, Connection) and x.type.name in ['seL4NotificationNative', 'seL4AsynchNative']):{
+        Guard(lambda x: isinstance(x, Connection) and x.type.name == 'seL4AsynchNative'):{
             'from':{
-                'source':'seL4NotificationNative-from.template.c',
+                'source':'seL4AsynchNative-from.template.c',
             },
             'to':{
-                'source':'seL4NotificationNative-to.template.c',
+                'source':'seL4AsynchNative-to.template.c',
             },
         },
         Guard(lambda x: isinstance(x, Connection) and x.type.name == 'seL4HardwareMMIO'):{
@@ -170,7 +174,54 @@ TEMPLATES = {
         'graph':'graph.dot',
     },
 }
-PLATFORMS = TEMPLATES.keys()
+PLATFORMS = list(TEMPLATES.keys())
+
+# A Jinja include or import statement. We will use this to recognise
+# subordinate inputs resulting from a user-provided template.
+INCLUDE_STATEMENT = re.compile(
+    r'/-\*\s*(?:import|include)\s+(?:\'([^\']*)\'|"([^"]*)")\s*-\*/',
+    flags=re.MULTILINE)
+
+def get_dependencies(roots, stem, seen=None):
+    '''
+    Retrieve the files included or imported by a given template. Note that the
+    returned set will contain the template itself as well.
+    '''
+    assert isinstance(roots, collections.Iterable) and \
+        all(isinstance(x, six.string_types) for x in roots)
+    assert isinstance(stem, six.string_types)
+
+    if seen is None:
+        seen = set()
+
+    if stem in seen:
+        # If we were to continue, this function would infinitely recurse.
+        raise TemplateError('template \'%s\' eventually includes/imports '
+            'itself' % stem)
+    seen.add(stem)
+
+    # Here we imitate the Jinja template lookup algorithm to discover the actual
+    # file whose source will be read during template instantiation.
+    for r in roots:
+        path = os.path.join(r, stem)
+        if os.path.exists(path):
+            # Found it.
+            with open(path, 'rt') as f:
+                content = f.read()
+
+            # Find everything this template includes, recursively.
+            included = INCLUDE_STATEMENT.findall(content)
+            read = set()
+            for target in included:
+                extra = get_dependencies(roots, target, seen)
+                read |= extra
+
+            return read
+
+    # If we reached here, the template cannot be found. Don't throw an error at
+    # this point, as it may be confusing to the user. Eventually an error
+    # should result from an attempt to instantiate this template.
+    return set()
 
 class Templates(object):
     def __init__(self, platform):
@@ -184,44 +235,51 @@ class Templates(object):
     def get_roots(self):
         return self.roots
 
-    def add(self, connector_name, path, template):
-        '''Add a template to the lookup dictionary. Note that this function is
-        intentionally implemented in such a way to allow you to overwrite
-        default templates. This assumes you are adding a template related to a
-        connector.'''
+    def add(self, connector, connection):
+        '''Add connector-based templates to the lookup dictionary. Note that
+        this function is intentionally implemented in such a way to allow you
+        to overwrite default templates. This assumes you are adding a template
+        related to a connector.'''
 
-        # Create a mock connection and then try to locate an existing matching
+        # Short circuit the whole process if the caller gave us no templates.
+        if connector.from_template is None and connector.to_template is None:
+            return set()
+
+        # Use the provided connection to try to locate an existing matching
         # key. We do this to allow the caller to replace one of the built-in
         # templates.
-        class FakeConnection(Connection):
-            def __init__(self):
-                self.type = collections.namedtuple('Type', 'name')(connector_name)
-        fc = FakeConnection()
         for key in self.base:
-            if isinstance(key, Guard) and key(fc):
+            if isinstance(key, Guard) and key(connection):
                 k = key
                 break
         else:
             # We didn't find an existing key (expected case) so we need to make
             # a new one.
-            k = Guard(lambda x, name=connector_name: isinstance(x, Connection) \
+            k = Guard(lambda x, name=connector.name: isinstance(x, Connection)
                 and x.type.name == name)
             self.base[k] = {}
 
-        # Add the given template.
-        d = self.base
-        prev = k
-        for p in path.split('.'):
-            if p not in d[prev]:
-                d[prev][p] = {}
-            d = d[prev]
-            prev = p
-        d[prev] = template
+        dependencies = set()
+
+        # Add the given template(s).
+        intermediate = self.base[k]
+        if connector.from_template is not None:
+            if 'from' not in intermediate:
+                intermediate['from'] = {}
+            intermediate['from']['source'] = connector.from_template
+            dependencies |= get_dependencies(self.roots, connector.from_template)
+        if connector.to_template is not None:
+            if 'to' not in intermediate:
+                intermediate['to'] = {}
+            intermediate['to']['source'] = connector.to_template
+            dependencies |= get_dependencies(self.roots, connector.to_template)
+
+        return dependencies
 
     def lookup(self, path, entity=None):
-        '''Lookup the given path string (dict key elements separated by '.') in
+        '''Lookup the given path string (dict key elements separated by '/') in
         the underlying dict, using `entity` to test guards.'''
-        atoms = path.split('.')
+        atoms = path.split('/')
         remaining = self.base # Current sub-dict we are looking at
         for atom in atoms:
             if not isinstance(remaining, dict):
@@ -247,7 +305,7 @@ class Templates(object):
                     return None
             remaining = next_level
 
-        if not isinstance(remaining, basestring):
+        if not isinstance(remaining, six.string_types):
             # The path terminated at an item that is not a leaf.
             return None
 

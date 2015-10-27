@@ -1,5 +1,5 @@
 /*#
- *# Copyright 2014, NICTA
+ *# Copyright 2015, NICTA
  *#
  *# This software may be distributed and modified according to the terms of
  *# the BSD 2-Clause license. Note that NO WARRANTY is provided.
@@ -9,9 +9,9 @@
  #*/
 
 theory /*? os.path.splitext(os.path.basename(options.outfile.name))[0] ?*/ imports
-    Types_CAMKES
-    Library_CAMKES
-    Wellformed_CAMKES
+  "~~/../l4v/camkes/adl-spec/Types_CAMKES"
+  "~~/../l4v/camkes/adl-spec/Library_CAMKES"
+  "~~/../l4v/camkes/adl-spec/Wellformed_CAMKES"
 begin
 
 /*# Ignore the following line. It is intended to apply to the output of this
@@ -22,25 +22,25 @@ begin
  *)
 
 /*- macro param_type(type) -*/
-    /*- if type.type == 'int' -*/
+    /*- if type == 'int' -*/
         Primitive (Numerical Integer)
-    /*- elif type.type == 'unsigned int' -*/
+    /*- elif type == 'unsigned int' -*/
         Primitive (Numerical UnsignedInteger)
-    /*- elif type.type in ['int8_t', 'int16_t', 'int32_t', 'int64_t', 'uint8_t', 'uint16_t', 'uint32_t', 'uint64_t', 'double', 'float', 'uintptr_t'] -*/
+    /*- elif type in ['int8_t', 'int16_t', 'int32_t', 'int64_t', 'uint8_t', 'uint16_t', 'uint32_t', 'uint64_t', 'double', 'float', 'uintptr_t'] -*/
         /*# C-specific types #*/
-        Primitive (Numerical /*? type.type ?*/)
-    /*- elif type.type == 'real' -*/
+        Primitive (Numerical /*? type ?*/)
+    /*- elif type == 'real' -*/
         Primitive (Numerical Real)
-    /*- elif type.type == 'char' -*/
+    /*- elif type == 'char' -*/
         Primitive (Textual char)
-    /*- elif type.type == 'character' -*/
+    /*- elif type == 'character' -*/
         Primitive (Textual Character)
-    /*- elif type.type == 'boolean' -*/
+    /*- elif type == 'boolean' -*/
         Primitive (Numerical Boolean)
-    /*- elif type.type == 'string' -*/
+    /*- elif type == 'string' -*/
         Primitive (Textual String)
     /*- else -*/
-        /*? raise(NotImplementedError) ?*/
+        /*? raise(TemplateError('unsupported type')) ?*/
     /*- endif -*/
 /*- endmacro -*/
 
@@ -185,6 +185,12 @@ lemma wf_/*? i.name ?*/: "wellformed_component /*? i.name ?*/"
 /*- endfor -*/
 
 /*- for c in me.composition.connections -*/
+  /*- if len(c.from_ends) != 1 -*/
+    /*? raise(TemplateError('connections without a single from end are not supported', c)) ?*/
+  /*- endif -*/
+  /*- if len(c.to_ends) != 1 -*/
+    /*? raise(TemplateError('connections without a single to end are not supported', c)) ?*/
+  /*- endif -*/
 definition
     /*? c.name ?*/ :: connection
 where

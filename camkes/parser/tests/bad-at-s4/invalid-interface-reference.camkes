@@ -1,0 +1,22 @@
+connector C {
+    from Procedure;
+    to Procedure;
+}
+
+procedure P {
+    void method();
+}
+
+component Foo {
+    provides P p;
+    uses P q;
+}
+
+assembly {
+    composition {
+        component Foo a;
+        component Foo b;
+        connection C c(from a.p, to b.q);
+        connection C c2(from b.p, to a.r); // <- invalid reference to 'r'.
+    }
+}

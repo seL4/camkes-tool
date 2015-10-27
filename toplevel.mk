@@ -1,5 +1,5 @@
 #
-# Copyright 2014, NICTA
+# Copyright 2015, NICTA
 #
 # This software may be distributed and modified according to the terms of
 # the BSD 2-Clause license. Note that NO WARRANTY is provided.
@@ -68,6 +68,9 @@ ${STAGE_BASE}/cpio-strip/cpio-strip:
 
 # Fail a default `make` if the user has selected multiple apps.
 ifeq (${MAKECMDGOALS},)
+  ifeq ($(words $(filter-out capdl-loader-experimental,${apps})),0)
+    $(error No CAmkES application selected)
+  endif
   ifneq ($(words $(filter-out capdl-loader-experimental,${apps})),1)
     $(error Multiple CAmkES applications selected. Only a single application can be built at once)
   endif
@@ -105,3 +108,34 @@ $(abspath ${BUILD_BASE})/thy/CapDLSpec.thy: capdl-loader-experimental-image pars
 ifeq (${CONFIG_CAMKES_CAPDL_THY},y)
 all: $(abspath ${BUILD_BASE})/thy/CapDLSpec.thy
 endif
+
+ifeq (${CONFIG_CAMKES_ACCELERATOR},y)
+${apps}: ${STAGE_BASE}/accelerator/camkes-accelerator
+export PATH:=${PATH}:${STAGE_BASE}/accelerator
+ifeq (${V},1)
+  CC_ACCELERATE_FLAGS += -D CMAKE_BUILD_TYPE=Debug
+endif
+ifeq (${V},2)
+  CC_ACCELERATE_FLAGS += -D CMAKE_BUILD_TYPE=Debug
+endif
+ifeq (${V},3)
+  CC_ACCELERATE_FLAGS += -D CMAKE_BUILD_TYPE=Debug
+endif
+ACCELERATE_EXTRA_DEPS := $(foreach f,$(shell ./tools/camkes/tools/accelerator/print-deps.py),$(wildcard ${f}))
+${STAGE_BASE}/accelerator/camkes-accelerator: export CC=clang
+${STAGE_BASE}/accelerator/camkes-accelerator: export CFLAGS=
+${STAGE_BASE}/accelerator/camkes-accelerator: export LDFLAGS=
+${STAGE_BASE}/accelerator/camkes-accelerator: \
+  tools/camkes/tools/accelerator/accelerator.c \
+  tools/camkes/tools/accelerator/CMakeLists.txt \
+  tools/camkes/tools/accelerator/mkversion.py \
+  ${ACCELERATE_EXTRA_DEPS}
+	@echo "[$(notdir $@)] building..."
+	${Q}mkdir -p $(dir $@)
+	${Q}cd $(dir $@) && cmake -G Ninja $(srctree)/tools/camkes/tools/accelerator ${CC_ACCELERATE_FLAGS}
+	${Q}cd $(dir $@) && ninja camkes-accelerator
+endif
+
+.PHONY: check-deps
+check-deps:
+	${Q}./tools/camkes/tools/check_deps.py

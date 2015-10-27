@@ -1,5 +1,7 @@
-#
-# Copyright 2014, NICTA
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# Copyright 2015, NICTA
 #
 # This software may be distributed and modified according to the terms of
 # the BSD 2-Clause license. Note that NO WARRANTY is provided.
@@ -14,37 +16,60 @@ is under active development. Note that any extraneous files in your source
 directory that match the version filters will be accumulated in the version
 computation.'''
 
-from memoization import memoized
-import hashlib, os, re
+from __future__ import absolute_import, division, print_function, \
+    unicode_literals
+from camkes.internal.seven import cmp, filter, map, zip
 
-@memoized
+from .memoization import memoize
+import hashlib, os, re, six
+
+@memoize()
+def sources():
+    '''
+    Yield absolute paths to the sources of CAmkES itself, along with their
+    SHA256 hash.
+    '''
+
+    # Accumulate sources to return. Ordinarily we would implement this function
+    # as a generator, but then we couldn't memoize it.
+    result = []
+
+    # Files to count as "CAmkES sources."
+    include = [re.compile(x) for x in
+        (r'^camkes\.sh$', r'^camkes/ast/[^/]*\.py$',
+        r'^camkes/internal/[^/]*\.(py|sql)$', r'^camkes/parser/[^/]*\.py$',
+        r'^camkes/runner/[^/]*\.py$', r'^camkes/templates/.*$')]
+
+    # Directory from which the above paths are relevant.
+    root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
+
+    for base, _, files in os.walk(root):
+        for f in files:
+            if f.endswith('.swp'):
+                # Skip vim swap files.
+                continue
+            abspath = os.path.join(base, f)
+            path = os.path.relpath(abspath, root)
+            for inc in include:
+                if inc.match(path) is not None:
+                    content = open(abspath, 'rb').read()
+                    result.append((abspath, hashlib.sha256(content).hexdigest()))
+                    break
+
+    return result
+
+@memoize()
 def version():
-    # Files to consider relevant. Each entry should be a pair of (path, filter)
-    # where 'path' is relative to the directory of this file and 'filter' is a
-    # regex describing which filenames to match under the given path.
-    SOURCES = [
-        ('../', r'^.*\.py$'),    # Python sources
-        ('../templates', r'.*'), # Templates
-    ]
-
-    my_path = os.path.dirname(os.path.abspath(__file__))
-    sources = set()
-
     # Accumulate all relevant source files.
-    for s in SOURCES:
-        path = os.path.join(my_path, s[0])
-        regex = re.compile(s[1])
-        for root, _, files in os.walk(path):
-            for f in files:
-                if regex.match(f):
-                    sources.add(os.path.abspath(os.path.join(root, f)))
+    srcs = sorted(sources())
 
     # Hash each file and hash a concatenation of these hashes. Note, hashing a
     # hash is not good practice for cryptography, but it's fine for this
     # purpose.
-    hfinal = hashlib.sha1() #pylint: disable=E1101
-    for s in sources:
-        with open(s, 'r') as f:
-            h = hashlib.sha1(f.read()).hexdigest() #pylint: disable=E1101
-        hfinal.update('%s|' % h) #pylint: disable=E1101
+    hfinal = hashlib.sha256()
+    for _, digest in srcs:
+        chunk = '%s|' % digest
+        if isinstance(chunk, six.text_type):
+            chunk = chunk.encode('utf-8')
+        hfinal.update(chunk)
     return hfinal.hexdigest()

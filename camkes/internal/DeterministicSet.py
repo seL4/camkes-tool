@@ -1,5 +1,7 @@
-#
-# Copyright 2014, NICTA
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# Copyright 2015, NICTA
 #
 # This software may be distributed and modified according to the terms of
 # the BSD 2-Clause license. Note that NO WARRANTY is provided.
@@ -7,6 +9,10 @@
 #
 # @TAG(NICTA_BSD)
 #
+
+from __future__ import absolute_import, division, print_function, \
+    unicode_literals
+from camkes.internal.seven import cmp, filter, map, zip
 
 import collections
 

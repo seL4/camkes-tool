@@ -1,5 +1,5 @@
 /*#
- *# Copyright 2014, NICTA
+ *# Copyright 2015, NICTA
  *#
  *# This software may be distributed and modified according to the terms of
  *# the BSD 2-Clause license. Note that NO WARRANTY is provided.
@@ -8,13 +8,17 @@
  *# @TAG(NICTA_BSD)
  #*/
 
+/*- if len(me.parent.to_ends) != 1 -*/
+  /*? raise(TemplateError('connections with multiple to ends are not supported', me.parent)) ?*/
+/*- endif -*/
+
 /*- set thy = os.path.splitext(os.path.basename(options.outfile.name))[0] -*/
 header {* RPC Receive *}
 (*<*)
 theory /*? thy ?*/ imports
-  "../../tools/c-parser/CTranslation"
-  "../../tools/autocorres/AutoCorres"
-  "../../tools/autocorres/NonDetMonadEx"
+  "~~/../l4v/tools/c-parser/CTranslation"
+  "~~/../l4v/tools/autocorres/AutoCorres"
+  "~~/../l4v/tools/autocorres/NonDetMonadEx"
 begin
 
 (* THIS THEORY IS GENERATED. DO NOT EDIT.
@@ -86,7 +90,7 @@ definition
 where
   "tls_valid s \<equiv> is_valid_camkes_tls_t_C s (tls_ptr s)"
 
-/*- set threads = 1 + len(me.to_instance.type.provides + me.to_instance.type.uses + me.to_instance.type.emits + me.to_instance.type.consumes + me.to_instance.type.dataports) -*/
+/*- set threads = 1 + len(me.instance.type.provides + me.instance.type.uses + me.instance.type.emits + me.instance.type.consumes + me.instance.type.dataports) -*/
 definition
   thread_count :: word32
 where
@@ -113,9 +117,9 @@ where
 /*- set x = isabelle_symbol('x') -*/
 /*- set s = isabelle_symbol('s') -*/
 /*- set simps_emitted = set() -*/
-/*- for m in me.to_interface.type.methods -*/
+/*- for m in me.interface.type.methods -*/
   /*- for p in m.parameters -*/
-    /*- set w = sizeof(p) * 8 -*/
+    /*- set w = macros.sizeof(p) * 8 -*/
     /*- if w not in simps_emitted -*/
 lemma [simp]:"globals_frame_intact (heap_w/*? w ?*/_update /*? x ?*/ /*? s ?*/) = globals_frame_intact /*? s ?*/"
   by (simp add:globals_frame_intact_def)
@@ -143,11 +147,11 @@ lemma [simp]:"/*? i ?*/ \<ge> 0 \<and> /*? i ?*/ < unat seL4_MsgMaxLength \<Long
     thread_index_C (tls (setMR /*? s ?*/ /*? i ?*/ /*? x ?*/)) = thread_index_C (tls /*? s ?*/)"
   by (simp add:setMR_def tls_def tls_ptr_def seL4_MsgMaxLength_def)
 
-/*- for m in me.to_interface.type.methods -*/
+/*- for m in me.interface.type.methods -*/
   /*- for p in m.parameters -*/
-    /*- for t in range(threads) -*/
+    /*- for t in six.moves.range(threads) -*/
 lemma [simp]:"/*? i ?*/ \<ge> 0 \<and> /*? i ?*/ < unat seL4_MsgMaxLength \<Longrightarrow>
-    is_valid_w/*? sizeof(p) * 8 ?*/ (setMR /*? s ?*/ /*? i ?*/ /*? x ?*/) (Ptr (symbol_table ''/*? m.name ?*/_/*? p.name ?*/_/*? t + 1 ?*/'')) = is_valid_w/*? sizeof(p) * 8 ?*/ /*? s ?*/ (Ptr (symbol_table ''/*? m.name ?*/_/*? p.name ?*/_/*? t + 1 ?*/''))"
+    is_valid_w/*? macros.sizeof(p) * 8 ?*/ (setMR /*? s ?*/ /*? i ?*/ /*? x ?*/) (Ptr (symbol_table ''/*? m.name ?*/_/*? p.name ?*/_/*? t + 1 ?*/'')) = is_valid_w/*? macros.sizeof(p) * 8 ?*/ /*? s ?*/ (Ptr (symbol_table ''/*? m.name ?*/_/*? p.name ?*/_/*? t + 1 ?*/''))"
   by (simp add:setMR_def seL4_MsgMaxLength_def)
     /*- endfor -*/
   /*- endfor -*/
@@ -163,10 +167,10 @@ where
     ipc_buffer_valid /*? state ?*/ \<and>
     tls_valid /*? state ?*/ \<and>
     thread_index_C (tls /*? state ?*/) \<in> {1..thread_count}
-    /*- for m in me.to_interface.type.methods -*/
+    /*- for m in me.interface.type.methods -*/
       /*- for p in m.parameters -*/
-        /*- for t in range(threads) -*/
-          \<and> is_valid_w/*? sizeof(p) * 8 ?*/ /*? state ?*/ (Ptr (symbol_table ''/*? m.name ?*/_/*? p.name ?*/_/*? t + 1 ?*/''))
+        /*- for t in six.moves.range(threads) -*/
+          \<and> is_valid_w/*? macros.sizeof(p) * 8 ?*/ /*? state ?*/ (Ptr (symbol_table ''/*? m.name ?*/_/*? p.name ?*/_/*? t + 1 ?*/''))
         /*- endfor -*/
       /*- endfor -*/
     /*- endfor -*/
@@ -177,8 +181,8 @@ end
 locale /*? thy ?*/_seL4RPCSimple_glue = /*? thy ?*/_seL4RPCSimple_pruned +
   assumes seL4_SetMR_axiom: "exec_concrete lift_global_heap (seL4_SetMR' i val) = seL4_SetMR_lifted' i val"
 (** TPP: condense = True *)
-/*- for m in me.to_interface.type.methods -*/
-  /*- set name = '%s_%s' % (me.to_interface.name, m.name) -*/
+/*- for m in me.interface.type.methods -*/
+  /*- set name = '%s_%s' % (me.interface.name, m.name) -*/
   fixes /*? name ?*/_spec
   assumes /*? name ?*/_spec_rel:
   /*- set state0 = isabelle_symbol('s0') -*/
@@ -200,9 +204,9 @@ locale /*? thy ?*/_seL4RPCSimple_glue = /*? thy ?*/_seL4RPCSimple_pruned +
 (** TPP: condense = False *)
 begin
 
-/*- for m in me.to_interface.type.methods -*/
-lemmas /*? me.to_interface.name ?*/_/*? m.name ?*/_wp[wp_unsafe] =
-  /*? me.to_interface.name ?*/_/*? m.name ?*/_spec_rel[THEN validNF_make_schematic_post, simplified]
+/*- for m in me.interface.type.methods -*/
+lemmas /*? me.interface.name ?*/_/*? m.name ?*/_wp[wp_unsafe] =
+  /*? me.interface.name ?*/_/*? m.name ?*/_spec_rel[THEN validNF_make_schematic_post, simplified]
 /*- endfor -*/
 
 lemma abort_wp[wp]:
@@ -323,7 +327,7 @@ text {*
 *}
 text {* \newpage *}
 /*- set commented = [] -*/
-/*- for m in me.to_interface.type.methods -*/
+/*- for m in me.interface.type.methods -*/
 
 /*- for p in m.parameters -*/
 (** TPP: condense = True *)
@@ -335,8 +339,8 @@ lemma get_/*? m.name ?*/_/*? p.name ?*/_nf:
       ipc_buffer_valid /*? state ?*/ \<and>
       tls_valid /*? state ?*/ \<and>
       thread_index_C (tls /*? state ?*/) \<in> {1..thread_count} \<and>
-      /*- for t in range(threads) -*/
-        is_valid_w/*? sizeof(p) * 8 ?*/ /*? state ?*/ (Ptr (symbol_table ''/*? m.name ?*/_/*? p.name ?*/_/*? t + 1 ?*/'')) \<and>
+      /*- for t in six.moves.range(threads) -*/
+        is_valid_w/*? macros.sizeof(p) * 8 ?*/ /*? state ?*/ (Ptr (symbol_table ''/*? m.name ?*/_/*? p.name ?*/_/*? t + 1 ?*/'')) \<and>
       /*- endfor -*/
       /*? state ?*/ = /*? inv_state ?*/\<rbrace>
      get_/*? m.name ?*/_/*? p.name ?*/'
@@ -344,7 +348,7 @@ lemma get_/*? m.name ?*/_/*? p.name ?*/_nf:
 (** TPP: accumulate = True *)
     \<lbrace>\<lambda>/*? ret ?*/ /*? state ?*/.
       /*? ret ?*/ \<in> {
-      /*- for t in range(threads) -*/
+      /*- for t in six.moves.range(threads) -*/
         Ptr (symbol_table ''/*? m.name ?*/_/*? p.name ?*/_/*? t + 1 ?*/'')
         /*- if not loop.last -*/
           ,
@@ -374,17 +378,17 @@ lemmas get_/*? m.name ?*/_/*? p.name ?*/_wp[wp_unsafe] =
  *# dynamically rather than emitting these global update functions because (a) we don't want the
  *# ones we don't need and (b) we may have dynamic sized heaps in future.
  #*/
-/*- set width = sizeof(p) * 8 -*/
+/*- set width = macros.sizeof(p) * 8 -*/
 /*- if width not in update_global_emitted -*/
 definition
   update_global_w/*? width ?*/ :: "char list \<Rightarrow> word32 \<Rightarrow> lifted_globals \<Rightarrow> lifted_globals"
 where
   "update_global_w/*? width ?*/ symbol v s \<equiv>
      heap_w/*? width ?*/_update (\<lambda>c. c(Ptr (symbol_table symbol) := (ucast v))) s"
-/*- if width > options.word_size -*/
-/*# For types of a greater width than /*? options.word_size ?*/ bits, we need a separate definition for
- * setting the high bits.
-#*/
+/*- if width > macros.sizeof('void*') * 8 -*/
+/*# For types of a greater width than word-size-bits, we need a separate definition for setting the
+ *# high bits.
+ #*/
 definition
   update_global_w/*? width ?*/_high :: "char list \<Rightarrow> word32 \<Rightarrow> lifted_globals \<Rightarrow> lifted_globals"
 where
@@ -406,7 +410,7 @@ text {*
   the code given at the start of this chapter. We generate proofs that the handler
   functions do not fail, as given below.
 *}
-/*- for m in me.to_interface.type.methods -*/
+/*- for m in me.interface.type.methods -*/
 
 (** TPP: condense = True *)
 lemma /*? thy ?*/_/*? m.name ?*/_internal_nf:
@@ -431,7 +435,7 @@ lemma /*? thy ?*/_/*? m.name ?*/_internal_nf:
    /*- for p in reversed(m.parameters) -*/
    apply (wp get_/*? m.name ?*/_/*? p.name ?*/_wp)
    /*- endfor -*/
-  apply (clarsimp simp:seL4_MsgMaxLength_def|unfold inv_def, clarsimp|rule conjI, clarsimp|drule /*? me.to_interface.name ?*/_/*? m.name ?*/_inv)+
+  apply (clarsimp simp:seL4_MsgMaxLength_def|unfold inv_def, clarsimp|rule conjI, clarsimp|drule /*? me.interface.name ?*/_/*? m.name ?*/_inv)+
   done
 (** TPP: condense = False *)
 
@@ -457,10 +461,10 @@ lemma /*? thy ?*/_run_internal_wp[wp_unsafe]:
   tls_valid /*? state ?*/ \<and>
   thread_index_C (tls /*? state ?*/) \<in> {1..thread_count} \<and>
 
-  /*- for m in me.to_interface.type.methods -*/
+  /*- for m in me.interface.type.methods -*/
     /*- for p in m.parameters -*/
-      /*- for t in range(threads) -*/
-        is_valid_w/*? sizeof(p) * 8 ?*/ /*? state ?*/ (Ptr (symbol_table ''/*? m.name ?*/_/*? p.name ?*/_/*? t + 1 ?*/'')) \<and>
+      /*- for t in six.moves.range(threads) -*/
+        is_valid_w/*? macros.sizeof(p) * 8 ?*/ /*? state ?*/ (Ptr (symbol_table ''/*? m.name ?*/_/*? p.name ?*/_/*? t + 1 ?*/'')) \<and>
       /*- endfor -*/
     /*- endfor -*/
   /*- endfor -*/
@@ -474,17 +478,17 @@ lemma /*? thy ?*/_run_internal_wp[wp_unsafe]:
   tls_valid /*? state ?*/ \<and>
   thread_index_C (tls /*? state ?*/) \<in> {1..thread_count} \<and>
 
-  /*- for m in me.to_interface.type.methods -*/
+  /*- for m in me.interface.type.methods -*/
     /*- for p in m.parameters -*/
-      /*- for t in range(threads) -*/
-        is_valid_w/*? sizeof(p) * 8 ?*/ /*? state ?*/ (Ptr (symbol_table ''/*? m.name ?*/_/*? p.name ?*/_/*? t + 1 ?*/'')) \<and>
+      /*- for t in six.moves.range(threads) -*/
+        is_valid_w/*? macros.sizeof(p) * 8 ?*/ /*? state ?*/ (Ptr (symbol_table ''/*? m.name ?*/_/*? p.name ?*/_/*? t + 1 ?*/'')) \<and>
       /*- endfor -*/
     /*- endfor -*/
   /*- endfor -*/
   ipc_buffer_valid /*? state ?*/\<rbrace>!"
-  apply (simp add:/*? me.to_interface.name ?*/__run_internal'_def)
+  apply (simp add:/*? me.interface.name ?*/__run_internal'_def)
   apply wp
-  /*- for m in me.to_interface.type.methods -*/
+  /*- for m in me.interface.type.methods -*/
        apply (wp seL4_ReplyWait_wp)
       apply (simp add:seL4_MessageInfo_new'_def)
       apply wp
@@ -497,12 +501,12 @@ lemma /*? thy ?*/_run_internal_wp[wp_unsafe]:
                        seL4_GetIPCBuffer'_def thread_count_def
                        setMR_def setMRs_def inv_def seL4_MsgMaxLength_def
   /*- set update_global_used = set() -*/
-  /*- for m in me.to_interface.type.methods -*/
+  /*- for m in me.interface.type.methods -*/
     /*- for p in m.parameters -*/
-      /*- set width = sizeof(p) * 8 -*/
+      /*- set width = macros.sizeof(p) * 8 -*/
       /*- if width not in update_global_used -*/
         update_global_w/*? width ?*/_def
-        /*- if width > options.word_size -*/
+        /*- if width > macros.sizeof('void*') * 8 -*/
           update_global_w/*? width ?*/_high_def
         /*- endif -*/
         /*- do update_global_used.add(width) -*/

@@ -1,0 +1,7 @@
+procedure P {
+    void method(in int volatile);
+}
+assembly {
+    composition {
+    }
+}

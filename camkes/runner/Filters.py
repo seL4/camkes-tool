@@ -1,5 +1,8 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 #
-# Copyright 2014, NICTA
+# Copyright 2015, NICTA
 #
 # This software may be distributed and modified according to the terms of
 # the BSD 2-Clause license. Note that NO WARRANTY is provided.
@@ -10,35 +13,34 @@
 
 '''Filters to be applied to generated CapDL.'''
 
-import os, re, subprocess
-import camkes.ast as AST
-from capdl import Cap, CNode, TCB, page_table_index, page_index, \
-                  Frame, seL4_ARM_SectionObject, seL4_IA32_4M
-from camkes.internal.memoization import memoized
+from __future__ import absolute_import, division, print_function, \
+    unicode_literals
+from camkes.internal.seven import cmp, filter, map, zip
+
+import os, re, six, subprocess
+from capdl import Cap, CNode, Frame, TCB, page_index, page_sizes, \
+    page_table_coverage, page_table_index
+from camkes.internal.memoization import memoize
 from NameMangling import Perspective
 
 PAGE_SIZE = 4096 # bytes
 IPC_BUFFER_SIZE = 512 # bytes
 
-def find_assembly(ast):
-    assemblies = [x for x in ast if isinstance(x, AST.Assembly)]
-    assert len(assemblies) == 1 # Our parent should have ensured this.
-    return assemblies[0]
-
 # PERF/HACK: This function is memoized and optionally calls out to objdump
 # because it becomes a performance bottleneck in large systems. Note that the
 # second branch here is much more reliable and you should use it when possible.
 objdump_output = {}
-@memoized
+@memoize()
 def get_symbol(elf, symbol):
     objdump = None
     if os.environ.get('CONFIG_CAMKES_USE_OBJDUMP_ON', '') == 'y':
         objdump = '%sobjdump' % os.environ.get('TOOLPREFIX', '')
     elif os.environ.get('CONFIG_CAMKES_USE_OBJDUMP_AUTO', '') == 'y':
-        with open(os.devnull, 'w') as f:
+        with open(os.devnull, 'wt') as f:
             try:
                 objdump = subprocess.check_output(['which', '%sobjdump' %
-                    os.environ.get('TOOLPREFIX', '')], stderr=f).strip()
+                    os.environ.get('TOOLPREFIX', '')], stderr=f,
+                    universal_newlines=True).strip()
             except subprocess.CalledProcessError:
                 objdump = None
     if objdump is not None:
@@ -48,14 +50,15 @@ def get_symbol(elf, symbol):
             # We haven't run objdump on this output yet. Need to do it now.
             # Construct the bash invocation we want
             argument = "%s --syms %s | grep -E '^[0-9a-fA-F]{8}' | sed -r 's/^([0-9a-fA-F]{8})[ \\t].*[ \\t]([0-9a-fA-F]{8})[ \\t]+(.*)/\\3 \\1 \\2/'" % (objdump, elf[0])
-            stdout = subprocess.check_output(['sh','-c',argument])
+            stdout = subprocess.check_output(['sh', '-c', argument],
+                universal_newlines=True)
             # Cache the result for future symbol lookups.
             objdump_output[elf[0]] = stdout
-        sym_index = stdout.find('\n%s ' % symbol);
+        sym_index = stdout.find('\n%s ' % symbol)
         if sym_index == -1:
             return None, None
-        vaddr_index = sym_index + len(symbol) + 2;
-        size_index = vaddr_index + 9;
+        vaddr_index = sym_index + len(symbol) + 2
+        size_index = vaddr_index + 9
         return int(stdout[vaddr_index:vaddr_index+8], 16), \
             int(stdout[size_index:size_index+8], 16)
     else:
@@ -65,8 +68,6 @@ def get_symbol_vaddr(elf, symbol):
     return get_symbol(elf, symbol)[0]
 def get_symbol_size(elf, symbol):
     return get_symbol(elf, symbol)[1]
-def get_entry_point(elf):
-    return elf[1].get_entry_point()
 def get_elf_arch(elf):
     return elf[1].get_arch()
 
@@ -75,7 +76,7 @@ def set_tcb_info(cspaces, elfs, **_):
 
     for group, space in cspaces.items():
         cnode = space.cnode
-        for index, tcb in [(k, v.referent) for (k, v) in cnode.slots.items() \
+        for index, tcb in [(k, v.referent) for (k, v) in cnode.slots.items()
                 if v is not None and isinstance(v.referent, TCB)]:
 
             perspective = Perspective(group=group, tcb=tcb.name)
@@ -90,7 +91,9 @@ def set_tcb_info(cspaces, elfs, **_):
                 continue
 
             tcb.elf = elf_name
-            tcb.ip = get_entry_point(elf)
+            tcb.ip = get_symbol_vaddr(elf, perspective['entry_symbol'])
+            assert tcb.ip != 0, 'entry point \'%s\' of %s appears to be 0x0' \
+                % (perspective['entry_symbol'], tcb.name)
 
             if perspective['pool']:
                 # This TCB is part of the (cap allocator's) TCB pool.
@@ -130,30 +133,12 @@ def set_tcb_info(cspaces, elfs, **_):
             # to a cap to it in the component's CNode.
             tcb.init.append(index)
 
-            # The group's entry point expects to be passed a function pointer
-            # as the second argument that is the instance's entry point.
-            component_entry = perspective['entry_symbol']
-            vaddr = get_symbol_vaddr(elf, component_entry)
-            if vaddr is None:
-                raise Exception('Entry point, %s, of %s not found' %
-                    (component_entry, tcb.name))
-            tcb.init.append(vaddr)
-
-            # The group's entry point expects to be passed a function pointer
-            # as the third argument that is a function that will perform
-            # early tls setup
-            tls_setup = perspective['tls_symbol']
-            vaddr = get_symbol_vaddr(elf, tls_setup)
-            if vaddr is None:
-                raise Exception('TLS symbol, %s, of %s not found' % (tls_setup, tcb.name))
-            tcb.init.append(vaddr)
-
 def set_tcb_caps(ast, obj_space, cspaces, elfs, options, **_):
-    assembly = find_assembly(ast)
+    assembly = ast.assembly
 
     for group, space in cspaces.items():
         cnode = space.cnode
-        for index, tcb in [(k, v.referent) for (k, v) in cnode.slots.items() \
+        for index, tcb in [(k, v.referent) for (k, v) in cnode.slots.items()
                 if v is not None and isinstance(v.referent, TCB)]:
 
             perspective = Perspective(tcb=tcb.name, group=group)
@@ -168,16 +153,16 @@ def set_tcb_caps(ast, obj_space, cspaces, elfs, options, **_):
             cnode_size = assembly.configuration[group].get('cnode_size_bits')
             if cnode_size is not None:
                 try:
-                    if isinstance(cnode_size, str):
+                    if isinstance(cnode_size, six.string_types):
                         size = int(cnode_size, 0)
                     else:
                         size = cnode_size
                 except ValueError:
-                    raise Exception('illegal value for CNode size for %s' % \
+                    raise Exception('illegal value for CNode size for %s' %
                         group)
                 if size < cnode.size_bits:
-                    raise Exception('%d-bit CNode specified for %s, but this ' \
-                        'CSpace needs to be at least %d bits' % \
+                    raise Exception('%d-bit CNode specified for %s, but this '
+                        'CSpace needs to be at least %d bits' %
                         (size, group, cnode.size_bits))
                 cnode.size_bits = size
 
@@ -213,25 +198,25 @@ def set_tcb_caps(ast, obj_space, cspaces, elfs, options, **_):
                 ipc_vaddr = get_symbol_vaddr(elf, ipc_symbol) + PAGE_SIZE
 
                 # Relate this virtual address to a PT.
-                pt_index = page_table_index(get_elf_arch(elf), ipc_vaddr,
-                    options.hyp)
+                pt_index = page_table_index(options.architecture, ipc_vaddr)
                 if pt_index not in pd:
-                    raise Exception('IPC buffer of TCB %s in group %s does ' \
-                        'not appear to be backed by a frame' % (tcb.name, group))
+                    raise Exception('IPC buffer of TCB %s in group %s does '
+                        'not appear to be backed by a page table' % (tcb.name, group))
                 pt = pd[pt_index].referent
 
                 # Continue on to infer the physical frame.
-                p_index = page_index(get_elf_arch(elf), ipc_vaddr, options.hyp)
+                p_index = page_index(options.architecture, ipc_vaddr)
                 if p_index not in pt:
-                    raise Exception('IPC buffer of TCB %s in group %s does ' \
+                    raise Exception('IPC buffer of TCB %s in group %s does '
                         'not appear to be backed by a frame' % (tcb.name, group))
                 frame = pt[p_index].referent
 
                 tcb['ipc_buffer_slot'] = Cap(frame, True, True, False) # RW
 
-            # Currently no fault EP (fault_ep_slot).
+            # Optional fault endpoints are configured in the per-component
+            # template.
 
-def collapse_shared_frames(ast, obj_space, elfs, options, **_):
+def collapse_shared_frames(ast, obj_space, elfs, shmem, options, **_):
     """Find regions in virtual address spaces that are intended to be backed by
     shared frames and adjust the capability distribution to reflect this."""
 
@@ -239,11 +224,185 @@ def collapse_shared_frames(ast, obj_space, elfs, options, **_):
         # If we haven't been passed any ELF files this step is not relevant yet.
         return
 
-    assembly = find_assembly(ast)
+    assembly = ast.assembly
 
-    # We want to track the frame objects backing shared regions with a dict
-    # keyed on the name of the connection linking the regions.
-    shared_frames = {}
+    large_frame_size = None
+
+    for window, mappings in shmem.items():
+        frames = None
+        for cnode, local_mappings in mappings.items():
+            for sym, permissions, paddr in local_mappings:
+
+                perspective = Perspective(cnode=cnode)
+
+                # Find this instance's ELF file.
+                elf_name = perspective['elf_name']
+                assert elf_name in elfs
+                elf = elfs[elf_name]
+
+                # Find this instance's page directory.
+                pd_name = perspective['pd']
+                pds = [x for x in obj_space.spec.objs if x.name == pd_name]
+                assert len(pds) == 1
+                pd = pds[0]
+
+                # Look up the ELF-local version of this symbol.
+                vaddr = get_symbol_vaddr(elf, sym)
+                assert vaddr is not None, 'shared symbol \'%s\' not found in ' \
+                    'ELF %s (template bug?)' % (sym, elf_name)
+                assert vaddr != 0, 'shared symbol \'%s\' located at NULL in ELF ' \
+                    '%s (template bug?)' % (sym, elf_name)
+                assert vaddr % PAGE_SIZE == 0, 'shared symbol \'%s\' not ' \
+                    'page-aligned in ELF %s (template bug?)' % (sym, elf_name)
+
+                size = get_symbol_size(elf, sym)
+                assert size != 0, 'shared symbol \'%s\' has size 0 in ELF %s ' \
+                    '(template bug?)' % (sym, elf_name)
+                assert size % PAGE_SIZE == 0, 'shared symbol \'%s\' in ELF %s ' \
+                    'has a size that is not page-aligned (template bug?)' % \
+                    (sym, elf_name)
+
+                # Different architectures have different large frame sizes. We will
+                # need these later if this window is device registers or should be
+                # promoted to large frames.
+                if options.architecture == 'arm-hyp':
+                    large_frame_size = 2 * 1024 * 1024 # 2M
+                elif options.architecture == 'arm':
+                    large_frame_size = 1024 * 1024 # 1M
+                else:
+                    assert options.architecture == 'ia32'
+                    large_frame_size = 4 * 1024 * 1024 # 4M
+
+                # Infer the page table(s) and small page(s) that currently back this
+                # region.
+                map_indices = [(page_table_index(options.architecture, v),
+                                page_index(options.architecture, v))
+                    for v in six.moves.range(vaddr, vaddr + size, PAGE_SIZE)]
+
+                # Permissions that we will apply to the eventual mapping.
+                read = 'R' in permissions
+                write = 'W' in permissions
+                execute = 'X' in permissions
+
+                if frames is None:
+                    # First iteration of the loop; we need to discover the backing
+                    # frames for this region.
+                    frames = []
+
+                    # We want to derive large frames if (a) this window is device
+                    # registers and large-frame-sized (in which case the kernel
+                    # will have created it as large frames) or (b) the user has
+                    # requested large frame promotion. Note that we never promote
+                    # shared memory windows to anything larger than large frames.
+                    if vaddr % large_frame_size == 0 and \
+                            size % large_frame_size == 0 and \
+                            (options.largeframe or paddr is not None):
+
+                        assert paddr is None or paddr % large_frame_size == 0, \
+                            'unaligned physical address of large device'
+
+                        # Iterate over the unique page table indices.
+                        seen = set()
+                        for offset, index in enumerate((pt_index for pt_index, _
+                                in map_indices if
+                                not (pt_index in seen or seen.add(pt_index)))):
+
+                            pt = pd[index].referent
+
+                            # Delete all the underlying small frames, saving
+                            # the first to enlarge and re-insert.
+                            frame = None
+                            for cap in pt.values():
+                                if frame is None:
+                                    frame = cap.referent
+                                obj_space.remove(cap.referent)
+                            assert frame is not None, 'a page table covering a ' \
+                                'shared memory region was unexpectedly empty ' \
+                                '(filter bug?)'
+
+                            # Delete the page table itself.
+                            obj_space.remove(pt)
+
+                            # Replace it with a large frame.
+                            frame.size = large_frame_size
+                            cap = Cap(frame, read, write, execute)
+                            if paddr is not None:
+                                frame.paddr = paddr + offset * large_frame_size
+                                cap.set_cached(False)
+                            pd[index] = cap
+
+                            frames.append(frame)
+
+                    else:
+                        # We don't need to handle large frame promotion. Just tweak
+                        # the permissions and optionally the physical address of
+                        # all the current mappings.
+                        for offset, (pt_index, p_index) in enumerate(map_indices):
+                            cap = pd[pt_index].referent[p_index]
+                            frame = cap.referent
+                            cap.read = read
+                            cap.write = write
+                            cap.grant = execute
+                            if paddr is not None:
+                                frame.paddr = paddr + offset * PAGE_SIZE
+                                cap.set_cached(False)
+
+                            frames.append(frame)
+
+                else:
+                    # We have already discovered frames to back this region and now
+                    # we just need to adjust page table mappings.
+
+                    assert size == sum(f.size for f in frames), 'mismatched ' \
+                        'sizes of shared region \'%s\' (template bug?)' % window
+
+                    offset = 0
+                    for frame in frames:
+                        pt_index = page_table_index(options.architecture,
+                            vaddr + offset)
+
+                        if frame.size == large_frame_size:
+                            # The window has been promoted to large frames.
+
+                            pt = pd[pt_index].referent
+
+                            # Delete all the underlying small frames.
+                            [obj_space.remove(cap.referent) for cap in pt.values()]
+
+                            # Delete the page table itself.
+                            obj_space.remove(pt)
+
+                            # Replace it with the large frame we previously saved.
+                            cap = Cap(frame, read, write, execute)
+                            if paddr is not None:
+                                cap.set_cached(False)
+                            pd[index] = cap
+
+                        else:
+                            # The window has not been promoted to large frames.
+
+                            assert frame.size == PAGE_SIZE
+
+                            p_index = page_index(options.architecture,
+                                vaddr + offset)
+                            obj_space.remove(pd[pt_index].referent[p_index].referent)
+                            cap = Cap(frame, read, write, execute)
+                            if paddr is not None:
+                                cap.set_cached(False)
+                            pd[pt_index].referent[p_index] = cap
+
+                        offset += frame.size
+
+def replace_dma_frames(ast, obj_space, elfs, options, **_):
+    '''Locate the DMA pool (a region that needs to have frames whose mappings
+    can be reversed) and replace its backing frames with pre-allocated,
+    reversible ones.'''
+
+    if not elfs:
+        # If we haven't been passed any ELF files this step is not relevant yet.
+        return
+
+    assembly = ast.assembly
 
     for i in (x for x in assembly.composition.instances
             if not x.type.hardware):
@@ -260,212 +419,6 @@ def collapse_shared_frames(ast, obj_space, elfs, options, **_):
         assert len(pds) == 1
         pd, = pds
 
-        large_frame_uid = 0
-
-        for d in i.type.dataports:
-
-            # Find the connection that associates this dataport with another.
-            connections = [x for x in assembly.composition.connections if \
-                ((x.from_instance == i and x.from_interface == d) or \
-                (x.to_instance == i and x.to_interface == d))]
-            if len(connections) == 0:
-                # This dataport is unconnected.
-                continue
-            #assert len(connections) == 1
-            conn_name = connections[0].name
-
-            if connections[0].from_instance == i and \
-                    connections[0].from_interface == d:
-                direction = 'from'
-            else:
-                assert connections[0].to_instance == i
-                assert connections[0].to_interface == d
-                direction = 'to'
-
-            # Reverse the logic in the Makefile template.
-            p = Perspective(instance=i.name, dataport=d.name)
-            sym = p['dataport_symbol']
-
-            vaddr = get_symbol_vaddr(elf, sym)
-            assert vaddr is not None, 'failed to find dataport symbol \'%s\'' \
-                ' in ELF %s' % (sym, elf_name)
-            assert vaddr != 0
-            assert vaddr % PAGE_SIZE == 0, 'dataport %s not page-aligned' % sym
-            sz = get_symbol_size(elf, sym)
-            assert sz != 0
-
-            arch = get_elf_arch(elf)
-
-            # Infer the page table(s) and page(s) that back this region.
-            pts, p_indices = zip(*[\
-                (pd[page_table_index(arch, v, options.hyp)].referent,
-                 page_index(arch, v, options.hyp)) \
-                for v in xrange(vaddr, vaddr + sz, PAGE_SIZE)])
-
-            # Determine the rights this mapping should have. We use these to
-            # recreate the mapping below. Technically we may not need to
-            # recreate this mapping if it's already correct, but do it anyway
-            # for simplicity.
-            # FIXME: stop hard coding this name mangling.
-            rights_setting = assembly.configuration[conn_name].get('%s_access' % direction)
-            if rights_setting is not None and \
-                    re.match(r'^"R?W?(G|X)?"$', rights_setting):
-                read = 'R' in rights_setting
-                write = 'W' in rights_setting
-                execute = 'X' in rights_setting or 'G' in rights_setting
-            else:
-                # default
-                read = True
-                write = True
-                execute = False
-
-            # Check if the dataport is connected *TO* a hardware component.
-            if connections[0].to_instance.type.hardware:
-                p = Perspective(to_interface=connections[0].to_interface.name)
-                hardware_attribute = p['hardware_attribute']
-                conf = assembly.configuration[connections[0].to_instance.name].get(hardware_attribute)
-                assert conf is not None
-                paddr, size = conf.strip('"').split(':')
-                # Round up the MMIO size to PAGE_SIZE
-                paddr = int(paddr, 0)
-                size = int(size, 0)
-
-                instance_name = connections[0].to_instance.name
-
-                if size == 0:
-                    raise Exception('Hardware dataport %s.%s has zero size!' % (instance_name,
-                        connections[0].to_interface.name))
-
-                # determine the size of a large frame, and the type of kernel
-                # object that will be used, both of which depend on the architecture
-                if get_elf_arch(elf) == 'ARM':
-                    large_size = 1024 * 1024
-                    large_object_type = seL4_ARM_SectionObject
-                else:
-                    large_size = 4 * 1024 * 1024
-                    large_object_type = seL4_IA32_4M
-
-                # Check if MMIO start and end is aligned to page table coverage.
-                # This will indicate that we should use pagetable-sized pages
-                # to back the device region to be consistent with the kernel.
-                if paddr % large_size == 0 and size % large_size == 0:
-
-                    # number of page tables backing device memory
-                    n_pts = size / large_size
-
-                    # index of first page table in page directory backing the device memory
-                    base_pt_index = page_table_index(get_elf_arch(elf), vaddr)
-                    pt_indices = xrange(base_pt_index, base_pt_index + n_pts)
-
-                    # loop over all the page table indices and replace the page tables
-                    # with large frames
-                    for count, pt_index in enumerate(pt_indices):
-
-                        # look up the page table at the current index
-                        pt = pd[pt_index].referent
-
-                        name = 'large_frame_%s_%d' % (instance_name, large_frame_uid)
-                        large_frame_uid += 1
-
-                        frame_paddr = paddr + large_size * count
-
-                        # allocate a new large frame
-                        frame = obj_space.alloc(large_object_type, name, paddr=frame_paddr)
-
-                        # insert the frame cap into the page directory
-                        frame_cap = Cap(frame, read, write, execute)
-                        frame_cap.set_cached(False)
-                        pd[pt_index] = frame_cap
-
-                        # remove all the small frames from the spec
-                        for p_index in pt:
-                            small_frame = pt[p_index].referent
-                            obj_space.remove(small_frame)
-
-                        # remove the page table from the spec
-                        obj_space.remove(pt)
-
-                else:
-                    # If the MMIO start and end are not aligned to page table coverage,
-                    # loop over all the frames and set their paddrs based on the
-                    # paddr in the spec.
-                    for idx in xrange(0, (size + PAGE_SIZE - 1) / PAGE_SIZE):
-                        try:
-                            frame_obj = pts[idx][p_indices[idx]].referent
-                        except IndexError:
-                            raise Exception('MMIO attributes specify device ' \
-                                'memory that is larger than the dataport it is ' \
-                                'associated with')
-                        frame_obj.paddr = paddr + PAGE_SIZE * idx
-                        cap = Cap(frame_obj, read, write, execute)
-                        cap.set_cached(False)
-                        pts[idx].slots[p_indices[idx]] = cap
-                        obj_space.relabel(conn_name, frame_obj)
-
-                continue
-
-            shm_keys = []
-            for c in connections:
-                shm_keys.append('%s_%s' % (c.from_instance.name, c.from_interface.name))
-                shm_keys.append('%s_%s' % (c.to_instance.name, c.to_interface.name))
-
-            mapped = [x for x in shm_keys if x in shared_frames]
-            if mapped:
-                # We've already encountered the other side of this dataport.
-
-                # The region had better be the same size in all address spaces.
-                for key in mapped:
-                    assert len(shared_frames[key]) == sz / PAGE_SIZE
-
-            # This is the first side of this dataport.
-
-            # Save all the frames backing this region.
-            for key in shm_keys:
-                if mapped:
-                    shared_frames[key] = shared_frames[mapped[0]]
-                else:
-                    shared_frames[key] = [pt[p_index].referent \
-                        for (pt, p_index) in zip(pts, p_indices)]
-
-            # Overwrite the caps backing this region with caps to the shared
-            # frames.
-            for j, f in enumerate(shared_frames[shm_keys[0]]):
-                existing = pts[j].slots[p_indices[j]].referent
-                if existing != f:
-                    # We're actually modifying this mapping. Delete the
-                    # unneeded frame.
-                    obj_space.remove(existing)
-                pts[j].slots[p_indices[j]] = Cap(f, read, write, execute)
-                obj_space.relabel(conn_name, f)
-
-def replace_dma_frames(ast, obj_space, elfs, options, **_):
-    '''Locate the DMA pool (a region that needs to have frames whose mappings
-    can be reversed) and replace its backing frames with pre-allocated,
-    reversible ones.'''
-
-    # TODO: Large parts of this function clagged from collapse_shared_frames; Refactor.
-
-    if not elfs:
-        # If we haven't been passed any ELF files this step is not relevant yet.
-        return
-
-    assembly = find_assembly(ast)
-
-    for i in (x for x in assembly.composition.instances
-            if not x.type.hardware):
-
-        perspective = Perspective(instance=i.name, group=i.address_space)
-
-        elf_name = perspective['elf_name']
-        assert elf_name in elfs
-        elf = elfs[elf_name]
-
-        # Find this instance's page directory.
-        pd_name = perspective['pd']
-        pds = filter(lambda x: x.name == pd_name, obj_space.spec.objs)
-        assert len(pds) == 1
-        pd, = pds
-
         sym = perspective['dma_pool_symbol']
         base = get_symbol_vaddr(elf, sym)
         if base is None:
@@ -473,43 +426,116 @@ def replace_dma_frames(ast, obj_space, elfs, options, **_):
             continue
         assert base != 0
         sz = get_symbol_size(elf, sym)
-        assert sz % PAGE_SIZE == 0 # DMA pool should be page-aligned.
+        assert sz % PAGE_SIZE == 0 # DMA pool should be at least page-aligned.
 
-        # Generate a list of the base addresses of the pages we need to
-        # replace.
-        base_vaddrs = [PAGE_SIZE * x + base for x in
-            range(int(sz / PAGE_SIZE))]
+        # Replicate logic from the template to determine the page size used to
+        # back the DMA pool.
+        page_size = 4 * 1024
+        if options.largeframe_dma:
+            for size in reversed(page_sizes(options.architecture)):
+                if sz >= size:
+                    page_size = size
+                    break
 
-        for index, v in enumerate(base_vaddrs):
-            # Locate the mapping.
-            pt_index = page_table_index(get_elf_arch(elf), v, options.hyp)
-            p_index = page_index(get_elf_arch(elf), v, options.hyp)
+        assert sz % page_size == 0, 'DMA pool not rounded up to a multiple ' \
+            'of page size %d (template bug?)' % page_size
 
-            # It should contain an existing frame.
-            assert pt_index in pd
-            pt = pd[pt_index].referent
-            assert p_index in pt
-            discard_frame = pt[p_index].referent
-
-            # Locate the frame we're going to replace it with. The logic that
-            # constructs this object name is in component.template.c. Note that
-            # we need to account for the guard-prefix of the instance name
-            # introduced by the template context.
+        dma_frame_index = 0
+        def get_dma_frame(index):
+            '''
+            Find the `index`-th DMA frame. Note that these are constructed in
+            the component template itself.
+            '''
             p = Perspective(instance=i.name, group=i.address_space,
                 dma_frame_index=index)
             dma_frames = [x for x in obj_space.spec.objs if
                 x.name == p['dma_frame_symbol']]
             assert len(dma_frames) == 1
-            dma_frame, = dma_frames
+            dma_frame = dma_frames[0]
+            return dma_frame
 
-            # Replace the existing mapping.
-            c = Cap(dma_frame, True, True, False) # RW
-            c.set_cached(False)
-            pt.slots[p_index] = c
+        for index, v in enumerate(page_size * x + base for x in
+                six.moves.range(sz // page_size)):
+            # Locate the existing mapping.
+            pt_index = page_table_index(options.architecture, v)
+            p_index = page_index(options.architecture, v)
 
-            # We can now remove the old frame as we know it's not referenced
-            # anywhere else. TODO: assert this somehow.
-            obj_space.remove(discard_frame)
+            # The size of a page table.
+            pt_size = page_table_coverage(options.architecture)
+
+            # The existing mapping should contain at least one frame.
+            assert pt_index in pd
+            pt = pd[pt_index].referent
+            assert p_index in pt
+
+            # There are four possible scenarios here:
+            #  1. The page size used to back the DMA pool is greater than the
+            #     size of a page table, so frames need to be mapped directly
+            #     into the page directory, evicting multiple page tables;
+            #  2. The page size used to back the DMA pool is equal to the size
+            #     of a page table, so frames need to be mapped directly into
+            #     the page directory, evicting a single page table;
+            #  3. The page size used to back the DMA pool is smaller than a
+            #     page table, but larger than 4KB, so frames need to be mapped
+            #     into page tables, evicting multiple existing pages;
+            #  4. The page size used to back the DMA pool is 4KB, so frames
+            #     need to be mapped into page tables, evicting single existing
+            #     pages.
+            # This loop is intended to handle all these cases, with the
+            # conditional code inside the loop taking care of a subset of
+            # these.
+            for pt_offset in six.moves.range((page_size // pt_size) or 1):
+
+                # Find the covering page table.
+                pt_vaddr = v + page_size * pt_offset
+                pt_index = page_table_index(options.architecture, pt_vaddr)
+                assert pt_index in pd
+                pt = pd[pt_index].referent
+
+                # For each page in this page table...
+                for p_offset in six.moves.range(min(pt_size, page_size) //
+                        PAGE_SIZE):
+
+                    # Find the existing page mapping.
+                    p_vaddr = pt_vaddr + PAGE_SIZE * p_offset
+                    p_index = page_index(options.architecture, p_vaddr)
+                    assert p_index in pt
+                    p = pt[p_index].referent
+
+                    # Delete it.
+                    del pt[p_index]
+                    obj_space.remove(p)
+
+                    # If the DMA pool is backed by frames that need to be
+                    # mapped into page tables and we're at an appropriately
+                    # aligned address, install a mapping.
+                    if page_size < pt_size and p_vaddr % page_size == 0:
+                        f = get_dma_frame(dma_frame_index)
+                        assert f.size == page_size, 'DMA frame found with ' \
+                            'unexpected size %d instead of %d (template bug?)' \
+                            % (f.size, page_size)
+                        dma_frame_index += 1
+                        c = Cap(f, True, True, False) # RW
+                        c.set_cached(False)
+                        pt[p_index] = c
+
+                # If the DMA pool is backed by frames larger than a page table,
+                # we need to delete the covering page table(s) itself.
+                if page_size >= pt_size:
+                    del pd[pt_index]
+                    obj_space.remove(pt)
+
+                    # If we're at an appropriately aligned address, install a
+                    # large frame mapping.
+                    if pt_vaddr % page_size == 0:
+                        f = get_dma_frame(dma_frame_index)
+                        assert f.size == page_size, 'DMA frame found with ' \
+                            'unexpected size %d instead of %d (template bug?)' \
+                            % (f.size, page_size)
+                        dma_frame_index += 1
+                        c = Cap(f, True, True, False) # RW
+                        c.set_cached(False)
+                        pd[pt_index] = c
 
 def guard_cnode_caps(cspaces, **_):
     '''If the templates have allocated any caps to CNodes, they will not have
@@ -517,8 +543,8 @@ def guard_cnode_caps(cspaces, **_):
     calculated (during set_tcb_caps above). Correct them here.'''
 
     for space in cspaces.values():
-        [cap.set_guard_size(32 - cap.referent.size_bits) \
-            for cap in space.cnode.slots.values() \
+        [cap.set_guard_size(32 - cap.referent.size_bits)
+            for cap in space.cnode.slots.values()
             if cap is not None and isinstance(cap.referent, CNode)]
 
 def guard_pages(obj_space, cspaces, elfs, options, **_):
@@ -528,7 +554,7 @@ def guard_pages(obj_space, cspaces, elfs, options, **_):
 
     for group, space in cspaces.items():
         cnode = space.cnode
-        for index, tcb in [(k, v.referent) for (k, v) in cnode.slots.items() \
+        for index, tcb in [(k, v.referent) for (k, v) in cnode.slots.items()
                 if v is not None and isinstance(v.referent, TCB)]:
 
             perspective = Perspective(group=group, tcb=tcb.name)
@@ -562,19 +588,18 @@ def guard_pages(obj_space, cspaces, elfs, options, **_):
                 pre_guard = get_symbol_vaddr(elf, ipc_symbol)
 
                 # Relate this virtual address to a PT.
-                pt_index = page_table_index(get_elf_arch(elf), pre_guard,
-                    options.hyp)
+                pt_index = page_table_index(options.architecture, pre_guard)
                 if pt_index not in pd:
-                    raise Exception('IPC buffer region of TCB %s in group %s '
-                        'does not appear to be backed by a page table' %
-                        (tcb.name, group))
+                    raise Exception('IPC buffer region of TCB %s in '
+                        'group %s does not appear to be backed by a frame'
+                        % (tcb.name, group))
                 pt = pd[pt_index].referent
 
                 # Continue on to infer the page.
-                p_index = page_index(get_elf_arch(elf), pre_guard, options.hyp)
+                p_index = page_index(options.architecture, pre_guard)
                 if p_index not in pt:
-                    raise Exception('IPC buffer region of TCB %s in ' \
-                        'group %s does not appear to be backed by a frame' \
+                    raise Exception('IPC buffer region of TCB %s in '
+                        'group %s does not appear to be backed by a frame'
                         % (tcb.name, group))
 
                 # Delete the page.
@@ -588,18 +613,17 @@ def guard_pages(obj_space, cspaces, elfs, options, **_):
 
                 post_guard = pre_guard + 2 * PAGE_SIZE
 
-                pt_index = page_table_index(get_elf_arch(elf), post_guard,
-                    options.hyp)
+                pt_index = page_table_index(options.architecture, post_guard)
                 if pt_index not in pd:
-                    raise Exception('IPC buffer region of TCB %s in group %s '
-                        'does not appear to be backed by a page table' %
-                        (tcb.name, group))
+                    raise Exception('IPC buffer region of TCB %s in '
+                        'group %s does not appear to be backed by a frame'
+                        % (tcb.name, group))
                 pt = pd[pt_index].referent
 
-                p_index = page_index(get_elf_arch(elf), post_guard, options.hyp)
+                p_index = page_index(options.architecture, post_guard)
                 if p_index not in pt:
-                    raise Exception('IPC buffer region of TCB %s in ' \
-                        'group %s does not appear to be backed by a frame' \
+                    raise Exception('IPC buffer region of TCB %s in '
+                        'group %s does not appear to be backed by a frame'
                         % (tcb.name, group))
 
                 frame = pt[p_index].referent
@@ -613,18 +637,17 @@ def guard_pages(obj_space, cspaces, elfs, options, **_):
 
                 pre_guard = get_symbol_vaddr(elf, stack_symbol)
 
-                pt_index = page_table_index(get_elf_arch(elf), pre_guard,
-                    options.hyp)
+                pt_index = page_table_index(options.architecture, pre_guard)
                 if pt_index not in pd:
-                    raise Exception('stack region of TCB %s in group %s does '
-                        'not appear to be backed by a page table' % (tcb.name,
-                        group))
+                    raise Exception('stack region of TCB %s in '
+                        'group %s does not appear to be backed by a frame'
+                        % (tcb.name, group))
                 pt = pd[pt_index].referent
 
-                p_index = page_index(get_elf_arch(elf), pre_guard, options.hyp)
+                p_index = page_index(options.architecture, pre_guard)
                 if p_index not in pt:
-                    raise Exception('stack region of TCB %s in ' \
-                        'group %s does not appear to be backed by a frame' \
+                    raise Exception('stack region of TCB %s in '
+                        'group %s does not appear to be backed by a frame'
                         % (tcb.name, group))
 
                 frame = pt[p_index].referent
@@ -640,18 +663,17 @@ def guard_pages(obj_space, cspaces, elfs, options, **_):
                     'stack region has no room for guard pages'
                 post_guard = pre_guard + stack_region_size - PAGE_SIZE
 
-                pt_index = page_table_index(get_elf_arch(elf), post_guard,
-                    options.hyp)
+                pt_index = page_table_index(options.architecture, post_guard)
                 if pt_index not in pd:
-                    raise Exception('stack region of TCB %s in group %s does '
-                        'not appear to be backed by a page table' % (tcb.name,
-                        group))
+                    raise Exception('stack region of TCB %s in '
+                        'group %s does not appear to be backed by a frame'
+                        % (tcb.name, group))
                 pt = pd[pt_index].referent
 
-                p_index = page_index(get_elf_arch(elf), post_guard, options.hyp)
+                p_index = page_index(options.architecture, post_guard)
                 if p_index not in pt:
-                    raise Exception('stack region of TCB %s in ' \
-                        'group %s does not appear to be backed by a frame' \
+                    raise Exception('stack region of TCB %s in '
+                        'group %s does not appear to be backed by a frame'
                         % (tcb.name, group))
 
                 frame = pt[p_index].referent
@@ -665,21 +687,37 @@ def tcb_default_priorities(obj_space, options, **_):
     for t in [x for x in obj_space if isinstance(x, TCB)]:
         t.prio = options.default_priority
 
-def tcb_priorities(ast, cspaces, **_):
+def tcb_priorities(ast, cspaces, options, **_):
     ''' Override a TCB's default priority if the user has specified this in an
     attribute.'''
 
-    assembly = find_assembly(ast)
+    assembly = ast.assembly
 
     if assembly.configuration is None or \
             len(assembly.configuration.settings) == 0:
         # We have nothing to do if no priorities were set.
         return
 
+    # The pattern of the names of fault handler threads.
+    fault_handler_tcb = re.compile('.+_tcb_0_fault_handler$')
+
     for group, space in cspaces.items():
         cnode = space.cnode
-        for tcb in [v.referent for v in cnode.slots.values() \
+        for tcb in [v.referent for v in cnode.slots.values()
                 if v is not None and isinstance(v.referent, TCB)]:
+
+            assert options.debug_fault_handlers or \
+                fault_handler_tcb.match(tcb.name) is None, 'fault handler ' \
+                'threads present without fault handlers enabled'
+
+            # If the current thread is a fault handler, we don't want to let
+            # the user alter its priority. Instead we set it to the highest
+            # priority to ensure faults are always displayed. Note that this
+            # will not prevent other threads running because the fault handlers
+            # are designed to be blocked when not handling a fault.
+            if fault_handler_tcb.match(tcb.name) is not None:
+                tcb.prio = 255
+                continue
 
             perspective = Perspective(group=group, tcb=tcb.name)
 
@@ -699,7 +737,7 @@ def tcb_domains(ast, cspaces, **_):
     '''Set the domain of a TCB if the user has specified this in an
     attribute.'''
 
-    assembly = find_assembly(ast)
+    assembly = ast.assembly
 
     if assembly.configuration is None or \
             len(assembly.configuration.settings) == 0:
@@ -708,7 +746,7 @@ def tcb_domains(ast, cspaces, **_):
 
     for group, space in cspaces.items():
         cnode = space.cnode
-        for tcb in [x.referent for x in cnode.slots.values() if \
+        for tcb in [x.referent for x in cnode.slots.values() if
                 (x is not None and isinstance(x.referent, TCB))]:
 
             perspective = Perspective(group=group, tcb=tcb.name)
@@ -724,7 +762,7 @@ def remove_tcb_caps(cspaces, options, **_):
     '''Remove all TCB caps in the system if requested by the user.'''
     if not options.fprovide_tcb_caps:
         for space in cspaces.values():
-            for slot in [k for (k, v) in space.cnode.slots.items() \
+            for slot in [k for (k, v) in space.cnode.slots.items()
                     if v is not None and isinstance(v.referent, TCB)]:
                 del space.cnode[slot]
 

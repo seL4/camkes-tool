@@ -1,5 +1,8 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 #
-# Copyright 2014, NICTA
+# Copyright 2015, NICTA
 #
 # This software may be distributed and modified according to the terms of
 # the BSD 2-Clause license. Note that NO WARRANTY is provided.
@@ -16,5 +19,9 @@ template they need, using dots as path separators. E.g. call
 for the from end of a seL4RPC connector on seL4.
 '''
 
-from Template import Templates, PLATFORMS, TEMPLATES
-import macros
+from __future__ import absolute_import, division, print_function, \
+    unicode_literals
+
+from .exception import TemplateError
+from .Template import Templates, PLATFORMS, TEMPLATES
+from . import macros

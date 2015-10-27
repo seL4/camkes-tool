@@ -1,5 +1,5 @@
 /*#
- *# Copyright 2014, NICTA
+ *# Copyright 2015, NICTA
  *#
  *# This software may be distributed and modified according to the terms of
  *# the BSD 2-Clause license. Note that NO WARRANTY is provided.
@@ -17,34 +17,34 @@ imports Types Abbreviations Connector
 begin
 
 /*- macro show_native_type(type) -*/
-    /*- if type.type in ['int', 'int8_t', 'int16_t', 'int32_t', 'int64_t'] -*/
+    /*- if type in ['int', 'int8_t', 'int16_t', 'int32_t', 'int64_t'] -*/
         int
-    /*- elif type.type in ['unsigned int', 'uint8_t', 'uint16_t', 'uint32_t', 'uint64_t', 'uintptr_t'] -*/
+    /*- elif type in ['unsigned int', 'uint8_t', 'uint16_t', 'uint32_t', 'uint64_t', 'uintptr_t'] -*/
         nat
-    /*- elif type.type in ['char', 'character'] -*/
+    /*- elif type in ['char', 'character'] -*/
         char
-    /*- elif type.type == 'bool' -*/
+    /*- elif type == 'bool' -*/
         bool
-    /*- elif type.type == 'string' -*/
+    /*- elif type == 'string' -*/
         string
     /*- else -*/
-        /*? raise(NotImplementedError()) ?*/
+        /*? raise(TemplateError('unsupported')) ?*/
     /*- endif -*/
 /*- endmacro -*/
 
 /*- macro show_wrapped_type(type) -*/
-    /*- if type.type in ['int', 'int8_t', 'int16_t', 'int32_t', 'int64_t'] -*/
+    /*- if type in ['int', 'int8_t', 'int16_t', 'int32_t', 'int64_t'] -*/
         Integer
-    /*- elif type.type in ['unsigned int', 'uint8_t', 'uint16_t', 'uint32_t', 'uint64_t', 'uintptr_t'] -*/
+    /*- elif type in ['unsigned int', 'uint8_t', 'uint16_t', 'uint32_t', 'uint64_t', 'uintptr_t'] -*/
         Number
-    /*- elif type.type in ['char', 'character'] -*/
+    /*- elif type in ['char', 'character'] -*/
         Char
-    /*- elif type.type == 'bool' -*/
+    /*- elif type == 'bool' -*/
         Boolean
-    /*- elif type.type == 'string' -*/
+    /*- elif type == 'string' -*/
         String
     /*- else -*/
-        /*? raise(NotImplementedError()) ?*/
+        /*? raise(TemplateError('unsupported')) ?*/
     /*- endif -*/
 /*- endmacro -*/
 
@@ -90,7 +90,7 @@ datatype inst =
                 /*- for p in filter(lambda('x: x.direction in [\'in\', \'inout\']'), m.parameters) -*/
                     ('cs local_state \<Rightarrow> /*? show_native_type(p.type) ?*/) \<Rightarrow>
                 /*- endfor -*/
-                /*- if m.return_type is not none or len(filter(lambda('x: x.direction in [\'out\', \'inout\']'), m.parameters)) > 0 -*/
+                /*- if m.return_type is not none or len(list(filter(lambda('x: x.direction in [\'out\', \'inout\']'), m.parameters))) > 0 -*/
                     ('cs local_state
                 /*- endif -*/
                 /*- if m.return_type is not none -*/
@@ -99,7 +99,7 @@ datatype inst =
                 /*- for p in filter(lambda('x: x.direction in [\'out\', \'inout\']'), m.parameters) -*/
                     \<Rightarrow> /*? show_native_type(p.type) ?*/
                 /*- endfor -*/
-                /*- if m.return_type is not none or len(filter(lambda('x: x.direction in [\'out\', \'inout\']'), m.parameters)) > 0 -*/
+                /*- if m.return_type is not none or len(list(filter(lambda('x: x.direction in [\'out\', \'inout\']'), m.parameters))) > 0 -*/
                     /*# We had to unmarshal at least one parameter. #*/
                     \<Rightarrow> 'cs local_state) \<Rightarrow>
                 /*- endif -*/
@@ -110,7 +110,7 @@ datatype inst =
                 /*- for p in filter(lambda('x: x.direction in [\'in\', \'inout\']'), m.parameters) -*/
                     /*? p.name ?*/\<^isub>P
                 /*- endfor -*/
-                /*- if m.return_type is not none or filter(lambda('x: x.direction in [\'out\', \'inout\']'), m.parameters) -*/
+                /*- if m.return_type is not none or len(list(filter(lambda('x: x.direction in [\'out\', \'inout\']'), m.parameters))) > 0 -*/
                     embed
                 /*- endif -*/
                 /*- set s = isabelle_symbol('s') -*/
@@ -123,7 +123,7 @@ datatype inst =
                 /*- set s = isabelle_symbol() -*/
                 /*- set xs = isabelle_symbol() -*/
                 Response (\<lambda>/*? q ?*/ /*? s ?*/. case q_data /*? q ?*/ of Return /*? xs ?*/ \<Rightarrow>
-                /*- if m.return_type is not none or filter(lambda('x: x.direction in [\'out\', \'inout\']'), m.parameters) -*/
+                /*- if m.return_type is not none or len(list(filter(lambda('x: x.direction in [\'out\', \'inout\']'), m.parameters))) > 0 -*/
                     {(embed /*? s ?*/
                     /*- if m.return_type is not none -*/
                         /*- set v = isabelle_symbol() -*/
@@ -145,7 +145,7 @@ datatype inst =
         definition
             Recv_/*? c.name ?*/_/*? u.name ?*/ :: "(/*? c.name ?*/_channel \<Rightarrow> channel) \<Rightarrow>
             /*- for m in u.type.methods -*/
-                /*- if filter(lambda('x: x.direction in [\'in\', \'inout\']'), m.parameters) -*/
+                /*- if len(list(filter(lambda('x: x.direction in [\'in\', \'inout\']'), m.parameters))) > 0 -*/
                     ('cs local_state \<Rightarrow>
                     /*- for p in filter(lambda('x: x.direction in [\'in\', \'inout\']'), m.parameters) -*/
                         /*? show_native_type(p.type) ?*/ \<Rightarrow>
@@ -165,7 +165,7 @@ datatype inst =
             /*- set ch = isabelle_symbol('ch') -*/
             "Recv_/*? c.name ?*/_/*? u.name ?*/ /*? ch ?*/
             /*- for m in u.type.methods -*/
-                /*- if filter(lambda('x: x.direction in [\'in\', \'inout\']'), m.parameters) -*/
+                /*- if len(list(filter(lambda('x: x.direction in [\'in\', \'inout\']'), m.parameters))) > 0 -*/
                     /*? m.name ?*/\<^isub>E
                 /*- endif -*/
                 /*? c.name ?*/_/*? u.name ?*/_/*? m.name ?*/
@@ -186,7 +186,7 @@ datatype inst =
                 /*- set n = isabelle_symbol() -*/
                 /*- set xs = isabelle_symbol() -*/
                 (Response (\<lambda>/*? q ?*/ /*? s ?*/. case q_data /*? q ?*/ of Call /*? n ?*/ /*? xs ?*/ \<Rightarrow> (if /*? n ?*/ = /*? i ?*/ then {(
-                /*- if filter(lambda('x: x.direction in [\'in\', \'inout\']'), m.parameters) -*/
+                /*- if len(list(filter(lambda('x: x.direction in [\'in\', \'inout\']'), m.parameters))) > 0 -*/
                     /*? m.name ?*/\<^isub>E /*? s ?*/
                     /*- for k, p in enumerate(filter(lambda('x: x.direction in [\'in\', \'inout\']'), m.parameters)) -*/
                         /*- set v = isabelle_symbol() -*/
@@ -267,7 +267,7 @@ datatype inst =
                 /*- for p in filter(lambda('x: x.direction in [\'in\', \'inout\']'), m.parameters) -*/
                     ('cs local_state \<Rightarrow> /*? show_native_type(p.type) ?*/) \<Rightarrow>
                 /*- endfor -*/
-                /*- if m.return_type is not none or len(filter(lambda('x: x.direction in [\'out\', \'inout\']'), m.parameters)) > 0 -*/
+                /*- if m.return_type is not none or len(list(filter(lambda('x: x.direction in [\'out\', \'inout\']'), m.parameters))) > 0 -*/
                     ('cs local_state \<Rightarrow>
                 /*- endif -*/
                 /*- if m.return_type is not none -*/
@@ -276,7 +276,7 @@ datatype inst =
                 /*- for p in filter(lambda('x: x.direction in [\'out\', \'inout\']'), m.parameters) -*/
                     \<Rightarrow> /*? show_native_type(p.type) ?*/
                 /*- endfor -*/
-                /*- if m.return_type is not none or len(filter(lambda('x: x.direction in [\'out\', \'inout\']'), m.parameters)) > 0 -*/
+                /*- if m.return_type is not none or len(list(filter(lambda('x: x.direction in [\'out\', \'inout\']'), m.parameters))) > 0 -*/
                     /*# We had to unmarshal at least one parameter. #*/
                     \<Rightarrow> 'cs local_state) \<Rightarrow>
                 /*- endif -*/
@@ -287,6 +287,12 @@ datatype inst =
                     Call_/*? c.name ?*/_/*? u.name ?*/_/*? m.name ?*/ (\<lambda>/*? l ?*/. case /*? l ?*/ of
                     /*- set j = joiner('|') -*/
                     /*- for conn in connections -*/
+                        /*- if len(conn.from_ends) != 1 -*/
+                            /*? raise(TemplateError('connections without a single from end are not supported', conn)) ?*/
+                        /*- endif -*/
+                        /*- if len(conn.to_ends) != 1 -*/
+                            /*? raise(TemplateError('connections without a single to end are not supported', conn)) ?*/
+                        /*- endif -*/
                         /*- if conn.from_instance.name == i.name -*/
                             /*? j() ?*/ /*? c.name ?*/_/*? conn.from_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
                         /*- endif -*/
@@ -302,7 +308,7 @@ datatype inst =
         definition
             Recv_/*? i.name ?*/_/*? u.name ?*/ :: "
             /*- for m in u.type.methods -*/
-                /*- if filter(lambda('x: x.direction in [\'in\', \'inout\']'), m.parameters) -*/
+                /*- if len(list(filter(lambda('x: x.direction in [\'in\', \'inout\']'), m.parameters))) > 0 -*/
                     ('cs local_state \<Rightarrow>
                     /*- for p in filter(lambda('x: x.direction in [\'in\', \'inout\']'), m.parameters) -*/
                         /*? show_native_type(p.type) ?*/ \<Rightarrow>
@@ -324,6 +330,12 @@ datatype inst =
                 Recv_/*? c.name ?*/_/*? u.name ?*/ (\<lambda>/*? l ?*/. case /*? l ?*/ of
                 /*- set j = joiner('|') -*/
                 /*- for conn in connections -*/
+                    /*- if len(conn.to_ends) != 1 -*/
+                        /*? raise(TemplateError('connections without a single to end are not supported', conn)) ?*/
+                    /*- endif -*/
+                    /*- if conn.from_instance.name == i.name -*/
+                        /*? j() ?*/ /*? c.name ?*/_/*? conn.from_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
+                    /*- endif -*/
                     /*- if conn.from_instance.name == i.name -*/
                         /*? j() ?*/ /*? c.name ?*/_/*? conn.from_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
                     /*- endif -*/
@@ -342,6 +354,12 @@ datatype inst =
             "Emit_/*? i.name ?*/_/*? u.name ?*/ \<equiv> Emit_/*? c.name ?*/_/*? u.name ?*/ (\<lambda>/*? l ?*/. case /*? l ?*/ of
             /*- set j = joiner('|') -*/
             /*- for conn in connections -*/
+                /*- if len(conn.to_ends) != 1 -*/
+                    /*? raise(TemplateError('connections without a single to end are not supported', conn)) ?*/
+                /*- endif -*/
+                /*- if conn.from_instance.name == i.name -*/
+                    /*? j() ?*/ /*? c.name ?*/_/*? conn.from_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
+                /*- endif -*/
                 /*- if conn.from_instance.name == i.name -*/
                     /*? j() ?*/ /*? c.name ?*/_/*? conn.from_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
                 /*- endif -*/
@@ -360,6 +378,12 @@ datatype inst =
             "Poll_/*? i.name ?*/_/*? u.name ?*/ \<equiv> Poll_/*? c.name ?*/_/*? u.name ?*/ (\<lambda>/*? l ?*/. case /*? l ?*/ of
             /*- set j = joiner('|') -*/
             /*- for conn in connections -*/
+                /*- if len(conn.to_ends) != 1 -*/
+                    /*? raise(TemplateError('connections without a single to end are not supported', conn)) ?*/
+                /*- endif -*/
+                /*- if conn.from_instance.name == i.name -*/
+                    /*? j() ?*/ /*? c.name ?*/_/*? conn.from_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
+                /*- endif -*/
                 /*- if conn.from_instance.name == i.name -*/
                     /*? j() ?*/ /*? c.name ?*/_/*? conn.from_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
                 /*- endif -*/
@@ -376,6 +400,12 @@ datatype inst =
             "Wait_/*? i.name ?*/_/*? u.name ?*/ \<equiv> Wait_/*? c.name ?*/_/*? u.name ?*/ (\<lambda>/*? l ?*/. case /*? l ?*/ of
             /*- set j = joiner('|') -*/
             /*- for conn in connections -*/
+                /*- if len(conn.to_ends) != 1 -*/
+                    /*? raise(TemplateError('connections without a single to end are not supported', conn)) ?*/
+                /*- endif -*/
+                /*- if conn.from_instance.name == i.name -*/
+                    /*? j() ?*/ /*? c.name ?*/_/*? conn.from_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
+                /*- endif -*/
                 /*- if conn.from_instance.name == i.name -*/
                     /*? j() ?*/ /*? c.name ?*/_/*? conn.from_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
                 /*- endif -*/
@@ -394,6 +424,12 @@ datatype inst =
             "Read_/*? i.name ?*/_/*? u.name ?*/ \<equiv> Read_/*? c.name ?*/_/*? u.name ?*/ (\<lambda>/*? l ?*/. case /*? l ?*/ of
             /*- set j = joiner('|') -*/
             /*- for conn in connections -*/
+                /*- if len(conn.to_ends) != 1 -*/
+                    /*? raise(TemplateError('connections without a single to end are not supported', conn)) ?*/
+                /*- endif -*/
+                /*- if conn.from_instance.name == i.name -*/
+                    /*? j() ?*/ /*? c.name ?*/_/*? conn.from_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
+                /*- endif -*/
                 /*- if conn.from_instance.name == i.name -*/
                     /*? j() ?*/ /*? c.name ?*/_/*? conn.from_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
                 /*- endif -*/
@@ -410,6 +446,12 @@ datatype inst =
             "Write_/*? i.name ?*/_/*? u.name ?*/ \<equiv> Write_/*? c.name ?*/_/*? u.name ?*/ (\<lambda>/*? l ?*/. case /*? l ?*/ of
             /*- set j = joiner('|') -*/
             /*- for conn in connections -*/
+                /*- if len(conn.to_ends) != 1 -*/
+                    /*? raise(TemplateError('connections without a single to end are not supported', conn)) ?*/
+                /*- endif -*/
+                /*- if conn.from_instance.name == i.name -*/
+                    /*? j() ?*/ /*? c.name ?*/_/*? conn.from_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
+                /*- endif -*/
                 /*- if conn.from_instance.name == i.name -*/
                     /*? j() ?*/ /*? c.name ?*/_/*? conn.from_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
                 /*- endif -*/
@@ -444,7 +486,7 @@ begin
 /*- endfor -*/
 
 /*# Emit simulated components for each event. #*/
-/*- for e in reduce(lambda('xs, b: xs + ([b.type._symbol] if b.type._symbol not in xs else [])'), flatMap(lambda('x: x.emits + x.consumes'), components), []) -*/
+/*- for e in reduce(lambda('xs, b: xs + ([b.type] if b.type not in xs else [])'), flatMap(lambda('x: x.emits + x.consumes'), components), []) -*/
     (* Simulated component for event /*? e ?*/. *)
     type_synonym /*? e ?*/_channel = unit
 
@@ -456,7 +498,7 @@ begin
 /*- endfor -*/
 
 /*# Emit simulated components for each dataport. #*/
-/*- for d in reduce(lambda('xs, b: xs + ([b.type._symbol] if b.type._symbol not in xs else [])'), flatMap(lambda('x: x.dataports'), components), []) -*/
+/*- for d in reduce(lambda('xs, b: xs + ([b.type] if b.type not in xs else [])'), flatMap(lambda('x: x.dataports'), components), []) -*/
     /*# The built-in type 'Buf' is defined in Connector.thy. #*/
     /*- if d != 'Buf' -*/
         type_synonym /*? d ?*/\<^isub>d_channel = unit
@@ -480,6 +522,12 @@ begin
         "/*? i.name ?*/_untrusted \<equiv> /*? c.name ?*/_untrusted (\<lambda>/*? l ?*/. case /*? l ?*/ of
         /*- set j = joiner('|') -*/
         /*- for conn in connections -*/
+            /*- if len(conn.to_ends) != 1 -*/
+                /*? raise(TemplateError('connections without a single to end are not supported', conn)) ?*/
+            /*- endif -*/
+            /*- if conn.from_instance.name == i.name -*/
+                /*? j() ?*/ /*? c.name ?*/_/*? conn.from_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
+            /*- endif -*/
             /*- if conn.from_instance.name == i.name -*/
                 /*? j() ?*/ /*? c.name ?*/_/*? conn.from_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
             /*- endif -*/
@@ -496,7 +544,7 @@ begin
     definition
         /*? c.name ?*/\<^isub>e_instance :: "(channel, 'cs) comp"
     where
-        "/*? c.name ?*/\<^isub>e_instance \<equiv> /*? c.from_interface.type._symbol ?*/ (\<lambda>_. /*? c.name ?*/)"
+        "/*? c.name ?*/\<^isub>e_instance \<equiv> /*? c.from_interface.type ?*/ (\<lambda>_. /*? c.name ?*/)"
 /*- endfor -*/
 
 /*# Simulated component instance for each dataport connection. #*/
@@ -504,7 +552,7 @@ begin
     definition
         /*? c.name ?*/\<^isub>d_instance :: "(channel, 'cs) comp"
     where
-        "/*? c.name ?*/\<^isub>d_instance \<equiv> /*? c.from_interface.type._symbol ?*/\<^isub>d (\<lambda>_. /*? c.name ?*/)"
+        "/*? c.name ?*/\<^isub>d_instance \<equiv> /*? c.from_interface.type ?*/\<^isub>d (\<lambda>_. /*? c.name ?*/)"
 /*- endfor -*/
 
 (* Global initial state *)
@@ -522,6 +570,12 @@ where
         /*? j() ?*/ /*? i.name ?*/ \<Rightarrow> Some (/*? i.name ?*/_untrusted, Component init_component_state)
     /*- endfor -*/
     /*- for c in connections -*/
+        /*- if len(conn.to_ends) != 1 -*/
+            /*? raise(TemplateError('connections without a single to end are not supported', conn)) ?*/
+        /*- endif -*/
+        /*- if conn.from_instance.name == i.name -*/
+            /*? j() ?*/ /*? c.name ?*/_/*? conn.from_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
+        /*- endif -*/
         /*- if c.type.from_type == 'Event' -*/
             /*? j() ?*/ /*? c.name ?*/\<^isub>e \<Rightarrow> Some (/*? c.name ?*/\<^isub>e_instance, init_event_state)
         /*- elif c.type.from_type == 'Dataport' -*/

@@ -1,7 +1,7 @@
 % CAmkES Manual
 
 <!--
-     Copyright 2014, NICTA
+     Copyright 2015, NICTA
 
      This software may be distributed and modified according to the terms of
      the BSD 2-Clause license. Note that NO WARRANTY is provided.
@@ -17,9 +17,10 @@ broken into sections for users, template authors and developers. The
 using CAmkES as a platform. The [Templating](#templating) section is
 for people wanting to write their own CAmkES templates and use more complex
 functionality. Finally the [Developers](#developers) section is for
-people wanting to modify the internals of CAmkES itself. Regardless of which
-section is most relevant for you, you should at least familiarise yourself with
-the [Terminology](#terminology) section.
+people wanting to modify the internals of CAmkES itself. If you are modifying
+the internals of CAmkES, it is recommended that you read the entirety of this
+documentation. Regardless of which section is most relevant for you, you should
+at least familiarise yourself with the [Terminology](#terminology) section.
 
 CAmkES' primary target platform is the
 [seL4 microkernel](http://sel4.systems/). The seL4 kernel and its functionality
@@ -135,18 +136,13 @@ of these terms are made explicit below.
   value as mapping to something like an interrupt number or a signal type,
   although they do not necessarily represent hardware messages.
 
-**Export Connector**
-
-> A special type of connector which can only appear inside a compound component's
-  composition section. It can be used to connect one of the compound component's
-  interfaces to an interface of an internal instance declared in the compound component's
-  composition section. Interfaces of compound components connected with an export
-  connector are considered "Virtual Interfaces". Interfaces of internal instances
-  connected to virtual interfaces are known as "Exported Interfaces".
-
 **Exported Interface**
 
-> An interface of an internal instance connected to a virtual interface with an export connector.
+> An interface of an internal instance that is presented under the name of an
+  identically typed interface in its containing component. The purpose of
+  exported interfaces is to expose a coherent outward-facing set of interfaces
+  from a component, while potentially implementing those interfaces within
+  nested components.
 
 **Instance**
 
@@ -162,13 +158,6 @@ of these terms are made explicit below.
   points, but in practice this is not necessary and ambiguity rarely arises. The
   subcategories of interface are _procedure_, _event_ and _port_.
 
-**Interface Definition Language (IDL)**
-
-> A subset of CAmkES ADL for describing interfaces of components. Previously
-  this was considered distinct from ADL, but now the term 'ADL' is intended to
-  encompass both syntaxes. The CAmkES IDL subset is heavily inspired by
-  [OMG IDL](http://www.omg.org/gettingstarted/omg_idl.htm).
-
 **Internal Instance**
 
 > A component instance declared inside a compound component's composition section.
@@ -176,8 +165,8 @@ of these terms are made explicit below.
 **Internal Connection**
 
 > A connection declared inside a compound component which connects two internal
-  instance interfaces. That is, any connection declared inside a compound component
-  which does not use an export connector.
+  instance interfaces. That is, any connection declared inside a compound
+  component.
 
 **Method**
 
@@ -225,42 +214,40 @@ of these terms are made explicit below.
 
 **Virtual Interface**
 
-> An interface of a compound component connected to an internal instance's interface
-  using an export connector.
+> An interface of a compound component that is not implemented by that
+  component, but is an alias for internal instance's interface.
 
 A concrete example:
 
-    procedure thing {
-      int func(in int x);
-    }
+```camkes
+procedure thing {
+  int func(in int x);
+}
 
-    event sig = 42;
+component foo {
+  control;
+  uses thing t1;
+  emits sig s1;
+  dataport buffer b1;
+}
 
-    dataport Buf buffer;
+component bar {
+  provides thing t2;
+  consumes sig s2;
+  dataport buffer b2;
+}
 
-    component foo {
-      control;
-      uses thing t1;
-      emits sig s1;
-      dataport buffer b1;
-    }
+assembly {
+  composition {
+    component foo f;
+    component bar b;
 
-    component bar {
-      provides thing t2;
-      consumes sig s2;
-      dataport buffer b2;
-    }
-
-    assembly {
-      composition {
-        component foo f;
-        component bar b;
-
-        connection RPC c1(from f.t1, to b.t2);
-        connection Notification c2(from f.s1, to b.s2);
-        connection SharedData c3(from f.b1, to b.b2);
-      }
-    }
+    connection RPC c1(from f.t1, to b.t2);
+    connection Asynch c2(from f.s1, to b.s2);
+    connection SharedData c3(from f.b1, to b.b2);
+  }
+}
+```
 
 * `thing` is a **procedure**
 * `int` is a **type**
@@ -278,7 +265,7 @@ A concrete example:
 * `assembly { ... }` is an **assembly**
 * `composition { ... }` is a **composition**
 * `f` and `b` are **instance**s
-* `RPC`, `Notification` and `SharedData` are **connector**s
+* `RPC`, `Asynch` and `SharedData` are **connector**s
 * `c1`, `c2` and `c3` are **connection**s
 
 ## Usage
@@ -292,76 +279,11 @@ To work with any of the CAmkES tools you will need some extra software
 installed. It is assumed you are operating on a Linux host. Although an attempt
 has been made to implement functionality in an OS-independent way you may find
 extra dependencies or undocumented portability issues if you are running
-another OS.
+another OS. To check you have the appropriate dependencies installed:
 
-**Python**
-
-> Python should come pre-installed in most Linux distributions, but if not you
-  will need to install it. The tools have been tested with versions 2.6 and
-  2.7, but not version 3.
-
-**[PLY](http://www.dabeaz.com/ply/)**
-
-> PLY is an implementation of [Lex](http://dinosaur.compilertools.net/#lex)
-  and [Yacc](http://dinosaur.compilertools.net/#yacc) in Python. It is used in
-  the parser and should be available from most Linux distributions' default
-  repositories as python-ply.
-
-**[PyElftools](https://github.com/eliben/pyelftools)**
-
-> PyElftools contains Python disassembly functionality for ELF files. The
-  [runner](#runner) uses this to derive virtual address information for CapDL
-  specifications.
-
-**[CapDL Python module](https://github.com/seL4/python-capdl-tool)**
-
-> This module contains functionality for managing and generating CapDL
-  specifications in Python. If you are working in the larger CAmkES project
-  repository, this is already available as a subrepository.
-
-**[Expect](http://expect.sourceforge.net/)**
-
-> Expect is a tool for automating interaction with a command line application.
-  This is only required for running the test suite.
-
-**[Jinja2](http://jinja.pocoo.org/docs/)**
-
-> Jinja2 is a templating system primarily used for HTML targets. The CAmkES
-  templates use Jinja2 for their functionality. This should be available in the
-  default repositories of most Linux distributions and any recent version
-  should be fine.
-
-Some additional tools used by CAmkES in a seL4 build have their own
-dependencies. These are:
-
-**data-ordlist**
-
-> This is a Haskell package for dealing with list structures. This is a
-  dependency of the CapDL translator. It is installable from
-  [cabal](http://www.haskell.org/cabal/).
-
-**GCC**
-
-> A C compiler is necessary for building any C-based CAmkES application.
-  Obviously if building for a different target than your host machine you will
-  need to a cross compiler.
-
-**MissingH**
-
-> A Haskell package providing extra standard library functionality. This is a
-  dependency of the CapDL translator. It is installable from cabal.
-
-**QEMU**
-
-> A system emulator, like [QEMU](http://wiki.qemu.org/), is required if you
-  want to run CAmkES systems without available hardware. It should be widely
-  available.
-
-**split**
-
-> A Haskell package providing some extra functionality for splitting
-  operations. Again, this is a dependency of the CapDL translator that is
-  installable from cabal.
+```bash
+./tools/check_deps.py
+```
 
 ### Tutorial
 
@@ -394,14 +316,16 @@ qemu-system-arm -M kzm -nographic -kernel \
 
 You should see debugging output from the system initialisation, followed by:
 
-    echo_int: 42 -> 42
-    echo_float: 273421.437500 -> 273421.437500
-    echo_double: 273421.427400 -> 273421.427400
-    echo_mix: 273421.427400 -> 273421
-    echo_string: "hello world" -> "hello world"
-    echo_parameter: 123 -> 123 (returned = 123)
-    increment_parameter: 100 -> 101
-    After the client
+```
+echo_int: 42 -> 42
+echo_float: 273421.437500 -> 273421.437500
+echo_double: 273421.427400 -> 273421.427400
+echo_mix: 273421.427400 -> 273421
+echo_string: "hello world" -> "hello world"
+echo_parameter: 123 -> 123 (returned = 123)
+increment_parameter: 100 -> 101
+After the client
+```
 
 To understand what this example is doing, open the files
 apps/simple/components/Echo/src/echo.c and
@@ -438,11 +362,13 @@ Functional interfaces, referred to as procedures, are made up of a set of
 methods. Define an interface that the components will communicate over and save
 this under apps/helloworld/interfaces/MyInterface.idl4:
 
-    /* apps/helloworld/interfaces/MyInterface.idl4 */
+```camkes
+/* apps/helloworld/interfaces/MyInterface.idl4 */
 
-    procedure MyInterface {
-      void print(in string message);
-    };
+procedure MyInterface {
+  void print(in string message);
+}
+```
 
 This interface consists of a single method, print that takes an input parameter
 of type string. Note that, although we are planning to implement this component
@@ -453,22 +379,24 @@ Architecture Description Language. Create these in
 apps/helloworld/components/Hello/Hello.camkes and
 apps/helloworld/components/Client/Client.camkes.
 
-    /* apps/helloworld/components/Hello/Hello.camkes */
+```camkes
+/* apps/helloworld/components/Hello/Hello.camkes */
 
-    import "../../interfaces/MyInterface.idl4";
+import "../../interfaces/MyInterface.idl4";
 
-    component Hello {
-      provides MyInterface inf;
-    }
+component Hello {
+  provides MyInterface inf;
+}
 
-    /* apps/helloworld/components/Client/Client.camkes */
+/* apps/helloworld/components/Client/Client.camkes */
 
-    import "../../interfaces/MyInterface.idl4";
+import "../../interfaces/MyInterface.idl4";
 
-    component Client {
-      control;
-      uses MyInterface iface;
-    }
+component Client {
+  control;
+  uses MyInterface iface;
+}
+```
 
 Note that each component description needs to import the interface file we
 created above from apps/helloworld/interfaces. Import statements function
@@ -483,19 +411,21 @@ what is called an active component. This means it will contain a main function
 Create a file to describe the instantiation and structure of the system at
 apps/helloworld/helloworld.camkes.
 
-    /* apps/helloworld/helloworld.camkes */
+```camkes
+/* apps/helloworld/helloworld.camkes */
 
-    import <std_connector.camkes>;
-    import "components/Hello/Hello.camkes";
-    import "components/Client/Client.camkes";
+import <std_connector.camkes>;
+import "components/Hello/Hello.camkes";
+import "components/Client/Client.camkes";
 
-    assembly {
-      composition {
-        component Hello h;
-        component Client c;
-        connection seL4RPC conn(from c.iface, to h.inf);
-      }
-    }
+assembly {
+  composition {
+    component Hello h;
+    component Client c;
+    connection seL4RPC conn(from c.iface, to h.inf);
+  }
+}
+```
 
 This file begins with several import statements that reference other files.
 Hello.camkes and Client.camkes are the files we created above, while
@@ -550,16 +480,20 @@ The entry point of a CAmkES component is `run`.
 The final thing is to add some build system boiler plate to be able to build
 the system. Create apps/helloworld/Kconfig for the build system menu:
 
-    config APP_HELLOWORLD
-    bool "Hello world CAmkES application"
-    default n
-        help
-            Hello world tutorial exercise.
+```kconfig
+config APP_HELLOWORLD
+bool "Hello world CAmkES application"
+default n
+    help
+        Hello world tutorial exercise.
+```
 
 Add a source line to the top-level Kconfig under the applications menu that
 references this file:
 
-    source "apps/helloworld/Kconfig"
+```kconfig
+source "apps/helloworld/Kconfig"
+```
 
 You can now run `make menuconfig` from the top-level directory and select your
 application from the Applications menu. Make sure you deselect the simple
@@ -599,7 +533,9 @@ qemu-system-arm -M kzm -nographic -kernel \
 
 If all goes well you should see:
 
-    Client says: hello world
+```
+Client says: hello world
+```
 
 Congratulations, you've just made your first CAmkES application.
 
@@ -639,12 +575,14 @@ Events, unlike procedures, do not need to be defined in a separate IDL file. You
 can simply refer to the event type in your component ADL files and CAmkES will
 infer an event type. Create the following description for Emitter:
 
-    /* apps/helloevent/components/Emitter/Emitter.camkes */
+```camkes
+/* apps/helloevent/components/Emitter/Emitter.camkes */
 
-    component Emitter {
-      control;
-      emits MyEvent e;
-    }
+component Emitter {
+  control;
+  emits MyEvent e;
+}
+```
 
 This description says Emitter is an active component (the control keyword) and
 it emits a single event called e of type MyEvent. Create some basic source code
@@ -667,31 +605,35 @@ CAmkES provides an emit function to send the event.
 
 Now let's create a description of the Consumer that will handle this event:
 
-    /* apps/helloevent/components/Consumer/Consumer.camkes */
+```camkes
+/* apps/helloevent/components/Consumer/Consumer.camkes */
 
-    component Consumer {
-      control;
-      consumes MyEvent s;
-    }
+component Consumer {
+  control;
+  consumes MyEvent s;
+}
+```
 
 Note that this component consumes (handles) an event of the same type. Let's
 instantiate and connect these components together using another ADL file:
 
-    /* apps/helloevent/helloevent.camkes */
+```camkes
+/* apps/helloevent/helloevent.camkes */
 
-    import <std_connector.camkes>;
-    import "components/Emitter/Emitter.camkes";
-    import "components/Consumer/Consumer.camkes";
+import <std_connector.camkes>;
+import "components/Emitter/Emitter.camkes";
+import "components/Consumer/Consumer.camkes";
 
-    assembly {
-      composition {
-        component Emitter source;
-        component Consumer sink;
-        connection seL4Notification channel(from source.e, to sink.s);
-      }
-    }
+assembly {
+  composition {
+    component Emitter source;
+    component Consumer sink;
+    connection seL4Asynch channel(from source.e, to sink.s);
+  }
+}
+```
 
-In this file, seL4Notification is a seL4 specific connector for transmitting
+In this file, seL4Asynch is a seL4 specific connector for transmitting
 asynchronous signals. The two instantiated components, source and sink are
 connected over the connection channel.
 
@@ -743,13 +685,15 @@ apps/helloevent/Makefile as for the previous example. Compile the system and
 run it with similar qemu commands to the previous example. If all goes well you
 should see something like the following:
 
-    Registering callback...
-    Callback fired!
-    Polling...
-    We didn't find an event
-    Waiting...
-    Unblocked by an event!
-    Callback fired!
+```
+Registering callback...
+Callback fired!
+Polling...
+We didn't find an event
+Waiting...
+Unblocked by an event!
+Callback fired!
+```
 
 Whether you find an event during polling will be a matter of the schedule that
 seL4 uses to run the components. This covers all the functionality available
@@ -761,9 +705,9 @@ will return when/if the second instance of the event arrives.
 
 #### An Example of Dataports
 
-Dataports are CAmkES' abstraction of shared memory. Dataports, like other
-interfaces, connect a single component to a single other component. Both
-components get read/write access to the dataport. The default dataport type is
+Dataports are CAmkES' abstraction of shared memory. All
+components participating in a connection involving dataports get read/write
+access to the dataport by default. The default dataport type is
 `Buf`, which is implemented as a byte array in C of size `PAGE_SIZE`.
 Alternatively you can specify a user-defined type for the shared memory region.
 This example will demonstrate both.
@@ -805,31 +749,35 @@ ln -s ../../../include/porttype.h \
 
 Now let's create an ADL description of the Ping component:
 
-    /* apps/hellodataport/components/Ping/Ping.camkes */
+```camkes
+/* apps/hellodataport/components/Ping/Ping.camkes */
 
-    import "Porttype.idl4";
+import "Porttype.idl4";
 
-    component Ping {
-      include "porttype.h";
-      control;
-      dataport Buf d1;
-      dataport MyData_t d2;
-    }
+component Ping {
+  include "porttype.h";
+  control;
+  dataport Buf d1;
+  dataport MyData_t d2;
+}
+```
 
 Note that we need to include the C header in the ADL. CAmkES does not actually
 parse this header, but it needs to know to `#include` it whenever it references
 the `MyData_t` type. Add a similar description for Pong:
 
-    /* apps/hellodataport/components/Pong/Pong.camkes */
+```camkes
+/* apps/hellodataport/components/Pong/Pong.camkes */
 
-    import "Porttype.idl4";
+import "Porttype.idl4";
 
-    component Pong {
-      include "porttype.h";
-      control;
-      dataport Buf s1;
-      dataport MyData_t s2;
-    }
+component Pong {
+  include "porttype.h";
+  control;
+  dataport Buf s1;
+  dataport MyData_t s2;
+}
+```
 
 Now we'll create some basic code for each component to use the dataports:
 
@@ -888,30 +836,34 @@ components, but for the purposes of this example spinning until a byte changes
 is good enough. We're ready to connect all these sources together with a
 top-level ADL file:
 
-    /* apps/hellodataport/hellodataport.camkes */
+```camkes
+/* apps/hellodataport/hellodataport.camkes */
 
-    import <std_connector.camkes>;
-    import "components/Ping/Ping.camkes";
-    import "components/Pong/Pong.camkes";
+import <std_connector.camkes>;
+import "components/Ping/Ping.camkes";
+import "components/Pong/Pong.camkes";
 
-    assembly {
-      composition {
-        component Ping ping;
-        component Pong pong;
+assembly {
+  composition {
+    component Ping ping;
+    component Pong pong;
 
-        connection seL4SharedData channel1(from ping.d1, to pong.s1);
-        connection seL4SharedData channel2(from ping.d2, to pong.s2);
-      }
-    }
+    connection seL4SharedData channel1(from ping.d1, to pong.s1);
+    connection seL4SharedData channel2(from ping.d2, to pong.s2);
+  }
+}
+```
 
 Add the now familiar apps/hellodataport/Kconfig, apps/hellodataport/Makefile,
 Kconfig and apps/hellodataport/Kbuild. If you now compile and run the resulting
 image you should see some output like the following:
 
-    Ping: sending hello...
-    Pong: received hello
-    Pong: sending world...
-    Ping: received world.
+```
+Ping: sending hello...
+Pong: received hello
+Pong: sending world...
+Ping: received world.
+```
 
 #### Tutorial Summary
 
@@ -924,48 +876,32 @@ project repository provide some more diverse system examples.
 The various parts that comprise CAmkES can be used in several ways, including
 executing a standalone tool as an end user or importing a Python module to
 perform programmatic operations. These two uses are broken up into the sections
-below. [Tools](#tools) describes how to invoke standalone CAmkES functionality
-from the command line, and [Modules](#modules) describes how to import
+below. [Command Line Arguments](#command-line-arguments) describes how to invoke
+standalone CAmkES functionality, and [Modules](#modules) describes how to import
 and use the various functional units. Importing CAmkES functionality as a module
-is strictly more powerful than running any of the command line tools, but usage
+is strictly more powerful than running the command line tool, but usage
 is more complicated. Note that these sections only describe external
 interaction with these artefacts. If you are interested in the internals of
 these you will need to refer to the [Developers](#developers) section.
 
-### Tools
+### Command Line Arguments
 
-This section discusses the standalone tools that are part of the CAmkES
-ecosystem. Each of these can be run from the command line with a shell script
-wrapper that checks their dependencies:
+This section discusses the standalone tool that is part of the CAmkES
+ecosystem. This can be run from the command line with a shell script wrapper
+that checks its dependencies:
 
 ```bash
-camkes.sh toolname args...
+camkes.sh args...
 ```
 
-The tools each take a subset of a common set of command line arguments. These
-are described below. When an argument is only accepted by some of the tools,
-this is noted. If no limitation is mentioned then the argument is accepted by
-all tools.
+The following command line arguments are available.
 
 **--cache**, **-c**
 **--cache-dir**
 
 > In a complicated system, the compilation itself can be quite time intensive.
   CAmkES implements a template cache that reduces recompilation time within and
-  across builds. The --cache option has several different settings:
-
-  * "off" (default) - do not use the cache at all
-  * "on" (read/write) - fully enable cache functionality
-  * "readonly" - retrieve previous work done from the cache, but do not save
-    any new work
-  * "writeonly" - save any new work done during this execution, but do not
-    retrieve any previously completed work
-
-> The last two settings are essentially only useful for debugging. The
-  --cache-dir option allows you to specify a directory root for the cache if
-  you don't want to use the default. These options are only available for the
-  runner. For details on how the cache works internally, refer to the
-  [Template Cache](#template-cache) section.
+  across builds. The --cache option enables it.
 
 **--cpp**
 **--nocpp**
@@ -974,8 +910,7 @@ all tools.
   before processing it. The ADL input specification, strictly, is not C source
   code, but sometimes it can be useful to have the ability to pre-process it as
   if it was. The CAmkES ADL grammar is sufficiently similar to C that you are
-  unlikely to run into any problems in this respect. This option is only
-  available for the runner.
+  unlikely to run into any problems in this respect.
 
 **-D**, **--debug**
 **-q**, **--quiet**
@@ -985,31 +920,26 @@ all tools.
   these options encountered on the command line takes precedence. Note that
   there is no option to set the default verbosity (which is more than --quiet,
   but less than --verbose). The verbosity setting is applied globally during
-  the execution of a tool. For example, applying --debug to inspect a parsing
-  problem in the runner will also generate debugging output from the lexing
-  phase.
+  execution. For example, applying --debug to inspect a parsing problem in the
+  runner will also generate debugging output from the lexing phase.
 
 **--default-priority**
 
 > Threads in a seL4 system are all configured with an initial priority. This
   can be tuned via attributes, but otherwise threads inherit a global default.
-  This parameter allows you to set the global default. This option is only
-  available for the runner.
+  This parameter allows you to set the global default.
 
 **--elf**, **-E**
 
 > Pass an ELF file that is to contribute to the final CapDL specification of a
-  system. This parameter, that is only relevant for the runner, allows you to
-  pass in the compiled ELF binary of one of your component instances. The
-  CAmkES build system should take care of passing this option.
+  system. This parameter allows you to pass in the compiled ELF binary of one of
+  your component instances. The CAmkES build system should take care of passing
+  this option.
 
 **-f FILE**, **--file FILE**
 
-> Each tool accepts a list of input specifications. This argument adds FILE to
-  the list of input files to parse. If you use this argument multiple times the
-  order in which the input files are encountered on the command line will
-  determine the order in which they are parsed. This argument is optional for
-  some tools, which read from standard input if it is not given.
+> This argument sets FILE as the input to parse. This argument is required and
+  only a single input file is supported.
 
 **-h**, **--help**
 
@@ -1033,6 +963,24 @@ all tools.
   here are dependent on your input specification and it is best to look at
   examples to see what is expected following this option.
 
+**--largeframe**
+
+> Back large virtual address space regions with large frames when possible. On
+  ARM and IA32 platforms, multiple frame sizes are supported for mapping
+  physical memory into address spaces. It is more efficient to use a single
+  large frame to cover a region than many small frames. This flag controls
+  whether this promotion to large frames happens automatically. Note that this
+  does not affect DMA pools, for which mappings are controlled by the
+  --largeframe-dma option below.
+
+**--largeframe-dma**
+
+> Back components' DMA pools with large frames when possible. This works
+  entirely independently to the --largeframe option. The reason for this
+  separation is that large frame promotion of a DMA pool on ARM can be a
+  little complicated to achieve. For more information, see
+  [Efficient DMA](#efficient-dma).
+
 **--platform**, **-p**
 
 > The target output platform. This determines some aspects of the environment
@@ -1041,27 +989,6 @@ all tools.
   "autocorres", "CIMP", "GraphViz" and "seL4". The "GraphViz" option is for
   producing visual representations of a system and the "seL4" option is for
   producing binaries. All other platforms are verification frameworks.
-
-**-r**, **--resolve-imports**
-**-d**, **--dont-resolve-imports**
-
-> CAmkES specifications can contain `import` statements that are directives to
-  include another file at that point. The default behaviour when parsing one of
-  these statements is to recurse into parsing the contents of that file. These
-  two options re-enable the default and disable this behaviour, respectively.
-  With import resolution disabled the imported files will not be opened and the
-  resulting AST will still contain the original `import` statements.
-
-**-R**, **--resolve-references**
-**--dont-resolve-references**
-
-> After parsing the input specification(s) the tools will attempt to resolve
-  references to the underlying entity they name. For example, in the statement
-  `connection Foo foo(from a.b, to c.d);` the reference `Foo` will be resolved
-  to the connector it references if possible. These options re-enable this
-  default behaviour and inhibit reference resolution, respectively. Obviously
-  with reference resolution disabled you may end up with references in the
-  resulting AST.
 
 **--templates**, **-t**
 
@@ -1074,9 +1001,8 @@ all tools.
 > Print basic version information and then exit.
 
 The following options are all related to runtime optimisations within the
-templates. They are only relevant to the runner. Note that most of these are
-highly seL4 specific and would make no sense in the context of another
-platform.
+templates. Note that most of these are highly seL4 specific and would make no
+sense in the context of another platform.
 
 **--frpc-lock-elision**
 **--fno-rpc-lock-elision**
@@ -1106,8 +1032,7 @@ platform.
   the execution environment that CAmkES has, these stubs can actually induce
   even lower overhead than optimal generalised stubs.
 
-The following options are all related to verification of templates outputs and
-are only relevant to the runner.
+The following options are all related to verification of templates outputs.
 
 **--fprovide-tcb-caps**
 **--fno-provide-tcb-caps**
@@ -1124,20 +1049,6 @@ are only relevant to the runner.
   includes features like automatic calls to `pre_init`. All this infrastructure
   can be disabled at an obvious loss of functionality, but with a less
   complicated resulting capability distribution and control flow.
-
-#### Parser
-
-The standalone parser can be used for normalising specifications. To run it:
-
-```bash
-camkes.sh parser args...
-```
-
-Some examples:
-
-```bash
-camkes.sh parser --input=camkes --output=camkes
-```
 
 ### Modules
 
@@ -1176,18 +1087,18 @@ your `PYTHONPATH` environment variable. The available modules are:
 
 #### camkes.ast
 
-There is no active functionality in this module, and thus no real API as such.
-It simply defines a set of types to be used in an AST derived from parsed
-input.
+The result of parsing a CAmkES specification is an Abstract Syntax Tree (AST),
+representing the input as a set of interconnected nodes. When using the default
+parser, the object returned is of type, `LiftedAST`, which is defined in this
+module. `LiftedAST` and its children all inherit from a base type, `ASTObject`,
+that provides common functionality like traversal and comparison.
 
 One of the AST objects is a class, `Reference`. Objects of this class are used 
 in the AST to represent symbols that refer to entities that are defined
-elsewhere. References can be either resolved or unresolved, meaning they can
-point at an entity whose definition has been located or they can point at an
-as-yet undiscovered entity. When you encounter a reference you can test whether
-it is resolved or not based on its `_referent` member. Resolved references will
-have their `_referent` set to the entity they reference, which unresolved
-references will have their `_referent` set to `None`.
+elsewhere. During parsing, references are removed from the AST as they are
+resolved to the entities to which they refer. In particular, if you are using
+the default parser, the returned AST will never contain any `Reference`
+objects.
 
 In the code and in this document there is some discussion of 'collapsing' AST
 references. This is meant to refer to replacing the `Reference` object in the
@@ -1195,61 +1106,32 @@ AST by the entity to which it refers. Note that this needs to be done by
 reference so that you still only end up with a single copy of the entity, but
 multiple pointers to it.
 
+If you are not using the default CAmkES parser, but are assembling your own
+from the [parser module](#camkes.parser), it is important to note that objects
+of the classes in the AST module are only created in the stage 3 parser. If you
+are inspecting the output of any low-level parser prior to stage 3, you will
+not see objects from camkes.ast.
+
 #### camkes.parser
 
 If you need to manipulate the AST, rather than just simply printing it
 out, you will want to import the parser as a module into your own code. After
 importing this module, you can interact with the parser through the following
-API.
+high-level API.
 
-<!-- TODO: This section probably needs an update -->
+**`parse_file(filename, options=None)`**
 
-**`dedupe(ast)`**
+> Parse a file into a `LiftedAST`. The `options` arguments is expected to be a
+  namespace as constructed by the runner. If you have non-standard parsing
+  requirements, you may find this function is insufficiently flexible for your
+  needs. In this case, you will need to compose the low-level parsers. You can
+  see a rough guide of how to do this in camkes/parser/parser.py.
 
-> Remove duplicate entries from the AST list and return the deduped list. This
-  is useful for removing entries that are duplicate in the AST because they are
-  seen more than once during parsing (e.g. because one of the input files is
-  imported in more than one place). Note that you should run this *before*
-  resolving references or you may end up removing AST entries that are
-  referenced by other entries.
+**`parse_string(string, options=None)`**
 
-**`parse_to_ast(s)`**
-
-> Parse the input string `s` and return the
-  resulting derived list of AST objects.
-
-**`pretty(s)`**
-
-> Return a nicely formatted string representation of the string `s`.
-
-**`resolve_imports(ast, curdir, includepath=None)`**
-
-> This function attempts to resolve imports
-  to existing files and parse these files.
-  `ast` is a list of AST objects to resolve. Import statements can be either relative
-  (using "" as delimiters) or builtin (using <> as delimiters), similar to
-  C-style #includes. Relative imports are resolved in relation to `curdir` and
-  builtin imports are resolved in relation to `includepath`, taking the first
-  match in the case of multiple matching files.
-
-> The function returns a pair, containing the AST as the first member and a
-  list of files that were read during the resolution as the second member.
-
-**`resolve_references(ast)`**
-
-> Some input grammars, like "camkes" support referring to grammar entities by
-  reference. E.g. a statement like `component foo bar;` instantiates a
-  component `bar` of type `foo`. Here, `foo` is a reference to a previously
-  defined component type. References like this will appear in the initial AST
-  as objects of type `Reference`.
-
-> This function attempts to resolve these to objects defined elsewhere in the
-  AST. Note that references can still exist in the returned AST if they could
-  not be resolved to any existing object.
-
-**`show(o)`**
-
-> Returns a string representing the AST object (or list of objects) `o`.
+> Parse a string into a `LiftedAST`. This function works identically to the
+  previous in all respects, except obviously you will not have accurate
+  filename information.
 
 #### camkes.templates
 
@@ -1431,11 +1313,7 @@ The following functions are available at runtime:
 **`int main(int thread_id)`** (in libsel4camkes.a)
 
 > This function &mdash; the C entry point to a component &mdash; is provided by
-  the platform. Components should not provide their own `main`. This function
-  invokes _`instance`_`_main` when it has completed initialisation. The reason
-  for these chained entry points is to support single address space components,
-  in which all threads enter via `main` and then branch to their respective
-  instance entry points, _`instance`_`_main`.
+  the platform. Components should not provide their own `main`.
 
 **`int run(void)`**
 
@@ -1515,24 +1393,28 @@ The following functions are available at runtime:
 CAmkES provides two primitives for intra-component mutual exclusion. Mutexes
 and semaphores are declared similarly as properties of a component definition:
 
-    component Foo {
-      has mutex m;
-      has semaphore s;
-    }
+```camkes
+component Foo {
+  has mutex m;
+  has semaphore s;
+}
+```
 
 By default semaphores have a count (initial value) of 1, but this can be
 adjusted using an attribute:
 
-    assembly {
-      composition {
-        component Foo f;
-        ...
-      }
-      configuration {
-        f.s_value = 4;
-        ...
-      }
-    }
+```camkes
+assembly {
+  composition {
+    component Foo f;
+    ...
+  }
+  configuration {
+    f.s_value = 4;
+    ...
+  }
+}
+```
 
 An application can lock or unlock a declared mutex and call post or wait on a
 declared semaphore. For example, for the above declarations, the following
@@ -1581,15 +1463,17 @@ for DMA transfers.
 To allocate some memory for DMA within a specific component instance you
 describe a DMA pool with a size in bytes. For example,
 
-    assembly {
-      composition {
-        component Foo f;
-        ...
-      }
-      configuration {
-        f.dma_pool = 8192;
-      }
-    }
+```camkes
+assembly {
+  composition {
+    component Foo f;
+    ...
+  }
+  configuration {
+    f.dma_pool = 8192;
+  }
+}
+```
 
 This declares an 8KB pool of memory that is available for DMA operations.
 Within the component you must allocate and release pointers into this region
@@ -1598,6 +1482,68 @@ The allocation function accepts a size and alignment constraint, but be aware
 that allocation may not be efficient or guaranteed when requesting more than
 4Kb. Note that if you declare a DMA pool that is not page-aligned (4K on the
 platforms we support) it will automatically be rounded up.
+
+#### Efficient DMA
+
+For components that need to perform large DMA operations, you will need to
+allocate a large DMA pool. Backing the virtual address space mappings for such
+a pool with 4KB frames can lead to performance issues. For this reason, you may
+wish to use the command line option --largeframe-dma to back DMA pools with
+large frames.
+
+This is relatively straightforward on IA32, but on an ARM platform you may run
+into a limitation of the GNU Assembler that prevents the large alignments
+required by the DMA pool. Support for working around this is provided by the
+CAmkES build system, but is a little complicated, so the precise steps for
+achieving this in a CAmkES project are documented below.
+
+1. Enable large frame promotion for the DMA pool in your build configuration.
+
+```bash
+make menuconfig
+# CAmkES Options →
+#  Optimisation →
+#   Large frame promotion (DMA pool)
+```
+
+2. Set your userspace compiler to the built-in compiler wrapper. This script is
+   designed to detect when alignment constraints are rejected by the GNU
+   Assembler and fall back on the Clang integrated assembler.
+
+```bash
+make menuconfig
+# Toolchain Options →
+#  Path to a different compiler to use for userspace
+# Set to "compiler-wrapper.py"
+export PATH=${PATH}:$(pwd)/tools/camkes/tools
+```
+
+3. Disable Ccache. Ccache pre-processes files to deliver to the compiler 
+   wrapper with a collection of GNU pre-defines. In most cases this does not
+   cause problems, but you will most likely trigger warnings from Clang if it
+   sees sources that were intended for GCC.
+
+```bash
+make menuconfig
+# Toolchain Options →
+#  Use ccache to improve build performance
+```
+
+4. Build your application.
+
+```bash
+make
+```
+
+If you were using a large enough DMA pool to get promoted to large frames with
+an alignment constraint that was rejected by the GNU Assembler, you should see
+output like the following:
+
+```
+/tmp/ccfGhK5Z.s: Assembler messages:
+/tmp/ccfGhK5Z.s:1483: Error: alignment too large: 15 assumed
+Attempting to work around alignment constraint with Clang...
+```
 
 ### Error Handling
 
@@ -1655,24 +1601,28 @@ component-wide error handler.
 
 CAmkES allows the programmer to define arbitrary attributes of components.
 
-    component Foo {
-      attribute string a;
-      attribute int b;
-    }
+```camkes
+component Foo {
+  attribute string a;
+  attribute int b;
+}
+```
 
 These attributes are set in the configuration section of the assembly:
 
-    assembly {
-      composition {
-        component Foo f;
-        ...
-      }
-      configuration {
-        f.a = "Hello, World!";
-        f.b = 42;
-        ...
-      }
-    }
+```camkes
+assembly {
+  composition {
+    component Foo f;
+    ...
+  }
+  configuration {
+    f.a = "Hello, World!";
+    f.b = 42;
+    ...
+  }
+}
+```
 
 This results in the specified values being available as global variables
 in the glue code with the same name as the attribute.
@@ -1687,13 +1637,15 @@ const int b = 42;
 A hardware component represents an interface to hardware in the form of a component.
 Declaring a component with the `hardware` keyword creates a hardware component.
 
-    component Device {
-      hardware;
+```camkes
+component Device {
+  hardware;
 
-      provides IOPort io_port;
-      emits Interrupt irq;
-      dataport Buf mem;
-    }
+  provides IOPort io_port;
+  emits Interrupt irq;
+  dataport Buf mem;
+}
+```
 
 When an interface of a device component instance is connected to a regular
 component, that component gets access to that device via some
@@ -1728,22 +1680,24 @@ component. Note the order of arguments to the connection. `seL4HardwareInterrupt
 the hardware interface on the `from` side of the connection, whereas the other connectors
 require the hardware interface on the `to` side.
 
-    component Driver {
-      uses IOPort io_port;
-      consumes Interrupt irq;
-      dataport Buf mem;
-    }
+```camkes
+component Driver {
+  uses IOPort io_port;
+  consumes Interrupt irq;
+  dataport Buf mem;
+}
 
-    assembly {
-      composition {
-        component Device dev;
-        component Driver drv;
-        ...
-        connection seL4HardwareIOPort ioport_c(from drv.io_port, to dev.io_port);
-        connection seL4HardwareInterrupt irq_c(from dev.irq, to drv.irq);
-        connection seL4HardwareMMIO mmio_c(from drv.mem, to dev.mem);
-      }
-    }
+assembly {
+  composition {
+    component Device dev;
+    component Driver drv;
+    ...
+    connection seL4HardwareIOPort ioport_c(from drv.io_port, to dev.io_port);
+    connection seL4HardwareInterrupt irq_c(from dev.irq, to drv.irq);
+    connection seL4HardwareMMIO mmio_c(from drv.mem, to dev.mem);
+  }
+}
+```
 
 #### Configuration
 
@@ -1757,46 +1711,51 @@ to a connected component must be specified. The example below specifies that
 the port named `mem` of the component instance `d` is a 0x1000 byte region
 starting at physical address 0xE0000000.
 
-    component Device {
-      hardware;
+```camkes
+component Device {
+  hardware;
 
-      dataport Buf mem;
-      ...
-    }
+  dataport Buf mem;
+  ...
+}
 
-    assembly {
-      composition {
-        component Device d;
-        ...
-      }
-      configuration {
-        d.mem_attributes = "0xE0000000:0x1000";
-        ...
-      }
-    }
+assembly {
+  composition {
+    component Device d;
+    ...
+  }
+  configuration {
+    d.mem_paddr = 0xE0000000;
+    d.mem_size = 0x1000;
+    ...
+  }
+}
+```
 
 ##### Interrupts
 
 The interrupt number must be specified. The example below specifies that
 the event will be emitted when interrupt number 2 is received.
 
-    component Device {
-      hardware;
+```camkes
+component Device {
+  hardware;
 
-      emits Interrupt irq;
-      ...
-    }
+  emits Interrupt irq;
+  ...
+}
 
-    assembly {
-      composition {
-        component Device d;
-        ...
-      }
-      configuration {
-        d.irq_attributes = 2;
-        ...
-      }
-    }
+assembly {
+  composition {
+    component Device d;
+    ...
+  }
+  configuration {
+    d.irq_irq_number = 2;
+    ...
+  }
+}
+```
 
 ##### IO Ports
 
@@ -1805,64 +1764,67 @@ The example below specifies that the hardware component instance
 `d` may access IO ports greater than or equal to 0x60, and less
 than 0x64.
 
-    component Device {
-      hardware;
+```camkes
+component Device {
+  hardware;
 
-      provides IOPort io_port;
-      ...
-    }
+  provides IOPort io_port;
+  ...
+}
 
-    assembly {
-      composition {
-        component Device d;
-        ...
-      }
-      configuration {
-        d.io_port_attributes = "0x60:0x64";
-        ...
-      }
-    }
+assembly {
+  composition {
+    component Device d;
+    ...
+  }
+  configuration {
+    d.io_port_attributes = "0x60:0x64";
+    ...
+  }
+}
+```
 
 ### Port Privileges
 
-CAmkES allows the programmer to specify access rights that instances have over the ports
-connecting them to other instances. This is done by setting the `from_access` and `to_access`
-attributes of the port connection. The value of the attribute must be a string containing
-the letters "R", "W" and "X" (or "G"), giving the instance on specified side of the connection
-read, write and execute privileges over the shared region of memory. If left unspecified,
-read/write access will be given.
+CAmkES allows the programmer to specify access rights that instances have over
+the ports connecting them to other instances. This is done by setting the
+`*_access` attribute of the port. The value of the attribute must be a string
+containing the letters "R", "W" and "X", giving the port read, write and execute
+privileges, respectively. If left unspecified, full access will be given.
 
-In the example below, instance `f` has read-only access to `port_a`, and instance `b` has
-read/write access to `port_a`. Instance `b` has read-only access to `port_b`. Instance `a`
-has read/write access to `port_b` even though it's not explicitly stated, as this is the
-default.
+In the example below, instance `f` has read-only access to `port_a`, and
+instance `b` has read/write access to `port_a`. Instance `b` has read-only
+access to `port_b`. Instance `a` has read/write/execute access to `port_b` even
+though it's not explicitly stated, as this is the default.
 
-    component Foo {
-      dataport Buf data_a;
-      dataport Buf data_b;
-    }
+```camkes
+component Foo {
+  dataport Buf data_a;
+  dataport Buf data_b;
+}
 
-    component Bar {
-      dataport Buf data_a;
-      dataport Buf data_b;
-    }
+component Bar {
+  dataport Buf data_a;
+  dataport Buf data_b;
+}
 
-    assembly {
-      composition {
-        component Foo f;
-        component Bar b;
-        ...
-        connection seL4SharedMemory port_a(from f.data_a, to b.data_a);
-        connection seL4SharedMemory port_b(from f.data_b, to b.data_b);
-        ...
-      }
-      configuration {
-        port_a.from_access = "R";
-        port_a.to_access = "RW;
-        port_b.to_access = "R";
-        ...
-      }
-    }
+assembly {
+  composition {
+    component Foo f;
+    component Bar b;
+    ...
+    connection seL4SharedData port_a(from f.data_a, to b.data_a);
+    connection seL4SharedData port_b(from f.data_b, to b.data_b);
+    ...
+  }
+  configuration {
+    f.data_a_access = "R";
+    b.data_a_access = "RW;
+    f.data_b_access = "R";
+    ...
+  }
+}
+```
 
 ### Thread Model
 
@@ -1897,39 +1859,45 @@ it possible to adjust the priority of a specific thread with an attribute that
 has specific semantics. To adjust the priority of the control thread (the
 thread that calls `run`), use the `_priority` attribute:
 
-    assembly {
-      composition {
-        component Foo f;
-        ...
-      }
-      configuration {
-        f._priority = 100;
-      }
-    }
+```camkes
+assembly {
+  composition {
+    component Foo f;
+    ...
+  }
+  configuration {
+    f._priority = 100;
+  }
+}
+```
 
 To adjust the priority of an interface thread, use an attribute named with the
 name of the interface and the suffix ``_priority'':
 
-    component Foo {
-      uses MyInterface i;
-    }
+```camkes
+component Foo {
+  uses MyInterface i;
+}
 
-    assembly {
-      composition {
-        component Foo f;
-        ...
-      }
-      configuration {
-        f.i_priority = 100;
-      }
-    }
+assembly {
+  composition {
+    component Foo f;
+    ...
+  }
+  configuration {
+    f.i_priority = 100;
+  }
+}
+```
 
 If you want to adjust the priority of every thread within a given component
 instance, you can use a general component attribute:
 
-    configuration {
-      f.priority = 100;
-    }
+```camkes
+configuration {
+  f.priority = 100;
+}
+```
 
 For more information about the specifics of the seL4 scheduler, please refer to
 the seL4 documentation.
@@ -1941,15 +1909,17 @@ typical. Stack size defaults to 4K, but this default can be adjusted through
 the relevant build system configuration option. Additionally the stacks of
 individual threads within a component can be set with attributes:
 
-    configuration {
+```camkes
+configuration {
 
-      // Assign foo's control thread an 8K stack
-      foo._stack_size = 8192;
+  // Assign foo's control thread an 8K stack
+  foo._stack_size = 8192;
 
-      // Assign the interface thread for inf in foo a 16K stack
-      foo.inf_stack_size = 16384;
+  // Assign the interface thread for inf in foo a 16K stack
+  foo.inf_stack_size = 16384;
 
-    }
+}
+```
 
 Note that stacks must have a size that is 4K aligned, so if you assign a thread
 a stack size that is not 4K aligned it will be rounded up. Stacks have a 4K
@@ -1965,28 +1935,71 @@ optionally act as the control thread. For interface threads, their domain can be
 specified by setting the attribute `<interface>_domain` of the instance. For
 control threads, the attribute `_domain` of the instance can be set.
 
-    component Foo {
-      control;
-      uses iface i;
-    }
+```camkes
+component Foo {
+  control;
+  uses iface i;
+}
 
-    component Bar {
-      provides iface o;
-    }
+component Bar {
+  provides iface o;
+}
 
-    assembly {
-      composition {
-        component Foo f;
-        component Bar b;
-        connection seL4RPC c(from f.i, to b.o);
-        ...
-      }
-      configuration {
-        f._domain = 0;  // domain of control thread of f
-        b.o_domain = 1;         // domain of o interface of b
-        ...
-      }
-    }
+assembly {
+  composition {
+    component Foo f;
+    component Bar b;
+    connection seL4RPC c(from f.i, to b.o);
+    ...
+  }
+  configuration {
+    f._domain = 0;  // domain of control thread of f
+    b.o_domain = 1; // domain of o interface of b
+    ...
+  }
+}
+```
+
+### Userspace RPC Transfer Buffers
+
+By default, the majority of RPC connectors exchange data through a
+kernel-managed IPC buffer. RPC communication involving longer messages can be
+optimised by exchanging data through userspace buffers instead of the IPC
+buffer. To achieve this, set up an `seL4SharedData` connection and assign a
+custom attribute:
+
+```camkes
+component Foo {
+  uses iface i;
+  dataport Buf d;
+}
+
+component Bar {
+  provides iface j;
+  dataport Buf e;
+}
+
+assembly {
+  composition {
+    component Foo foo;
+    component Bar bar;
+
+    connection seL4RPCCall conn(from foo.i, to bar.j);
+    connection seL4SharedData ubuf(from foo.d, to bar.e);
+  }
+  configuration {
+    conn.buffer = "ubuf";
+  }
+}
+```
+
+There are a few limitations to be aware of when using this technique. The only
+RPC connector that supports this style of userspace communication at time of
+writing is `seL4RPCCall`. The RPC connection must be 1-to-1 and the
+`seL4SharedData` connection must connect the same two component instances. The
+size of the buffer (determined by the dataports' type) is flexible, but if you
+use a buffer that is too small to accommodate RPC data you will trigger runtime
+errors during parameter marshalling.
 
 ### Multi-Assembly Applications
 
@@ -1996,34 +2009,38 @@ included in the main ADL file. At compile time, the bodies of each
 assembly are merged together, with all declared names remaining the same.
 Thus, naming conflicts can occur on items declared in different assemblies.
 
-    assembly {
-      composition {
-        component Foo f;
-      }
-    }
+```camkes
+assembly {
+  composition {
+    component Foo f;
+  }
+}
 
-    assembly {
-      composition {
-        component Bar b;
-        connection seL4RPC c(from f.a, to b.a);
-      }
-      configuration {
-        f.some_attribute = 0;
-      }
-    }
+assembly {
+  composition {
+    component Bar b;
+    connection seL4RPC c(from f.a, to b.a);
+  }
+  configuration {
+    f.some_attribute = 0;
+  }
+}
+```
 
 The example above is equivalent to:
 
-    assembly {
-      composition {
-        component Foo f;
-        component Bar b;
-        connection seL4RPC c(from f.a, to b.a);
-      }
-      configuration {
-        f.some_attribute = 0;
-      }
-    }
+```camkes
+assembly {
+  composition {
+    component Foo f;
+    component Bar b;
+    connection seL4RPC c(from f.a, to b.a);
+  }
+  configuration {
+    f.some_attribute = 0;
+  }
+}
+```
 
 ### Hierarchical Components
 
@@ -2035,35 +2052,37 @@ The composition and configuration sections may appear in any order. A compositio
 can be included without a configuration, however a configuration section is only allowed
 if there is a composition.
 
-    component Foo_Impl {
-      provides iface_a a_impl;
-      attribute string str;
-    }
+```camkes
+component Foo_Impl {
+  provides iface_a a_impl;
+  attribute string str;
+}
 
-    component Foo {
-      provides iface_a a;
+component Foo {
+  provides iface_a a;
 
-      composition {
-        component Foo_Impl fi;
-        connection ExportRPC exp(from a, to fi.a_impl);
-      }
-      configuration {
-        fi.str = "Hello, World!";
-      }
-    }
+  composition {
+    component Foo_Impl fi;
+    export fi.a_impl -> a;
+  }
+  configuration {
+    fi.str = "Hello, World!";
+  }
+}
 
-    component Bar {
-      control;
-      uses iface_a a;
-    }
+component Bar {
+  control;
+  uses iface_a a;
+}
 
-    assembly {
-      composition {
-        component Foo f;
-        component Bar b;
-        connection seL4RPC c(from b.a, to f.a);
-      }
-    }
+assembly {
+  composition {
+    component Foo f;
+    component Bar b;
+    connection seL4RPC c(from b.a, to f.a);
+  }
+}
+```
 
 In the example above, the component `Foo` exposes a virtual interface `a`,
 which is exported from the interface `a_impl` of the component instance `fi` of type `Foo_Impl`.
@@ -2085,74 +2104,27 @@ of such components, are removed from the specification.
 
 The example above would be converted into the following:
 
-    component Foo_Impl {
-      provides iface_a a_impl;
-      attribute string str;
-    }
+```camkes
+component Foo_Impl {
+  provides iface_a a_impl;
+  attribute string str;
+}
 
-    component Bar {
-      control;
-      uses iface_a a;
-    }
-    assembly {
-      composition {
-        component Bar b;
-        component Foo_Impl f_fi;
-        connection seL4RPC c(from b.a, to f_fi.a_impl);
-      }
-      configuration {
-        f_fi.str = "Hello, World!";
-      }
-    }
-
-#### Export Connectors
-
-The `ExportRPC` connector in the example above is an Export Connector.
-Recall from the [Terminology](#terminology) section, that an export connector associates
-a virtual interface of a compound component
-with an interface of an internal instance declared in the composition section
-of that component. `ExportRPC` can be used to export procedural interfaces.
-There is a similar export connector available for each type of interface:
-
-- _ExportRPC_ exports a procedural interface
-- _ExportAsync_ exports an event interface
-- _ExportData_ exports a port interface
-
-When a virtual interface of a compound component instance appears in a connection
-in the top-level assembly, the side of the connection with the virtual interface
-in this connection must be the same as the side of the exported interface
-in the export connection in the compound component. That is, they must both
-appear on the `to` side, or the `from` side of their respective connections.
-
-    component Foo {
-      provides iface_a a;
-
-      composition {
-        component Foo_Impl fi;
-
-        // fi.a_impl is the exported interface, and appears on the 'to' side
-        connection ExportRPC exp(from a, to fi.a_impl);
-      }
-    }
-
-    component Bar {
-      control;
-      uses iface_a a;
-    }
-
-    assembly {
-      composition {
-        component Foo f;
-        component Bar b;
-
-        // f.a is the virtual interface, and appears on the 'to' side
-        connection seL4RPC c(from b.a, to f.a);
-      }
-    }
-
-The example above is correct, as the exported interface `fi.a_impl` in the compound component
-definition, and the virtual interface `f.a` in the top-level assembly, both appear on the
-`to` side of their connections.
+component Bar {
+  control;
+  uses iface_a a;
+}
+assembly {
+  composition {
+    component Bar b;
+    component Foo_Impl f.fi;
+    connection seL4RPC c(from b.a, to f.fi.a_impl);
+  }
+  configuration {
+    f.fi.str = "Hello, World!";
+  }
+}
+```
 
 #### Examples
 
@@ -2160,187 +2132,199 @@ definition, and the virtual interface `f.a` in the top-level assembly, both appe
 
 It's possible for both sides of a connection to be virtual interfaces:
 
-    component Foo_Impl {
-      provides iface_a a_impl;
-    }
+```camkes
+component Foo_Impl {
+  provides iface_a a_impl;
+}
 
-    component Bar_Impl {
-      uses iface_a a_usage;
-    }
+component Bar_Impl {
+  uses iface_a a_usage;
+}
 
-    component Foo {
-      provides iface_a a;
+component Foo {
+  provides iface_a a;
 
-      composition {
-        component Foo_Impl fi;
-        connection ExportRPC exp(from a, to fi.a_impl);
-      }
-    }
+  composition {
+    component Foo_Impl fi;
+    export fi.a_impl -> a;
+  }
+}
 
-    component Bar {
-      uses iface_a a;
+component Bar {
+  uses iface_a a;
 
-      composition {
-        component Bar_Impl bi;
-        connection ExportRPC exp(from bi.a_usage, to a);
-      }
-    }
+  composition {
+    component Bar_Impl bi;
+    export bi.a_usage -> a;
+  }
+}
 
-    assembly {
-      composition {
-        component Foo f;
-        component Bar b;
-        connection seL4RPC c(from b.a, to f.a);
-      }
-    }
+assembly {
+  composition {
+    component Foo f;
+    component Bar b;
+    connection seL4RPC c(from b.a, to f.a);
+  }
+}
+```
 
 This example compiles to:
 
-    component Foo_Impl {
-      provides iface_a a_impl;
-    }
+```camkes
+component Foo_Impl {
+  provides iface_a a_impl;
+}
 
-    component Bar_Impl {
-      uses iface_a a_usage;
-    }
+component Bar_Impl {
+  uses iface_a a_usage;
+}
 
-    assembly {
-      composition {
-        component Foo_Impl f_fi;
-        component Bar_Impl b_bi;
-        connection seL4RPC c(from b_bi.a_usage, to f_fi.a_impl);
-      }
-    }
+assembly {
+  composition {
+    component Foo_Impl f.fi;
+    component Bar_Impl b.bi;
+    connection seL4RPC c(from b.bi.a_usage, to f.fi.a_impl);
+  }
+}
+```
 
 ##### Compound component with non-virtual interfaces
 
 A component can have both virtual and implemented interfaces:
 
-    component Foo_Impl {
-      provides iface_a a_impl;
-    }
+```camkes
+component Foo_Impl {
+  provides iface_a a_impl;
+}
 
-    component Foo {
-      provides iface_a a;
-      provides iface_b b;
+component Foo {
+  provides iface_a a;
+  provides iface_b b;
 
-      composition {
-        component Foo_Impl fi;
-        connection ExportRPC exp(from a, to fi.a_impl);
-      }
-    }
+  composition {
+    component Foo_Impl fi;
+    export fi.a_impl -> a;
+  }
+}
 
-    component Bar {
-      uses iface_a a;
-      uses iface_b b;
-    }
+component Bar {
+  uses iface_a a;
+  uses iface_b b;
+}
 
-    assembly {
-      composition {
-        component Foo f;
-        component Bar b;
-        connection seL4RPC c(from b.a, to f.a);
-        connection seL4RPC c(from b.b, to f.b);
-      }
-    }
+assembly {
+  composition {
+    component Foo f;
+    component Bar b;
+    connection seL4RPC c(from b.a, to f.a);
+    connection seL4RPC c(from b.b, to f.b);
+  }
+}
+```
 
 This example compiles to:
 
-    component Foo_Impl {
-      provides iface_a a_impl;
-    }
+```camkes
+component Foo_Impl {
+  provides iface_a a_impl;
+}
 
-    component Foo {
-      provides iface_b b;
-    }
+component Foo {
+  provides iface_b b;
+}
 
-    component Bar {
-      uses iface_a a;
-      uses iface_b b;
-    }
+component Bar {
+  uses iface_a a;
+  uses iface_b b;
+}
 
-    assembly {
-      composition {
-        component Foo f;
-        component Bar b;
-        component Foo_Impl f_fi;
-        connection seL4RPC c(from b.a, to f_fi.a_impl);
-        connection seL4RPC c(from b.b, to f.b);
-      }
-    }
+assembly {
+  composition {
+    component Foo f;
+    component Bar b;
+    component Foo_Impl f.fi;
+    connection seL4RPC c(from b.a, to f.fi.a_impl);
+    connection seL4RPC c(from b.b, to f.b);
+  }
+}
+```
 
 ##### Deeper Hierarchy
 
 So far, each example has had a compound component containing only non-compound component instances.
 It's possible to have a hierarchy of components of an arbitrary depth.
 
-    component A_Piece1 {
-      provides a_piece ap;
-    }
+```camkes
+component A_Piece1 {
+  provides a_piece ap;
+}
 
-    component A_Piece2 {
-      uses a_piece ap;
-      provides iface_a a_impl;
-    }
+component A_Piece2 {
+  uses a_piece ap;
+  provides iface_a a_impl;
+}
 
-    component Foo_Impl {
-      provides iface_a a_impl;
+component Foo_Impl {
+  provides iface_a a_impl;
 
-      composition {
-        component A_Piece1 a1;
-        component A_Piece2 a2;
-        connection seL4RPC c(from a1.ap, to a2.ap);
-        connection ExportRPC exp(from a_impl, to a2.a_impl);
-      }
-    }
+  composition {
+    component A_Piece1 a1;
+    component A_Piece2 a2;
+    connection seL4RPC c(from a1.ap, to a2.ap);
+    export a2.a_impl -> a_impl;
+  }
+}
 
-    component Foo {
-      provides iface_a a;
+component Foo {
+  provides iface_a a;
 
-      composition {
-        component Foo_Impl fi;
-        connection ExportRPC exp(from a, to fi.a_impl);
-      }
-    }
+  composition {
+    component Foo_Impl fi;
+    export fi.a_impl -> a;
+  }
+}
 
-    component Bar {
-      uses iface_a a;
-    }
+component Bar {
+  uses iface_a a;
+}
 
-    assembly {
-      composition {
-        component Foo f;
-        component Bar b;
-        connection seL4RPC c(from b.a, to f.a);
-      }
-    }
+assembly {
+  composition {
+    component Foo f;
+    component Bar b;
+    connection seL4RPC c(from b.a, to f.a);
+  }
+}
+```
 
 This example compiles to:
 
-    component A_Piece1 {
-      provides a_piece ap;
-    }
+```camkes
+component A_Piece1 {
+  provides a_piece ap;
+}
 
-    component A_Piece2 {
-      uses a_piece ap;
-      provides iface_a a_impl;
-    }
+component A_Piece2 {
+  uses a_piece ap;
+  provides iface_a a_impl;
+}
 
-    component Bar {
-      uses iface_a a;
-    }
+component Bar {
+  uses iface_a a;
+}
 
-    assembly {
-      composition {
-        component Bar b;
+assembly {
+  composition {
+    component Bar b;
 
-        component A_Piece1 f_fi_a1;
-        component A_Piece2 f_fi_a2;
+    component A_Piece1 f.fi.a1;
+    component A_Piece2 f.fi.a2;
 
-        connection seL4RPC f_fi_c(from f_fi_a1.ap, to f_fi_a2.ap);
-        connection seL4RPC c(from b.a, to f_fi_a2.a_impl);
-      }
-    }
+    connection seL4RPC f.fi.c(from f.fi.a1.ap, to f.fi.a2.ap);
+    connection seL4RPC c(from b.a, to f.fi.a2.a_impl);
+  }
+}
+```
 
 ### Hierarchical Attributes
 
@@ -2364,60 +2348,64 @@ composition section, `attribute_name` is the name of an attribute of the entity,
 
 #### Example
 
-    component B {
-      ...
-      attribute string b_str;
-    }
+```camkes
+component B {
+  ...
+  attribute string b_str;
+}
 
-    component A {
-      ...
-      attribute string a_str;
+component A {
+  ...
+  attribute string a_str;
 
-      composition {
-        ...
-        component B b;
-      }
-      configuration {
-        ...
-        b.b_str <- a_str;
-      }
-    }
+  composition {
+    ...
+    component B b;
+  }
+  configuration {
+    ...
+    b.b_str <- a_str;
+  }
+}
 
-    assembly {
-      composition {
-        ...
-        component A a;
-      }
-      configuration {
-        ...
-        a.a_str = "Hello, World!";
-      }
-    }
+assembly {
+  composition {
+    ...
+    component A a;
+  }
+  configuration {
+    ...
+    a.a_str = "Hello, World!";
+  }
+}
+```
 
 This example is resolved to the following:
 
-    component B {
-      ...
-      attribute string b_str;
-    }
+```camkes
+component B {
+  ...
+  attribute string b_str;
+}
 
-    component A {
-      ...
-      attribute string a_str;
-    }
+component A {
+  ...
+  attribute string a_str;
+}
 
-    assembly {
-      composition {
-        ...
-        component A a;
-        component B a_b;
-      }
-      configuration {
-        ...
-        a.a_str = "Hello, World!";
-        a_b.b_str = "Hello, World!";
-      }
-    }
+assembly {
+  composition {
+    ...
+    component A a;
+    component B a_b;
+  }
+  configuration {
+    ...
+    a.a_str = "Hello, World!";
+    a_b.b_str = "Hello, World!";
+  }
+}
+```
 
 ### Custom Data Types
 
@@ -2443,10 +2431,12 @@ typedef struct {
 
 A procedural interface could then be defined to use the type:
 
-    procedure algebra_iface {
-      include <vector.h>;
-      Vector add(Vector a, Vector b);
-    }
+```camkes
+procedure algebra_iface {
+  include <vector.h>;
+  Vector add(Vector a, Vector b);
+}
+```
 
 C source files that need access to this data type can include the file with:
 
@@ -2483,12 +2473,14 @@ typedef struct {
 
 A component could declare a port of this type:
 
-    component A {
-      control;
+```camkes
+component A {
+  control;
 
-      include "int_array.h";
-      dataport IntArray int_arr;
-    }
+  include "int_array.h";
+  dataport IntArray int_arr;
+}
+```
 
 This would give the implementation access to a global pointer, which points to
 an appropriately large region of memory for the data type:
@@ -2496,6 +2488,173 @@ an appropriately large region of memory for the data type:
 ```c
 extern volatile IntArray * int_arr;
 ```
+
+### Single Address Space Components (Groups)
+
+By default, each component instance in an application is given its own address
+space. This is ideal for isolation, but this separation does not come for free
+and inter-address space communication is necessarily more expensive than local
+communication. To colocate two component instances in a single address space,
+they can be grouped together:
+
+```camkes
+assembly {
+  composition {
+    group my_group {
+      component Foo foo;
+      component Bar bar;
+    }
+  }
+}
+```
+
+Any references to such instances now need to be qualified by their group name.
+For example, to connect the above two instances:
+
+```camkes
+...
+connection seL4RPC conn(from my_group.foo.inf1,
+  to my_group.bar.inf2);
+...
+```
+
+When component instances are colocated, another connector becomes available.
+The `seL4DirectCall` connector collapses RPC communication into a direct
+function call. Its usage is identical to other connectors:
+
+```camkes
+...
+connection seL4DirectCall conn(from my_group.foo.inf1,
+  to my_group.bar.inf2);
+...
+```
+
+Using this connector between two components that are not colocated is incorrect
+and will trigger an error.
+
+#### Caveats
+
+When colocating component instances in a single address space, the intent is
+for the environment of the instances to be as close to indistinguishable as
+possible (with the exception of performance characteristics) from full
+separation. This abstraction is not perfect and there are some mechanisms that
+have slightly different semantics when used in a single address space scenario
+and in an isolated scenario.
+
+Parameters of direction `out` of certain types are typically heap-located in an
+isolated component instance. This is still true in a colocated environment, but
+when using the `seL4DirectCall` connector, these are located in the _callee's_
+heap, not the caller's as may be otherwise expected. Freeing one of these
+pointers to the incorrect heap will result in heap corruption and should be
+avoided. Conversely, _not_ freeing this pointer will leak memory and should also
+be avoided. The recommended technique to work around this is to introduce a back
+channel to the callee when necessary:
+
+```camkes
+procedure my_proc {
+  /* The following procedure will return a parameter, `x`,
+   * that is a pointer into the callee's heap. It cannot
+   * be directly freed by the caller and needs to be
+   * passed back to the callee.
+   */
+  void foo(out string x);
+
+  /* We provide a back channel for this. */
+  include <stdint.h>;
+  void remote_free(uintptr_t p);
+}
+
+component Caller {
+  control;
+  uses my_proc f;
+}
+
+component Callee {
+  provides my_proc g;
+}
+
+assembly {
+  composition {
+    component Caller caller;
+    component Callee callee;
+
+    connection seL4DirectCall conn(from caller.f, to callee.g);
+  }
+}
+```
+
+It is then possible to implement both components' code in such a way that
+memory is always freed to the correct heap:
+
+```c
+/* Caller.c */
+
+int run(void) {
+  char *x;
+  f_foo(&x);
+  printf("received %s\n", x);
+  f_remote_free((uintptr_t)x);
+  return 0;
+}
+```
+
+```c
+/* Callee.c */
+
+void g_foo(char **x) {
+  *x = strdup("hello world");
+}
+
+void g_remote_free(uintptr_t p) {
+  free((void*)p);
+}
+```
+
+This is cumbersome, but at least allows one to write safe code. In a
+continually evolving project, it may not be known in advance whether
+`seL4DirectCall` will be used. In these situations, it is recommended to use a
+free wrapper that detects where a pointer is hosted. In the case of a simple
+static heap region (the default), a wrapper can be constructed as follows:
+
+```c
+/* Caller.c */
+
+static void safe_free(void *p) {
+  /* These symbols are defined by generated code and
+   * specify the bounds of the heap.
+   */
+  extern char *morecore_area;
+  extern size_t morecore_size;
+
+  if ((uintptr_t)p >= (uintptr_t)morecore_area &&
+      (uintptr_t)p < (uintptr_t)morecore_area + morecore_size) {
+    /* The pointer is in our heap. */
+    free(p);
+  } else {
+    /* The pointer is in the callee's heap. */
+    f_remote_free((uintptr_t)p);
+  }
+}
+
+int run(void) {
+  char *x;
+  f_foo(&x);
+  printf("received %s\n", x);
+  safe_free(x);
+  return 0;
+}
+```
+
+The preceding discussion dealt with `out` parameters, but note that the same
+issue exists on _both_ sides of an `seL4DirectCall` connection using `inout`
+parameters. That is, the argument to the callee and the final value to the
+caller are both pointers that would normally point into a local heap, but now
+potentially point into a remote heap.
+
+As a result of toolchain limitations,
+[link-time optimisations](https://gcc.gnu.org/wiki/LinkTimeOptimization) cannot
+be applied to a component group. If you have LTO enabled in your build settings
+it will be ignored for component groups.
 
 ### Global Include Directories
 
@@ -2567,35 +2726,39 @@ In the top-level .camkes file shown below, note the angle brackets around Math/M
 This denotes that the file is not located in the application's directory, but in
 some global include directory (in this case, the components directory).
 
-    /* apps/pythagoras/pythagoras.camkes */
+```camkes
+/* apps/pythagoras/pythagoras.camkes */
 
-    import <std_connector.camkes>;
-    import <Math/Math.camkes>;
-    import "components/Client/Client.camkes";
+import <std_connector.camkes>;
+import <Math/Math.camkes>;
+import "components/Client/Client.camkes";
 
-    assembly {
-      composition {
-        component Client client;
-        component Math math;
+assembly {
+  composition {
+    component Client client;
+    component Math math;
 
-        connection seL4RPC c(from client.math, to math.m);
-      }
-    }
+    connection seL4RPC c(from client.math, to math.m);
+  }
+}
+```
 
 The client's component definition (.camkes) is located inside the application
 directory. Note again the angle brackets around MathIface/MathIface.camkes.
 This file contains the interface provided by the Math component, and is
 located in a global include directory (the interfaces directory).
 
-    /* apps/pythagoras/components/Client/Client.camkes */
+```camkes
+/* apps/pythagoras/components/Client/Client.camkes */
 
-    import <MathIface/MathIface.camkes>;
+import <MathIface/MathIface.camkes>;
 
-    component Client {
-      control;
+component Client {
+  control;
 
-      uses MathIface math;
-    }
+  uses MathIface math;
+}
+```
 
 The client's component implementation (.c) is also located inside the application.
 
@@ -2645,26 +2808,30 @@ include ${PWD}/tools/camkes/camkes.mk
 
 The interface `MathIface` is defined as normal:
 
-    /* interfaces/MathIface/MathIface.camkes */
+```camkes
+/* interfaces/MathIface/MathIface.camkes */
 
-    procedure MathIface {
-      double square(in double a);
-      double sqrt(in double a);
-      double add(in double a, in double b);
-      double divide(in double a, in double b);
-    };
+procedure MathIface {
+  double square(in double a);
+  double sqrt(in double a);
+  double add(in double a, in double b);
+  double divide(in double a, in double b);
+}
+```
 
 The component `Math` imports the `MathIface` component using angle brackets.
 Even though `Math` is defined in a global include directory, it can still
 import files from different global include directories.
 
-    /* components/Math/Math.camkes */
+```camkes
+/* components/Math/Math.camkes */
 
-    import <MathIface/MathIface.camkes>;
+import <MathIface/MathIface.camkes>;
 
-    component Math {
-      provides MathIface m;
-    }
+component Math {
+  provides MathIface m;
+}
+```
 
 The `Math` component is implemented inside the Math component directory.
 
@@ -2787,15 +2954,17 @@ defined in header files.
 
 The `MathImpl` procedure definition was modified to include some new methods:
 
-    procedure MathIface {
-      include <vec.h>;
+```camkes
+procedure MathIface {
+  include <vec.h>;
 
-      ...
+  ...
 
-      double dot(in vec_t a, in vec_t b);
-      vec_t scalar_mult(in vec_t v, in double s);
-      double length(in vec_t a);
-    };
+  double dot(in vec_t a, in vec_t b);
+  vec_t scalar_mult(in vec_t v, in double s);
+  double length(in vec_t a);
+}
+```
 
 The `Math` component implementation contains the implementation of these new methods:
 
@@ -2890,57 +3059,64 @@ typedef struct {
 
 A new port interface must be added to the `Math` and `Client` components:
 
-    /* components/Math/Math.camkes */
+```camkes
+/* components/Math/Math.camkes */
 
-    import <MathIface/MathIface.camkes>;
+import <MathIface/MathIface.camkes>;
 
-    component Math {
-      provides MathIface m;
+component Math {
+  provides MathIface m;
 
-      include <complex_arr.h>;
-      dataport complex_arr_t complex_data;
-    }
+  include <complex_arr.h>;
+  dataport complex_arr_t complex_data;
+}
+```
 
+```camkes
+/* apps/pythagoras/components/Client/Client.camkes */
 
-    /* apps/pythagoras/components/Client/Client.camkes */
+import <MathIface/MathIface.camkes>;
 
-    import <MathIface/MathIface.camkes>;
+component Client {
+  control;
 
-    component Client {
-      control;
+  uses MathIface math;
 
-      uses MathIface math;
-
-      include <complex_arr.h>;
-      dataport complex_arr_t complex_data;
-    }
+  include <complex_arr.h>;
+  dataport complex_arr_t complex_data;
+}
+```
 
 A new connection is added to the top level .camkes file:
 
-    /* apps/pythagoras/pythagoras.camkes */
+```camkes
+/* apps/pythagoras/pythagoras.camkes */
 
+...
+assembly {
+  composition {
     ...
-    assembly {
-      composition {
-        ...
-        connection seL4SharedData d(from client.complex_data,
-                                    to math.complex_data);
-      }
-    }
+    connection seL4SharedData d(from client.complex_data,
+                                to math.complex_data);
+  }
+}
+```
 
 A new method is added to the `MathIface` interface. Note that since
 this method doesn't actually return the complex roots of unity (but
 rather writes them into an area of shared memory) there is no reason
 for this to include the header file defining complex numbers.
 
-    /* interfaces/MathIface/MathIface.camkes */
+```camkes
+/* interfaces/MathIface/MathIface.camkes */
 
-    procedure MathIface {
+procedure MathIface {
 
-      ...
+  ...
 
-      int compute_roots_of_unity(in int n);
-    };
+  int compute_roots_of_unity(in int n);
+}
+```
 
 The implementation of this method is added to the `Math` component implementation:
 
@@ -3100,8 +3276,8 @@ same object on both sides. None of the templates currently call the low-level
 helper functions that enable this directly, but if you do want to invoke them,
 they are `stash` and `pop`. `stash` lets you save a Python object under a given
 key name and `pop` retrieves a previously saved Python object by key. Note that
-these are only usable for passing objects between templates that share the same
-`me` reference.
+these are only usable for passing objects between templates that share related
+`me` references.
 
 #### Generating Symbol Names
 
@@ -3143,6 +3319,96 @@ and a `do` construct used in these situations:
 /*- endfor -*/
 /*- set variable_we_want_to_set = temp[0] -*/
 ```
+
+### Reply Capabilities
+
+The seL4 system call, `seL4_Call`, generates transient capabilities called
+reply capabilities (see the seL4 documentation for more specific details). Care
+must be taken when writing template code in order to avoid interfering with the
+functionality of another piece of template code that may have created reply
+capabilities. If you are not using reply capabilities yourself, there is a
+simple rule to remember:
+
+* always call `camkes_protect_reply_cap()` before performing an operation that
+  would cause a wait on a synchronous endpoint.
+
+This call is idempotent (you can call it multiple times in sequence with no ill
+effects), though be aware it may modify the contents of your IPC buffer. You
+do not need to perform this operation when sending on a synchronous endpoint or
+waiting on an asynchronous endpoint, however it _is_ necessary when performing
+batched system calls like `seL4_ReplyWait` or `seL4_Call` on a synchronous
+endpoint.
+
+If you are _receiving_ reply capabilities in your own template and calling
+external functionality before using them, you need to be aware that they can be
+overwritten when execution is outside your template. To safe guard yourself
+against this, there is a complementary rule:
+
+* always call `camkes_declare_reply_cap(...)` when you have just received a
+  reply capability.
+
+Note that you need to pass this function an empty capability slot into which to
+save the reply capability if it is about to be overwritten. In order to support
+saving of this reply capability on demand, CAmkES needs a capability to the
+current thread's CNode. This needs to be setup by your template code. Some
+variant of the following code needs to be executed for each thread that could
+receive a reply capability:
+
+```c
+/*# Allocate a cap to our own CNode. #*/
+/*- set cnode = alloc_cap('cnode', my_cnode, write=True) -*/
+/* Configure a TLS pointer to our own CNode cap. */
+camkes_get_tls()->cnode_cap = /*? cnode ?*/;
+```
+
+When you need to use a reply capability you have protected, you should check
+the `reply_cap_in_tcb` member of the CAmkES TLS structure and, if the capability
+is no longer in your TCB, call `camkes_unprotect_reply_cap()` and deal with any
+possible error that may have occurred. The functional API for dealing with
+reply capabilities is provided below. Though this is technically part of the
+[runtime API](#runtime-api), it is included here because user code is never
+expected to call these functions.
+
+**`int camkes_declare_reply_cap(seL4_CPtr shadow_slot)`** (`#include <camkes/tls.h>`)
+
+> Identify to the CAmkES library that you are in possession of a reply
+  capability in your TCB. CAmkES only handles a single reply capability
+  currently and, as such, you should not call this function when you have
+  previously declared a pending reply capability you have not yet discarded.
+  This essentially says to CAmkES, "I have a reply cap in my TCB; please save
+  it to `shadow_slot` if it is in risk of being deleted."
+
+**`void camkes_protect_reply_cap(void)`** (`#include <camkes/tls.h>`)
+
+> Guard any potential pending reply capability against deletion by saving it
+  now. Note that this function accepts no arguments and returns nothing. It is
+  designed to be called unconditionally from generated code that believes it
+  may be about to overwrite a reply capability. There is no point providing a
+  result to the caller because the caller is not the conceptual "owner" of
+  the capability and does not know how to deal with a failure to protect it.
+  You should always call this code in your template if you believe a reply
+  capability could be present and the operation you are about to perform has a
+  chance of deleting it.
+
+**`seL4_Error camkes_unprotect_reply_cap(void)`** (`#include <camkes/tls.h>`)
+
+> Discard any information relating to a current pending reply capability. This
+  is designed to be called by the original declarer of a reply capability when
+  it is about to use (or discard) that capability. Note that this returns a
+  potential error that was encountered when some intermediate code tried to
+  protect the capability and it failed. The return value is essentially a
+  result from `seL4_CNode_SaveCaller`. This should _only_ be called when you
+  know the reply cap you need is no longer in your TCB. That is, you should
+  check the `reply_cap_in_tcb` member of the CAmkES TLS structure to determine
+  if calling this function is necessary.
+
+To get a more concrete idea of how these functions are used, you can refer to
+the seL4RPCCall connector that uses this mechanism.
+
+One final thing to note is that this functionality assumes cooperative
+templates. There is nothing to prevent a malicious template omitting a call to
+`camkes_protect_reply_cap()` and wilfully destroying pending reply
+capabilities.
 
 ### Template Debugging
 
@@ -3217,91 +3483,123 @@ may help you when grepping and whatnot. They mean:
   should probably be fixed. This is often in cases where I didn't have time to
   write a proper **FIXME** or **TODO** comment.
 
-### Input Translation
+### Parser Internals
 
-The translation of a CAmkES specification into an Abstract
-Syntax Tree is performed in two phases: lexing the input into a stream of valid
-tokens and then parsing the tokens into a list of AST objects. Lexing and
-parsing are performed using [PLY](http://www.dabeaz.com/ply/), an implementation
-of Lex and YACC in Python. The sections below discuss the inner workings of
-this process that happens during execution of the runner.
+* camkes/parser/*
 
-#### Lexing
+The previous section, [camkes.parser](#camkes.parser), describes the high-level
+interface to the CAmkES parser. This parser is assembled from a pipeline of
+lower-level parsers. These are each described as a "stage" in parsing. To
+understand them, it is necessary to understand a few variants of Abstract
+Syntax Tree representations that are referred to in the source code. The
+following representations are described in order from least to most abstract:
 
-Lexing via `lex.lex()` relies on a set of tokens being defined as symbols
-`t_`_`token`_. These are defined in the following files:
+* **Augmented input** This is not an AST, as such, but rather a tuple of source
+  data and a set of read files.
+* **Raw AST** This is a tree of `plyplus.stree`s.
+* **Augmented AST** This is a list of `plyplus.stree`s with attached
+  information about their original source data and the file they came from.
+* **Lifted AST** This is the most abstract programmatic representation of an
+  input specification and the form developers will come to be most familiar
+  with. It is a tree of objects from [camkes.ast](#camkes.ast).
 
-* GenericTokens.py
+The various low-level parsers are each responsible for a specific AST
+transformation, with the high-level parser stringing them all together for ease
+of use. The low-level parsers are:
 
-By a quirk of Lex, most keywords actually match the token `ID` because of its
-generality. `t_ID` uses the recommended PLY technique for getting around this by
-checking the token value against a set of keywords. These keywords are defined
-in the following files and are then added to and managed in `util.keywords`.
+* **Stage 0** Reads an input file and optionally runs the C pre-processor over
+  it. This "parser" is really just a more full featured version of the `open`
+  call.
+* **Stage 1** Parses input using `plyplus`. Note that this is where the CAmkES
+  grammer (camkes/parser/camkes.g) comes into play.
+* **Stage 2** Resolves `import` statements. This parser repeatedly calls back
+  into the stage 1 parser to parse further sources. Note that from here on,
+  `import` statements do not appear in the AST.
+* **Stage 3** Lifts the `plyplus` AST into the objects of
+  [camkes.ast](#camkes.ast). This is generally the most intensive parse phase
+  and inherently the most fragile as it encodes much of the semantics of the
+  CAmkES input language.
+* **Stage 4** Resolves semantic references. From here on, no
+  `camkes.ast.Reference`s remain in the AST.
+* **Stage 5** Collapses `group`s. The `group` keyword is used to colocate
+  component instances into a single address space. This stage removes groups
+  from the AST, assigning the same address space to their contained instances.
+* **Stage 6** Combines multiple assemblies. It is possible for more than one
+  `assembly` block to be specified in a CAmkES input specification, in which
+  case the intended assembly is the concatentaion of all of them. This stage
+  performs that concatenation.
+* **Stage 7** Flattens component hierarchies. Component instances that are
+  nested inside other components are hoisted to the top-level assembly by this
+  stage.
+* **Stage 8** Resolves attribute references. Settings can be given a value that
+  references another attribute (using the `<-` operator). This stage resolves
+  these references to concrete values.
+* **Stage 9** Freezes the AST. This stage transforms various AST internal data
+  structures into optimised forms and makes AST modification from this point on
+  impossible.
 
-* ADLKeywords.py
-* IDLKeywords.py
+With this information, looking back at the high-level parser, one can see that
+it simply chains these stages together. It is possible to programmatically
+construct a differing or partial parser by composing the low-level parsers in a
+different manner.
 
-For documentation on the format of `t_*`
-functions, refer to the [PLY manual](http://www.dabeaz.com/ply/ply.html).
+### Cache Internals
 
-#### Parsing
+The compilation cache, previously referred to, appears to users as a monolithic
+mechanism. However, it is actually made up of three separate caches hosted
+within the cache directory. It is unlikely you will understand how the caches
+work from this section alone; it is merely intended to orient you reading of
+the source code that implements the caches.
 
-Parsing via `yacc.yacc()` relies on a set of rules being defined as symbols
-`p_`_`rule`_.
-These are defined in the following files:
+#### Pre-Compiled Templates
 
-* ADLRules.py
-* CAmkESRules.py
-* GenericRules.py
-* IDLRules.py
+ * camkes/runner/Renderer.py
 
-There is no easy way to build the parser without the `p_`_`rule`_ rules in the global
-context so camkestr.py imports these files into its own namespace. Note that
-the parser also expects the `t_`_`token`_ token symbols to be in the global context at
-parsing time so these files are forced to import the *Tokens.py files into
-their own namespaces.
+The Jinja templating engine works by compiling template code to native Python
+code, which it then runs to produce the generated output. This compilation to
+Python code is normally performed in each execution. To speed up this process,
+when caching is enabled, the templates are compiled to the cache directory. In
+future executions, template rendering optimistically fetches pre-compiled
+templates from this cache. On a cache miss, it falls back to the original
+template sources.
 
-By default the parser assumes the first `p_`_`rule`_ rule it sees is the starting
-symbol. Beyond a simple parser, this behaviour is not what you want. We
-override this, based on the input grammar, by defining `start` before building
-the parser.
+#### Level A Cache
 
-You can observe a recurring pattern in the *Rules.py files, where elements have
-a set of rules with common suffixes. This is for greater flexibility in the way
-entities can appear and be recognised in the input. The rules loosely map to
-the following:
+ * camkes/internal/cachea.py
 
-* `entity_sing` - A singleton instantiation of a type. Some CAmkES types are
-  only ever instantiated once in a given context, in which the instance is
-  usually unnamed. For example, assemblies. This rule encapsulates the forms in
-  which this can be done.
-* `entity_decl` - A top-level declaration of a type. It may help (or hinder)
-  your understanding to think of this as a creation of the type itself. The
-  expansion of this rule usually contains a definition of the type.
-* `entity_ref` - A reference to an entity of this type. References generally
-  come in two forms: a symbol referring to an entity defined elsewhere or a
-  definition of the entity inline.
-* `entity_block` - The delimiters of an entity definition and the contained
-   definition. This is usually just a convenience wrapper for dealing with
-   things like lists.
-* `entity_defn` - The definition of the entity itself. This contains the
-  entity-specific input grammar. While the implementations of the other common
-  rules are pretty mechanical, this one actually relies on the syntax of the
-  entity itself.
+The level A cache works in a similar manner to
+[ccache](https://ccache.samba.org/). For each execution, it notes the inputs
+and output of code generation. It saves the output in the cache directory and
+metadata related to the inputs in a SQLite database. In future executions, it
+optimistically fetches from this cache as an initial step. If inputs have not
+changed since last time, the previous output can be retrieved from the cache
+and the overhead of code generation can be avoided entirely. On a cache miss,
+it falls back to the standard code path. See also the
+[cache accelerator](#cache-accelerator) below.
 
-To clarify this pattern, some example rules for structs in C would look like
-the following. Note that the `struct_sing` rule doesn't really make sense in
-the context of C.
+#### Level B Cache
 
-    struct_sing : struct ID SEMI
-                | struct_decl
-    struct_decl : struct struct_block
-                | struct struct_block ID
-    struct_ref : ID
-               | struct_block
-    struct_block : LBRACE struct_defn RBRACE
-    struct_defn :
-                | member_type ID SEMI struct_defn
+ * camkes/internal/cacheb.py
+ * camkes/internal/shelf.py
+
+In some circumstances, the inputs to code generation can have changed such that
+the level A cache misses, but not in a semantically relevant way. For example,
+whitespace changes to the input specification. This second level cache stores
+the same output data as the level B cache, but keyed on the programmatic
+structure of the AST itself. This cache is unlikely to provide much benefit in
+standard circumstances.
+
+#### Cache Accelerator
+
+ * tools/accelerator/accelerator.c
+
+In a large project with significant level A cache hits, the build can be slowed
+unnecessarily by the startup of the Python interpreter itself. This cost can be
+avoided by enabling the so-called cache accelerator. This is a C program that
+reads from the level A cache. By replicating the level A cache reading logic in
+C we can, on a cache hit, short circuit code generation before even running
+Python. The level A cache read remains in the code generator itself in case the
+accelerator cannot be enabled for another reason.
 
 ### Template Context
 
@@ -3339,28 +3637,48 @@ libraries.
 
 ### Testing
 
-Currently there are only tests for the [parser](#parser); that is, the test
-suite does not cover the functionality of the [runner](#runner). Unit tests are
-also lacking and should be implemented in the future.
+CAmkES has a set of unit tests and a set of integration tests. The unit tests
+are structured per-module, with each module's tests in a subdirectory of its
+source:
 
-The test framework and tests themselves can be found in tests/. Use one
-of the following invocations to run the test suite:
+ * camkes/ast/tests
+ * camkes/internal/tests
+ * camkes/parser/tests
+ * camkes/runner/tests
+ * camkes/templates/tests
+
+The unit tests use Python's
+[unittest](https://docs.python.org/2/library/unittest.html) framework. The
+simplest way to execute them is from the top-level wrapper script:
 
 ```bash
-make                  # Run all tests
-make explicit         # Run all the executable files in the directory
-make explicit_foo     # Run the test in executable tests/foo
-make generic          # Run generic tests on all inputs *.{adl|idl|camkes}
-make generic_bar.adl  # Run generic tests on the input bar.adl
+./alltests.py
 ```
 
-To add a new input file to be used in the generic tests create a file with the
-input you want to test and save it in tests/ with an extension indicating what
-grammar it is using.
+Alternatively, any finer granularity of test cases may be selected:
 
-To add a test with other functionality, write a script or program in any
-language and save it in the tests/ directory. The framework considers any
-executable file in this directory an eligible test.
+```bash
+# Run all AST unit tests
+./camkes/ast/tests/runall.py
 
-The functionality that the test suite exercises is not extensive and should be
-expanded at some point.
+# Run only AST hashing assumption tests
+./camkes/ast/tests/runall.py TestHashingAssumptions
+
+# Run only the specific test for hashing None
+./camkes/ast/tests/runall.py TestHashingAssumptions.test_none
+```
+
+The integration tests are contained in the CAmkES project repository under the
+directory tests/. Again, the simplest way to execute these is with a wrapper
+script:
+
+```bash
+./tests/run-all.py
+```
+
+Alternatively, you can run individual integration tests:
+
+```bash
+# Test simple RPC
+./tests/arm-simple.tcl
+```

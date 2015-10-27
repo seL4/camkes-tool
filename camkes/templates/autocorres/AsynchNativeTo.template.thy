@@ -1,5 +1,5 @@
 /*#
- *# Copyright 2014, NICTA
+ *# Copyright 2015, NICTA
  *#
  *# This software may be distributed and modified according to the terms of
  *# the BSD 2-Clause license. Note that NO WARRANTY is provided.
@@ -8,13 +8,17 @@
  *# @TAG(NICTA_BSD)
  #*/
 
+/*- if len(me.parent.to_ends) != 1 -*/
+  /*? raise(TemplateError('connections without a single to end are not supported', me.parent)) ?*/
+/*- endif -*/
+
 /*- set thy = os.path.splitext(os.path.basename(options.outfile.name))[0] -*/
 header {* Event Receive *}
 (*<*)
 theory /*? thy ?*/ imports
-  "../../tools/c-parser/CTranslation"
-  "../../tools/autocorres/AutoCorres"
-  "../../tools/autocorres/NonDetMonadEx"
+  "~~/../l4v/tools/c-parser/CTranslation"
+  "~~/../l4v/tools/autocorres/AutoCorres"
+  "~~/../l4v/tools/autocorres/NonDetMonadEx"
 begin
 
 (* THIS THEORY IS GENERATED. DO NOT EDIT.
@@ -97,7 +101,7 @@ lemma seL4_GetIPCBuffer_wp[wp_unsafe]: "\<lbrace>\<lambda>s. \<forall>x. P x s\<
   apply clarsimp
   done
 
-/*- set threads = 1 + len(me.to_instance.type.provides + me.to_instance.type.uses + me.to_instance.type.emits + me.to_instance.type.consumes + me.to_instance.type.dataports) -*/
+/*- set threads = 1 + len(me.instance.type.provides + me.instance.type.uses + me.instance.type.emits + me.instance.type.consumes + me.instance.type.dataports) -*/
 definition
   thread_count :: word32
 where
@@ -175,7 +179,7 @@ text {*
 lemma /*? thy ?*/_poll_nf:
   notes seL4_SetMR_wp[wp]
   shows
-    /*- for i in range(threads) -*/
+    /*- for i in six.moves.range(threads) -*/
 (** TPP: accumulate = True *)
     /*- if loop.first -*/
   "\<lbrace>\<lambda>s.
@@ -190,8 +194,8 @@ lemma /*? thy ?*/_poll_nf:
     tls_valid s \<and>
     thread_index_C (tls s) \<in> {1..thread_count}\<rbrace>
 (** TPP: lock_indent = None *)
-   /*? me.to_interface.name ?*/_poll'
-    /*- for i in range(threads) -*/
+   /*? me.interface.name ?*/_poll'
+    /*- for i in six.moves.range(threads) -*/
 (** TPP: accumulate = True *)
     /*- if loop.first -*/
   \<lbrace>\<lambda>r s.
@@ -207,7 +211,7 @@ lemma /*? thy ?*/_poll_nf:
     thread_index_C (tls s) \<in> {1..thread_count} \<and>
     (r = 0 \<or> r = 1)\<rbrace>!"
 (** TPP: lock_indent = None *)
-  apply (simp add:/*? me.to_interface.name ?*/_poll'_def get_badge'_def)
+  apply (simp add:/*? me.interface.name ?*/_poll'_def get_badge'_def)
   apply (wp seL4_Poll_wp)
   apply (clarsimp simp:globals_frame_intact_def seL4_GetIPCBuffer'_def
                        thread_count_def setMRs_def setMR_def
@@ -221,8 +225,8 @@ lemma /*? thy ?*/_poll_nf:
 (* This function is invoked on startup of this connector and, while we can show its correctness as
  * below, it is not interesting for the purposes of this report.
  *)
-lemma /*? me.to_interface.name ?*/_run_nf: "\<lbrace>\<lambda>s. \<forall>r. P r s\<rbrace> /*? me.to_interface.name ?*/__run' \<lbrace>P\<rbrace>!"
-  apply (unfold /*? me.to_interface.name ?*/__run'_def)
+lemma /*? me.interface.name ?*/_run_nf: "\<lbrace>\<lambda>s. \<forall>r. P r s\<rbrace> /*? me.interface.name ?*/__run' \<lbrace>P\<rbrace>!"
+  apply (unfold /*? me.interface.name ?*/__run'_def)
   apply wp
   apply simp
   done
@@ -232,13 +236,13 @@ text {*
   The code for wait is somewhat simpler as it is just a wrapper around the seL4 primitive.
   \clisting{eventto-wait.c}
 *}
-lemma /*? me.to_interface.name ?*/_wait_nf:
+lemma /*? me.interface.name ?*/_wait_nf:
   notes seL4_SetMR_wp[wp]
   shows
   "\<lbrace>\<lambda>s. globals_frame_intact s \<and> ipc_buffer_valid s\<rbrace>
     EventTo_wait'
    \<lbrace>\<lambda>_ s. globals_frame_intact s \<and> ipc_buffer_valid s\<rbrace>!"
-  apply (simp add:/*? me.to_interface.name ?*/_wait'_def)
+  apply (simp add:/*? me.interface.name ?*/_wait'_def)
   apply (wp seL4_Wait_wp)
   apply (simp add:globals_frame_intact_def ipc_buffer_valid_def setMRs_def
                   setMR_def)

@@ -1,5 +1,5 @@
 /*#
- *# Copyright 2014, NICTA
+ *# Copyright 2015, NICTA
  *#
  *# This software may be distributed and modified according to the terms of
  *# the BSD 2-Clause license. Note that NO WARRANTY is provided.
@@ -9,96 +9,50 @@
  #*/
 
 #include <assert.h>
+#include <camkes.h>
 #include <sel4/sel4.h>
+#include <stdbool.h>
 #include <stddef.h>
 #include <utils/util.h>
 
-/*? macros.show_includes(me.to_instance.type.includes) ?*/
-/*- set attr = "%s_attributes" % me.from_interface.name -*/
-/*- set notification_obj = alloc_obj('notification', seL4_NotificationObject) -*/
-/*- set notification = alloc_cap('notification', notification_obj, read=True) -*/
-/*- set _irq = configuration[me.from_instance.name].get(attr) -*/
-/*- set irq = alloc('irq', seL4_IRQControl, number=_irq, notification=notification_obj) -*/
-/*- set lock = alloc('lock', seL4_NotificationObject, read=True, write=True) -*/
+/*? macros.show_includes(me.instance.type.includes) ?*/
+/*- set attr = '%s_irq_number' % me.parent.from_interface.name -*/
+/*- set aep_obj = alloc_obj('aep', seL4_AsyncEndpointObject) -*/
+/*- set aep = alloc_cap('aep', aep_obj, read=True) -*/
+/*- set _irq = configuration[me.parent.from_instance.name].get(attr) -*/
+/*- if _irq is none -*/
+  /*? raise(TemplateError('Setting %s.%s that should specify an IRQ number is not defined' % (me.parent.from_instance.name, attr))) ?*/
+/*- endif -*/
+/*- if not isinstance(_irq, numbers.Integral) -*/
+  /*? raise(TemplateError('Setting %s.%s that should specify an IRQ number is not an integer' % (me.parent.from_instance.name, attr))) ?*/
+/*- endif -*/
+/*- set irq = alloc('irq', seL4_IRQControl, number=_irq, aep=my_cnode[aep]) -*/
 
-#define MAX_CALLBACKS 10
-
-static void (*volatile callbacks[MAX_CALLBACKS])(void*);
-static void *callback_args[MAX_CALLBACKS];
-static volatile int event_pending;
-static volatile int sleepers;
-
-#define CAS __sync_val_compare_and_swap
-#define ATOMIC_INCREMENT(ptr) __sync_fetch_and_add((ptr), 1)
-#define ATOMIC_DECREMENT(ptr) __sync_fetch_and_sub((ptr), 1)
-
-#define SLEEP() \
-    do { \
-        ATOMIC_INCREMENT(&sleepers); \
-        assert(sleepers > 0); \
-        (void)seL4_Wait(/*? lock ?*/, NULL); \
-        assert(sleepers > 0); \
-        ATOMIC_DECREMENT(&sleepers); \
-    } while (0)
-
-#define WAKE() seL4_Signal(/*? lock ?*/)
-
-int /*? me.to_interface.name ?*/__run(void) {
-    while (1) {
-        int handled = 0;
-
-        (void)seL4_Wait(/*? notification ?*/, NULL);
-
-        /* First preference: callbacks. */
-        if (!handled) {
-            for (int i = 0; i < MAX_CALLBACKS; ++i) {
-                void (*callback)(void*) = callbacks[i];
-                if (callback != NULL) {
-                    callbacks[i] = NULL; /* No need for CAS. */
-                    callback(callback_args[i]);
-                    handled = 1;
-                }
-            }
-        }
-
-        /* There may in fact already be a pending event, but we don't care. */
-        event_pending = 1;
-
-        /* Second preference: waiters. */
-        if (!handled) {
-            if (sleepers > 0) { /* No lock required. */
-                WAKE();
-                /* Assume one of them will grab it. */
-                handled = 1;
-            }
-        }
-
-        /* Else, leave it for polling. */
+int /*? me.interface.name ?*/__run(void) {
+    while (true) {
+        (void)seL4_Wait(/*? aep ?*/, NULL);
+        /*? me.interface.name ?*/_handle();
     }
 
     UNREACHABLE();
 }
 
-int /*? me.to_interface.name ?*/_poll(void) {
-    return CAS(&event_pending, 1, 0);
+int /*? me.interface.name ?*/_poll(void) {
+    assert(!"not implemented for this connector");
+    return 0;
 }
 
-void /*? me.to_interface.name ?*/_wait(void) {
-    while (!/*? me.to_interface.name ?*/_poll()) {
-        SLEEP();
-    }
+void /*? me.interface.name ?*/_wait(void) {
+    assert(!"not implemented for this connector");
+    while (true);
 }
 
-int /*? me.to_interface.name ?*/_reg_callback(void (*callback)(void*), void *arg) {
-    int error;
-    for (int i = 0; i < MAX_CALLBACKS; ++i) {
-        if (CAS(&callbacks[i], NULL, callback) == NULL) {
-            callback_args[i] = arg;
-            error = seL4_IRQHandler_Ack(/*? irq ?*/);
-            assert(!error);
-            return 0;
-        }
-    }
-    /* We didn't find an empty slot. */
+int /*? me.interface.name ?*/_reg_callback(void (*callback)(void*) UNUSED,
+        void *arg UNUSED) {
+    assert(!"not implemented for this connector");
     return -1;
+}
+
+int /*? me.interface.name ?*/_acknowledge(void) {
+    return seL4_IRQHandler_Ack(/*? irq ?*/);
 }
