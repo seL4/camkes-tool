@@ -404,8 +404,8 @@ static void /*? init ?*/(void) {
 /* This function is called from crt0.S *prior* to `main`. */
 void USED _camkes_tls_init(int thread_id) {
     switch (thread_id) {
-        /*- set _tcb_control = alloc_obj('tcb_0_control', seL4_TCBObject) -*/
-        /*- set tcb_control = alloc_cap('tcb_0_control', _tcb_control) -*/
+        /*- set _tcb_control = alloc_obj('%d_0_control_%d_tcb' % (len(me.name), len('0_control')), seL4_TCBObject) -*/
+        /*- set tcb_control = alloc_cap('%d_0_control_%d_tcb' % (len(me.name), len('0_control')), _tcb_control) -*/
         /*- if options.debug_fault_handlers -*/
           /*? assert(fault_ep is defined and fault_ep is not none) ?*/
           /*- set fault_ep_cap = alloc_cap('fault_ep_0_control', fault_ep, read=True, write=True, grant=True) -*/
@@ -421,8 +421,8 @@ void USED _camkes_tls_init(int thread_id) {
 
         /*# Interface threads #*/
         /*- for index, t in enumerate(threads[1:]) -*/
-            /*- set _tcb = alloc_obj('tcb_%s_%04d' % (t.interface.name, t.intra_index), seL4_TCBObject) -*/
-            /*- set tcb = alloc_cap('tcb_%s_%04d' % (t.interface.name, t.intra_index), _tcb) -*/
+            /*- set _tcb = alloc_obj('%d_%s_%d_%04d_tcb' % (len(me.name), t.interface.name, len(t.interface.name), t.intra_index), seL4_TCBObject) -*/
+            /*- set tcb = alloc_cap('%d_%s_%d_%04d_tcb' % (len(me.name), t.interface.name, len(t.interface.name), t.intra_index), _tcb) -*/
             /*- if options.debug_fault_handlers -*/
               /*? assert(fault_ep is defined and fault_ep is not none) ?*/
               /*- set fault_ep_cap = alloc_cap('fault_ep_%s_%04d' % (t.interface.name, t.intra_index), fault_ep, read=True, write=True, grant=True) -*/
@@ -439,7 +439,7 @@ void USED _camkes_tls_init(int thread_id) {
         /*- endfor -*/
 
         /*- if options.debug_fault_handlers -*/
-            /*- set tcb = alloc('tcb_0_fault_handler_0000', seL4_TCBObject) -*/
+            /*- set tcb = alloc('%d_0_fault_handler_%d_0000_tcb' % (len(me.name), len('0_fault_handler')), seL4_TCBObject) -*/
             case /*? tcb ?*/ : { /* Fault handler thread */
                 /*- set p = Perspective(instance=me.name, interface='0_fault_handler', intra_index=0) -*/
                 /*? macros.save_ipc_buffer_address(p['ipc_buffer_symbol']) ?*/
@@ -490,7 +490,7 @@ void USED _camkes_tls_init(int thread_id) {
              */
             switch (badge) {
 
-                /*- set tcb_control = alloc('tcb_0_control', seL4_TCBObject) -*/
+                /*- set tcb_control = alloc('%d_0_control_%d_tcb' % (len(me.name), len('0_control')), seL4_TCBObject) -*/
                 /*- set p = Perspective(instance=me.name, control=True) -*/
                 case /*? tcb_control ?*/ : {
                     thread_name = "control";
@@ -580,7 +580,7 @@ void USED _camkes_tls_init(int thread_id) {
                 }
 
                 /*- for t in threads[1:] -*/
-                    /*- set tcb = alloc('tcb_%s_%04d' % (t.interface.name, t.intra_index), seL4_TCBObject) -*/
+                    /*- set tcb = alloc('%d_%s_%d_%04d_tcb' % (len(me.name), t.interface.name, len(t.interface.name), t.intra_index), seL4_TCBObject) -*/
                     /*- set p = Perspective(instance=me.name, interface=t.interface.name, intra_index=t.intra_index) -*/
                     case /*? tcb ?*/ : {
                         thread_name = "/*? t.interface.name ?*/";
@@ -710,7 +710,7 @@ int USED main(int argc UNUSED, char *argv[]) {
             assert(!"invalid thread ID");
             return -1;
 
-        /*- set tcb_control = alloc('tcb_0_control', seL4_TCBObject) -*/
+        /*- set tcb_control = alloc('%d_0_control_%d_tcb' % (len(me.name), len('0_control')), seL4_TCBObject) -*/
         case /*? tcb_control ?*/ : /* Control thread */
             /*? init ?*/();
             /*- if options.fsupport_init -*/
@@ -741,7 +741,7 @@ int USED main(int argc UNUSED, char *argv[]) {
 
         /*# Interface threads #*/
         /*- for t in threads[1:] -*/
-            /*- set tcb = alloc('tcb_%s_%04d' % (t.interface.name, t.intra_index), seL4_TCBObject) -*/
+            /*- set tcb = alloc('%d_%s_%d_%04d_tcb' % (len(me.name), t.interface.name, len(t.interface.name), t.intra_index), seL4_TCBObject) -*/
             case /*? tcb ?*/ : { /* Interface /*? t.interface.name ?*/ */
                 /*- if options.fsupport_init -*/
                     /* Wait for `pre_init` to complete. */
@@ -765,7 +765,7 @@ int USED main(int argc UNUSED, char *argv[]) {
         /*- endfor -*/
 
         /*- if options.debug_fault_handlers -*/
-            /*- set tcb = alloc('tcb_0_fault_handler_0000', seL4_TCBObject) -*/
+            /*- set tcb = alloc('%d_0_fault_handler_%d_0000_tcb' % (len(me.name), len('0_fault_handler')), seL4_TCBObject) -*/
             case /*? tcb ?*/ : { /* Fault handler thread */
                 /*? fault_handler ?*/();
                 UNREACHABLE();

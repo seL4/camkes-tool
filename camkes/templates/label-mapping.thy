@@ -250,9 +250,9 @@ definition ipc_buffer :: "string \<Rightarrow> nat \<Rightarrow> cdl_object_id o
   /*- set tcbs = {} -*/
   /*- set to_unfold = set() -*/
   /*- for i in composition.instances -*/
-    /*- do tcbs.__setitem__('%s_tcb_0_control' % i.name, (i.name, 0)) -*/
+    /*- do tcbs.__setitem__('%s_%d_0_control_%d_tcb' % (i.name, len(i.name), len('0_control')), (i.name, 0)) -*/
     /*- for index, inf in enumerate(i.type.provides + i.type.uses + i.type.emits + i.type.consumes + i.type.dataports) -*/
-      /*- do tcbs.__setitem__('%s_tcb_%s_0000' % (i.name, inf.name), (i.name, index + 1)) -*/
+      /*- do tcbs.__setitem__('%s_%d_%s_%d_0000_tcb' % (i.name, len(i.name), inf.name, len(inf.name)), (i.name, index + 1)) -*/
     /*- endfor -*/
   /*- endfor -*/
   /*- for o in obj_space.spec.objs -*/
@@ -436,11 +436,11 @@ lemma irqs_dom_distinct_tcbs:
   /*? a ?*/(subst dom_expand)+/*? A ?*/
   /*- set to_unfold = set(('id_of_def', 'id_of\'')) -*/
   /*- for i in composition.instances -*/
-    /*- do to_unfold.add('CapDLSpec.%s_tcb_0_control_id_def' % i.name) -*/
+    /*- do to_unfold.add('CapDLSpec.%s_%d_0_control_%d_tcb_id_def' % (i.name, len(i.name), len('0_control'))) -*/
     /*- do to_unfold.add('ArchSpec.%s_def' % i.name) -*/
     /*- do to_unfold.add('ArchSpec.%s_def' % i.type.name) -*/
     /*- for inf in i.type.provides + i.type.consumes -*/
-      /*- do to_unfold.add('CapDLSpec.%s_tcb_%s_0000_id_def' % (i.name, inf.name)) -*/
+      /*- do to_unfold.add('CapDLSpec.%s_%d_%s_%d_0000_tcb_id_def' % (i.name, len(i.name), inf.name, len(inf.name))) -*/
     /*- endfor -*/
   /*- endfor -*/
   /*? a ?*/simp add:/*? ' '.join(to_unfold) ?*//*? close_proof ?*/
@@ -533,10 +533,10 @@ lemma dom_tcbs:
 /*- set ids = set() -*/
 /*- set to_unfold = set(('tcb_objs_def', 'ArchSpec.assembly\'_def', 'ArchSpec.composition\'_def')) -*/
 /*- for i in composition.instances -*/
-  /*- do ids.add('%s_tcb_0_control_id' % i.name) -*/
+  /*- do ids.add('%s_%d_0_control_%d_tcb_id' % (i.name, len(i.name), len('0_control'))) -*/
   /*- do list(map(to_unfold.add, ('ArchSpec.%s_def' % i.name, 'ArchSpec.%s_def' % i.type.name))) -*/
   /*- for inf in i.type.provides + i.type.consumes -*/
-    /*- do ids.add('%s_tcb_%s_0000_id' % (i.name, inf.name)) -*/
+    /*- do ids.add('%s_%d_%s_%d_0000_tcb_id' % (i.name, len(i.name), inf.name, len(inf.name))) -*/
   /*- endfor -*/
 /*- endfor -*/
 /*? '\n'.join(textwrap.wrap('     {%s}"' % ', '.join(ids), width=100, subsequent_indent='      ')) ?*/
@@ -572,7 +572,7 @@ lemma caps_of_/*? i.name ?*/: "cap_map ArchSpec.assembly' ''/*? i.name ?*/'' = C
     /*- endif -*/
   /*- endfor -*/
   /*- if len(cnode) == 0 -*/
-    /*? raise(TemplateError('failed to find CNode for TCB %s_tcb_0_control' % i.name)) ?*/
+    /*? raise(TemplateError('failed to find CNode for TCB %s_%d_0_control_%d_tcb' % (i.name, len(i.name), len('0_control')))) ?*/
   /*- endif -*/
   /*- set cnode_size = capdl.calculate_cnode_size(max(cnode[0].slots.keys())) -*/
 
@@ -591,15 +591,15 @@ lemma cnode_size_of_/*? i.name ?*/: "cnode_size_bits ArchSpec.assembly' ''/*? i.
     /*- endif -*/
   /*- endfor -*/
 
-lemma tcb_of_/*? i.name ?*/_tcb_0_control:
-  "map_of (map (\<lambda>x. (the (id_of (cdlo_name x)), cdlo_type x)) (tcb_objs ArchSpec.assembly')) CapDLSpec./*? i.name ?*/_tcb_0_control_id
-     = Some CapDLSpec./*? i.name ?*/_tcb_0_control"
+lemma tcb_of_/*? i.name ?*/_/*? len(i.name) ?*/_0_control_/*? len('0_control') ?*/_tcb:
+  "map_of (map (\<lambda>x. (the (id_of (cdlo_name x)), cdlo_type x)) (tcb_objs ArchSpec.assembly')) CapDLSpec./*? i.name ?*/_/*? len(i.name) ?*/_0_control_/*? len('0_control') ?*/_tcb_id
+     = Some CapDLSpec./*? i.name ?*/_/*? len(i.name) ?*/_0_control_/*? len('0_control') ?*/_tcb"
   /*? open_proof ?*/simp add:tcb_objs_def/*? A ?*/
-  /*- set to_unfold = set(['ArchSpec.assembly\'_def', 'ArchSpec.composition\'_def', 'id_of', 'CapDLSpec.%s_tcb_0_control_def' % i.name, 'CapDLSpec.%s_tcb_0_control_caps_def' % i.name]) -*/
+  /*- set to_unfold = set(['ArchSpec.assembly\'_def', 'ArchSpec.composition\'_def', 'id_of', 'CapDLSpec.%s_%d_0_control_%d_tcb_def' % (i.name, len(i.name), len('0_control')), 'CapDLSpec.%s_%d_0_control_%d_tcb_caps_def' % (i.name, len(i.name), len('0_control'))]) -*/
   /*- for inst in composition.instances -*/
-    /*- do list(map(to_unfold.add, ('ArchSpec.%s_def' % inst.name, 'ArchSpec.%s_def' % inst.type.name, 'CapDLSpec.%s_tcb_0_control_id_def' % inst.name))) -*/
+    /*- do list(map(to_unfold.add, ('ArchSpec.%s_def' % inst.name, 'ArchSpec.%s_def' % inst.type.name, 'CapDLSpec.%s_%d_0_control_%d_tcb_id_def' % (inst.name, len(inst.name), len('0_control'))))) -*/
     /*- for iface in inst.type.provides + inst.type.consumes -*/
-      /*- do to_unfold.add('CapDLSpec.%s_tcb_%s_0000_id_def' % (inst.name, iface.name)) -*/
+      /*- do to_unfold.add('CapDLSpec.%s_%d_%s_%d_0000_tcb_id_def' % (inst.name, len(inst.name), iface.name, len(iface.name))) -*/
     /*- endfor -*/
   /*- endfor -*/
 /*? '\n'.join(textwrap.wrap('  %ssimp add:%s%s' % (a, ' '.join(to_unfold), A), width=100, subsequent_indent=' ' * len('  %ssimp add:' % a))) ?*/
@@ -621,15 +621,15 @@ lemma tcb_of_/*? i.name ?*/_tcb_0_control:
 
   /*- for inf in i.type.provides + i.type.consumes -*/
 
-lemma tcb_of_/*? i.name ?*/_tcb_/*? inf.name ?*/_0000:
-  "map_of (map (\<lambda>x. (the (id_of (cdlo_name x)), cdlo_type x)) (tcb_objs ArchSpec.assembly')) CapDLSpec./*? i.name ?*/_tcb_/*? inf.name ?*/_0000_id
-     = Some CapDLSpec./*? i.name ?*/_tcb_/*? inf.name ?*/_0000"
+lemma tcb_of_/*? i.name ?*/_/*? len(i.name) ?*/_/*? inf.name ?*/_/*? len(inf.name) ?*/_0000_tcb:
+  "map_of (map (\<lambda>x. (the (id_of (cdlo_name x)), cdlo_type x)) (tcb_objs ArchSpec.assembly')) CapDLSpec./*? i.name ?*/_/*? len(i.name) ?*/_/*? inf.name ?*/_/*? len(inf.name) ?*/_0000_tcb_id
+     = Some CapDLSpec./*? i.name ?*/_/*? len(i.name) ?*/_/*? inf.name ?*/_/*? len(inf.name) ?*/_0000_tcb"
   /*? open_proof ?*/simp add:tcb_objs_def/*? A ?*/
-  /*- set to_unfold = set(['ArchSpec.assembly\'_def', 'ArchSpec.composition\'_def', 'id_of', 'CapDLSpec.%s_tcb_%s_0000_def' % (i.name, inf.name), 'CapDLSpec.%s_tcb_%s_0000_caps_def' % (i.name, inf.name)]) -*/
+  /*- set to_unfold = set(['ArchSpec.assembly\'_def', 'ArchSpec.composition\'_def', 'id_of', 'CapDLSpec.%s_%d_%s_%d_0000_tcb_def' % (i.name, len(i.name), inf.name, len(inf.name)), 'CapDLSpec.%s_%d_%s_%d_0000_tcb_caps_def' % (i.name, len(i.name), inf.name, len(inf.name))]) -*/
   /*- for inst in composition.instances -*/
-    /*- do list(map(to_unfold.add, ('ArchSpec.%s_def' % inst.name, 'ArchSpec.%s_def' % inst.type.name, 'CapDLSpec.%s_tcb_0_control_id_def' % inst.name))) -*/
+    /*- do list(map(to_unfold.add, ('ArchSpec.%s_def' % inst.name, 'ArchSpec.%s_def' % inst.type.name, 'CapDLSpec.%s_%d_0_control_%d_tcb_id_def' % (inst.name, len(inst.name), len('0_control'))))) -*/
     /*- for iface in inst.type.provides + inst.type.consumes -*/
-      /*- do to_unfold.add('CapDLSpec.%s_tcb_%s_0000_id_def' % (inst.name, iface.name)) -*/
+      /*- do to_unfold.add('CapDLSpec.%s_%d_%s_%d_0000_tcb_id_def' % (inst.name, len(inst.name), iface.name, len(iface.name))) -*/
     /*- endfor -*/
   /*- endfor -*/
 /*? '\n'.join(textwrap.wrap('  %ssimp add:%s%s' % (a, ' '.join(to_unfold), A), width=100, subsequent_indent=' ' * len('  %ssimp add:' % a))) ?*/

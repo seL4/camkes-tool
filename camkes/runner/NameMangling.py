@@ -132,6 +132,118 @@ class DMAFrameIndexDeriver(Deriver):
             return None
         return int(m.group(1))
 
+class TCBDeriver(Deriver):
+    def inputs(self):
+        return set(('instance', 'interface', 'intra_index'))
+    def output(self):
+        return 'tcb'
+    def derive(self, perspective):
+        return '%s_%d_%s_%d_%s_tcb' % (
+            perspective['instance'],
+            len(perspective['instance']),
+            perspective['interface'],
+            len(perspective['interface']),
+            perspective['intra_index'])
+
+class FromControlTCBDeriver(Deriver):
+    def inputs(self):
+        return set(('instance',))
+    def output(self):
+        return 'tcb'
+    def derive(self, perspective):
+        if not perspective.get('control', False):
+            return None
+        return '%s_%d_0_control_%d_tcb' % (
+            perspective['instance'],
+            len(perspective['instance']),
+            len('0_control'))
+
+class TCBInstanceDeriver(Deriver):
+    def __init__(self):
+        self.outer = re.compile(r'(?P<remainder>.*)_(?P<len>\d+)_\d{4}_tcb$')
+        self.inner = re.compile(r'(?P<instance>.*)_(?P<len>\d+)_$')
+    def inputs(self):
+        return set(('tcb',))
+    def output(self):
+        return 'instance'
+    def derive(self, perspective):
+        m = self.outer.match(perspective['tcb'])
+        if m is None:
+            return None
+        l = int(m.group('len'))
+        assert len(m.group('remainder')) >= l, 'unexpected fault in undoing ' \
+            'TCB name mangling (name mangling and inverse mismatched?)'
+        remainder = m.group('remainder')[:-l]
+        m = self.inner.match(remainder)
+        if m is None:
+            return None
+        l = int(m.group('len'))
+        assert len(m.group('instance')) == l, 'unexpected fault in undoing ' \
+            'TCB name mangling (name mangling and inverse mismatched?)'
+        return m.group('instance')
+
+class FromControlTCBInstanceDeriver(Deriver):
+    def __init__(self):
+        self.regex = re.compile(r'(?P<instance>.*)_(?P<instance_len>\d+)'
+            r'_0_control_(?P<control_len>\d+)_tcb$')
+    def inputs(self):
+        return set(('tcb',))
+    def output(self):
+        return 'instance'
+    def derive(self, perspective):
+        m = self.regex.match(perspective['tcb'])
+        if m is None:
+            return None
+        control_len = int(m.group('control_len'))
+        if control_len != len('0_control'):
+            return None
+        instance_len = int(m.group('instance_len'))
+        if instance_len != len(m.group('instance')):
+            return None
+        return m.group('instance')
+
+class TCBInterfaceDeriver(Deriver):
+    def __init__(self):
+        self.prefix = re.compile(r'(?P<interface>.*)_(?P<len>\d+)_\d{4}_tcb$')
+    def inputs(self):
+        return set(('tcb',))
+    def output(self):
+        return 'interface'
+    def derive(self, perspective):
+        m = self.prefix.match(perspective['tcb'])
+        if m is None:
+            return None
+        l = int(m.group('len'))
+        assert len(m.group('interface')) >= l, 'unexpected fault in undoing ' \
+            'TCB name mangling (name mangling and inverse mismatched?)'
+        return m.group('interface')[-l:]
+
+class TCBIntraindexDeriver(Deriver):
+    def __init__(self):
+        self.regex = re.compile(r'.*_(?P<intra_index>\d{4})_tcb$')
+    def inputs(self):
+        return set(('tcb',))
+    def output(self):
+        return 'intra_index'
+    def derive(self, perspective):
+        m = self.regex.match(perspective['tcb'])
+        if m is None:
+            return None
+        return m.group('intra_index')
+
+class ToControlTCBDeriver(Deriver):
+    def __init__(self):
+        self.regex = re.compile(r'.*_0_control_(?P<len>\d+)_tcb$')
+    def inputs(self):
+        return set(('tcb',))
+    def output(self):
+        return 'control'
+    def derive(self, perspective):
+        m = self.regex.match(perspective['tcb'])
+        if m is None:
+            return False
+        return int(m.group('len')) == len('0_control')
+
 # Phases.
 RUNNER, TEMPLATES, FILTERS = list(range(3))
 
@@ -159,17 +271,13 @@ DERIVATIONS = {
         ForwardDeriver('camkes_dma_pool', 'dma_pool_symbol'),
         BackwardDeriver(r'^.*?\.?([a-zA-Z_]\w*)$', 'instance', 'safe_instance'),
     ], FILTERS:[
-        ForwardDeriver('%(instance)s_tcb_%(interface)s_%(intra_index)s', 'tcb'),
-        FromControlDeriver('%(instance)s_tcb_0_control', 'tcb'),
-        BackwardDeriver(r'^(.+)_tcb_.+$', 'tcb', 'instance'),
-        BackwardDeriver(r'^.+_tcb_([a-zA-Z_]\w*?)_\d\d\d\d$', 'tcb', 'interface'),
-        BackwardDeriver(r'^.+_tcb_[a-zA-Z_]\w*?_(\d\d\d\d)$', 'tcb', 'intra_index'),
-        # XXX: The following one is a bit of a hack in that '0_fault_handler'
-        # isn't an interface, but its bits and pieces conform to the same
-        # naming convention as interfaces.
-        BackwardDeriver(r'^.+_tcb_(0_fault_handler)_0000$', 'tcb', 'interface'),
-        BackwardDeriver(r'^.+_tcb_0_fault_handler_(0000)$', 'tcb', 'intra_index'),
-        ControlDeriver(r'^.+_tcb_0_control$', 'tcb'),
+        TCBDeriver(),
+        FromControlTCBDeriver(),
+        TCBInstanceDeriver(),
+        FromControlTCBInstanceDeriver(),
+        TCBInterfaceDeriver(),
+        TCBIntraindexDeriver(),
+        ToControlTCBDeriver(),
         ForwardDeriver('_camkes_ipc_buffer_%(safe_instance)s_%(interface)s_%(intra_index)s', 'ipc_buffer_symbol'),
         FromControlDeriver('_camkes_ipc_buffer_%(safe_instance)s_0_control', 'ipc_buffer_symbol'),
         ControlDeriver(r'^_camkes_ipc_buffer_.+_0_control$', 'ipc_buffer_symbol'),
