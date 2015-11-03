@@ -132,7 +132,7 @@ ${STAGE_BASE}/accelerator/camkes-accelerator: \
   ${ACCELERATE_EXTRA_DEPS}
 	@echo "[$(notdir $@)] building..."
 	${Q}mkdir -p $(dir $@)
-	${Q}cd $(dir $@) && cmake -G Ninja $(srctree)/tools/camkes/tools/accelerator ${CC_ACCELERATE_FLAGS}
+	${Q}cd $(dir $@) && cmake -G Ninja ${CC_ACCELERATE_FLAGS} $(srctree)/tools/camkes/tools/accelerator
 	${Q}cd $(dir $@) && ninja camkes-accelerator
 endif
 
