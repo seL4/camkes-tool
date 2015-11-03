@@ -27,16 +27,19 @@ from __future__ import absolute_import, division, print_function, \
 from camkes.internal.seven import cmp, filter, map, zip
 
 from camkes.internal.dictutils import get_fields
-import re
+import abc, re, six
 
-class Deriver(object):
+class Deriver(six.with_metaclass(abc.ABCMeta, object)):
     '''Logic for constructing one symbol from one or more other symbols. This
     class itself is never intended to be directly instantiated and is probably
     best understood by looking at its inherited children.'''
+    @abc.abstractmethod
     def inputs(self):
         raise NotImplementedError
+    @abc.abstractmethod
     def output(self):
         raise NotImplementedError
+    @abc.abstractmethod
     def derive(self, perspective):
         raise NotImplementedError
 
