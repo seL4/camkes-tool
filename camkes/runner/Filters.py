@@ -699,23 +699,25 @@ def tcb_priorities(ast, cspaces, options, **_):
         return
 
     # The pattern of the names of fault handler threads.
-    fault_handler_tcb = re.compile('.+_tcb_0_fault_handler$')
+    def is_fault_handler(tcb_name):
+        p = Perspective(tcb=tcb_name)
+        return not p['control'] and p['interface'] == '0_fault_handler'
 
     for group, space in cspaces.items():
         cnode = space.cnode
         for tcb in [v.referent for v in cnode.slots.values()
                 if v is not None and isinstance(v.referent, TCB)]:
 
-            assert options.debug_fault_handlers or \
-                fault_handler_tcb.match(tcb.name) is None, 'fault handler ' \
-                'threads present without fault handlers enabled'
+            assert options.debug_fault_handlers or not \
+                is_fault_handler(tcb.name), 'fault handler threads present ' \
+                'without fault handlers enabled'
 
             # If the current thread is a fault handler, we don't want to let
             # the user alter its priority. Instead we set it to the highest
             # priority to ensure faults are always displayed. Note that this
             # will not prevent other threads running because the fault handlers
             # are designed to be blocked when not handling a fault.
-            if fault_handler_tcb.match(tcb.name) is not None:
+            if is_fault_handler(tcb.name):
                 tcb.prio = 255
                 continue
 
