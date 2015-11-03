@@ -140,8 +140,8 @@ DERIVATIONS = {
         ForwardDeriver('pd_%(elf_name)s', 'pd'),
         BackwardDeriver(r'^pd_(.+)$', 'pd', 'elf_name'),
         BackwardDeriver(r'^pd_(.+)_group_bin$', 'pd', 'group'),
-        ForwardDeriver('cnode_%(group)s', 'cnode'),
-        BackwardDeriver(r'^cnode_(.+)$', 'cnode', 'group'),
+        ForwardDeriver('%(group)s_cnode', 'cnode'),
+        BackwardDeriver(r'^(.+)_cnode$', 'cnode', 'group'),
     ], TEMPLATES:[
         ForwardDeriver('dma_frame_%(dma_frame_index)04d', 'dma_frame_symbol'),
         DMAFrameIndexDeriver(r'^dma_frame_([0-9]+)$', 'dma_frame_symbol'),
@@ -196,8 +196,8 @@ DERIVATIONS = {
         FromControlDeriver('_domain', 'domain_attribute'),
         ForwardDeriver('%(interface)s_domain', 'domain_attribute'),
         BackwardDeriver(r'^([a-zA-Z_]\w*)_domain$', 'domain_attribute', 'interface'),
-        ForwardDeriver('cnode_%(group)s', 'cnode'),
-        BackwardDeriver(r'^cnode_(.+)$', 'cnode', 'group'),
+        ForwardDeriver('%(group)s_cnode', 'cnode'),
+        BackwardDeriver(r'^(.+)_cnode$', 'cnode', 'group'),
         BackwardDeriver(r'^.*?\.?([a-zA-Z_]\w*)$', 'instance', 'safe_instance'),
     ],
 }

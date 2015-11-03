@@ -423,7 +423,7 @@ lemma irqs_dom_distinct_cnodes:
   /*? a ?*/(subst dom_expand)+/*? A ?*/
   /*- set to_unfold = set(('id_of_def', 'id_of\'')) -*/
   /*- for i in composition.instances -*/
-    /*- do to_unfold.add('CapDLSpec.cnode_%s_id_def' % i.name) -*/
+    /*- do to_unfold.add('CapDLSpec.%s_cnode_id_def' % i.name) -*/
   /*- endfor -*/
   /*? a ?*/clarsimp simp:/*? ' '.join(to_unfold) ?*//*? close_proof ?*/
 (** TPP: condense = False *)
@@ -546,8 +546,8 @@ lemma dom_tcbs:
 
 /*- for i in composition.instances -*/
 (** TPP: condense = True *)
-lemma caps_of_/*? i.name ?*/: "cap_map ArchSpec.assembly' ''/*? i.name ?*/'' = CapDLSpec.cnode_/*? i.name ?*/_caps"
-  /*- set to_unfold = set(('cap_map_def', 'ArchSpec.assembly\'_def', 'ArchSpec.composition\'_def', 'ArchSpec.%s_def' % i.name, 'ArchSpec.%s_def' % i.type.name, 'CapDLSpec.cnode_%s_caps_def' % i.name, 'cap_offset_def', 'ep_objs_def')) -*/
+lemma caps_of_/*? i.name ?*/: "cap_map ArchSpec.assembly' ''/*? i.name ?*/'' = CapDLSpec./*? i.name ?*/_cnode_caps"
+  /*- set to_unfold = set(('cap_map_def', 'ArchSpec.assembly\'_def', 'ArchSpec.composition\'_def', 'ArchSpec.%s_def' % i.name, 'ArchSpec.%s_def' % i.type.name, 'CapDLSpec.%s_cnode_caps_def' % i.name, 'cap_offset_def', 'ep_objs_def')) -*/
   /*- for c in composition.connections -*/
     /*- do to_unfold.add('ArchSpec.%s_def' % c.name) -*/
   /*- endfor -*/
@@ -560,7 +560,7 @@ lemma caps_of_/*? i.name ?*/: "cap_map ArchSpec.assembly' ''/*? i.name ?*/'' = C
 /*- for i in composition.instances -*/
 
   /*# Find the CNode of this instance. We'll need this later on. #*/
-  /*- set cnode_regex = re.compile('cnode_(?P<instance>[a-zA-Z_]\\w*)$') -*/
+  /*- set cnode_regex = re.compile('(?P<instance>[a-zA-Z_]\\w*)_cnode$') -*/
   /*- set cnode = [] -*/
   /*- for obj in obj_space.spec.objs -*/
     /*- if obj.name is not none -*/
@@ -660,7 +660,7 @@ lemma dom_cnodes:
 /*- set ids = set() -*/
 /*- set to_unfold = set(('cnode_objs_def', 'ArchSpec.assembly\'_def', 'ArchSpec.composition\'_def', 'id_of', 'instance_names_def')) -*/
 /*- for i in composition.instances -*/
-  /*- do ids.add('cnode_%s_id' % i.name) -*/
+  /*- do ids.add('%s_cnode_id' % i.name) -*/
   /*- do list(map(to_unfold.add, ('ArchSpec.%s_def' % i.name, 'ArchSpec.%s_def' % i.type.name))) -*/
 /*- endfor -*/
 /*? '\n'.join(textwrap.wrap('     {%s}"' % ', '.join(ids), width=100, subsequent_indent='      ')) ?*/
@@ -669,14 +669,14 @@ lemma dom_cnodes:
 
 (** TPP: condense = True *)
 /*- for i in composition.instances -*/
-lemma cnode_of_cnode_/*? i.name ?*/:
-  "map_of (map (\<lambda>x. (the (id_of (cdlo_name x)), cdlo_type x)) (cnode_objs ArchSpec.assembly')) CapDLSpec.cnode_/*? i.name ?*/_id
-     = Some CapDLSpec.cnode_/*? i.name ?*/"
+lemma cnode_of_/*? i.name ?*/_cnode:
+  "map_of (map (\<lambda>x. (the (id_of (cdlo_name x)), cdlo_type x)) (cnode_objs ArchSpec.assembly')) CapDLSpec./*? i.name ?*/_cnode_id
+     = Some CapDLSpec./*? i.name ?*/_cnode"
   /*? open_proof ?*/cut_tac caps_of_/*? i.name ?*//*? A ?*/
   /*? a ?*/cut_tac cnode_size_of_/*? i.name ?*//*? A ?*/
-  /*- set to_unfold = set(('cnode_objs_def', 'ArchSpec.assembly\'_def', 'ArchSpec.composition\'_def', 'id_of', 'instance_names_def', 'CapDLSpec.cnode_%s_def' % i.name)) -*/
+  /*- set to_unfold = set(('cnode_objs_def', 'ArchSpec.assembly\'_def', 'ArchSpec.composition\'_def', 'id_of', 'instance_names_def', 'CapDLSpec.%s_cnode_def' % i.name)) -*/
   /*- for i2 in composition.instances -*/
-    /*- do to_unfold.add('CapDLSpec.cnode_%s_id_def' % i2.name) -*/
+    /*- do to_unfold.add('CapDLSpec.%s_cnode_id_def' % i2.name) -*/
   /*- endfor -*/
 /*? '\n'.join(textwrap.wrap('  %ssimp add:%s%s' % (a, ' '.join(to_unfold), close_proof), width=100, subsequent_indent=' ' * len('  %ssimp add:' % a))) ?*/
 /*- endfor -*/
