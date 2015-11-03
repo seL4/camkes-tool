@@ -251,10 +251,10 @@ RUNNER, TEMPLATES, FILTERS = list(range(3))
 # you want to modify the name mangling scheme, this is the place to do it.
 DERIVATIONS = {
     RUNNER:[
-        ForwardDeriver('pd_%(group)s_group_bin', 'pd'),
-        ForwardDeriver('pd_%(elf_name)s', 'pd'),
-        BackwardDeriver(r'pd_(.+)$', 'pd', 'elf_name'),
-        BackwardDeriver(r'pd_(.+)_group_bin$', 'pd', 'group'),
+        ForwardDeriver('%(group)s_group_bin_pd', 'pd'),
+        ForwardDeriver('%(elf_name)s_pd', 'pd'),
+        BackwardDeriver(r'(.+)_pd$', 'pd', 'elf_name'),
+        BackwardDeriver(r'(.+)_group_bin_pd$', 'pd', 'group'),
         ForwardDeriver('%(group)s_cnode', 'cnode'),
         BackwardDeriver(r'(.+)_cnode$', 'cnode', 'group'),
     ], TEMPLATES:[
@@ -290,10 +290,10 @@ DERIVATIONS = {
         BackwardDeriver(r'(.+)_group_bin', 'elf_name', 'group'),
         PoolDeriver(r'.+_tcb_pool_[0-9]+$', 'tcb'),
         PoolIndexDeriver(r'.+_tcb_pool_([0-9]+)$', 'tcb'),
-        ForwardDeriver('pd_%(group)s_group_bin', 'pd'),
-        ForwardDeriver('pd_%(elf_name)s', 'pd'),
-        BackwardDeriver(r'pd_(.+)$', 'pd', 'elf_name'),
-        BackwardDeriver(r'pd_(.+)_group_bin$', 'pd', 'group'),
+        ForwardDeriver('%(group)s_group_bin_pd', 'pd'),
+        ForwardDeriver('%(elf_name)s_pd', 'pd'),
+        BackwardDeriver(r'(.+)_pd$', 'pd', 'elf_name'),
+        BackwardDeriver(r'(.+)_group_bin_pd$', 'pd', 'group'),
         ForwardDeriver('camkes %(instance)s_dma_pool', 'dma_pool_symbol'),
         BackwardDeriver(r'camkes (.+)_dma_pool$', 'dma_pool_symbol', 'instance'),
         ForwardDeriver('%(instance)s_dma_frame_%(dma_frame_index)04d', 'dma_frame_symbol'),
