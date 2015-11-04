@@ -52,6 +52,7 @@ syn keyword CKeyword auto break case const continue default do else enum extern
     \ __complex __complex__ __const __const__ __imag__ __inline __inline__
     \ __real__ __restrict __restrict__ __signed __signed__ __typeof __typeof__
     \ __volatile __volatile__ __builtin_convertvector __unknown_anytype
+syn keyword CamkesBoolean true True false False
 
 hi def link CamkesCPP PreProc
 hi def link CamkesKeyword Statement
@@ -68,6 +69,7 @@ hi def link CamkesSingleLineComment Comment
 hi def link CamkesString Constant
 hi def link CamkesBuiltin Constant
 hi def link CamkesNumber Constant
+hi def link CamkesBoolean Constant
 hi def link CamkesExportOperator Statement
 hi def link CamkesAttributeReferenceOperator Statement
 hi def link CKeyword Error

@@ -161,6 +161,11 @@ def _lift_attribute_decl(location, type, id):
 def _lift_attribute_reference(location, *ids):
     return AttributeReference('.'.join(ids), location)
 
+def _lift_boolean_literal(location, text):
+    if text in ('True', 'true'):
+        return 1
+    return 0
+
 def _lift_bitwise_not(location, op):
     return -1 - op
 
@@ -597,6 +602,7 @@ LIFT = {
     'attribute':_lift_attribute,
     'attribute_decl':_lift_attribute_decl,
     'attribute_reference':_lift_attribute_reference,
+    'boolean_literal':_lift_boolean_literal,
     'bitwise_not':_lift_bitwise_not,
     'char':_lift_char,
     'component_decl':_lift_component_decl,

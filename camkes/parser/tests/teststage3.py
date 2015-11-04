@@ -768,5 +768,152 @@ class TestStage3(CAmkESTest):
         self.assertEqual(s.attribute, 'bar')
         self.assertEqual(s.value, 2)
 
+    def test_boolean_literals_plain(self):
+        '''
+        Test bare boolean literals.
+        '''
+        content, _ = self.parser.parse_string(
+            'configuration { foo.bar = true; }')
+
+        self.assertLen(content.children, 1)
+        conf = content.children[0]
+        self.assertIsInstance(conf, Configuration)
+
+        self.assertLen(conf.settings, 1)
+        s = conf.settings[0]
+        self.assertIsInstance(s, Setting)
+
+        self.assertEqual(s.instance, 'foo')
+        self.assertEqual(s.attribute, 'bar')
+        self.assertEqual(s.value, 1)
+
+        content, _ = self.parser.parse_string(
+            'configuration { foo.bar = True; }')
+
+        self.assertLen(content.children, 1)
+        conf = content.children[0]
+        self.assertIsInstance(conf, Configuration)
+
+        self.assertLen(conf.settings, 1)
+        s = conf.settings[0]
+        self.assertIsInstance(s, Setting)
+
+        self.assertEqual(s.instance, 'foo')
+        self.assertEqual(s.attribute, 'bar')
+        self.assertEqual(s.value, 1)
+
+        content, _ = self.parser.parse_string(
+            'configuration { foo.bar = false; }')
+
+        self.assertLen(content.children, 1)
+        conf = content.children[0]
+        self.assertIsInstance(conf, Configuration)
+
+        self.assertLen(conf.settings, 1)
+        s = conf.settings[0]
+        self.assertIsInstance(s, Setting)
+
+        self.assertEqual(s.instance, 'foo')
+        self.assertEqual(s.attribute, 'bar')
+        self.assertEqual(s.value, 0)
+
+        content, _ = self.parser.parse_string(
+            'configuration { foo.bar = False; }')
+
+        self.assertLen(content.children, 1)
+        conf = content.children[0]
+        self.assertIsInstance(conf, Configuration)
+
+        self.assertLen(conf.settings, 1)
+        s = conf.settings[0]
+        self.assertIsInstance(s, Setting)
+
+        self.assertEqual(s.instance, 'foo')
+        self.assertEqual(s.attribute, 'bar')
+        self.assertEqual(s.value, 0)
+
+    def test_boolean_literals_expression(self):
+        '''
+        Test boolean literals within an expression.
+        '''
+        content, _ = self.parser.parse_string(
+            'configuration { foo.bar = true || false; }')
+
+        self.assertLen(content.children, 1)
+        conf = content.children[0]
+        self.assertIsInstance(conf, Configuration)
+
+        self.assertLen(conf.settings, 1)
+        s = conf.settings[0]
+        self.assertIsInstance(s, Setting)
+
+        self.assertEqual(s.instance, 'foo')
+        self.assertEqual(s.attribute, 'bar')
+        self.assertEqual(s.value, 1)
+
+        content, _ = self.parser.parse_string(
+            'configuration { foo.bar = true && false; }')
+
+        self.assertLen(content.children, 1)
+        conf = content.children[0]
+        self.assertIsInstance(conf, Configuration)
+
+        self.assertLen(conf.settings, 1)
+        s = conf.settings[0]
+        self.assertIsInstance(s, Setting)
+
+        self.assertEqual(s.instance, 'foo')
+        self.assertEqual(s.attribute, 'bar')
+        self.assertEqual(s.value, 0)
+
+        content, _ = self.parser.parse_string(
+            'configuration { foo.bar = !(true || false); }')
+
+        self.assertLen(content.children, 1)
+        conf = content.children[0]
+        self.assertIsInstance(conf, Configuration)
+
+        self.assertLen(conf.settings, 1)
+        s = conf.settings[0]
+        self.assertIsInstance(s, Setting)
+
+        self.assertEqual(s.instance, 'foo')
+        self.assertEqual(s.attribute, 'bar')
+        self.assertEqual(s.value, 0)
+
+    def test_boolean_literals_coercion(self):
+        '''
+        Test that boolean literals coerce to ints.
+        '''
+        content, _ = self.parser.parse_string(
+            'configuration { foo.bar = (true + true) * (true + true) - false; }')
+
+        self.assertLen(content.children, 1)
+        conf = content.children[0]
+        self.assertIsInstance(conf, Configuration)
+
+        self.assertLen(conf.settings, 1)
+        s = conf.settings[0]
+        self.assertIsInstance(s, Setting)
+
+        self.assertEqual(s.instance, 'foo')
+        self.assertEqual(s.attribute, 'bar')
+        self.assertEqual(s.value, 4)
+
+        content, _ = self.parser.parse_string(
+            'configuration { foo.bar = (true + 2) ** 3; }')
+
+        self.assertLen(content.children, 1)
+        conf = content.children[0]
+        self.assertIsInstance(conf, Configuration)
+
+        self.assertLen(conf.settings, 1)
+        s = conf.settings[0]
+        self.assertIsInstance(s, Setting)
+
+        self.assertEqual(s.instance, 'foo')
+        self.assertEqual(s.attribute, 'bar')
+        self.assertEqual(s.value, 27)
+
 if __name__ == '__main__':
     unittest.main()

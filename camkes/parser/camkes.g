@@ -41,6 +41,8 @@ ID: '[a-zA-Z_]\w*'
             EVENT_TYPE: 'Event';
             EVENTS_TYPE: 'Events';
             EXPORT: 'export';
+            FALSE1: 'False';
+            FALSE2: 'false';
             FROM: 'from';
             GROUP: 'group';
             HARDWARE: 'hardware';
@@ -65,6 +67,8 @@ ID: '[a-zA-Z_]\w*'
             TEMPLATE: 'template';
             THREAD: 'thread';
             THREADS: 'threads';
+            TRUE1: 'True';
+            TRUE2: 'true';
             TO: 'to';
             UNSIGNED: 'unsigned';
             USES: 'uses';
@@ -194,7 +198,7 @@ mul: '\*';
 div: '/';
 pow: '\*\*';
 @precedence0: number | '\(' numeric_expr '\)' | unary_minus | unary_plus
-            | logical_not | bitwise_not;
+            | logical_not | bitwise_not | boolean_literal;
 unary_minus: '-' precedence0;
 @unary_plus: '\+' precedence0;
 logical_not: '!' precedence0;
@@ -208,6 +212,7 @@ list: '\[' (item (',' item)* ','?)? '\]';
 dict: '\{' (key ':' item (',' key ':' item)* ','?)? '\}';
 @key: numeric_expr | quoted_string;
 @item: numeric_expr | quoted_string | list | dict;
+boolean_literal: TRUE1 | TRUE2 | FALSE1 | FALSE2;
 
 /* Things to ignore */
 SINGLE_LINE_COMMENT: '//.*' (%ignore);
