@@ -2445,7 +2445,7 @@ A procedural interface could then be defined to use the type:
 
     procedure algebra_iface {
       include <vector.h>;
-      Vector add(Vector a, Vector b);
+      Vector add(in Vector a, in Vector b);
     }
 
 C source files that need access to this data type can include the file with:
