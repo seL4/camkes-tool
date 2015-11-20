@@ -48,7 +48,7 @@ parse-capDL: ${STAGE_BASE}/parse-capDL/parse-capDL
 ${STAGE_BASE}/parse-capDL/parse-capDL:
 	@echo "[$(notdir $@)] building..."
 	$(Q)mkdir -p "${STAGE_BASE}"
-	$(Q)cp -pR tools/capDL $(dir $@)
+	$(Q)cp -pR tools/capDL/ $(dir $@)
 	$(Q)$(MAKE) --no-print-directory --directory=$(dir $@) 2>&1 \
         | while read line; do echo " $$line"; done; \
         exit $${PIPESTATUS[0]}
