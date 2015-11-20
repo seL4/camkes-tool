@@ -50,7 +50,7 @@ int /*? me.to_interface.name ?*/__run(void) {
             accept();
         }
         __sync_fetch_and_add(counter, 1);
-        (void)seL4_Wait(/*? notification ?*/, NULL);
+        (void)seL4_Recv(/*? notification ?*/, NULL);
     }
 
     UNREACHABLE();

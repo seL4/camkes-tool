@@ -44,5 +44,5 @@ int /*? me.to_interface.name ?*/_poll(void) {
 }
 
 void /*? me.to_interface.name ?*/_wait(void) {
-    seL4_Wait(/*? notification ?*/, NULL);
+    seL4_Recv(/*? notification ?*/, NULL);
 }

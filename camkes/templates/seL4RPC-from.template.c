@@ -216,7 +216,7 @@ int /*? me.from_interface.name ?*/__run(void) {
         ROUND_UP_UNSAFE(/*? length ?*/, sizeof(seL4_Word)) / sizeof(seL4_Word));
 
     seL4_Send(/*? ep ?*/, /*? info ?*/);
-    /*? info ?*/ = seL4_Wait(/*? ep ?*/, NULL);
+    /*? info ?*/ = seL4_Recv(/*? ep ?*/, NULL);
 
     _TIMESTAMP("communication done");
 
