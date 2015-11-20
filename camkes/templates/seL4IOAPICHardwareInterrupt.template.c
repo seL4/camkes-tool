@@ -51,7 +51,7 @@ static volatile int sleepers;
     do { \
         ATOMIC_INCREMENT(&sleepers); \
         assert(sleepers > 0); \
-        (void)seL4_Wait(/*? lock ?*/, NULL); \
+        (void)seL4_Recv(/*? lock ?*/, NULL); \
         assert(sleepers > 0); \
         ATOMIC_DECREMENT(&sleepers); \
     } while (0)
@@ -64,7 +64,7 @@ int /*? me.to_interface.name ?*/__run(void) {
     while (1) {
         int handled = 0;
 
-        (void)seL4_Wait(/*? notification ?*/, NULL);
+        (void)seL4_Recv(/*? notification ?*/, NULL);
 
         /* First preference: callbacks. */
         if (!handled) {

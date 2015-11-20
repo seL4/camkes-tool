@@ -184,7 +184,7 @@ int /*? me.to_interface.name ?*/__run(void) {
 
     while (1) {
         /*- set info = c_symbol('info') -*/
-        seL4_MessageInfo_t /*? info ?*/ = seL4_Wait(/*? ep ?*/, NULL);
+        seL4_MessageInfo_t /*? info ?*/ = seL4_Recv(/*? ep ?*/, NULL);
 
         /*- set size = c_symbol('size') -*/
         unsigned int /*? size ?*/ = seL4_MessageInfo_get_length(/*? info ?*/) * sizeof(seL4_Word);
