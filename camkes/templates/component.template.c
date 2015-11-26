@@ -411,6 +411,8 @@ int USED /*? p['entry_symbol'] ?*/(int thread_id) {
     seL4_DebugNameThread(camkes_get_tls()->tcb_cap, /*? thread_name ?*/);
 #endif
 
+    /*- set info = c_symbol('info') -*/
+
     /*- if options.fsupport_init -*/
         /*# Locks for synchronising init ops. #*/
         /*- set pre_init_ep = alloc('pre_init_ep', seL4_EndpointObject, read=True, write=True) -*/
@@ -441,20 +443,37 @@ int USED /*? p['entry_symbol'] ?*/(int thread_id) {
                 if (pre_init) {
                     pre_init();
                 }
-                /* Wake all the interface threads. */
+		/* Wake all of our passive threads so they can initialise */
                 /*- for i in all_interfaces -*/
-                    sync_sem_bare_post(/*? pre_init_ep ?*/, &/*? pre_init_lock ?*/);
+		    /*- set tcb = alloc('tcb_%s' % i.name, seL4_TCBObject) -*/
+		    /*- set my_sc = sc('%s_tcb_%s' % (me.name, i.name)) -*/
+		    /*- if my_sc == None -*/
+			seL4_Word badge;
+			seL4_MessageInfo_t /*? info ?*/ = seL4_MessageInfo_new(0, 0, 0, 0);
+			/*? info ?*/ = seL4_SendWait(/*? tcb ?*/, /*? pre_init_ep ?*/, /*? info ?*/, &badge);
+		   /*- endif -*/
+		/*- endfor -*/
+		
+                /* Wake all the active interface threads. */
+                /*- for i in all_interfaces -*/
+		    /*- if sc('%s_tcb_%s' % (me.name, i.name)) != None -*/
+			sync_sem_bare_post(/*? pre_init_ep ?*/, &/*? pre_init_lock ?*/);
+		    /*- endif -*/
                 /*- endfor -*/
-                /* wait for all the interface threads to run their inits. */
+                /* wait for all the active interface threads to run their inits. */
                 /*- for i in all_interfaces -*/
-                    sync_sem_bare_wait(/*? interface_init_ep ?*/, &/*? interface_init_lock ?*/);
+		    /*- if sc('%s_tcb_%s' % (me.name, i.name)) != None -*/
+			sync_sem_bare_wait(/*? interface_init_ep ?*/, &/*? interface_init_lock ?*/);
+		    /*- endif -*/
                 /*- endfor -*/
                 if (post_init) {
                     post_init();
                 }
-                /* Wake all the interface threads. */
+                /* Wake all the active interface threads. */
                 /*- for i in all_interfaces -*/
-                    sync_sem_bare_post(/*? post_init_ep ?*/, &/*? post_init_lock ?*/);
+		    /*- if sc('%s_tcb_%s' % (me.name, i.name)) != None -*/
+			sync_sem_bare_post(/*? post_init_ep ?*/, &/*? post_init_lock ?*/);
+		    /*- endif -*/
                 /*- endfor -*/
             /*- endif -*/
             /*- if me.type.control -*/
@@ -467,6 +486,24 @@ int USED /*? p['entry_symbol'] ?*/(int thread_id) {
         /*- for index, i in enumerate(all_interfaces) -*/
             /*- set tcb = alloc('tcb_%s' % i.name, seL4_TCBObject) -*/
             case /*? tcb ?*/ : { /* Interface /*? i.name ?*/ */
+	        /*- if sc('%s_tcb_%s' % (me.name, i.name)) == None -*/
+		    /* Passive thread, so 'pre-init' has completed before we are run */
+                    if (/*? i.name ?*/__init) {
+                        /*? i.name ?*/__init();
+                    }
+	            /* Call run function if it exists, must SendWait on 'pre_init_ep' */
+		    extern int /*? i.name ?*/__run(void) __attribute__((weak));
+		    if (/*? i.name ?*/__run) {
+		      return /*? i.name ?*/__run();
+		    } else {
+		      /* Interface not connected. Wait shouldn't ever return */
+		      seL4_MessageInfo_t /*? info ?*/ = seL4_MessageInfo_new(0, 0, 0, 0);
+		      seL4_ReplyWait(/*?post_init_ep ?*/, /*? info ?*/, NULL);
+		      return 0;
+		    }
+
+		/*- else -*/
+
                 /*- if options.fsupport_init -*/
                     /* Wait for `pre_init` to complete. */
                     sync_sem_bare_wait(/*? pre_init_ep ?*/, &/*? pre_init_lock ?*/);
@@ -485,6 +522,8 @@ int USED /*? p['entry_symbol'] ?*/(int thread_id) {
                     /* Interface not connected. */
                     return 0;
                 }
+
+		/*- endif -*/
             }
         /*- endfor -*/
 

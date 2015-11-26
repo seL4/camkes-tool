@@ -128,6 +128,11 @@ connector seL4RPCCall {
 
 
 
+connector seL4RPCSendWait {
+	from Procedure user_inf;
+	to Procedure provider_inf;
+}
+
 /**
  * Direct Call connector
  *

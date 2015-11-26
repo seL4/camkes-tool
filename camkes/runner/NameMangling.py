@@ -239,7 +239,7 @@ class Perspective(object):
                         # We already knew this symbol. It had better have been
                         # the same as what we just derived for consistency.
                         assert self.kwargs[k] == v, \
-                            'perspective is internally inconsistent: %s' % self.kwargs
+                            'perspective is internally inconsistent for key: %s, kwargs: %s' % (k, self.kwargs)
                     else:
                         self.kwargs[k] = v
             next_keys = set(self.kwargs.keys())

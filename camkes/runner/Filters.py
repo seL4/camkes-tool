@@ -838,11 +838,8 @@ def sc_properties(ast, obj_space, cspaces, *_):
             periods = filter(lambda x: \
                 x.instance == name and x.attribute == period_attribute,
                 settings)
-            if len(periods) != 1:
-                continue
-            period = periods[0].value
-
-            sc.period = period
+            if len(periods) == 1:
+            	sc.period = periods[0].value
 
             # Find the deadline if it was set.
             deadline_attribute = perspective['deadline_attribute']
@@ -850,11 +847,8 @@ def sc_properties(ast, obj_space, cspaces, *_):
             deadlines = filter(lambda x: \
                 x.instance == name and x.attribute == deadline_attribute,
                 settings)
-            if len(deadlines) != 1:
-                continue
-            deadline = deadlines[0].value
-
-            sc.deadline = deadline
+            if len(deadlines) == 1:
+            	sc.deadline = deadlines[0].value
 
             # Find the exec_req if it was set.
             exec_req_attribute = perspective['exec_req_attribute']
@@ -862,11 +856,8 @@ def sc_properties(ast, obj_space, cspaces, *_):
             exec_reqs = filter(lambda x: \
                 x.instance == name and x.attribute == exec_req_attribute,
                 settings)
-            if len(exec_reqs) != 1:
-                continue
-            exec_req = exec_reqs[0].value
-
-            sc.exec_req = exec_req
+            if len(exec_reqs) == 1:
+            	sc.exec_req = exec_reqs[0].value
 
             # Find the flags if it was set.
             flags_attribute = perspective['flags_attribute']
@@ -874,12 +865,8 @@ def sc_properties(ast, obj_space, cspaces, *_):
             flagss = filter(lambda x: \
                 x.instance == name and x.attribute == flags_attribute,
                 settings)
-            if len(flagss) != 1:
-                continue
-            flags = flagss[0].value
-
-            sc.flags = flags
-
+            if len(flagss) == 1:
+            	sc.flags = flagss[0].value
 
 
 CAPDL_FILTERS = [
