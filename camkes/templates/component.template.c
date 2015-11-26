@@ -375,6 +375,7 @@ static void /*? init ?*/(void) {
 void USED /*? p['tls_symbol'] ?*/(int thread_id) {
     switch (thread_id) {
         /*- set tcb_control = alloc('tcb_0_control', seL4_TCBObject) -*/
+        /*- set sc_control = alloc('sc__control', seL4_SchedContextObject) -*/
         case /*? tcb_control ?*/ : /* Control thread */
             /*- set p = Perspective(instance=me.name, control=True) -*/
             /*? macros.save_ipc_buffer_address(p['ipc_buffer_symbol']) ?*/
@@ -385,6 +386,7 @@ void USED /*? p['tls_symbol'] ?*/(int thread_id) {
         /*# Interface threads #*/
         /*- for index, i in enumerate(all_interfaces) -*/
             /*- set tcb = alloc('tcb_%s' % i.name, seL4_TCBObject) -*/
+            /*- set sc = alloc('sc_%s' % i.name, seL4_SchedContextObject) -*/
             case /*? tcb ?*/ : { /* Interface /*? i.name ?*/ */
                 /*- set p = Perspective(instance=me.name, interface=i.name) -*/
                 /*? macros.save_ipc_buffer_address(p['ipc_buffer_symbol']) ?*/
