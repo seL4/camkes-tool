@@ -18,7 +18,7 @@
 /*- set notification_obj = alloc_obj('notification', seL4_NotificationObject) -*/
 /*- set notification = alloc_cap('notification', notification_obj, read=True) -*/
 /*- set _irq = configuration[me.from_instance.name].get(attr) -*/
-/*- set irq = alloc('irq', seL4_IRQControl, number=_irq, notification=notification_obj) -*/
+/*- set irq = alloc('irq', seL4_IRQControl, number=_irq, notification=my_cnode[notification]) -*/
 /*- set lock = alloc('lock', seL4_NotificationObject, read=True, write=True) -*/
 
 #define MAX_CALLBACKS 10
