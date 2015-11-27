@@ -214,15 +214,6 @@ menu "CAmkES Options"
             is not recommended to enable this if you are working on the internals
             of CAmkES itself.
 
-        config CAMKES_DISABLE_PYTHON_IMPORT_CHECKS
-        bool "Disable Python import checks"
-        default n
-        help
-            Disable sanity checks that Python modules we are about to import are
-            available. These checks are designed to warn new users that they do not
-            have the required dependencies. If you have an established installation
-            and want to speed up your build times you should select this option.
-
         choice
         prompt "Python interpreter"
         default CAMKES_PYTHON_INTERPRETER_CPYTHON
