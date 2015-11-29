@@ -18,6 +18,9 @@ Dependency checker for CAmkES.
 # becomes useless as a dependency checker.
 import abc, argparse, importlib, os, shutil, subprocess, sys, tempfile
 
+class CheckDepException(Exception):
+    pass
+
 class Package(object):
     __metaclass__ = abc.ABCMeta
 
