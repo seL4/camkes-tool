@@ -126,4 +126,64 @@ void * /*? me.from_interface.name ?*/_unwrap_ptr(dataport_ptr_t *p) {
     /*- endif -*/
     };
 
+    /*- if arch == 'arm' -*/
+    static inline int sel4_flush_cache(seL4_CPtr frame_cap, seL4_Word start, seL4_Word end) {
+        return seL4_ARM_Page_Clean_Data(frame_cap, start, end);
+    }
+    /*- endif -*/
+
+    /* Flush data corresponding to the dataport-relative address range from the CPU cache */
+    int /*? me.from_interface.name ?*/_flush_cache(size_t start_offset UNUSED, size_t size UNUSED) {
+        /*- if arch == 'arm' -*/
+
+        if (start_offset < 0) {
+            return -1;
+        }
+
+        size_t end_offset = start_offset + size;
+        unsigned int start_index = start_offset / /*? frame_size ?*/;
+        unsigned int end_index = end_offset / /*? frame_size ?*/;
+
+        if (start_offset >= sizeof(/*? show(me.from_interface.type) ?*/) ||
+            end_offset > sizeof(/*? show(me.from_interface.type) ?*/)) {
+            return -1;
+        }
+
+        if (start_index == end_index) {
+            /* Only one frame to flush */
+            seL4_CPtr frame = /*? me.from_interface.name ?*/_frame_caps[start_index];
+            size_t relative_start_offset = start_offset % /*? frame_size ?*/;
+            size_t relative_end_offset = end_offset % /*? frame_size ?*/;
+            return sel4_flush_cache(frame, relative_start_offset, relative_end_offset);
+        } else {
+            /* Range of frames to flush */
+
+            /* flush first frame */
+            seL4_CPtr frame = /*? me.from_interface.name ?*/_frame_caps[start_index];
+            size_t relative_start_offset = start_offset % /*? frame_size ?*/;
+            int error = sel4_flush_cache(frame, relative_start_offset, /*? frame_size ?*/);
+            if (error != 0) {
+                return error;
+            }
+
+            /* flush intermediate frames */
+            for (unsigned int i = start_index + 1; i < end_index; ++i) {
+                frame = /*? me.from_interface.name ?*/_frame_caps[i];
+                error = sel4_flush_cache(frame, 0, /*? frame_size ?*/);
+                if (error != 0) {
+                    return error;
+                }
+            }
+
+            /* flush last frame */
+            frame = /*? me.from_interface.name ?*/_frame_caps[end_index];
+            size_t relative_end_offset = end_offset % /*? frame_size ?*/;
+            if (relative_end_offset != 0) {
+                return sel4_flush_cache(frame, 0, relative_end_offset);
+            }
+        }
+        /*- endif -*/
+        return 0;
+    }
+
 /*- endif -*/

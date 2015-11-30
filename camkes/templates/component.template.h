@@ -106,6 +106,10 @@ const char *get_instance_name(void);
     /*- if d.optional -*/
         __attribute__((weak))
     /*- endif -*/;
+    int /*? d.name ?*/_flush_cache(size_t start_offset, size_t size)
+    /*- if d.optional -*/
+        __attribute__((weak))
+    /*- endif -*/;
 /*- endfor -*/
 
 /*- for m in me.type.mutexes -*/
