@@ -49,6 +49,20 @@ class PythonModule(Package):
         except ImportError:
             return False
 
+class PythonModuleWith(PythonModule):
+    def __init__(self, name, description, attr):
+        super(PythonModuleWith, self).__init__(name, description)
+        self.attr = attr
+
+    def exists(self):
+        if not super(PythonModuleWith, self).exists():
+            return False
+        mod = importlib.import_module(self.name)
+        if not hasattr(mod, self.attr):
+            raise CheckDepException('module exists, but %s.%s not found '
+                '(upgrade required?)' % (self.name, self.attr))
+        return True
+
 class CLibrary(Package):
     def exists(self):
         with open(os.devnull, 'w') as f:
