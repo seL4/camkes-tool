@@ -230,7 +230,27 @@ def set_tcb_caps(ast, obj_space, cspaces, elfs, options, **_):
 
             # Currently no fault EP (fault_ep_slot).
 
-def collapse_shared_frames(ast, obj_space, elfs, options, **_):
+def find_hardware_frame_in_cspace(cspace, paddr, instance_name, interface_name):
+    """Returns the cap to a frame backing a hardware dataport with a given physical
+    address, instance and interface. Throws an exception if no matching frame is found.
+    The check for instance and interface is done by examining the frame object name.
+    This function expects name of the form "eventual_name (instance_name.interface_name)".
+    When a match is found, the object name is changed to "eventual_name".
+    """
+
+    for cap in cspace.cnode.slots.values():
+        obj = cap.referent
+        match = re.match(r"([^ ]*) \(([^.]*)\.([^.]*)\)", obj.name)
+        if isinstance(obj, Frame) and obj.paddr == paddr and \
+                match is not None \
+                and match.group(2) == instance_name \
+                and match.group(3) == interface_name:
+            obj.name = match.group(1)
+            return cap
+
+    raise Exception("Can't find frame for device memory in cspace")
+
+def collapse_shared_frames(ast, obj_space, cspaces, elfs, options, **_):
     """Find regions in virtual address spaces that are intended to be backed by
     shared frames and adjust the capability distribution to reflect this."""
 
@@ -324,8 +344,17 @@ def collapse_shared_frames(ast, obj_space, elfs, options, **_):
                 assert conf is not None
                 paddr, size = conf.strip('"').split(':')
                 # Round up the MMIO size to PAGE_SIZE
-                paddr = int(paddr, 0)
-                size = int(size, 0)
+                try:
+                    paddr = int(paddr, 0)
+                except ValueError:
+                    raise Exception("Invalid physical address specified for %s.%s: %s\n" %
+                                    (me.to_instance.name, me.to_interface.name, paddr))
+
+                try:
+                    size = int(size, 0)
+                except ValueError:
+                    raise Exception("Invalid size specified for %s.%s: %s\n" %
+                                    (me.to_instance.name, me.to_interface.name, size))
 
                 hardware_cached = p['hardware_cached']
                 cached = assembly.configuration[connections[0].to_instance.name].get(hardware_cached)
@@ -373,18 +402,26 @@ def collapse_shared_frames(ast, obj_space, elfs, options, **_):
                         # look up the page table at the current index
                         pt = pd[pt_index].referent
 
-                        name = 'large_frame_%s_%d' % (instance_name, large_frame_uid)
-                        large_frame_uid += 1
+                        offset = count * large_size
+                        frame_paddr = paddr + offset
 
-                        frame_paddr = paddr + large_size * count
+                        # lookup the frame, already allocated by a template
+                        frame_cap = find_hardware_frame_in_cspace(
+                                        cspaces[i.address_space],
+                                        frame_paddr,
+                                        connections[0].to_instance.name,
+                                        connections[0].to_interface.name)
+                        frame_obj = frame_cap.referent
 
-                        # allocate a new large frame
-                        frame = obj_space.alloc(large_object_type, name, paddr=frame_paddr)
+                        # create a new cap for the frame to use for its mapping
+                        mapping_frame_cap = Cap(frame_obj, read, write, execute)
+                        mapping_frame_cap.set_cached(cached)
 
-                        # insert the frame cap into the page directory
-                        frame_cap = Cap(frame, read, write, execute)
-                        frame_cap.set_cached(cached)
-                        pd[pt_index] = frame_cap
+                        # add the mapping to the spec
+                        pd[pt_index] = mapping_frame_cap
+
+                        # add the mapping information to the original cap
+                        frame_cap.set_mapping(pd, pt_index)
 
                         # remove all the small frames from the spec
                         for p_index in pt:
@@ -405,13 +442,42 @@ def collapse_shared_frames(ast, obj_space, elfs, options, **_):
                             raise Exception('MMIO attributes specify device ' \
                                 'memory that is larger than the dataport it is ' \
                                 'associated with')
-                        frame_obj.paddr = paddr + PAGE_SIZE * idx
-                        cap = Cap(frame_obj, read, write, execute)
-                        cap.set_cached(cached)
-                        pts[idx].slots[p_indices[idx]] = cap
+
+                        offset = idx * PAGE_SIZE
+                        frame_paddr = paddr + offset
+
+                        # lookup the frame, already allocated by a template
+                        frame_cap = find_hardware_frame_in_cspace(
+                                        cspaces[i.address_space],
+                                        frame_paddr,
+                                        connections[0].to_instance.name,
+                                        connections[0].to_interface.name)
+                        frame_obj = frame_cap.referent
+
+                        # create a new cap for the frame to use for its mapping
+                        mapping_frame_cap = Cap(frame_obj, read, write, execute)
+                        mapping_frame_cap.set_cached(cached)
+
+                        # add the mapping to the spec
+                        pt = pts[idx]
+                        slot = p_indices[idx]
+                        pt.slots[slot] = mapping_frame_cap
+
+                        # add the mapping information to the original cap
+                        frame_cap.set_mapping(pt, slot)
+
                         obj_space.relabel(conn_name, frame_obj)
 
                 continue
+
+            # If any objects still have names indicating they are part of a hardware
+            # dataport, it means that dataport hasn't been given a paddr or size.
+            # This indicates an error, and the object name is invalid in capdl,
+            # so catch the error here rather than having the capdl translator fail.
+            for cap in cspaces[i.name].cnode.slots.values():
+                match = re.match(r"([^ ]*) \(([^.]*)\.([^.]*)\)", cap.referent.name)
+                if match is not None and match.group(2) == connections[0].to_instance.name:
+                    raise Exception("Missing hardware attributes for %s.%s" % (match.group(2), match.group(3)))
 
             shm_keys = []
             for c in connections:
