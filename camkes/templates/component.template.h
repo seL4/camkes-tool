@@ -16,6 +16,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <utils/util.h>
+#include <platsupport/io.h>
 
 /*? macros.show_includes(me.type.includes) ?*/
 /*- for i in me.type.uses -*/
@@ -150,6 +151,10 @@ const char *get_instance_name(void);
     extern /*? macros.dataport_type(d.type) ?*/ * /*? d.name ?*/
     /*- if d.optional -*/
         WEAK
+    /*- endif -*/;
+    int /*? d.name ?*/_cache_op(size_t start_offset, size_t size, dma_cache_op_t cache_op)
+    /*- if d.optional -*/
+        __attribute__((weak))
     /*- endif -*/;
 /*- endfor -*/
 

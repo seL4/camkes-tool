@@ -14,7 +14,9 @@
 #include <camkes/dataport.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <platsupport/io.h>
 #include <utils/util.h>
+#include <sel4/sel4.h>
 /*? macros.show_includes(me.instance.type.includes) ?*/
 
 /*- set index = me.parent.from_ends.index(me) -*/
@@ -75,6 +77,8 @@ void * /*? me.interface.name ?*/_unwrap_ptr(dataport_ptr_t *p) {
 /*# Check if we have reserved enough virtual memory for the MMIO. #*/
 static_assert(/*? macros.dataport_size(me.interface.type) ?*/ == /*? size ?*/, "Data type mismatch!");
 
+/*- set cached = configuration[me.parent.to_instance.name].get('%s_hardware_cached' % me.parent.to_interface.name, False) -*/
+
 void * /*? me.interface.name ?*/_translate_paddr(
         uintptr_t paddr, size_t size) {
     if (paddr == /*? paddr ?*/ && size == /*? size ?*/) {
@@ -83,4 +87,64 @@ void * /*? me.interface.name ?*/_translate_paddr(
     return NULL;
 }
 
-/*- do register_shared_variable('%s_data' % me.parent.name, 'from_%d_%s_data' % (index, me.interface.name), 'RW', paddr) -*/
+/*- set frame_caps = c_symbol('frame_caps') -*/
+/*- set frames = [] -*/
+/*# Allocate frame objects to back the hardware dataport #*/
+static const seL4_CPtr /*? frame_caps ?*/[] = {
+    /*- set n_frames = (size + macros.PAGE_SIZE - 1) // macros.PAGE_SIZE -*/
+    /*- for i in range(n_frames) -*/
+        /*- set name = "frame_%s_%d" % (me.instance.name, i) -*/
+        /*- set offset = macros.PAGE_SIZE * i -*/
+        /*- set frame_obj = alloc_obj(name, seL4_FrameObject, paddr=(paddr + offset)) -*/
+        /*- do frames.append(frame_obj) -*/
+        /*- set frame_cap = alloc_cap(name, frame_obj) -*/
+        /*? frame_cap ?*/,
+    /*- endfor -*/
+};
+
+/*- do register_shared_variable('%s_data' % me.parent.name, 'from_%d_%s_data' % (index, me.interface.name), 'RW', paddr, frames=frames, cached_hw=cached) -*/
+
+/*- if options.architecture in ('aarch32', 'arm_hyp') -*/
+    static int sel4_cache_op(seL4_CPtr frame_cap, seL4_Word start, seL4_Word end, dma_cache_op_t cache_op) {
+        switch (cache_op) {
+        case DMA_CACHE_OP_CLEAN:
+            return seL4_ARM_Page_Clean_Data(frame_cap, start, end);
+        case DMA_CACHE_OP_INVALIDATE:
+            return seL4_ARM_Page_Invalidate_Data(frame_cap, start, end);
+        case DMA_CACHE_OP_CLEAN_INVALIDATE:
+            return seL4_ARM_Page_CleanInvalidate_Data(frame_cap, start, end);
+        default:
+            ZF_LOGF("Invalid cache_op %d", cache_op);
+            return -1;
+        }
+    }
+/*- endif -*/
+
+/* Flush data corresponding to the dataport-relative address range from the CPU cache */
+int /*? me.interface.name ?*/_flush_cache(size_t start_offset UNUSED, size_t size UNUSED, dma_cache_op_t cache_op UNUSED) {
+    /*- if options.architecture in ('aarch32', 'arm_hyp') -*/
+
+    if (start_offset >= /*? size ?*/ || size > /*? size ?*/ || /*? size ?*/ - size < start_offset) {
+        ZF_LOGE("Specified range is outside the bounds of the dataport");
+        return -1;
+    }
+
+    size_t current_offset = start_offset;
+    size_t end_offset = start_offset + size;
+
+    while (current_offset < end_offset) {
+        size_t frame_top = MIN(ROUND_UP(current_offset + 1, /*? macros.PAGE_SIZE ?*/), end_offset);
+        seL4_CPtr frame_cap = /*? frame_caps ?*/[current_offset / /*? macros.PAGE_SIZE ?*/];
+        size_t frame_start_offset = current_offset % /*? macros.PAGE_SIZE ?*/;
+        size_t frame_end_offset = ((frame_top - 1) % /*? macros.PAGE_SIZE ?*/) + 1;
+        int error = sel4_cache_op(frame_cap, frame_start_offset,  frame_end_offset, cache_op);
+        if (error) {
+            ZF_LOGE("Cache flush syscall returned with error: %d", error);
+            return error;
+        }
+        current_offset = frame_top;
+    }
+
+    /*- endif -*/
+    return 0;
+}
