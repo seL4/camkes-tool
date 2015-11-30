@@ -109,7 +109,8 @@ def yellow(string):
 DEPENDENCIES = {
     'CAmkES runner':(PythonModule('jinja2', 'Python templating module'),
                      PythonModule('ply', 'Python parsing module'),
-                     PythonModule('elftools', 'Python ELF parsing module')),
+                     PythonModule('elftools', 'Python ELF parsing module'),
+                     PythonModuleWith('six', 'Python 2/3 compatibility layer', 'assertCountEqual')),
     'seL4':(Binary('gcc', 'C compiler'),
             PythonModule('tempita', 'Python templating module'),
             Binary('xmllint', 'XML validator'),
