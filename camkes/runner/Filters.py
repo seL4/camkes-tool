@@ -327,6 +327,18 @@ def collapse_shared_frames(ast, obj_space, elfs, options, **_):
                 paddr = int(paddr, 0)
                 size = int(size, 0)
 
+                hardware_cached = p['hardware_cached']
+                cached = assembly.configuration[connections[0].to_instance.name].get(hardware_cached)
+                if cached is None:
+                    cached = False
+                elif cached.lower() == 'true':
+                    cached = True
+                elif cached.lower() == 'false':
+                    cached = False
+                else:
+                    raise Exception("Value of %s.%s_cached must be either 'true' or 'false'. Got '%s'." %
+                                    (me.to_instance.name, me.to_interface.name, cached))
+
                 instance_name = connections[0].to_instance.name
 
                 if size == 0:
@@ -371,7 +383,7 @@ def collapse_shared_frames(ast, obj_space, elfs, options, **_):
 
                         # insert the frame cap into the page directory
                         frame_cap = Cap(frame, read, write, execute)
-                        frame_cap.set_cached(False)
+                        frame_cap.set_cached(cached)
                         pd[pt_index] = frame_cap
 
                         # remove all the small frames from the spec
@@ -395,7 +407,7 @@ def collapse_shared_frames(ast, obj_space, elfs, options, **_):
                                 'associated with')
                         frame_obj.paddr = paddr + PAGE_SIZE * idx
                         cap = Cap(frame_obj, read, write, execute)
-                        cap.set_cached(False)
+                        cap.set_cached(cached)
                         pts[idx].slots[p_indices[idx]] = cap
                         obj_space.relabel(conn_name, frame_obj)
 
