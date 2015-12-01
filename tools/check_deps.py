@@ -18,6 +18,9 @@ Dependency checker for CAmkES.
 # becomes useless as a dependency checker.
 import abc, argparse, importlib, os, shutil, subprocess, sys, tempfile
 
+class CheckDepException(Exception):
+    pass
+
 class Package(object):
     __metaclass__ = abc.ABCMeta
 
@@ -45,6 +48,20 @@ class PythonModule(Package):
             return True
         except ImportError:
             return False
+
+class PythonModuleWith(PythonModule):
+    def __init__(self, name, description, attr):
+        super(PythonModuleWith, self).__init__(name, description)
+        self.attr = attr
+
+    def exists(self):
+        if not super(PythonModuleWith, self).exists():
+            return False
+        mod = importlib.import_module(self.name)
+        if not hasattr(mod, self.attr):
+            raise CheckDepException('module exists, but %s.%s not found '
+                '(upgrade required?)' % (self.name, self.attr))
+        return True
 
 class CLibrary(Package):
     def exists(self):
@@ -92,7 +109,8 @@ def yellow(string):
 DEPENDENCIES = {
     'CAmkES runner':(PythonModule('jinja2', 'Python templating module'),
                      PythonModule('ply', 'Python parsing module'),
-                     PythonModule('elftools', 'Python ELF parsing module')),
+                     PythonModule('elftools', 'Python ELF parsing module'),
+                     PythonModuleWith('six', 'Python 2/3 compatibility layer', 'assertCountEqual')),
     'seL4':(Binary('gcc', 'C compiler'),
             PythonModule('tempita', 'Python templating module'),
             Binary('xmllint', 'XML validator'),
