@@ -66,6 +66,13 @@ sys_tgkill(va_list ap)
 }
 
 long
+sys_tkill(va_list ap)
+{
+    sel4_abort();
+    return 0;
+}
+
+long
 sys_exit_group(va_list ap)
 {
 //    printf("Ignoring call to %s\n", __FUNCTION__);

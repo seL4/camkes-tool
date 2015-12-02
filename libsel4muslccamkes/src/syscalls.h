@@ -50,5 +50,6 @@ long sys_connect(va_list ap);
 long sys_listen(va_list ap);
 long sys_accept(va_list ap);
 long sys_setsockopt(va_list ap);
+long sys_tkill(va_list ap);
 
 #endif

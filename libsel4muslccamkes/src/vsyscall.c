@@ -58,6 +58,7 @@ static long (*syscall_table[])(va_list) = {
 #endif
     [__NR_fcntl64] = sys_fcntl64,
     [__NR_write] = sys_write,
+    [__NR_tkill] = sys_tkill,
 };
 
 #ifdef CONFIG_DEBUG_BUILD
