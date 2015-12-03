@@ -292,76 +292,11 @@ To work with any of the CAmkES tools you will need some extra software
 installed. It is assumed you are operating on a Linux host. Although an attempt
 has been made to implement functionality in an OS-independent way you may find
 extra dependencies or undocumented portability issues if you are running
-another OS.
+another OS. To check you have the appropriate dependencies installed:
 
-**Python**
-
-> Python should come pre-installed in most Linux distributions, but if not you
-  will need to install it. The tools have been tested with versions 2.6 and
-  2.7, but not version 3.
-
-**[PLY](http://www.dabeaz.com/ply/)**
-
-> PLY is an implementation of [Lex](http://dinosaur.compilertools.net/#lex)
-  and [Yacc](http://dinosaur.compilertools.net/#yacc) in Python. It is used in
-  the parser and should be available from most Linux distributions' default
-  repositories as python-ply.
-
-**[PyElftools](https://github.com/eliben/pyelftools)**
-
-> PyElftools contains Python disassembly functionality for ELF files. The
-  [runner](#runner) uses this to derive virtual address information for CapDL
-  specifications.
-
-**[CapDL Python module](https://github.com/seL4/python-capdl-tool)**
-
-> This module contains functionality for managing and generating CapDL
-  specifications in Python. If you are working in the larger CAmkES project
-  repository, this is already available as a subrepository.
-
-**[Expect](http://expect.sourceforge.net/)**
-
-> Expect is a tool for automating interaction with a command line application.
-  This is only required for running the test suite.
-
-**[Jinja2](http://jinja.pocoo.org/docs/)**
-
-> Jinja2 is a templating system primarily used for HTML targets. The CAmkES
-  templates use Jinja2 for their functionality. This should be available in the
-  default repositories of most Linux distributions and any recent version
-  should be fine.
-
-Some additional tools used by CAmkES in a seL4 build have their own
-dependencies. These are:
-
-**data-ordlist**
-
-> This is a Haskell package for dealing with list structures. This is a
-  dependency of the CapDL translator. It is installable from
-  [cabal](http://www.haskell.org/cabal/).
-
-**GCC**
-
-> A C compiler is necessary for building any C-based CAmkES application.
-  Obviously if building for a different target than your host machine you will
-  need to a cross compiler.
-
-**MissingH**
-
-> A Haskell package providing extra standard library functionality. This is a
-  dependency of the CapDL translator. It is installable from cabal.
-
-**QEMU**
-
-> A system emulator, like [QEMU](http://wiki.qemu.org/), is required if you
-  want to run CAmkES systems without available hardware. It should be widely
-  available.
-
-**split**
-
-> A Haskell package providing some extra functionality for splitting
-  operations. Again, this is a dependency of the CapDL translator that is
-  installable from cabal.
+```bash
+./tools/check_deps.py
+```
 
 ### Tutorial
 
