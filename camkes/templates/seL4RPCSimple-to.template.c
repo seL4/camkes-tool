@@ -301,7 +301,7 @@ static seL4_MessageInfo_t /*? me.to_interface.name ?*/__run_internal(bool /*? fi
                     int /*? result ?*/ UNUSED = seL4_CNode_SaveCaller(/*? cnode ?*/, /*? reply_cap_slot ?*/, 32);
                     assert(/*? result ?*/ == 0);
                 /*- else -*/
-                    seL4_ReplyWait(/*? ep ?*/, /*? info ?*/, NULL);
+                    seL4_ReplyRecv(/*? ep ?*/, /*? info ?*/, NULL);
                 /*- endif -*/
 
                 break;
