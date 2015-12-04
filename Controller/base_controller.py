@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import abc, six
+import abc, six, sys, os
 from gi.repository import Gtk
 
 class Controller(six.with_metaclass(abc.ABCMeta, object)):
@@ -17,7 +17,7 @@ class Controller(six.with_metaclass(abc.ABCMeta, object)):
     
     @parent_controller.setter
     def parent_controller(self, value):
-        assert issubclass(value, Controller) or isinstance(value, Controller)
+        assert issubclass(value.__class__, Controller) or isinstance(value, Controller)
         self._parent_controller = value;
 
     '''
@@ -35,7 +35,7 @@ class Controller(six.with_metaclass(abc.ABCMeta, object)):
 
     @root_widget.setter
     def root_widget(self, value):
-        assert issubclass(value, Gtk.Widget) or isinstance(value, Gtk.Widget)
+        assert issubclass(value.__class__, Gtk.Widget) or isinstance(value, Gtk.Widget)
         self._root_widget = value
 
     # --- Methods ---
@@ -43,7 +43,20 @@ class Controller(six.with_metaclass(abc.ABCMeta, object)):
     The subclass is expected to load their model and widgets when initialised. It is unnecessary
     '''
     def __init__(self):
-        raise NotImplementedError
+        super(Controller,self).__init__()
+        label = Gtk.Label()
+        label.set_text("Hello")
+        self.root_widget = label;
+
+
+if __name__ == '__main__':
+    win = Gtk.Window()
+    controller = Controller()
+    win.add(controller.root_widget)
+    win.connect("delete-event", Gtk.main_quit)
+    win.show_all()
+    Gtk.main()
+
 
 
     
