@@ -25,7 +25,7 @@ from .base import Transformer
 from .exception import ParseError
 from camkes.ast import Assembly, ASTObject, Attribute, AttributeReference, \
     Component, Composition, Configuration, Consumes, Dataport, Emits, \
-    Instance, Interface, Provides, Setting, TraversalAction, Uses
+    Instance, Interface, Provides, Setting, Uses
 import copy, six
 
 # The pre-condition of this stage is simply the post-condition of the previous
