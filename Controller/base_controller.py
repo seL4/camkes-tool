@@ -3,6 +3,7 @@
 
 import abc, six, sys, os
 from gi.repository import Gtk
+# import gtk as Gtk
 
 
 class Controller(six.with_metaclass(abc.ABCMeta, object)):
@@ -39,10 +40,8 @@ class Controller(six.with_metaclass(abc.ABCMeta, object)):
         self._root_widget = value
 
     # --- Methods ---
-    '''
-    The subclass is expected to load their model and widgets when initialised.
-    '''
     def __init__(self):
+        ''' The subclass is expected to load their model and widgets when initialised. '''
         super(Controller,self).__init__()
         self._parent_controller = None
         self._root_widget = None
