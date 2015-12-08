@@ -4,7 +4,6 @@
     <list default="true" id="9e94cc0d-524c-462a-bfa8-511eaa5dddfc" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Controller/graph_controller.py" afterPath="$PROJECT_DIR$/Controller/graph_controller.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/View/AST_Widget.py" afterPath="$PROJECT_DIR$/View/AST_Widget.py" />
     </list>
     <ignored path="VisualComponents.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -493,7 +492,13 @@
       <option name="project" value="LOCAL" />
       <updated>1449560556301</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="Created an AST_Widget. Useless atm">
+      <created>1449560585218</created>
+      <option name="number" value="00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1449560585218</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -539,7 +544,8 @@
     <MESSAGE value="Created an AST_creator object which will use the appropriate parser (or in the future parser to a certain stage)." />
     <MESSAGE value="Did some rearranging and attempting to create a AST_widget + draw onto the screen" />
     <MESSAGE value="Added Lazy Instantiation to root_widget" />
-    <option name="LAST_COMMIT_MESSAGE" value="Added Lazy Instantiation to root_widget" />
+    <MESSAGE value="Created an AST_Widget. Useless atm" />
+    <option name="LAST_COMMIT_MESSAGE" value="Created an AST_Widget. Useless atm" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager />
