@@ -32,6 +32,9 @@ class Controller(six.with_metaclass(abc.ABCMeta, object)):
     '''
     @property
     def root_widget(self):
+        # Lazy Instantiation
+        if self._root_widget is None:
+            self._root_widget = Gtk.Widget()
         return self._root_widget
 
     @root_widget.setter
