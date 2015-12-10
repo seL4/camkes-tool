@@ -2,11 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="9e94cc0d-524c-462a-bfa8-511eaa5dddfc" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/View/Connection_Widget.py" />
       <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/View/Instance_Widget.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Controller/graph_controller.py" afterPath="$PROJECT_DIR$/Controller/graph_controller.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/View/AST_Widget.py" afterPath="$PROJECT_DIR$/View/AST_Widget.py" />
     </list>
     <ignored path="VisualComponents.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -55,7 +53,7 @@
       <file leaf-file-name="graph_controller.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/Controller/graph_controller.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-1.0588236">
+            <state vertical-scroll-proportion="-0.6522678">
               <caret line="143" column="41" selection-start-line="143" selection-start-column="41" selection-end-line="143" selection-end-column="41" />
               <folding>
                 <element signature="e#47#56#0" expanded="true" />
@@ -262,6 +260,22 @@
     <property name="last_opened_file_path" value="$PROJECT_DIR$/../camkes-tool" />
     <property name="settings.editor.selected.configurable" value="reference.settings.ide.settings.spelling" />
     <property name="settings.editor.splitter.proportion" value="0.2" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatWidth0" value="224" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatOrder0" value="0" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatWidth1" value="249" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatOrder1" value="1" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatWidth2" value="254" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatOrder2" value="2" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatWidth3" value="1163" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatOrder3" value="3" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeWidth0" value="235" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeOrder0" value="0" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeWidth1" value="245" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeOrder1" value="1" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeWidth2" value="250" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeOrder2" value="2" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeWidth3" value="1160" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeOrder3" value="3" />
   </component>
   <component name="RunManager" selected="Python.graph_controller">
     <configuration default="false" name="base_controller" type="PythonConfigurationType" factoryName="Python" temporary="true">
@@ -565,7 +579,13 @@
       <option name="project" value="LOCAL" />
       <updated>1449714910459</updated>
     </task>
-    <option name="localTasksCounter" value="12" />
+    <task id="LOCAL-00012" summary="Created a widget to represent connections. Currently doesn't work. Finding it difficult to draw a line between two other widgets. Will have to figure out a way in Milestone 3">
+      <created>1449714969997</created>
+      <option name="number" value="00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1449714969997</updated>
+    </task>
+    <option name="localTasksCounter" value="13" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -578,8 +598,8 @@
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.39979014" sideWeight="0.50208336" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32948583" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32948717" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.32948583" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32948583" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32948583" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
@@ -614,7 +634,8 @@
     <MESSAGE value="Created an AST_Widget. Useless atm" />
     <MESSAGE value="Using graphviz to create a DOT graph representation of the AST tree. Then using this to get positions of each node (each instance).&#10;Using glade and Gtk.Builder to build custom UI for each instance.&#10;Create a list of widget_builder for each instance. &#10;&#10;" />
     <MESSAGE value="Using AST_Widget to test out drawing lines. Failed attempt :(. This class won't (should be) used anyway." />
-    <option name="LAST_COMMIT_MESSAGE" value="Using AST_Widget to test out drawing lines. Failed attempt :(. This class won't (should be) used anyway." />
+    <MESSAGE value="Created a widget to represent connections. Currently doesn't work. Finding it difficult to draw a line between two other widgets. Will have to figure out a way in Milestone 3" />
+    <option name="LAST_COMMIT_MESSAGE" value="Created a widget to represent connections. Currently doesn't work. Finding it difficult to draw a line between two other widgets. Will have to figure out a way in Milestone 3" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager />
@@ -1079,7 +1100,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/Controller/graph_controller.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-1.0588236">
+        <state vertical-scroll-proportion="-0.6522678">
           <caret line="143" column="41" selection-start-line="143" selection-start-column="41" selection-end-line="143" selection-end-column="41" />
           <folding>
             <element signature="e#47#56#0" expanded="true" />
