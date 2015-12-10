@@ -13,13 +13,19 @@ from pygraphviz import *
 #           http://stackoverflow.com/questions/32885486/pygraphviz-importerror-undefined-symbol-agundirected
 # from graphviz import Graph
 
+# TODO:
+# WARNING NEEED TO INSTALLL python-gi-cairo
+# sudo apt-get install python-gi-cairo
+
 # TODO: use pydotplus properly
 import pydotplus as Pydot
 
 
 from Controller.base_controller import Controller
 from Model.AST_creator import ASTCreator
-from View.AST_Widget import ASTWidget
+from View.Connection_Widget import ConnectionWidget
+from View.Instance_Widget import InstanceWidget
+
 # TODO: Add camkes tools to path, or make an init file or something
 from camkes.ast.base import ASTObject
 from camkes.ast.liftedast import LiftedAST
@@ -93,48 +99,59 @@ class GraphController(Controller):
         ast_assembly = self.ast.assembly
         assert isinstance(ast_assembly, Assembly)
 
-        # Create graph
-        graph_viz = AGraph(strict=False)  # TODO: Consider renaming (easy to do with refactor :)
-
-        # For each instance, create a node in the graph & TODO: create a widget
+        # For each instance, create a node in the graph & a widget
         for instance in ast_assembly.instances:
             assert isinstance(instance, Instance)
 
-            # Add widget TODO: Not final
-            new_widget_builder = Gtk.Builder()
-            new_widget_builder.add_from_file("../View/gladeASTTest.builder")
+            new_widget = InstanceWidget(instance)
 
-            instance_label = new_widget_builder.get_object("instance_name_label")
-            assert isinstance(instance_label, Gtk.Label)
-            instance_label.set_text(instance.name)
+            self.widget_instances.append(new_widget)
 
-            component_type_label = new_widget_builder.get_object("component_type")
-            assert isinstance(component_type_label, Gtk.Label)
-            component_type_label.set_text(instance.type.name)
+        # Create base GUI
+        self.root_widget = Gtk.Layout()
 
-            # new_widget = new_widget_builder.get_object("Instance_frame")
+        # For each widget, get position from dot_data and place them on the screen
+        for instance_widget in self.widget_instances:
 
-            # TODO: Is the following necessary?, should it be checking Gtk.Widget instead
-            # assert isinstance(new_widget, Gtk.Frame)
+            self.root_widget.put(instance_widget, 0, 0)
 
-            # TODO: Better type to add to widget_instance list (separate view class?)
-            self.widget_instances.append(new_widget_builder)
+        self.render()
+
+    def render(self):
+        ast_assembly = self.ast.assembly
+        # assert isinstance(ast_assembly, Assembly)
+
+        # Create graph
+        graph_viz = AGraph(strict=False, spline="line", directed=True)
+        # TODO: Consider renaming above (easy to do with refactor :)
+
+        # For each instance, create a node in the graph & a widget
+        for widget_instance in self.widget_instances:
+            instance = widget_instance.instance_object
 
             # Add node
-            graph_viz.add_node(instance.name)
+            size = widget_instance.get_preferred_size()[-1]
+
+            # graph_viz.add_node(instance.name)
+            # Divide by 72 because of points to inches conversion
+            graph_viz.add_node(instance.name, width=size.width/72,
+                               height=size.height/72, shape="rect")
 
         # For all connections, create an edge & TODO: creates a widget
         for connection in ast_assembly.connections:
             assert isinstance(connection, Connection)
 
-            # TODO: Only works for one end per connection
-            from_instance = connection.from_end.instance
-            assert isinstance(from_instance, Instance)
-            to_instance = connection.to_end.instance
-            assert isinstance(to_instance, Instance)
+            for from_instance_end in connection.from_ends:
+                assert isinstance(from_instance_end, ConnectionEnd)
+                from_instance = from_instance_end.instance
 
-            # Add edge
-            graph_viz.add_edge(u=from_instance.name, v=to_instance.name)
+                for to_instance_end in connection.to_ends:
+                    assert isinstance(to_instance_end, ConnectionEnd)
+                    to_instance = to_instance_end.instance
+
+                    assert isinstance(from_instance, Instance) and isinstance(to_instance, Instance)
+                    # Add edge
+                    graph_viz.add_edge(u=from_instance.name, v=to_instance.name)
 
         # Generate the graph (add positions to each node and edges)
         graph_viz.layout('dot')
@@ -144,33 +161,74 @@ class GraphController(Controller):
         dot_data = Pydot.graph_from_dot_data(raw_dot_data)
         assert isinstance(dot_data, Pydot.Dot)
 
-        # Create base GUI
-        self.root_widget = Gtk.Layout()
-
         # For each widget, get position from dot_data and place them on the screen
-        for widget_builder in self.widget_instances:
-            assert isinstance(widget_builder, Gtk.Builder)
-            instance_name = widget_builder.get_object("instance_name_label").get_text()
+        for instance_widget in self.widget_instances:
+            assert isinstance(instance_widget, InstanceWidget)
+
+            # Get instance's name
+            instance_name = instance_widget.instance_name
+
+            # Get the node representing this instance, and get its attributes
             node_list= dot_data.get_node(instance_name)
-            assert len(node_list) == 1
+            assert len(node_list) == 1              # Should only be one node
             assert isinstance(node_list[0], Pydot.Node)
             node_attributes_dict = node_list[0].get_attributes()
 
-            node_position = re.findall("[-+]?\d+[.]?\d*", node_attributes_dict['pos'])
-            x_pos = float(node_position[0])
-            y_pos = float(node_position[1])
+            # Extract position of the node
+            node_position_list = self.extract_numbers(re.findall("([-+]?\d+[.]?\d*)[,]([-+]?\d+[.]?\d*)",
+                                                                 node_attributes_dict['pos']))
+            assert len(node_position_list) is 1     # Should only be one position
+            node_position = node_position_list[0]
 
-            self.root_widget.put(widget_builder.get_object("Instance_frame"), x_pos, y_pos)
+            self.root_widget.move(instance_widget, node_position[0], node_position[1])
 
+        '''
+        # DOESN"T WORK
+        # DRAW ARROW
+
+        # get an edge for testing
+        edge = dot_data.get_edges()[0]
+        assert isinstance(edge, Pydot.Edge)
+
+        # Get the dictionary of attributes for the edge
+        edge_attributes_dict = edge.get_attributes()
+
+        # get a list of tuples of all points
+        edge_points = self.extract_numbers(re.findall("([-+]?\d+[.]?\d*)[,]([-+]?\d+[.]?\d*)",
+                                                      edge_attributes_dict['pos']))
+
+        print "edges " + str(edge_points)
+
+        # edge_widget = ASTWidget(widget_controller=self, points=edge_points)
+        edge_widget = ConnectionWidget()
+        edge_widget.set_size_request(abs(edge_points[1][0] - edge_points[0][0]),
+                                     abs(edge_points[1][1] - edge_points[0][1]))
+
+        self.root_widget.put(edge_widget, edge_points[0][0], edge_points[0][1])
+        '''
+
+
+    # Extra Helper Functions
+    @staticmethod
+    def extract_numbers(list_of_tuples_stringnumbers):  # TODO: consider renaming list_of_tuples_...
+        new_list = list()
+        for next_tuple in list_of_tuples_stringnumbers:
+            converted_tuple = (float(next_tuple[0]), float(next_tuple[1]))
+            new_list.append(converted_tuple)
+
+        return new_list
 
 
 
 
 def main():
     #new_controller = GraphController('/home/sthasarathan/Documents/camkes-newExample/apps/simple/simple.camkes')
-    new_controller = GraphController('/home/sthasarathan/Documents/camkes-newExample/apps/uart/uart.camkes')
+
+    # HERE
+    provider = Gtk.CssProvider()
+
+    new_controller = GraphController('/home/sthasarathan/Documents/camkes-tool/camkes/parser/tests/good/multiple-ends.camkes')
     main_window = Gtk.Window()
-    # main_window.set_size_request(1000,1000)
     main_window.add(new_controller.root_widget)
     main_window.connect("delete-event", Gtk.main_quit)
     main_window.show_all()
