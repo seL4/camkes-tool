@@ -28,9 +28,7 @@ Views will be subclasses of DrawingArea (which is a subclass of widget). Subclas
 From here, the goal is to display the LiftedAST into a graph.
 
 ### Graph Drawing Theories
-...
-
-
+Using graphviz to do the heavy lifting.
 
 ### Things to do
 1. Initialise the files with model, view, controller folders and associated files.
@@ -50,8 +48,29 @@ From here, the goal is to display the LiftedAST into a graph.
 Milestone 2
 -----------
 
-The goal of milestone is to be able to move around the components and edit them. Then it should be possible to see the edits on the camkes files.
-Milestone 1 only required a really basic graph drawing. Part of this milestone is to pretty it up to make it aesthestically pleasing.
+The goal of milestone 2 is to display the components (instances) in a nice way, with all the info about the widgets. Widget should then be able to move around (as well as ability to pin them). 
+Part of this milestone is to pretty it up to make it aesthestically pleasing. In the previous milestone, I found it unusually difficult to draw a line between two widgets. 
+In the risk of wasting a lot of time (already wasted a day on it), I shall push connectors to milestone 3. Milestone 2 will focus on the instances themselves. 
+A side task is to also put the root_widget into a scrolling window.
 
 ### Things to do
-1. 
+1. Create examples of camkes apps, which has made different component types.
+1. Add extra arguments to graphviz, to make the graph more spread out (to give connectors extra space), having hardware graphs lower on the screen.
+1. Currently the graph is draw inverted. This is because the co-ordinates of graphviz is true maths co-ords and not GUI co-ords. Need to translate between them.
+1. Draw out components with all info. Chance to make it final and aesthically pleasing
+
+### Notes: 
+#### Info that a instance needs to display to the user
+...
+
+* * *
+
+Features & Ideas
+----------------
+
+In the risk of losing the ideas suggested:
+* List of all connectors and components on the sides. Then ability to draw from the list to create a new component or connector
+* Using graphviz, and DOT graphing
+* Ability to scroll and zoom the window
+* Terminal (vim/nano) on one side for easy code editing
+* Ability to save and reload graphs. Need to save positions of nodes.
