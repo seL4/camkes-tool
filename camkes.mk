@@ -56,7 +56,6 @@ CAMKES_FLAGS += \
     $(if ${CONFIG_CAMKES_LARGE_FRAME_PROMOTION},--largeframe,) \
     $(if ${CONFIG_CAMKES_PRUNE_GENERATED},--prune,) \
     $(if ${CONFIG_CAMKES_PLY_OPTIMIZE},--ply-optimise,) \
-    $(if ${ARM_HYP},--hyp,) \
     $(if ${CONFIG_WORD_SIZE},--word-size ${CONFIG_WORD_SIZE},) \
     --architecture ${SEL4_ARCH} \
 
