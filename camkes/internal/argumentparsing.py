@@ -48,6 +48,7 @@ TOOLS = {
         'python -m camkes.runner',
         'Instantiate templates based on a CAmkES specification.',
         set([
+            '--architecture',
             '--cache',
             '--cache-dir',
             '--cpp',
@@ -203,5 +204,7 @@ def parse_args(tool):
         help='Assume the target platform\'s kernel is running in HYP mode.')
     add_arg('--word-size', type=int, default=32,
         help='Native word size of the target platform.')
+    add_arg('--architecture', default='arm', choices=('arm', 'arm_hyp', 'ia32'),
+        help='Architecture of the target platform.')
 
     return p.parse_args()

@@ -882,6 +882,15 @@ are described below. When an argument is only accepted by some of the tools,
 this is noted. If no limitation is mentioned then the argument is accepted by
 all tools.
 
+**--architecture**
+
+> The target architecture for which code should be generated. This argument is
+  only relevant to the runner. Currently the valid options are:
+
+  * "arm" - 32-bit ARM (default)
+  * "arm_hyp" - ARM Hyp mode
+  * "ia32" - 32-bit x86
+
 **--cache**, **-c**
 **--cache-dir**
 
