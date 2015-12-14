@@ -132,12 +132,4 @@ typedef struct {
  */
 const camkes_dma_stats_t *camkes_dma_stats(void) RETURNS_NONNULL;
 
-/* Legacy functionality. Use the general allocation and free functions above in
- * preference to these.
- */
-void *camkes_dma_alloc_page(void)
-    DEPRECATED("use camkes_dma_alloc(PAGE_SIZE_4K, PAGE_SIZE_4K) instead");
-void camkes_dma_free_page(void *ptr)
-    DEPRECATED("use camkes_dma_free(ptr, PAGE_SIZE_4K) instead");
-
 #endif
