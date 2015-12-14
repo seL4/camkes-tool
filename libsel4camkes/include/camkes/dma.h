@@ -48,16 +48,16 @@ void camkes_dma_free(void *ptr, size_t size);
 /* Return the physical address of a pointer into a DMA buffer. Returns NULL if
  * you pass a pointer into memory that is not part of a DMA buffer. Behaviour
  * is undefined if you pass a pointer into memory that is part of a DMA buffer,
- * but not one currently allocated to you by camkes_dma_alloc_page.
+ * but not one currently allocated to you by camkes_dma_alloc.
  */
 uintptr_t camkes_dma_get_paddr(void *ptr);
 
 /* Initialise a DMA manager for use with libplatsupport. This manager will be
  * backed by the (generated) CAmkES DMA pool. Returns 0 on success.
  *
- * If you only need simple DMA allocation, prefer the alloc_page and free_page
+ * If you only need simple DMA allocation, prefer the alloc and free
  * functions above, but if you need a more interoperable DMA interface then use
- * this function. Note that you can mix calls to alloc_page, free_page and the
+ * this function. Note that you can mix calls to alloc, free and the
  * manager initialised by this function with no adverse effects.
  */
 int camkes_dma_manager(ps_dma_man_t *man) NONNULL_ALL WARN_UNUSED_RESULT;

@@ -1318,7 +1318,7 @@ The following functions are available at runtime:
 
 > Translate a pointer into a DMA region into a physical address. This function
   assumes that the pointer you are passing in is to a byte within a region
-  allocated to you by `camkes_dma_alloc_page`. The reason for needing to obtain
+  allocated to you by `camkes_dma_alloc`. The reason for needing to obtain
   the physical address of a pointer is typically to pass to a device that is
   going to access this region outside of the scope of the MMU. For more
   information, see the [DMA](#direct-memory-access) section below.
