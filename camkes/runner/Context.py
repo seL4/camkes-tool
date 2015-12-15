@@ -129,7 +129,7 @@ def new_context(entity, assembly, obj_space, cap_space, shmem, **kwargs):
         'composition':assembly.composition,
 
         # a scheduling context associated with an interface
-        'sc':(lambda name, **kwargs: get_sc(name, configuration, obj_space, **kwargs)),
+        'sc':(lambda name, **kwargs: get_sc(name, assembly.configuration, obj_space, **kwargs)),
 
         # Allow some AST objects to be printed trivially
         'show':show,
