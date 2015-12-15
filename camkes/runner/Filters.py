@@ -213,7 +213,7 @@ def set_tcb_caps(ast, obj_space, cspaces, elfs, options, **_):
                 ipc_vaddr = get_symbol_vaddr(elf, ipc_symbol) + PAGE_SIZE
 
                 # Relate this virtual address to a PT.
-                pt_index = page_table_index(get_elf_arch(elf), ipc_vaddr,
+                pt_index = page_table_index(options.architecture, ipc_vaddr,
                     options.architecture == 'arm_hyp')
                 if pt_index not in pd:
                     raise Exception('IPC buffer of TCB %s in group %s does ' \
@@ -221,7 +221,7 @@ def set_tcb_caps(ast, obj_space, cspaces, elfs, options, **_):
                 pt = pd[pt_index].referent
 
                 # Continue on to infer the physical frame.
-                p_index = page_index(get_elf_arch(elf), ipc_vaddr,
+                p_index = page_index(options.architecture, ipc_vaddr,
                     options.architecture == 'arm_hyp')
                 if p_index not in pt:
                     raise Exception('IPC buffer of TCB %s in group %s does ' \
@@ -295,12 +295,10 @@ def collapse_shared_frames(ast, obj_space, elfs, options, **_):
             sz = get_symbol_size(elf, sym)
             assert sz != 0
 
-            arch = get_elf_arch(elf)
-
             # Infer the page table(s) and page(s) that back this region.
             pts, p_indices = zip(*[\
-                (pd[page_table_index(arch, v, options.architecture == 'arm_hyp')].referent,
-                 page_index(arch, v, options.architecture == 'arm_hyp')) \
+                (pd[page_table_index(options.architecture, v, options.architecture == 'arm_hyp')].referent,
+                 page_index(options.architecture, v, options.architecture == 'arm_hyp')) \
                 for v in xrange(vaddr, vaddr + sz, PAGE_SIZE)])
 
             # Determine the rights this mapping should have. We use these to
@@ -355,7 +353,7 @@ def collapse_shared_frames(ast, obj_space, elfs, options, **_):
                     n_pts = size / large_size
 
                     # index of first page table in page directory backing the device memory
-                    base_pt_index = page_table_index(get_elf_arch(elf), vaddr)
+                    base_pt_index = page_table_index(options.architecture, vaddr)
                     pt_indices = xrange(base_pt_index, base_pt_index + n_pts)
 
                     # loop over all the page table indices and replace the page tables
@@ -483,9 +481,9 @@ def replace_dma_frames(ast, obj_space, elfs, options, **_):
 
         for index, v in enumerate(base_vaddrs):
             # Locate the mapping.
-            pt_index = page_table_index(get_elf_arch(elf), v,
+            pt_index = page_table_index(options.architecture, v,
                 options.architecture == 'arm_hyp')
-            p_index = page_index(get_elf_arch(elf), v,
+            p_index = page_index(options.architecture, v,
                 options.architecture == 'arm_hyp')
 
             # It should contain an existing frame.
@@ -565,7 +563,7 @@ def guard_pages(obj_space, cspaces, elfs, options, **_):
                 pre_guard = get_symbol_vaddr(elf, ipc_symbol)
 
                 # Relate this virtual address to a PT.
-                pt_index = page_table_index(get_elf_arch(elf), pre_guard,
+                pt_index = page_table_index(options.architecture, pre_guard,
                     options.architecture == 'arm_hyp')
                 if pt_index not in pd:
                     raise Exception('IPC buffer region of TCB %s in group %s '
@@ -574,7 +572,7 @@ def guard_pages(obj_space, cspaces, elfs, options, **_):
                 pt = pd[pt_index].referent
 
                 # Continue on to infer the page.
-                p_index = page_index(get_elf_arch(elf), pre_guard,
+                p_index = page_index(options.architecture, pre_guard,
                     options.architecture == 'arm_hyp')
                 if p_index not in pt:
                     raise Exception('IPC buffer region of TCB %s in ' \
@@ -592,7 +590,7 @@ def guard_pages(obj_space, cspaces, elfs, options, **_):
 
                 post_guard = pre_guard + 2 * PAGE_SIZE
 
-                pt_index = page_table_index(get_elf_arch(elf), post_guard,
+                pt_index = page_table_index(options.architecture, post_guard,
                     options.architecture == 'arm_hyp')
                 if pt_index not in pd:
                     raise Exception('IPC buffer region of TCB %s in group %s '
@@ -600,7 +598,7 @@ def guard_pages(obj_space, cspaces, elfs, options, **_):
                         (tcb.name, group))
                 pt = pd[pt_index].referent
 
-                p_index = page_index(get_elf_arch(elf), post_guard,
+                p_index = page_index(options.architecture, post_guard,
                     options.architecture == 'arm_hyp')
                 if p_index not in pt:
                     raise Exception('IPC buffer region of TCB %s in ' \
@@ -618,7 +616,7 @@ def guard_pages(obj_space, cspaces, elfs, options, **_):
 
                 pre_guard = get_symbol_vaddr(elf, stack_symbol)
 
-                pt_index = page_table_index(get_elf_arch(elf), pre_guard,
+                pt_index = page_table_index(options.architecture, pre_guard,
                     options.architecture == 'arm_hyp')
                 if pt_index not in pd:
                     raise Exception('stack region of TCB %s in group %s does '
@@ -626,7 +624,7 @@ def guard_pages(obj_space, cspaces, elfs, options, **_):
                         group))
                 pt = pd[pt_index].referent
 
-                p_index = page_index(get_elf_arch(elf), pre_guard,
+                p_index = page_index(options.architecture, pre_guard,
                     options.architecture == 'arm_hyp')
                 if p_index not in pt:
                     raise Exception('stack region of TCB %s in ' \
@@ -646,7 +644,7 @@ def guard_pages(obj_space, cspaces, elfs, options, **_):
                     'stack region has no room for guard pages'
                 post_guard = pre_guard + stack_region_size - PAGE_SIZE
 
-                pt_index = page_table_index(get_elf_arch(elf), post_guard,
+                pt_index = page_table_index(options.architecture, post_guard,
                     options.architecture == 'arm_hyp')
                 if pt_index not in pd:
                     raise Exception('stack region of TCB %s in group %s does '
@@ -654,7 +652,7 @@ def guard_pages(obj_space, cspaces, elfs, options, **_):
                         group))
                 pt = pd[pt_index].referent
 
-                p_index = page_index(get_elf_arch(elf), post_guard,
+                p_index = page_index(options.architecture, post_guard,
                     options.architecture == 'arm_hyp')
                 if p_index not in pt:
                     raise Exception('stack region of TCB %s in ' \
