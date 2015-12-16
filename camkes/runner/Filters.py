@@ -842,38 +842,51 @@ def sc_properties(ast, obj_space, cspaces, elfs, options, shmem):
             # Find the period if it was set.
             period_attribute = perspective['period_attribute']
             name = perspective['instance']
-            periods = filter(lambda x: \
-                x.instance == name and x.attribute == period_attribute,
-                settings)
-            if len(periods) == 1:
-            	sc.period = periods[0].value
+            period = assembly.configuration[name].get(period_attribute)
+            if period is not None:
+                sc.period = period
+
+#            periods = filter(lambda x: \
+#                x.instance == name and x.attribute == period_attribute,
+#                settings)
+#            if len(periods) == 1:
+#            	sc.period = periods[0].value
 
             # Find the deadline if it was set.
             deadline_attribute = perspective['deadline_attribute']
             name = perspective['instance']
-            deadlines = filter(lambda x: \
-                x.instance == name and x.attribute == deadline_attribute,
-                settings)
-            if len(deadlines) == 1:
-            	sc.deadline = deadlines[0].value
+            deadline = assembly.configuration[name].get(deadline_attribute)
+            if deadline is not None:
+                sc.deadline = deadline
+#            deadlines = filter(lambda x: \
+#                x.instance == name and x.attribute == deadline_attribute,
+#                settings)
+#            if len(deadlines) == 1:
+#            	sc.deadline = deadlines[0].value
 
-            # Find the exec_req if it was set.
-            exec_req_attribute = perspective['exec_req_attribute']
+            # Find the budget if it was set.
+            budget_attribute = perspective['budget_attribute']
             name = perspective['instance']
-            exec_reqs = filter(lambda x: \
-                x.instance == name and x.attribute == exec_req_attribute,
-                settings)
-            if len(exec_reqs) == 1:
-            	sc.exec_req = exec_reqs[0].value
+            budget = assembly.configuration[name].get(budget_attribute)
+            if budget is not None:
+                sc.budget = budget
+#            budgets = filter(lambda x: \
+#                x.instance == name and x.attribute == budget_attribute,
+#                settings)
+#            if len(budgets) == 1:
+#            	sc.budget = budgets[0].value
 
             # Find the flags if it was set.
             flags_attribute = perspective['flags_attribute']
             name = perspective['instance']
-            flagss = filter(lambda x: \
-                x.instance == name and x.attribute == flags_attribute,
-                settings)
-            if len(flagss) == 1:
-            	sc.flags = flagss[0].value
+            flags = assembly.configuration[name].get(flags_attribute)
+            if flags is not None:
+                sc.flags = flags
+#            flagss = filter(lambda x: \
+#                x.instance == name and x.attribute == flags_attribute,
+#                settings)
+#            if len(flagss) == 1:
+#            	sc.flags = flagss[0].value
 
 
 CAPDL_FILTERS = [
