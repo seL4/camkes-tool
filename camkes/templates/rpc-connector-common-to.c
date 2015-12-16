@@ -357,8 +357,8 @@ int /*? me.to_interface.name ?*/__run(void) {
                       /*- if p.array -*/
                         /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
                           /*- set mcount = c_symbol() -*/
-                          for (int /*? mcount ?*/ = 0; /*? mcount ?*/ < * /*? p.name ?*/_sz; /*? mcount ?*/ ++) {
-                            free((* /*? p.name ?*/)[/*? mcount ?*/]);
+                          for (int /*? mcount ?*/ = 0; /*? mcount ?*/ < * /*? p.name ?*/_sz_ptr; /*? mcount ?*/ ++) {
+                            free((* /*? p.name ?*/_ptr)[/*? mcount ?*/]);
                           }
                         /*- endif -*/
                         free(* /*? p.name ?*/_ptr);
