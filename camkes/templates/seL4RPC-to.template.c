@@ -265,7 +265,7 @@ int /*? me.to_interface.name ?*/__run(void) {
                     /*- set ret = c_symbol('ret') -*/
                     /*- set ret_sz = c_symbol('ret_sz') -*/
                     /*- set ret_ptr = c_symbol('ret_ptr') -*/
-                    /*_ set ret_sz_ptr = c_symbol('ret_sz_ptr') -*/
+                    /*- set ret_sz_ptr = c_symbol('ret_sz_ptr') -*/
                     /*- if m.return_type is not none -*/
                         /*- if isinstance(m.return_type, camkes.ast.Type) and m.return_type.type == 'string' -*/
                             char * /*? ret ?*/ UNUSED;
