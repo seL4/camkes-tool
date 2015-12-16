@@ -59,7 +59,7 @@ TOOLS = {
             '--default-max-criticality',
             '--default-period',            
             '--default-deadline',
-            '--default-exec-req',
+            '--default-budget',
             '--elf',
             '--file',
             '--frpc-lock-elision',
@@ -209,8 +209,8 @@ def parse_args(tool):
         help='Default component thread scheduling context period.')
     add_arg('--default-deadline', type=int, default=10000,
         help='Default component thread scheduling context deadline.')
-    add_arg('--default-exec-req', type=int, default=10000,
-        help='Default component thread scheduling context execution requirement.')
+    add_arg('--default-budget', type=int, default=10000,
+        help='Default component thread scheduling context budget.')
     add_arg('--prune', action='store_true', \
         help='Minimise the number of functions in generated C files.')
     add_arg('--ply-optimise', action='store_true', \

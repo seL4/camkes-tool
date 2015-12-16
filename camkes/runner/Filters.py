@@ -811,7 +811,7 @@ def sc_default_properties(ast, obj_space, cspaces, elfs, options, shmem):
     for s in filter(lambda x: isinstance(x, SC), obj_space):
         s.period = options.default_period
         s.deadline = options.default_deadline
-        s.exec_req = options.default_exec_req
+        s.budget = options.default_budget
         # s.flags = options.default_flags
 
 def sc_properties(ast, obj_space, cspaces, elfs, options, shmem):

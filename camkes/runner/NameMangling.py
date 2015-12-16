@@ -234,10 +234,10 @@ DERIVATIONS = {
         ForwardDeriver('%(interface)s_deadline', 'deadline_attribute'),
         BackwardDeriver(r'^([^_].*)_deadline$', 'deadline_attribute', 'interface'),
 
-        ControlDeriver(r'^_control_exec_req$', 'exec_req_attribute'),
-        FromControlDeriver('_control_exec_req', 'exec_req_attribute'),
-        ForwardDeriver('%(interface)s_exec_req', 'exec_req_attribute'),
-        BackwardDeriver(r'^([^_].*)_exec_req$', 'exec_req_attribute', 'interface'),
+        ControlDeriver(r'^_control_budget$', 'budget_attribute'),
+        FromControlDeriver('_control_budget', 'budget_attribute'),
+        ForwardDeriver('%(interface)s_budget', 'budget_attribute'),
+        BackwardDeriver(r'^([^_].*)_budget$', 'budget_attribute', 'interface'),
 
         ControlDeriver(r'^_control_flags$', 'flags_attribute'),
         FromControlDeriver('_control_flags', 'flags_attribute'),
