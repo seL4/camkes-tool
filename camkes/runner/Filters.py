@@ -727,40 +727,47 @@ def tcb_priorities(ast, cspaces, **_):
             # FIXME@ikuz: check this for correct use of perspective
             max_prio_attribute = perspective['max_priority_attribute']
             name = perspective['instance']
-            max_prios = filter(lambda x: \
-                x.instance == name and x.attribute == max_prio_attribute,
-                settings)
-            if len(max_prios) != 1:
-                continue
-            max_prio = max_prios[0].value
-
-            tcb.max_prio = max_prio
+            max_prio = assembly.configuration[name].get(max_prio_attribute)
+            if max_prio is not None:
+                tcb.max_prio = max_prio
+#
+#	    max_priosi =	filter(lambda x: \
+#                x.instance == name and x.attribute == max_prio_attribute,
+#                settings)
+#            if len(max_prios) == 1:
+#                 max_prio = max_prios[0].value
+#
+#            tcb.max_prio = max_prio
 
             # Find the criticality if it was set.
             # FIXME@ikuz: check this for correct use of perspective
             crit_attribute = perspective['criticality_attribute']
             name = perspective['instance']
-            crits = filter(lambda x: \
-                x.instance == name and x.attribute == crit_attribute,
-                settings)
-            if len(crits) != 1:
-                continue
-            crit = crits[0].value
-
-            tcb.crit = crit
+            crit =  assembly.configuration[name].get(crit_attribute)
+            if crit is not None:
+                tcb.crit = crit
+#		filter(lambda x: \
+#                x.instance == name and x.attribute == crit_attribute,
+#                settings)
+#            if len(crits) == 1:
+#                crit = crits[0].value
+#
+#            tcb.crit = crit
 
             # Find the max_criticality if it was set.
             # FIXME@ikuz: check this for correct use of perspective
             max_crit_attribute = perspective['max_criticality_attribute']
             name = perspective['instance']
-            max_crits = filter(lambda x: \
-                x.instance == name and x.attribute == max_crit_attribute,
-                settings)
-            if len(max_crits) != 1:
-                continue
-            max_crit = max_crits[0].value
-
-            tcb.max_crit = max_crit
+            max_crit = assembly.configuration[name].get(max_crit_attribute)
+            if max_crit is not None:
+                tcb.max_crit = max_crit
+#		filter(lambda x: \
+#                x.instance == name and x.attribute == max_crit_attribute,
+#                settings)
+#            if len(max_crits) == 1:
+#                max_crit = max_crits[0].value
+#
+#            tcb.max_crit = max_crit
 
 
 def tcb_domains(ast, cspaces, **_):
@@ -797,7 +804,7 @@ def remove_tcb_caps(cspaces, options, **_):
                 del space.cnode[slot]
 
 
-def sc_default_properties(ast, obj_space, cspaces, elfs, profiler, options):
+def sc_default_properties(ast, obj_space, cspaces, elfs, options, shmem):
     '''Set up default scheduling context properties. Note this filter needs to operate
     *before* sc_properties.'''
 
@@ -807,7 +814,7 @@ def sc_default_properties(ast, obj_space, cspaces, elfs, profiler, options):
         s.exec_req = options.default_exec_req
         # s.flags = options.default_flags
 
-def sc_properties(ast, obj_space, cspaces, *_):
+def sc_properties(ast, obj_space, cspaces, elfs, options, shmem):
     ''' Override an SC's default properties if the user has specified this in an
     attribute.'''
 
