@@ -1,0 +1,32 @@
+#
+# Copyright 2014, NICTA
+#
+# This software may be distributed and modified according to the terms of
+# the BSD 2-Clause license. Note that NO WARRANTY is provided.
+# See "LICENSE_BSD2.txt" for details.
+#
+# @TAG(NICTA_BSD)
+#
+
+menuconfig LIB_SEL4_MUSLC_CAMKES
+    bool "Minimal Musl C backend for CAmkES"
+    default y
+    depends on LIB_SEL4 && LIB_MUSL_C && LIB_SEL4_UTILS && LIB_SEL4_VSPACE && LIB_CPIO && LIB_UTILS
+    help
+        Minimal Musl C backend for CAmkES.
+
+config LIB_SEL4_MUSLC_CAMKES_CPIO_FS
+    bool "Implementation of a simple file system using CPIO archives"
+    default false
+    depends on LIB_SEL4_MUSLC_CAMKES
+    help
+        If this is enabled open and read syscalls will attempt to use the cpio archive
+        _cpio_archive. This implements a basic read only POSIX interface to that file system
+
+config LIB_SEL4_MUSLC_CAMKES_ARCH_PUTCHAR_WEAK
+    bool "Make __arch_putchar a weak symbol"
+    default n
+    depends on LIB_SEL4_MUSLC_CAMKES
+    help
+        This allows you to override __arch_putchar in another library or your
+	application.

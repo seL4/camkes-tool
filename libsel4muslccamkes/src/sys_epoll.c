@@ -1,0 +1,34 @@
+/*
+ * Copyright 2014, NICTA
+ *
+ * This software may be distributed and modified according to the terms of
+ * the BSD 2-Clause license. Note that NO WARRANTY is provided.
+ * See "LICENSE_BSD2.txt" for details.
+ *
+ * @TAG(NICTA_BSD)
+ */
+
+#include <assert.h>
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdint.h>
+#include <string.h>
+
+long sys_epoll_create(va_list ap)
+{
+	assert(!"sys_epoll_create not implemented");
+	return 0;
+}
+
+long sys_epoll_ctl(va_list ap)
+{
+	assert(!"sys_epoll_ctl not implemented");
+	return 0;
+}
+
+long sys_epoll_wait(va_list ap)
+{
+	assert(!"sys_epoll_wait not implemented");
+	return 0;
+}
+
