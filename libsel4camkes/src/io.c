@@ -15,7 +15,6 @@
 #include <assert.h>
 #include <camkes/dma.h>
 #include <camkes/io.h>
-#include <gdsl/gdsl.h>
 #include <platsupport/io.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -31,7 +30,7 @@ extern int camkes_io_port_out(void *cookie, uint32_t port, int io_size,
 
 typedef struct {
     ps_io_map_fn_t map;
-    gdsl_list_t mapped;
+    list_t mapped;
 } cookie_t;
 
 /* Debug wrapper for IO map. This function calls the underlying map function
@@ -49,7 +48,7 @@ static UNUSED void * io_map(void *cookie, uintptr_t paddr, size_t size,
         /* The IO map function gave us a successful result; track this pointer
          * to lookup during unmapping.
          */
-        if (gdsl_list_insert_head(c->mapped, p) == NULL) {
+        if (list_prepend(&c->mapped, p) != 0) {
             LOG_ERROR("failed to track mapped IO pointer %p\n", p);
         }
     }
@@ -57,8 +56,8 @@ static UNUSED void * io_map(void *cookie, uintptr_t paddr, size_t size,
     return p;
 }
 
-static long int UNUSED pointer_compare(void *a, void *b) {
-    return (long int)((uintptr_t)a - (uintptr_t)b);
+static int UNUSED pointer_compare(void *a, void *b) {
+    return (int)((uintptr_t)a - (uintptr_t)b);
 }
 
 /* We never unmap anything. */
@@ -66,7 +65,7 @@ static void io_unmap(void *cookie UNUSED, void *vaddr UNUSED, size_t size UNUSED
 #ifndef NDEBUG
     cookie_t *c = cookie;
     /* Make sure we previously mapped the pointer the caller gave us. */
-    if (gdsl_list_remove(c->mapped, pointer_compare, vaddr) == NULL) {
+    if (list_remove(&c->mapped, vaddr, pointer_compare) != 0) {
         LOG_ERROR("unmapping an IO pointer that was not previously mapped: %p\n",
             vaddr);
     }
@@ -84,8 +83,7 @@ int camkes_io_mapper(ps_io_mapper_t *mapper) {
         return -1;
     }
     c->map = camkes_io_map;
-    c->mapped = gdsl_list_alloc("IO allocation debug tracking", NULL, NULL);
-    if (c->mapped == NULL) {
+    if (list_init(&c->mapped) != 0) {
         free(c);
         return -1;
     }

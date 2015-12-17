@@ -9,4 +9,4 @@
 #
 
 libs-y += libsel4camkes
-libsel4camkes: libsel4 $(libc) common libutils libplatsupport libgdsl
+libsel4camkes: libsel4 $(libc) common libutils libplatsupport
