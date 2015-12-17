@@ -191,11 +191,6 @@ void camkes_show_fault(seL4_MessageInfo_t info, seL4_CPtr thread_id,
             break;
         }
 
-        case seL4_Interrupt:
-            SHOW("interrupt from %s.%s (ID 0x%x); misconfigured fault "
-                "handler?\n", get_instance_name(), safe_name, thread_id);
-            break;
-
         default:
             SHOW("unknown message from %s.%s (ID 0x%x); misconfigured fault "
                 "handler?\n", get_instance_name(), safe_name, thread_id);
