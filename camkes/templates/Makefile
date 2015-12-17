@@ -163,7 +163,9 @@ ifeq (${CONFIG_CAMKES_PRUNE_GENERATED},y)
 	  --keep seL4_Notify \
 	  --keep seL4_Poll \
 	  --keep seL4_ReplyWait \
+	  --keep seL4_ReplyRecv \
 	  --keep seL4_Wait \
+	  --keep seL4_Recv \
 	$(foreach i,${PRUNER_BLACKLIST},--blacklist $i) \
       --blacklist /*? e.interface.name ?*/_error_handler_fn \
       --output "$@" "$<"
@@ -201,7 +203,9 @@ ifeq (${CONFIG_CAMKES_PRUNE_GENERATED},y)
 	  --keep seL4_Notify \
 	  --keep seL4_Poll \
 	  --keep seL4_ReplyWait \
+	  --keep seL4_ReplyWait \
 	  --keep seL4_Wait \
+	  --keep seL4_Recv \
 	$(foreach i,${PRUNER_BLACKLIST},--blacklist $i) \
       --blacklist /*? e.interface.name ?*/_error_handler_fn \
       --output "$@" "$<"

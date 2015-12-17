@@ -206,7 +206,7 @@ int /*? me.interface.name ?*/__run(void) {
     /*- endif -*/
 
     /*- set info = c_symbol('info') -*/
-    seL4_MessageInfo_t /*? info ?*/ = seL4_Wait(/*? ep ?*/, & /*? me.interface.name ?*/_badge);
+    seL4_MessageInfo_t /*? info ?*/ = seL4_Recv(/*? ep ?*/, & /*? me.interface.name ?*/_badge);
     while (1) {
         /*- if not options.fcall_leave_reply_cap -*/
             /* We need to save the reply cap because the user's implementation may
@@ -224,7 +224,7 @@ int /*? me.interface.name ?*/__run(void) {
                     .syscall = CNodeSaveCaller,
                     .error = /*? result ?*/,
                 }), ({
-                    /*? info ?*/ = seL4_Wait(/*? ep ?*/, & /*? me.interface.name ?*/_badge);
+                    /*? info ?*/ = seL4_Recv(/*? ep ?*/, & /*? me.interface.name ?*/_badge);
                     continue;
                 }));
         /*- elif len(me.instance.type.provides + me.instance.type.uses + me.instance.type.consumes + me.instance.type.mutexes + me.instance.type.semaphores) > 1 -*/
@@ -238,7 +238,7 @@ int /*? me.interface.name ?*/__run(void) {
                     .description = "failed to declare reply cap in /*? name ?*/",
                     .alloc_bytes = sizeof(seL4_CPtr),
                 }), ({
-                    /*? info ?*/ = seL4_Wait(/*? ep ?*/, & /*? me.interface.name ?*/_badge);
+                    /*? info ?*/ = seL4_Recv(/*? ep ?*/, & /*? me.interface.name ?*/_badge);
                     continue;
                 }));
         /*- endif -*/
@@ -285,7 +285,7 @@ int /*? me.interface.name ?*/__run(void) {
                     .length = /*? size ?*/,
                     .current_index = sizeof(* /*? call_ptr ?*/),
                 }), ({
-                    /*? info ?*/ = seL4_Wait(/*? ep ?*/, & /*? me.interface.name ?*/_badge);
+                    /*? info ?*/ = seL4_Recv(/*? ep ?*/, & /*? me.interface.name ?*/_badge);
                     continue;
                 }));
 
@@ -324,7 +324,7 @@ int /*? me.interface.name ?*/__run(void) {
                     int /*? err ?*/ = /*- include 'call-unmarshal-inputs.c' -*/;
                     if (unlikely(/*? err ?*/ != 0)) {
                         /* Error in unmarshalling; return to event loop. */
-                        /*? info ?*/ = seL4_Wait(/*? ep ?*/, & /*? me.interface.name ?*/_badge);
+                        /*? info ?*/ = seL4_Recv(/*? ep ?*/, & /*? me.interface.name ?*/_badge);
                         continue;
                     }
 
@@ -390,7 +390,7 @@ int /*? me.interface.name ?*/__run(void) {
                      */
                     if (unlikely(/*? length ?*/ == UINT_MAX)) {
                         /* Error occurred; return to event loop. */
-                        /*? info ?*/ = seL4_Wait(/*? ep ?*/, & /*? me.interface.name ?*/_badge);
+                        /*? info ?*/ = seL4_Recv(/*? ep ?*/, & /*? me.interface.name ?*/_badge);
                         continue;
                     }
 
@@ -405,7 +405,7 @@ int /*? me.interface.name ?*/__run(void) {
                     /* Send the response */
                     /*- if not options.fcall_leave_reply_cap -*/
                         seL4_Send(/*? reply_cap_slot ?*/, /*? info ?*/);
-                        /*? info ?*/ = seL4_Wait(/*? ep ?*/, & /*? me.interface.name ?*/_badge);
+                        /*? info ?*/ = seL4_Recv(/*? ep ?*/, & /*? me.interface.name ?*/_badge);
                     /*- elif len(me.instance.type.provides + me.instance.type.uses + me.instance.type.consumes + me.instance.type.mutexes + me.instance.type.semaphores) > 1 -*/
                         /*- set tls = c_symbol() -*/
                         camkes_tls_t * /*? tls ?*/ = camkes_get_tls();
@@ -424,11 +424,11 @@ int /*? me.interface.name ?*/__run(void) {
                                     .syscall = CNodeSaveCaller,
                                     .error = /*? error ?*/,
                                 }), ({
-                                    /*? info ?*/ = seL4_Wait(/*? ep ?*/, & /*? me.interface.name ?*/_badge);
+                                    /*? info ?*/ = seL4_Recv(/*? ep ?*/, & /*? me.interface.name ?*/_badge);
                                     continue;
                                 }));
                             seL4_Send(/*? reply_cap_slot ?*/, /*? info ?*/);
-                            /*? info ?*/ = seL4_Wait(/*? ep ?*/, & /*? me.interface.name ?*/_badge);
+                            /*? info ?*/ = seL4_Recv(/*? ep ?*/, & /*? me.interface.name ?*/_badge);
                         }
                     /*- else -*/
 
@@ -486,7 +486,7 @@ int /*? me.interface.name ?*/__run(void) {
                         .upper_bound = /*? methods_len ?*/ - 1,
                         .invalid_index = * /*? call_ptr ?*/,
                     }), ({
-                        /*? info ?*/ = seL4_Wait(/*? ep ?*/, & /*? me.interface.name ?*/_badge);
+                        /*? info ?*/ = seL4_Recv(/*? ep ?*/, & /*? me.interface.name ?*/_badge);
                         continue;
                     }));
             }

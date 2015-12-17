@@ -30,7 +30,7 @@
 
 int /*? me.interface.name ?*/__run(void) {
     while (true) {
-        (void)seL4_Wait(/*? aep ?*/, NULL);
+        seL4_Wait(/*? aep ?*/, NULL);
         /*? me.interface.name ?*/_handle();
     }
 

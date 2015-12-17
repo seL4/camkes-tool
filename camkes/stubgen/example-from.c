@@ -61,7 +61,7 @@
     seL4_MessageInfo_t _info =
         seL4_MessageInfo_new(0, 0, 0, ROUND_UP(_buffer - IPC_BUFFER, 2));
     seL4_Send(_ep, _info);
-    _info = seL4_Wait(_ep, NULL);
+    _info = seL4_Recv(_ep, NULL);
 
     /* Unmarshal the outputs */
     _buffer = IPC_BUFFER;

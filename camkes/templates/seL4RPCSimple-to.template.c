@@ -273,7 +273,7 @@ static seL4_MessageInfo_t /*? me.interface.name ?*/__run_internal(bool /*? first
         /*- set reply_cap_slot = alloc_cap('reply_cap_slot', None) -*/
     /*- endif -*/
     if (/*? first ?*/) {
-        /*? info ?*/ = seL4_Wait(/*? ep ?*/, NULL);
+        /*? info ?*/ = seL4_Recv(/*? ep ?*/, NULL);
 
         /*- if not options.fcall_leave_reply_cap or len(me.instance.type.provides + me.instance.type.uses + me.instance.type.consumes + me.instance.type.mutexes + me.instance.type.semaphores) > 1 -*/
             int /*? result ?*/ UNUSED = seL4_CNode_SaveCaller(/*? cnode ?*/, /*? reply_cap_slot ?*/, 32);
@@ -297,7 +297,7 @@ static seL4_MessageInfo_t /*? me.interface.name ?*/__run_internal(bool /*? first
 
                 /*- if not options.fcall_leave_reply_cap or len(me.instance.type.provides + me.instance.type.uses + me.instance.type.consumes + me.instance.type.mutexes + me.instance.type.semaphores) > 1 -*/
                     seL4_Send(/*? reply_cap_slot ?*/, /*? info ?*/);
-                    /*? info ?*/ = seL4_Wait(/*? ep ?*/, NULL);
+                    /*? info ?*/ = seL4_Recv(/*? ep ?*/, NULL);
                     int /*? result ?*/ UNUSED = seL4_CNode_SaveCaller(/*? cnode ?*/, /*? reply_cap_slot ?*/, 32);
                     assert(/*? result ?*/ == 0);
                 /*- else -*/

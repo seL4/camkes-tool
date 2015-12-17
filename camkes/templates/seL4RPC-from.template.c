@@ -226,7 +226,7 @@ int /*? me.interface.name ?*/__run(void) {
     /*- if options.frpc_lock_elision and 1 + len(me.instance.type.provides) + len(me.instance.type.consumes) > 1 -*/
       camkes_protect_reply_cap();
     /*- endif -*/
-    /*? info ?*/ = seL4_Wait(/*? ep ?*/, NULL);
+    /*? info ?*/ = seL4_Recv(/*? ep ?*/, NULL);
 
     _TIMESTAMP("communication done");
 

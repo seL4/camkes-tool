@@ -94,7 +94,7 @@ static unsigned int handle_/*? m.name ?*/(seL4_Word _badge) {
 int run_/*? p.name ?*/(seL4_CPtr _ep) {
     while (true) {
         seL4_Word _badge;
-        seL4_MessageInfo_t _info = seL4_Wait(_ep, &_badge);
+        seL4_MessageInfo_t _info = seL4_Recv(_ep, &_badge);
         unsigned int _method_index = seL4_GetMR(0);
         switch (_method_index) {
             /*- for i, m in enumerate(me.methods) -*/
