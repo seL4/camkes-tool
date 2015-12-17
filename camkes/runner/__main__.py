@@ -143,7 +143,7 @@ def parse_args(argv, out, err):
     parser.add_argument('--largeframe', action='store_true',
         help='Try to use large frames when possible.')
     parser.add_argument('--architecture', '--arch', default='arm',
-        type=lambda x: type('')(x).lower(), choices=('arm', 'arm-hyp', 'ia32'),
+        type=lambda x: type('')(x).lower(), choices=('arm', 'arm_hyp', 'ia32'),
         help='Target architecture.')
     parser.add_argument('--makefile-dependencies', '-MD',
         type=argparse.FileType('w'), help='Write Makefile dependency rule to '

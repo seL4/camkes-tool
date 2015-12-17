@@ -494,7 +494,7 @@ void USED _camkes_tls_init(int thread_id) {
                 /*- set p = Perspective(instance=me.name, control=True) -*/
                 case /*? tcb_control ?*/ : {
                     thread_name = "control";
-                    /*- if options.architecture in ('arm', 'arm-hyp') and options.largeframe_dma and page_size[0] > 2 ** 15 -*/
+                    /*- if options.architecture in ('arm', 'arm_hyp') and options.largeframe_dma and page_size[0] > 2 ** 15 -*/
                       /*# XXX: The short version is, we can't do accurate memory maps under these
                        *# circumstances.
                        *#
@@ -584,7 +584,7 @@ void USED _camkes_tls_init(int thread_id) {
                     /*- set p = Perspective(instance=me.name, interface=t.interface.name, intra_index=t.intra_index) -*/
                     case /*? tcb ?*/ : {
                         thread_name = "/*? t.interface.name ?*/";
-                        /*- if options.architecture in ('arm', 'arm-hyp') and options.largeframe_dma and page_size[0] > 2 ** 15 -*/
+                        /*- if options.architecture in ('arm', 'arm_hyp') and options.largeframe_dma and page_size[0] > 2 ** 15 -*/
                           /*# See comment above. #*/
                           memory_map = (camkes_memory_region_t[]){
                               { .start = (uintptr_t)__executable_start,

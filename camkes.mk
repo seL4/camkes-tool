@@ -59,7 +59,7 @@ CAMKES_FLAGS += \
     $(if ${CONFIG_CAMKES_LARGE_FRAME_PROMOTION},--largeframe,) \
     $(if ${CONFIG_CAMKES_DMA_LARGE_FRAME_PROMOTION},--largeframe-dma,) \
     $(if ${CONFIG_CAMKES_PRUNE_GENERATED},--prune,) \
-    $(if ${ARM_HYP},--architecture arm-hyp,$(if ${CONFIG_ARCH_IA32},--architecture ia32,)) \
+    --architecture ${SEL4_ARCH} \
     $(if ${CONFIG_CAMKES_ALLOW_FORWARD_REFERENCES},--allow-forward-references,) \
     $(if ${CONFIG_CAMKES_FAULT_HANDLERS},--debug-fault-handlers,) \
 
