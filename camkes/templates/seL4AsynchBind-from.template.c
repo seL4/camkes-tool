@@ -12,7 +12,7 @@
 
 /*? macros.show_includes(me.instance.type.includes) ?*/
 
-/*- set aep = alloc('aep', seL4_AsyncEndpointObject, write=True) -*/
+/*- set aep = alloc('aep', seL4_NotificationObject, write=True) -*/
 /*- set badge = configuration[me.instance.name].get('%s_attributes' % me.interface.name) -*/
 /*- if badge is not none -*/
     /*- set badge = badge.strip('"') -*/

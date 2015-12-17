@@ -131,7 +131,7 @@
     /*- set asidpool = alloc('asid_pool', seL4_ASID_Pool) -*/
 /*- endif -*/
 
-/*- set irqaep_object = alloc_obj('irq_aep_obj', seL4_AsyncEndpointObject) -*/
+/*- set irqaep_object = alloc_obj('irq_aep_obj', seL4_NotificationObject) -*/
 /*- set irqaep = alloc_cap('irq_aep_obj', irqaep_object, read=True) -*/
 /*- set irqs = [] -*/
 /*- set irq_list = configuration[me.name].get('irqs') -*/

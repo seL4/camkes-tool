@@ -17,7 +17,7 @@
 
 /*? macros.show_includes(me.instance.type.includes) ?*/
 
-/*- set aep = alloc('aep', seL4_AsyncEndpointObject, write=True) -*/
+/*- set aep = alloc('aep', seL4_NotificationObject, write=True) -*/
 /*- do cap_space.cnode[aep].set_badge(badge_magic) -*/
 
 void /*? me.interface.name ?*/_emit_underlying(void) {

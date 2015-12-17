@@ -28,7 +28,7 @@ import capdl, code, collections, copy, inspect, itertools, numbers, os, pdb, \
     re, six, sys, textwrap
 
 from capdl.Allocator import seL4_TCBObject, seL4_EndpointObject, \
-    seL4_AsyncEndpointObject, seL4_CanRead, seL4_CanWrite, seL4_AllRights, \
+    seL4_NotificationObject, seL4_CanRead, seL4_CanWrite, seL4_AllRights, \
     seL4_ARM_SmallPageObject, seL4_FrameObject, seL4_IRQControl, \
     seL4_UntypedObject, seL4_IA32_IOPort, seL4_IA32_IOSpace, \
     seL4_ARM_SectionObject, seL4_ARM_SuperSectionObject
@@ -56,7 +56,7 @@ def new_context(entity, assembly, obj_space, cap_space, shmem, **kwargs):
                 '%s_%s' % (entity.label(), name), type, label=entity.label(), **kwargs))
                     if obj_space else None,
         'seL4_EndpointObject':seL4_EndpointObject,
-        'seL4_AsyncEndpointObject':seL4_AsyncEndpointObject,
+        'seL4_NotificationObject':seL4_NotificationObject,
         'seL4_TCBObject':seL4_TCBObject,
         'seL4_ARM_SmallPageObject':seL4_ARM_SmallPageObject,
         'seL4_ARM_SectionObject':seL4_ARM_SectionObject,
