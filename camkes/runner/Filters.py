@@ -279,8 +279,6 @@ def collapse_shared_frames(ast, obj_space, cspaces, elfs, options, **_):
         assert len(pds) == 1
         pd, = pds
 
-        large_frame_uid = 0
-
         for d in i.type.dataports:
 
             # Find the connection that associates this dataport with another.
@@ -474,7 +472,7 @@ def collapse_shared_frames(ast, obj_space, cspaces, elfs, options, **_):
             # dataport, it means that dataport hasn't been given a paddr or size.
             # This indicates an error, and the object name is invalid in capdl,
             # so catch the error here rather than having the capdl translator fail.
-            for cap in cspaces[i.name].cnode.slots.values():
+            for cap in cspaces[i.address_space].cnode.slots.values():
                 match = re.match(r"([^ ]*) \(([^.]*)\.([^.]*)\)", cap.referent.name)
                 if match is not None and match.group(2) == connections[0].to_instance.name:
                     raise Exception("Missing hardware attributes for %s.%s" % (match.group(2), match.group(3)))
