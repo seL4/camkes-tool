@@ -414,7 +414,7 @@ def main():
             name = os.path.basename(e)
             if name in elfs:
                 raise Exception('duplicate ELF files of name \'%s\' encountered' % name)
-            elf = ELF(e, name)
+            elf = ELF(e, name, options.architecture)
             p = Perspective(phase=RUNNER, elf_name=name)
             group = p['group']
             # Avoid inferring a TCB as we've already created our own.
