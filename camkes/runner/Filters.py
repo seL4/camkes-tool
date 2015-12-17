@@ -265,7 +265,7 @@ def collapse_shared_frames(ast, obj_space, elfs, shmem, options, **_):
                 # Different architectures have different large frame sizes. We will
                 # need these later if this window is device registers or should be
                 # promoted to large frames.
-                if options.architecture == 'arm-hyp':
+                if options.architecture == 'arm_hyp':
                     large_frame_size = 2 * 1024 * 1024 # 2M
                 elif options.architecture == 'arm':
                     large_frame_size = 1024 * 1024 # 1M

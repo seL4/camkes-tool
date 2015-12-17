@@ -26,7 +26,7 @@ SECTIONS {
         *(.rodata*)
     }
 
-    /*- if options.architecture in ('arm', 'arm-hyp') -*/
+    /*- if options.architecture in ('arm', 'arm_hyp') -*/
     PROVIDE_HIDDEN (__exidx_start = .);
     .ARM.exidx   : { *(.ARM.exidx* .gnu.linkonce.armexidx.*) }
     PROVIDE_HIDDEN (__exidx_end = .);
@@ -73,7 +73,7 @@ SECTIONS {
       /*- if c.type.name == 'seL4HardwareMMIO' -*/
         /*- for index, e in enumerate(c.from_ends) -*/
           /*- if e.instance == me -*/
-            /*- if options.architecture in ('arm', 'arm-hyp') -*/
+            /*- if options.architecture in ('arm', 'arm_hyp') -*/
               ignore_from_/*? index ?*/_/*? e.interface.name ?*/ (NOLOAD) : ALIGN(0x100000) { /*# ARM Section Size #*/
             /*- else -*/
               ignore_from_/*? index ?*/_/*? e.interface.name ?*/ (NOLOAD) : ALIGN(0x400000) { /*# IA32 4M Page Size #*/
