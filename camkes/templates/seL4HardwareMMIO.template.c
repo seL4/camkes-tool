@@ -101,29 +101,28 @@ void * /*? me.from_interface.name ?*/_unwrap_ptr(dataport_ptr_t *p) {
     /*- set paddr = int(paddr, 0) -*/
     /*- set size = int(size, 0) -*/
 
-    static const seL4_CPtr /*? me.from_interface.name ?*/_frame_caps[] = {
+    /*- set frame_caps = c_symbol('frame_caps') -*/
+    static const seL4_CPtr /*? frame_caps ?*/[] = {
     /*# Allocate frame objects to back the hardware dataport #*/
     /*- if paddr % large_frame_size == 0 and size % large_frame_size == 0 -*/
         /*- set frame_size = large_frame_size -*/
         /*- set n_frames = size // large_frame_size -*/
-        /*- for i in range(n_frames) -*/
-            /*- set name = "large_frame_%s_%d (%s.%s)" % (me.from_instance.name, i, me.to_instance.name, me.to_interface.name) -*/
-            /*- set offset = large_frame_size * i -*/
-            /*- set frame_obj = alloc_obj(name, large_frame_type, paddr=(paddr + offset)) -*/
-            /*- set frame_cap = alloc_cap(name, frame_obj) -*/
-            /*? frame_cap ?*/,
-        /*- endfor -*/
+        /*- set name_prefix = "large_frame_" -*/
+        /*- set frame_type = large_frame_type -*/
     /*- else -*/
         /*- set frame_size = PAGE_SIZE -*/
         /*- set n_frames = (size + PAGE_SIZE - 1) // PAGE_SIZE -*/
-        /*- for i in range(n_frames) -*/
-            /*- set name = "frame_%s_%d (%s.%s)" % (me.from_instance.name, i, me.to_instance.name, me.to_interface.name) -*/
-            /*- set offset = PAGE_SIZE * i -*/
-            /*- set frame_obj = alloc_obj(name, seL4_FrameObject, paddr=(paddr + offset)) -*/
-            /*- set frame_cap = alloc_cap(name, frame_obj) -*/
-            /*? frame_cap ?*/,
-        /*- endfor -*/
+        /*- set name_prefix = "frame_" -*/
+        /*- set frame_type = seL4_FrameObject -*/
     /*- endif -*/
+
+    /*- for i in range(n_frames) -*/
+        /*- set name = "%s_%s_%d (%s.%s)" % (name_prefix, me.from_instance.name, i, me.to_instance.name, me.to_interface.name) -*/
+        /*- set offset = frame_size * i -*/
+        /*- set frame_obj = alloc_obj(name, frame_type, paddr=(paddr + offset)) -*/
+        /*- set frame_cap = alloc_cap(name, frame_obj) -*/
+        /*? frame_cap ?*/,
+    /*- endfor -*/
     };
 
     /*- if arch == 'arm' -*/
@@ -136,52 +135,21 @@ void * /*? me.from_interface.name ?*/_unwrap_ptr(dataport_ptr_t *p) {
     int /*? me.from_interface.name ?*/_flush_cache(size_t start_offset UNUSED, size_t size UNUSED) {
         /*- if arch == 'arm' -*/
 
-        if (start_offset < 0) {
-            return -1;
-        }
-
+        size_t current_offset = start_offset;
         size_t end_offset = start_offset + size;
-        unsigned int start_index = start_offset / /*? frame_size ?*/;
-        unsigned int end_index = end_offset / /*? frame_size ?*/;
 
-        if (start_offset >= sizeof(/*? show(me.from_interface.type) ?*/) ||
-            end_offset > sizeof(/*? show(me.from_interface.type) ?*/)) {
-            return -1;
-        }
-
-        if (start_index == end_index) {
-            /* Only one frame to flush */
-            seL4_CPtr frame = /*? me.from_interface.name ?*/_frame_caps[start_index];
-            size_t relative_start_offset = start_offset % /*? frame_size ?*/;
-            size_t relative_end_offset = end_offset % /*? frame_size ?*/;
-            return sel4_flush_cache(frame, relative_start_offset, relative_end_offset);
-        } else {
-            /* Range of frames to flush */
-
-            /* flush first frame */
-            seL4_CPtr frame = /*? me.from_interface.name ?*/_frame_caps[start_index];
-            size_t relative_start_offset = start_offset % /*? frame_size ?*/;
-            int error = sel4_flush_cache(frame, relative_start_offset, /*? frame_size ?*/);
-            if (error != 0) {
+        while (current_offset < end_offset) {
+            size_t frame_top = MIN(ROUND_UP(current_offset + 1, /*? frame_size ?*/), end_offset);
+            seL4_CPtr frame_cap = /*? frame_caps ?*/[current_offset / /*? frame_size ?*/];
+            size_t frame_start_offset = current_offset % /*? frame_size ?*/;
+            size_t frame_end_offset = ((frame_top - 1) % /*? frame_size ?*/) + 1;
+            int error = sel4_flush_cache(frame_cap, frame_start_offset,  frame_end_offset);
+            if (error) {
                 return error;
             }
-
-            /* flush intermediate frames */
-            for (unsigned int i = start_index + 1; i < end_index; ++i) {
-                frame = /*? me.from_interface.name ?*/_frame_caps[i];
-                error = sel4_flush_cache(frame, 0, /*? frame_size ?*/);
-                if (error != 0) {
-                    return error;
-                }
-            }
-
-            /* flush last frame */
-            frame = /*? me.from_interface.name ?*/_frame_caps[end_index];
-            size_t relative_end_offset = end_offset % /*? frame_size ?*/;
-            if (relative_end_offset != 0) {
-                return sel4_flush_cache(frame, 0, relative_end_offset);
-            }
+            current_offset = frame_top;
         }
+
         /*- endif -*/
         return 0;
     }
