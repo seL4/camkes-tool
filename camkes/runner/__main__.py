@@ -245,6 +245,7 @@ def main():
         die('No assembly found')
 
     obj_space = ObjectAllocator()
+    obj_space.spec.arch = options.architecture
     cspaces = {}
     pds = {}
     conf = assembly.configuration
