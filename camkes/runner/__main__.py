@@ -414,7 +414,7 @@ def main():
             name = os.path.basename(e)
             if name in elfs:
                 raise Exception('duplicate ELF files of name \'%s\' encountered' % name)
-            elf = ELF(e, name)
+            elf = ELF(e, name, options.architecture)
             if not arch:
                 # The spec's arch will have defaulted to ARM, but we want it to
                 # be the same as whatever ELF format we're parsing.
