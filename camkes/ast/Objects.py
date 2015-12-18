@@ -545,7 +545,10 @@ class Procedure(ASTObject):
             self.try_collapse_list(i)
 
     def __repr__(self):
-        s = '{ %s }' % ' '.join(map(str, self.methods))
+        s = '{ %(includes)s %(methods)s }' % {
+            'includes':' '.join(map(str, self.includes)),
+            'methods':' '.join(map(str, self.methods)),
+        }
         if self.name:
             s = 'procedure %(name)s %(defn)s' % {
                 'name':self.name,
