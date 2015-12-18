@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import abc, six, sys, os
-from gi.repository import Gtk
+from PyQt5 import QtWidgets, QtGui
 # import gtk as Gtk
 
 
@@ -20,7 +20,7 @@ class Controller(six.with_metaclass(abc.ABCMeta, object)):
     
     @parent_controller.setter
     def parent_controller(self, value):
-        assert issubclass(value.__class__, Controller) or isinstance(value, Controller)
+        assert isinstance(value, Controller)
         self._parent_controller = value
 
     '''
@@ -34,12 +34,12 @@ class Controller(six.with_metaclass(abc.ABCMeta, object)):
     def root_widget(self):
         # Lazy Instantiation
         if self._root_widget is None:
-            self._root_widget = Gtk.Widget()
+            self._root_widget = QtWidgets.QWidget()
         return self._root_widget
 
     @root_widget.setter
     def root_widget(self, value):
-        assert issubclass(value.__class__, Gtk.Widget) or isinstance(value, Gtk.Widget)
+        assert isinstance(value, QtWidgets.QWidget)
         self._root_widget = value
 
     # --- Methods ---
