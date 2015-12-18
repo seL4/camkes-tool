@@ -1,11 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from gi.repository import Gtk
-from camkes.ast.objects import *
+import six
+
+from PyQt5 import QtGui, QtWidgets
+from camkes.ast import *
 
 
-class InstanceWidget(Gtk.Bin):
+# TODO: subclass Qt
+class InstanceWidget(QtWidgets.QFrame):
 
     @property
     def instance_object(self):
@@ -13,7 +16,7 @@ class InstanceWidget(Gtk.Bin):
 
     @instance_object.setter
     def instance_object(self, value):
-        assert issubclass(value.__class__, Instance) or isinstance(value, Instance)
+        assert isinstance(value, Instance)
         self._instance_object = value
 
     @property
@@ -29,26 +32,28 @@ class InstanceWidget(Gtk.Bin):
 
     def __init__(self, instance_object):
         super(InstanceWidget, self).__init__()
-
-        assert issubclass(instance_object.__class__, Instance) or isinstance(instance_object, Instance)
+        # Model
         self._instance_object = instance_object
         self._instance_name = instance_object.name
 
-        new_widget_builder = Gtk.Builder()
-        new_widget_builder.add_from_file("../View/gladeASTTest.builder")
+        # GUI
+        layout = QtWidgets.QVBoxLayout()
 
-        instance_label = new_widget_builder.get_object("instance_name_label")
-        assert isinstance(instance_label, Gtk.Label)
-        instance_label.set_text(instance_object.name)
 
-        component_type_label = new_widget_builder.get_object("component_type")
-        assert isinstance(component_type_label, Gtk.Label)
-        component_type_label.set_text(instance_object.type.name)
 
-        new_widget_frame = new_widget_builder.get_object("Instance_frame")
+        component_type = self.instance_object.type
+        assert isinstance(component_type, Component)
 
-        self.add(new_widget_frame)
+        string = instance_object.name + ": " + component_type.name
+        new_label = QtWidgets.QLabel(string)
+        # self.setFrameStyle(QtWidgets.QFrame.Panel)
+        #new_label.setLineWidth(2)
+        layout.addWidget(new_label)
 
-    # What a hack (hacky because only works on this function). TODO: see if better way of doing this
-    def get_preferred_size(self):
-        return self.get_child().get_preferred_size()
+        if component_type.control:
+            layout.addWidget(QtWidgets.QLabel("control;"))
+
+        if component_type.hardware:
+            layout.addWidget(QtWidgets.QLabel("hardware;"))
+
+        self.setLayout(layout)
