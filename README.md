@@ -48,6 +48,8 @@ Using graphviz to do the heavy lifting.
 Milestone 2
 -----------
 
+A change of heart was made, and instead of using Gtk, Qt will be used instead. It is more up to date, and has a lot better documentation
+
 The goal of milestone 2 is to display the components (instances) in a nice way, with all the info about the widgets. Widget should then be able to move around (as well as ability to pin them). 
 Part of this milestone is to pretty it up to make it aesthestically pleasing. In the previous milestone, I found it unusually difficult to draw a line between two widgets. 
 In the risk of wasting a lot of time (already wasted a day on it), I shall push connectors to milestone 3. Milestone 2 will focus on the instances themselves. 
@@ -58,6 +60,7 @@ A side task is to also put the root_widget into a scrolling window.
 1. Add extra arguments to graphviz, to make the graph more spread out (to give connectors extra space), having hardware graphs lower on the screen.
 1. Currently the graph is draw inverted. This is because the co-ordinates of graphviz is true maths co-ords and not GUI co-ords. Need to translate between them.
 1. Draw out components with all info. Chance to make it final and aesthically pleasing
+1. Drawing out the connectors properly, with annotations
 
 ### Notes: 
 #### Info that a instance needs to display to the user
@@ -74,3 +77,12 @@ In the risk of losing the ideas suggested:
 * Ability to scroll and zoom the window
 * Terminal (vim/nano) on one side for easy code editing
 * Ability to save and reload graphs. Need to save positions of nodes.
+
+* QSplashScreen
+* Qt Quick?
+* QTabWidget
+* http://doc.qt.io/qt-5/focus.html
+* http://doc.qt.io/qt-5/layout.html
+* Example of Image with scrolling and Zooming: http://doc.qt.io/qt-5.5/qtwidgets-widgets-imageviewer-example.html
+* Desktop widget, helps to manage multiple monitors. (MAKE SURE TO GO TO Qt5 version) http://doc.qt.io/qt-4.8/qdesktopwidget.html
+* Modularise in such a way that Controller doesn't rely on Qt, so that graphics library can be changed easily
