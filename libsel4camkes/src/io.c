@@ -57,7 +57,15 @@ static UNUSED void * io_map(void *cookie, uintptr_t paddr, size_t size,
 }
 
 static int UNUSED pointer_compare(void *a, void *b) {
-    return (int)((uintptr_t)a - (uintptr_t)b);
+    uintptr_t p = (uintptr_t)a;
+    uintptr_t q = (uintptr_t)b;
+    if (p > q) {
+        return 1;
+    } else if (p < q) {
+        return -1;
+    } else {
+        return 0;
+    }
 }
 
 /* We never unmap anything. */
