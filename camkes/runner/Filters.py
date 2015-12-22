@@ -787,7 +787,6 @@ def sc_default_properties(ast, obj_space, cspaces, elfs, options, shmem):
 
     for s in filter(lambda x: isinstance(x, SC), obj_space):
         s.period = options.default_period
-        s.deadline = options.default_deadline
         s.budget = options.default_budget
         # s.flags = options.default_flags
 
@@ -822,13 +821,6 @@ def sc_properties(ast, obj_space, cspaces, elfs, options, shmem):
             period = assembly.configuration[name].get(period_attribute)
             if period is not None:
                 sc.period = period
-
-            # Find the deadline if it was set.
-            deadline_attribute = perspective['deadline_attribute']
-            name = perspective['instance']
-            deadline = assembly.configuration[name].get(deadline_attribute)
-            if deadline is not None:
-                sc.deadline = deadline
 
             # Find the budget if it was set.
             budget_attribute = perspective['budget_attribute']

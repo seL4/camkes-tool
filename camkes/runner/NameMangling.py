@@ -229,11 +229,6 @@ DERIVATIONS = {
         ForwardDeriver('%(interface)s_period', 'period_attribute'),
         BackwardDeriver(r'^([^_].*)_period$', 'period_attribute', 'interface'),
 
-        ControlDeriver(r'^_control_deadline$', 'deadline_attribute'),
-        FromControlDeriver('_control_deadline', 'deadline_attribute'),
-        ForwardDeriver('%(interface)s_deadline', 'deadline_attribute'),
-        BackwardDeriver(r'^([^_].*)_deadline$', 'deadline_attribute', 'interface'),
-
         ControlDeriver(r'^_control_budget$', 'budget_attribute'),
         FromControlDeriver('_control_budget', 'budget_attribute'),
         ForwardDeriver('%(interface)s_budget', 'budget_attribute'),

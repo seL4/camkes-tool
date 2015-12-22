@@ -58,7 +58,6 @@ TOOLS = {
             '--default-criticality',
             '--default-max-criticality',
             '--default-period',            
-            '--default-deadline',
             '--default-budget',
             '--elf',
             '--file',
@@ -207,8 +206,6 @@ def parse_args(tool):
         help='Default component thread maximum criticality.')
     add_arg('--default-period', type=int, default=10000,
         help='Default component thread scheduling context period.')
-    add_arg('--default-deadline', type=int, default=10000,
-        help='Default component thread scheduling context deadline.')
     add_arg('--default-budget', type=int, default=10000,
         help='Default component thread scheduling context budget.')
     add_arg('--prune', action='store_true', \
