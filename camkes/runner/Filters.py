@@ -730,14 +730,6 @@ def tcb_priorities(ast, cspaces, **_):
             max_prio = assembly.configuration[name].get(max_prio_attribute)
             if max_prio is not None:
                 tcb.max_prio = max_prio
-#
-#	    max_priosi =	filter(lambda x: \
-#                x.instance == name and x.attribute == max_prio_attribute,
-#                settings)
-#            if len(max_prios) == 1:
-#                 max_prio = max_prios[0].value
-#
-#            tcb.max_prio = max_prio
 
             # Find the criticality if it was set.
             # FIXME@ikuz: check this for correct use of perspective
@@ -746,13 +738,6 @@ def tcb_priorities(ast, cspaces, **_):
             crit =  assembly.configuration[name].get(crit_attribute)
             if crit is not None:
                 tcb.crit = crit
-#		filter(lambda x: \
-#                x.instance == name and x.attribute == crit_attribute,
-#                settings)
-#            if len(crits) == 1:
-#                crit = crits[0].value
-#
-#            tcb.crit = crit
 
             # Find the max_criticality if it was set.
             # FIXME@ikuz: check this for correct use of perspective
@@ -761,14 +746,6 @@ def tcb_priorities(ast, cspaces, **_):
             max_crit = assembly.configuration[name].get(max_crit_attribute)
             if max_crit is not None:
                 tcb.max_crit = max_crit
-#		filter(lambda x: \
-#                x.instance == name and x.attribute == max_crit_attribute,
-#                settings)
-#            if len(max_crits) == 1:
-#                max_crit = max_crits[0].value
-#
-#            tcb.max_crit = max_crit
-
 
 def tcb_domains(ast, cspaces, **_):
     '''Set the domain of a TCB if the user has specified this in an
@@ -846,23 +823,12 @@ def sc_properties(ast, obj_space, cspaces, elfs, options, shmem):
             if period is not None:
                 sc.period = period
 
-#            periods = filter(lambda x: \
-#                x.instance == name and x.attribute == period_attribute,
-#                settings)
-#            if len(periods) == 1:
-#            	sc.period = periods[0].value
-
             # Find the deadline if it was set.
             deadline_attribute = perspective['deadline_attribute']
             name = perspective['instance']
             deadline = assembly.configuration[name].get(deadline_attribute)
             if deadline is not None:
                 sc.deadline = deadline
-#            deadlines = filter(lambda x: \
-#                x.instance == name and x.attribute == deadline_attribute,
-#                settings)
-#            if len(deadlines) == 1:
-#            	sc.deadline = deadlines[0].value
 
             # Find the budget if it was set.
             budget_attribute = perspective['budget_attribute']
@@ -870,11 +836,6 @@ def sc_properties(ast, obj_space, cspaces, elfs, options, shmem):
             budget = assembly.configuration[name].get(budget_attribute)
             if budget is not None:
                 sc.budget = budget
-#            budgets = filter(lambda x: \
-#                x.instance == name and x.attribute == budget_attribute,
-#                settings)
-#            if len(budgets) == 1:
-#            	sc.budget = budgets[0].value
 
             # Find the flags if it was set.
             flags_attribute = perspective['flags_attribute']
@@ -882,12 +843,6 @@ def sc_properties(ast, obj_space, cspaces, elfs, options, shmem):
             flags = assembly.configuration[name].get(flags_attribute)
             if flags is not None:
                 sc.flags = flags
-#            flagss = filter(lambda x: \
-#                x.instance == name and x.attribute == flags_attribute,
-#                settings)
-#            if len(flagss) == 1:
-#            	sc.flags = flagss[0].value
-
 
 CAPDL_FILTERS = [
     set_tcb_info,
