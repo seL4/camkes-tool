@@ -683,11 +683,3 @@ int camkes_dma_manager(ps_dma_man_t *man) {
     man->dma_cache_op_fn = dma_cache_op;
     return 0;
 }
-
-/* Legacy functions */
-void *camkes_dma_alloc_page(void) {
-    return camkes_dma_alloc(PAGE_SIZE_4K, PAGE_SIZE_4K);
-}
-void camkes_dma_free_page(void *ptr) {
-    return camkes_dma_free(ptr, PAGE_SIZE_4K);
-}
