@@ -334,7 +334,7 @@ class Setting(ASTObject):
 class Component(ASTObject):
     def __init__(self, name=None, includes=None, control=False, hardware=False, \
             provides=None, uses=None, emits=None, consumes=None, dataports=None, \
-            attributes=[], mutexes=None, semaphores=None, composition=None, \
+            attributes=None, mutexes=None, semaphores=None, composition=None, \
             configuration=None, filename=None, lineno=-1):
         assert name is None or isinstance(name, str)
         assert isinstance(control, bool)
