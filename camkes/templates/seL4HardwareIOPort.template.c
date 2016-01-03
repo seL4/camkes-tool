@@ -18,7 +18,6 @@
 /*? macros.show_includes(me.from_instance.type.includes) ?*/
 
 /*- set instance = me.to_instance.name -*/
-/*- set interface = me.to_interface.name -*/
 
 /*- set ioport = [] -*/
 /*- set p = Perspective(to_interface=me.to_interface.name) -*/
@@ -37,8 +36,11 @@
 /*- endif -*/
 
 /* Interface-specific error handling */
-/*- set error_handler = '%s_error_handler' % me.to_interface.name -*/
+/*- set interface = me.from_interface.name -*/
+/*- set error_handler = '%s_error_handler' % me.from_interface.name -*/
 /*- include 'error-handler.c' -*/
+
+/*- set interface = me.to_interface.name -*/
 
 uint8_t /*? me.from_interface.name ?*/_in8(uint16_t port)
 {
