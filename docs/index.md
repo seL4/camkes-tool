@@ -706,8 +706,10 @@ This example will demonstrate both.
 Create two components that will use a pair of dataports for communication:
 
 ```bash
-mkdir -p apps/hellodataport/components/Ping
-mkdir -p apps/hellodataport/components/Pong
+mkdir -p apps/hellodataport/components/Ping/src
+mkdir -p apps/hellodataport/components/Pong/src
+
+mkdir -p apps/hellodataport/include
 ```
 
 Let's define a struct that will be used as one of the dataports:
@@ -742,8 +744,6 @@ Now let's create an ADL description of the Ping component:
 
     /* apps/hellodataport/components/Ping/Ping.camkes */
 
-    import "Porttype.idl4";
-
     component Ping {
       include "porttype.h";
       control;
@@ -757,8 +757,6 @@ the `MyData_t` type. Add a similar description for Pong:
 
     /* apps/hellodataport/components/Pong/Pong.camkes */
 
-    import "Porttype.idl4";
-
     component Pong {
       include "porttype.h";
       control;
@@ -769,7 +767,7 @@ the `MyData_t` type. Add a similar description for Pong:
 Now we'll create some basic code for each component to use the dataports:
 
 ```c
-/* apps/components/Ping/src/main.c */
+/* apps/hellodataport/components/Ping/src/main.c */
 
 #include <camkes.h>
 #include <porttype.h>
@@ -780,20 +778,20 @@ int run(void) {
   char *hello = "hello";
 
   printf("Ping: sending %s...\n", hello);
-  strcpy((void*)d1_data, hello);
+  strcpy((void*)d1, hello);
 
-  /* Wait for Pong to reply. We can assume d2_data is
+  /* Wait for Pong to reply. We can assume d2 is
    * zeroed on startup by seL4.
    */
-  while (!d2_data->data[0]);
-  printf("Ping: received %s.\n", d2_data->data);
+  while (!d2->data[0]);
+  printf("Ping: received %s.\n", d2->data);
 
   return 0;
 }
 ```
 
 ```c
-/* apps/components/Pong/src/main.c */
+/* apps/hellodataport/components/Pong/src/main.c */
 
 #include <camkes.h>
 #include <porttype.h>
@@ -803,14 +801,14 @@ int run(void) {
 int run(void) {
   char *world = "world";
 
-  /* Wait for Ping to message us. We can assume s1_data is
+  /* Wait for Ping to message us. We can assume s1 is
    * zeroed on startup by seL4.
    */
-  while (!*(volatile char*)s1_data);
-  printf("Pong: received %s\n", (volatile char*)s1_data);
+  while (!*(volatile char*)s1);
+  printf("Pong: received %s\n", (volatile char*)s1);
 
   printf("Pong: sending %s...\n", world);
-  strcpy((void*)s2_data->data, world);
+  strcpy((void*)s2->data, world);
 
   return 0;
 }
@@ -839,9 +837,57 @@ top-level ADL file:
       }
     }
 
-Add the now familiar apps/hellodataport/Kconfig, apps/hellodataport/Makefile,
-Kconfig and apps/hellodataport/Kbuild. If you now compile and run the resulting
-image you should see some output like the following:
+Add a Kconfig and Kbuild for this application:
+
+```Kconfig
+# apps/hellodataport/Kconfig
+
+config APP_HELLODATAPORT
+bool "Hello world dataport application"
+default n
+    help
+        Hello world using a dataport.
+```
+
+```Makefile
+# apps/hellodataport/Kbuild
+
+apps-$(CONFIG_APP_HELLODATAPORT) += hellodataport
+hellodataport: libsel4 libmuslc libsel4platsupport \
+  libsel4muslccamkes libsel4sync libsel4debug libsel4bench
+```
+
+For the application's Makefile, note that we need to specify the headers we're
+including as well:
+
+```Makefile
+# apps/hellodataport/Makefile
+
+TARGETS := hellodataport.cdl
+ADL := hellodataport.camkes
+
+Ping_CFILES := components/Ping/src/main.c
+Ping_HFILES := components/Ping/include/porttype.h
+
+Pong_CFILES := components/Pong/src/main.c
+Pong_HFILES := components/Pong/include/porttype.h
+
+include ${SOURCE_DIR}/../../tools/camkes/camkes.mk
+```
+
+Add the now familiar entry for this application in the top level Kconfig and we
+can now compile the application:
+
+```bash
+make menuconfig
+# De-select previous application and select the one just created.
+
+make clean
+make
+```
+
+You should now be able to run the resulting image. If you followed the steps
+correctly you should see some output like the following:
 
     Ping: sending hello...
     Pong: received hello
