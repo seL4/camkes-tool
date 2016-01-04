@@ -19,7 +19,7 @@
 
 /*- set attr = "%s_attributes" % me.parent.from_interface.name -*/
 /*- set irq= [] -*/
-/*- set aep_obj = alloc_obj('aep', seL4_AsyncEndpointObject) -*/
+/*- set aep_obj = alloc_obj('aep', seL4_NotificationObject) -*/
 /*- set aep = alloc_cap('aep', aep_obj, read=True) -*/
 /*- set _irq = configuration[me.parent.from_instance.name].get(attr) -*/
 /*- if _irq is not none -*/
@@ -27,7 +27,7 @@
     /*- set irq_handler = alloc('irq', seL4_IRQControl, number=int(attr_irq, 0), aep=my_cnode[aep]) -*/
     /*- do irq.append((irq_handler, int(attr_level, 0), int(attr_trig, 0))) -*/
 /*- endif -*/
-/*- set lock = alloc('lock', seL4_AsyncEndpointObject, read=True, write=True) -*/
+/*- set lock = alloc('lock', seL4_NotificationObject, read=True, write=True) -*/
 
 /* Interface-specific error handling */
 /*- set error_handler = '%s_error_handler' % me.interface.name -*/

@@ -14,7 +14,7 @@
 
 /*- set aeps = [] -*/
 /*- for index in six.moves.range(len(me.parent.to_ends)) -*/
-  /*- do aeps.append(alloc('aep_%d' % index, seL4_AsyncEndpointObject, write=True)) -*/
+  /*- do aeps.append(alloc('aep_%d' % index, seL4_NotificationObject, write=True)) -*/
 /*- endfor -*/
 
 void /*? me.interface.name ?*/_emit_underlying(void) {

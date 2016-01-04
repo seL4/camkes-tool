@@ -22,7 +22,7 @@
 
 /*- set eps = [] -*/
 /*- for index in six.moves.range(len(me.parent.to_ends)) -*/
-  /*- do eps.append(alloc('ep_%d' % index, seL4_AsyncEndpointObject, write=True)) -*/
+  /*- do eps.append(alloc('ep_%d' % index, seL4_NotificationObject, write=True)) -*/
 
   char from_/*? my_index ?*/_/*? me.interface.name ?*/_/*? index ?*/_data[ROUND_UP_UNSAFE(sizeof(int), PAGE_SIZE_4K)]
       VISIBLE;

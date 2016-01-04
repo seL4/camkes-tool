@@ -13,7 +13,7 @@
 
 /*? macros.show_includes(me.instance.type.includes) ?*/
 
-/*- set aep = alloc('aep', seL4_AsyncEndpointObject, read=True, write=True) -*/
+/*- set aep = alloc('aep', seL4_NotificationObject, read=True, write=True) -*/
 
 seL4_CPtr /*? me.interface.name ?*/_aep(void) {
     return /*? aep ?*/;

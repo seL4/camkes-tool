@@ -17,7 +17,7 @@
 
 /*? macros.show_includes(me.instance.type.includes) ?*/
 /*- set attr = '%s_irq_number' % me.parent.from_interface.name -*/
-/*- set aep_obj = alloc_obj('aep', seL4_AsyncEndpointObject) -*/
+/*- set aep_obj = alloc_obj('aep', seL4_NotificationObject) -*/
 /*- set aep = alloc_cap('aep', aep_obj, read=True) -*/
 /*- set _irq = configuration[me.parent.from_instance.name].get(attr) -*/
 /*- if _irq is none -*/

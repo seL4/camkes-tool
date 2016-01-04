@@ -44,12 +44,12 @@
 
 /*- set id = me.parent.to_ends.index(me) -*/
 
-/*- set aep = alloc('aep_%d' % id, seL4_AsyncEndpointObject, read=True) -*/
+/*- set aep = alloc('aep_%d' % id, seL4_NotificationObject, read=True) -*/
 
 /*- set handoff = alloc('handoff_%d' % id, seL4_EndpointObject, read=True, write=True) -*/
 static volatile int handoff_value;
 
-/*- set lock = alloc('lock_%d' % id, seL4_AsyncEndpointObject, read=True, write=True) -*/
+/*- set lock = alloc('lock_%d' % id, seL4_NotificationObject, read=True, write=True) -*/
 static volatile int lock_count = 1;
 
 static int lock(void) {
