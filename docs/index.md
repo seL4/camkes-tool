@@ -876,8 +876,18 @@ include ${SOURCE_DIR}/../../tools/camkes/camkes.mk
 ```
 
 Add the now familiar entry for this application in the top level Kconfig and we
-can now compile and run the application. If you followed the steps correctly
-you should see some output like the following:
+can now compile the application:
+
+```bash
+make menuconfig
+# De-select previous application and select the one just created.
+
+make clean
+make
+```
+
+You should now be able to run the resulting image. If you followed the steps
+correctly you should see some output like the following:
 
     Ping: sending hello...
     Pong: received hello
