@@ -60,7 +60,8 @@ class SourceLocation(object):
             assert isinstance(self.term, plyplus.ParseError)
 
             # Try to extract the line number from a plyplus error.'''
-            m = re.match(r'^.*\sline\s+(\d+)\s+col\s+\d+$', str(self.term))
+            m = re.search(r'^.*\sline\s+(\d+)\s+col\s+\d+$', str(self.term),
+                flags=re.MULTILINE)
             if m is not None:
                 plyplus_line = int(m.group(1))
             else:
