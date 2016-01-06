@@ -24,6 +24,7 @@ sys.path.append(os.path.join(os.path.dirname(ME), '../../..'))
 from camkes.internal.tests.utils import CAmkESTest, cpp_available
 from camkes.parser.stage0 import CPP, Reader
 from camkes.parser.stage1 import Parse1
+from camkes.parser.exception import ParseError
 
 class TestStage1(CAmkESTest):
     def setUp(self):
@@ -412,6 +413,46 @@ class TestStage1(CAmkESTest):
 
         P.calc_position()
         self.assertEqual(P.min_line, 6)
+
+    def test_manual_line_directives(self):
+        '''
+        GCC supports two forms of line directive:
+
+            #line <linenum> <filename>
+
+            # <linenum> <filename>
+
+        Only the first of these is documented in [0], though it is actually the
+        second of these that the C pre processor outputs. CAmkES' understanding
+        of these directives was previously based on observed directives from
+        CPP and it could not understand the first of these. This test checks
+        that it can now understand the first of these as well, as these may be
+        in use by some other non-CPP pre processing tool.
+
+          [0]: https://gcc.gnu.org/onlinedocs/cpp/Line-Control.html
+        '''
+
+        # Deliberately parse a malformed spec to generate an error.
+        try:
+            self.parser.parse_string('''
+
+                #line 42 "A"
+
+                connector Foo {
+                    from Procedure bar;
+                    to Procedure baz;
+                }
+                ''')
+
+            # If we reached this point, the malformed spec did not trigger an
+            # error as expected.
+            self.fail('incorrect syntax accepted by stage 1 parser')
+
+        except ParseError as e:
+            error = e
+
+        self.assertRegexpMatches(str(error), 'A:44:', 'alternate form of line '
+            'directive not supported')
 
 if __name__ == '__main__':
     unittest.main()
