@@ -208,40 +208,6 @@ int /*? me.interface.name ?*/__run(void) {
     /*- set info = c_symbol('info') -*/
     seL4_MessageInfo_t /*? info ?*/ = seL4_Recv(/*? ep ?*/, & /*? me.interface.name ?*/_badge);
     while (1) {
-        /*- if not options.fcall_leave_reply_cap -*/
-            /* We need to save the reply cap because the user's implementation may
-             * perform operations that overwrite or discard it.
-             */
-            /*- set result = c_symbol() -*/
-            /*? assert(cnode is defined and cnode > 0) ?*/
-            /*? assert(reply_cap_slot is defined and reply_cap_slot > 0) ?*/
-            int /*? result ?*/ UNUSED = seL4_CNode_SaveCaller(/*? cnode ?*/, /*? reply_cap_slot ?*/, 32);
-            ERR_IF(/*? result ?*/ != 0, /*? error_handler ?*/, ((camkes_error_t){
-                    .type = CE_SYSCALL_FAILED,
-                    .instance = "/*? instance ?*/",
-                    .interface = "/*? interface ?*/",
-                    .description = "failed to save reply cap in /*? name ?*/",
-                    .syscall = CNodeSaveCaller,
-                    .error = /*? result ?*/,
-                }), ({
-                    /*? info ?*/ = seL4_Recv(/*? ep ?*/, & /*? me.interface.name ?*/_badge);
-                    continue;
-                }));
-        /*- elif len(me.instance.type.provides + me.instance.type.uses + me.instance.type.consumes + me.instance.type.mutexes + me.instance.type.semaphores) > 1 -*/
-            /*- set result = c_symbol() -*/
-            /*? assert(reply_cap_slot is defined and reply_cap_slot > 0) ?*/
-            int /*? result ?*/ UNUSED = camkes_declare_reply_cap(/*? reply_cap_slot ?*/);
-            ERR_IF(/*? result ?*/ != 0, /*? error_handler ?*/, ((camkes_error_t){
-                    .type = CE_ALLOCATION_FAILURE,
-                    .instance = "/*? instance ?*/",
-                    .interface = "/*? interface ?*/",
-                    .description = "failed to declare reply cap in /*? name ?*/",
-                    .alloc_bytes = sizeof(seL4_CPtr),
-                }), ({
-                    /*? info ?*/ = seL4_Recv(/*? ep ?*/, & /*? me.interface.name ?*/_badge);
-                    continue;
-                }));
-        /*- endif -*/
 
         /*- set buffer = c_symbol('buffer') -*/
         void * /*? buffer ?*/ UNUSED = (void*)/*? BUFFER_BASE ?*/;
@@ -327,6 +293,41 @@ int /*? me.interface.name ?*/__run(void) {
                         /*? info ?*/ = seL4_Recv(/*? ep ?*/, & /*? me.interface.name ?*/_badge);
                         continue;
                     }
+
+                    /*- if not options.fcall_leave_reply_cap -*/
+                        /* We need to save the reply cap because the user's implementation may
+                         * perform operations that overwrite or discard it.
+                         */
+                        /*- set result = c_symbol() -*/
+                        /*? assert(cnode is defined and cnode > 0) ?*/
+                        /*? assert(reply_cap_slot is defined and reply_cap_slot > 0) ?*/
+                        int /*? result ?*/ UNUSED = seL4_CNode_SaveCaller(/*? cnode ?*/, /*? reply_cap_slot ?*/, 32);
+                        ERR_IF(/*? result ?*/ != 0, /*? error_handler ?*/, ((camkes_error_t){
+                                .type = CE_SYSCALL_FAILED,
+                                .instance = "/*? instance ?*/",
+                                .interface = "/*? interface ?*/",
+                                .description = "failed to save reply cap in /*? name ?*/",
+                                .syscall = CNodeSaveCaller,
+                                .error = /*? result ?*/,
+                            }), ({
+                                /*? info ?*/ = seL4_Recv(/*? ep ?*/, & /*? me.interface.name ?*/_badge);
+                                continue;
+                            }));
+                    /*- elif len(me.instance.type.provides + me.instance.type.uses + me.instance.type.consumes + me.instance.type.mutexes + me.instance.type.semaphores) > 1 -*/
+                        /*- set result = c_symbol() -*/
+                        /*? assert(reply_cap_slot is defined and reply_cap_slot > 0) ?*/
+                        int /*? result ?*/ UNUSED = camkes_declare_reply_cap(/*? reply_cap_slot ?*/);
+                        ERR_IF(/*? result ?*/ != 0, /*? error_handler ?*/, ((camkes_error_t){
+                                .type = CE_ALLOCATION_FAILURE,
+                                .instance = "/*? instance ?*/",
+                                .interface = "/*? interface ?*/",
+                                .description = "failed to declare reply cap in /*? name ?*/",
+                                .alloc_bytes = sizeof(seL4_CPtr),
+                            }), ({
+                                /*? info ?*/ = seL4_Recv(/*? ep ?*/, & /*? me.interface.name ?*/_badge);
+                                continue;
+                            }));
+                    /*- endif -*/
 
                     /* Call the implementation */
                     /*- set ret = c_symbol('ret') -*/
