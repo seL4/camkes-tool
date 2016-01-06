@@ -6,7 +6,7 @@ from PyQt5 import QtWidgets, QtGui
 from Connection_Widget import ConnectionWidget
 
 
-class GraphWidget(QtWidgets.QFrame):
+class GraphWidget(QtWidgets.QGraphicsView):
 
     @property
     def connection_widgets(self):
@@ -23,36 +23,35 @@ class GraphWidget(QtWidgets.QFrame):
         super(GraphWidget, self).__init__()
         self._connection_widgets = None
 
+        scene = QtWidgets.QGraphicsScene(self)
+        scene.setItemIndexMethod(QtWidgets.QGraphicsScene.NoIndex) #TODO: Not sure if this is necessary
+        scene.setSceneRect(0,0,500,500) # Random size, should be given when controller renders
+
+        self.setScene(scene)
+
+        self.setMinimumSize(500,500)
+
     def add_instance_widget(self, new_widget, x_pos, y_pos):
 
-        # set parent widget of new widget to be self
-        # raise NotImplementedError
-
         assert isinstance(new_widget, QtWidgets.QWidget)
-        new_widget.setParent(self)
-        self.move_instance_widget(new_widget, x_pos, y_pos)
 
-    def move_instance_widget(self, widget, new_x_pos, new_y_pos):
-        # Takes center positions of widget
+        if new_widget not in self.scene().items():
+            # set parent widget of new widget to be self
+            self.scene().addWidget(new_widget)
 
-        # TODO: Check if widget is a child.
+        new_widget.move(x_pos - (new_widget.sizeHint().width()/2), y_pos - (new_widget.sizeHint().height()/2))
 
-        # Move widget to the middle
-        widget.move(new_x_pos - (widget.sizeHint().width()/2), new_y_pos - (widget.sizeHint().height()/2))
-        pass
-
-    def paintEvent(self, QPaintEvent):
-        super(GraphWidget, self).paintEvent(QPaintEvent)
-
-        q_painter = QtGui.QPainter()
-        q_painter.begin(self)
+    def drawBackground(self, q_painter, rectangle):
+        super(GraphWidget, self).drawBackground(q_painter, rectangle)
 
         # Loop through all connectors
         for connector in self.connection_widgets:
             assert isinstance(connector, ConnectionWidget)
             connector.draw_connection(q_painter)
 
-        q_painter.end()
-
         # TODO: Possible feature, only update the rect given in QPaintEvent
 
+    # Set UI Functions
+    def setViewGeometry(self, size_x, size_y):
+        self.scene().setSceneRect(0,0,size_x, size_y)
+        self.setMinimumSize(size_x, size_y)

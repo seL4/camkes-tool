@@ -111,5 +111,3 @@ class ConnectionWidget(QtWidgets.QWidget):
             q_painter.drawPoint(point[0], point[1])
             q_painter.fillRect(QtCore.QRect(point[0], point[1], 4,4), color)
         '''
-        print "printing"
-

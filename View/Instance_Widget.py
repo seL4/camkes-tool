@@ -3,11 +3,10 @@
 
 import six
 
-from PyQt5 import QtGui, QtWidgets
+from PyQt5 import QtGui, QtWidgets, QtCore
 from camkes.ast import *
 
 
-# TODO: subclass Qt
 class InstanceWidget(QtWidgets.QFrame):
 
     @property
@@ -30,24 +29,26 @@ class InstanceWidget(QtWidgets.QFrame):
         assert isinstance(value, six.string_types)
         self._instance_name = value
 
+    # Signals & Slots
+    openComponentInfo = QtCore.pyqtSignal(QtGui.QMouseEvent, Instance)
+
     def __init__(self, instance_object):
         super(InstanceWidget, self).__init__()
         # Model
+
         self._instance_object = instance_object
         self._instance_name = instance_object.name
 
         # GUI
         layout = QtWidgets.QVBoxLayout()
 
-
-
         component_type = self.instance_object.type
         assert isinstance(component_type, Component)
 
         string = instance_object.name + ": " + component_type.name
         new_label = QtWidgets.QLabel(string)
-        # self.setFrameStyle(QtWidgets.QFrame.Panel)
-        #new_label.setLineWidth(2)
+        self.setFrameStyle(QtWidgets.QFrame.Panel)
+
         layout.addWidget(new_label)
 
         if component_type.control:
@@ -57,3 +58,6 @@ class InstanceWidget(QtWidgets.QFrame):
             layout.addWidget(QtWidgets.QLabel("hardware;"))
 
         self.setLayout(layout)
+
+    def mousePressEvent(self, mouse_event):
+        self.openComponentInfo.emit(mouse_event, self.instance_object)
