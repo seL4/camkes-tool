@@ -203,26 +203,6 @@ int /*? me.to_interface.name ?*/__run(void) {
     /*- set info = c_symbol('info') -*/
     seL4_MessageInfo_t /*? info ?*/ = seL4_Recv(/*? ep ?*/, & /*? me.to_interface.name ?*/_badge);
     while (1) {
-        /*- if not options.fcall_leave_reply_cap or len(me.to_instance.type.provides + me.to_instance.type.uses + me.to_instance.type.consumes + me.to_instance.type.mutexes + me.to_instance.type.semaphores) > 1 -*/
-            /* We need to save the reply cap because the user's implementation may
-             * perform operations that overwrite or discard it.
-             */
-            /*- set result = c_symbol() -*/
-            /*- set cnode = alloc_cap('cnode', my_cnode, write=True) -*/
-            /*- set reply_cap_slot = alloc_cap('reply_cap_slot', None) -*/
-            int /*? result ?*/ UNUSED = seL4_CNode_SaveCaller(/*? cnode ?*/, /*? reply_cap_slot ?*/, 32);
-            ERR_IF(/*? result ?*/ != 0, /*? error_handler ?*/, ((camkes_error_t){
-                    .type = CE_SYSCALL_FAILED,
-                    .instance = "/*? instance ?*/",
-                    .interface = "/*? interface ?*/",
-                    .description = "failed to save reply cap in /*? name ?*/",
-                    .syscall = CNodeSaveCaller,
-                    .error = /*? result ?*/,
-                }), ({
-                    /*? info ?*/ = seL4_Recv(/*? ep ?*/, & /*? me.to_interface.name ?*/_badge);
-                    continue;
-                }));
-        /*- endif -*/
 
         /*- set buffer = c_symbol('buffer') -*/
         void * /*? buffer ?*/ UNUSED = (void*)/*? BUFFER_BASE ?*/;
@@ -308,6 +288,27 @@ int /*? me.to_interface.name ?*/__run(void) {
                         /*? info ?*/ = seL4_Recv(/*? ep ?*/, & /*? me.to_interface.name ?*/_badge);
                         continue;
                     }
+
+                    /*- if not options.fcall_leave_reply_cap or len(me.to_instance.type.provides + me.to_instance.type.uses + me.to_instance.type.consumes + me.to_instance.type.mutexes + me.to_instance.type.semaphores) > 1 -*/
+                        /* We need to save the reply cap because the user's implementation may
+                         * perform operations that overwrite or discard it.
+                         */
+                        /*- set result = c_symbol() -*/
+                        /*- set cnode = alloc_cap('cnode', my_cnode, write=True) -*/
+                        /*- set reply_cap_slot = alloc_cap('reply_cap_slot', None) -*/
+                        int /*? result ?*/ UNUSED = seL4_CNode_SaveCaller(/*? cnode ?*/, /*? reply_cap_slot ?*/, 32);
+                        ERR_IF(/*? result ?*/ != 0, /*? error_handler ?*/, ((camkes_error_t){
+                                .type = CE_SYSCALL_FAILED,
+                                .instance = "/*? instance ?*/",
+                                .interface = "/*? interface ?*/",
+                                .description = "failed to save reply cap in /*? name ?*/",
+                                .syscall = CNodeSaveCaller,
+                                .error = /*? result ?*/,
+                            }), ({
+                                /*? info ?*/ = seL4_Recv(/*? ep ?*/, & /*? me.to_interface.name ?*/_badge);
+                                continue;
+                            }));
+                    /*- endif -*/
 
                     /* Call the implementation */
                     /*- set ret = c_symbol('ret') -*/
