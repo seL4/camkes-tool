@@ -3,6 +3,7 @@
 
 import sys
 
+# TODO: should be able to remove this, as controller shouldn't be dependent on graphics library (that's the goal)
 from PyQt5 import QtWidgets, QtGui, QtCore
 
 from pygraphviz import *
@@ -24,6 +25,7 @@ from Model import Common
 from View.Graph_Widget import GraphWidget
 from View.Connection_Widget import ConnectionWidget
 from View.Instance_Widget import InstanceWidget
+from View.Component_Window import ComponentWindow
 
 # TODO: Add camkes tools to path, or make an init file or something
 from camkes.ast.base import ASTObject
@@ -32,7 +34,7 @@ from camkes.ast import *
 
 
 class GraphController(Controller):
-    # Default root_widget is a Gtk.Layout
+    # Default root_widget is a GraphWidget
     @property
     def root_widget(self):
         # Lazy Instantiation
@@ -44,6 +46,12 @@ class GraphController(Controller):
     def root_widget(self, value):
         assert isinstance(value, GraphWidget)
         self._root_widget = value
+
+    @property
+    def component_widget(self):
+        if self._component_widget is None:
+            self._component_widget = ComponentWindow(None)
+        return self._component_widget
 
     @property
     def ast(self):
@@ -93,53 +101,53 @@ class GraphController(Controller):
         self._widget_instances = None
         self._widget_connections = None
         self._root_widget = None
+        self._component_widget = None
         # Rest initialised in superclass
 
         # Model, get a ASTObject from given camkes file
         self.ast = ASTCreator.get_ast(path_to_camkes)
 
+        self.sync_model_with_view()
+
+        # self.render()
+
+    def sync_model_with_view(self):
+
         ast_assembly = self.ast.assembly
         assert isinstance(ast_assembly, Assembly)
 
-        # For each instance, create a node in the graph & a widget. Add widget to root_widget
+        # Clear arrays of instances and connections
+        self.widget_instances = []
+        self.widget_connections = []
+
+        # For each instance, create a node in the graph & a widget.
         for instance in ast_assembly.instances:
             assert isinstance(instance, Instance)
 
             new_widget = InstanceWidget(instance)
+            new_widget.openComponentInfo.connect(self.show_component_info)
 
             self.widget_instances.append(new_widget)
 
-            # Initial 0,0. Will move to correct location in render()
-            self.root_widget.add_instance_widget(new_widget, x_pos=0, y_pos=0)
+        self.render()
 
-        # self.render()
+    def create_graph_rep(self):
 
-
-    def render(self):
-        ast_assembly = self.ast.assembly
-        assert isinstance(ast_assembly, Assembly)
-
-        # Create graph
         graph_viz = AGraph(strict=False, spline="line", directed=True)
-        # TODO: Consider renaming above (easy to do with refactor :)
 
-        # For each instance, create a node in the graph & a widget
         for widget_instance in self.widget_instances:
-            instance = widget_instance.instance_object
+            assert isinstance(widget_instance, InstanceWidget)
 
-            # Add node
-            # TODO: check if valid
+            instance = widget_instance.instance_object
+            assert isinstance(instance, Instance)
+
             size = widget_instance.sizeHint()
-            print str(instance.name) + " size is: " + str(size)
             assert isinstance(size, QtCore.QSize)
 
-            # Divide by 72 because of points to inches conversion
             graph_viz.add_node(instance.name, width=size.width()/72.0,
                                height=size.height()/72.0, shape="rect")
 
-        # For all connections, create an edge
-        for connection in ast_assembly.connections:
-            assert isinstance(connection, Connection)
+        for connection in self.ast.assembly.connections:
 
             for from_instance_end in connection.from_ends:
                 assert isinstance(from_instance_end, ConnectionEnd)
@@ -154,13 +162,17 @@ class GraphController(Controller):
                     # Add edge
                     graph_viz.add_edge(u=from_instance.name, v=to_instance.name)
 
-        # Generate the graph (add positions to each node and edges)
         graph_viz.layout('dot')
         raw_dot_data = graph_viz.draw(format='dot')
         print raw_dot_data
 
         dot_data = Pydot.graph_from_dot_data(raw_dot_data)
-        assert isinstance(dot_data, Pydot.Dot)
+
+        return dot_data
+
+    def render(self):
+
+        dot_data = self.create_graph_rep()
 
         # Get the size of the graph, and make the canvas the same size
         graph_attributes = dot_data.get_graph_defaults()
@@ -169,8 +181,8 @@ class GraphController(Controller):
         for attribute_dict in graph_attributes:
             if attribute_dict['bb'] is not None:
                 rectangle = Common.extract_numbers(attribute_dict['bb'])
-                size = rectangle[1]
-                self.root_widget.setGeometry(0,0,size[0], size[1])
+                size = (rectangle[1][0]-rectangle[0][0],rectangle[1][1]-rectangle[0][1])
+                self.root_widget.setViewGeometry(size[0], size[1])
                 break
 
         # For each widget, get position from dot_data and place them on the screen
@@ -191,22 +203,31 @@ class GraphController(Controller):
             assert len(node_position_list) is 1  # Should only be one position
             node_position = node_position_list[0]
 
-            self.root_widget.move_instance_widget(instance_widget, new_x_pos=node_position[0], new_y_pos=node_position[1])
+            self.root_widget.add_instance_widget(instance_widget, x_pos=node_position[0], y_pos=node_position[1])
 
         edge_list = dot_data.get_edges()
         for edge in edge_list:
             assert isinstance(edge, Pydot.Edge)
 
-            for connection_object in ast_assembly.connections:
+            for connection_object in self.ast.assembly.connections:
+                # For each connection
                 assert isinstance(connection_object, Connection)
+
+                # if the edge represents this connections' source and destination
                 if edge.get_source() in [y.instance.name for y in connection_object.from_ends] and \
                                 edge.get_destination() in [y.instance.name for y in connection_object.to_ends]:
-                    # Create an widget with the point an the object
+
+                    # Create an widget with the points and the object
+
                     edge_widget = ConnectionWidget(connection_object, edge)
                     self.widget_connections.append(edge_widget)
                     self.root_widget.add_connection_widget(edge_widget)
 
                     break  # Unnecessary to keep searching once found
+
+    def show_component_info(self, mouse_event, instance):
+        print "clicked " + str(instance.name)
+        self.component_widget.set_component_object(instance.type, mouse_event)
 
 
 
@@ -219,19 +240,22 @@ def main(arguments):
 
     app = QtWidgets.QApplication(arguments)
     new_controller = GraphController("/home/sthasarathan/Documents/camkes-newExample/apps/complex/complex.camkes")
-
-    scroll_area = QtWidgets.QScrollArea()
-    # scroll_area.setBackgroundRole(QtGui.QPalette.Base)
-
-    scroll_area.setWidget(new_controller.root_widget)
-    # scroll_area.setWidgetResizable(True)
-    scroll_area.show()
-
+    # scroll_area = QtWidgets.QScrollArea()
+    # # scroll_area.setBackgroundRole(QtGui.QPalette.Base)
+    #
+    # scroll_area.setWidget(new_controller.root_widget)
+    # # scroll_area.setWidgetResizable(True)
+    # scroll_area.showmain_window = QtWidgets.QMainWindow()
     main_window = QtWidgets.QMainWindow()
-    main_window.setCentralWidget(scroll_area)
+    main_window.setCentralWidget(new_controller.root_widget)
     main_window.resize(700,700)
     main_window.show()
-    new_controller.render()
+
+    # instance = new_controller.widget_instances[0].instance_object
+    # assert isinstance(instance, Instance)
+    # new_component_window = ComponentWindow(instance.type)
+    # new_component_window.setWindowFlags(QtCore.Qt.Window)
+    # new_component_window.show()
 
     app.exec_()
 
