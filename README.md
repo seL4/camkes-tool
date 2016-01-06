@@ -72,12 +72,12 @@ Features & Ideas
 ----------------
 
 In the risk of losing the ideas suggested:
+
 * List of all connectors and components on the sides. Then ability to draw from the list to create a new component or connector
 * Using graphviz, and DOT graphing
 * Ability to scroll and zoom the window
 * Terminal (vim/nano) on one side for easy code editing
 * Ability to save and reload graphs. Need to save positions of nodes.
-
 * QSplashScreen
 * Qt Quick?
 * QTabWidget
