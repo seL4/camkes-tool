@@ -32,8 +32,9 @@ from camkes.ast.base import ASTObject
 from camkes.ast.liftedast import LiftedAST
 from camkes.ast import *
 
+# TODO: Move some of the controller stuff, like make a graph from ast into graph widget and rendering as well.
 
-class GraphController(Controller):
+class GraphController(QtWidgets.QMainWindow):
     # Default root_widget is a GraphWidget
     @property
     def root_widget(self):
@@ -49,8 +50,13 @@ class GraphController(Controller):
 
     @property
     def component_widget(self):
+        print "accessing component_widget"
         if self._component_widget is None:
             self._component_widget = ComponentWindow(None)
+            self._component_dock_widget = QtWidgets.QDockWidget("Component Info")
+            self._component_dock_widget.setWidget(self._component_widget)
+            self.addDockWidget(QtCore.Qt.RightDockWidgetArea, self._component_dock_widget)
+        self._component_dock_widget.setVisible(True)
         return self._component_widget
 
     @property
@@ -106,6 +112,9 @@ class GraphController(Controller):
 
         # Model, get a ASTObject from given camkes file
         self.ast = ASTCreator.get_ast(path_to_camkes)
+
+        self.setCentralWidget(self.root_widget)
+        self.resize(700,700)
 
         self.sync_model_with_view()
 
@@ -240,16 +249,19 @@ def main(arguments):
 
     app = QtWidgets.QApplication(arguments)
     new_controller = GraphController("/home/sthasarathan/Documents/camkes-newExample/apps/complex/complex.camkes")
+
     # scroll_area = QtWidgets.QScrollArea()
     # # scroll_area.setBackgroundRole(QtGui.QPalette.Base)
     #
     # scroll_area.setWidget(new_controller.root_widget)
     # # scroll_area.setWidgetResizable(True)
     # scroll_area.showmain_window = QtWidgets.QMainWindow()
-    main_window = QtWidgets.QMainWindow()
-    main_window.setCentralWidget(new_controller.root_widget)
-    main_window.resize(700,700)
-    main_window.show()
+    # main_window = QtWidgets.QMainWindow()
+    # main_window.setCentralWidget(new_controller.root_widget)
+    # main_window.resize(700,700)
+    # main_window.show()
+
+    new_controller.show()
 
     # instance = new_controller.widget_instances[0].instance_object
     # assert isinstance(instance, Instance)
