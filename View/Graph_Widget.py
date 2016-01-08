@@ -15,6 +15,18 @@ class GraphWidget(QtWidgets.QGraphicsView):
             self._connection_widgets = []
         return self._connection_widgets
 
+    @property
+    def instance_widgets(self):
+        # Lazy instantiation
+        if self._instance_widgets is None:
+            self._instance_widgets = []
+        return self._instance_widgets
+
+    @instance_widgets.setter
+    def instance_widgets(self, value):
+        assert isinstance(value, list)
+        self._instance_widgets = value
+
     def add_connection_widget(self, new_connection):
         """
 
@@ -28,6 +40,7 @@ class GraphWidget(QtWidgets.QGraphicsView):
     def __init__(self):
         super(GraphWidget, self).__init__()
         self._connection_widgets = None
+        self._instance_widgets = None
 
         scene = QtWidgets.QGraphicsScene(self)
         scene.setItemIndexMethod(QtWidgets.QGraphicsScene.NoIndex) #TODO: Not sure if this is necessary
@@ -41,7 +54,8 @@ class GraphWidget(QtWidgets.QGraphicsView):
 
         assert isinstance(new_widget, QtWidgets.QWidget)
 
-        if new_widget not in self.scene().items():
+        if new_widget not in [x.widget() for x in self.scene().items()
+                              if isinstance(x, QtWidgets.QGraphicsProxyWidget)]:
             # set parent widget of new widget to be self
             self.scene().addWidget(new_widget)
 

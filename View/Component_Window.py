@@ -71,13 +71,11 @@ class ComponentWindow(QtWidgets.QGroupBox):
                 self.hardware_checkbox.setChecked(False)
 
             if len(self.component_object.provides) > 0:
-                print "true"
                 self.provides_label.show()
 
                 # Need to put a textedit to show provides contents
 
             else:
-                print "false"
                 self.provides_label.hide()
                 # need to delete textedit from above
 
