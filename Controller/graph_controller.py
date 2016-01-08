@@ -55,7 +55,7 @@ class GraphController(QtWidgets.QMainWindow):
             self._component_widget = ComponentWindow(None)
             self._component_dock_widget = QtWidgets.QDockWidget("Component Info")
             self._component_dock_widget.setWidget(self._component_widget)
-            self.addDockWidget(QtCore.Qt.RightDockWidgetArea, self._component_dock_widget)
+            self.addDockWidget(QtCore.Qt.BottomDockWidgetArea, self._component_dock_widget)
         self._component_dock_widget.setVisible(True)
         return self._component_widget
 
@@ -234,9 +234,9 @@ class GraphController(QtWidgets.QMainWindow):
 
                     break  # Unnecessary to keep searching once found
 
-    def show_component_info(self, mouse_event, instance):
+    def show_component_info(self, instance):
         print "clicked " + str(instance.name)
-        self.component_widget.set_component_object(instance.type, mouse_event)
+        self.component_widget.component_object = instance.type
 
 
 
