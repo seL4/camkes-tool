@@ -20,7 +20,7 @@ from pygraphviz import *
 import pydotplus as Pydot
 
 from Controller.base_controller import Controller
-from Model.AST_creator import ASTCreator
+from Model.AST_Model import ASTModel
 from Model import Common
 from View.Graph_Widget import GraphWidget
 from View.Connection_Widget import ConnectionWidget
@@ -50,7 +50,6 @@ class GraphController(QtWidgets.QMainWindow):
 
     @property
     def component_widget(self):
-        print "accessing component_widget"
         if self._component_widget is None:
             self._component_widget = ComponentWindow(None)
             self._component_dock_widget = QtWidgets.QDockWidget("Component Info")
@@ -111,7 +110,7 @@ class GraphController(QtWidgets.QMainWindow):
         # Rest initialised in superclass
 
         # Model, get a ASTObject from given camkes file
-        self.ast = ASTCreator.get_ast(path_to_camkes)
+        self.ast = ASTModel.get_ast(path_to_camkes)
 
         self.setCentralWidget(self.root_widget)
         self.resize(700,700)
@@ -125,12 +124,19 @@ class GraphController(QtWidgets.QMainWindow):
         ast_assembly = self.ast.assembly
         assert isinstance(ast_assembly, Assembly)
 
-        # Clear arrays of instances and connections
-        self.widget_instances = []
-        self.widget_connections = []
-
         # For each instance, create a node in the graph & a widget.
-        for instance in ast_assembly.instances:
+        instance_list_copy = list(ast_assembly.instances)
+
+        for widget in self.widget_instances:
+            assert isinstance(widget, InstanceWidget)
+            new_instance_object = ASTModel.find_instance(instance_list_copy, widget.instance_object.name)
+            if new_instance_object is not None:
+                widget.instance_object = new_instance_object
+                instance_list_copy.remove(new_instance_object)
+            else:
+                self.root_widget.remove_instance(widget)
+
+        for instance in instance_list_copy:
             assert isinstance(instance, Instance)
 
             new_widget = InstanceWidget(instance)
@@ -262,6 +268,8 @@ def main(arguments):
     # main_window.show()
 
     new_controller.show()
+
+    new_controller.sync_model_with_view()
 
     # instance = new_controller.widget_instances[0].instance_object
     # assert isinstance(instance, Instance)

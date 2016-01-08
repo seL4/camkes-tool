@@ -8,9 +8,10 @@ import argparse
 # TODO: Make CAmkES module importable
 from camkes.parser.parser import Parser
 from camkes.ast.liftedast import LiftedAST
+import camkes.ast
 
 
-class ASTCreator:
+class ASTModel:
 
     def __init__(self):
         pass
@@ -34,3 +35,13 @@ class ASTCreator:
 
 
         return ast
+
+    @staticmethod
+    def find_instance(instance_list, instance_name):
+
+        for instance_object in instance_list:
+            assert isinstance(instance_object, camkes.ast.Instance)
+            if instance_name == instance_object.name:
+                return instance_object
+
+        return None

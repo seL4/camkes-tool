@@ -1,9 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="9e94cc0d-524c-462a-bfa8-511eaa5dddfc" name="Default" comment="Changed connection_widget to match more like: http://doc.qt.io/qt-5/qtwidgets-graphicsview-elasticnodes-example.html . Made connection_widget &quot;self-contained&quot; in that it draws within its own painter class, and it can set up its bounding box, etc. Interesting how it still need it's parent co-ordinates to satisfy this.">
+    <list default="true" id="9e94cc0d-524c-462a-bfa8-511eaa5dddfc" name="Default" comment="">
+      <change type="MOVED" beforePath="$PROJECT_DIR$/Model/AST_creator.py" afterPath="$PROJECT_DIR$/Model/AST_Model.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Controller/graph_controller.py" afterPath="$PROJECT_DIR$/Controller/graph_controller.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/View/Component_Window.py" afterPath="$PROJECT_DIR$/View/Component_Window.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/View/Graph_Widget.py" afterPath="$PROJECT_DIR$/View/Graph_Widget.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/View/Instance_Widget.py" afterPath="$PROJECT_DIR$/View/Instance_Widget.py" />
     </list>
     <ignored path="VisualComponents.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -30,7 +34,7 @@
             <state />
           </provider>
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
+            <state vertical-scroll-proportion="-47.142857">
               <caret line="88" column="120" selection-start-line="88" selection-start-column="120" selection-end-line="88" selection-end-column="120" />
               <folding />
             </state>
@@ -49,21 +53,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="graph_controller.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="graph_controller.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Controller/graph_controller.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.55873924">
-              <caret line="180" column="0" selection-start-line="180" selection-start-column="0" selection-end-line="180" selection-end-column="0" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="QWidget.py" pinned="false" current-in-tab="false">
-        <entry file="file://$USER_HOME$/.PyCharm50/system/python_stubs/-1247972723/PyQt5/QtWidgets/QWidget.py">
-          <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="578" column="8" selection-start-line="578" selection-start-column="8" selection-end-line="578" selection-end-column="8" />
+              <caret line="220" column="48" selection-start-line="220" selection-start-column="29" selection-end-line="220" selection-end-column="48" />
               <folding />
             </state>
           </provider>
@@ -79,21 +73,21 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="AST_creator.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/Model/AST_creator.py">
+      <file leaf-file-name="AST_Model.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/Model/AST_Model.py">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="32" column="11" selection-start-line="32" selection-start-column="11" selection-end-line="32" selection-end-column="11" />
+              <caret line="36" column="18" selection-start-line="36" selection-start-column="18" selection-end-line="36" selection-end-column="18" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Graph_Widget.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="Graph_Widget.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/View/Graph_Widget.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="47" column="8" selection-start-line="47" selection-start-column="8" selection-end-line="47" selection-end-column="8" />
+            <state vertical-scroll-proportion="0.53724927">
+              <caret line="58" column="0" selection-start-line="58" selection-start-column="0" selection-end-line="58" selection-end-column="0" />
               <folding>
                 <element signature="e#47#81#0" expanded="true" />
               </folding>
@@ -105,7 +99,7 @@
         <entry file="file://$PROJECT_DIR$/View/Instance_Widget.py">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="22" column="0" selection-start-line="22" selection-start-column="0" selection-end-line="22" selection-end-column="0" />
+              <caret line="66" column="32" selection-start-line="66" selection-start-column="32" selection-end-line="66" selection-end-column="32" />
               <folding>
                 <element signature="e#47#57#0" expanded="true" />
               </folding>
@@ -117,7 +111,7 @@
         <entry file="file://$PROJECT_DIR$/View/Component_Window.py">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="36" column="60" selection-start-line="36" selection-start-column="60" selection-end-line="36" selection-end-column="60" />
+              <caret line="72" column="55" selection-start-line="72" selection-start-column="55" selection-end-line="72" selection-end-column="55" />
               <folding>
                 <element signature="e#47#57#0" expanded="true" />
               </folding>
@@ -155,17 +149,18 @@
         <option value="$PROJECT_DIR$/Controller/__init__.py" />
         <option value="$PROJECT_DIR$/Model/__init__.py" />
         <option value="$PROJECT_DIR$/View/__init__.py" />
-        <option value="$PROJECT_DIR$/Model/AST_creator.py" />
         <option value="$PROJECT_DIR$/View/AST_Widget.py" />
         <option value="$PROJECT_DIR$/__init__.py" />
         <option value="$PROJECT_DIR$/Controller/base_controller.py" />
         <option value="$PROJECT_DIR$/Model/Common.py" />
         <option value="$PROJECT_DIR$/README.md" />
+        <option value="$PROJECT_DIR$/View/Connection_Widget.py" />
+        <option value="$PROJECT_DIR$/Model/AST_creator.py" />
+        <option value="$PROJECT_DIR$/Model/AST_Model.py" />
         <option value="$PROJECT_DIR$/View/Instance_Widget.py" />
         <option value="$PROJECT_DIR$/View/Component_Window.py" />
-        <option value="$PROJECT_DIR$/View/Graph_Widget.py" />
-        <option value="$PROJECT_DIR$/View/Connection_Widget.py" />
         <option value="$PROJECT_DIR$/Controller/graph_controller.py" />
+        <option value="$PROJECT_DIR$/View/Graph_Widget.py" />
       </list>
     </option>
   </component>
@@ -305,6 +300,7 @@
     <property name="FileHistory.git4idea.history.GitHistoryProvider_treeWidth3" value="1160" />
     <property name="FileHistory.git4idea.history.GitHistoryProvider_treeOrder3" value="3" />
     <property name="last.edited.regexp" value="13.1,23.3e-3" />
+    <property name="SearchEverywhereHistoryKey" value="&#9;FILE&#9;file:///home/sthasarathan/Documents/VisualComponents/Controller/graph_controller.py" />
   </component>
   <component name="RunManager" selected="Python.graph_controller">
     <configuration default="false" name="Graph_Widget" type="PythonConfigurationType" factoryName="Python" temporary="true">
@@ -695,7 +691,13 @@
       <option name="project" value="LOCAL" />
       <updated>1452223707060</updated>
     </task>
-    <option name="localTasksCounter" value="33" />
+    <task id="LOCAL-00033" summary="Rename render() to graph_render due to api clashing">
+      <created>1452225131757</created>
+      <option name="number" value="00033" />
+      <option name="project" value="LOCAL" />
+      <updated>1452225131757</updated>
+    </task>
+    <option name="localTasksCounter" value="34" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -734,7 +736,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Added Lazy Instantiation to root_widget" />
     <MESSAGE value="Created an AST_Widget. Useless atm" />
     <MESSAGE value="Using graphviz to create a DOT graph representation of the AST tree. Then using this to get positions of each node (each instance).&#10;Using glade and Gtk.Builder to build custom UI for each instance.&#10;Create a list of widget_builder for each instance. &#10;&#10;" />
     <MESSAGE value="Using AST_Widget to test out drawing lines. Failed attempt :(. This class won't (should be) used anyway." />
@@ -759,7 +760,8 @@
     <MESSAGE value="Connection widget is now a graphics item, added it to the scene. Unnecessary to &quot;draw_background&quot; (i.e hack removed)" />
     <MESSAGE value="Changed instance widget slot so that it doesn't need to give mouse event." />
     <MESSAGE value="Changed connection_widget to match more like: http://doc.qt.io/qt-5/qtwidgets-graphicsview-elasticnodes-example.html . Made connection_widget &quot;self-contained&quot; in that it draws within its own painter class, and it can set up its bounding box, etc. Interesting how it still need it's parent co-ordinates to satisfy this." />
-    <option name="LAST_COMMIT_MESSAGE" value="Changed connection_widget to match more like: http://doc.qt.io/qt-5/qtwidgets-graphicsview-elasticnodes-example.html . Made connection_widget &quot;self-contained&quot; in that it draws within its own painter class, and it can set up its bounding box, etc. Interesting how it still need it's parent co-ordinates to satisfy this." />
+    <MESSAGE value="Rename render() to graph_render due to api clashing" />
+    <option name="LAST_COMMIT_MESSAGE" value="Rename render() to graph_render due to api clashing" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager />
@@ -1081,14 +1083,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/../camkes-tool/camkes/ast/objects.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.010057472">
-          <caret line="1570" column="6" selection-start-line="1570" selection-start-column="6" selection-end-line="1570" selection-end-column="6" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$USER_HOME$/.PyCharm50/system/python_stubs/-1247972723/PyQt5/QtWidgets/QFrame.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.67672414">
@@ -1107,42 +1101,38 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Model/Common.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="8" column="0" selection-start-line="8" selection-start-column="0" selection-end-line="8" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/README.md">
       <provider editor-type-id="MarkdownPreviewEditor">
         <state />
       </provider>
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
+        <state vertical-scroll-proportion="-47.142857">
           <caret line="88" column="120" selection-start-line="88" selection-start-column="120" selection-end-line="88" selection-end-column="120" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/View/Instance_Widget.py">
+    <entry file="file://$USER_HOME$/.PyCharm50/system/python_stubs/-1247972723/PyQt5/QtWidgets/QWidget.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="22" column="0" selection-start-line="22" selection-start-column="0" selection-end-line="22" selection-end-column="0" />
-          <folding>
-            <element signature="e#47#57#0" expanded="true" />
-          </folding>
+          <caret line="578" column="8" selection-start-line="578" selection-start-column="8" selection-end-line="578" selection-end-column="8" />
+          <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/View/Component_Window.py">
+    <entry file="file://$PROJECT_DIR$/../camkes-tool/camkes/ast/objects.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.5791045">
+          <caret line="387" column="25" selection-start-line="387" selection-start-column="25" selection-end-line="387" selection-end-column="25" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Model/Common.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="36" column="60" selection-start-line="36" selection-start-column="60" selection-end-line="36" selection-end-column="60" />
-          <folding>
-            <element signature="e#47#57#0" expanded="true" />
-          </folding>
+          <caret line="8" column="0" selection-start-line="8" selection-start-column="0" selection-end-line="8" selection-end-column="0" />
+          <folding />
         </state>
       </provider>
     </entry>
@@ -1166,37 +1156,49 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/View/Graph_Widget.py">
+    <entry file="file://$PROJECT_DIR$/Model/AST_Model.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="47" column="8" selection-start-line="47" selection-start-column="8" selection-end-line="47" selection-end-column="8" />
+          <caret line="36" column="18" selection-start-line="36" selection-start-column="18" selection-end-line="36" selection-end-column="18" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/View/Component_Window.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="72" column="55" selection-start-line="72" selection-start-column="55" selection-end-line="72" selection-end-column="55" />
           <folding>
-            <element signature="e#47#81#0" expanded="true" />
+            <element signature="e#47#57#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Model/AST_creator.py">
+    <entry file="file://$PROJECT_DIR$/View/Instance_Widget.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="32" column="11" selection-start-line="32" selection-start-column="11" selection-end-line="32" selection-end-column="11" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$USER_HOME$/.PyCharm50/system/python_stubs/-1247972723/PyQt5/QtWidgets/QWidget.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="578" column="8" selection-start-line="578" selection-start-column="8" selection-end-line="578" selection-end-column="8" />
-          <folding />
+          <caret line="66" column="32" selection-start-line="66" selection-start-column="32" selection-end-line="66" selection-end-column="32" />
+          <folding>
+            <element signature="e#47#57#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/Controller/graph_controller.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.55873924">
-          <caret line="180" column="0" selection-start-line="180" selection-start-column="0" selection-end-line="180" selection-end-column="0" />
+        <state vertical-scroll-proportion="0.0">
+          <caret line="220" column="48" selection-start-line="220" selection-start-column="29" selection-end-line="220" selection-end-column="48" />
           <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/View/Graph_Widget.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.53724927">
+          <caret line="58" column="0" selection-start-line="58" selection-start-column="0" selection-end-line="58" selection-end-column="0" />
+          <folding>
+            <element signature="e#47#81#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
