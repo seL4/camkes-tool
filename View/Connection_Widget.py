@@ -13,8 +13,8 @@ from camkes.ast import *
 from Model import Common
 
 
-# TODO: Subclass PyQt
-class ConnectionWidget(QtWidgets.QWidget):
+# TODO: Make connectionWidget totally independent of connection_object. Have links to the nodes that its connecting.
+class ConnectionWidget(QtWidgets.QGraphicsItem):
 
     @property
     def connection_object(self):
@@ -41,6 +41,7 @@ class ConnectionWidget(QtWidgets.QWidget):
     @edge_points.setter
     def edge_points(self, value):
         assert isinstance(value, list)
+        # TODO: Change from edge point to tuple
 
         # TODO: Different method
         if len(value) >= 1:
@@ -58,6 +59,8 @@ class ConnectionWidget(QtWidgets.QWidget):
         # self.path.lineTo(value[-1][0], value[-1][1])
 
         self._edge_points = value
+
+        self.prepareGeometryChange()
 
     @property
     def path(self):
@@ -82,32 +85,60 @@ class ConnectionWidget(QtWidgets.QWidget):
         edge_points = Common.extract_numbers(edge_attributes['pos'])
 
         self.edge_points = edge_points
-        
-    # Method using QPainter to draw the edge points, spline
-    def draw_connection(self, q_painter):
+
+    def paint(self, q_painter, style_option , widget=None):
+
+        # assert isinstance(style_option, QtWidgets.QStyleOptionGraphicsItem)
+        # assert isinstance(widget, QtWidgets.QWidget)
+
         assert isinstance(q_painter, QtGui.QPainter)
+
+        # stroker = QtGui.QPainterPathStroker()
+        # stroker.setWidth(5)
+        # self.path.addPath(stroker.createStroke(self.path))
+
         q_painter.drawPath(self.path)
 
-        '''
-        color = QtGui.QColor(0,0,0)
-        pen = q_painter.pen()
-        pen.setColor(color)
-        q_painter.setPen(pen)
+    def boundingRect(self):
+        rect = self.path.boundingRect()
+        assert isinstance(rect, QtCore.QRectF)
+        rect.adjust(-2.5,-2.5,2.5,2.5)
 
-        for point in self.edge_points:
+        return rect
 
-            color = q_painter.pen().color()
-            print "Before: " + str(color.red()) + " " + str(color.green()) + " " + str(color.blue())
-            color.setRed(color.red()+30)
-            print str(color.red()) + " " + str(color.green()) + " " + str(color.blue())
+    def shape(self):
+        stroker = QtGui.QPainterPathStroker()
+        stroker.setWidth(5)
+        return stroker.createStroke(self.path)
 
-            pen = q_painter.pen()
-            pen.setColor(color)
-            q_painter.setPen(pen)
-
-            color = q_painter.pen().color()
-            print "after" + str(color.red()) + " " + str(color.green()) + " " + str(color.blue())
-
-            q_painter.drawPoint(point[0], point[1])
-            q_painter.fillRect(QtCore.QRect(point[0], point[1], 4,4), color)
-        '''
+    def mousePressEvent(self, QGraphicsSceneMouseEvent):
+        print self.connection_object.name + " clicked (edge)"
+        
+    # Method using QPainter to draw the edge points, spline
+    # def draw_connection(self, q_painter):
+    #     assert isinstance(q_painter, QtGui.QPainter)
+    #     q_painter.drawPath(self.path)
+    #
+    #     '''
+    #     color = QtGui.QColor(0,0,0)
+    #     pen = q_painter.pen()
+    #     pen.setColor(color)
+    #     q_painter.setPen(pen)
+    #
+    #     for point in self.edge_points:
+    #
+    #         color = q_painter.pen().color()
+    #         print "Before: " + str(color.red()) + " " + str(color.green()) + " " + str(color.blue())
+    #         color.setRed(color.red()+30)
+    #         print str(color.red()) + " " + str(color.green()) + " " + str(color.blue())
+    #
+    #         pen = q_painter.pen()
+    #         pen.setColor(color)
+    #         q_painter.setPen(pen)
+    #
+    #         color = q_painter.pen().color()
+    #         print "after" + str(color.red()) + " " + str(color.green()) + " " + str(color.blue())
+    #
+    #         q_painter.drawPoint(point[0], point[1])
+    #         q_painter.fillRect(QtCore.QRect(point[0], point[1], 4,4), color)
+    #     '''

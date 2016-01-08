@@ -3,9 +3,8 @@
   <component name="ChangeListManager">
     <list default="true" id="9e94cc0d-524c-462a-bfa8-511eaa5dddfc" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Controller/graph_controller.py" afterPath="$PROJECT_DIR$/Controller/graph_controller.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/View/Connection_Widget.py" afterPath="$PROJECT_DIR$/View/Connection_Widget.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/View/Graph_Widget.py" afterPath="$PROJECT_DIR$/View/Graph_Widget.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/View/Instance_Widget.py" afterPath="$PROJECT_DIR$/View/Instance_Widget.py" />
     </list>
     <ignored path="VisualComponents.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -55,7 +54,7 @@
         <entry file="file://$PROJECT_DIR$/Controller/graph_controller.py">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="238" column="46" selection-start-line="238" selection-start-column="46" selection-end-line="238" selection-end-column="46" />
+              <caret line="119" column="0" selection-start-line="119" selection-start-column="0" selection-end-line="119" selection-end-column="0" />
               <folding />
             </state>
           </provider>
@@ -120,8 +119,8 @@
       <file leaf-file-name="Connection_Widget.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/View/Connection_Widget.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="2.6002865">
-              <caret line="121" column="14" selection-start-line="121" selection-start-column="14" selection-end-line="121" selection-end-column="14" />
+            <state vertical-scroll-proportion="1.2578796">
+              <caret line="104" column="38" selection-start-line="104" selection-start-column="38" selection-end-line="104" selection-end-column="38" />
               <folding>
                 <element signature="e#47#58#0" expanded="true" />
               </folding>
@@ -153,11 +152,11 @@
         <option value="$PROJECT_DIR$/Controller/base_controller.py" />
         <option value="$PROJECT_DIR$/Model/Common.py" />
         <option value="$PROJECT_DIR$/README.md" />
-        <option value="$PROJECT_DIR$/Controller/graph_controller.py" />
         <option value="$PROJECT_DIR$/View/Instance_Widget.py" />
         <option value="$PROJECT_DIR$/View/Component_Window.py" />
-        <option value="$PROJECT_DIR$/View/Connection_Widget.py" />
         <option value="$PROJECT_DIR$/View/Graph_Widget.py" />
+        <option value="$PROJECT_DIR$/View/Connection_Widget.py" />
+        <option value="$PROJECT_DIR$/Controller/graph_controller.py" />
       </list>
     </option>
   </component>
@@ -669,7 +668,19 @@
       <option name="project" value="LOCAL" />
       <updated>1452220168166</updated>
     </task>
-    <option name="localTasksCounter" value="30" />
+    <task id="LOCAL-00030" summary="Connection widget is now a graphics item, added it to the scene. Unnecessary to &quot;draw_background&quot; (i.e hack removed)">
+      <created>1452220283851</created>
+      <option name="number" value="00030" />
+      <option name="project" value="LOCAL" />
+      <updated>1452220283851</updated>
+    </task>
+    <task id="LOCAL-00031" summary="Changed instance widget slot so that it doesn't need to give mouse event.">
+      <created>1452220320007</created>
+      <option name="number" value="00031" />
+      <option name="project" value="LOCAL" />
+      <updated>1452220320007</updated>
+    </task>
+    <option name="localTasksCounter" value="32" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -708,8 +719,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Created a AST_Widget base class" />
-    <MESSAGE value="Created an AST_creator object which will use the appropriate parser (or in the future parser to a certain stage)." />
     <MESSAGE value="Did some rearranging and attempting to create a AST_widget + draw onto the screen" />
     <MESSAGE value="Added Lazy Instantiation to root_widget" />
     <MESSAGE value="Created an AST_Widget. Useless atm" />
@@ -733,7 +742,9 @@
     <MESSAGE value="Changed controller to create a dock widget every time a component window is created. Component Window does not need mouse event anymore." />
     <MESSAGE value="More feature/idea" />
     <MESSAGE value="Added checkbox's for hardware and control. Still no where near final design. But it has the templete ready for any design&#10;" />
-    <option name="LAST_COMMIT_MESSAGE" value="Added checkbox's for hardware and control. Still no where near final design. But it has the templete ready for any design&#10;" />
+    <MESSAGE value="Connection widget is now a graphics item, added it to the scene. Unnecessary to &quot;draw_background&quot; (i.e hack removed)" />
+    <MESSAGE value="Changed instance widget slot so that it doesn't need to give mouse event." />
+    <option name="LAST_COMMIT_MESSAGE" value="Changed instance widget slot so that it doesn't need to give mouse event." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager />
@@ -1070,6 +1081,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.010057472">
           <caret line="1570" column="6" selection-start-line="1570" selection-start-column="6" selection-end-line="1570" selection-end-column="6" />
+          <folding />
         </state>
       </provider>
     </entry>
@@ -1107,16 +1119,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Controller/base_controller.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="7" column="0" selection-start-line="7" selection-start-column="0" selection-end-line="7" selection-end-column="0" />
-          <folding>
-            <element signature="e#47#71#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/README.md">
       <provider editor-type-id="MarkdownPreviewEditor">
         <state />
@@ -1124,14 +1126,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="88" column="120" selection-start-line="88" selection-start-column="120" selection-end-line="88" selection-end-column="120" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Controller/graph_controller.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="238" column="46" selection-start-line="238" selection-start-column="46" selection-end-line="238" selection-end-column="46" />
           <folding />
         </state>
       </provider>
@@ -1146,16 +1140,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/View/Component_Window.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="36" column="60" selection-start-line="36" selection-start-column="60" selection-end-line="36" selection-end-column="60" />
-          <folding>
-            <element signature="e#47#57#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/View/Instance_Widget.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -1166,10 +1150,38 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/View/Component_Window.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="36" column="60" selection-start-line="36" selection-start-column="60" selection-end-line="36" selection-end-column="60" />
+          <folding>
+            <element signature="e#47#57#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Controller/base_controller.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="7" column="0" selection-start-line="7" selection-start-column="0" selection-end-line="7" selection-end-column="0" />
+          <folding>
+            <element signature="e#47#71#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Controller/graph_controller.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="119" column="0" selection-start-line="119" selection-start-column="0" selection-end-line="119" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/View/Connection_Widget.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="2.6002865">
-          <caret line="121" column="14" selection-start-line="121" selection-start-column="14" selection-end-line="121" selection-end-column="14" />
+        <state vertical-scroll-proportion="1.2578796">
+          <caret line="104" column="38" selection-start-line="104" selection-start-column="38" selection-end-line="104" selection-end-column="38" />
           <folding>
             <element signature="e#47#58#0" expanded="true" />
           </folding>
