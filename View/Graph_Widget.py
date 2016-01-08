@@ -16,8 +16,14 @@ class GraphWidget(QtWidgets.QGraphicsView):
         return self._connection_widgets
 
     def add_connection_widget(self, new_connection):
+        """
+
+        :type new_connection: ConnectionWidget
+        """
         assert isinstance(new_connection, ConnectionWidget)
         self.connection_widgets.append(new_connection)
+
+        self.scene().addItem(new_connection)
 
     def __init__(self):
         super(GraphWidget, self).__init__()
@@ -41,13 +47,13 @@ class GraphWidget(QtWidgets.QGraphicsView):
 
         new_widget.move(x_pos - (new_widget.sizeHint().width()/2), y_pos - (new_widget.sizeHint().height()/2))
 
-    def drawBackground(self, q_painter, rectangle):
-        super(GraphWidget, self).drawBackground(q_painter, rectangle)
-
-        # Loop through all connectors
-        for connector in self.connection_widgets:
-            assert isinstance(connector, ConnectionWidget)
-            connector.draw_connection(q_painter)
+    # def drawBackground(self, q_painter, rectangle):
+    #     super(GraphWidget, self).drawBackground(q_painter, rectangle)
+    #
+    #     # Loop through all connectors
+    #     for connector in self.connection_widgets:
+    #         assert isinstance(connector, ConnectionWidget)
+    #         connector.draw_connection(q_painter)
 
         # TODO: Possible feature, only update the rect given in QPaintEvent
 

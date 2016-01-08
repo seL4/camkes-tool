@@ -3,7 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="9e94cc0d-524c-462a-bfa8-511eaa5dddfc" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/View/Component_Window.py" afterPath="$PROJECT_DIR$/View/Component_Window.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/View/Connection_Widget.py" afterPath="$PROJECT_DIR$/View/Connection_Widget.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/View/Graph_Widget.py" afterPath="$PROJECT_DIR$/View/Graph_Widget.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/View/Instance_Widget.py" afterPath="$PROJECT_DIR$/View/Instance_Widget.py" />
@@ -664,7 +663,13 @@
       <option name="project" value="LOCAL" />
       <updated>1452220109783</updated>
     </task>
-    <option name="localTasksCounter" value="29" />
+    <task id="LOCAL-00029" summary="Added checkbox's for hardware and control. Still no where near final design. But it has the templete ready for any design&#10;">
+      <created>1452220168166</created>
+      <option name="number" value="00029" />
+      <option name="project" value="LOCAL" />
+      <updated>1452220168166</updated>
+    </task>
+    <option name="localTasksCounter" value="30" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -703,7 +708,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Removed unnecessary README files and added __init__ files so that each file could be imported in other files." />
     <MESSAGE value="Created a AST_Widget base class" />
     <MESSAGE value="Created an AST_creator object which will use the appropriate parser (or in the future parser to a certain stage)." />
     <MESSAGE value="Did some rearranging and attempting to create a AST_widget + draw onto the screen" />
@@ -728,7 +732,8 @@
     <MESSAGE value="Changed Controller to be a Main window&#10;DockWidget is just a decorder of another widget, so creating a dock_widget, and adding a component_widget inside." />
     <MESSAGE value="Changed controller to create a dock widget every time a component window is created. Component Window does not need mouse event anymore." />
     <MESSAGE value="More feature/idea" />
-    <option name="LAST_COMMIT_MESSAGE" value="More feature/idea" />
+    <MESSAGE value="Added checkbox's for hardware and control. Still no where near final design. But it has the templete ready for any design&#10;" />
+    <option name="LAST_COMMIT_MESSAGE" value="Added checkbox's for hardware and control. Still no where near final design. But it has the templete ready for any design&#10;" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager />
