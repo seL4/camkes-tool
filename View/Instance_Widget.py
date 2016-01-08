@@ -6,6 +6,9 @@ import six
 from PyQt5 import QtGui, QtWidgets, QtCore
 from camkes.ast import *
 
+# TODO: Make widget totally independent of instance_object, and make controller force AST_creator to search it up everytime,
+# TODO: Button for component details
+#       Use instance.name as identifier.
 
 class InstanceWidget(QtWidgets.QFrame):
 
@@ -30,7 +33,7 @@ class InstanceWidget(QtWidgets.QFrame):
         self._instance_name = value
 
     # Signals & Slots
-    openComponentInfo = QtCore.pyqtSignal(QtGui.QMouseEvent, Instance)
+    openComponentInfo = QtCore.pyqtSignal(Instance)
 
     def __init__(self, instance_object):
         super(InstanceWidget, self).__init__()
@@ -60,4 +63,5 @@ class InstanceWidget(QtWidgets.QFrame):
         self.setLayout(layout)
 
     def mousePressEvent(self, mouse_event):
-        self.openComponentInfo.emit(mouse_event, self.instance_object)
+        # Change to must press a button to open component info
+        self.openComponentInfo.emit(self.instance_object)
