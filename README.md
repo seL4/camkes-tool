@@ -86,3 +86,4 @@ In the risk of losing the ideas suggested:
 * Example of Image with scrolling and Zooming: http://doc.qt.io/qt-5.5/qtwidgets-widgets-imageviewer-example.html
 * Desktop widget, helps to manage multiple monitors. (MAKE SURE TO GO TO Qt5 version) http://doc.qt.io/qt-4.8/qdesktopwidget.html
 * Modularise in such a way that Controller doesn't rely on Qt, so that graphics library can be changed easily
+* With titles, can do &, like "C&ase sensitive", which would make it possible to select Case Sensitive button with alt+a
