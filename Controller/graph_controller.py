@@ -138,7 +138,7 @@ class GraphController(QtWidgets.QMainWindow):
 
             self.widget_instances.append(new_widget)
 
-        self.render()
+        self.graph_render()
 
     def create_graph_rep(self):
 
@@ -179,7 +179,7 @@ class GraphController(QtWidgets.QMainWindow):
 
         return dot_data
 
-    def render(self):
+    def graph_render(self):
 
         dot_data = self.create_graph_rep()
 
