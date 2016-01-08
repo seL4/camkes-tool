@@ -1,10 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="9e94cc0d-524c-462a-bfa8-511eaa5dddfc" name="Default" comment="">
+    <list default="true" id="9e94cc0d-524c-462a-bfa8-511eaa5dddfc" name="Default" comment="Created an updating ui">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/View/Component_Window.py" afterPath="$PROJECT_DIR$/View/Component_Window.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/View/Graph_Widget.py" afterPath="$PROJECT_DIR$/View/Graph_Widget.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/View/Instance_Widget.py" afterPath="$PROJECT_DIR$/View/Instance_Widget.py" />
     </list>
     <ignored path="VisualComponents.iws" />
@@ -81,11 +79,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Graph_Widget.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="Graph_Widget.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/View/Graph_Widget.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.53724927">
-              <caret line="58" column="0" selection-start-line="58" selection-start-column="0" selection-end-line="58" selection-end-column="0" />
+            <state vertical-scroll-proportion="0.0">
+              <caret line="57" column="80" selection-start-line="57" selection-start-column="80" selection-end-line="57" selection-end-column="80" />
               <folding>
                 <element signature="e#47#81#0" expanded="true" />
               </folding>
@@ -93,11 +91,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Instance_Widget.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="Instance_Widget.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/View/Instance_Widget.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="66" column="32" selection-start-line="66" selection-start-column="32" selection-end-line="66" selection-end-column="32" />
+            <state vertical-scroll-proportion="0.35530087">
+              <caret line="64" column="8" selection-start-line="64" selection-start-column="8" selection-end-line="64" selection-end-column="8" />
               <folding>
                 <element signature="e#47#57#0" expanded="true" />
               </folding>
@@ -155,10 +153,10 @@
         <option value="$PROJECT_DIR$/View/Connection_Widget.py" />
         <option value="$PROJECT_DIR$/Model/AST_creator.py" />
         <option value="$PROJECT_DIR$/Model/AST_Model.py" />
-        <option value="$PROJECT_DIR$/View/Instance_Widget.py" />
         <option value="$PROJECT_DIR$/View/Component_Window.py" />
         <option value="$PROJECT_DIR$/Controller/graph_controller.py" />
         <option value="$PROJECT_DIR$/View/Graph_Widget.py" />
+        <option value="$PROJECT_DIR$/View/Instance_Widget.py" />
       </list>
     </option>
   </component>
@@ -701,7 +699,13 @@
       <option name="project" value="LOCAL" />
       <updated>1452233492046</updated>
     </task>
-    <option name="localTasksCounter" value="35" />
+    <task id="LOCAL-00035" summary="Fixed issue when re-syncing model with view (new widget was not successfully found in list when it was supposed to)">
+      <created>1452233617778</created>
+      <option name="number" value="00035" />
+      <option name="project" value="LOCAL" />
+      <updated>1452233617778</updated>
+    </task>
+    <option name="localTasksCounter" value="36" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -740,7 +744,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Using graphviz to create a DOT graph representation of the AST tree. Then using this to get positions of each node (each instance).&#10;Using glade and Gtk.Builder to build custom UI for each instance.&#10;Create a list of widget_builder for each instance. &#10;&#10;" />
     <MESSAGE value="Using AST_Widget to test out drawing lines. Failed attempt :(. This class won't (should be) used anyway." />
     <MESSAGE value="Created a widget to represent connections. Currently doesn't work. Finding it difficult to draw a line between two other widgets. Will have to figure out a way in Milestone 3" />
     <MESSAGE value="Created a widget to represent an Instance." />
@@ -765,7 +768,8 @@
     <MESSAGE value="Changed connection_widget to match more like: http://doc.qt.io/qt-5/qtwidgets-graphicsview-elasticnodes-example.html . Made connection_widget &quot;self-contained&quot; in that it draws within its own painter class, and it can set up its bounding box, etc. Interesting how it still need it's parent co-ordinates to satisfy this." />
     <MESSAGE value="Rename render() to graph_render due to api clashing" />
     <MESSAGE value="Changed to ASTModel, all ast helper functions should be here" />
-    <option name="LAST_COMMIT_MESSAGE" value="Changed to ASTModel, all ast helper functions should be here" />
+    <MESSAGE value="Fixed issue when re-syncing model with view (new widget was not successfully found in list when it was supposed to)" />
+    <option name="LAST_COMMIT_MESSAGE" value="Fixed issue when re-syncing model with view (new widget was not successfully found in list when it was supposed to)" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager />
@@ -1168,6 +1172,24 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/Controller/graph_controller.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="220" column="48" selection-start-line="220" selection-start-column="29" selection-end-line="220" selection-end-column="48" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/View/Graph_Widget.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="57" column="80" selection-start-line="57" selection-start-column="80" selection-end-line="57" selection-end-column="80" />
+          <folding>
+            <element signature="e#47#81#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/View/Component_Window.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -1180,28 +1202,10 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/View/Instance_Widget.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="66" column="32" selection-start-line="66" selection-start-column="32" selection-end-line="66" selection-end-column="32" />
+        <state vertical-scroll-proportion="0.35530087">
+          <caret line="64" column="8" selection-start-line="64" selection-start-column="8" selection-end-line="64" selection-end-column="8" />
           <folding>
             <element signature="e#47#57#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Controller/graph_controller.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="220" column="48" selection-start-line="220" selection-start-column="29" selection-end-line="220" selection-end-column="48" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/View/Graph_Widget.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.53724927">
-          <caret line="58" column="0" selection-start-line="58" selection-start-column="0" selection-end-line="58" selection-end-column="0" />
-          <folding>
-            <element signature="e#47#81#0" expanded="true" />
           </folding>
         </state>
       </provider>
