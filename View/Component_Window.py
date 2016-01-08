@@ -13,12 +13,10 @@ class ComponentWindow(QtWidgets.QGroupBox):
     def component_object(self):
         return self._component_object
 
-    def set_component_object(self, value, mouse_event):
+    @component_object.setter
+    def component_object(self, value):
         assert isinstance(value, Component)
         self._component_object = value
-
-        assert isinstance(mouse_event, QtGui.QMouseEvent)
-        self.move(mouse_event.globalPos())
 
         self.update_ui()
 
@@ -32,19 +30,59 @@ class ComponentWindow(QtWidgets.QGroupBox):
         layout = QtWidgets.QVBoxLayout()
         self.setLayout(layout)
 
+        self.control_checkbox = QtWidgets.QCheckBox("Control")
+        self.control_checkbox.setChecked(False)
+        self.control_checkbox.setDisabled(True)
+
+        self.hardware_checkbox = QtWidgets.QCheckBox("Hardware")
+        self.hardware_checkbox.setChecked(False)
+        self.hardware_checkbox.setDisabled(True)
+
+        self.provides_label = QtWidgets.QLabel("Provides")
+
+        layout.addWidget(self.control_checkbox)
+        layout.addWidget(self.hardware_checkbox)
+        layout.addWidget(self.provides_label)
+
+
+
         self.update_ui()
 
     def update_ui(self):
+
+        layout = self.layout()
+        assert isinstance(layout, QtWidgets.QLayout)
+
+        self.show()
+
         if self.component_object is None:
             self.setTitle("No instance selected")
         else:
             self.setTitle(str(self.component_object.name))
 
             if self.component_object.control:
-                self.layout().addWidget(QtWidgets.QLabel("control;"))
+                self.control_checkbox.setChecked(True)
+            else:
+                self.control_checkbox.setChecked(False)
 
             if self.component_object.hardware:
-                self.layout().addWidget(QtWidgets.QLabel("hardware;"))
+                self.hardware_checkbox.setChecked(True)
+            else:
+                self.hardware_checkbox.setChecked(False)
+
+            if len(self.component_object.provides) > 0:
+                print "true"
+                self.provides_label.show()
+
+                # Need to put a textedit to show provides contents
+
+            else:
+                print "false"
+                self.provides_label.hide()
+                # need to delete textedit from above
+
+
+
             # TODO: more stuff
 
-        self.show()
+
