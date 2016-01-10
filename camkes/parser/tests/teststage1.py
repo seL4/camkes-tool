@@ -454,5 +454,45 @@ class TestStage1(CAmkESTest):
         self.assertRegexpMatches(str(error), 'A:44:', 'alternate form of line '
             'directive not supported')
 
+    def test_multiple_error_message_line_numbers(self):
+        '''
+        This test checks that when multiple PlyPlus errors are triggered on a
+        spec that has C pre-processor line directives, the correct source line
+        is still located in the error message. There was previously an issue
+        where line number information would not be provided in this case.
+        '''
+
+        # Parse a malformed spec with some line directives. Note that the spec
+        # contains the old form of connector definition.
+        try:
+            self.parser.parse_string('''
+
+                # 42 "A"
+
+                connector Foo {
+                    from Procedure bar;
+                    to Procedure baz;
+                }
+
+                connector Qux {
+                    from Procedure Moo;
+                    from Procedure Cow;
+                }
+                ''')
+
+            # If we reached this point, the malformed spec did not trigger an
+            # error as expected.
+            self.fail('incorrect syntax accepted by stage 1 parser')
+
+        except ParseError as e:
+
+            self.assertGreaterEqual(len(str(e).split('\n')), 2, 'only a '
+                'single error triggered when multiple were expected')
+
+            # If the line number narrowing algorithm has correctly taken the
+            # line directive into account, we should get the following prefix.
+            self.assertRegexpMatches(str(e), 'A:44:', 'line directive not '
+                'accounted for')
+
 if __name__ == '__main__':
     unittest.main()
