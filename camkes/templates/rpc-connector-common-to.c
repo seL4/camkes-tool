@@ -202,7 +202,20 @@ int /*? me.to_interface.name ?*/__run(void) {
     /*- include 'call-array-typedef-check.c' -*/
 
     /*- set info = c_symbol('info') -*/
-    seL4_MessageInfo_t /*? info ?*/ = seL4_Recv(/*? ep ?*/, & /*? me.to_interface.name ?*/_badge);
+
+    /*- set my_sc = sc('%s_tcb_%s' % (me.to_instance.name, me.to_interface.name)) -*/
+    /*- if my_sc == None -*/
+       /* This interface has a passive thread, must let the control thread know before waiting */
+       /*- set ret_init_sc_ep = alloc_entity('ret_sc_%s_init_ep' % me.to_interface.name, seL4_EndpointObject, me.to_instance.name, read=True, write=True) -*/
+       seL4_MessageInfo_t /*? info ?*/ = seL4_MessageInfo_new(0, 0, 0, 0);
+       printf("/*? me.to_instance.name ?*/ after init, going to call seL4_NBSendRecv\n");
+       /*? info ?*/ = seL4_NBSendRecv(/*? ret_init_sc_ep ?*/, /*? info ?*/, /*? ep ?*/, & /*? me.to_interface.name ?*/_badge);
+       printf("/*? me.to_instance.name ?*/ after seL4_NBSendRecv\n");
+    /*- else -*/
+       /* This interface has an active thread, just wait for an RPC */
+       seL4_MessageInfo_t /*? info ?*/ = seL4_Recv(/*? ep ?*/, & /*? me.to_interface.name ?*/_badge);
+    /*- endif -*/
+
     while (1) {
         /*- if not options.fcall_leave_reply_cap or len(me.to_instance.type.provides + me.to_instance.type.uses + me.to_instance.type.consumes + me.to_instance.type.mutexes + me.to_instance.type.semaphores) > 1 -*/
             /* We need to save the reply cap because the user's implementation may
@@ -220,6 +233,7 @@ int /*? me.to_interface.name ?*/__run(void) {
                     .syscall = CNodeSaveCaller,
                     .error = /*? result ?*/,
                 }), ({
+                    // @ikuz: should this be am NBSendRecv? otherwise the caller will be blocked waiting for a reply (or an error message)?
                     /*? info ?*/ = seL4_Recv(/*? ep ?*/, & /*? me.to_interface.name ?*/_badge);
                     continue;
                 }));
@@ -267,6 +281,7 @@ int /*? me.to_interface.name ?*/__run(void) {
                     .length = /*? size ?*/,
                     .current_index = sizeof(* /*? call_ptr ?*/),
                 }), ({
+                    // @ikuz: should this be an (NB)SendRecv or ReplyRecv? otherwise the caller will be blocked waiting for a reply (or an error message)?
                     /*? info ?*/ = seL4_Recv(/*? ep ?*/, & /*? me.to_interface.name ?*/_badge);
                     continue;
                 }));
@@ -306,6 +321,7 @@ int /*? me.to_interface.name ?*/__run(void) {
                     int /*? err ?*/ = /*- include 'call-unmarshal-inputs.c' -*/;
                     if (unlikely(/*? err ?*/ != 0)) {
                         /* Error in unmarshalling; return to event loop. */
+                        // @ikuz: should this be an (NB)SendRecv or ReplyRecv? otherwise the caller will be blocked waiting for a reply (or an error message)?
                         /*? info ?*/ = seL4_Recv(/*? ep ?*/, & /*? me.to_interface.name ?*/_badge);
                         continue;
                     }
@@ -374,6 +390,7 @@ int /*? me.to_interface.name ?*/__run(void) {
                      */
                     if (unlikely(/*? length ?*/ == UINT_MAX)) {
                         /* Error occurred; return to event loop. */
+                        // @ikuz: should this be an (NB)SendRecv or ReplyRecv? otherwise the caller will be blocked waiting for a reply (or an error message)?
                         /*? info ?*/ = seL4_Recv(/*? ep ?*/, & /*? me.to_interface.name ?*/_badge);
                         continue;
                     }
@@ -388,8 +405,7 @@ int /*? me.to_interface.name ?*/__run(void) {
 
                     /* Send the response */
                     /*- if not options.fcall_leave_reply_cap or len(me.to_instance.type.provides + me.to_instance.type.uses + me.to_instance.type.consumes + me.to_instance.type.mutexes + me.to_instance.type.semaphores) > 1 -*/
-                        seL4_Send(/*? reply_cap_slot ?*/, /*? info ?*/);
-                        /*? info ?*/ = seL4_Recv(/*? ep ?*/, & /*? me.to_interface.name ?*/_badge);
+                        /*? info ?*/ = seL4_NBSendRecv(/*? reply_cap_slot ?*/, /*? info ?*/, /*? ep ?*/, & /*? me.to_interface.name ?*/_badge);
                     /*- else -*/
 
                         /*- if options.fspecialise_syscall_stubs and methods_len == 1 and m.return_type is none and len(m.parameters) == 0 -*/
@@ -446,6 +462,7 @@ int /*? me.to_interface.name ?*/__run(void) {
                         .upper_bound = /*? methods_len ?*/ - 1,
                         .invalid_index = * /*? call_ptr ?*/,
                     }), ({
+                        // @ikuz: should this be an (NB)SendRecv or ReplyRecv? otherwise the caller will be blocked waiting for a reply (or an error message)?
                         /*? info ?*/ = seL4_Recv(/*? ep ?*/, & /*? me.to_interface.name ?*/_badge);
                         continue;
                     }));

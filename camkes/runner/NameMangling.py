@@ -163,6 +163,7 @@ DERIVATIONS = {
         ControlDeriver(r'^.+_tcb_0_control$', 'tcb'),
 
         ForwardDeriver('%(instance)s_sc_%(interface)s', 'sc'),
+        ForwardDeriver('%(instance)s_sc_%(interface)s__init', 'sc_init'),
         FromControlDeriver('%(instance)s_sc__control', 'sc'),
         BackwardDeriver(r'^(.+)_sc_.+$', 'sc', 'instance'),
         BackwardDeriver(r'^.+_sc_([^_].*)$', 'sc', 'interface'),
@@ -224,20 +225,25 @@ DERIVATIONS = {
         ForwardDeriver('%(interface)s_sc', 'sc_attribute'),
         BackwardDeriver(r'^([^_].*)_sc$', 'sc_attribute', 'interface'),
 
+        # BackwardDeriver(r'^([^_].*)_sc__preinit$', 'sc', 'preinit'),
+
         ControlDeriver(r'^_period$', 'period_attribute'),
         FromControlDeriver('_period', 'period_attribute'),
         ForwardDeriver('%(interface)s_period', 'period_attribute'),
         BackwardDeriver(r'^([^_].*)_period$', 'period_attribute', 'interface'),
+        # ForwardDeriver('%(preinit)s_period_preinit', 'period_attribute'),
 
         ControlDeriver(r'^_budget$', 'budget_attribute'),
         FromControlDeriver('_budget', 'budget_attribute'),
         ForwardDeriver('%(interface)s_budget', 'budget_attribute'),
         BackwardDeriver(r'^([^_].*)_budget$', 'budget_attribute', 'interface'),
+        # ForwardDeriver('%(preinit)s_budget_preinit', 'budget_attribute'),
 
         ControlDeriver(r'^_flags$', 'flags_attribute'),
         FromControlDeriver('_flags', 'flags_attribute'),
         ForwardDeriver('%(interface)s_flags', 'flags_attribute'),
         BackwardDeriver(r'^([^_].*)_flags$', 'flags_attribute', 'interface'),
+        # ForwardDeriver('%(preinit)s_flags_preinit', 'flags_attribute'),
 
         ForwardDeriver('cnode_%(group)s', 'cnode'),
         BackwardDeriver(r'^cnode_(.+)$', 'cnode', 'group'),
@@ -307,5 +313,6 @@ class Perspective(object):
         if key not in self.kwargs:
             self._infer(key)
         if key not in self.kwargs:
-            raise Exception('not enough information to infer attribute, %s' % key)
+            # raise Exception('not enough information to infer attribute, %s' % key)
+            raise Exception('not enough information to infer attribute, %s kwargs %s' % ( key, self.kwargs ))
         return self.kwargs[key]
