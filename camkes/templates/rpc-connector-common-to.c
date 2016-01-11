@@ -413,7 +413,7 @@ int /*? me.interface.name ?*/__run(void) {
                         assert(/*? tls ?*/ != NULL);
                         if (/*? tls ?*/->reply_cap_in_tcb) {
                             /*? tls ?*/->reply_cap_in_tcb = false;
-                            /*? info ?*/ = seL4_ReplyWait(/*? ep ?*/, /*? info ?*/, & /*? me.interface.name ?*/_badge);
+                            /*? info ?*/ = seL4_ReplyRecv(/*? ep ?*/, /*? info ?*/, & /*? me.interface.name ?*/_badge);
                         } else {
                             /*- set error = c_symbol() -*/
                             seL4_Error /*? error ?*/ UNUSED = camkes_unprotect_reply_cap();
@@ -439,9 +439,9 @@ int /*? me.interface.name ?*/__run(void) {
     #define __SWINUM(x) ((x) & 0x00ffffff)
 #endif
                             /* We don't need to send or receive any information, so
-                             * we can call ReplyWait with a custom syscall stub
+                             * we can call ReplyRecv with a custom syscall stub
                              * that reduces the overhead of the call. To explain
-                             * where this deviates from the standard ReplyWait
+                             * where this deviates from the standard ReplyRecv
                              * stub:
                              *  - No asm clobbers because we're not receiving any
                              *    arguments in the message;
@@ -452,7 +452,7 @@ int /*? me.interface.name ?*/__run(void) {
                              *    make a tighter loop if necessary.
                              */
                             /*- set scno = c_symbol() -*/
-                            register seL4_Word /*? scno ?*/ asm("r7") = seL4_SysReplyWait;
+                            register seL4_Word /*? scno ?*/ asm("r7") = seL4_SysReplyRecv;
                             /*- set info2 = c_symbol() -*/
                             register seL4_MessageInfo_t /*? info2 ?*/ asm("r1") = seL4_MessageInfo_new(0, 0, 0, 0);
                             /*- set src = c_symbol() -*/
@@ -460,10 +460,10 @@ int /*? me.interface.name ?*/__run(void) {
                             asm volatile("swi %[swinum]"
                                 /*- if trust_partner -*/
                                     :"+r"(/*? src ?*/)
-                                    :[swinum]"i"(__SWINUM(seL4_SysReplyWait)), "r"(/*? scno ?*/), "r"(/*? info2 ?*/)
+                                    :[swinum]"i"(__SWINUM(seL4_SysReplyRecv)), "r"(/*? scno ?*/), "r"(/*? info2 ?*/)
                                 /*- else -*/
                                     :"+r"(/*? src ?*/), "+r"(/*? info2 ?*/)
-                                    :[swinum]"i"(__SWINUM(seL4_SysReplyWait)), "r"(/*? scno ?*/)
+                                    :[swinum]"i"(__SWINUM(seL4_SysReplyRecv)), "r"(/*? scno ?*/)
                                     :"r2", "r3", "r4", "r5", "memory"
                                 /*- endif -*/
                             );
@@ -471,7 +471,7 @@ int /*? me.interface.name ?*/__run(void) {
                             break;
 #endif
                         /*- endif -*/
-                        /*? info ?*/ = seL4_ReplyWait(/*? ep ?*/, /*? info ?*/, & /*? me.interface.name ?*/_badge);
+                        /*? info ?*/ = seL4_ReplyRecv(/*? ep ?*/, /*? info ?*/, & /*? me.interface.name ?*/_badge);
                     /*- endif -*/
 
                     break;
