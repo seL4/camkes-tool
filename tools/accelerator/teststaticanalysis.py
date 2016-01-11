@@ -18,7 +18,7 @@ Apply various static analysis tools to the accelerator.
 from __future__ import absolute_import, division, print_function, \
     unicode_literals
 
-import os, re, sys, unittest
+import os, re, subprocess, sys, unittest
 
 ME = os.path.abspath(__file__)
 MY_DIR = os.path.dirname(ME)
@@ -33,10 +33,21 @@ from camkes.internal.tests.utils import CAmkESTest, which
 # reach this server.
 GOANNA_LICENSE_SERVER = 'goanna.research.nicta.com.au'
 
+def goanna_license_server_reachable():
+    try:
+        with open(os.devnull, 'w') as f:
+            subprocess.check_call(['ping', '-c', '1', '-w', '5',
+                GOANNA_LICENSE_SERVER], stdout=f, stderr=f)
+        return True
+    except subprocess.CalledProcessError:
+        return False
+
 GOANNA_WRAPPER = os.path.join(MY_DIR, '../goanna_wrapper.py')
 
 class TestStaticAnalysis(CAmkESTest):
-    @unittest.skipIf(which('cmake') is None or which('goannacc') is None, 'CMake or Goanna not found')
+    @unittest.skipIf(which('cmake') is None or which('goannacc') is None or
+        not goanna_license_server_reachable(), 'CMake or Goanna not found or '
+        'Goanna license server unavailable')
     def test_goanna_compilation(self):
         '''
         Test whether the Goanna static analyser can find any problems with the
