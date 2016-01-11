@@ -127,20 +127,25 @@ class GraphController(QtWidgets.QMainWindow):
         # For each instance, create a node in the graph & a widget.
         instance_list_copy = list(ast_assembly.instances)
 
+        # Find widget's instance object counterpart
         for widget in self.widget_instances:
             assert isinstance(widget, InstanceWidget)
             new_instance_object = ASTModel.find_instance(instance_list_copy, widget.instance_object.name)
             if new_instance_object is not None:
+                # If found, replace widget's local copy
                 widget.instance_object = new_instance_object
                 instance_list_copy.remove(new_instance_object)
             else:
+                # Instance object for widget not found, probably deleted, so widget not necessary
                 self.root_widget.remove_instance(widget)
 
         for instance in instance_list_copy:
+            # For all new instances (instances without widget counterpart)
+            # Make a new widget
             assert isinstance(instance, Instance)
 
             new_widget = InstanceWidget(instance)
-            new_widget.openComponentInfo.connect(self.show_component_info)
+            new_widget.open_component_info.connect(self.show_component_info)
 
             self.widget_instances.append(new_widget)
 
@@ -268,8 +273,6 @@ def main(arguments):
     # main_window.show()
 
     new_controller.show()
-
-    new_controller.sync_model_with_view()
 
     # instance = new_controller.widget_instances[0].instance_object
     # assert isinstance(instance, Instance)

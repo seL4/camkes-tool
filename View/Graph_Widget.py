@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from PyQt5 import QtWidgets, QtGui
+from PyQt5 import QtWidgets, QtGui, QtCore
 
 from Connection_Widget import ConnectionWidget
 
@@ -74,4 +74,7 @@ class GraphWidget(QtWidgets.QGraphicsView):
     # Set UI Functions
     def setViewGeometry(self, size_x, size_y):
         self.scene().setSceneRect(0,0,size_x, size_y)
-        self.setMinimumSize(size_x, size_y)
+        self.setMinimumSize(500, 500)
+
+    # def mouseMoveEvent(self, mouse_event):
+    #     print "graph widget " + str(mouse_event.pos())

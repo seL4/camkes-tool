@@ -11,7 +11,6 @@ from camkes.ast import *
 #       Use instance.name as identifier.
 
 class InstanceWidget(QtWidgets.QFrame):
-
     @property
     def instance_object(self):
         return self._instance_object
@@ -35,17 +34,34 @@ class InstanceWidget(QtWidgets.QFrame):
 
     @property
     def preferred_point(self):
-        raise NotImplementedError
+        return self._preferred_point
+
+    @preferred_point.setter
+    def preferred_point(self, value):
+        assert isinstance(value, QtCore.QPointF)
+        self._preferred_point = value
+
+    @property
+    def proxy_widget(self):
+        return self._proxy_widget
+
+    @proxy_widget.setter
+    def proxy_widget(self, value):
+        assert isinstance(value, QtWidgets.QGraphicsProxyWidget)
+        self._proxy_widget = value
 
     # Signals & Slots
-    openComponentInfo = QtCore.pyqtSignal(Instance)
+    open_component_info = QtCore.pyqtSignal(Instance)
+    widget_moved = QtCore.pyqtSignal()
 
-    def __init__(self, instance_object):
+    def __init__(self, instance_object, preferred_point=None):
         super(InstanceWidget, self).__init__()
         # Model
 
         self._instance_object = instance_object
         self._instance_name = instance_object.name
+        self._proxy_widget = None
+        self._preferred_point = preferred_point
 
         # GUI
         self.setFrameStyle(QtWidgets.QFrame.Panel)
@@ -77,10 +93,35 @@ class InstanceWidget(QtWidgets.QFrame):
 
     def mousePressEvent(self, mouse_event):
         # Change to must press a button to open component info
-        self.openComponentInfo.emit(self.instance_object)
+        self.open_component_info.emit(self.instance_object)
 
-    def mouseMoveEvent(self, QMouseEvent):
-        raise NotImplementedError
+    previous_position = None
+
+    # def mouseMoveEvent(self, mouse_event):
+    #     assert isinstance(mouse_event, QtGui.QMouseEvent)
+    #
+    #     # print "position is " + str(mouse_event.localPos())
+    #
+    #     # print "instance widget ------------------------------------------- " + str(self.preferred_point)
+    #
+    #     if self.previous_position:
+    #         assert isinstance(self.previous_position, QtCore.QPointF)
+    #         # Calculate relative movement between the movement from the last millisecond (saved below) and
+    #         # current position
+    #         print "old point is: " + str(self.preferred_point)
+    #         print "delta x" + str(mouse_event.x() - self.previous_position.x())
+    #         print "delta y" + str(mouse_event.y() - self.previous_position.y())
+    #         self.preferred_point = QtCore.QPointF(self.preferred_point.x() + (mouse_event.x() - self.previous_position.x()),
+    #                                               self.preferred_point.y() + (mouse_event.y() - self.previous_position.y()))
+    #         print "new Point is: " + str(self.preferred_point)
+    #         self.widget_moved.emit()
+    #         self.previous_position = None
+    #     else:
+    #         self.previous_position = mouse_event.localPos()
+    #
+    # def mouseReleaseEvent(self, QMouseEvent):
+    #     # Reset delta move position
+    #     pass
 
     def clear_canvas(self):
         layout = self.layout()
