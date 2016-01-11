@@ -24,7 +24,7 @@
 /*- set _irq = configuration[me.parent.from_instance.name].get(attr) -*/
 /*- if _irq is not none -*/
     /*- set attr_irq, attr_level, attr_trig = _irq.strip('"').split(',') -*/
-    /*- set irq_handler = alloc('irq', seL4_IRQControl, number=int(attr_irq, 0), aep=my_cnode[aep]) -*/
+    /*- set irq_handler = alloc('irq', seL4_IRQControl, number=int(attr_irq, 0), notification=my_cnode[aep]) -*/
     /*- do irq.append((irq_handler, int(attr_level, 0), int(attr_trig, 0))) -*/
 /*- endif -*/
 /*- set lock = alloc('lock', seL4_NotificationObject, read=True, write=True) -*/

@@ -139,7 +139,7 @@
     /*- set irq_list = irq_list.strip('"').split(',') -*/
     /*- for irq in irq_list -*/
         /*- set irq = int(irq, 0) -*/
-        /*- set irq_cap = alloc('irq_%d' % irq, seL4_IRQControl, number=irq, aep=my_cnode[irqaep]) -*/
+        /*- set irq_cap = alloc('irq_%d' % irq, seL4_IRQControl, number=irq, notification=my_cnode[irqaep]) -*/
         /*- do irqs.append( (irq, irq_cap) ) -*/
     /*- endfor -*/
 /*- endif -*/
