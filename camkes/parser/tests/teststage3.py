@@ -915,5 +915,14 @@ class TestStage3(CAmkESTest):
         self.assertEqual(s.attribute, 'bar')
         self.assertEqual(s.value, 27)
 
+    def test_overflow(self):
+        '''
+        Test constant folding of a calculation that deliberately induces an
+        `OverflowError`.
+        '''
+        with self.assertRaises(ParseError):
+            self.parser.parse_string(
+                'configuration { foo.bar = 1 << 2 ** 64; }')
+
 if __name__ == '__main__':
     unittest.main()
