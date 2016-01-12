@@ -50,6 +50,12 @@
 
 /*- set ep = alloc('ep', seL4_EndpointObject, read=True, write=True) -*/
 
+/*# We may need a slot to save reply caps in. #*/
+/*- if not options.fcall_leave_reply_cap or len(me.instance.type.provides + me.instance.type.uses + me.instance.type.consumes + me.instance.type.mutexes + me.instance.type.semaphores) > 1 -*/
+    /*- set cnode = alloc_cap('cnode', my_cnode, write=True) -*/
+    /*- set reply_cap_slot = alloc_cap('reply_cap_slot', None) -*/
+/*- endif -*/
+
 /*# Necessary TLS variables #*/
 /*- set threads = [1] + list(map(lambda('x: x + 2'), range(len(me.instance.type.provides + me.instance.type.uses + me.instance.type.emits + me.instance.type.consumes + me.instance.type.dataports)))) -*/
 /*- for m in me.interface.type.methods -*/
@@ -223,6 +229,13 @@ static unsigned int /*? me.interface.name ?*/_/*? m.name ?*/_internal(void) {
         /*- endfor -*/
     );
 
+    /*- if not options.fcall_leave_reply_cap or len(me.instance.type.provides + me.instance.type.uses + me.instance.type.consumes + me.instance.type.mutexes + me.instance.type.semaphores) > 1 -*/
+        /*- set result = c_symbol() -*/
+
+        int /*? result ?*/ UNUSED = seL4_CNode_SaveCaller(/*? cnode ?*/, /*? reply_cap_slot ?*/, 32);
+        assert(/*? result ?*/ == 0);
+    /*- endif -*/
+
     /*- set ret = c_symbol('ret') -*/
     /*- if m.return_type is not none -*/
         /*? m.return_type ?*/ /*? ret ?*/ =
@@ -267,18 +280,8 @@ static unsigned int /*? me.interface.name ?*/_/*? m.name ?*/_internal(void) {
 /*- set info = c_symbol('info') -*/
 /*- set first = c_symbol('first') -*/
 static seL4_MessageInfo_t /*? me.interface.name ?*/__run_internal(bool /*? first ?*/, seL4_MessageInfo_t /*? info ?*/) {
-    /*- if not options.fcall_leave_reply_cap or len(me.instance.type.provides + me.instance.type.uses + me.instance.type.consumes + me.instance.type.mutexes + me.instance.type.semaphores) > 1 -*/
-        /*- set result = c_symbol() -*/
-        /*- set cnode = alloc_cap('cnode', my_cnode, write=True) -*/
-        /*- set reply_cap_slot = alloc_cap('reply_cap_slot', None) -*/
-    /*- endif -*/
     if (/*? first ?*/) {
         /*? info ?*/ = seL4_Recv(/*? ep ?*/, NULL);
-
-        /*- if not options.fcall_leave_reply_cap or len(me.instance.type.provides + me.instance.type.uses + me.instance.type.consumes + me.instance.type.mutexes + me.instance.type.semaphores) > 1 -*/
-            int /*? result ?*/ UNUSED = seL4_CNode_SaveCaller(/*? cnode ?*/, /*? reply_cap_slot ?*/, 32);
-            assert(/*? result ?*/ == 0);
-        /*- endif -*/
     }
 
     /* We should have at least been passed a method index */
@@ -298,8 +301,6 @@ static seL4_MessageInfo_t /*? me.interface.name ?*/__run_internal(bool /*? first
                 /*- if not options.fcall_leave_reply_cap or len(me.instance.type.provides + me.instance.type.uses + me.instance.type.consumes + me.instance.type.mutexes + me.instance.type.semaphores) > 1 -*/
                     seL4_Send(/*? reply_cap_slot ?*/, /*? info ?*/);
                     /*? info ?*/ = seL4_Recv(/*? ep ?*/, NULL);
-                    int /*? result ?*/ UNUSED = seL4_CNode_SaveCaller(/*? cnode ?*/, /*? reply_cap_slot ?*/, 32);
-                    assert(/*? result ?*/ == 0);
                 /*- else -*/
                     seL4_ReplyRecv(/*? ep ?*/, /*? info ?*/, NULL);
                 /*- endif -*/
