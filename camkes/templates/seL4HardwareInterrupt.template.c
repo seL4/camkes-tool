@@ -26,7 +26,7 @@
 /*- if not isinstance(_irq, numbers.Integral) -*/
   /*? raise(TemplateError('Setting %s.%s that should specify an IRQ number is not an integer' % (me.parent.from_instance.name, attr))) ?*/
 /*- endif -*/
-/*- set irq = alloc('irq', seL4_IRQControl, number=_irq, aep=my_cnode[aep]) -*/
+/*- set irq = alloc('irq', seL4_IRQControl, number=_irq, notification=my_cnode[aep]) -*/
 
 int /*? me.interface.name ?*/__run(void) {
     while (true) {
