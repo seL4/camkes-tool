@@ -161,8 +161,8 @@ class GraphController(QtWidgets.QMainWindow):
             instance = widget_instance.instance_object
             assert isinstance(instance, Instance)
 
-            size = widget_instance.sizeHint()
-            assert isinstance(size, QtCore.QSize)
+            size = widget_instance.preferredSize()
+            assert isinstance(size, QtCore.QSizeF)
 
             graph_viz.add_node(instance.name, width=size.width()/72.0,
                                height=size.height()/72.0, shape="rect")

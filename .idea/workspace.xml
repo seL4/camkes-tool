@@ -4,7 +4,6 @@
     <list default="true" id="9e94cc0d-524c-462a-bfa8-511eaa5dddfc" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Controller/graph_controller.py" afterPath="$PROJECT_DIR$/Controller/graph_controller.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/View/Graph_Widget.py" afterPath="$PROJECT_DIR$/View/Graph_Widget.py" />
     </list>
     <ignored path="VisualComponents.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -730,7 +729,13 @@
       <option name="project" value="LOCAL" />
       <updated>1452575894958</updated>
     </task>
-    <option name="localTasksCounter" value="40" />
+    <task id="LOCAL-00040" summary="Updated GraphWidget to handle change of subclass in InstanceWidget">
+      <created>1452575925646</created>
+      <option name="number" value="00040" />
+      <option name="project" value="LOCAL" />
+      <updated>1452575925646</updated>
+    </task>
+    <option name="localTasksCounter" value="41" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -769,7 +774,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Added code that would go through an AST Tree, make instance widgets and add them on the screen. A render function will then be immediately called. The render function will create a new graph (using graphviz), add nodes (and their sizes) to the graph, add connections as well, and use the final positions in the graph to display them on the root_widget (Gtk.Layout)" />
     <MESSAGE value="Added glade, and builder files for quick and dirty instance widgets" />
     <MESSAGE value="Added stuff about Milestone 2 to readme" />
     <MESSAGE value="Updated read me with more ideas and features" />
@@ -794,7 +798,8 @@
     <MESSAGE value="Created an update_ui function, which will be called every time a new instance_object is assigned" />
     <MESSAGE value="Attempted moving position, but failed." />
     <MESSAGE value="Changed Instance widget to subclass QGraphicsWidget. Involves using LinearLayout (as VBoxLayout isn't available in the QGraphics word). And using proxy_widget as a placeholder (since design is no where near final anyway)" />
-    <option name="LAST_COMMIT_MESSAGE" value="Changed Instance widget to subclass QGraphicsWidget. Involves using LinearLayout (as VBoxLayout isn't available in the QGraphics word). And using proxy_widget as a placeholder (since design is no where near final anyway)" />
+    <MESSAGE value="Updated GraphWidget to handle change of subclass in InstanceWidget" />
+    <option name="LAST_COMMIT_MESSAGE" value="Updated GraphWidget to handle change of subclass in InstanceWidget" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager />
