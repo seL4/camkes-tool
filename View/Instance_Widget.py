@@ -10,7 +10,8 @@ from camkes.ast import *
 # TODO: Button for component details
 #       Use instance.name as identifier.
 
-class InstanceWidget(QtWidgets.QFrame):
+
+class InstanceWidget(QtWidgets.QGraphicsWidget):
     @property
     def instance_object(self):
         return self._instance_object
@@ -23,7 +24,7 @@ class InstanceWidget(QtWidgets.QFrame):
     @property
     def instance_name(self):
         if self._instance_name is None:
-            raise Exception # TODO make subclass of exception, catch and show a dialog
+            raise Exception  # TODO make subclass of exception, catch and show a dialog
         return self._instance_name
 
     @instance_name.setter
@@ -41,15 +42,6 @@ class InstanceWidget(QtWidgets.QFrame):
         assert isinstance(value, QtCore.QPointF)
         self._preferred_point = value
 
-    @property
-    def proxy_widget(self):
-        return self._proxy_widget
-
-    @proxy_widget.setter
-    def proxy_widget(self, value):
-        assert isinstance(value, QtWidgets.QGraphicsProxyWidget)
-        self._proxy_widget = value
-
     # Signals & Slots
     open_component_info = QtCore.pyqtSignal(Instance)
     widget_moved = QtCore.pyqtSignal()
@@ -60,13 +52,12 @@ class InstanceWidget(QtWidgets.QFrame):
 
         self._instance_object = instance_object
         self._instance_name = instance_object.name
-        self._proxy_widget = None
         self._preferred_point = preferred_point
 
         # GUI
-        self.setFrameStyle(QtWidgets.QFrame.Panel)
 
-        layout = QtWidgets.QVBoxLayout()
+        layout = QtWidgets.QGraphicsLinearLayout()
+        layout.setOrientation(QtCore.Qt.Vertical)
 
         self.setLayout(layout)
 
@@ -77,19 +68,26 @@ class InstanceWidget(QtWidgets.QFrame):
         self.clear_canvas()
 
         layout = self.layout()
-        assert isinstance(layout, QtWidgets.QVBoxLayout)
+        assert isinstance(layout, QtWidgets.QGraphicsLinearLayout)
 
         if self.instance_object:
             string = self.instance_object.name + ": " + self.instance_object.type.name
             new_label = QtWidgets.QLabel(string)
 
-            layout.addWidget(new_label)
+            proxy_widget = QtWidgets.QGraphicsProxyWidget()
+            proxy_widget.setWidget(new_label)
+
+            layout.addItem(proxy_widget)
 
             if self.instance_object.type.control:
-                layout.addWidget(QtWidgets.QLabel("control;"))
+                proxy_widget = QtWidgets.QGraphicsProxyWidget()
+                proxy_widget.setWidget(QtWidgets.QLabel("control;"))
+                layout.addItem(proxy_widget)
 
             if self.instance_object.type.hardware:
-                layout.addWidget(QtWidgets.QLabel("hardware;"))
+                proxy_widget = QtWidgets.QGraphicsProxyWidget()
+                proxy_widget.setWidget(QtWidgets.QLabel("hardware;"))
+                layout.addItem(proxy_widget)
 
     def mousePressEvent(self, mouse_event):
         # Change to must press a button to open component info
@@ -125,9 +123,12 @@ class InstanceWidget(QtWidgets.QFrame):
 
     def clear_canvas(self):
         layout = self.layout()
-        assert isinstance(layout, QtWidgets.QVBoxLayout)
+        assert isinstance(layout, QtWidgets.QGraphicsLayout)
 
-        next_widget = layout.takeAt(0)
+        if layout.count() <= 0:
+            return
+
+        next_widget = layout.itemAt(0)
         while next_widget is not None:
-            del next_widget
-            next_widget = layout.takeAt(0)
+            # del next_widget
+            next_widget = layout.removeAt(0)
