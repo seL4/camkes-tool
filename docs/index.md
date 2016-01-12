@@ -3336,7 +3336,7 @@ This call is idempotent (you can call it multiple times in sequence with no ill
 effects), though be aware it may modify the contents of your IPC buffer. You
 do not need to perform this operation when sending on a synchronous endpoint or
 waiting on an asynchronous endpoint, however it _is_ necessary when performing
-batched system calls like `seL4_ReplyWait` or `seL4_Call` on a synchronous
+batched system calls like `seL4_ReplyRecv` or `seL4_Call` on a synchronous
 endpoint.
 
 If you are _receiving_ reply capabilities in your own template and calling
