@@ -915,6 +915,23 @@ class TestStage3(CAmkESTest):
         self.assertEqual(s.attribute, 'bar')
         self.assertEqual(s.value, 27)
 
+    def test_negative_left_shift(self):
+        '''
+        Test constant folding of a left shift by a negative number. This should
+        trigger an exception that CAmkES converts to a `ParseError`, but
+        previously it did not. See CAMKES-440 for more information.
+        '''
+        with self.assertRaises(ParseError):
+            self.parser.parse_string('configuration { foo.bar = 1 << -1; }')
+
+    def test_negative_right_shift(self):
+        '''
+        Test constant folding of a right shift by a negative number. As above,
+        this error should be converted.
+        '''
+        with self.assertRaises(ParseError):
+            self.parser.parse_string('configuration { foo.bar = 1 >> -1; }')
+
     def test_overflow(self):
         '''
         Test constant folding of a calculation that deliberately induces an

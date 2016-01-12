@@ -500,7 +500,7 @@ def _lift_numeric_expr(location, *ops):
                 acc ^= op
             else:
                 assert False, 'unexpected operator in numeric expression'
-        except (ArithmeticError, TypeError) as e:
+        except (ArithmeticError, TypeError, ValueError) as e:
             raise ParseError(e, location.filename, location.lineno)
     return acc
 
