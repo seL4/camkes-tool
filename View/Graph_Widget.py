@@ -4,7 +4,7 @@
 from PyQt5 import QtWidgets, QtGui, QtCore
 
 from Connection_Widget import ConnectionWidget
-
+from Instance_Widget import InstanceWidget
 
 class GraphWidget(QtWidgets.QGraphicsView):
 
@@ -52,14 +52,14 @@ class GraphWidget(QtWidgets.QGraphicsView):
 
     def add_instance_widget(self, new_widget, x_pos, y_pos):
 
-        assert isinstance(new_widget, QtWidgets.QWidget)
+        assert isinstance(new_widget, QtWidgets.QGraphicsWidget)
 
-        if new_widget not in [x.widget() for x in self.scene().items()
-                              if isinstance(x, QtWidgets.QGraphicsProxyWidget)]:
+        if new_widget not in [x for x in self.scene().items()
+                              if isinstance(x, InstanceWidget)]:
             # set parent widget of new widget to be self
-            self.scene().addWidget(new_widget)
+            self.scene().addItem(new_widget)
 
-        new_widget.move(x_pos - (new_widget.sizeHint().width()/2), y_pos - (new_widget.sizeHint().height()/2))
+        new_widget.setPos(x_pos - (new_widget.preferredSize().width()/2), y_pos - (new_widget.preferredSize().height()/2))
 
     # def drawBackground(self, q_painter, rectangle):
     #     super(GraphWidget, self).drawBackground(q_painter, rectangle)

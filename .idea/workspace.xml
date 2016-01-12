@@ -5,7 +5,6 @@
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Controller/graph_controller.py" afterPath="$PROJECT_DIR$/Controller/graph_controller.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/View/Graph_Widget.py" afterPath="$PROJECT_DIR$/View/Graph_Widget.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/View/Instance_Widget.py" afterPath="$PROJECT_DIR$/View/Instance_Widget.py" />
     </list>
     <ignored path="VisualComponents.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -55,7 +54,7 @@
         <entry file="file://$PROJECT_DIR$/Controller/graph_controller.py">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="1.0338541">
-              <caret line="167" column="56" selection-start-line="167" selection-start-column="56" selection-end-line="167" selection-end-column="56" />
+              <caret line="166" column="56" selection-start-line="166" selection-start-column="56" selection-end-line="166" selection-end-column="56" />
               <folding />
             </state>
           </provider>
@@ -157,8 +156,8 @@
         <option value="$PROJECT_DIR$/Model/AST_Model.py" />
         <option value="$PROJECT_DIR$/View/Component_Window.py" />
         <option value="$PROJECT_DIR$/View/Instance_Widget.py" />
-        <option value="$PROJECT_DIR$/Controller/graph_controller.py" />
         <option value="$PROJECT_DIR$/View/Graph_Widget.py" />
+        <option value="$PROJECT_DIR$/Controller/graph_controller.py" />
       </list>
     </option>
   </component>
@@ -725,7 +724,13 @@
       <option name="project" value="LOCAL" />
       <updated>1452498050983</updated>
     </task>
-    <option name="localTasksCounter" value="39" />
+    <task id="LOCAL-00039" summary="Changed Instance widget to subclass QGraphicsWidget. Involves using LinearLayout (as VBoxLayout isn't available in the QGraphics word). And using proxy_widget as a placeholder (since design is no where near final anyway)">
+      <created>1452575894958</created>
+      <option name="number" value="00039" />
+      <option name="project" value="LOCAL" />
+      <updated>1452575894958</updated>
+    </task>
+    <option name="localTasksCounter" value="40" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -734,6 +739,7 @@
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.22395833" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.39979014" sideWeight="0.50208336" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3292683" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
@@ -743,7 +749,6 @@
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.39962476" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.29590765" sideWeight="0.49791667" order="5" side_tool="false" content_ui="tabs" />
@@ -764,7 +769,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Created a widget to represent an Instance." />
     <MESSAGE value="Added code that would go through an AST Tree, make instance widgets and add them on the screen. A render function will then be immediately called. The render function will create a new graph (using graphviz), add nodes (and their sizes) to the graph, add connections as well, and use the final positions in the graph to display them on the root_widget (Gtk.Layout)" />
     <MESSAGE value="Added glade, and builder files for quick and dirty instance widgets" />
     <MESSAGE value="Added stuff about Milestone 2 to readme" />
@@ -789,7 +793,8 @@
     <MESSAGE value="Fixed issue when re-syncing model with view (new widget was not successfully found in list when it was supposed to)" />
     <MESSAGE value="Created an update_ui function, which will be called every time a new instance_object is assigned" />
     <MESSAGE value="Attempted moving position, but failed." />
-    <option name="LAST_COMMIT_MESSAGE" value="Attempted moving position, but failed." />
+    <MESSAGE value="Changed Instance widget to subclass QGraphicsWidget. Involves using LinearLayout (as VBoxLayout isn't available in the QGraphics word). And using proxy_widget as a placeholder (since design is no where near final anyway)" />
+    <option name="LAST_COMMIT_MESSAGE" value="Changed Instance widget to subclass QGraphicsWidget. Involves using LinearLayout (as VBoxLayout isn't available in the QGraphics word). And using proxy_widget as a placeholder (since design is no where near final anyway)" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager />
@@ -1221,7 +1226,7 @@
     <entry file="file://$PROJECT_DIR$/Controller/graph_controller.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="1.0338541">
-          <caret line="167" column="56" selection-start-line="167" selection-start-column="56" selection-end-line="167" selection-end-column="56" />
+          <caret line="166" column="56" selection-start-line="166" selection-start-column="56" selection-end-line="166" selection-end-column="56" />
           <folding />
         </state>
       </provider>
