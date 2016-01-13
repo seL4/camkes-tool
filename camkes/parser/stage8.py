@@ -80,7 +80,8 @@ def resolve(ast_lifted):
                     if x.name == s.instance][0].type.attributes
                 if a.name == s.attribute][0].type
             if destination_type != source_type:
-                raise ParseError('mismatched types in attribute reference', r)
+                raise ParseError('mismatched types in attribute reference',
+                    r.filename, r.lineno)
         except IndexError:
             pass
 
