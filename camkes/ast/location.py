@@ -39,6 +39,8 @@ class SourceLocation(object):
         assert plyplus.is_stree(term) or isinstance(term, plyplus.ParseError)
         self._filename = filename
         self._lineno = None
+        self._min_column = None
+        self._max_column = None
         self.term = term
         self.full_source = full_source
         # We defer narrowing the location because this can be expensive and
@@ -56,15 +58,18 @@ class SourceLocation(object):
             self.term.calc_position()
 
             plyplus_line = self.term.min_line
+            self._min_column = self.term.min_col
+            self._max_column = self.term.max_col
 
         else:
             assert isinstance(self.term, plyplus.ParseError)
 
             # Try to extract the line number from a plyplus error.'''
-            m = re.search(r'^.*\sline\s+(\d+)\s+col\s+\d+$', str(self.term),
-                flags=re.MULTILINE)
+            m = re.search(r'^.*\sline\s+(?P<line>\d+)\s+col\s+(?P<col>\d+)$',
+                str(self.term), flags=re.MULTILINE)
             if m is not None:
-                plyplus_line = int(m.group(1))
+                plyplus_line = int(m.group('line'))
+                self._min_column = int(m.group('col'))
             else:
                 plyplus_line = None
 
