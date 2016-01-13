@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import sys
+import sys, math
 
 # TODO: should be able to remove this, as controller shouldn't be dependent on graphics library (that's the goal)
 from PyQt5 import QtWidgets, QtGui, QtCore
@@ -35,6 +35,11 @@ from camkes.ast import *
 # TODO: Move some of the controller stuff, like make a graph from ast into graph widget and rendering as well.
 
 class GraphController(QtWidgets.QMainWindow):
+
+    # Constants
+    _connection_length = 50  # pixels
+    _max_velocity_for_widget_animation = 2000
+
     # Default root_widget is a GraphWidget
     @property
     def root_widget(self):
@@ -115,6 +120,8 @@ class GraphController(QtWidgets.QMainWindow):
         self.setCentralWidget(self.root_widget)
         self.resize(700,700)
 
+        self.rect = None
+
         self.sync_model_with_view()
 
         # self.render()
@@ -124,10 +131,10 @@ class GraphController(QtWidgets.QMainWindow):
         ast_assembly = self.ast.assembly
         assert isinstance(ast_assembly, Assembly)
 
-        # For each instance, create a node in the graph & a widget.
+        # --- For each instance, create a node in the graph & a widget. ---
         instance_list_copy = list(ast_assembly.instances)
 
-        # Find widget's instance object counterpart
+        # Update widget's instance object counterpart
         for widget in self.widget_instances:
             assert isinstance(widget, InstanceWidget)
             new_instance_object = ASTModel.find_instance(instance_list_copy, widget.instance_object.name)
@@ -137,7 +144,9 @@ class GraphController(QtWidgets.QMainWindow):
                 instance_list_copy.remove(new_instance_object)
             else:
                 # Instance object for widget not found, probably deleted, so widget not necessary
-                self.root_widget.remove_instance(widget)
+                self.root_widget.remove_instance_widget(widget)
+
+        position = 0
 
         for instance in instance_list_copy:
             # For all new instances (instances without widget counterpart)
@@ -147,9 +156,51 @@ class GraphController(QtWidgets.QMainWindow):
             new_widget = InstanceWidget(instance)
             new_widget.open_component_info.connect(self.show_component_info)
 
+            # Add to internal list of widgets
             self.widget_instances.append(new_widget)
 
-        self.graph_render()
+            # TODO: Need to change maybe
+            # Add to scene
+            self.root_widget.add_instance_widget(new_widget, position + new_widget.preferredSize().width(),
+                                                 new_widget.preferredSize().height())
+            # self.root_widget.add_instance_widget(new_widget, random.randint(new_widget.preferredSize().width(), 800),
+            #                                      random.randint(new_widget.preferredSize().height(), 800))
+            position += new_widget.preferredSize().width() + self._connection_length
+
+            print new_widget.pos()
+
+        self.root_widget.clear_connection_widgets()
+        self.widget_connections = []
+
+        # Create connection widgets for all connections in assembly
+        for connection in self.ast.assembly.connections:
+
+            for from_instance_end in connection.from_ends:
+                assert isinstance(from_instance_end, ConnectionEnd)
+                from_instance = from_instance_end.instance
+                assert isinstance(from_instance, Instance)
+
+                for to_instance_end in connection.to_ends:
+                    assert isinstance(to_instance_end, ConnectionEnd)
+                    to_instance = to_instance_end.instance
+                    assert isinstance(to_instance, Instance)
+
+                    # Get source and destination widgets
+                    source_widget = self.find_instance_widget(from_instance.name)
+                    dest_widget = self.find_instance_widget(to_instance.name)
+
+                    new_connection_widget = ConnectionWidget(connection, source_widget, dest_widget)
+                    self.widget_connections.append(new_connection_widget)
+                    self.root_widget.add_connection_widget(new_connection_widget)
+
+        # Set scene rect to maximum possible size
+        max_width = 0
+        for widget in self.widget_instances:
+            max_width += max(widget.preferredSize().width(), widget.preferredSize().height()) + self._connection_length
+
+        self.root_widget.setViewGeometry(max_width, max_width)
+
+        self.internal_graph_render()
 
     def create_graph_rep(self):
 
@@ -190,7 +241,7 @@ class GraphController(QtWidgets.QMainWindow):
 
         return dot_data
 
-    def graph_render(self):
+    def internal_graph_render(self):
 
         dot_data = self.create_graph_rep()
 
@@ -239,16 +290,182 @@ class GraphController(QtWidgets.QMainWindow):
 
                     # Create an widget with the points and the object
 
-                    edge_widget = ConnectionWidget(connection_object, edge)
+                    source_widget = self.find_instance_widget(edge.get_source())
+                    dest_widget = self.find_instance_widget(edge.get_destination())
+
+                    print str(source_widget.instance_name) + str(dest_widget.instance_name)
+
+                    edge_widget = ConnectionWidget(connection_object, source_widget, dest_widget, edge)
                     self.widget_connections.append(edge_widget)
                     self.root_widget.add_connection_widget(edge_widget)
 
                     break  # Unnecessary to keep searching once found
 
+
     def show_component_info(self, instance):
         print "clicked " + str(instance.name)
         self.component_widget.component_object = instance.type
 
+    def find_instance_widget(self, name):
+        for instance in self.widget_instances:
+            assert isinstance(instance, InstanceWidget)
+            if instance.instance_name == name:
+                return instance
+
+        return None
+
+
+
+    # ... Doesn't work :( ...
+    # Add following to sync_model_with_view if using below
+        # self.rect = self.root_widget.sceneRect()
+        # i = 0
+        # while i < 5000:
+        #     self.graph_render()
+        #     QtCore.QTimer.singleShot(1000, self.graph_render)
+        #     i+=1
+        # self.graph_render()
+        #
+        # print self.rect
+        #
+        # self.root_widget.setSceneRect(self.rect)
+        # print self.root_widget.sceneRect().bottomRight()
+
+    @staticmethod
+    def force_attraction(x, k):
+        return (x*x)/k
+
+    @staticmethod
+    def force_repulsion(x,k):
+        return (k*k)/x
+
+    def graph_render(self):
+
+        scene = QtWidgets.QGraphicsScene()
+        scene.sceneRect()
+
+        rect = self.root_widget.sceneRect()
+        assert isinstance(rect, QtCore.QRectF)
+
+        area = rect.width() * rect.height()
+        k = math.sqrt(area / len(self.widget_instances))
+
+        print "area = " + str(area) + "  k = " + str(k)
+
+        for instance in self.widget_instances:
+            assert isinstance(instance, InstanceWidget)
+            instance.velocity = QtCore.QPointF(0,0)
+
+            if instance.pinned:
+                # Don't want to move it, so skip this instance
+                continue
+
+            for neighbour in self.widget_instances:
+                assert isinstance(neighbour, QtWidgets.QGraphicsWidget)
+                if instance is not neighbour:
+                    dist = QtCore.QPointF(instance.x() - neighbour.x(), instance.y() - neighbour.y())
+                    absolute_dist = math.sqrt(dist.x()*dist.x() + dist.y()*dist.y())
+
+                    instance.velocity.setX(instance.velocity.x() +
+                                           (dist.x()/absolute_dist)*self.force_repulsion(absolute_dist, k))
+                    instance.velocity.setY(instance.velocity.y() +
+                                           (dist.y()/absolute_dist)*self.force_repulsion(absolute_dist, k))
+
+            print str(instance.instance_name) + " velocity is: " + str(instance.velocity)
+
+        for connection in self.widget_connections:
+            assert isinstance(connection, ConnectionWidget)
+            dist = QtCore.QPointF(connection.source_instance_widget.x() - connection.dest_instance_widget.x(),
+                                  connection.source_instance_widget.y() - connection.dest_instance_widget.y())
+
+            absolute_dist = math.sqrt(dist.x()*dist.x() + dist.y()*dist.y())
+            # TODO: #define
+
+            factor = 1
+
+            if absolute_dist < 100:
+                factor = -1
+
+            # Adjust source widget velocity
+            if not connection.source_instance_widget.pinned:
+                if connection.dest_instance_widget.pinned:
+                    factor *= 2
+
+                connection.source_instance_widget.velocity.setX(
+                    connection.source_instance_widget.velocity.x() -
+                    (dist.x()/absolute_dist)*self.force_attraction(absolute_dist, k)*factor
+                )
+
+                connection.source_instance_widget.velocity.setY(
+                    connection.source_instance_widget.velocity.y() -
+                    (dist.y()/absolute_dist)*self.force_attraction(absolute_dist, k)*factor
+                )
+
+                if connection.dest_instance_widget.pinned:
+                    factor /= 2
+
+            # Adjust destination widget velocity
+            if not connection.dest_instance_widget.pinned:
+
+                if connection.source_instance_widget.pinned:
+                    factor *= 2
+
+                connection.dest_instance_widget.velocity.setX(
+                    connection.dest_instance_widget.velocity.x() +
+                    (dist.x()/absolute_dist)*self.force_attraction(absolute_dist, k)*factor
+                )
+
+                connection.dest_instance_widget.velocity.setY(
+                    connection.dest_instance_widget.velocity.y() +
+                    (dist.y()/absolute_dist)*self.force_attraction(absolute_dist, k)*factor
+                )
+
+                if connection.source_instance_widget.pinned:
+                    factor /= 2
+
+        for instance in self.widget_instances:
+            assert isinstance(instance, InstanceWidget)
+
+            if not instance.pinned:
+                # TODO: update scene rect if new position is outside scene
+
+                absolute_velocity = math.sqrt(instance.velocity.x()*instance.velocity.x()
+                                              + instance.velocity.y()*instance.velocity.y())
+
+                new_x_pos = instance.x() + (instance.velocity.x()/absolute_velocity) * \
+                                           (min(absolute_velocity, self._max_velocity_for_widget_animation))
+                new_y_pos = instance.y() + (instance.velocity.y()/absolute_velocity) * \
+                                           (min(absolute_velocity, self._max_velocity_for_widget_animation))
+
+                new_x_pos = min(rect.width()/2, max(-rect.width()/2 , new_x_pos))
+                new_y_pos = min(rect.height()/2, max(-rect.height()/2, new_y_pos))
+
+                print "instance:" + instance.instance_name + " pinned:" + str(instance.pinned) + " oldPos:" + str(instance.pos()) + " newPos:" + str(new_x_pos) + "," + str(new_y_pos)
+
+                if new_x_pos < instance.preferredSize().width():
+                    new_x_pos = instance.preferredSize().width()
+
+                if new_y_pos < instance.preferredSize().height():
+                    new_y_pos = instance.preferredSize().height()
+
+                print "instance:" + instance.instance_name + " pinned:" + str(instance.pinned) + " oldPos:" + str(instance.pos()) + " newPos:" + str(new_x_pos) + "," + str(new_y_pos)
+
+
+                self.root_widget.add_instance_widget(instance, new_x_pos, new_y_pos)
+
+                # Update scene rect to fit all instances (not completed, instances are half in)
+                assert isinstance(self.rect, QtCore.QRectF)
+                if new_x_pos < self.rect.topLeft().x():
+                    self.rect.setTopLeft(QtCore.QPointF(new_x_pos, self.rect.topLeft().y()))
+                elif new_x_pos > self.rect.bottomRight().x():
+                    self.rect.setBottomRight(QtCore.QPointF(new_x_pos, self.rect.bottomRight().y()))
+
+                if new_y_pos < self.rect.topLeft().y():
+                    self.rect.setTopLeft(QtCore.QPointF(self.rect.topLeft().x(), new_y_pos))
+                elif new_y_pos > self.rect.bottomRight().y():
+                    self.rect.setBottomRight(QtCore.QPointF(self.rect.bottomRight().x(), new_y_pos))
+
+        QtCore.QTimer.singleShot(50, self.graph_render)
 
 
 
@@ -286,3 +503,12 @@ def main(arguments):
 
 if __name__ == '__main__':
     sys.exit(main(sys.argv))
+
+    # Printing Image as png
+    # image = QtGui.QImage(5000,5000, QtGui.QImage.Format_ARGB32)
+    # image.fill(QtCore.Qt.transparent)
+    #
+    # painter = QtGui.QPainter(image)
+    # painter.setRenderHint(QtGui.QPainter.Antialiasing)
+    # self.root_widget.scene().render(painter)
+    # image.save("Test.png")
