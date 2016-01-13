@@ -6,7 +6,6 @@
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Controller/graph_controller.py" afterPath="$PROJECT_DIR$/Controller/graph_controller.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/View/Component_Window.py" afterPath="$PROJECT_DIR$/View/Component_Window.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/View/Connection_Widget.py" afterPath="$PROJECT_DIR$/View/Connection_Widget.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/View/Graph_Widget.py" afterPath="$PROJECT_DIR$/View/Graph_Widget.py" />
     </list>
     <ignored path="VisualComponents.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -750,7 +749,13 @@
       <option name="project" value="LOCAL" />
       <updated>1452661806243</updated>
     </task>
-    <option name="localTasksCounter" value="43" />
+    <task id="LOCAL-00043" summary="Created functions to remove instances and all connections">
+      <created>1452661859287</created>
+      <option name="number" value="00043" />
+      <option name="project" value="LOCAL" />
+      <updated>1452661859288</updated>
+    </task>
+    <option name="localTasksCounter" value="44" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -789,7 +794,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Updated read me with more ideas and features" />
     <MESSAGE value="Instance Widget subclasses QFrame and shows instance's name with component type" />
     <MESSAGE value="Created a Widget class which will add widgets on a &quot;canvas&quot;, and add connections." />
     <MESSAGE value="Subclasses QWidget and draws a line given by graphviz" />
@@ -814,7 +818,8 @@
     <MESSAGE value="Updated GraphWidget to handle change of subclass in InstanceWidget" />
     <MESSAGE value="Updated GraphController to handle change of subclass in InstanceWidget" />
     <MESSAGE value="Detecting if the widget has been moved by hand (and hence is being pinned to a chosen location)" />
-    <option name="LAST_COMMIT_MESSAGE" value="Detecting if the widget has been moved by hand (and hence is being pinned to a chosen location)" />
+    <MESSAGE value="Created functions to remove instances and all connections" />
+    <option name="LAST_COMMIT_MESSAGE" value="Created functions to remove instances and all connections" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager />

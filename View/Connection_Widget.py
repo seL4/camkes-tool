@@ -11,6 +11,7 @@ import pydotplus as Pydot
 from camkes.ast import *
 
 from Model import Common
+from Instance_Widget import InstanceWidget
 
 
 # TODO: Make connectionWidget totally independent of connection_object. Have links to the nodes that its connecting.
@@ -42,13 +43,12 @@ class ConnectionWidget(QtWidgets.QGraphicsItem):
     def edge_points(self, value):
         assert isinstance(value, list)
         # TODO: Change from edge point to tuple
-
         # TODO: Different method
-        if len(value) >= 1:
+        if len(value) >= 2:
             assert isinstance(value[1], tuple)
             self.path.moveTo(value[1][0], value[1][1])
 
-        if len(value) >= 2:
+        if len(value) >= 3:
             for point in value[2:]:
                 self.path.lineTo(point[0], point[1])
 
@@ -72,7 +72,25 @@ class ConnectionWidget(QtWidgets.QGraphicsItem):
     def clear_path(self):
         self._path = None
 
-    def __init__(self, connection_object, edge):
+    @property
+    def source_instance_widget(self):
+        return self._source_instance_widget
+
+    @source_instance_widget.setter
+    def source_instance_widget(self, value):
+        assert isinstance(value, InstanceWidget)
+        self._source_instance_widget = value
+
+    @property
+    def dest_instance_widget(self):
+        return self._dest_instance_widget
+
+    @dest_instance_widget.setter
+    def dest_instance_widget(self, value):
+        assert isinstance(value, InstanceWidget)
+        self._dest_instance_widget = value
+
+    def __init__(self, connection_object, source, dest, edge=None):
         super(ConnectionWidget, self).__init__()
         assert isinstance(connection_object, Connection)
         self._connection_object = connection_object
@@ -80,11 +98,17 @@ class ConnectionWidget(QtWidgets.QGraphicsItem):
         self._edge_points = None
         self._path = None
 
-        # Get points from attributes of the edge
-        edge_attributes = edge.get_attributes()
-        edge_points = Common.extract_numbers(edge_attributes['pos'])
+        assert isinstance(source, InstanceWidget)
+        self._source_instance_widget = source
 
-        self.edge_points = edge_points
+        assert isinstance(dest, InstanceWidget)
+        self._dest_instance_widget = dest
+
+        # Get points from attributes of the edge
+        if edge:
+            edge_attributes = edge.get_attributes()
+            edge_points = Common.extract_numbers(edge_attributes['pos'])
+            self.edge_points = edge_points
 
     def paint(self, q_painter, style_option , widget=None):
 
