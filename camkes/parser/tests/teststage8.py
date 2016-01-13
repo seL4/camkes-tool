@@ -22,7 +22,6 @@ ME = os.path.abspath(__file__)
 sys.path.append(os.path.join(os.path.dirname(ME), '../../..'))
 
 from camkes.internal.tests.utils import CAmkESTest
-from camkes.parser import ParseError
 from camkes.parser.stage0 import Reader
 from camkes.parser.stage1 import Parse1
 from camkes.parser.stage2 import Parse2
