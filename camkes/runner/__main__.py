@@ -329,7 +329,7 @@ def main(argv, out, err):
     if cacheb is not None:
         ast_hash = level_b_prime(ast)
         assert 'args' in locals()
-        output = cacheb.load(ast_hash, args, options.elf)
+        output = cacheb.load(ast_hash, args, set(options.elf) | extra_templates)
         if output is not None:
             log.debug('Retrieved %(platform)s/%(item)s from level B cache' %
                 options.__dict__)
@@ -383,7 +383,8 @@ def main(argv, out, err):
 
             # Save entries in both caches.
             cachea.save(new_args, cwd, value, inputs)
-            cacheb.save(ast_hash, new_args, options.elf, value)
+            cacheb.save(ast_hash, new_args, set(options.elf) | extra_templates,
+                value)
     else:
         def save(item, value):
             pass
