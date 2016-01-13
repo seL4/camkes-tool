@@ -27,16 +27,6 @@ class GraphWidget(QtWidgets.QGraphicsView):
         assert isinstance(value, list)
         self._instance_widgets = value
 
-    def add_connection_widget(self, new_connection):
-        """
-
-        :type new_connection: ConnectionWidget
-        """
-        assert isinstance(new_connection, ConnectionWidget)
-        self.connection_widgets.append(new_connection)
-
-        self.scene().addItem(new_connection)
-
     def __init__(self):
         super(GraphWidget, self).__init__()
         self._connection_widgets = None
@@ -69,7 +59,28 @@ class GraphWidget(QtWidgets.QGraphicsView):
     #         assert isinstance(connector, ConnectionWidget)
     #         connector.draw_connection(q_painter)
 
-        # TODO: Possible feature, only update the rect given in QPaintEvent
+    def remove_instance_widget(self, old_widget):
+        raise NotImplementedError
+
+    def add_connection_widget(self, new_connection):
+        """
+
+        :type new_connection: ConnectionWidget
+        """
+        assert isinstance(new_connection, ConnectionWidget)
+        self.connection_widgets.append(new_connection)
+
+        self.scene().addItem(new_connection)
+
+    def clear_connection_widgets(self):
+
+        scene = self.scene()
+        assert isinstance(scene, QtWidgets.QGraphicsScene)
+
+        for connection in self.connection_widgets:
+            scene.removeItem(connection)
+            self.connection_widgets.remove(connection)
+
 
     # Set UI Functions
     def setViewGeometry(self, size_x, size_y):
