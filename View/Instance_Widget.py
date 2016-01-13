@@ -12,6 +12,18 @@ from camkes.ast import *
 
 
 class InstanceWidget(QtWidgets.QGraphicsWidget):
+
+    @property
+    def velocity(self):
+        if self._velocity is None:
+            self._velocity = QtCore.QPointF(0,0)
+        return self._velocity
+
+    @velocity.setter
+    def velocity(self, value):
+        assert isinstance(value, QtCore.QPointF)
+        self._velocity = value
+
     @property
     def instance_object(self):
         return self._instance_object
@@ -33,14 +45,23 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
         self._instance_name = value
         self.update_ui()
 
-    @property
-    def preferred_point(self):
-        return self._preferred_point
+    # @property
+    # def preferred_point(self):
+    #     return self._preferred_point
+    #
+    # @preferred_point.setter
+    # def preferred_point(self, value):
+    #     assert isinstance(value, QtCore.QPointF)
+    #     self._preferred_point = value
 
-    @preferred_point.setter
-    def preferred_point(self, value):
-        assert isinstance(value, QtCore.QPointF)
-        self._preferred_point = value
+    @property
+    def pinned(self):
+        return self._pinned
+
+    @pinned.setter
+    def pinned(self, value):
+        assert isinstance(value, bool)
+        self._pinned = value
 
     # Signals & Slots
     open_component_info = QtCore.pyqtSignal(Instance)
@@ -53,8 +74,11 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
         self._instance_object = instance_object
         self._instance_name = instance_object.name
         self._preferred_point = preferred_point
+        self._pinned = False
+        self._velocity = None
 
         # GUI
+        self.setFlag(QtWidgets.QGraphicsWidget.ItemIsMovable)
 
         layout = QtWidgets.QGraphicsLinearLayout()
         layout.setOrientation(QtCore.Qt.Vertical)
@@ -93,8 +117,24 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
         # Change to must press a button to open component info
         self.open_component_info.emit(self.instance_object)
 
-    previous_position = None
+    _moved_at_least_once = False
 
+    def mouseMoveEvent(self, mouse_event):
+        self._moved_at_least_once = True
+        super(InstanceWidget, self).mouseMoveEvent(mouse_event)
+
+    def itemChange(self, change, value):
+
+        if change == QtWidgets.QGraphicsWidget.ItemPositionHasChanged and self._moved_at_least_once:
+            self.pinned = True
+            # Tell graph controller that item has moved (signal)
+
+        return super(InstanceWidget, self).itemChange(change, value)
+
+
+
+    # previous_position = None
+    #
     # def mouseMoveEvent(self, mouse_event):
     #     assert isinstance(mouse_event, QtGui.QMouseEvent)
     #
