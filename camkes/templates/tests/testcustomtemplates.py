@@ -113,5 +113,35 @@ class TestCustomTemplates(CAmkESTest):
         # Add the custom template.
         templates.add(c, c1)
 
+    def test_mutual_recursion(self):
+        '''
+        We should trigger an exception when including ourselves, even when it
+        is via an intermediary.
+        '''
+
+        # Setup some custom templates.
+        tmp = self.mkdtemp()
+        with open(os.path.join(tmp, 'greatgrandparent'), 'wt') as f:
+            f.write('/*- include "grandparent" -*/\n')
+        with open(os.path.join(tmp, 'grandparent'), 'wt') as f:
+            f.write('/*- include "parent" -*/\n')
+        with open(os.path.join(tmp, 'parent'), 'wt') as f:
+            f.write('/*- include "child" -*/\n')
+        with open(os.path.join(tmp, 'child'), 'wt') as f:
+            f.write('/*- include "greatgrandparent" -*/\n')
+
+        # Create template store and add a custom path.
+        templates = Templates('seL4')
+        templates.add_root(tmp)
+
+        # Invent a fake connector and connection. This is necessary for adding
+        # the template.
+        c = Connector('foo', 'Event', 'Event', from_template='greatgrandparent')
+        c1 = Connection(c, 'bar', [], [])
+
+        # Add the custom template.
+        with self.assertRaises(TemplateError):
+            templates.add(c, c1)
+
 if __name__ == '__main__':
     unittest.main()
