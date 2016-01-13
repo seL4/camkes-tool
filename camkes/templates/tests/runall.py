@@ -20,6 +20,7 @@ from jinja_lint import TestLint
 from jinja_pylint import TestPyLint
 from lint import TestPyLintOnSource
 from lintsource import TestSourceLint
+from testcustomtemplates import TestCustomTemplates
 from testsel4_async import TestSel4Async
 
 if __name__ == '__main__':
