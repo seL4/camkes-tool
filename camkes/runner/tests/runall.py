@@ -20,6 +20,7 @@ ME = os.path.abspath(__file__)
 
 from lint import TestLint
 from lintsource import TestSourceLint
+from testregression import TestRegression
 
 if __name__ == '__main__':
     unittest.main()
