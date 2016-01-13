@@ -32,7 +32,7 @@ sys.path.append(os.path.join(os.path.dirname(ME), '../../..'))
 
 from camkes.ast import Connection, Connector
 from camkes.internal.tests.utils import CAmkESTest
-from camkes.templates import Templates
+from camkes.templates import TemplateError, Templates
 
 class TestCustomTemplates(CAmkESTest):
     def test_inclusion(self):
@@ -58,6 +58,29 @@ class TestCustomTemplates(CAmkESTest):
 
         # Add the custom template. If we don't trigger an exception, success.
         templates.add(c, c1)
+
+    def test_self_inclusion(self):
+        '''
+        Test that a template that includes itself triggers an exception.
+        '''
+
+        # Setup some custom templates.
+        tmp = self.mkdtemp()
+        with open(os.path.join(tmp, 'parent'), 'wt') as f:
+            f.write('/*- include "parent" -*/\n')
+
+        # Create template store and add a custom path.
+        templates = Templates('seL4')
+        templates.add_root(tmp)
+
+        # Invent a fake connector and connection. This is necessary for adding
+        # the template.
+        c = Connector('foo', 'Event', 'Event', from_template='parent')
+        c1 = Connection(c, 'bar', [], [])
+
+        # Add the custom template.
+        with self.assertRaises(TemplateError):
+            templates.add(c, c1)
 
 if __name__ == '__main__':
     unittest.main()
