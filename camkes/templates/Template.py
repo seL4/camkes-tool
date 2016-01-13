@@ -215,7 +215,7 @@ def get_dependencies(roots, stem, seen=None):
             # Note that we use [1:-1] to strip the quotes from the include
             # target.
             for target in (x[1:-1] for x in included):
-                extra = get_dependencies(roots, target, seen)
+                extra = get_dependencies(roots, target, set(seen))
                 read |= extra
 
             return read

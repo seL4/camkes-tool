@@ -82,5 +82,31 @@ class TestCustomTemplates(CAmkESTest):
         with self.assertRaises(TemplateError):
             templates.add(c, c1)
 
+    def test_double_inclusion(self):
+        '''
+        We should be able to include the same template twice without triggering
+        an exception.
+        '''
+
+        # Setup some custom templates.
+        tmp = self.mkdtemp()
+        with open(os.path.join(tmp, 'parent'), 'wt') as f:
+            f.write('/*- include "child" -*/\n'
+                    '/*- include "child" -*/\n')
+        with open(os.path.join(tmp, 'child'), 'wt') as f:
+            f.write('/* nothing */\n')
+
+        # Create template store and add a custom path.
+        templates = Templates('seL4')
+        templates.add_root(tmp)
+
+        # Invent a fake connector and connection. This is necessary for adding
+        # the template.
+        c = Connector('foo', 'Event', 'Event', from_template='parent')
+        c1 = Connection(c, 'bar', [], [])
+
+        # Add the custom template.
+        templates.add(c, c1)
+
 if __name__ == '__main__':
     unittest.main()
