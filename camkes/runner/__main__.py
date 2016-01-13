@@ -276,20 +276,6 @@ def main(argv, out, err):
     except (ASTError, ParseError) as e:
         die(str(e))
 
-    # Check if our current target is in the level B cache. The level A cache
-    # will 'miss' and this one will 'hit' when the input spec is identical to
-    # some previously observed execution modulo a semantically irrelevant
-    # element (e.g. an introduced comment).
-    ast_hash = None
-    if cacheb is not None:
-        ast_hash = level_b_prime(ast)
-        assert 'args' in locals()
-        output = cacheb.load(ast_hash, args, options.elf)
-        if output is not None:
-            log.debug('Retrieved %(platform)s/%(item)s from level B cache' %
-                options.__dict__)
-            done(output)
-
     # Locate the assembly.
     assembly = ast.assembly
     if assembly is None:
@@ -333,6 +319,20 @@ def main(argv, out, err):
             # No connections use this type. There's no point adding it to the
             # template lookup dictionary.
             pass
+
+    # Check if our current target is in the level B cache. The level A cache
+    # will 'miss' and this one will 'hit' when the input spec is identical to
+    # some previously observed execution modulo a semantically irrelevant
+    # element (e.g. an introduced comment).
+    ast_hash = None
+    if cacheb is not None:
+        ast_hash = level_b_prime(ast)
+        assert 'args' in locals()
+        output = cacheb.load(ast_hash, args, options.elf)
+        if output is not None:
+            log.debug('Retrieved %(platform)s/%(item)s from level B cache' %
+                options.__dict__)
+            done(output)
 
     # Add the CAmkES sources themselves to the accumulated list of inputs.
     read |= set(path for path, _ in sources())
