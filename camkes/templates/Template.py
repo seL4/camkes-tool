@@ -211,7 +211,7 @@ def get_dependencies(roots, stem, seen=None):
 
             # Find everything this template includes, recursively.
             included = INCLUDE_STATEMENT.findall(content)
-            read = set()
+            read = set([path])
             # Note that we use [1:-1] to strip the quotes from the include
             # target.
             for target in (x[1:-1] for x in included):

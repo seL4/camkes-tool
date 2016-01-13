@@ -56,8 +56,13 @@ class TestCustomTemplates(CAmkESTest):
         c = Connector('foo', 'Event', 'Event', from_template='parent')
         c1 = Connection(c, 'bar', [], [])
 
-        # Add the custom template. If we don't trigger an exception, success.
-        templates.add(c, c1)
+        # Add the custom template.
+        included = templates.add(c, c1)
+
+        # Now we should have noted the included files.
+        self.assertSetEqual(
+            set([os.path.join(tmp, 'child'), os.path.join(tmp, 'parent')]),
+            included)
 
     def test_self_inclusion(self):
         '''
