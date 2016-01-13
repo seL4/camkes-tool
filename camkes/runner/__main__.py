@@ -302,6 +302,7 @@ def main(argv, out, err):
     # the extra check that the connector has some templates is just an
     # optimisation; the templates module handles connectors without templates
     # just fine.
+    extra_templates = set()
     for c in (x for x in ast.items if isinstance(x, Connector) and
             (x.from_template is not None or x.to_template is not None)):
         try:
@@ -312,7 +313,7 @@ def main(argv, out, err):
             # inputs. It is necessary to update the read set here to avoid
             # false compilation cache hits when the source of a custom template
             # has changed.
-            read |= templates.add(c, connection)
+            extra_templates |= templates.add(c, connection)
         except TemplateError as e:
             die('while adding connector %s: %s' % (c.name, e))
         except StopIteration:
@@ -333,6 +334,9 @@ def main(argv, out, err):
             log.debug('Retrieved %(platform)s/%(item)s from level B cache' %
                 options.__dict__)
             done(output)
+
+    # Add custom templates.
+    read |= extra_templates
 
     # Add the CAmkES sources themselves to the accumulated list of inputs.
     read |= set(path for path, _ in sources())
