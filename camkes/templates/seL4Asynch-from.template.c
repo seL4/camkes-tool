@@ -19,6 +19,6 @@
 
 void /*? me.interface.name ?*/_emit_underlying(void) {
     /*- for aep in aeps -*/
-    seL4_Notify(/*? aep ?*/, /* ignored */ 0);
+    seL4_Signal(/*? aep ?*/);
     /*- endfor -*/
 }

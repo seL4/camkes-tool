@@ -101,8 +101,7 @@ int /*? me.interface.name ?*/__run(void) {
 
         if (cb != NULL) {
             /* A callback was registered. Note that `cb` is a local variable
-             * and thus we know that the `seL4_Notify` call above was not
-             * executed.
+             * and thus we know that the semaphore post above was not executed.
              */
             cb(arg);
         }

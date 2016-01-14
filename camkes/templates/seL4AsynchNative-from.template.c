@@ -21,5 +21,5 @@
 /*- do cap_space.cnode[aep].set_badge(badge_magic) -*/
 
 void /*? me.interface.name ?*/_emit_underlying(void) {
-    seL4_Notify(/*? aep ?*/, /* ignored */ 0);
+    seL4_Signal(/*? aep ?*/);
 }
