@@ -1,13 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="9e94cc0d-524c-462a-bfa8-511eaa5dddfc" name="Default" comment="Added code to create connection widgets. Right now, it creates duplicate connection widget. Will be used for testing.&#10;Attempted to code a force-directed / spring graph layout system instead of using graphviz. Unforuntately it failed. Its not stable, due to the algorithm and will require a lot of fiddling with. May come back to this later (hence the inclusion of the code)">
+    <list default="true" id="9e94cc0d-524c-462a-bfa8-511eaa5dddfc" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Controller/graph_controller.py" afterPath="$PROJECT_DIR$/Controller/graph_controller.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Model/AST_Model.py" afterPath="$PROJECT_DIR$/Model/AST_Model.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Model/Common.py" afterPath="$PROJECT_DIR$/Model/Common.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/View/Connection_Widget.py" afterPath="$PROJECT_DIR$/View/Connection_Widget.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/View/Graph_Widget.py" afterPath="$PROJECT_DIR$/View/Graph_Widget.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/View/Instance_Widget.py" afterPath="$PROJECT_DIR$/View/Instance_Widget.py" />
     </list>
     <ignored path="VisualComponents.iws" />
@@ -57,8 +54,8 @@
       <file leaf-file-name="graph_controller.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/Controller/graph_controller.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.9147287">
-              <caret line="347" column="20" selection-start-line="347" selection-start-column="20" selection-end-line="347" selection-end-column="20" />
+            <state vertical-scroll-proportion="0.35658914">
+              <caret line="291" column="13" selection-start-line="291" selection-start-column="13" selection-end-line="291" selection-end-column="13" />
               <folding />
             </state>
           </provider>
@@ -68,8 +65,10 @@
         <entry file="file://$PROJECT_DIR$/View/Graph_Widget.py">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="5" column="0" selection-start-line="5" selection-start-column="0" selection-end-line="5" selection-end-column="0" />
-              <folding />
+              <caret line="91" column="15" selection-start-line="91" selection-start-column="10" selection-end-line="91" selection-end-column="15" />
+              <folding>
+                <element signature="e#47#89#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -78,7 +77,7 @@
         <entry file="file://$PROJECT_DIR$/View/Instance_Widget.py">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="109" column="51" selection-start-line="109" selection-start-column="51" selection-end-line="109" selection-end-column="51" />
+              <caret line="341" column="19" selection-start-line="341" selection-start-column="14" selection-end-line="341" selection-end-column="19" />
               <folding>
                 <element signature="e#47#57#0" expanded="true" />
               </folding>
@@ -121,8 +120,8 @@
       <file leaf-file-name="Connection_Widget.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/View/Connection_Widget.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-17.428572">
-              <caret line="147" column="30" selection-start-line="147" selection-start-column="26" selection-end-line="147" selection-end-column="30" />
+            <state vertical-scroll-proportion="0.0">
+              <caret line="208" column="13" selection-start-line="208" selection-start-column="8" selection-end-line="208" selection-end-column="13" />
               <folding>
                 <element signature="e#47#63#0" expanded="true" />
               </folding>
@@ -157,9 +156,9 @@
         <option value="$PROJECT_DIR$/View/Graph_Widget.py" />
         <option value="$PROJECT_DIR$/Model/AST_Model.py" />
         <option value="$PROJECT_DIR$/Model/Common.py" />
+        <option value="$PROJECT_DIR$/Controller/graph_controller.py" />
         <option value="$PROJECT_DIR$/View/Instance_Widget.py" />
         <option value="$PROJECT_DIR$/View/Connection_Widget.py" />
-        <option value="$PROJECT_DIR$/Controller/graph_controller.py" />
       </list>
     </option>
   </component>
@@ -769,7 +768,25 @@
       <option name="project" value="LOCAL" />
       <updated>1452662169569</updated>
     </task>
-    <option name="localTasksCounter" value="46" />
+    <task id="LOCAL-00046" summary="Added function to find component">
+      <created>1452753661447</created>
+      <option name="number" value="00046" />
+      <option name="project" value="LOCAL" />
+      <updated>1452753661447</updated>
+    </task>
+    <task id="LOCAL-00047" summary="Added Event, Procedure and Dataport &quot;#defines&quot;">
+      <created>1452753683192</created>
+      <option name="number" value="00047" />
+      <option name="project" value="LOCAL" />
+      <updated>1452753683192</updated>
+    </task>
+    <task id="LOCAL-00048" summary="Made Instance Widget and Connection Widget independent of the AST Model. Widgets now store all the important information. Instance and Connection represent the graph. Graph_controller has functions to sync the instance with the Lifted_AST.">
+      <created>1452754050484</created>
+      <option name="number" value="00048" />
+      <option name="project" value="LOCAL" />
+      <updated>1452754050484</updated>
+    </task>
+    <option name="localTasksCounter" value="49" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -778,6 +795,7 @@
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.18020834" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.39979014" sideWeight="0.50208336" order="11" side_tool="true" content_ui="tabs" />
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3292683" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
@@ -788,7 +806,6 @@
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32964718" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.39962476" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.29590765" sideWeight="0.49791667" order="5" side_tool="false" content_ui="tabs" />
@@ -828,9 +845,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Subclasses QWidget and draws a line given by graphviz" />
-    <MESSAGE value="Added a common file with common functions" />
-    <MESSAGE value="Uses GraphWidget, adds instance widgets to graphs, uses graphviz to lay out components and connections, and successfully shows something on the screen" />
     <MESSAGE value="Able to handle scientific notation numbers" />
     <MESSAGE value="Added a component window to display component info in a new window, and in the future as a side panel item." />
     <MESSAGE value="Changed the way ui is refreshed. Ability to get a signal from Instance_Widget to open a component_window. Component_window stored in GraphController" />
@@ -853,7 +867,10 @@
     <MESSAGE value="Created functions to remove instances and all connections" />
     <MESSAGE value="Added &quot;pointers&quot; to source and destination instances, as well as logic to check if edge was given (and if so, create a path)" />
     <MESSAGE value="Added code to create connection widgets. Right now, it creates duplicate connection widget. Will be used for testing.&#10;Attempted to code a force-directed / spring graph layout system instead of using graphviz. Unforuntately it failed. Its not stable, due to the algorithm and will require a lot of fiddling with. May come back to this later (hence the inclusion of the code)" />
-    <option name="LAST_COMMIT_MESSAGE" value="Added code to create connection widgets. Right now, it creates duplicate connection widget. Will be used for testing.&#10;Attempted to code a force-directed / spring graph layout system instead of using graphviz. Unforuntately it failed. Its not stable, due to the algorithm and will require a lot of fiddling with. May come back to this later (hence the inclusion of the code)" />
+    <MESSAGE value="Added function to find component" />
+    <MESSAGE value="Added Event, Procedure and Dataport &quot;#defines&quot;" />
+    <MESSAGE value="Made Instance Widget and Connection Widget independent of the AST Model. Widgets now store all the important information. Instance and Connection represent the graph. Graph_controller has functions to sync the instance with the Lifted_AST." />
+    <option name="LAST_COMMIT_MESSAGE" value="Made Instance Widget and Connection Widget independent of the AST Model. Widgets now store all the important information. Instance and Connection represent the graph. Graph_controller has functions to sync the instance with the Lifted_AST." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager />
@@ -1226,22 +1243,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Model/Common.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="6" column="18" selection-start-line="6" selection-start-column="18" selection-end-line="6" selection-end-column="18" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/View/Graph_Widget.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="5" column="0" selection-start-line="5" selection-start-column="0" selection-end-line="5" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/Model/AST_Model.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -1250,13 +1251,11 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/View/Instance_Widget.py">
+    <entry file="file://$PROJECT_DIR$/Model/Common.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="109" column="51" selection-start-line="109" selection-start-column="51" selection-end-line="109" selection-end-column="51" />
-          <folding>
-            <element signature="e#47#57#0" expanded="true" />
-          </folding>
+          <caret line="6" column="18" selection-start-line="6" selection-start-column="18" selection-end-line="6" selection-end-column="18" />
+          <folding />
         </state>
       </provider>
     </entry>
@@ -1270,10 +1269,30 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/View/Graph_Widget.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="91" column="15" selection-start-line="91" selection-start-column="10" selection-end-line="91" selection-end-column="15" />
+          <folding>
+            <element signature="e#47#89#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/View/Instance_Widget.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="341" column="19" selection-start-line="341" selection-start-column="14" selection-end-line="341" selection-end-column="19" />
+          <folding>
+            <element signature="e#47#57#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/View/Connection_Widget.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-17.428572">
-          <caret line="147" column="30" selection-start-line="147" selection-start-column="26" selection-end-line="147" selection-end-column="30" />
+        <state vertical-scroll-proportion="0.0">
+          <caret line="208" column="13" selection-start-line="208" selection-start-column="8" selection-end-line="208" selection-end-column="13" />
           <folding>
             <element signature="e#47#63#0" expanded="true" />
           </folding>
@@ -1282,8 +1301,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/Controller/graph_controller.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.9147287">
-          <caret line="347" column="20" selection-start-line="347" selection-start-column="20" selection-end-line="347" selection-end-column="20" />
+        <state vertical-scroll-proportion="0.35658914">
+          <caret line="291" column="13" selection-start-line="291" selection-start-column="13" selection-end-line="291" selection-end-column="13" />
           <folding />
         </state>
       </provider>

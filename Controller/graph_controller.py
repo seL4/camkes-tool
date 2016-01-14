@@ -171,8 +171,6 @@ class GraphController(QtWidgets.QMainWindow):
             #                                      random.randint(new_widget.preferredSize().height(), 800))
             position += new_widget.preferredSize().width() + self._connection_length
 
-            print new_widget.pos()
-
         self.root_widget.clear_connection_widgets()
         self.widget_connections = []
 
@@ -209,23 +207,6 @@ class GraphController(QtWidgets.QMainWindow):
 
         self.internal_graph_render()
 
-    def create_connection_widget(self, connection, from_instance, from_interface, to_instance, to_interface):
-        # Get source and destination widgets
-        source_widget = self.find_instance_widget(from_instance)
-        dest_widget = self.find_instance_widget(to_instance)
-        new_connection_widget = ConnectionWidget(name=connection.name,
-                                                 con_type=connection.type.name,
-                                                 source=source_widget,
-                                                 source_type=connection.type.from_type,
-                                                 source_inf_name=from_interface,
-                                                 dest=dest_widget,
-                                                 dest_type=connection.type.to_type,
-                                                 dest_inf_name=to_interface)
-
-        new_connection_widget.connection_object = connection # TODO: Take out
-
-        return new_connection_widget
-
     def sync_instance(self, instance, widget):
         assert isinstance(instance, Instance)
         assert isinstance(widget, InstanceWidget)
@@ -235,7 +216,7 @@ class GraphController(QtWidgets.QMainWindow):
 
         widget.name = instance.name
         widget.component_type = component.name
-        print widget.component_type
+
         widget.control = component.control
         widget.hardware = component.hardware
 
@@ -260,6 +241,23 @@ class GraphController(QtWidgets.QMainWindow):
             widget.add_dataport(dataport.name, dataport.type, dataport.optional) # Optional bool
 
         # TODO add attributes, mutex and semaphores
+
+    def create_connection_widget(self, connection, from_instance, from_interface, to_instance, to_interface):
+        # Get source and destination widgets
+        source_widget = self.find_instance_widget(from_instance)
+        dest_widget = self.find_instance_widget(to_instance)
+        new_connection_widget = ConnectionWidget(name=connection.name,
+                                                 con_type=connection.type.name,
+                                                 source=source_widget,
+                                                 source_type=connection.type.from_type,
+                                                 source_inf_name=from_interface,
+                                                 dest=dest_widget,
+                                                 dest_type=connection.type.to_type,
+                                                 dest_inf_name=to_interface)
+
+        new_connection_widget.connection_object = connection # TODO: Take out
+
+        return new_connection_widget
 
     def create_graph_rep(self):
 
