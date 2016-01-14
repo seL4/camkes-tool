@@ -25,5 +25,5 @@ int /*? me.interface.name ?*/__run(void) {
 }
 
 void /*? me.interface.name ?*/_emit_underlying(void) {
-    seL4_Notify(/*? aep ?*/, /* ignored */ 0);
+    seL4_Signal(/*? aep ?*/);
 }
