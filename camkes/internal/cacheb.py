@@ -79,7 +79,7 @@ from .strhash import hash_string
 
 def make_key(primed, argv, inputs):
     return '%d|%s|%s' % (primed, hash_string(flatten_args(argv)),
-        '|'.join('%s|%s' % (x, hash_file(x)) for x in inputs))
+        '|'.join('%s|%s' % (x, hash_file(x)) for x in sorted(inputs)))
 
 def prime_ast_hash(ast):
     return hash(ast)

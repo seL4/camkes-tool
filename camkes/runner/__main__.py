@@ -276,20 +276,6 @@ def main(argv, out, err):
     except (ASTError, ParseError) as e:
         die(str(e))
 
-    # Check if our current target is in the level B cache. The level A cache
-    # will 'miss' and this one will 'hit' when the input spec is identical to
-    # some previously observed execution modulo a semantically irrelevant
-    # element (e.g. an introduced comment).
-    ast_hash = None
-    if cacheb is not None:
-        ast_hash = level_b_prime(ast)
-        assert 'args' in locals()
-        output = cacheb.load(ast_hash, args, options.elf)
-        if output is not None:
-            log.debug('Retrieved %(platform)s/%(item)s from level B cache' %
-                options.__dict__)
-            done(output)
-
     # Locate the assembly.
     assembly = ast.assembly
     if assembly is None:
@@ -316,6 +302,7 @@ def main(argv, out, err):
     # the extra check that the connector has some templates is just an
     # optimisation; the templates module handles connectors without templates
     # just fine.
+    extra_templates = set()
     for c in (x for x in ast.items if isinstance(x, Connector) and
             (x.from_template is not None or x.to_template is not None)):
         try:
@@ -326,13 +313,30 @@ def main(argv, out, err):
             # inputs. It is necessary to update the read set here to avoid
             # false compilation cache hits when the source of a custom template
             # has changed.
-            read |= templates.add(c, connection)
+            extra_templates |= templates.add(c, connection)
         except TemplateError as e:
             die('while adding connector %s: %s' % (c.name, e))
         except StopIteration:
             # No connections use this type. There's no point adding it to the
             # template lookup dictionary.
             pass
+
+    # Check if our current target is in the level B cache. The level A cache
+    # will 'miss' and this one will 'hit' when the input spec is identical to
+    # some previously observed execution modulo a semantically irrelevant
+    # element (e.g. an introduced comment).
+    ast_hash = None
+    if cacheb is not None:
+        ast_hash = level_b_prime(ast)
+        assert 'args' in locals()
+        output = cacheb.load(ast_hash, args, set(options.elf) | extra_templates)
+        if output is not None:
+            log.debug('Retrieved %(platform)s/%(item)s from level B cache' %
+                options.__dict__)
+            done(output)
+
+    # Add custom templates.
+    read |= extra_templates
 
     # Add the CAmkES sources themselves to the accumulated list of inputs.
     read |= set(path for path, _ in sources())
@@ -379,7 +383,8 @@ def main(argv, out, err):
 
             # Save entries in both caches.
             cachea.save(new_args, cwd, value, inputs)
-            cacheb.save(ast_hash, new_args, options.elf, value)
+            cacheb.save(ast_hash, new_args, set(options.elf) | extra_templates,
+                value)
     else:
         def save(item, value):
             pass

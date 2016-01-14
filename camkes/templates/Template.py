@@ -179,7 +179,7 @@ PLATFORMS = list(TEMPLATES.keys())
 # A Jinja include or import statement. We will use this to recognise
 # subordinate inputs resulting from a user-provided template.
 INCLUDE_STATEMENT = re.compile(
-    r'/-\*\s*(?:import|include)\s+(?:\'([^\']*)\'|"([^"]*)")\s*-\*/',
+    r'/\*-\s*(?:import|include)\s+(\'[^\']*\'|"[^"]*")\s*-\*/',
     flags=re.MULTILINE)
 
 def get_dependencies(roots, stem, seen=None):
@@ -211,9 +211,11 @@ def get_dependencies(roots, stem, seen=None):
 
             # Find everything this template includes, recursively.
             included = INCLUDE_STATEMENT.findall(content)
-            read = set()
-            for target in included:
-                extra = get_dependencies(roots, target, seen)
+            read = set([path])
+            # Note that we use [1:-1] to strip the quotes from the include
+            # target.
+            for target in (x[1:-1] for x in included):
+                extra = get_dependencies(roots, target, set(seen))
                 read |= extra
 
             return read
