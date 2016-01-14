@@ -3,6 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="9e94cc0d-524c-462a-bfa8-511eaa5dddfc" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/View/Connection_Widget.py" afterPath="$PROJECT_DIR$/View/Connection_Widget.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/View/Instance_Widget.py" afterPath="$PROJECT_DIR$/View/Instance_Widget.py" />
     </list>
     <ignored path="VisualComponents.iws" />
@@ -49,11 +50,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="graph_controller.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="graph_controller.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Controller/graph_controller.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.35658914">
-              <caret line="291" column="13" selection-start-line="291" selection-start-column="13" selection-end-line="291" selection-end-column="13" />
+            <state vertical-scroll-proportion="0.0">
+              <caret line="352" column="51" selection-start-line="352" selection-start-column="51" selection-end-line="352" selection-end-column="51" />
               <folding />
             </state>
           </provider>
@@ -75,7 +76,7 @@
         <entry file="file://$PROJECT_DIR$/View/Instance_Widget.py">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="341" column="19" selection-start-line="341" selection-start-column="14" selection-end-line="341" selection-end-column="19" />
+              <caret line="261" column="29" selection-start-line="261" selection-start-column="29" selection-end-line="261" selection-end-column="29" />
               <folding>
                 <element signature="e#47#57#0" expanded="true" />
               </folding>
@@ -115,11 +116,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Connection_Widget.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="Connection_Widget.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/View/Connection_Widget.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="208" column="13" selection-start-line="208" selection-start-column="8" selection-end-line="208" selection-end-column="13" />
+            <state vertical-scroll-proportion="0.5155039">
+              <caret line="213" column="56" selection-start-line="213" selection-start-column="56" selection-end-line="213" selection-end-column="56" />
               <folding>
                 <element signature="e#47#63#0" expanded="true" />
               </folding>
@@ -155,8 +156,8 @@
         <option value="$PROJECT_DIR$/Model/AST_Model.py" />
         <option value="$PROJECT_DIR$/Model/Common.py" />
         <option value="$PROJECT_DIR$/Controller/graph_controller.py" />
-        <option value="$PROJECT_DIR$/View/Instance_Widget.py" />
         <option value="$PROJECT_DIR$/View/Connection_Widget.py" />
+        <option value="$PROJECT_DIR$/View/Instance_Widget.py" />
       </list>
     </option>
   </component>
@@ -496,12 +497,6 @@
       <option name="number" value="Default" />
       <updated>1449214734746</updated>
     </task>
-    <task id="LOCAL-00002" summary="Creating a class which can import the camkes file, run the parser and get an LiftedAST object">
-      <created>1449449149799</created>
-      <option name="number" value="00002" />
-      <option name="project" value="LOCAL" />
-      <updated>1449449149799</updated>
-    </task>
     <task id="LOCAL-00003" summary="Creating a class which can import the camkes file, run the parser and get an LiftedAST object">
       <created>1449449154651</created>
       <option name="number" value="00003" />
@@ -790,7 +785,13 @@
       <option name="project" value="LOCAL" />
       <updated>1452814052009</updated>
     </task>
-    <option name="localTasksCounter" value="51" />
+    <task id="LOCAL-00051" summary="Added logic to add a connection.">
+      <created>1452814110980</created>
+      <option name="number" value="00051" />
+      <option name="project" value="LOCAL" />
+      <updated>1452814110980</updated>
+    </task>
+    <option name="localTasksCounter" value="52" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -849,7 +850,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Changed the way ui is refreshed. Ability to get a signal from Instance_Widget to open a component_window. Component_window stored in GraphController" />
     <MESSAGE value="Changed Controller to be a Main window&#10;DockWidget is just a decorder of another widget, so creating a dock_widget, and adding a component_widget inside." />
     <MESSAGE value="Changed controller to create a dock widget every time a component window is created. Component Window does not need mouse event anymore." />
     <MESSAGE value="More feature/idea" />
@@ -874,7 +874,8 @@
     <MESSAGE value="Made Instance Widget and Connection Widget independent of the AST Model. Widgets now store all the important information. Instance and Connection represent the graph. Graph_controller has functions to sync the instance with the Lifted_AST." />
     <MESSAGE value="Moved Create_connection_widget&#10;" />
     <MESSAGE value="Added Source interface name information. Connection adds itself in the instance_widgets" />
-    <option name="LAST_COMMIT_MESSAGE" value="Added Source interface name information. Connection adds itself in the instance_widgets" />
+    <MESSAGE value="Added logic to add a connection." />
+    <option name="LAST_COMMIT_MESSAGE" value="Added logic to add a connection." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager />
@@ -1286,28 +1287,28 @@
     <entry file="file://$PROJECT_DIR$/View/Instance_Widget.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="341" column="19" selection-start-line="341" selection-start-column="14" selection-end-line="341" selection-end-column="19" />
+          <caret line="261" column="29" selection-start-line="261" selection-start-column="29" selection-end-line="261" selection-end-column="29" />
           <folding>
             <element signature="e#47#57#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/View/Connection_Widget.py">
+    <entry file="file://$PROJECT_DIR$/Controller/graph_controller.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="208" column="13" selection-start-line="208" selection-start-column="8" selection-end-line="208" selection-end-column="13" />
-          <folding>
-            <element signature="e#47#63#0" expanded="true" />
-          </folding>
+          <caret line="352" column="51" selection-start-line="352" selection-start-column="51" selection-end-line="352" selection-end-column="51" />
+          <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Controller/graph_controller.py">
+    <entry file="file://$PROJECT_DIR$/View/Connection_Widget.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.35658914">
-          <caret line="291" column="13" selection-start-line="291" selection-start-column="13" selection-end-line="291" selection-end-column="13" />
-          <folding />
+        <state vertical-scroll-proportion="0.5155039">
+          <caret line="213" column="56" selection-start-line="213" selection-start-column="56" selection-end-line="213" selection-end-column="56" />
+          <folding>
+            <element signature="e#47#63#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>

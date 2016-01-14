@@ -210,6 +210,8 @@ class ConnectionWidget(QtWidgets.QGraphicsItem):
 
     def __del__(self):
         # TODO: Delete connection from source & destination
+        self.source_instance_widget.remove_connection(self)
+        self.dest_instance_widget.remove_connection(self)
         print "deleted connection_widget"
         
     # Method using QPainter to draw the edge points, spline

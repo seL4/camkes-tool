@@ -109,6 +109,15 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
         for dictionary in self.provides:
             if dictionary['Name'] == interface_name:
                 dictionary['Connection_Widget'] = connection
+                print "found"
+                break
+
+    def remove_provide_connection(self, interface_name, connection):
+        assert self._provides is not None
+        for dictionary in self.provides:
+            if dictionary['Name'] == interface_name and dictionary['Connection_Widget'] is connection:
+                dictionary['Connection_Widget'] = None
+                print "remove"
                 break
 
     def delete_provide(self, name):
@@ -134,6 +143,15 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
         for dictionary in self.uses:
             if dictionary['Name'] == interface_name:
                 dictionary['Connection_Widget'] = connection
+                print "found"
+                break
+
+    def remove_use_connection(self, interface_name, connection):
+        assert self._uses is not None
+        for dictionary in self.uses:
+            if dictionary['Name'] == interface_name and dictionary['Connection_Widget'] is connection:
+                dictionary['Connection_Widget'] = None
+                print "remove"
                 break
 
     def delete_use(self, name):
@@ -159,6 +177,15 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
         for dictionary in self.emits:
             if dictionary['Name'] == interface_name:
                 dictionary['Connection_Widget'] = connection
+                print "found"
+                break
+
+    def remove_emit_connection(self, interface_name, connection):
+        assert self._emits is not None
+        for dictionary in self.emits:
+            if dictionary['Name'] == interface_name and dictionary['Connection_Widget'] is connection:
+                dictionary['Connection_Widget'] = None
+                print "remove"
                 break
 
     def delete_emit(self, name):
@@ -186,6 +213,15 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
         for dictionary in self.consumes:
             if dictionary['Name'] == interface_name:
                 dictionary['Connection_Widget'] = connection
+                print "found"
+                break
+
+    def remove_consume_connection(self, interface_name, connection):
+        assert self._consumes is not None
+        for dictionary in self.consumes:
+            if dictionary['Name'] == interface_name and dictionary['Connection_Widget'] is connection:
+                dictionary['Connection_Widget'] = None
+                print "remove"
                 break
 
     def delete_consume(self, name):
@@ -214,6 +250,16 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
         for dictionary in self.dataport:
             if dictionary['Name'] == interface_name:
                 dictionary['Connection_Widget'] = connection
+                print "found"
+                break
+
+    def remove_dataport_connection(self, interface_name, connection):
+        assert self._dataport is not None
+        for dictionary in self.dataport:
+            if dictionary['Name'] == interface_name and \
+                            dictionary['Connection_Widget'] is connection:
+                dictionary['Connection_Widget'] = None
+                print "remove"
                 break
 
     def delete_dataport(self, name):
@@ -243,7 +289,26 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
             raise NotImplementedError # Something is wrong
 
     def remove_connection(self, connection):
-        raise NotImplementedError
+        assert isinstance(connection, Connection_Widget.ConnectionWidget)
+
+        if connection.source_instance_widget is self:
+            if connection.source_connection_type == Common.Event:
+                self.remove_emit_connection(connection.source_interface_name, connection)
+            elif connection.source_connection_type == Common.Procedure:
+                self.remove_use_connection(connection.source_interface_name, connection)
+            elif connection.source_connection_type == Common.Dataport:
+                self.remove_dataport_connection(connection.source_interface_name, connection)
+
+        elif connection.dest_instance_widget is self:
+            if connection.dest_connection_type == Common.Event:
+                self.remove_consume_connection(connection.dest_interface_name, connection)
+            elif connection.dest_connection_type == Common.Procedure:
+                self.remove_provide_connection(connection.dest_interface_name, connection)
+            elif connection.dest_connection_type == Common.Dataport:
+                self.remove_dataport_connection(connection.dest_interface_name, connection)
+
+        else:
+            raise NotImplementedError # Something is wrong
 
     # -------
 
