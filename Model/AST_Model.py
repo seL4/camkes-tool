@@ -45,3 +45,19 @@ class ASTModel:
                 return instance_object
 
         return None
+
+    @staticmethod
+    def find_component(list_of_ast_items, component_name):
+
+        for item in list_of_ast_items:
+            if not isinstance(item, camkes.ast.Component):
+                continue
+            assert isinstance(item, camkes.ast.Component)
+            if item.name == component_name:
+                return item
+
+        return None
+
+    # TODO deleting connections with multiple froms, to:
+    # User will delete a specific from - to. When removing the "from" in the connection, make sure there aren't other "tos"
+    # in the connection (other than the "to" being deleted). Same vice-versa
