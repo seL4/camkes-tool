@@ -102,6 +102,15 @@ class ConnectionWidget(QtWidgets.QGraphicsItem):
         assert isinstance(value, six.string_types)
         self._source_connection_type = value
 
+    @property
+    def source_interface_name(self):
+        return self._source_interface_name
+
+    @source_interface_name.setter
+    def source_interface_name(self, value):
+        assert isinstance(value, six.string_types)
+        self._source_interface_name = value
+
     # Destination Information
     @property
     def dest_instance_widget(self):
@@ -120,6 +129,15 @@ class ConnectionWidget(QtWidgets.QGraphicsItem):
     def dest_connection_type(self, value):
         assert isinstance(value, six.string_types)
         self._dest_connection_type = value
+
+    @property
+    def dest_interface_name(self):
+        return self._dest_interface_name
+
+    @dest_interface_name.setter
+    def dest_interface_name(self, value):
+        assert isinstance(value, six.string_types)
+        self._dest_interface_name = value
 
     connection_object = None # TODO: take out
 
@@ -144,7 +162,6 @@ class ConnectionWidget(QtWidgets.QGraphicsItem):
         self._source_interface_name = None
         self.source_interface_name = source_inf_name
 
-        print str(dest) + " " + str(dest.__class__)
         assert isinstance(dest, InstanceWidget)
         self._dest_instance_widget = dest
 
@@ -153,6 +170,9 @@ class ConnectionWidget(QtWidgets.QGraphicsItem):
 
         self._dest_interface_name = None
         self.dest_interface_name = dest_inf_name
+
+        self.source_instance_widget.add_connection(self)
+        self.dest_instance_widget.add_connection(self)
 
         # Get points from attributes of the edge
         if edge:
