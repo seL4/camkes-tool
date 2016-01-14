@@ -1,14 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import math
+import math, six
 
 from PyQt5 import QtGui, QtWidgets, QtCore
 
 # TODO: Change
 import pydotplus as Pydot
-
-from camkes.ast import *
 
 from Model import Common
 from Instance_Widget import InstanceWidget
@@ -18,13 +16,22 @@ from Instance_Widget import InstanceWidget
 class ConnectionWidget(QtWidgets.QGraphicsItem):
 
     @property
-    def connection_object(self):
-        return self._connection_object
+    def name(self):
+        return self._connection_name
 
-    @connection_object.setter
-    def connection_object(self, value):
-        assert isinstance(value, Connection)
-        self._connection_object = value
+    @name.setter
+    def name(self, value):
+        assert isinstance(value, six.string_types)
+        self._connection_name = value
+
+    @property
+    def connection_type(self):
+        return self._connection_type
+
+    @connection_type.setter
+    def connection_type(self, value):
+        assert isinstance(value, six.string_types)
+        self._connection_type = value
 
     @property
     def edge(self):
@@ -34,6 +41,10 @@ class ConnectionWidget(QtWidgets.QGraphicsItem):
     def edge(self, value):
         assert isinstance(value, Pydot.Edge)
         self._edge = value
+        edge_attributes = value.get_attributes()
+        edge_points = Common.extract_numbers(edge_attributes['pos'])
+        self.edge_points = edge_points
+
 
     @property
     def edge_points(self):
@@ -72,6 +83,7 @@ class ConnectionWidget(QtWidgets.QGraphicsItem):
     def clear_path(self):
         self._path = None
 
+    # Source information
     @property
     def source_instance_widget(self):
         return self._source_instance_widget
@@ -82,6 +94,16 @@ class ConnectionWidget(QtWidgets.QGraphicsItem):
         self._source_instance_widget = value
 
     @property
+    def source_connection_type(self):
+        return self._source_connection_type
+
+    @source_connection_type.setter
+    def source_connection_type(self, value):
+        assert isinstance(value, six.string_types)
+        self._source_connection_type = value
+
+    # Destination Information
+    @property
     def dest_instance_widget(self):
         return self._dest_instance_widget
 
@@ -90,25 +112,52 @@ class ConnectionWidget(QtWidgets.QGraphicsItem):
         assert isinstance(value, InstanceWidget)
         self._dest_instance_widget = value
 
-    def __init__(self, connection_object, source, dest, edge=None):
+    @property
+    def dest_connection_type(self):
+        return self._dest_connection_type
+
+    @dest_connection_type.setter
+    def dest_connection_type(self, value):
+        assert isinstance(value, six.string_types)
+        self._dest_connection_type = value
+
+    connection_object = None # TODO: take out
+
+    def __init__(self, name, con_type, source, source_type, source_inf_name, dest, dest_type, dest_inf_name, edge=None):
         super(ConnectionWidget, self).__init__()
-        assert isinstance(connection_object, Connection)
-        self._connection_object = connection_object
-        self._edge = edge
+
+        self._connection_name = None
+        self._connection_name = name
+        self._connection_type = None
+        self.connection_type = con_type
+
+        self._edge = None
         self._edge_points = None
         self._path = None
 
         assert isinstance(source, InstanceWidget)
         self._source_instance_widget = source
 
+        self._source_connection_type = None
+        self.source_connection_type = source_type
+
+        self._source_interface_name = None
+        self.source_interface_name = source_inf_name
+
+        print str(dest) + " " + str(dest.__class__)
         assert isinstance(dest, InstanceWidget)
         self._dest_instance_widget = dest
 
+        self._dest_connection_type = None
+        self.dest_connection_type = dest_type
+
+        self._dest_interface_name = None
+        self.dest_interface_name = dest_inf_name
+
         # Get points from attributes of the edge
         if edge:
-            edge_attributes = edge.get_attributes()
-            edge_points = Common.extract_numbers(edge_attributes['pos'])
-            self.edge_points = edge_points
+            self.edge = edge
+
 
     def paint(self, q_painter, style_option , widget=None):
 
@@ -135,8 +184,13 @@ class ConnectionWidget(QtWidgets.QGraphicsItem):
         stroker.setWidth(5)
         return stroker.createStroke(self.path)
 
-    def mousePressEvent(self, QGraphicsSceneMouseEvent):
-        print self.connection_object.name + " clicked (edge)"
+    def mousePressEvent(self, mouse_event):
+        assert isinstance(mouse_event, QtWidgets.QGraphicsSceneMouseEvent)
+        print self.name + " clicked (edge)"
+
+    def __del__(self):
+        # TODO: Delete connection from source & destination
+        print "deleted connection_widget"
         
     # Method using QPainter to draw the edge points, spline
     # def draw_connection(self, q_painter):

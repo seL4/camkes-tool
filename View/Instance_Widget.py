@@ -4,12 +4,13 @@
 import six
 
 from PyQt5 import QtGui, QtWidgets, QtCore
-from camkes.ast import *
 
 # TODO: Make widget totally independent of instance_object, and make controller force AST_creator to search it up everytime,
 # TODO: Button for component details
 #       Use instance.name as identifier.
 
+import Connection_Widget
+from Model import Common
 
 class InstanceWidget(QtWidgets.QGraphicsWidget):
 
@@ -23,27 +24,6 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
     def velocity(self, value):
         assert isinstance(value, QtCore.QPointF)
         self._velocity = value
-
-    @property
-    def instance_object(self):
-        return self._instance_object
-
-    @instance_object.setter
-    def instance_object(self, value):
-        assert isinstance(value, Instance)
-        self._instance_object = value
-
-    @property
-    def instance_name(self):
-        if self._instance_name is None:
-            raise Exception  # TODO make subclass of exception, catch and show a dialog
-        return self._instance_name
-
-    @instance_name.setter
-    def instance_name(self, value):
-        assert isinstance(value, six.string_types)
-        self._instance_name = value
-        self.update_ui()
 
     # @property
     # def preferred_point(self):
@@ -62,20 +42,220 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
     def pinned(self, value):
         assert isinstance(value, bool)
         self._pinned = value
+        
+    # --- Information about Instance ---
+
+    @property
+    def name(self):
+        if self._name is None:
+            self._name = "Uninitialised widget"  # TODO make subclass of exception, catch and show a dialog
+        return self._name
+
+    @name.setter
+    def name(self, value):
+        assert isinstance(value, six.string_types)
+        self._name = value
+        self.update_ui()
+
+    @property
+    def component_type(self):
+        if self._component_type is None:
+            self._component_type = "Uninitialised widget"
+        return self._component_type
+
+    @component_type.setter
+    def component_type(self, value):
+        assert isinstance(value, six.string_types)
+        self._component_type = value
+        self.update_ui()
+
+    @property
+    def control(self):
+        return self._control
+
+    @control.setter
+    def control(self, value):
+        assert isinstance(value, bool)
+        self._control = value
+        self.update_ui()
+        
+    @property
+    def hardware(self):
+        return self._hardware
+    
+    @hardware.setter
+    def hardware(self, value):
+        assert isinstance(value, bool)
+        self._hardware = value
+        self.update_ui()
+        
+    @property
+    def provides(self):
+        return self._provides
+
+    def add_provide(self, name, interface_type, connection=None):
+        assert isinstance(name, six.string_types)
+        assert isinstance(interface_type, six.string_types)
+
+        print name + " " + interface_type
+
+        if self._provides is None:
+            self._provides = []
+
+        self._provides.append({'Name': name, 'Interface_type': interface_type, 'Connection_Widget': connection})
+
+        self.update_ui()
+        # TODO NotImplementedError
+
+    def add_provide_connection(self, interface_name, connection):
+        raise NotImplementedError
+
+    def delete_provide(self, name):
+        raise NotImplementedError
+
+    @property
+    def uses(self):
+
+        return self._uses
+
+    def add_use(self, name, interface_type, connection=None):
+        assert isinstance(name, six.string_types)
+        assert isinstance(interface_type, six.string_types)
+
+        if self._uses is None:
+            self._uses = []
+
+        self._uses.append({'Name': name, 'Interface_type': interface_type, 'Connection_Widget': connection})
+
+        self.update_ui()
+        # TODO NotImplementedError
+
+    def add_use_connection(self, interface_name, connection):
+        raise NotImplementedError
+
+    def delete_use(self, name):
+        raise NotImplementedError
+
+    @property
+    def emits(self):
+        return self._emits
+
+    def add_emit(self, name, interface_type, connection=None):
+        assert isinstance(name, six.string_types)
+        assert isinstance(interface_type, six.string_types)
+
+        if self._emits is None:
+            self._emits = []
+
+        self._emits.append({'Name': name, 'Interface_type': interface_type, 'Connection_Widget': connection})
+
+        self.update_ui()
+        # TODO NotImplementedError
+
+    def add_emit_connection(self, interface_name, connection):
+        raise NotImplementedError
+
+    def delete_emit(self, name):
+        raise NotImplementedError
+
+    @property
+    def consumes(self):
+        return self._consumes
+
+    def add_consume(self, name, interface_type, optional, connection=None):
+        assert isinstance(name, six.string_types)
+        assert isinstance(interface_type, six.string_types)
+        assert isinstance(optional, bool)
+
+        if self._consumes is None:
+            self._consumes = []
+
+        self._consumes.append({'Name': name, 'Interface_type': interface_type, 'Optional': optional,
+                               'Connection_Widget': connection})
+
+        self.update_ui()
+        # TODO NotImplementedError
+
+    def add_consume_connection(self, interface_name, connection):
+        raise NotImplementedError
+
+    def delete_consume(self, name):
+        raise NotImplementedError
+
+    @property
+    def dataports(self):
+        return self._dataport
+
+    def add_dataport(self, name, interface_type, optional, connection=None):
+        assert isinstance(name, six.string_types)
+        assert isinstance(interface_type, six.string_types)
+        assert isinstance(optional, bool)
+
+        if self._dataport is None:
+            self._dataport = []
+
+        self._dataport.append({'Name': name, 'Interface_type': interface_type, 'Optional': optional,
+                               'Connection_Widget': connection})
+
+        self.update_ui()
+        # TODO NotImplementedError
+
+    def add_dataport_connection(self, interface_name, connection):
+        raise NotImplementedError
+
+    def delete_dataport(self, name):
+        raise NotImplementedError
+
+    def add_connection(self, connection):
+
+        assert isinstance(connection, Connection_Widget.ConnectionWidget)
+
+        if connection.source_instance_widget is self:
+            if connection.source_connection_type == Common.Event:
+                self.add_emit_connection(connection)
+            elif connection.source_connection_type == Common.Procedure:
+                pass
+            elif connection.source_connection_type == Common.Dataport:
+                pass
+
+        elif connection.dest_connection_type is self:
+            if connection.dest_connection_type == Common.Event:
+                pass
+            elif connection.dest_connection_type == Common.Procedure:
+                pass
+            elif connection.dest_connection_type == Common.Dataport:
+                pass
+
+
+
+
+    def remove_connection(self, connection):
+        raise NotImplementedError
+
+    # -------
 
     # Signals & Slots
-    open_component_info = QtCore.pyqtSignal(Instance)
+    open_component_info = QtCore.pyqtSignal(six.string_types)
     widget_moved = QtCore.pyqtSignal()
 
-    def __init__(self, instance_object, preferred_point=None):
+    # TODO: Phase out instance_object
+    def __init__(self, preferred_point=None):
         super(InstanceWidget, self).__init__()
         # Model
 
-        self._instance_object = instance_object
-        self._instance_name = instance_object.name
         self._preferred_point = preferred_point
         self._pinned = False
         self._velocity = None
+
+        self._name = None
+        self._component_type = None
+        self._control = False
+        self._hardware = False
+        self._provides = None
+        self._uses = None
+        self._emits = None
+        self._consumes = None
+        self._dataport = None
 
         # GUI
         self.setFlag(QtWidgets.QGraphicsWidget.ItemIsMovable)
@@ -94,28 +274,27 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
         layout = self.layout()
         assert isinstance(layout, QtWidgets.QGraphicsLinearLayout)
 
-        if self.instance_object:
-            string = self.instance_object.name + ": " + self.instance_object.type.name
-            new_label = QtWidgets.QLabel(string)
+        string = self.name + ": " + self.component_type
+        new_label = QtWidgets.QLabel(string)
 
+        proxy_widget = QtWidgets.QGraphicsProxyWidget()
+        proxy_widget.setWidget(new_label)
+
+        layout.addItem(proxy_widget)
+
+        if self.control:
             proxy_widget = QtWidgets.QGraphicsProxyWidget()
-            proxy_widget.setWidget(new_label)
-
+            proxy_widget.setWidget(QtWidgets.QLabel("control;"))
             layout.addItem(proxy_widget)
 
-            if self.instance_object.type.control:
-                proxy_widget = QtWidgets.QGraphicsProxyWidget()
-                proxy_widget.setWidget(QtWidgets.QLabel("control;"))
-                layout.addItem(proxy_widget)
-
-            if self.instance_object.type.hardware:
-                proxy_widget = QtWidgets.QGraphicsProxyWidget()
-                proxy_widget.setWidget(QtWidgets.QLabel("hardware;"))
-                layout.addItem(proxy_widget)
+        if self.hardware:
+            proxy_widget = QtWidgets.QGraphicsProxyWidget()
+            proxy_widget.setWidget(QtWidgets.QLabel("hardware;"))
+            layout.addItem(proxy_widget)
 
     def mousePressEvent(self, mouse_event):
         # Change to must press a button to open component info
-        self.open_component_info.emit(self.instance_object)
+        self.open_component_info.emit(self.component_type)
 
     _moved_at_least_once = False
 
@@ -165,10 +344,8 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
         layout = self.layout()
         assert isinstance(layout, QtWidgets.QGraphicsLayout)
 
-        if layout.count() <= 0:
-            return
 
-        next_widget = layout.itemAt(0)
-        while next_widget is not None:
-            # del next_widget
-            next_widget = layout.removeAt(0)
+        while layout.count() > 0:
+            next_widget = layout.itemAt(0)
+            layout.removeAt(0)
+            del next_widget

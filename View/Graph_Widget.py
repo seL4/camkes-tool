@@ -80,6 +80,7 @@ class GraphWidget(QtWidgets.QGraphicsView):
         for connection in self.connection_widgets:
             scene.removeItem(connection)
             self.connection_widgets.remove(connection)
+            del connection
 
 
     # Set UI Functions

@@ -4,7 +4,9 @@
 import sys, math
 
 # TODO: should be able to remove this, as controller shouldn't be dependent on graphics library (that's the goal)
-from PyQt5 import QtWidgets, QtGui, QtCore
+from PyQt5 import QtWidgets, QtGui, QtCore, QtSvg
+# install python-pyqt5.qtsvg
+# install libqt5svg5-dev
 
 from pygraphviz import *
 # NOTES:    pip install pygraphviz --install-option="--include-path=/usr/include/graphviz"
@@ -112,13 +114,14 @@ class GraphController(QtWidgets.QMainWindow):
         self._widget_connections = None
         self._root_widget = None
         self._component_widget = None
+        self._component_dock_widget = None
         # Rest initialised in superclass
 
         # Model, get a ASTObject from given camkes file
         self.ast = ASTModel.get_ast(path_to_camkes)
 
         self.setCentralWidget(self.root_widget)
-        self.resize(700,700)
+        self.resize(700, 700)
 
         self.rect = None
 
@@ -137,10 +140,10 @@ class GraphController(QtWidgets.QMainWindow):
         # Update widget's instance object counterpart
         for widget in self.widget_instances:
             assert isinstance(widget, InstanceWidget)
-            new_instance_object = ASTModel.find_instance(instance_list_copy, widget.instance_object.name)
+            new_instance_object = ASTModel.find_instance(instance_list_copy, widget.name)
             if new_instance_object is not None:
                 # If found, replace widget's local copy
-                widget.instance_object = new_instance_object
+                self.sync_instance(new_instance_object, widget)
                 instance_list_copy.remove(new_instance_object)
             else:
                 # Instance object for widget not found, probably deleted, so widget not necessary
@@ -153,7 +156,8 @@ class GraphController(QtWidgets.QMainWindow):
             # Make a new widget
             assert isinstance(instance, Instance)
 
-            new_widget = InstanceWidget(instance)
+            new_widget = InstanceWidget()
+            self.sync_instance(instance, new_widget)
             new_widget.open_component_info.connect(self.show_component_info)
 
             # Add to internal list of widgets
@@ -175,6 +179,8 @@ class GraphController(QtWidgets.QMainWindow):
         # Create connection widgets for all connections in assembly
         for connection in self.ast.assembly.connections:
 
+            assert isinstance(connection, Connection)
+
             for from_instance_end in connection.from_ends:
                 assert isinstance(from_instance_end, ConnectionEnd)
                 from_instance = from_instance_end.instance
@@ -185,11 +191,12 @@ class GraphController(QtWidgets.QMainWindow):
                     to_instance = to_instance_end.instance
                     assert isinstance(to_instance, Instance)
 
-                    # Get source and destination widgets
-                    source_widget = self.find_instance_widget(from_instance.name)
-                    dest_widget = self.find_instance_widget(to_instance.name)
+                    new_connection_widget = self.create_connection_widget(connection,
+                                                                          from_instance.name,
+                                                                          from_instance_end.interface.name,
+                                                                          to_instance.name,
+                                                                          to_instance_end.interface.name)
 
-                    new_connection_widget = ConnectionWidget(connection, source_widget, dest_widget)
                     self.widget_connections.append(new_connection_widget)
                     self.root_widget.add_connection_widget(new_connection_widget)
 
@@ -202,6 +209,58 @@ class GraphController(QtWidgets.QMainWindow):
 
         self.internal_graph_render()
 
+    def create_connection_widget(self, connection, from_instance, from_interface, to_instance, to_interface):
+        # Get source and destination widgets
+        source_widget = self.find_instance_widget(from_instance)
+        dest_widget = self.find_instance_widget(to_instance)
+        new_connection_widget = ConnectionWidget(name=connection.name,
+                                                 con_type=connection.type.name,
+                                                 source=source_widget,
+                                                 source_type=connection.type.from_type,
+                                                 source_inf_name=from_interface,
+                                                 dest=dest_widget,
+                                                 dest_type=connection.type.to_type,
+                                                 dest_inf_name=to_interface)
+
+        new_connection_widget.connection_object = connection # TODO: Take out
+
+        return new_connection_widget
+
+    def sync_instance(self, instance, widget):
+        assert isinstance(instance, Instance)
+        assert isinstance(widget, InstanceWidget)
+
+        component = instance.type
+        assert isinstance(component, Component)
+
+        widget.name = instance.name
+        widget.component_type = component.name
+        print widget.component_type
+        widget.control = component.control
+        widget.hardware = component.hardware
+
+        for provide in component.provides:
+            assert isinstance(provide, Provides)
+            widget.add_provide(provide.name, provide.type.name)
+
+        for use in component.uses:
+            assert isinstance(use, Uses)
+            widget.add_use(use.name, use.type.name)
+
+        for emit in component.emits:
+            assert isinstance(emit, Emits)
+            widget.add_emit(emit.name, emit.type)
+
+        for consumes in component.consumes:
+            assert isinstance(consumes, Consumes)
+            widget.add_consume(consumes.name, consumes.type, consumes.optional) # Optional bool
+
+        for dataport in component.dataports:
+            assert isinstance(dataport, Dataport)
+            widget.add_dataport(dataport.name, dataport.type, dataport.optional) # Optional bool
+
+        # TODO add attributes, mutex and semaphores
+
     def create_graph_rep(self):
 
         graph_viz = AGraph(strict=False, spline="line", directed=True)
@@ -209,13 +268,10 @@ class GraphController(QtWidgets.QMainWindow):
         for widget_instance in self.widget_instances:
             assert isinstance(widget_instance, InstanceWidget)
 
-            instance = widget_instance.instance_object
-            assert isinstance(instance, Instance)
-
             size = widget_instance.preferredSize()
             assert isinstance(size, QtCore.QSizeF)
 
-            graph_viz.add_node(instance.name, width=size.width()/72.0,
+            graph_viz.add_node(widget_instance.name, width=size.width()/72.0,
                                height=size.height()/72.0, shape="rect")
 
         for connection in self.ast.assembly.connections:
@@ -261,7 +317,7 @@ class GraphController(QtWidgets.QMainWindow):
             assert isinstance(instance_widget, InstanceWidget)
 
             # Get instance's name
-            instance_name = instance_widget.instance_name
+            instance_name = instance_widget.name
 
             # Get the node representing this instance, and get its attributes
             node_list = dot_data.get_node(instance_name)
@@ -290,26 +346,24 @@ class GraphController(QtWidgets.QMainWindow):
 
                     # Create an widget with the points and the object
 
-                    source_widget = self.find_instance_widget(edge.get_source())
-                    dest_widget = self.find_instance_widget(edge.get_destination())
-
-                    print str(source_widget.instance_name) + str(dest_widget.instance_name)
-
-                    edge_widget = ConnectionWidget(connection_object, source_widget, dest_widget, edge)
-                    self.widget_connections.append(edge_widget)
-                    self.root_widget.add_connection_widget(edge_widget)
+                    for connection_widget in self.widget_connections:
+                        assert isinstance(connection_widget, ConnectionWidget)
+                        if connection_widget.connection_object is connection_object and \
+                            connection_widget.source_instance_widget.name == edge.get_source() and \
+                            connection_widget.dest_instance_widget.name == edge.get_destination():
+                            edge_widget = connection_widget
+                            edge_widget.edge = edge
 
                     break  # Unnecessary to keep searching once found
 
+    def show_component_info(self, component_name):
 
-    def show_component_info(self, instance):
-        print "clicked " + str(instance.name)
-        self.component_widget.component_object = instance.type
+        self.component_widget.component_object = ASTModel.find_component(self.ast.items, component_name)
 
     def find_instance_widget(self, name):
         for instance in self.widget_instances:
             assert isinstance(instance, InstanceWidget)
-            if instance.instance_name == name:
+            if instance.name == name:
                 return instance
 
         return None
@@ -371,7 +425,7 @@ class GraphController(QtWidgets.QMainWindow):
                     instance.velocity.setY(instance.velocity.y() +
                                            (dist.y()/absolute_dist)*self.force_repulsion(absolute_dist, k))
 
-            print str(instance.instance_name) + " velocity is: " + str(instance.velocity)
+            print str(instance.name) + " velocity is: " + str(instance.velocity)
 
         for connection in self.widget_connections:
             assert isinstance(connection, ConnectionWidget)
@@ -440,7 +494,7 @@ class GraphController(QtWidgets.QMainWindow):
                 new_x_pos = min(rect.width()/2, max(-rect.width()/2 , new_x_pos))
                 new_y_pos = min(rect.height()/2, max(-rect.height()/2, new_y_pos))
 
-                print "instance:" + instance.instance_name + " pinned:" + str(instance.pinned) + " oldPos:" + str(instance.pos()) + " newPos:" + str(new_x_pos) + "," + str(new_y_pos)
+                print "instance:" + instance.name + " pinned:" + str(instance.pinned) + " oldPos:" + str(instance.pos()) + " newPos:" + str(new_x_pos) + "," + str(new_y_pos)
 
                 if new_x_pos < instance.preferredSize().width():
                     new_x_pos = instance.preferredSize().width()
@@ -448,7 +502,7 @@ class GraphController(QtWidgets.QMainWindow):
                 if new_y_pos < instance.preferredSize().height():
                     new_y_pos = instance.preferredSize().height()
 
-                print "instance:" + instance.instance_name + " pinned:" + str(instance.pinned) + " oldPos:" + str(instance.pos()) + " newPos:" + str(new_x_pos) + "," + str(new_y_pos)
+                print "instance:" + instance.name + " pinned:" + str(instance.pinned) + " oldPos:" + str(instance.pos()) + " newPos:" + str(new_x_pos) + "," + str(new_y_pos)
 
 
                 self.root_widget.add_instance_widget(instance, new_x_pos, new_y_pos)
