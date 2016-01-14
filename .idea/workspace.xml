@@ -3,7 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="9e94cc0d-524c-462a-bfa8-511eaa5dddfc" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/View/Connection_Widget.py" afterPath="$PROJECT_DIR$/View/Connection_Widget.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/View/Instance_Widget.py" afterPath="$PROJECT_DIR$/View/Instance_Widget.py" />
     </list>
     <ignored path="VisualComponents.iws" />
@@ -497,12 +496,6 @@
       <option name="number" value="Default" />
       <updated>1449214734746</updated>
     </task>
-    <task id="LOCAL-00001" summary="Created a graph_controller class, which is currently a stub. Creates a drawing area and if this file was called, a window will be created and shown (i.e this file can be run standalone).">
-      <created>1449449094306</created>
-      <option name="number" value="00001" />
-      <option name="project" value="LOCAL" />
-      <updated>1449449094306</updated>
-    </task>
     <task id="LOCAL-00002" summary="Creating a class which can import the camkes file, run the parser and get an LiftedAST object">
       <created>1449449149799</created>
       <option name="number" value="00002" />
@@ -791,7 +784,13 @@
       <option name="project" value="LOCAL" />
       <updated>1452813995783</updated>
     </task>
-    <option name="localTasksCounter" value="50" />
+    <task id="LOCAL-00050" summary="Added Source interface name information. Connection adds itself in the instance_widgets">
+      <created>1452814051994</created>
+      <option name="number" value="00050" />
+      <option name="project" value="LOCAL" />
+      <updated>1452814052009</updated>
+    </task>
+    <option name="localTasksCounter" value="51" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -850,7 +849,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Added a component window to display component info in a new window, and in the future as a side panel item." />
     <MESSAGE value="Changed the way ui is refreshed. Ability to get a signal from Instance_Widget to open a component_window. Component_window stored in GraphController" />
     <MESSAGE value="Changed Controller to be a Main window&#10;DockWidget is just a decorder of another widget, so creating a dock_widget, and adding a component_widget inside." />
     <MESSAGE value="Changed controller to create a dock widget every time a component window is created. Component Window does not need mouse event anymore." />
@@ -875,7 +873,8 @@
     <MESSAGE value="Added Event, Procedure and Dataport &quot;#defines&quot;" />
     <MESSAGE value="Made Instance Widget and Connection Widget independent of the AST Model. Widgets now store all the important information. Instance and Connection represent the graph. Graph_controller has functions to sync the instance with the Lifted_AST." />
     <MESSAGE value="Moved Create_connection_widget&#10;" />
-    <option name="LAST_COMMIT_MESSAGE" value="Moved Create_connection_widget&#10;" />
+    <MESSAGE value="Added Source interface name information. Connection adds itself in the instance_widgets" />
+    <option name="LAST_COMMIT_MESSAGE" value="Added Source interface name information. Connection adds itself in the instance_widgets" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager />

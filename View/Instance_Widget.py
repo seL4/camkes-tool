@@ -91,75 +91,83 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
         
     @property
     def provides(self):
+        if self._provides is None:
+            self._provides = []
         return self._provides
 
     def add_provide(self, name, interface_type, connection=None):
         assert isinstance(name, six.string_types)
         assert isinstance(interface_type, six.string_types)
 
-        print name + " " + interface_type
-
-        if self._provides is None:
-            self._provides = []
-
-        self._provides.append({'Name': name, 'Interface_type': interface_type, 'Connection_Widget': connection})
+        self.provides.append({'Name': name, 'Interface_type': interface_type, 'Connection_Widget': connection})
 
         self.update_ui()
         # TODO NotImplementedError
 
     def add_provide_connection(self, interface_name, connection):
-        raise NotImplementedError
+        assert self._provides is not None
+        for dictionary in self.provides:
+            if dictionary['Name'] == interface_name:
+                dictionary['Connection_Widget'] = connection
+                break
 
     def delete_provide(self, name):
         raise NotImplementedError
 
     @property
     def uses(self):
-
+        if self._uses is None:
+            self._uses = []
         return self._uses
 
     def add_use(self, name, interface_type, connection=None):
         assert isinstance(name, six.string_types)
         assert isinstance(interface_type, six.string_types)
 
-        if self._uses is None:
-            self._uses = []
-
-        self._uses.append({'Name': name, 'Interface_type': interface_type, 'Connection_Widget': connection})
+        self.uses.append({'Name': name, 'Interface_type': interface_type, 'Connection_Widget': connection})
 
         self.update_ui()
         # TODO NotImplementedError
 
     def add_use_connection(self, interface_name, connection):
-        raise NotImplementedError
+        assert self._uses is not None
+        for dictionary in self.uses:
+            if dictionary['Name'] == interface_name:
+                dictionary['Connection_Widget'] = connection
+                break
 
     def delete_use(self, name):
         raise NotImplementedError
 
     @property
     def emits(self):
+        if self._emits is None:
+            self._emits = []
         return self._emits
 
     def add_emit(self, name, interface_type, connection=None):
         assert isinstance(name, six.string_types)
         assert isinstance(interface_type, six.string_types)
 
-        if self._emits is None:
-            self._emits = []
-
-        self._emits.append({'Name': name, 'Interface_type': interface_type, 'Connection_Widget': connection})
+        self.emits.append({'Name': name, 'Interface_type': interface_type, 'Connection_Widget': connection})
 
         self.update_ui()
         # TODO NotImplementedError
 
     def add_emit_connection(self, interface_name, connection):
-        raise NotImplementedError
+        assert self._emits is not None
+        for dictionary in self.emits:
+            if dictionary['Name'] == interface_name:
+                dictionary['Connection_Widget'] = connection
+                break
 
     def delete_emit(self, name):
         raise NotImplementedError
 
     @property
     def consumes(self):
+        if self._consumes is None:
+            self._consumes = []
         return self._consumes
 
     def add_consume(self, name, interface_type, optional, connection=None):
@@ -167,23 +175,24 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
         assert isinstance(interface_type, six.string_types)
         assert isinstance(optional, bool)
 
-        if self._consumes is None:
-            self._consumes = []
-
-        self._consumes.append({'Name': name, 'Interface_type': interface_type, 'Optional': optional,
+        self.consumes.append({'Name': name, 'Interface_type': interface_type, 'Optional': optional,
                                'Connection_Widget': connection})
 
         self.update_ui()
         # TODO NotImplementedError
 
     def add_consume_connection(self, interface_name, connection):
-        raise NotImplementedError
+        assert self._consumes is not None
+        for dictionary in self.consumes:
+            if dictionary['Name'] == interface_name:
+                dictionary['Connection_Widget'] = connection
+                break
 
     def delete_consume(self, name):
         raise NotImplementedError
 
     @property
-    def dataports(self):
+    def dataport(self):
         return self._dataport
 
     def add_dataport(self, name, interface_type, optional, connection=None):
@@ -201,7 +210,11 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
         # TODO NotImplementedError
 
     def add_dataport_connection(self, interface_name, connection):
-        raise NotImplementedError
+        assert self._dataport is not None
+        for dictionary in self.dataport:
+            if dictionary['Name'] == interface_name:
+                dictionary['Connection_Widget'] = connection
+                break
 
     def delete_dataport(self, name):
         raise NotImplementedError
@@ -212,22 +225,22 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
 
         if connection.source_instance_widget is self:
             if connection.source_connection_type == Common.Event:
-                self.add_emit_connection(connection)
+                self.add_emit_connection(connection.source_interface_name, connection)
             elif connection.source_connection_type == Common.Procedure:
-                pass
+                self.add_use_connection(connection.source_interface_name, connection)
             elif connection.source_connection_type == Common.Dataport:
-                pass
+                self.add_dataport_connection(connection.source_interface_name, connection)
 
-        elif connection.dest_connection_type is self:
+        elif connection.dest_instance_widget is self:
             if connection.dest_connection_type == Common.Event:
-                pass
+                self.add_consume_connection(connection.dest_interface_name, connection)
             elif connection.dest_connection_type == Common.Procedure:
-                pass
+                self.add_provide_connection(connection.dest_interface_name, connection)
             elif connection.dest_connection_type == Common.Dataport:
-                pass
+                self.add_dataport_connection(connection.dest_interface_name, connection)
 
-
-
+        else:
+            raise NotImplementedError # Something is wrong
 
     def remove_connection(self, connection):
         raise NotImplementedError
