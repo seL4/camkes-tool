@@ -2,6 +2,9 @@
 # -*- coding: utf-8 -*-
 import re
 
+Event="Event"
+Procedure="Procedure"
+Dataport="Dataport"
 
 def extract_numbers(list_of_tuples_stringnumbers):  # TODO: consider renaming list_of_tuples_...
 
