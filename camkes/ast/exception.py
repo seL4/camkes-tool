@@ -23,14 +23,5 @@ class ASTError(CAmkESError):
     '''
     def __init__(self, message, entity):
         self.entity = entity
-        msg = []
-        filename = entity.filename
-        if filename is not None:
-            msg.extend([filename, ':'])
-        lineno = entity.lineno
-        if lineno is not None:
-            msg.extend([str(lineno), ':'])
-        if len(msg) > 0:
-            msg.append(' ')
-        msg.append(message)
-        super(ASTError, self).__init__(''.join(msg))
+        msg = self._format_message(message, entity.filename, entity.lineno)
+        super(ASTError, self).__init__(msg)

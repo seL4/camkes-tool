@@ -21,15 +21,5 @@ import six
 class ParseError(CAmkESError):
     def __init__(self, content, filename=None, lineno=None):
         assert isinstance(content, six.string_types) or isinstance(content, Exception)
-        self.content = content
-        self.filename = filename
-        self.lineno = lineno
-        msg = []
-        if filename is not None:
-            msg.append('%s:' % filename)
-        if lineno is not None:
-            msg.append('%d:' % lineno)
-        if len(msg) > 0:
-            msg.append(' ')
-        msg.append(six.text_type(content))
-        super(ParseError, self).__init__(''.join(msg))
+        msg = self._format_message(six.text_type(content), filename, lineno)
+        super(ParseError, self).__init__(msg)

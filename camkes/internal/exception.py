@@ -19,4 +19,17 @@ class CAmkESError(Exception):
     '''
     Generic basis for CAmkES errors.
     '''
-    pass
+    @staticmethod
+    def _format_message(message, filename=None, lineno=None, min_col=None,
+            max_col=None):
+        msg = []
+        if filename is not None:
+            msg.extend([filename, ':'])
+        if lineno is not None:
+            msg.extend([str(lineno), ':'])
+            if min_col is not None:
+                msg.extend([str(min_col), ':'])
+        if len(msg) > 0:
+            msg.append(' ')
+        msg.append(message)
+        return ''.join(msg)
