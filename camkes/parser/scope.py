@@ -62,7 +62,7 @@ class ScopingContext(SimpleTraversalContext):
             raise ParseError('duplicate definition of %s \'%s\'; previous '
                 'definition was at %s:%s' % (type(obj).__name__, obj.name,
                 duplicate.filename or '<unnamed>', duplicate.lineno),
-                obj.filename, obj.lineno)
+                obj.location)
         self.scopes[-1][obj.name][type(obj)] = obj
 
     def lookup(self, ref, type=None):

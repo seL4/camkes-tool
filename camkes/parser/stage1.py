@@ -51,7 +51,7 @@ class Parse1(Parser):
         except plyplus.ParseError as e:
             location = SourceLocation(filename, e, processed)
             e = augment_exception(e)
-            raise ParseError(e, location.filename, location.lineno)
+            raise ParseError(e, location)
         return processed, ast_raw, read
 
     def parse_string(self, string):
@@ -61,7 +61,7 @@ class Parse1(Parser):
         except plyplus.ParseError as e:
             location = SourceLocation(None, e, processed)
             e = augment_exception(e)
-            raise ParseError(e, location.filename, location.lineno)
+            raise ParseError(e, location)
         return processed, ast_raw, read
 
 def augment_exception(exc):

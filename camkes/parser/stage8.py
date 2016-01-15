@@ -81,7 +81,7 @@ def resolve(ast_lifted):
                 if a.name == s.attribute][0].type
             if destination_type != source_type:
                 raise ParseError('mismatched types in attribute reference',
-                    r.filename, r.lineno)
+                    r.location)
         except IndexError:
             pass
 
@@ -90,7 +90,7 @@ def resolve(ast_lifted):
             r.value = values[name][attribute]
         except KeyError:
             raise ParseError('reference to attribute %s which is unset' %
-                r.value.name, r.filename, r.lineno)
+                r.value.name, r.location)
 
 class Parse8(Transformer):
     def precondition(self, ast_lifted, _):

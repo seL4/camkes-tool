@@ -171,7 +171,7 @@ def infer_all(item, parent=None):
                 if e.instance is None:
                     if isinstance(item, Assembly):
                         raise ParseError('top-level connection end with no '
-                            'instance', e.filename, e.lineno)
+                            'instance', e.location)
                     e.instance = parent
                 else:
                     assert e.instance in derived
@@ -185,7 +185,7 @@ def infer_all(item, parent=None):
                 if e.instance is None:
                     if isinstance(item, Assembly):
                         raise ParseError('top-level connection end with no '
-                            'instance', e.filename, e.lineno)
+                            'instance', e.location)
                     e.instance = parent
                 else:
                     assert e.instance in derived
@@ -259,10 +259,10 @@ class Parse7(Transformer):
                        x.attribute == attribute_name]
                 if len(referents) == 0:
                     raise ParseError('setting refers to an attribute that '
-                        'is unset', s.filename, s.lineno)
+                        'is unset', s.location)
                 elif len(referents) > 1:
                     raise ParseError('setting refers to an attribute that '
-                        'is set multiple times', s.filename, s.lineno)
+                        'is set multiple times', s.location)
                 s.value = referents[0].value
             assembly.configuration.settings.append(s)
 

@@ -127,7 +127,7 @@ def lift_raw(term, filename=None, source=None, debug=False):
             raise
         # If some other error occurred, attach filename and line number
         # information to it.
-        raise ParseError(e, location.filename, location.lineno)
+        raise ParseError(e, location)
 
 def _lift_array_parameter(location, scalar_parameter):
     return Parameter(scalar_parameter.name, scalar_parameter.direction,
@@ -304,8 +304,7 @@ def _lift_connector_defn(location, *args):
             if v < 0 or v != value:
                 raise ValueError
         except ValueError:
-            raise ParseError('illegal thread value \'%s\'' % value,
-                location.filename, location.lineno)
+            raise ParseError('illegal thread value \'%s\'' % value, location)
         return v
 
     if args[0] == 'hardware':
@@ -379,8 +378,7 @@ def _lift_dataport_type(location, arg):
     assert isinstance(arg, numbers.Number), 'unexpected child of ' \
         'dataport_type (bug in grammar?)'
     if int(arg) != arg or arg <= 0:
-        raise ParseError('illegal value for dataport size', location.filename,
-            location.lineno)
+        raise ParseError('illegal value for dataport size', location)
     return 'Buf(%d)' % int(arg)
 
 def _lift_dict(location, *args):
@@ -394,8 +392,7 @@ def _lift_export(location, ref1, ref2):
     assert isinstance(ref2, Reference)
     if len(ref1.name) < 2:
         raise ParseError('illegal source in export statement (these must be '
-            'qualified references like "foo.bar")', ref1.location.filename,
-            ref1.location.lineno)
+            'qualified references like "foo.bar")', ref1.location)
     return Export(Reference(ref1.name[:-1], Instance, ref1.location),
         Reference(ref1.name, Interface, ref1.location),
         Reference(ref2.name, Interface, ref2.location), location)
@@ -501,7 +498,7 @@ def _lift_numeric_expr(location, *ops):
             else:
                 assert False, 'unexpected operator in numeric expression'
         except (ArithmeticError, TypeError, ValueError) as e:
-            raise ParseError(e, location.filename, location.lineno)
+            raise ParseError(e, location)
     return acc
 
 def _lift_precedence11(location, *args):

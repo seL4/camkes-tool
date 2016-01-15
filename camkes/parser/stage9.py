@@ -41,12 +41,11 @@ def freeze(ast_lifted):
     assert assembly is not None
 
     if len(assembly.composition.instances) == 0:
-        raise ParseError('no instances declared in assembly',
-            assembly.filename, assembly.lineno)
+        raise ParseError('no instances declared in assembly', assembly.location)
 
     if len(assembly.composition.connections) == 0:
         raise ParseError('no connections declared in assembly',
-            assembly.filename, assembly.lineno)
+            assembly.location)
 
 class Parse9(Transformer):
     def precondition(self, ast_lifted, _):

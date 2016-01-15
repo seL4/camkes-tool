@@ -35,7 +35,7 @@ class TestObjects(CAmkESTest):
 
     def test_parse_error_filename(self):
         with six.assertRaisesRegex(self, ParseError, '^myfile:.*hello world.*'):
-            raise ParseError('hello world', 'myfile')
+            raise ParseError('hello world', filename='myfile')
 
     def test_parse_error_lineno(self):
         with six.assertRaisesRegex(self, ParseError, '.*10:.*hello world.*'):
@@ -43,7 +43,7 @@ class TestObjects(CAmkESTest):
 
     def test_parse_error_filename_lineno(self):
         with six.assertRaisesRegex(self, ParseError, '^myfile:.*10:.*hello world.*'):
-            raise ParseError('hello world', 'myfile', 10)
+            raise ParseError('hello world', filename='myfile', lineno=10)
 
 if __name__ == '__main__':
     unittest.main()

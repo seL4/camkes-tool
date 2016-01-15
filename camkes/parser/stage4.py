@@ -88,7 +88,7 @@ def resolve(ast_lifted, allow_forward=False):
                             extra = ''
 
                         raise ParseError('unknown reference to \'%s\'%s' %
-                            ('.'.join(obj.name), extra), obj.filename, obj.lineno)
+                            ('.'.join(obj.name), extra), obj.location)
 
                 elif not self.allow_forward:
                     self.context.register(obj)
@@ -145,15 +145,15 @@ def resolve(ast_lifted, allow_forward=False):
                             end.instance = next(scope.lookup(end.instance.name, end.instance.type))
                         except StopIteration:
                             raise ParseError('unknown reference to \'%s\'' %
-                                '.'.join(end.instance.name), end.instance.filename,
-                                end.instance.lineno)
+                                '.'.join(end.instance.name),
+                                end.instance.location)
                     if isinstance(end.interface, Reference):
                         try:
                             end.interface = next(scope.lookup(end.interface.name, end.interface.type))
                         except StopIteration:
                             raise ParseError('unknown reference to \'%s\'' %
-                                '.'.join(end.interface.name), end.interface.filename,
-                                end.interface.lineno)
+                                '.'.join(end.interface.name),
+                                end.interface.location)
 
         # With forward references in play, it is possible for the user to
         # induce cycles in the AST. This will explode in interesting ways in
@@ -172,7 +172,7 @@ def resolve(ast_lifted, allow_forward=False):
         for obj in ast_lifted:
             if isinstance(obj, Reference):
                 raise ParseError('unknown reference to \'%s\'' %
-                    '.'.join(obj.name), obj.filename, obj.lineno)
+                    '.'.join(obj.name), obj.location)
 
     else:
         ctxt = ScopingContext()
@@ -205,8 +205,7 @@ def check_acyclic(obj, path=None):
 
     if any(x is obj for x in path):
         raise ParseError('AST cycle involving entity %s' %
-            (obj.name if hasattr(obj, 'name') else '<unnamed>'), obj.filename,
-            obj.lineno)
+            (obj.name if hasattr(obj, 'name') else '<unnamed>'), obj.location)
 
     for c in (x for x in obj.children if x is not None):
         check_acyclic(c, path + [obj])

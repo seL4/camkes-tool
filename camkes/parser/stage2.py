@@ -74,7 +74,8 @@ class Parse2(Parser):
                     # TODO: account for CPP-ing
                     item.calc_position()
                     raise ParseError('import \'%s\' not found' %
-                        import_content, filename, item.min_line)
+                        import_content, filename=filename,
+                        lineno=item.min_line)
 
                 if target in read:
                     continue
