@@ -23,5 +23,10 @@ class ASTError(CAmkESError):
     '''
     def __init__(self, message, entity):
         self.entity = entity
-        msg = self._format_message(message, entity.filename, entity.lineno)
+        if entity.location is not None:
+            msg = self._format_message(message, entity.location.filename,
+                entity.location.lineno, entity.location.min_col,
+                entity.location.max_col)
+        else:
+            msg = self._format_message(message)
         super(ASTError, self).__init__(msg)

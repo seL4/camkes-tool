@@ -24,5 +24,11 @@ class ParseError(CAmkESError):
         if location is not None:
             filename = location.filename
             lineno = location.lineno
-        msg = self._format_message(six.text_type(content), filename, lineno)
+            min_col = location.min_col
+            max_col = location.max_col
+        else:
+            min_col = None
+            max_col = None
+        msg = self._format_message(six.text_type(content), filename, lineno,
+            min_col, max_col)
         super(ParseError, self).__init__(msg)

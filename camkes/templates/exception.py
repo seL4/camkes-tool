@@ -21,15 +21,10 @@ import six
 class TemplateError(CAmkESError):
     def __init__(self, content, entity=None):
         assert isinstance(content, six.string_types)
-        if hasattr(entity, 'filename') and \
-                isinstance(entity.filename, six.string_types):
-            filename = entity.filename
+        if hasattr(entity, 'location') and entity.location is not None:
+            msg = self._format_message(content, entity.location.filename,
+                entity.location.lineno, entity.location.min_col,
+                entity.location.max_col)
         else:
-            filename = None
-        if hasattr(entity, 'lineno') and isinstance(entity.lineno,
-                six.integer_types + six.string_types):
-            lineno = entity.lineno
-        else:
-            lineno = None
-        msg = self._format_message(content, filename, lineno)
+            msg = self._format_message(content)
         super(TemplateError, self).__init__(msg)
