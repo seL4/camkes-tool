@@ -3,7 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="9e94cc0d-524c-462a-bfa8-511eaa5dddfc" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Controller/graph_controller.py" afterPath="$PROJECT_DIR$/Controller/graph_controller.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/View/Instance_Widget.py" afterPath="$PROJECT_DIR$/View/Instance_Widget.py" />
     </list>
     <ignored path="VisualComponents.iws" />
@@ -497,12 +496,6 @@
       <option name="number" value="Default" />
       <updated>1449214734746</updated>
     </task>
-    <task id="LOCAL-00004" summary="Removed unnecessary README files and added __init__ files so that each file could be imported in other files.">
-      <created>1449462281891</created>
-      <option name="number" value="00004" />
-      <option name="project" value="LOCAL" />
-      <updated>1449462281891</updated>
-    </task>
     <task id="LOCAL-00005" summary="Created a AST_Widget base class">
       <created>1449475010094</created>
       <option name="number" value="00005" />
@@ -791,7 +784,13 @@
       <option name="project" value="LOCAL" />
       <updated>1452815223137</updated>
     </task>
-    <option name="localTasksCounter" value="53" />
+    <task id="LOCAL-00053" summary="DockWidget defaults to undocked.">
+      <created>1452838664014</created>
+      <option name="number" value="00053" />
+      <option name="project" value="LOCAL" />
+      <updated>1452838664014</updated>
+    </task>
+    <option name="localTasksCounter" value="54" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -850,7 +849,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Changed controller to create a dock widget every time a component window is created. Component Window does not need mouse event anymore." />
     <MESSAGE value="More feature/idea" />
     <MESSAGE value="Added checkbox's for hardware and control. Still no where near final design. But it has the templete ready for any design&#10;" />
     <MESSAGE value="Connection widget is now a graphics item, added it to the scene. Unnecessary to &quot;draw_background&quot; (i.e hack removed)" />
@@ -875,7 +873,8 @@
     <MESSAGE value="Added Source interface name information. Connection adds itself in the instance_widgets" />
     <MESSAGE value="Added logic to add a connection." />
     <MESSAGE value="Added logic to remove a connection." />
-    <option name="LAST_COMMIT_MESSAGE" value="Added logic to remove a connection." />
+    <MESSAGE value="DockWidget defaults to undocked." />
+    <option name="LAST_COMMIT_MESSAGE" value="DockWidget defaults to undocked." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager />

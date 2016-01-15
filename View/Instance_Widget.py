@@ -14,6 +14,8 @@ from Model import Common
 
 class InstanceWidget(QtWidgets.QGraphicsWidget):
 
+    _bounding_rect = None
+
     @property
     def velocity(self):
         if self._velocity is None:
@@ -345,30 +347,127 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
 
         self.update_ui()
 
+    _border_thickness = 7
+
     def update_ui(self):
 
         self.clear_canvas()
 
-        layout = self.layout()
-        assert isinstance(layout, QtWidgets.QGraphicsLinearLayout)
+        practise_font = QtGui.QFont("Helvetica", 15, QtGui.QFont.Normal)
+        practise_font_metrics = QtGui.QFontMetrics(practise_font)
+        instance_name_rect = practise_font_metrics.boundingRect(self.name)
 
-        string = self.name + ": " + self.component_type
-        new_label = QtWidgets.QLabel(string)
+        practise_font.setPointSize(11)
+        practise_font_metrics = QtGui.QFontMetrics(practise_font)
+        component_name_rect = practise_font_metrics.boundingRect(self.component_type)
 
-        proxy_widget = QtWidgets.QGraphicsProxyWidget()
-        proxy_widget.setWidget(new_label)
+        practise_font.setPointSize(12)
+        practise_font_metrics = QtGui.QFontMetrics(practise_font)
+        control_rect = practise_font_metrics.boundingRect("C")
+        hardware_rect = practise_font_metrics.boundingRect("H")
 
-        layout.addItem(proxy_widget)
+        max_height = 2*self._border_thickness + instance_name_rect.height() + hardware_rect.height() + 2.5
 
+        max_width = 2*self._border_thickness + 2*control_rect.width() + 10
+        if instance_name_rect.width() > component_name_rect.width():
+            max_width = max_width + instance_name_rect.width()
+        else:
+            max_width = max_width + component_name_rect.width()
+
+        self._bounding_rect = QtCore.QRectF(0, 0, max_width, max_height)
+
+        self.setPreferredSize(self._bounding_rect.width(), self._bounding_rect.height())
+
+        self.update()
+
+        # layout = self.layout()
+        # assert isinstance(layout, QtWidgets.QGraphicsLinearLayout)
+        #
+        # string = self.name + ": " + self.component_type
+        # new_label = QtWidgets.QLabel(string)
+        #
+        # proxy_widget = QtWidgets.QGraphicsProxyWidget()
+        # proxy_widget.setWidget(new_label)
+        #
+        # layout.addItem(proxy_widget)
+        #
+        # if self.control:
+        #     proxy_widget = QtWidgets.QGraphicsProxyWidget()
+        #     proxy_widget.setWidget(QtWidgets.QLabel("control;"))
+        #     layout.addItem(proxy_widget)
+        #
+        # if self.hardware:
+        #     proxy_widget = QtWidgets.QGraphicsProxyWidget()
+        #     proxy_widget.setWidget(QtWidgets.QLabel("hardware;"))
+        #     layout.addItem(proxy_widget)
+
+    def boundingRect(self):
+        if self._bounding_rect:
+            return self._bounding_rect
+        else:
+            return super(InstanceWidget, self).boundingRect()
+
+    def paint(self, painter, style_options, widget=None):
+
+        assert isinstance(painter,QtGui.QPainter)
+        assert isinstance(style_options,QtWidgets.QStyleOptionGraphicsItem)
+        assert isinstance(widget,QtWidgets.QWidget)
+
+        super(InstanceWidget, self).paint(painter,style_options,widget)
+
+        painter.drawRect(self.boundingRect())
+
+        # TODO: Update rect with new size
+
+        # Printing instance name
+        font = QtGui.QFont("Helvetica", 15, QtGui.QFont.Normal)
+        painter.setFont(font)
+        font_metrics = painter.fontMetrics()
+        assert isinstance(font_metrics, QtGui.QFontMetrics)
+        bounding_rect_font = painter.boundingRect(QtCore.QRectF(1,1,1,1), QtCore.Qt.AlignCenter, self.name)
+
+        bounding_rect_font.moveTo(self.boundingRect().center().x() - bounding_rect_font.width()/2,
+                                  self.boundingRect().center().y() - font_metrics.ascent())
+
+        painter.drawText(bounding_rect_font,QtCore.Qt.AlignCenter, self.name)
+
+        control_hardware_x_pos = bounding_rect_font.x()
+
+        # Printing component name
+        font.setPointSize(11)
+        painter.setFont(font)
+        bounding_rect_font = painter.boundingRect(QtCore.QRectF(1,1,1,1), QtCore.Qt.AlignCenter, self.component_type)
+
+        bounding_rect_font.moveTo(self.boundingRect().center().x() - bounding_rect_font.width()/2,
+                                  self.boundingRect().center().y())
+
+        painter.drawText(bounding_rect_font,QtCore.Qt.AlignCenter, self.component_type)
+
+        if bounding_rect_font.x() < control_hardware_x_pos:
+            control_hardware_x_pos = bounding_rect_font.x()
+
+        control_hardware_x_pos -= 5
+
+        # The C
+
+        font.setPointSize(12)
+        painter.setFont(font)
+        font_metrics = painter.fontMetrics()
+        bounding_rect_font = painter.boundingRect(QtCore.QRectF(1,1,1,1), QtCore.Qt.AlignCenter, "C")
+
+        bounding_rect_font.moveTo(control_hardware_x_pos - bounding_rect_font.width(),
+                                  self.boundingRect().center().y() - font_metrics.ascent())
         if self.control:
-            proxy_widget = QtWidgets.QGraphicsProxyWidget()
-            proxy_widget.setWidget(QtWidgets.QLabel("control;"))
-            layout.addItem(proxy_widget)
+            painter.drawText(bounding_rect_font,QtCore.Qt.AlignCenter, "C")
 
+        # The H
+        bounding_rect_font = painter.boundingRect(QtCore.QRectF(1,1,1,1), QtCore.Qt.AlignCenter, "H")
+        bounding_rect_font.moveTo(control_hardware_x_pos - bounding_rect_font.width(),
+                                  self.boundingRect().center().y())
         if self.hardware:
-            proxy_widget = QtWidgets.QGraphicsProxyWidget()
-            proxy_widget.setWidget(QtWidgets.QLabel("hardware;"))
-            layout.addItem(proxy_widget)
+            painter.drawText(bounding_rect_font,QtCore.Qt.AlignCenter, "H")
+
+
 
     def mousePressEvent(self, mouse_event):
         # Change to must press a button to open component info
