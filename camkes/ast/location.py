@@ -118,3 +118,15 @@ class SourceLocation(object):
         if not self.precise:
             self._locate()
         return self._lineno
+
+    @property
+    def min_col(self):
+        if not self.precise:
+            self._locate()
+        return self._min_col
+
+    @property
+    def max_col(self):
+        if not self.precise:
+            self._locate()
+        return self._max_col
