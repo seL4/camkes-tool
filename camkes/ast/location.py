@@ -39,8 +39,8 @@ class SourceLocation(object):
         assert plyplus.is_stree(term) or isinstance(term, plyplus.ParseError)
         self._filename = filename
         self._lineno = None
-        self._min_column = None
-        self._max_column = None
+        self._min_col = None
+        self._max_col = None
         self.term = term
         self.full_source = full_source
         # We defer narrowing the location because this can be expensive and
@@ -58,8 +58,8 @@ class SourceLocation(object):
             self.term.calc_position()
 
             plyplus_line = self.term.min_line
-            self._min_column = self.term.min_col
-            self._max_column = self.term.max_col
+            self._min_col = self.term.min_col
+            self._max_col = self.term.max_col
 
         else:
             assert isinstance(self.term, plyplus.ParseError)
@@ -69,7 +69,7 @@ class SourceLocation(object):
                 str(self.term), flags=re.MULTILINE)
             if m is not None:
                 plyplus_line = int(m.group('line'))
-                self._min_column = int(m.group('col'))
+                self._min_col = int(m.group('col'))
             else:
                 plyplus_line = None
 
