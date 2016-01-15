@@ -15,9 +15,10 @@ from __future__ import absolute_import, division, print_function, \
     unicode_literals
 from camkes.internal.seven import cmp, filter, map, zip
 
+from camkes.internal.exception import CAmkESError
 import six
 
-class TemplateError(Exception):
+class TemplateError(CAmkESError):
     def __init__(self, content, entity=None):
         assert isinstance(content, six.string_types)
         msg = []

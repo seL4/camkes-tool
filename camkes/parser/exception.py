@@ -15,9 +15,10 @@ from __future__ import absolute_import, division, print_function, \
     unicode_literals
 from camkes.internal.seven import cmp, filter, map, zip
 
+from camkes.internal.exception import CAmkESError
 import six
 
-class ParseError(Exception):
+class ParseError(CAmkESError):
     def __init__(self, content, filename=None, lineno=None):
         assert isinstance(content, six.string_types) or isinstance(content, Exception)
         self.content = content

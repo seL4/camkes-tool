@@ -15,7 +15,9 @@ from __future__ import absolute_import, division, print_function, \
     unicode_literals
 from camkes.internal.seven import cmp, filter, map, zip
 
-class ASTError(Exception):
+from camkes.internal.exception import CAmkESError
+
+class ASTError(CAmkESError):
     '''
     An error resulting from inconsistency detected in the AST.
     '''
