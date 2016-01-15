@@ -61,7 +61,8 @@ class GraphController(QtWidgets.QMainWindow):
             self._component_widget = ComponentWindow(None)
             self._component_dock_widget = QtWidgets.QDockWidget("Component Info")
             self._component_dock_widget.setWidget(self._component_widget)
-            self.addDockWidget(QtCore.Qt.BottomDockWidgetArea, self._component_dock_widget)
+            # self.addDockWidget(QtCore.Qt.BottomDockWidgetArea, self._component_dock_widget)
+            self.addDockWidget(QtCore.Qt.NoDockWidgetArea, self._component_dock_widget)
         self._component_dock_widget.setVisible(True)
         return self._component_widget
 
