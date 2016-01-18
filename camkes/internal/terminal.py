@@ -20,6 +20,7 @@ from __future__ import absolute_import, division, print_function, \
     unicode_literals
 from camkes.internal.seven import cmp, filter, map, zip
 
+from .memoization import memoize
 import os, subprocess, sys
 
 # Various ANSI terminal control sequences. For now, we only define the ones we
@@ -28,6 +29,7 @@ BOLD = '\033[1m'
 RED = '\033[31m'
 RESET = '\033[0m'
 
+@memoize()
 def terminal_supports_colour():
     if not sys.stdout.isatty():
         return False
