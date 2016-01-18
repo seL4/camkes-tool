@@ -22,6 +22,12 @@ from camkes.internal.seven import cmp, filter, map, zip
 
 import os, subprocess, sys
 
+# Various ANSI terminal control sequences. For now, we only define the ones we
+# need.
+BOLD = '\033[1m'
+RED = '\033[31m'
+RESET = '\033[0m'
+
 def terminal_supports_colour():
     if not sys.stdout.isatty():
         return False
