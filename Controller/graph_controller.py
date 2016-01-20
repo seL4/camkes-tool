@@ -331,29 +331,29 @@ class GraphController(QtWidgets.QMainWindow):
 
             self.root_widget.add_instance_widget(instance_widget, x_pos=node_position[0], y_pos=node_position[1])
 
-        edge_list = dot_data.get_edges()
-        for edge in edge_list:
-            assert isinstance(edge, Pydot.Edge)
-
-            for connection_object in self.ast.assembly.connections:
-                # For each connection
-                assert isinstance(connection_object, Connection)
-
-                # if the edge represents this connections' source and destination
-                if edge.get_source() in [y.instance.name for y in connection_object.from_ends] and \
-                                edge.get_destination() in [y.instance.name for y in connection_object.to_ends]:
-
-                    # Create an widget with the points and the object
-
-                    for connection_widget in self.widget_connections:
-                        assert isinstance(connection_widget, ConnectionWidget)
-                        if connection_widget.connection_object is connection_object and \
-                            connection_widget.source_instance_widget.name == edge.get_source() and \
-                            connection_widget.dest_instance_widget.name == edge.get_destination():
-                            edge_widget = connection_widget
-                            edge_widget.edge = edge
-
-                    break  # Unnecessary to keep searching once found
+        # edge_list = dot_data.get_edges()
+        # for edge in edge_list:
+        #     assert isinstance(edge, Pydot.Edge)
+        #
+        #     for connection_object in self.ast.assembly.connections:
+        #         # For each connection
+        #         assert isinstance(connection_object, Connection)
+        #
+        #         # if the edge represents this connections' source and destination
+        #         if edge.get_source() in [y.instance.name for y in connection_object.from_ends] and \
+        #                         edge.get_destination() in [y.instance.name for y in connection_object.to_ends]:
+        #
+        #             # Create an widget with the points and the object
+        #
+        #             for connection_widget in self.widget_connections:
+        #                 assert isinstance(connection_widget, ConnectionWidget)
+        #                 if connection_widget.connection_object is connection_object and \
+        #                     connection_widget.source_instance_widget.name == edge.get_source() and \
+        #                     connection_widget.dest_instance_widget.name == edge.get_destination():
+        #                     edge_widget = connection_widget
+        #                     edge_widget.edge = edge
+        #
+        #             break  # Unnecessary to keep searching once found
 
     def show_component_info(self, component_name):
 

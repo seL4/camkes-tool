@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import six
+import six, math
 
 from PyQt5 import QtGui, QtWidgets, QtCore
 
@@ -19,7 +19,7 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
     @property
     def velocity(self):
         if self._velocity is None:
-            self._velocity = QtCore.QPointF(0,0)
+            self._velocity = QtCore.QPointF(0, 0)
         return self._velocity
 
     @velocity.setter
@@ -44,7 +44,7 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
     def pinned(self, value):
         assert isinstance(value, bool)
         self._pinned = value
-        
+
     # --- Information about Instance ---
 
     @property
@@ -80,17 +80,17 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
         assert isinstance(value, bool)
         self._control = value
         self.update_ui()
-        
+
     @property
     def hardware(self):
         return self._hardware
-    
+
     @hardware.setter
     def hardware(self, value):
         assert isinstance(value, bool)
         self._hardware = value
         self.update_ui()
-        
+
     @property
     def provides(self):
         if self._provides is None:
@@ -205,7 +205,7 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
         assert isinstance(optional, bool)
 
         self.consumes.append({'Name': name, 'Interface_type': interface_type, 'Optional': optional,
-                               'Connection_Widget': connection})
+                              'Connection_Widget': connection})
 
         self.update_ui()
         # TODO NotImplementedError
@@ -231,6 +231,8 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
 
     @property
     def dataport(self):
+        if self._dataport is None:
+            self._dataport = []
         return self._dataport
 
     def add_dataport(self, name, interface_type, optional, connection=None):
@@ -267,6 +269,7 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
     def delete_dataport(self, name):
         raise NotImplementedError
 
+    # TODO: connection overrides, for multiway connection. Eg. eigenConnection
     def add_connection(self, connection):
 
         assert isinstance(connection, Connection_Widget.ConnectionWidget)
@@ -288,7 +291,9 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
                 self.add_dataport_connection(connection.dest_interface_name, connection)
 
         else:
-            raise NotImplementedError # Something is wrong
+            raise NotImplementedError  # Something is wrong
+
+        self._connections_list.append(connection)
 
     def remove_connection(self, connection):
         assert isinstance(connection, Connection_Widget.ConnectionWidget)
@@ -300,7 +305,6 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
                 self.remove_use_connection(connection.source_interface_name, connection)
             elif connection.source_connection_type == Common.Dataport:
                 self.remove_dataport_connection(connection.source_interface_name, connection)
-
         elif connection.dest_instance_widget is self:
             if connection.dest_connection_type == Common.Event:
                 self.remove_consume_connection(connection.dest_interface_name, connection)
@@ -308,9 +312,14 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
                 self.remove_provide_connection(connection.dest_interface_name, connection)
             elif connection.dest_connection_type == Common.Dataport:
                 self.remove_dataport_connection(connection.dest_interface_name, connection)
-
         else:
-            raise NotImplementedError # Something is wrong
+            raise NotImplementedError  # Something is wrong
+
+        self._connections_list.remove(connection)
+
+    @property
+    def connection_list(self):
+        return self._connections_list
 
     # -------
 
@@ -336,6 +345,8 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
         self._emits = None
         self._consumes = None
         self._dataport = None
+
+        self._connections_list = []
 
         # GUI
         self.setFlag(QtWidgets.QGraphicsWidget.ItemIsMovable)
@@ -366,9 +377,9 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
         control_rect = practise_font_metrics.boundingRect("C")
         hardware_rect = practise_font_metrics.boundingRect("H")
 
-        max_height = 2*self._border_thickness + instance_name_rect.height() + hardware_rect.height() + 2.5
+        max_height = 2 * self._border_thickness + instance_name_rect.height() + hardware_rect.height() + 2.5
 
-        max_width = 2*self._border_thickness + 2*control_rect.width() + 10
+        max_width = 2 * self._border_thickness + 2 * control_rect.width() + 10
         if instance_name_rect.width() > component_name_rect.width():
             max_width = max_width + instance_name_rect.width()
         else:
@@ -402,19 +413,17 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
         #     layout.addItem(proxy_widget)
 
     def boundingRect(self):
-        if self._bounding_rect:
-            return self._bounding_rect
-        else:
-            return super(InstanceWidget, self).boundingRect()
+        self.update_ui()  # TODO: NEED TO RETHINK THIS
+        return self._bounding_rect
 
     def paint(self, painter, style_options, widget=None):
 
-        assert isinstance(painter,QtGui.QPainter)
-        assert isinstance(style_options,QtWidgets.QStyleOptionGraphicsItem)
-        assert isinstance(widget,QtWidgets.QWidget)
+        assert isinstance(painter, QtGui.QPainter)
+        assert isinstance(style_options, QtWidgets.QStyleOptionGraphicsItem)
+        assert isinstance(widget, QtWidgets.QWidget)
 
-        super(InstanceWidget, self).paint(painter,style_options,widget)
-
+        super(InstanceWidget, self).paint(painter, style_options, widget)
+        painter.fillRect(self.boundingRect(), QtGui.QColor(245, 245, 245))
         painter.drawRect(self.boundingRect())
 
         # TODO: Update rect with new size
@@ -424,24 +433,24 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
         painter.setFont(font)
         font_metrics = painter.fontMetrics()
         assert isinstance(font_metrics, QtGui.QFontMetrics)
-        bounding_rect_font = painter.boundingRect(QtCore.QRectF(1,1,1,1), QtCore.Qt.AlignCenter, self.name)
+        bounding_rect_font = painter.boundingRect(QtCore.QRectF(1, 1, 1, 1), QtCore.Qt.AlignCenter, self.name)
 
-        bounding_rect_font.moveTo(self.boundingRect().center().x() - bounding_rect_font.width()/2,
+        bounding_rect_font.moveTo(self.boundingRect().center().x() - bounding_rect_font.width() / 2,
                                   self.boundingRect().center().y() - font_metrics.ascent())
 
-        painter.drawText(bounding_rect_font,QtCore.Qt.AlignCenter, self.name)
+        painter.drawText(bounding_rect_font, QtCore.Qt.AlignCenter, self.name)
 
         control_hardware_x_pos = bounding_rect_font.x()
 
         # Printing component name
         font.setPointSize(11)
         painter.setFont(font)
-        bounding_rect_font = painter.boundingRect(QtCore.QRectF(1,1,1,1), QtCore.Qt.AlignCenter, self.component_type)
+        bounding_rect_font = painter.boundingRect(QtCore.QRectF(1, 1, 1, 1), QtCore.Qt.AlignCenter, self.component_type)
 
-        bounding_rect_font.moveTo(self.boundingRect().center().x() - bounding_rect_font.width()/2,
+        bounding_rect_font.moveTo(self.boundingRect().center().x() - bounding_rect_font.width() / 2,
                                   self.boundingRect().center().y())
 
-        painter.drawText(bounding_rect_font,QtCore.Qt.AlignCenter, self.component_type)
+        painter.drawText(bounding_rect_font, QtCore.Qt.AlignCenter, self.component_type)
 
         if bounding_rect_font.x() < control_hardware_x_pos:
             control_hardware_x_pos = bounding_rect_font.x()
@@ -453,24 +462,39 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
         font.setPointSize(12)
         painter.setFont(font)
         font_metrics = painter.fontMetrics()
-        bounding_rect_font = painter.boundingRect(QtCore.QRectF(1,1,1,1), QtCore.Qt.AlignCenter, "C")
+        bounding_rect_font = painter.boundingRect(QtCore.QRectF(1, 1, 1, 1), QtCore.Qt.AlignCenter, "C")
 
         bounding_rect_font.moveTo(control_hardware_x_pos - bounding_rect_font.width(),
                                   self.boundingRect().center().y() - font_metrics.ascent())
         if self.control:
-            painter.drawText(bounding_rect_font,QtCore.Qt.AlignCenter, "C")
+            painter.drawText(bounding_rect_font, QtCore.Qt.AlignCenter, "C")
 
         # The H
-        bounding_rect_font = painter.boundingRect(QtCore.QRectF(1,1,1,1), QtCore.Qt.AlignCenter, "H")
+        bounding_rect_font = painter.boundingRect(QtCore.QRectF(1, 1, 1, 1), QtCore.Qt.AlignCenter, "H")
         bounding_rect_font.moveTo(control_hardware_x_pos - bounding_rect_font.width(),
                                   self.boundingRect().center().y())
         if self.hardware:
-            painter.drawText(bounding_rect_font,QtCore.Qt.AlignCenter, "H")
-
-
+            painter.drawText(bounding_rect_font, QtCore.Qt.AlignCenter, "H")
 
     def mousePressEvent(self, mouse_event):
         # Change to must press a button to open component info
+
+        string = " "
+
+        for connection in self.connection_list:
+            string += connection.name + " "
+
+        print self.name + " contains: " + string
+
+        no_of_connections = len(self.dataport) + len(self.provides) + len(self.consumes) + len(self.uses) + \
+                            len(self.emits)
+        print "\tNumber of connections is: " + str(no_of_connections)
+        print "\tdataport: " + str(len(self.dataport))
+        print "\tprovides: " + str(len(self.provides))
+        print "\tconsumes: " + str(len(self.consumes))
+        print "\tuses: " + str(len(self.uses))
+        print "\temits: " + str(len(self.emits))
+
         self.open_component_info.emit(self.component_type)
 
     _moved_at_least_once = False
@@ -481,13 +505,133 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
 
     def itemChange(self, change, value):
 
-        if change == QtWidgets.QGraphicsWidget.ItemPositionHasChanged and self._moved_at_least_once:
+        if change == QtWidgets.QGraphicsWidget.ItemPositionHasChanged:  # and self._moved_at_least_once:
             self.pinned = True
+
+            self.update_connections()
+
             # Tell graph controller that item has moved (signal)
 
         return super(InstanceWidget, self).itemChange(change, value)
 
+    def update_connections(self):
 
+        for connection in self.connection_list:
+            self.update_connection_position(connection)
+            if connection.source_instance_widget is self:
+                connection.dest_instance_widget.update_connection_position(connection)
+            else:
+                connection.source_instance_widget.update_connection_position(connection)
+
+    def update_connection_position(self, connection):
+        assert isinstance(connection, Connection_Widget.ConnectionWidget)
+        print "This is " + self.name + " and updating: " + str(connection.name)
+
+        angle = 0
+        decrease_angle = False
+
+        # other_widget = None
+        if connection.source_instance_widget is self:
+            other_widget = connection.dest_instance_widget
+            if connection.dest_angle < 0:
+                decrease_angle = True
+        else:
+            other_widget = connection.source_instance_widget
+            if connection.source_angle < 0:
+                decrease_angle = True
+
+        # TODO: Inefficient algorithm
+
+        # --- Find position based on straight line distance between this and other widget ---
+
+        # Vector between other and this
+        assert isinstance(other_widget, InstanceWidget)
+
+        our_pos = self.scenePos()
+        our_pos.setX(our_pos.x() + self.boundingRect().width() / 2)
+        our_pos.setY(our_pos.y() + self.boundingRect().height() / 2)
+
+        other_widget_pos = other_widget.scenePos()
+        other_widget_pos.setX(other_widget_pos.x() + self.boundingRect().width() / 2)
+        other_widget_pos.setY(other_widget_pos.y() + self.boundingRect().height() / 2)
+
+        vector = other_widget_pos - our_pos
+
+        print "Connection " + connection.name + " from: " + str(connection.source_instance_widget.name) + " to " + str(
+                connection.dest_instance_widget.name)
+        print "\tother position:" + str(other_widget_pos) + " ours:" + str(our_pos)
+        print "\tvector: " + str(vector)
+        print "\tbounding rect: " + str(self.boundingRect())
+
+        y = vector.y() * math.fabs((self.boundingRect().width() / 2) / vector.x())
+        print "\ty is : " + str(y)
+
+        half_height = self.boundingRect().height() / 2 + 1  # Bit of room for rounding
+
+        if -half_height <= y <= half_height:
+            vector.setY(y)
+            if vector.x() < 0:
+                print "\tYo here 1"
+                vector.setX(-self.boundingRect().width() / 2)
+            else:
+                print "\tYo here 2"
+                vector.setX(self.boundingRect().width() / 2)
+        else:
+            vector.setX(vector.x() * math.fabs((self.boundingRect().height() / 2) / vector.y()))
+            if vector.y() < 0:
+                print "\tYo here 3"
+                vector.setY(-self.boundingRect().height() / 2)
+            else:
+                print "\tYo here 4"
+                vector.setY(self.boundingRect().height() / 2)
+
+        print "\tnew vector: " + str(vector)
+
+        final_pos = our_pos + vector
+
+        # --- Choose an angle, start with 0 degrees, and search through all connection points, looking for clashes
+
+
+        for compare in self.connection_list:
+            assert isinstance(compare, Connection_Widget.ConnectionWidget)
+
+            print "\tchecking clash with: " + str(compare.name)
+
+            if compare is connection:
+                continue
+
+            compare_pos = None
+            compare_angle = None
+
+            if compare.source_instance_widget is self:
+                compare_pos = compare.source_pos
+                compare_angle = compare.source_angle
+            elif compare.dest_instance_widget is self:
+                compare_pos = compare.dest_pos
+                compare_angle = compare.dest_angle
+            else:
+                raise NotImplementedError  # Something went wrong
+
+            if compare_pos != final_pos:
+                print "\t\tdoes not clash"
+                continue
+
+            print "\t\ttheir angle is " + str(compare_angle) + " and ours is " + str(angle)
+            while compare_angle == angle:
+                print "\t\ttried angle " + str(angle) + ", clashed"
+                if decrease_angle:
+                    angle += 30
+                else:
+                    angle -= 30
+
+        print "\tFinal Pos found!  " + str(final_pos) + "  ,  " + str(angle)
+
+        if connection.source_instance_widget is self:
+            connection.source_pos = final_pos
+            connection.source_angle = angle
+        else:
+            connection.dest_pos = final_pos
+            connection.dest_angle = angle
 
     # previous_position = None
     #
@@ -520,7 +664,6 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
     def clear_canvas(self):
         layout = self.layout()
         assert isinstance(layout, QtWidgets.QGraphicsLayout)
-
 
         while layout.count() > 0:
             next_widget = layout.itemAt(0)
