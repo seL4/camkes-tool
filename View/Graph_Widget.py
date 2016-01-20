@@ -42,14 +42,16 @@ class GraphWidget(QtWidgets.QGraphicsView):
 
     def add_instance_widget(self, new_widget, x_pos, y_pos):
 
-        assert isinstance(new_widget, QtWidgets.QGraphicsWidget)
+        assert isinstance(new_widget, InstanceWidget)
 
         if new_widget not in [x for x in self.scene().items()
                               if isinstance(x, InstanceWidget)]:
             # set parent widget of new widget to be self
             self.scene().addItem(new_widget)
+            new_widget.setZValue(5)
 
         new_widget.setPos(x_pos - (new_widget.preferredSize().width()/2), y_pos - (new_widget.preferredSize().height()/2))
+
 
     # def drawBackground(self, q_painter, rectangle):
     #     super(GraphWidget, self).drawBackground(q_painter, rectangle)
@@ -71,6 +73,7 @@ class GraphWidget(QtWidgets.QGraphicsView):
         self.connection_widgets.append(new_connection)
 
         self.scene().addItem(new_connection)
+        new_connection.setZValue(1)
 
     def clear_connection_widgets(self):
 
@@ -87,6 +90,12 @@ class GraphWidget(QtWidgets.QGraphicsView):
     def setViewGeometry(self, size_x, size_y):
         self.scene().setSceneRect(0,0,size_x, size_y)
         self.setMinimumSize(500, 500)
+        
+    def mousePressEvent(self, mouse_event):
+        super(GraphWidget, self).mousePressEvent(mouse_event)
+
+        assert isinstance(mouse_event, QtGui.QMouseEvent)
+        print "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tgraph widget - clicked at: " + str(self.mapToScene(mouse_event.pos()))
 
     # def mouseMoveEvent(self, mouse_event):
     #     print "graph widget " + str(mouse_event.pos())
