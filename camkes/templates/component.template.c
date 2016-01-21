@@ -477,9 +477,9 @@ int USED /*? p['entry_symbol'] ?*/(int thread_id) {
                 /*- set ret_init_sc_ep = alloc('ret_sc_%s_init_ep' %i.name, seL4_EndpointObject, read=True, write=True) -*/
                 /*- if my_sc == None -*/
                    printf("/*? me.name ?*/ waiting to Recv\n");
-                   seL4_Word badge;
-                   seL4_MessageInfo_t /*? info ?*/ = seL4_MessageInfo_new(0, 0, 0, 0);
-                   /*? info ?*/ = seL4_Recv(/*? ret_init_sc_ep ?*/, &badge);
+                   seL4_Word badge_/*? i.name ?*/;
+                   seL4_MessageInfo_t /*? info ?*/_/*? i.name ?*/ = seL4_MessageInfo_new(0, 0, 0, 0);
+                   /*? info ?*/_/*? i.name ?*/ = seL4_Recv(/*? ret_init_sc_ep ?*/, &badge_/*? i.name ?*/);
                    printf("/*? me.name ?*/ going to unbind\n");
                    seL4_SchedContext_UnbindTCB(/*? my_init_sc ?*/);
                    printf("/*? me.name ?*/ unbound\n");
