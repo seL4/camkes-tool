@@ -25,7 +25,7 @@ from Controller.base_controller import Controller
 from Model.AST_Model import ASTModel
 from Model import Common
 from View.Graph_Widget import GraphWidget
-from View.Connection_Widget import ConnectionWidget
+from View.Connection_Widget import ConnectionWidget, DataportWidget, ProcedureWidget, EventWidget
 from View.Instance_Widget import InstanceWidget
 from View.Component_Window import ComponentWindow
 
@@ -61,9 +61,8 @@ class GraphController(QtWidgets.QMainWindow):
             self._component_widget = ComponentWindow(None)
             self._component_dock_widget = QtWidgets.QDockWidget("Component Info")
             self._component_dock_widget.setWidget(self._component_widget)
-            # self.addDockWidget(QtCore.Qt.BottomDockWidgetArea, self._component_dock_widget)
-            self.addDockWidget(QtCore.Qt.NoDockWidgetArea, self._component_dock_widget)
-        self._component_dock_widget.setVisible(True)
+            # self.addDockWidget(QtCore.Qt.NoDockWidgetArea, self._component_dock_widget)
+        # self._component_dock_widget.setVisible(True)
         return self._component_widget
 
     @property
@@ -247,14 +246,43 @@ class GraphController(QtWidgets.QMainWindow):
         # Get source and destination widgets
         source_widget = self.find_instance_widget(from_instance)
         dest_widget = self.find_instance_widget(to_instance)
-        new_connection_widget = ConnectionWidget(name=connection.name,
-                                                 con_type=connection.type.name,
-                                                 source=source_widget,
-                                                 source_type=connection.type.from_type,
-                                                 source_inf_name=from_interface,
-                                                 dest=dest_widget,
-                                                 dest_type=connection.type.to_type,
-                                                 dest_inf_name=to_interface)
+
+        if connection.type.from_type == Common.Dataport:
+            new_connection_widget = DataportWidget(name=connection.name,
+                                                    con_type=connection.type.name,
+                                                    source=source_widget,
+                                                    source_type=connection.type.from_type,
+                                                    source_inf_name=from_interface,
+                                                    dest=dest_widget,
+                                                    dest_type=connection.type.to_type,
+                                                    dest_inf_name=to_interface)
+        elif connection.type.from_type == Common.Procedure:
+            new_connection_widget = ProcedureWidget(name=connection.name,
+                                                    con_type=connection.type.name,
+                                                    source=source_widget,
+                                                    source_type=connection.type.from_type,
+                                                    source_inf_name=from_interface,
+                                                    dest=dest_widget,
+                                                    dest_type=connection.type.to_type,
+                                                    dest_inf_name=to_interface)
+        elif connection.type.from_type == Common.Event:
+            new_connection_widget = EventWidget(name=connection.name,
+                                                    con_type=connection.type.name,
+                                                    source=source_widget,
+                                                    source_type=connection.type.from_type,
+                                                    source_inf_name=from_interface,
+                                                    dest=dest_widget,
+                                                    dest_type=connection.type.to_type,
+                                                    dest_inf_name=to_interface)
+        else:
+            new_connection_widget = ConnectionWidget(name=connection.name,
+                                                    con_type=connection.type.name,
+                                                    source=source_widget,
+                                                    source_type=connection.type.from_type,
+                                                    source_inf_name=from_interface,
+                                                    dest=dest_widget,
+                                                    dest_type=connection.type.to_type,
+                                                    dest_inf_name=to_interface)
 
         new_connection_widget.connection_object = connection # TODO: Take out
 

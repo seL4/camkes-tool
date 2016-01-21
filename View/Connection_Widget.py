@@ -8,7 +8,6 @@ from PyQt5 import QtGui, QtWidgets, QtCore
 # TODO: Change
 import pydotplus as Pydot
 
-from Model import Common
 from Instance_Widget import InstanceWidget
 
 
@@ -32,45 +31,6 @@ class ConnectionWidget(QtWidgets.QGraphicsItem):
     def connection_type(self, value):
         assert isinstance(value, six.string_types)
         self._connection_type = value
-
-    # @property
-    # def edge(self):
-    #     return self._edge
-    #
-    # @edge.setter
-    # def edge(self, value):
-    #     assert isinstance(value, Pydot.Edge)
-    #     self._edge = value
-    #     edge_attributes = value.get_attributes()
-    #     edge_points = Common.extract_numbers(edge_attributes['pos'])
-    #     self.edge_points = edge_points
-    #
-    # @property
-    # def edge_points(self):
-    #     return self._edge_points
-    #
-    # @edge_points.setter
-    # def edge_points(self, value):
-    #     assert isinstance(value, list)
-    #     # TODO: Change from edge point to tuple
-    #     # TODO: Different method
-    #     if len(value) >= 2:
-    #         assert isinstance(value[1], tuple)
-    #         self.path.moveTo(value[1][0], value[1][1])
-    #
-    #     if len(value) >= 3:
-    #         for point in value[2:]:
-    #             self.path.lineTo(point[0], point[1])
-    #
-    #     assert isinstance(value[0], tuple)
-    #     self.path.lineTo(value[0][0], value[0][1])
-    #
-    #     # assert isinstance(value[-1], tuple)
-    #     # self.path.lineTo(value[-1][0], value[-1][1])
-    #
-    #     self._edge_points = value
-    #
-    #     self.prepareGeometryChange()
 
     @property
     def path(self):
@@ -142,37 +102,51 @@ class ConnectionWidget(QtWidgets.QGraphicsItem):
     def source_pos(self):
         return self._source_pos
 
-    @source_pos.setter
-    def source_pos(self, value):
-        print "set2"
-        self._source_pos = value
-        self.update_path()
+    # @source_pos.setter
+    # def source_pos(self, value):
+    #     print "set2"
+    #     self._source_pos = value
+    #     self.update_path()
 
     @property
     def source_angle(self):
         return self._source_angle
 
-    @source_angle.setter
-    def source_angle(self, value):
-        self._source_angle = value
+    # @source_angle.setter
+    # def source_angle(self, value):
+    #     self._source_angle = value
+
+    def set_source_pos_angle(self, pos, angle):
+        assert isinstance(pos, QtCore.QPointF)
+        self._source_pos = pos
+        self._source_angle = angle
+
+        self.update_path()
 
     @property
     def dest_pos(self):
         return self._dest_pos
 
-    @dest_pos.setter
-    def dest_pos(self, value):
-        print "set"
-        self._dest_pos = value
-        self.update_path()
+    # @dest_pos.setter
+    # def dest_pos(self, value):
+    #     print "set"
+    #     self._dest_pos = value
+    #     self.update_path()
 
     @property
     def dest_angle(self):
         return self._dest_angle
 
-    @dest_angle.setter
-    def dest_angle(self, value):
-        self._dest_angle = value
+    # @dest_angle.setter
+    # def dest_angle(self, value):
+    #     self._dest_angle = value
+
+    def set_dest_pos_angle(self, pos, angle):
+        assert isinstance(pos, QtCore.QPointF)
+        self._dest_pos = pos
+        self._dest_angle = angle
+
+        self.update_path()
 
     def update_path(self):
 
@@ -222,30 +196,8 @@ class ConnectionWidget(QtWidgets.QGraphicsItem):
         assert isinstance(source_point, QtCore.QPointF)
         assert isinstance(dest_point, QtCore.QPointF)
 
-        print source_point
-        print dest_point
-
-        if source_point == dest_point:
-            return
-
-        s_to_d = dest_point - source_point
-        assert isinstance(s_to_d, QtCore.QPointF)
-
-        old_x = s_to_d.x()
-        s_to_d.setX(-s_to_d.y())
-        s_to_d.setY(old_x)
-
-        new_vector = self.change_vector_length(s_to_d, 5)
-        top_left = source_point + new_vector
-        top_right = dest_point + new_vector
-        bottom_left = source_point - new_vector
-        bottom_right = dest_point - new_vector
-
-        self.path.moveTo(top_left)
-        self.path.lineTo(top_right)
-        self.path.lineTo(bottom_right)
-        self.path.lineTo(bottom_left)
-        self.path.lineTo(top_left)
+        self.path.moveTo(source_point)
+        self.path.lineTo(dest_point)
 
 
 
@@ -265,43 +217,55 @@ class ConnectionWidget(QtWidgets.QGraphicsItem):
         assert isinstance(dest_pos, QtCore.QPointF)
 
         # --- To get control point. ---
-        # Get vector from source to destination
+        # # Get vector from source to destination
+        # s_to_d = dest_pos - source_pos
+        # assert isinstance(s_to_d, QtCore.QPointF)
+        # print "\ts_to_d is " + str(s_to_d)
+        # # Rotate by angle degrees:
+        # # x' = xcos(a) - ysin(a)
+        # # y' = xsin(a) - ycos(a)
+        # new_x = s_to_d.x() * math.cos(math.radians(angle)) - \
+        #         s_to_d.y() * math.sin(math.radians(angle))
+        # new_y = s_to_d.x() * math.sin(math.radians(angle)) + \
+        #         s_to_d.y() * math.cos(math.radians(angle))
+        # print "\trotation to " + str(new_x) + "," + str(new_y)
+        #
+        # # And then ensure this vector's cos(a) is of length 10 (normal_length)
+        # # x'' = x' * (10/cos(a))/|v|
+        # # y'' = y' * (10/cos(a))/|v|
+        #
+        # normal_length = 10
+        #
+        # if (math.sqrt(QtCore.QPointF.dotProduct(s_to_d, s_to_d)) / 2) < normal_length:
+        #     normal_length = math.sqrt(QtCore.QPointF.dotProduct(s_to_d, s_to_d)) / 2
+        #
+        # length = math.cos(math.radians(angle)) * math.sqrt(new_x * new_x + new_y * new_y)
+        # new_x = (new_x * normal_length) / length
+        # new_y = (new_y * normal_length) / length
+        #
+        # print "\t normalised to " + str(new_x) + "," + str(new_y)
+        # source_control_point = QtCore.QPointF(new_x, new_y)
+        # source_control_point += source_pos
+        # print "\t final point is " + str(source_control_point)
+
+
         s_to_d = dest_pos - source_pos
         assert isinstance(s_to_d, QtCore.QPointF)
-        # s_to_d.setY(-s_to_d.y())  # Y is positive downwards in GUI
         print "\ts_to_d is " + str(s_to_d)
-        # Rotate by angle degrees:
-        # x' = xcos(a) - ysin(a)
-        # y' = xsin(a) - ycos(a)
-        new_x = s_to_d.x() * math.cos(math.radians(angle)) - \
-                s_to_d.y() * math.sin(math.radians(angle))
-        new_y = s_to_d.x() * math.sin(math.radians(angle)) + \
-                s_to_d.y() * math.cos(math.radians(angle))
-        print "\trotation to " + str(new_x) + "," + str(new_y)
-
-        # And then ensure this vector's cos(a) is of length 10 (normal_length)
-        # x'' = x' * (10/cos(a))/|v|
-        # y'' = y' * (10/cos(a))/|v|
 
         normal_length = 10
 
         if (math.sqrt(QtCore.QPointF.dotProduct(s_to_d, s_to_d)) / 2) < normal_length:
             normal_length = math.sqrt(QtCore.QPointF.dotProduct(s_to_d, s_to_d)) / 2
 
-        length = math.cos(math.radians(angle)) * math.sqrt(new_x * new_x + new_y * new_y)
-        new_x = (new_x * normal_length) / length
-        new_y = (new_y * normal_length) / length
+        s_to_d = ConnectionWidget.change_vector_length(s_to_d, normal_length)
+        perpend_vector = QtCore.QPointF(-s_to_d.y(), s_to_d.x())
+        perpend_vector = ConnectionWidget.change_vector_length(perpend_vector, angle)
 
-        print "\t normalised to " + str(new_x) + "," + str(new_y)
-        source_control_point = QtCore.QPointF(new_x, new_y)
-        source_control_point += source_pos
-        print "\t final point is " + str(source_control_point)
+        source_control_point = source_pos + s_to_d + perpend_vector
+
         return source_control_point
 
-
-
-
-    connection_object = None # TODO: take out
 
     def __init__(self, name, con_type, source, source_type, source_inf_name, dest, dest_type, dest_inf_name):
         super(ConnectionWidget, self).__init__()
@@ -337,8 +301,8 @@ class ConnectionWidget(QtWidgets.QGraphicsItem):
         # Get points from attributes of the edge
         self._source_pos = None
         self._dest_pos = None
-        self._source_angle = 0
-        self._dest_angle = 0
+        self._source_angle = None
+        self._dest_angle = None
 
     def paint(self, q_painter, style_option , widget=None):
 
@@ -353,8 +317,13 @@ class ConnectionWidget(QtWidgets.QGraphicsItem):
 
         # q_painter.drawPath(self.path)
 
+        q_painter.setRenderHint(QtGui.QPainter.Antialiasing)
+
         if self.source_pos is not None and self.dest_pos is not None:
-            q_painter.setPen(QtGui.QColor(255,0,0))
+            pen = QtGui.QPen(QtGui.QColor(255,0,0))
+            pen.setWidth(2)
+
+            q_painter.setPen(pen)
             q_painter.drawPath(self.path)
             # q_painter.drawLine(self.source_pos, self.dest_pos)
 
@@ -379,7 +348,7 @@ class ConnectionWidget(QtWidgets.QGraphicsItem):
         self.source_instance_widget.remove_connection(self)
         self.dest_instance_widget.remove_connection(self)
         print "deleted connection_widget"
-        
+
     # Method using QPainter to draw the edge points, spline
     # def draw_connection(self, q_painter):
     #     assert isinstance(q_painter, QtGui.QPainter)
@@ -408,3 +377,133 @@ class ConnectionWidget(QtWidgets.QGraphicsItem):
     #         q_painter.drawPoint(point[0], point[1])
     #         q_painter.fillRect(QtCore.QRect(point[0], point[1], 4,4), color)
     #     '''
+
+
+class DataportWidget(ConnectionWidget):
+
+    def draw_connector_type(self, source_point, dest_point):
+        assert isinstance(source_point, QtCore.QPointF)
+        assert isinstance(dest_point, QtCore.QPointF)
+
+        if source_point == dest_point:
+            return
+
+        s_to_d = dest_point - source_point
+        assert isinstance(s_to_d, QtCore.QPointF)
+
+        old_x = s_to_d.x()
+        s_to_d.setX(-s_to_d.y())
+        s_to_d.setY(old_x)
+
+        new_vector = self.change_vector_length(s_to_d, 10)
+        top_left = source_point + new_vector
+        top_right = dest_point + new_vector
+        bottom_left = source_point - new_vector
+        bottom_right = dest_point - new_vector
+
+        self.path.moveTo(top_left)
+        self.path.lineTo(top_right)
+        self.path.lineTo(bottom_right)
+        self.path.lineTo(bottom_left)
+        self.path.lineTo(top_left)
+
+
+class EventWidget(ConnectionWidget):
+
+    def draw_connector_type(self, source_point, dest_point):
+        assert isinstance(source_point, QtCore.QPointF)
+        assert isinstance(dest_point, QtCore.QPointF)
+
+        if source_point == dest_point:
+            return
+
+        s_to_d = dest_point - source_point
+        assert isinstance(s_to_d, QtCore.QPointF)
+        s_to_d = self.change_vector_length(s_to_d, 5)
+
+        start_point = source_point + s_to_d
+        end_point = dest_point - s_to_d
+
+        self.path.moveTo(source_point)
+        self.path.lineTo(start_point)
+
+        centre_point = self.change_vector_length(s_to_d, 14) + start_point
+
+        new_vector = QtCore.QPointF(-s_to_d.y(), s_to_d.x())
+        new_vector = self.change_vector_length(new_vector, 14)
+        arc_start_point = centre_point + new_vector
+
+        self.path.moveTo(arc_start_point)
+
+        top_left = centre_point - QtCore.QPointF(14, 14)
+        bottom_right = centre_point + QtCore.QPointF(14, 14)
+        rect = QtCore.QRectF(top_left, bottom_right)
+
+        straight_point = QtCore.QPointF(1,0)
+
+        start_straight_dot_product = QtCore.QPointF.dotProduct(new_vector, straight_point)
+        perpend_length = math.sqrt(new_vector.x()*new_vector.x() + new_vector.y()*new_vector.y())
+        straight_length = math.sqrt(straight_point.x()*straight_point.x() + straight_point.y()*straight_point.y())
+
+        start_angle = math.degrees(math.acos(start_straight_dot_product/(perpend_length*straight_length)))
+
+        if new_vector.y() > 0:
+            start_angle = 360-start_angle
+
+        self.path.arcTo(rect, start_angle, -180)
+
+        top_left = centre_point - QtCore.QPointF(6, 6)
+        bottom_right = centre_point + QtCore.QPointF(6, 6)
+        rect = QtCore.QRectF(top_left, bottom_right)
+
+        self.path.addEllipse(rect)
+
+        self.path.moveTo(end_point)
+        self.path.lineTo(dest_point)
+
+
+class ProcedureWidget(ConnectionWidget):
+
+    def draw_connector_type(self, source_point, dest_point):
+        assert isinstance(source_point, QtCore.QPointF)
+        assert isinstance(dest_point, QtCore.QPointF)
+
+        if source_point == dest_point:
+            return
+
+        s_to_d = dest_point - source_point
+        assert isinstance(s_to_d, QtCore.QPointF)
+        s_to_d = self.change_vector_length(s_to_d, 5)
+
+        start_point = source_point + s_to_d
+        end_point = dest_point - s_to_d
+
+        new_vector = QtCore.QPointF(-s_to_d.y(), s_to_d.x())
+        new_vector = self.change_vector_length(new_vector, 10)
+
+        self.path.moveTo(source_point)
+        self.path.lineTo(start_point)
+
+        top_left = start_point + new_vector
+        bottom_left = start_point - new_vector
+
+        s_to_d = self.change_vector_length(s_to_d, 14)
+
+        first_end = start_point + s_to_d
+
+        self.path.moveTo(top_left)
+        self.path.lineTo(bottom_left)
+        self.path.lineTo(first_end)
+        self.path.lineTo(top_left)
+
+        s_to_d = self.change_vector_length(s_to_d, 6)
+        top_left = top_left + s_to_d
+        bottom_left = bottom_left + s_to_d
+
+        self.path.moveTo(top_left)
+        self.path.lineTo(end_point)
+        self.path.lineTo(bottom_left)
+
+        self.path.moveTo(end_point)
+
+        self.path.lineTo(dest_point)

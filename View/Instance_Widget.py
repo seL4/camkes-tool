@@ -528,15 +528,20 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
         print "This is " + self.name + " and updating: " + str(connection.name)
 
         angle = 0
+        angle_set = False
         decrease_angle = False
 
         # other_widget = None
         if connection.source_instance_widget is self:
             other_widget = connection.dest_instance_widget
-            if connection.dest_angle < 0:
-                decrease_angle = True
+            if connection.dest_angle:
+                angle_set = True
+                if connection.dest_angle < 0:
+                    decrease_angle = True
         else:
             other_widget = connection.source_instance_widget
+            if connection.source_angle:
+                angle_set = True
             if connection.source_angle < 0:
                 decrease_angle = True
 
@@ -591,7 +596,6 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
 
         # --- Choose an angle, start with 0 degrees, and search through all connection points, looking for clashes
 
-
         for compare in self.connection_list:
             assert isinstance(compare, Connection_Widget.ConnectionWidget)
 
@@ -600,8 +604,6 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
             if compare is connection:
                 continue
 
-            compare_pos = None
-            compare_angle = None
 
             if compare.source_instance_widget is self:
                 compare_pos = compare.source_pos
@@ -617,21 +619,30 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
                 continue
 
             print "\t\ttheir angle is " + str(compare_angle) + " and ours is " + str(angle)
+
             while compare_angle == angle:
                 print "\t\ttried angle " + str(angle) + ", clashed"
-                if decrease_angle:
-                    angle += 30
+
+                if angle_set:
+                    if decrease_angle:
+                        angle += 35
+                    else:
+                        angle -= 35
                 else:
-                    angle -= 30
+                    angle = -angle
+                    if decrease_angle:
+                        angle -= 35
+
+                    decrease_angle = not decrease_angle
+
+
 
         print "\tFinal Pos found!  " + str(final_pos) + "  ,  " + str(angle)
 
         if connection.source_instance_widget is self:
-            connection.source_pos = final_pos
-            connection.source_angle = angle
+            connection.set_source_pos_angle(final_pos, angle)
         else:
-            connection.dest_pos = final_pos
-            connection.dest_angle = angle
+            connection.set_dest_pos_angle(final_pos, angle)
 
     # previous_position = None
     #
