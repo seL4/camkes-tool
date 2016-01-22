@@ -501,14 +501,18 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
 
     def mouseMoveEvent(self, mouse_event):
         self._moved_at_least_once = True
+        self.widget_moved.emit()
         super(InstanceWidget, self).mouseMoveEvent(mouse_event)
 
     def itemChange(self, change, value):
 
         if change == QtWidgets.QGraphicsWidget.ItemPositionHasChanged:  # and self._moved_at_least_once:
+            print "new position of " + str(self.name) + " is : " + str(self.scenePos())
             self.pinned = True
 
             self.update_connections()
+            print "About to emit, I am: " + str(self.__class__)
+
 
             # Tell graph controller that item has moved (signal)
 
@@ -525,7 +529,7 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
 
     def update_connection_position(self, connection):
         assert isinstance(connection, Connection_Widget.ConnectionWidget)
-        print "This is " + self.name + " and updating: " + str(connection.name)
+        # print "This is " + self.name + " and updating: " + str(connection.name)
 
         angle = 0
         angle_set = False
@@ -562,35 +566,35 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
 
         vector = other_widget_pos - our_pos
 
-        print "Connection " + connection.name + " from: " + str(connection.source_instance_widget.name) + " to " + str(
-                connection.dest_instance_widget.name)
-        print "\tother position:" + str(other_widget_pos) + " ours:" + str(our_pos)
-        print "\tvector: " + str(vector)
-        print "\tbounding rect: " + str(self.boundingRect())
+        # print "Connection " + connection.name + " from: " + str(connection.source_instance_widget.name) + " to " + str(
+        #         connection.dest_instance_widget.name)
+        # print "\tother position:" + str(other_widget_pos) + " ours:" + str(our_pos)
+        # print "\tvector: " + str(vector)
+        # print "\tbounding rect: " + str(self.boundingRect())
 
         y = vector.y() * math.fabs((self.boundingRect().width() / 2) / vector.x())
-        print "\ty is : " + str(y)
+        # print "\ty is : " + str(y)
 
         half_height = self.boundingRect().height() / 2 + 1  # Bit of room for rounding
 
         if -half_height <= y <= half_height:
             vector.setY(y)
             if vector.x() < 0:
-                print "\tYo here 1"
+                # print "\tYo here 1"
                 vector.setX(-self.boundingRect().width() / 2)
             else:
-                print "\tYo here 2"
+                # print "\tYo here 2"
                 vector.setX(self.boundingRect().width() / 2)
         else:
             vector.setX(vector.x() * math.fabs((self.boundingRect().height() / 2) / vector.y()))
             if vector.y() < 0:
-                print "\tYo here 3"
+                # print "\tYo here 3"
                 vector.setY(-self.boundingRect().height() / 2)
             else:
-                print "\tYo here 4"
+                # print "\tYo here 4"
                 vector.setY(self.boundingRect().height() / 2)
 
-        print "\tnew vector: " + str(vector)
+        # print "\tnew vector: " + str(vector)
 
         final_pos = our_pos + vector
 
@@ -599,7 +603,7 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
         for compare in self.connection_list:
             assert isinstance(compare, Connection_Widget.ConnectionWidget)
 
-            print "\tchecking clash with: " + str(compare.name)
+            # print "\tchecking clash with: " + str(compare.name)
 
             if compare is connection:
                 continue
@@ -615,13 +619,13 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
                 raise NotImplementedError  # Something went wrong
 
             if compare_pos != final_pos:
-                print "\t\tdoes not clash"
+                # print "\t\tdoes not clash"
                 continue
 
-            print "\t\ttheir angle is " + str(compare_angle) + " and ours is " + str(angle)
+            # print "\t\ttheir angle is " + str(compare_angle) + " and ours is " + str(angle)
 
             while compare_angle == angle:
-                print "\t\ttried angle " + str(angle) + ", clashed"
+                # print "\t\ttried angle " + str(angle) + ", clashed"
 
                 if angle_set:
                     if decrease_angle:
@@ -637,7 +641,7 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
 
 
 
-        print "\tFinal Pos found!  " + str(final_pos) + "  ,  " + str(angle)
+        # print "\tFinal Pos found!  " + str(final_pos) + "  ,  " + str(angle)
 
         if connection.source_instance_widget is self:
             connection.set_source_pos_angle(final_pos, angle)
