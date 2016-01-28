@@ -1,20 +1,21 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import six, math
+import six, math, random
+
+random.seed(20)
 
 from PyQt5 import QtGui, QtWidgets, QtCore
-
-# TODO: Make widget totally independent of instance_object, and make controller force AST_creator to search it up everytime,
-# TODO: Button for component details
-#       Use instance.name as identifier.
 
 import Connection_Widget
 from Model import Common
 
+
 class InstanceWidget(QtWidgets.QGraphicsWidget):
 
+    # Constants and private class variables
     _bounding_rect = None
+    _border_thickness = 7
 
     @property
     def velocity(self):
@@ -26,15 +27,6 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
     def velocity(self, value):
         assert isinstance(value, QtCore.QPointF)
         self._velocity = value
-
-    # @property
-    # def preferred_point(self):
-    #     return self._preferred_point
-    #
-    # @preferred_point.setter
-    # def preferred_point(self, value):
-    #     assert isinstance(value, QtCore.QPointF)
-    #     self._preferred_point = value
 
     @property
     def pinned(self):
@@ -50,7 +42,7 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
     @property
     def name(self):
         if self._name is None:
-            self._name = "Uninitialised widget"  # TODO make subclass of exception, catch and show a dialog
+            self._name = "Uninitialised widget"
         return self._name
 
     @name.setter
@@ -91,12 +83,14 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
         self._hardware = value
         self.update_ui()
 
+    # Provides
     @property
     def provides(self):
         if self._provides is None:
             self._provides = []
         return self._provides
 
+    # TODO: Handle multiple connections
     def add_provide(self, name, interface_type, connection=None):
         assert isinstance(name, six.string_types)
         assert isinstance(interface_type, six.string_types)
@@ -104,7 +98,6 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
         self.provides.append({'Name': name, 'Interface_type': interface_type, 'Connection_Widget': connection})
 
         self.update_ui()
-        # TODO NotImplementedError
 
     def add_provide_connection(self, interface_name, connection):
         assert self._provides is not None
@@ -125,6 +118,7 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
     def delete_provide(self, name):
         raise NotImplementedError
 
+    # Uses
     @property
     def uses(self):
         if self._uses is None:
@@ -159,6 +153,7 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
     def delete_use(self, name):
         raise NotImplementedError
 
+    # Emits
     @property
     def emits(self):
         if self._emits is None:
@@ -193,6 +188,7 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
     def delete_emit(self, name):
         raise NotImplementedError
 
+    # Consumes
     @property
     def consumes(self):
         if self._consumes is None:
@@ -229,6 +225,7 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
     def delete_consume(self, name):
         raise NotImplementedError
 
+    # Dataport
     @property
     def dataport(self):
         if self._dataport is None:
@@ -268,6 +265,10 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
 
     def delete_dataport(self, name):
         raise NotImplementedError
+
+    @property
+    def connection_list(self):
+        return self._connections_list
 
     # TODO: connection overrides, for multiway connection. Eg. eigenConnection
     def add_connection(self, connection):
@@ -317,17 +318,12 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
 
         self._connections_list.remove(connection)
 
-    @property
-    def connection_list(self):
-        return self._connections_list
-
     # -------
 
     # Signals & Slots
     open_component_info = QtCore.pyqtSignal(six.string_types)
     widget_moved = QtCore.pyqtSignal()
 
-    # TODO: Phase out instance_object
     def __init__(self, preferred_point=None):
         super(InstanceWidget, self).__init__()
         # Model
@@ -349,6 +345,8 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
         self._connections_list = []
 
         # GUI
+        self.color = QtGui.QColor(245,245,245)
+
         self.setFlag(QtWidgets.QGraphicsWidget.ItemIsMovable)
 
         layout = QtWidgets.QGraphicsLinearLayout()
@@ -358,7 +356,7 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
 
         self.update_ui()
 
-    _border_thickness = 7
+    # --- UI Functions ---
 
     def update_ui(self):
 
@@ -391,27 +389,6 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
 
         self.update()
 
-        # layout = self.layout()
-        # assert isinstance(layout, QtWidgets.QGraphicsLinearLayout)
-        #
-        # string = self.name + ": " + self.component_type
-        # new_label = QtWidgets.QLabel(string)
-        #
-        # proxy_widget = QtWidgets.QGraphicsProxyWidget()
-        # proxy_widget.setWidget(new_label)
-        #
-        # layout.addItem(proxy_widget)
-        #
-        # if self.control:
-        #     proxy_widget = QtWidgets.QGraphicsProxyWidget()
-        #     proxy_widget.setWidget(QtWidgets.QLabel("control;"))
-        #     layout.addItem(proxy_widget)
-        #
-        # if self.hardware:
-        #     proxy_widget = QtWidgets.QGraphicsProxyWidget()
-        #     proxy_widget.setWidget(QtWidgets.QLabel("hardware;"))
-        #     layout.addItem(proxy_widget)
-
     def boundingRect(self):
         self.update_ui()  # TODO: NEED TO RETHINK THIS
         return self._bounding_rect
@@ -420,11 +397,20 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
 
         assert isinstance(painter, QtGui.QPainter)
         assert isinstance(style_options, QtWidgets.QStyleOptionGraphicsItem)
-        assert isinstance(widget, QtWidgets.QWidget)
+        # assert isinstance(widget, QtWidgets.QWidget)
 
         super(InstanceWidget, self).paint(painter, style_options, widget)
-        painter.fillRect(self.boundingRect(), QtGui.QColor(245, 245, 245))
-        painter.drawRect(self.boundingRect())
+
+        painter.setRenderHint(QtGui.QPainter.Antialiasing)
+
+        rounded_rect = QtGui.QPainterPath()
+        assert isinstance(rounded_rect, QtGui.QPainterPath)
+        rounded_rect.addRoundedRect(self.boundingRect(),5,5)
+
+        # painter.fillRect(self.boundingRect(), self.color)
+        # painter.drawRect(self.boundingRect())
+        painter.fillPath(rounded_rect, self.color)
+        painter.drawPath(rounded_rect)
 
         # TODO: Update rect with new size
 
@@ -476,6 +462,18 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
         if self.hardware:
             painter.drawText(bounding_rect_font, QtCore.Qt.AlignCenter, "H")
 
+    # --- Event Handling ---
+    def itemChange(self, change, value):
+
+        if change == QtWidgets.QGraphicsWidget.ItemPositionHasChanged:  # and self._moved_at_least_once:
+            print "new position of " + str(self.name) + " is : " + str(self.scenePos())
+            self.pinned = True
+
+            self.update_connections()
+            print "About to emit, I am: " + str(self.__class__)
+
+        return super(InstanceWidget, self).itemChange(change, value)
+
     def mousePressEvent(self, mouse_event):
         # Change to must press a button to open component info
 
@@ -503,20 +501,6 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
         self._moved_at_least_once = True
         self.widget_moved.emit()
         super(InstanceWidget, self).mouseMoveEvent(mouse_event)
-
-    def itemChange(self, change, value):
-
-        if change == QtWidgets.QGraphicsWidget.ItemPositionHasChanged:  # and self._moved_at_least_once:
-            print "new position of " + str(self.name) + " is : " + str(self.scenePos())
-            self.pinned = True
-
-            self.update_connections()
-            print "About to emit, I am: " + str(self.__class__)
-
-
-            # Tell graph controller that item has moved (signal)
-
-        return super(InstanceWidget, self).itemChange(change, value)
 
     def update_connections(self):
 
@@ -571,8 +555,13 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
         # print "\tother position:" + str(other_widget_pos) + " ours:" + str(our_pos)
         # print "\tvector: " + str(vector)
         # print "\tbounding rect: " + str(self.boundingRect())
+        print vector.y()
+        print vector.x()
 
-        y = vector.y() * math.fabs((self.boundingRect().width() / 2) / vector.x())
+        if vector.x() == 0:
+            y = self.boundingRect().height() # To force into "Yo here 3/4"
+        else:
+            y = vector.y() * math.fabs((self.boundingRect().width() / 2) / vector.x())
         # print "\ty is : " + str(y)
 
         half_height = self.boundingRect().height() / 2 + 1  # Bit of room for rounding
@@ -639,42 +628,10 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
 
                     decrease_angle = not decrease_angle
 
-
-
-        # print "\tFinal Pos found!  " + str(final_pos) + "  ,  " + str(angle)
-
         if connection.source_instance_widget is self:
             connection.set_source_pos_angle(final_pos, angle)
         else:
             connection.set_dest_pos_angle(final_pos, angle)
-
-    # previous_position = None
-    #
-    # def mouseMoveEvent(self, mouse_event):
-    #     assert isinstance(mouse_event, QtGui.QMouseEvent)
-    #
-    #     # print "position is " + str(mouse_event.localPos())
-    #
-    #     # print "instance widget ------------------------------------------- " + str(self.preferred_point)
-    #
-    #     if self.previous_position:
-    #         assert isinstance(self.previous_position, QtCore.QPointF)
-    #         # Calculate relative movement between the movement from the last millisecond (saved below) and
-    #         # current position
-    #         print "old point is: " + str(self.preferred_point)
-    #         print "delta x" + str(mouse_event.x() - self.previous_position.x())
-    #         print "delta y" + str(mouse_event.y() - self.previous_position.y())
-    #         self.preferred_point = QtCore.QPointF(self.preferred_point.x() + (mouse_event.x() - self.previous_position.x()),
-    #                                               self.preferred_point.y() + (mouse_event.y() - self.previous_position.y()))
-    #         print "new Point is: " + str(self.preferred_point)
-    #         self.widget_moved.emit()
-    #         self.previous_position = None
-    #     else:
-    #         self.previous_position = mouse_event.localPos()
-    #
-    # def mouseReleaseEvent(self, QMouseEvent):
-    #     # Reset delta move position
-    #     pass
 
     def clear_canvas(self):
         layout = self.layout()

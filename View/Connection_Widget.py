@@ -153,7 +153,7 @@ class ConnectionWidget(QtWidgets.QGraphicsItem):
         if self.source_pos and self.dest_pos:
             self.clear_path()
 
-            print "Making path - source is :" + str(self.source_pos) + " destination is:" +str(self.dest_pos) + " angle is:" + str(self.source_angle)
+            # print "Making path - source is :" + str(self.source_pos) + " destination is:" +str(self.dest_pos) + " angle is:" + str(self.source_angle)
 
             self.path.moveTo(self.source_pos)
 
@@ -251,7 +251,7 @@ class ConnectionWidget(QtWidgets.QGraphicsItem):
 
         s_to_d = dest_pos - source_pos
         assert isinstance(s_to_d, QtCore.QPointF)
-        print "\ts_to_d is " + str(s_to_d)
+        # print "\ts_to_d is " + str(s_to_d)
 
         normal_length = 10
 
@@ -320,7 +320,7 @@ class ConnectionWidget(QtWidgets.QGraphicsItem):
         q_painter.setRenderHint(QtGui.QPainter.Antialiasing)
 
         if self.source_pos is not None and self.dest_pos is not None:
-            pen = QtGui.QPen(QtGui.QColor(255,0,0))
+            pen = QtGui.QPen(QtGui.QColor(66,66,66))
             pen.setWidth(2)
 
             q_painter.setPen(pen)

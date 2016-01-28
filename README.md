@@ -88,3 +88,4 @@ In the risk of losing the ideas suggested:
 * Modularise in such a way that Controller doesn't rely on Qt, so that graphics library can be changed easily
 * With titles, can do &, like "C&ase sensitive", which would make it possible to select Case Sensitive button with alt+a
 * Change "Angle" in connection_widget to better name
+* Subclass exception, catch and show them as a dialog

@@ -1,13 +1,31 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from PyQt5 import QtWidgets, QtGui, QtCore
+import random
+random.seed(2)
 
-from Connection_Widget import ConnectionWidget
+from PyQt5 import QtWidgets, QtGui, QtCore, QtSvg
+# For QtSvg
+# install python-pyqt5.qtsvg
+# install libqt5svg5-dev
+
+from pygraphviz import *
+# NOTES:    pip install pygraphviz --install-option="--include-path=/usr/include/graphviz"
+#                                  --install-option="--library-path=/usr/lib/graphviz/"
+#           http://stackoverflow.com/questions/32885486/pygraphviz-importerror-undefined-symbol-agundirected
+# from graphviz import Graph
+import pydotplus
+
+from camkes.ast import *
+from Model.AST_Model import ASTModel
+from Model import Common
+
+from Connection_Widget import ConnectionWidget, DataportWidget, ProcedureWidget, EventWidget
 from Instance_Widget import InstanceWidget
+from Save_Option_Dialog import SaveOptionDialog
+
 
 class GraphWidget(QtWidgets.QGraphicsView):
-
     @property
     def connection_widgets(self):
         # Lazy instantiation
@@ -15,22 +33,22 @@ class GraphWidget(QtWidgets.QGraphicsView):
             self._connection_widgets = []
         return self._connection_widgets
 
-    # @property
-    # def instance_widgets(self):
-    #     # Lazy instantiation
-    #     if self._instance_widgets is None:
-    #         self._instance_widgets = []
-    #     return self._instance_widgets
-    #
-    # @instance_widgets.setter
-    # def instance_widgets(self, value):
-    #     assert isinstance(value, list)
-    #     self._instance_widgets = value
+    @property
+    def widget_instances(self):
+        # Lazy Instantiation
+        if self._widget_instances is None:
+            self._widget_instances = []
+        return self._widget_instances
+
+    @widget_instances.setter
+    def widget_instances(self, value):
+        assert isinstance(value, list)
+        self._widget_instances = value
 
     @property
     def zoom_in_button(self):
         if self._zoom_in is None:
-            self._zoom_in  = QtWidgets.QPushButton("Zoom In", self)
+            self._zoom_in = QtWidgets.QPushButton("Zoom In", self)
             self._zoom_in.setAutoRepeat(True)
             self._zoom_in.clicked.connect(self.zoom_in)
             self.update_outer_ui()
@@ -45,22 +63,234 @@ class GraphWidget(QtWidgets.QGraphicsView):
             self.update_outer_ui()
         return self._zoom_out
 
+    @property
+    def save_picture_button(self):
+        if self._save_picture_button is None:
+            self._save_picture_button = QtWidgets.QPushButton("Save Image", self)
+            self._save_picture_button.setAutoRepeat(False)
+            self._save_picture_button.clicked.connect(self.save_picture)
+            self.update_outer_ui()
+        return self._save_picture_button
+
+    @property
+    def autolayout_button(self):
+        if self._autolayout_button is None:
+            self._autolayout_button = QtWidgets.QPushButton("Autolayout", self)
+            self._autolayout_button.setAutoRepeat(False)
+            self._autolayout_button.clicked.connect(self.autolayout)
+            self.update_outer_ui()
+        return self._autolayout_button
+
+    @property
+    def ast(self):
+        return self._ast
+
+    @ast.setter
+    def ast(self, value):
+        assert isinstance(value, LiftedAST)
+        self._ast = value
+
+        self.sync_model()
+
+        # TODO:
+        # If layout exist:
+        # Place nodes in original positions. New nodes are placed in middle
+
+        # If layout doesn't exist:
+        # Use graphviz to place nodes in position
+        self.autolayout()
+
+    def random_color_generator(self):
+        if self._color_seed is None:
+            self._color_seed = 0.9214
+
+        color = QtGui.QColor()
+        color = color.fromHslF(self._color_seed, 1, 0.78, 1)
+
+        self._color_seed = (self._color_seed + 0.618033988749895) % 1
+
+        return color
+
+
+
     def __init__(self):
         super(GraphWidget, self).__init__()
         self._connection_widgets = None
-        self._instance_widgets = None
+        self._widget_instances = None
         self._zoom_in = None
         self._zoom_out = None
+        self._save_picture_button = None
+        self._autolayout_button = None
+        self._ast = None
+        self._color_seed = None
 
+        # Place new scene
         scene = QtWidgets.QGraphicsScene(self)
-        scene.setItemIndexMethod(QtWidgets.QGraphicsScene.NoIndex) #TODO: Not sure if this is necessary
-        scene.setSceneRect(0,0,500,500) # Random size, should be given when controller renders
-
+        scene.setItemIndexMethod(QtWidgets.QGraphicsScene.NoIndex)  # TODO: Not sure if this is necessary
+        scene.setSceneRect(0, 0, 50, 50)  # Random size, should be given when controller renders
         self.setScene(scene)
 
-        self.setMinimumSize(500,500)
+        self.setMinimumSize(500, 500)
 
         self.update_outer_ui()
+
+    # --- Model Functions ---
+
+    def sync_model(self):
+
+        # Get assembly from the ast
+        ast_assembly = self.ast.assembly
+        assert isinstance(ast_assembly, Assembly)
+
+        # --- For each instance, create a node in the graph & a widget. ---
+        instance_list_copy = list(ast_assembly.instances)
+
+        # Update widget's instance object counterpart
+        for widget in self.widget_instances:
+            assert isinstance(widget, InstanceWidget)
+            new_instance_object = ASTModel.find_instance(instance_list_copy, widget.name)
+            if new_instance_object is not None:
+                # If found, replace widget's local copy
+                self.sync_instance(new_instance_object, widget)
+                instance_list_copy.remove(new_instance_object)
+            else:
+                # Instance object for widget not found, probably deleted, so widget not necessary
+                self.remove_instance_widget(widget)
+
+        for instance in instance_list_copy:
+            # For all new instances (instances without widget counterpart)
+            # Make a new widget
+            assert isinstance(instance, Instance)
+
+            new_widget = InstanceWidget()
+            new_widget.color = self.random_color_generator()
+            self.sync_instance(instance, new_widget)
+            new_widget.widget_moved.connect(self.update_view)
+
+            # Add to internal list of widgets
+            self.widget_instances.append(new_widget)
+
+            # Add to scene
+            self.add_instance_widget(new_widget, 0, 0)
+
+        self.clear_connection_widgets()
+
+        # Create connection widgets for all connections in assembly
+        assert isinstance(self.ast.assembly, Assembly)
+        for connection in self.ast.assembly.connections:
+
+            assert isinstance(connection, Connection)
+
+            for from_instance_end in connection.from_ends:
+                assert isinstance(from_instance_end, ConnectionEnd)
+                from_instance = from_instance_end.instance
+                assert isinstance(from_instance, Instance)
+
+                for to_instance_end in connection.to_ends:
+                    assert isinstance(to_instance_end, ConnectionEnd)
+                    to_instance = to_instance_end.instance
+                    assert isinstance(to_instance, Instance)
+
+                    new_connection_widget = self.create_connection_widget(connection,
+                                                                          from_instance.name,
+                                                                          from_instance_end.interface.name,
+                                                                          to_instance.name,
+                                                                          to_instance_end.interface.name)
+
+                    self.connection_widgets.append(new_connection_widget)
+                    self.add_connection_widget(new_connection_widget)
+
+    @staticmethod
+    def sync_instance(instance, widget):
+        assert isinstance(instance, Instance)
+        assert isinstance(widget, InstanceWidget)
+
+        component = instance.type
+        assert isinstance(component, Component)
+
+        widget.name = instance.name
+        widget.component_type = component.name
+
+        widget.control = component.control
+        widget.hardware = component.hardware
+
+        for provide in component.provides:
+            assert isinstance(provide, Provides)
+            widget.add_provide(provide.name, provide.type.name)
+
+        for use in component.uses:
+            assert isinstance(use, Uses)
+            widget.add_use(use.name, use.type.name)
+
+        for emit in component.emits:
+            assert isinstance(emit, Emits)
+            widget.add_emit(emit.name, emit.type)
+
+        for consumes in component.consumes:
+            assert isinstance(consumes, Consumes)
+            widget.add_consume(consumes.name, consumes.type, consumes.optional)  # Optional bool
+
+        for dataport in component.dataports:
+            assert isinstance(dataport, Dataport)
+            widget.add_dataport(dataport.name, dataport.type, dataport.optional)  # Optional bool
+
+            # TODO add attributes, mutex and semaphores
+
+    def create_connection_widget(self, connection, from_instance, from_interface, to_instance, to_interface):
+        # Get source and destination widgets
+        source_widget = self.find_instance_widget(from_instance)
+        assert source_widget is not None
+
+        dest_widget = self.find_instance_widget(to_instance)
+        assert dest_widget is not None
+
+        # Create appropriate connection widget (based on type)
+        if connection.type.from_type == Common.Dataport:
+            new_connection_widget = DataportWidget(name=connection.name,
+                                                   con_type=connection.type.name,
+                                                   source=source_widget,
+                                                   source_type=connection.type.from_type,
+                                                   source_inf_name=from_interface,
+                                                   dest=dest_widget,
+                                                   dest_type=connection.type.to_type,
+                                                   dest_inf_name=to_interface)
+        elif connection.type.from_type == Common.Procedure:
+            new_connection_widget = ProcedureWidget(name=connection.name,
+                                                    con_type=connection.type.name,
+                                                    source=source_widget,
+                                                    source_type=connection.type.from_type,
+                                                    source_inf_name=from_interface,
+                                                    dest=dest_widget,
+                                                    dest_type=connection.type.to_type,
+                                                    dest_inf_name=to_interface)
+        elif connection.type.from_type == Common.Event:
+            new_connection_widget = EventWidget(name=connection.name,
+                                                con_type=connection.type.name,
+                                                source=source_widget,
+                                                source_type=connection.type.from_type,
+                                                source_inf_name=from_interface,
+                                                dest=dest_widget,
+                                                dest_type=connection.type.to_type,
+                                                dest_inf_name=to_interface)
+        else:
+            new_connection_widget = ConnectionWidget(name=connection.name,
+                                                     con_type=connection.type.name,
+                                                     source=source_widget,
+                                                     source_type=connection.type.from_type,
+                                                     source_inf_name=from_interface,
+                                                     dest=dest_widget,
+                                                     dest_type=connection.type.to_type,
+                                                     dest_inf_name=to_interface)
+
+        return new_connection_widget
+
+    def find_instance_widget(self, name):
+        for instance in self.widget_instances:
+            assert isinstance(instance, InstanceWidget)
+            if instance.name == name:
+                return instance
+
+        return None
 
     def add_instance_widget(self, new_widget, x_pos, y_pos):
 
@@ -71,30 +301,17 @@ class GraphWidget(QtWidgets.QGraphicsView):
             # set parent widget of new widget to be self
             self.scene().addItem(new_widget)
             new_widget.setZValue(5)
-            new_widget.widget_moved.connect(self.instance_widget_moved)
+            new_widget.widget_moved.connect(self.update_view)
 
-        new_widget.setPos(x_pos - (new_widget.preferredSize().width()/2), y_pos - (new_widget.preferredSize().height()/2))
-
-
-    # def drawBackground(self, q_painter, rectangle):
-    #     super(GraphWidget, self).drawBackground(q_painter, rectangle)
-    #
-    #     # Loop through all connectors
-    #     for connector in self.connection_widgets:
-    #         assert isinstance(connector, ConnectionWidget)
-    #         connector.draw_connection(q_painter)
+        new_widget.setPos(x_pos - (new_widget.preferredSize().width() / 2),
+                          y_pos - (new_widget.preferredSize().height() / 2))
 
     def remove_instance_widget(self, old_widget):
+        # TODO: Remove from list and from scene
         raise NotImplementedError
 
     def add_connection_widget(self, new_connection):
-        """
-
-        :type new_connection: ConnectionWidget
-        """
         assert isinstance(new_connection, ConnectionWidget)
-        self.connection_widgets.append(new_connection)
-
         self.scene().addItem(new_connection)
         new_connection.setZValue(1)
 
@@ -108,66 +325,64 @@ class GraphWidget(QtWidgets.QGraphicsView):
             self.connection_widgets.remove(connection)
             del connection
 
+    # --- View Function --
+    # TODO: Pick better name
+    def layout_from_configuration(self):
+        raise NotImplementedError
+        # TODO: Place all widgets in the position specified in the file
+        # Place other widgets in middle of screen
 
-    # Set UI Functions
-    def setViewGeometry(self, size_x, size_y):
-        print "Set view geometry called"
-        self.scene().setSceneRect(0,0,size_x, size_y)
-        self.setMinimumSize(500, 500)
-        
-    def mousePressEvent(self, mouse_event):
-        super(GraphWidget, self).mousePressEvent(mouse_event)
+    def autolayout(self):
+        # TODO
+        # Create a graph_viz representation
+        graph_viz = AGraph(strict=False, spline="line", directed=True)
 
-        assert isinstance(mouse_event, QtGui.QMouseEvent)
-        print "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tgraph widget - clicked at: " + str(self.mapToScene(mouse_event.pos()))
+        for widget_instance in self.widget_instances:
+            assert isinstance(widget_instance, InstanceWidget)
 
-    def resizeEvent(self, resize_event):
-        assert isinstance(resize_event, QtGui.QResizeEvent)
-        super(GraphWidget, self).resizeEvent(resize_event)
+            size = widget_instance.preferredSize()
+            assert isinstance(size, QtCore.QSizeF)
 
-        self.update_outer_ui()
+            graph_viz.add_node(widget_instance.name, width=size.width() / 72.0,
+                               height=size.height() / 72.0, shape="rect")
 
-    def update_outer_ui(self):
-        bottom_corner = self.pos() + QtCore.QPoint(self.width(), self.height())
+        for connection in self.connection_widgets:
+            assert isinstance(connection, ConnectionWidget)
+            graph_viz.add_edge(u=connection.source_instance_widget.name, v=connection.dest_instance_widget.name)
 
-        zoom_in_position = bottom_corner - QtCore.QPoint(self.zoom_in_button.sizeHint().width(),
-                                                         self.zoom_in_button.sizeHint().height()) \
-                           - QtCore.QPoint(20, 20)
+        graph_viz.layout('dot')
+        raw_dot_data = graph_viz.draw(format='dot')
+        print raw_dot_data
 
-        self.zoom_in_button.move(zoom_in_position)
-        self.zoom_in_button.show()
+        dot_data = pydotplus.graph_from_dot_data(raw_dot_data)
 
-        zoom_out_position = zoom_in_position - QtCore.QPoint(self.zoom_out_buttom.sizeHint().width() + 20, 0)
+        for instance_widget in self.widget_instances:
+            assert isinstance(instance_widget, InstanceWidget)
 
-        self.zoom_out_buttom.move(zoom_out_position)
-        self.zoom_out_buttom.show()
+            # Get instance's name
+            instance_name = instance_widget.name
 
-    def instance_widget_moved(self):
-        widget = self.sender()
-        assert isinstance(widget, InstanceWidget)
+            # Get the node representing this instance, and get its attributes
+            node_list = dot_data.get_node(instance_name)
+            assert len(node_list) == 1  # Should only be one node
+            assert isinstance(node_list[0], pydotplus.Node)
+            node_attributes_dict = node_list[0].get_attributes()
 
+            # Extract position of the node
+            node_position_list = Common.extract_numbers(node_attributes_dict['pos'])
+            assert len(node_position_list) is 1  # Should only be one position
+            node_position = node_position_list[0]
 
+            self.add_instance_widget(instance_widget, x_pos=node_position[0], y_pos=node_position[1])
 
-        # print "Widget moved: " + str(widget.scenePos())
+        self.update_view()
+
+    def update_view(self):
 
         rect = self.sceneRect()
         assert isinstance(rect, QtCore.QRectF)
 
         print "Rect before: " + str(rect)
-
-        # if rect.x() > widget.scenePos().x():
-        #     rect.setX(widget.scenePos().x())
-        #
-        # if rect.y() > widget.scenePos().y():
-        #     rect.setY(widget.scenePos().y())
-        #
-        # if rect.right() < (widget.scenePos().x() + widget.boundingRect().width()):
-        #     rect.setRight((widget.scenePos().x() + widget.boundingRect().width()))
-        #
-        # if rect.bottom() < (widget.scenePos().y() + widget.boundingRect().height()):
-        #     rect.setBottom((widget.scenePos().y() + widget.boundingRect().height()))
-        #
-        # print "Rect after: " + str(rect)
 
         smallest_x = 0
         smallest_y = 0
@@ -194,21 +409,147 @@ class GraphWidget(QtWidgets.QGraphicsView):
                 largest_y = bottom_corner.y()
 
         print str(smallest_x) + "," + str(smallest_y) + "," + str(largest_x) + "," + str(largest_y)
-        new_rect = QtCore.QRectF(smallest_x, smallest_y, largest_x-smallest_x, largest_y-smallest_y)
+        new_rect = QtCore.QRectF(smallest_x, smallest_y, largest_x - smallest_x, largest_y - smallest_y)
 
         print "Rect after: " + str(new_rect)
 
-
         self.setSceneRect(new_rect)
 
+        # TODO: Save layout info
+
+    def update_outer_ui(self):
+        bottom_corner = self.pos() + QtCore.QPoint(self.width(), self.height())
+
+        zoom_in_position = bottom_corner - QtCore.QPoint(self.zoom_in_button.sizeHint().width(),
+                                                         self.zoom_in_button.sizeHint().height()) \
+                                         - QtCore.QPoint(20, 20)
+
+        self.zoom_in_button.move(zoom_in_position)
+        self.zoom_in_button.show()
+
+        zoom_out_position = zoom_in_position - QtCore.QPoint(self.zoom_out_buttom.sizeHint().width() + 20, 0)
+
+        self.zoom_out_buttom.move(zoom_out_position)
+        self.zoom_out_buttom.show()
+
+        save_picture_position = zoom_in_position - QtCore.QPoint(self.save_picture_button.sizeHint().width() -
+                                                                 self.zoom_in_button.sizeHint().width(),
+                                                                 self.zoom_out_buttom.sizeHint().height() + 20)
+
+        self.save_picture_button.move(save_picture_position)
+        self.save_picture_button.show()
+
+        autolayout_position = save_picture_position - QtCore.QPoint(self.autolayout_button.sizeHint().width() -
+                                                                 self.save_picture_button.sizeHint().width(),
+                                                                 self.save_picture_button.sizeHint().height() + 20)
+
+        self.autolayout_button.move(autolayout_position)
+        self.autolayout_button.show()
 
     def zoom_in(self):
         print "Zoom in"
-        self.scale(1.1,1.1)
+        self.scale(1.1, 1.1)
 
     def zoom_out(self):
         print "Zoom out"
-        self.scale(0.9,0.9)
+        self.scale(0.9, 0.9)
 
-    # def mouseMoveEvent(self, mouse_event):
-    #     print "graph widget " + str(mouse_event.pos())
+    def save_picture(self):
+        print "saving picture"
+
+
+        # Ask user whether they want png or svg
+        # If png, ask what dimensions
+        save_option_dialog = SaveOptionDialog(self, self.sceneRect())
+        assert isinstance(save_option_dialog, SaveOptionDialog)
+        dialog_code = save_option_dialog.exec_()
+
+        if not dialog_code:
+            return
+
+        if save_option_dialog.picture_type() == save_option_dialog.PNG:
+            file_filter = "Image (*.png)"
+        elif save_option_dialog.picture_type() == save_option_dialog.SVG:
+            file_filter = "Scalable Vector Graphics (*.svg)"
+
+        filename = QtWidgets.QFileDialog.getSaveFileName(caption="Save file",
+                                                         directory=self.get_root_location(with_name=True),
+                                                         filter=file_filter,
+                                                         options=QtWidgets.QFileDialog.DontUseNativeDialog)
+
+        image_location = filename[0]  # getSaveFileName returns a tuple. First index of tuple is the file name
+
+        if image_location.rfind('.') != -1:
+            image_location = image_location[:image_location.rfind('.')]
+
+        if len(image_location) <= 0:
+            # Image location is not valid
+            return
+
+        rect = self.sceneRect()
+        rect.adjust(-50, -50, 50, 50)
+
+        painter = QtGui.QPainter()
+
+        if save_option_dialog.picture_type() == save_option_dialog.PNG:
+            image = QtGui.QImage(save_option_dialog.user_width(),
+                                 save_option_dialog.user_height(),
+                                 QtGui.QImage.Format_ARGB32)
+            image.fill(QtCore.Qt.transparent)
+
+            painter.begin(image)
+            painter.setRenderHint(QtGui.QPainter.Antialiasing)
+            self.scene().render(painter, source=rect)
+            painter.end()
+
+            print image_location
+            image.save(image_location + ".png")
+
+        elif save_option_dialog.picture_type() == save_option_dialog.SVG:
+            print image_location
+            print QtCore.QSize(rect.width(), rect.height())
+            print rect
+            generator = QtSvg.QSvgGenerator()
+            generator.setFileName(image_location + ".svg")
+            generator.setSize(QtCore.QSize(rect.width(), rect.height()))
+            generator.setViewBox(rect)
+            generator.setTitle(save_option_dialog.user_title())
+            generator.setDescription(save_option_dialog.user_description())
+
+            painter.begin(generator)
+            painter.setRenderHint(QtGui.QPainter.Antialiasing)
+            self.scene().render(painter, source=rect)
+            painter.end()
+
+        else:
+            return
+
+
+
+
+    def get_root_location(self, with_name=False):
+        assembly = self.ast.assembly
+        assert isinstance(assembly, Assembly)
+        location = assembly.location
+        assert isinstance(location, SourceLocation)
+
+        if with_name:
+            character = '.'
+            return location.filename[:location.filename.rfind(character)]
+        else:
+            character = '/'
+            return location.filename[:location.filename.rfind(character)+1]
+
+    # --- Overridden Functions ---
+
+    def mousePressEvent(self, mouse_event):
+        super(GraphWidget, self).mousePressEvent(mouse_event)
+
+        assert isinstance(mouse_event, QtGui.QMouseEvent)
+        print "graph widget - clicked at: " + str(self.mapToScene(mouse_event.pos()))
+
+    def resizeEvent(self, resize_event):
+        assert isinstance(resize_event, QtGui.QResizeEvent)
+        super(GraphWidget, self).resizeEvent(resize_event)
+
+        self.update_outer_ui()
