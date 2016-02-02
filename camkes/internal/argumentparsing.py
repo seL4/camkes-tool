@@ -201,7 +201,7 @@ def parse_args(tool):
         help='Try to use large frames when possible.')
     add_arg('--word-size', type=int, default=32,
         help='Native word size of the target platform.')
-    add_arg('--architecture', default='arm', choices=('arm', 'arm_hyp', 'ia32'),
+    add_arg('--architecture', default='aarch32', choices=('aarch32', 'arm_hyp', 'ia32'),
         help='Architecture of the target platform.')
 
     return p.parse_args()

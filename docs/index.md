@@ -933,7 +933,7 @@ all tools.
 > The target architecture for which code should be generated. This argument is
   only relevant to the runner. Currently the valid options are:
 
-  * "arm" - 32-bit ARM (default)
+  * "aarch32" - 32-bit ARM (default)
   * "arm_hyp" - ARM Hyp mode
   * "ia32" - 32-bit x86
 
