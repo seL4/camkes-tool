@@ -126,7 +126,7 @@ void * /*? me.from_interface.name ?*/_unwrap_ptr(dataport_ptr_t *p) {
     };
 
     /*- if arch == 'arm' -*/
-    static inline int sel4_flush_cache(seL4_CPtr frame_cap, seL4_Word start, seL4_Word end) {
+    static int sel4_flush_cache(seL4_CPtr frame_cap, seL4_Word start, seL4_Word end) {
         return seL4_ARM_Page_Clean_Data(frame_cap, start, end);
     }
     /*- endif -*/
