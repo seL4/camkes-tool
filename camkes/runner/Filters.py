@@ -20,6 +20,8 @@ from NameMangling import Perspective
 PAGE_SIZE = 4096 # bytes
 IPC_BUFFER_SIZE = 512 # bytes
 
+HARDWARE_FRAME_NAME_PATTERN = re.compile(r'([^ ]*) \(([^.]*)\.([^.]*)\)$')
+
 def find_assembly(ast):
     assemblies = [x for x in ast if isinstance(x, AST.Assembly)]
     assert len(assemblies) == 1 # Our parent should have ensured this.
@@ -237,10 +239,14 @@ def find_hardware_frame_in_cspace(cspace, paddr, instance_name, interface_name):
     This function expects name of the form "eventual_name (instance_name.interface_name)".
     When a match is found, the object name is changed to "eventual_name".
     """
-
     for cap in cspace.cnode.slots.values():
+
+        if cap is None:
+            continue
+
         obj = cap.referent
-        match = re.match(r"([^ ]*) \(([^.]*)\.([^.]*)\)", obj.name)
+
+        match = HARDWARE_FRAME_NAME_PATTERN.match(obj.name)
         if isinstance(obj, Frame) and obj.paddr == paddr and \
                 match is not None \
                 and match.group(2) == instance_name \
@@ -248,7 +254,11 @@ def find_hardware_frame_in_cspace(cspace, paddr, instance_name, interface_name):
             obj.name = match.group(1)
             return cap
 
-    raise Exception("Can't find frame for device memory in cspace")
+    # If no cap was found it means the hardware dataport template didn't allocate a
+    # frame at that address. Since this template allocates all hardware dataport
+    # frames, this indicates either the template isn't generating the correct frames
+    # or this function was called erroneously.
+    assert False
 
 def collapse_shared_frames(ast, obj_space, cspaces, elfs, options, **_):
     """Find regions in virtual address spaces that are intended to be backed by
@@ -473,9 +483,15 @@ def collapse_shared_frames(ast, obj_space, cspaces, elfs, options, **_):
             # This indicates an error, and the object name is invalid in capdl,
             # so catch the error here rather than having the capdl translator fail.
             for cap in cspaces[i.address_space].cnode.slots.values():
-                match = re.match(r"([^ ]*) \(([^.]*)\.([^.]*)\)", cap.referent.name)
+
+                if cap is None:
+                    continue
+
+                obj = cap.referent
+
+                match = HARDWARE_FRAME_NAME_PATTERN.match(obj.name)
                 if match is not None and match.group(2) == connections[0].to_instance.name:
-                    raise Exception("Missing hardware attributes for %s.%s" % (match.group(2), match.group(3)))
+                    assert False
 
             shm_keys = []
             for c in connections:
