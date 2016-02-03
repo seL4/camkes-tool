@@ -258,7 +258,7 @@ def find_hardware_frame_in_cspace(cspace, paddr, instance_name, interface_name):
     # frame at that address. Since this template allocates all hardware dataport
     # frames, this indicates either the template isn't generating the correct frames
     # or this function was called erroneously.
-    assert False
+    assert False, "No frame found in hardware dataport at paddr 0x%8x" % paddr
 
 def collapse_shared_frames(ast, obj_space, cspaces, elfs, options, **_):
     """Find regions in virtual address spaces that are intended to be backed by
@@ -490,8 +490,8 @@ def collapse_shared_frames(ast, obj_space, cspaces, elfs, options, **_):
                 obj = cap.referent
 
                 match = HARDWARE_FRAME_NAME_PATTERN.match(obj.name)
-                if match is not None and match.group(2) == connections[0].to_instance.name:
-                    assert False
+                assert (match is None or match.group(2) != connections[0].to_instance.name), \
+                    "Missing hardware attributes for %s.%s" % (match.group(2), match.group(3))
 
             shm_keys = []
             for c in connections:
