@@ -239,10 +239,7 @@ def find_hardware_frame_in_cspace(cspace, paddr, instance_name, interface_name):
     This function expects name of the form "eventual_name (instance_name.interface_name)".
     When a match is found, the object name is changed to "eventual_name".
     """
-    for cap in cspace.cnode.slots.values():
-
-        if cap is None:
-            continue
+    for cap in (v for v in cspace.cnode.slots.values() if v is not None):
 
         obj = cap.referent
 
@@ -482,10 +479,8 @@ def collapse_shared_frames(ast, obj_space, cspaces, elfs, options, **_):
             # dataport, it means that dataport hasn't been given a paddr or size.
             # This indicates an error, and the object name is invalid in capdl,
             # so catch the error here rather than having the capdl translator fail.
-            for cap in cspaces[i.address_space].cnode.slots.values():
 
-                if cap is None:
-                    continue
+            for cap in (v for v in cspaces[i.address_space].cnode.slots.values() if v is not None):
 
                 obj = cap.referent
 
