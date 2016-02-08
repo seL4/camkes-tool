@@ -512,7 +512,7 @@ class GraphWidget(QtWidgets.QGraphicsView):
             generator = QtSvg.QSvgGenerator()
             generator.setFileName(image_location + ".svg")
             generator.setSize(QtCore.QSize(rect.width(), rect.height()))
-            generator.setViewBox(rect)
+            # generator.setViewBox(rect)
             generator.setTitle(save_option_dialog.user_title())
             generator.setDescription(save_option_dialog.user_description())
 
