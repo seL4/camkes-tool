@@ -243,13 +243,16 @@ def find_hardware_frame_in_cspace(cspace, paddr, instance_name, interface_name):
 
         obj = cap.referent
 
-        match = HARDWARE_FRAME_NAME_PATTERN.match(obj.name)
-        if isinstance(obj, Frame) and obj.paddr == paddr and \
-                match is not None \
+        if isinstance(obj, Frame) and obj.paddr == paddr:
+
+            match = HARDWARE_FRAME_NAME_PATTERN.match(obj.name)
+
+            if match is not None \
                 and match.group(2) == instance_name \
                 and match.group(3) == interface_name:
-            obj.name = match.group(1)
-            return cap
+
+                obj.name = match.group(1)
+                return cap
 
     # If no cap was found it means the hardware dataport template didn't allocate a
     # frame at that address. Since this template allocates all hardware dataport
