@@ -150,7 +150,7 @@ def new_context(entity, assembly, obj_space, cap_space, shmem, **kwargs):
         'raise':_raise,
         're':re,
         'set':DeterministicSet,
-        'arch':os.environ.get('ARCH', ''),
+        'arch':kwargs['options'].architecture,
         'textwrap':textwrap,
         'copy':copy,
 
