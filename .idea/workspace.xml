@@ -3,7 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="9e94cc0d-524c-462a-bfa8-511eaa5dddfc" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/View/Graph_Widget.py" afterPath="$PROJECT_DIR$/View/Graph_Widget.py" />
     </list>
     <ignored path="VisualComponents.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -669,12 +668,6 @@
       <option name="number" value="Default" />
       <updated>1449214734746</updated>
     </task>
-    <task id="LOCAL-00024" summary="Added a component window to display component info in a new window, and in the future as a side panel item.">
-      <created>1452055818721</created>
-      <option name="number" value="00024" />
-      <option name="project" value="LOCAL" />
-      <updated>1452055818721</updated>
-    </task>
     <task id="LOCAL-00025" summary="Changed the way ui is refreshed. Ability to get a signal from Instance_Widget to open a component_window. Component_window stored in GraphController">
       <created>1452056424901</created>
       <option name="number" value="00025" />
@@ -963,7 +956,13 @@
       <option name="project" value="LOCAL" />
       <updated>1455144786364</updated>
     </task>
-    <option name="localTasksCounter" value="73" />
+    <task id="LOCAL-00073" summary="Edge has a minimum length, so symbols in edges should always be shown when using auto layout.">
+      <created>1455145539618</created>
+      <option name="number" value="00073" />
+      <option name="project" value="LOCAL" />
+      <updated>1455145539618</updated>
+    </task>
+    <option name="localTasksCounter" value="74" />
     <servers />
   </component>
   <component name="TodoView">
@@ -977,7 +976,7 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="1920" y="36" width="1920" height="1164" extended-state="6" />
-    <editor active="true" />
+    <editor active="false" />
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.18020834" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3292683" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
@@ -985,7 +984,7 @@
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.39979014" sideWeight="0.50208336" order="11" side_tool="true" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3292683" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.5243902" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.5243902" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.24960506" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32964718" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
@@ -1032,7 +1031,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="true" />
-    <MESSAGE value="Added Source interface name information. Connection adds itself in the instance_widgets" />
     <MESSAGE value="Added logic to add a connection." />
     <MESSAGE value="Added logic to remove a connection." />
     <MESSAGE value="DockWidget defaults to undocked." />
@@ -1057,7 +1055,8 @@
     <MESSAGE value="Added shortcuts to zoom and layout" />
     <MESSAGE value="Save the layout automatically as a hidden json file within the same directory as the .camkes file." />
     <MESSAGE value="Graphviz has mathematically co-ordinates. Converted from maths co-ord to GUI co-ord" />
-    <option name="LAST_COMMIT_MESSAGE" value="Graphviz has mathematically co-ordinates. Converted from maths co-ord to GUI co-ord" />
+    <MESSAGE value="Edge has a minimum length, so symbols in edges should always be shown when using auto layout." />
+    <option name="LAST_COMMIT_MESSAGE" value="Edge has a minimum length, so symbols in edges should always be shown when using auto layout." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
