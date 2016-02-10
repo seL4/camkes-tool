@@ -6,7 +6,7 @@ import sys, os
 # sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../'))
 # sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../'))
 
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, QtGui
 
 
 from Model.AST_Model import ASTModel
@@ -40,7 +40,17 @@ class GraphController(QtWidgets.QMainWindow):
         # self._component_dock_widget.setVisible(True)
         return self._component_widget
 
-    def __init__(self, path_to_camkes):
+    # -- Actions --
+    @property
+    def open_action(self):
+        if self._open_action is None:
+            self._open_action = QtWidgets.QAction("Open", self)
+            self._open_action.setShortcut(QtGui.QKeySequence.Open)
+            self._open_action.setStatusTip("Open a new CAmkES ADL file (Top Level only)")
+            self._open_action.triggered.connect(self.openNewFile)
+        return self._open_action
+
+    def __init__(self, path_to_camkes=None):
         """
         Initialises GraphController
         :param path_to_camkes: string type - path to the .camkes file
@@ -57,14 +67,31 @@ class GraphController(QtWidgets.QMainWindow):
         self._root_widget = None
         self._component_widget = None
         self._component_dock_widget = None
+        self._open_action = None
+
+
+
+        # Menu
+        fileMenu = self.menuBar().addMenu("&File")
+        fileMenu.addAction(self.open_action)
 
         # Model, get a ASTObject from given camkes file
-        self.root_widget.ast = ASTModel.get_ast(path_to_camkes)
+
+        if path_to_camkes is not None:
+            self.root_widget.ast = ASTModel.get_ast(path_to_camkes)
 
         self.setCentralWidget(self.root_widget)
         self.resize(700, 700)
 
         self.rect = None
+
+    def openNewFile(self):
+        new_file = QtWidgets.QFileDialog.getOpenFileName(caption="Open CAmkES ADL file",
+                                                         filter="CAmkES ADL (*.camkes)",
+                                                         options=QtWidgets.QFileDialog.DontUseNativeDialog)
+
+        if len(new_file[0]) > 1:
+            self.root_widget.ast = ASTModel.get_ast(new_file[0])
 
     def show_component_info(self, component_name):
 
@@ -75,7 +102,8 @@ def main(arguments):
 
     app = QtWidgets.QApplication(arguments)
     # new_controller = GraphController("/home/sthasarathan/Documents/camkes-newExample/apps/complex/complex.camkes")
-    new_controller = GraphController("/home/sthasarathan/Documents/camkes-newExample/apps/coffeeSimple/coffeeDD.camkes")
+    # new_controller = GraphController("/home/sthasarathan/Documents/camkes-newExample/apps/coffeeSimple/coffeeDD.camkes")
+    new_controller = GraphController()
 
     # new_controller = GraphController("/home/sthasarathan/Documents/CAMKES-APPS/camkes-kitty-HDDMA/apps/bilbyfs/bilbyfs.camkes")
     # new_controller = GraphController("/home/sthasarathan/Documents/test/cddc/apps/cddc/cddc.camkes")

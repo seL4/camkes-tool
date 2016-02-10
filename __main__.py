@@ -15,7 +15,7 @@ def main(argv, out, err):
     app = QtWidgets.QApplication(argv)
 
     # new_controller = GraphController("/home/sthasarathan/Documents/camkes-newExample/apps/complex/complex.camkes")
-    new_controller = GraphController("/home/sthasarathan/Documents/camkes-newExample/apps/coffeeSimple/coffeeDD.camkes")
+    new_controller = GraphController()
 
     # new_controller = GraphController("/home/sthasarathan/Documents/CAMKES-APPS/camkes-kitty-HDDMA/apps/bilbyfs/bilbyfs.camkes")
     # new_controller = GraphController("/home/sthasarathan/Documents/test/cddc/apps/cddc/cddc.camkes")
