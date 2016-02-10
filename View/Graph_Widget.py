@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import random, json, os
-random.seed(2)
+import json, os, math
 
 from PyQt5 import QtWidgets, QtGui, QtCore, QtSvg
 # For QtSvg
@@ -416,6 +415,19 @@ class GraphWidget(QtWidgets.QGraphicsView):
 
         dot_data = pydotplus.graph_from_dot_data(raw_dot_data)
 
+        # Get graphviz height
+        graph_attributes = dot_data.get_graph_defaults()
+
+        height = 0
+
+        for attribute_dict in graph_attributes:
+            if not isinstance(attribute_dict, dict):
+                continue
+
+            if attribute_dict['bb'] is not None:
+                rectange = Common.extract_numbers(attribute_dict['bb'])
+                height = rectange[1][1]-rectange[0][1]
+
         for instance_widget in self.widget_instances:
             assert isinstance(instance_widget, InstanceWidget)
 
@@ -433,7 +445,7 @@ class GraphWidget(QtWidgets.QGraphicsView):
             assert len(node_position_list) is 1  # Should only be one position
             node_position = node_position_list[0]
 
-            self.add_instance_widget(instance_widget, x_pos=node_position[0], y_pos=node_position[1])
+            self.add_instance_widget(instance_widget, x_pos=node_position[0], y_pos=math.fabs(height-node_position[1]))
 
         self.update_view()
         self.save_layout_to_file()
