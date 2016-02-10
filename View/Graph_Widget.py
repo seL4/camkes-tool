@@ -407,7 +407,7 @@ class GraphWidget(QtWidgets.QGraphicsView):
 
         for connection in self.connection_widgets:
             assert isinstance(connection, ConnectionWidget)
-            graph_viz.add_edge(u=connection.source_instance_widget.name, v=connection.dest_instance_widget.name)
+            graph_viz.add_edge(u=connection.source_instance_widget.name, v=connection.dest_instance_widget.name, minlen=2)
 
         graph_viz.layout('dot')
         raw_dot_data = graph_viz.draw(format='dot')

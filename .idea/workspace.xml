@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="9e94cc0d-524c-462a-bfa8-511eaa5dddfc" name="Default" comment="Save the layout automatically as a hidden json file within the same directory as the .camkes file.">
+    <list default="true" id="9e94cc0d-524c-462a-bfa8-511eaa5dddfc" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/View/Graph_Widget.py" afterPath="$PROJECT_DIR$/View/Graph_Widget.py" />
     </list>
@@ -56,14 +56,24 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Graph_Widget.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="Graph_Widget.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/View/Graph_Widget.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="2.0376105">
-              <caret line="447" column="119" selection-start-line="447" selection-start-column="119" selection-end-line="447" selection-end-column="119" />
+            <state vertical-scroll-proportion="-10.928572">
+              <caret line="409" column="121" selection-start-line="409" selection-start-column="121" selection-end-line="409" selection-end-column="121" />
               <folding>
                 <element signature="e#47#68#0" expanded="true" />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="base_controller.py" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/Controller/base_controller.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.1875">
+              <caret line="7" column="0" selection-start-line="7" selection-start-column="0" selection-end-line="7" selection-end-column="0" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -136,7 +146,7 @@
             <state vertical-scroll-proportion="0.0">
               <caret line="6" column="0" selection-start-line="6" selection-start-column="0" selection-end-line="6" selection-end-column="0" />
               <folding>
-                <element signature="e#47#65#0" expanded="true" />
+                <marker date="1455143429715" expanded="true" signature="47:62" placeholder="import ..." />
               </folding>
             </state>
           </provider>
@@ -659,12 +669,6 @@
       <option name="number" value="Default" />
       <updated>1449214734746</updated>
     </task>
-    <task id="LOCAL-00023" summary="Able to handle scientific notation numbers">
-      <created>1452055736523</created>
-      <option name="number" value="00023" />
-      <option name="project" value="LOCAL" />
-      <updated>1452055736523</updated>
-    </task>
     <task id="LOCAL-00024" summary="Added a component window to display component info in a new window, and in the future as a side panel item.">
       <created>1452055818721</created>
       <option name="number" value="00024" />
@@ -953,7 +957,13 @@
       <option name="project" value="LOCAL" />
       <updated>1455087729700</updated>
     </task>
-    <option name="localTasksCounter" value="72" />
+    <task id="LOCAL-00072" summary="Graphviz has mathematically co-ordinates. Converted from maths co-ord to GUI co-ord">
+      <created>1455144786363</created>
+      <option name="number" value="00072" />
+      <option name="project" value="LOCAL" />
+      <updated>1455144786364</updated>
+    </task>
+    <option name="localTasksCounter" value="73" />
     <servers />
   </component>
   <component name="TodoView">
@@ -971,6 +981,7 @@
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.18020834" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3292683" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3292683" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.39979014" sideWeight="0.50208336" order="11" side_tool="true" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3292683" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
@@ -980,7 +991,6 @@
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32964718" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.39962476" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3292683" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.29590765" sideWeight="0.49791667" order="5" side_tool="false" content_ui="tabs" />
@@ -1022,7 +1032,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="true" />
-    <MESSAGE value="Moved Create_connection_widget&#10;" />
     <MESSAGE value="Added Source interface name information. Connection adds itself in the instance_widgets" />
     <MESSAGE value="Added logic to add a connection." />
     <MESSAGE value="Added logic to remove a connection." />
@@ -1047,7 +1056,8 @@
     <MESSAGE value="Added export action for saving image" />
     <MESSAGE value="Added shortcuts to zoom and layout" />
     <MESSAGE value="Save the layout automatically as a hidden json file within the same directory as the .camkes file." />
-    <option name="LAST_COMMIT_MESSAGE" value="Save the layout automatically as a hidden json file within the same directory as the .camkes file." />
+    <MESSAGE value="Graphviz has mathematically co-ordinates. Converted from maths co-ord to GUI co-ord" />
+    <option name="LAST_COMMIT_MESSAGE" value="Graphviz has mathematically co-ordinates. Converted from maths co-ord to GUI co-ord" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1082,7 +1092,7 @@
         <state vertical-scroll-proportion="0.0">
           <caret line="36" column="14" selection-start-line="36" selection-start-column="14" selection-end-line="36" selection-end-column="14" />
           <folding>
-            <element signature="e#47#65#0" expanded="true" />
+            <marker date="1455143429715" expanded="true" signature="47:62" placeholder="import ..." />
           </folding>
         </state>
       </provider>
@@ -1365,13 +1375,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Controller/base_controller.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="7" column="0" selection-start-line="7" selection-start-column="0" selection-end-line="7" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/__init__.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -1395,7 +1398,7 @@
         <state vertical-scroll-proportion="0.0">
           <caret line="6" column="0" selection-start-line="6" selection-start-column="0" selection-end-line="6" selection-end-column="0" />
           <folding>
-            <element signature="e#47#65#0" expanded="true" />
+            <marker date="1455143429715" expanded="true" signature="47:62" placeholder="import ..." />
           </folding>
         </state>
       </provider>
@@ -1404,16 +1407,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.87006736">
           <caret line="83" column="14" selection-start-line="83" selection-start-column="14" selection-end-line="83" selection-end-column="14" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/View/Connection_Widget.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="9" column="0" selection-start-line="9" selection-start-column="0" selection-end-line="9" selection-end-column="0" />
-          <folding>
-            <element signature="e#47#63#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1486,13 +1479,31 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/View/Connection_Widget.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="9" column="0" selection-start-line="9" selection-start-column="0" selection-end-line="9" selection-end-column="0" />
+          <folding>
+            <element signature="e#47#63#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/View/Graph_Widget.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="2.0376105">
-          <caret line="447" column="119" selection-start-line="447" selection-start-column="119" selection-end-line="447" selection-end-column="119" />
+        <state vertical-scroll-proportion="-10.928572">
+          <caret line="409" column="121" selection-start-line="409" selection-start-column="121" selection-end-line="409" selection-end-column="121" />
           <folding>
             <element signature="e#47#68#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Controller/base_controller.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.1875">
+          <caret line="7" column="0" selection-start-line="7" selection-start-column="0" selection-end-line="7" selection-end-column="0" />
+          <folding />
         </state>
       </provider>
     </entry>
