@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import random
+import random, json, os
 random.seed(2)
 
 from PyQt5 import QtWidgets, QtGui, QtCore, QtSvg
@@ -100,10 +100,12 @@ class GraphWidget(QtWidgets.QGraphicsView):
         # TODO:
         # If layout exist:
         # Place nodes in original positions. New nodes are placed in middle
-
-        # If layout doesn't exist:
-        # Use graphviz to place nodes in position
-        self.autolayout()
+        if os.path.isfile(self.get_root_location() + ".layout"):
+            self.layout_from_file()
+        else:
+            # If layout doesn't exist:
+            # Use graphviz to place nodes in position
+            self.autolayout()
 
     def random_color_generator(self):
         if self._color_seed is None:
@@ -322,7 +324,6 @@ class GraphWidget(QtWidgets.QGraphicsView):
             # set parent widget of new widget to be self
             self.scene().addItem(new_widget)
             new_widget.setZValue(5)
-            new_widget.widget_moved.connect(self.update_view)
 
         new_widget.setPos(x_pos - (new_widget.preferredSize().width() / 2),
                           y_pos - (new_widget.preferredSize().height() / 2))
@@ -355,14 +356,45 @@ class GraphWidget(QtWidgets.QGraphicsView):
 
     # --- View Function --
     # TODO: Pick better name
-    def layout_from_configuration(self):
-        raise NotImplementedError
-        # TODO: Place all widgets in the position specified in the file
-        # Place other widgets in middle of screen
+    def layout_from_file(self):
+
+        print "Opening file"
+
+        with open(self.get_root_location() + ".layout", 'r') as input:
+            json_input = json.load(input)
+
+            for widget in self.widget_instances:
+                assert isinstance(widget, InstanceWidget)
+                position = json_input.get(widget.name)
+                if position is not None:
+                    assert isinstance(position, list)
+                    self.add_instance_widget(widget, position[0], position[1])
+                else:
+                    self.add_instance_widget(widget, self.geometry()/2)
+
+        self.update_view()
+        self.save_layout_to_file()
+
+    def save_layout_to_file(self):
+
+        print "Saving file"
+
+        node_positions = {}
+        for widget in self.widget_instances:
+            assert isinstance(widget, InstanceWidget)
+
+            position_array = [widget.pos().x() - (widget.preferredSize().width() / 2),
+                              widget.pos().y() - (widget.preferredSize().height() / 2)]
+
+            node_positions[widget.name] = position_array
+
+
+        file_location = self.get_root_location() + ".layout"
+
+        with open(file_location,'w') as output:
+            json.dump(node_positions,output, indent=4)
 
     def autolayout(self):
-        # TODO
-        # Create a graph_viz representation
         graph_viz = AGraph(strict=False, spline="line", directed=True)
 
         for widget_instance in self.widget_instances:
@@ -404,6 +436,7 @@ class GraphWidget(QtWidgets.QGraphicsView):
             self.add_instance_widget(instance_widget, x_pos=node_position[0], y_pos=node_position[1])
 
         self.update_view()
+        self.save_layout_to_file()
 
     def update_view(self):
 
@@ -436,8 +469,6 @@ class GraphWidget(QtWidgets.QGraphicsView):
         new_rect = QtCore.QRectF(smallest_x, smallest_y, largest_x - smallest_x, largest_y - smallest_y)
 
         self.setSceneRect(new_rect)
-
-        # TODO: Save layout info
 
     def update_outer_ui(self):
         bottom_corner = self.geometry().bottomRight()
@@ -558,11 +589,12 @@ class GraphWidget(QtWidgets.QGraphicsView):
         assert isinstance(location, SourceLocation)
 
         if with_name:
-            character = '.'
-            return location.filename[:location.filename.rfind(character)]
+            return location.filename[:location.filename.rfind('.')]
         else:
-            character = '/'
-            return location.filename[:location.filename.rfind(character)+1]
+            find_slash = location.filename.rfind('/')
+            if find_slash == -1:
+                find_slash = location.filename.rfind('\\') # For windows
+            return location.filename[:find_slash+1]
 
     # --- Overridden Functions ---
 
@@ -577,3 +609,9 @@ class GraphWidget(QtWidgets.QGraphicsView):
         super(GraphWidget, self).resizeEvent(resize_event)
 
         self.update_outer_ui()
+
+    def mouseReleaseEvent(self, mouse_event):
+        super(GraphWidget, self).mouseReleaseEvent(mouse_event)
+
+        if self.ast:
+            self.save_layout_to_file()

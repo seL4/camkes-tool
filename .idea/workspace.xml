@@ -46,21 +46,21 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Graph_Widget.py" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/View/Graph_Widget.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.37921077">
-              <caret line="87" column="0" selection-start-line="87" selection-start-column="0" selection-end-line="87" selection-end-column="0" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
       <file leaf-file-name="Save_Option_Dialog.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/View/Save_Option_Dialog.py">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
               <caret line="14" column="16" selection-start-line="14" selection-start-column="13" selection-end-line="14" selection-end-column="16" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Graph_Widget.py" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/View/Graph_Widget.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.8989413">
+              <caret line="616" column="38" selection-start-line="616" selection-start-column="38" selection-end-line="616" selection-end-column="38" />
               <folding />
             </state>
           </provider>
@@ -268,6 +268,20 @@
             </PATH_ELEMENT>
             <PATH_ELEMENT>
               <option name="myItemId" value="images" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="VisualComponents" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="visualcomponents" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="View" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -529,12 +543,6 @@
       <created>1449214734746</created>
       <option name="number" value="Default" />
       <updated>1449214734746</updated>
-    </task>
-    <task id="LOCAL-00021" summary="Added a common file with common functions">
-      <created>1450419127738</created>
-      <option name="number" value="00021" />
-      <option name="project" value="LOCAL" />
-      <updated>1450419127738</updated>
     </task>
     <task id="LOCAL-00022" summary="Uses GraphWidget, adds instance widgets to graphs, uses graphviz to lay out components and connections, and successfully shows something on the screen">
       <created>1450419221032</created>
@@ -824,7 +832,13 @@
       <option name="project" value="LOCAL" />
       <updated>1455082556803</updated>
     </task>
-    <option name="localTasksCounter" value="70" />
+    <task id="LOCAL-00070" summary="Added shortcuts to zoom and layout">
+      <created>1455083768735</created>
+      <option name="number" value="00070" />
+      <option name="project" value="LOCAL" />
+      <updated>1455083768735</updated>
+    </task>
+    <option name="localTasksCounter" value="71" />
     <servers />
   </component>
   <component name="TodoView">
@@ -844,6 +858,7 @@
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3292683" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3292683" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.39979014" sideWeight="0.50208336" order="11" side_tool="true" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3292683" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3292683" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.5243902" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
@@ -856,7 +871,6 @@
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.29590765" sideWeight="0.49791667" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3292683" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
     </layout>
     <layout-to-restore>
@@ -893,7 +907,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="true" />
-    <MESSAGE value="Added Event, Procedure and Dataport &quot;#defines&quot;" />
     <MESSAGE value="Made Instance Widget and Connection Widget independent of the AST Model. Widgets now store all the important information. Instance and Connection represent the graph. Graph_controller has functions to sync the instance with the Lifted_AST." />
     <MESSAGE value="Moved Create_connection_widget&#10;" />
     <MESSAGE value="Added Source interface name information. Connection adds itself in the instance_widgets" />
@@ -918,7 +931,8 @@
     <MESSAGE value="Removed completed TODOs" />
     <MESSAGE value="Set Window Title to either &quot;CAmkES Visualisation Tool&quot; or the file name" />
     <MESSAGE value="Added export action for saving image" />
-    <option name="LAST_COMMIT_MESSAGE" value="Added export action for saving image" />
+    <MESSAGE value="Added shortcuts to zoom and layout" />
+    <option name="LAST_COMMIT_MESSAGE" value="Added shortcuts to zoom and layout" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1259,14 +1273,6 @@
         <state />
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/View/Save_Option_Dialog.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="14" column="16" selection-start-line="14" selection-start-column="13" selection-end-line="14" selection-end-column="16" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/Model/Common.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -1280,41 +1286,6 @@
         <state vertical-scroll-proportion="0.0">
           <caret line="6" column="0" selection-start-line="6" selection-start-column="0" selection-end-line="6" selection-end-column="0" />
           <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/View/Instance_Widget.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="12" column="2" selection-start-line="12" selection-start-column="2" selection-end-line="12" selection-end-column="2" />
-          <folding>
-            <element signature="e#438#544#0" expanded="false" />
-            <element signature="e#606#677#0" expanded="false" />
-            <element signature="e#723#742#0" expanded="false" />
-            <element signature="e#800#859#0" expanded="false" />
-            <element signature="e#945#1041#0" expanded="false" />
-            <element signature="e#1095#1189#0" expanded="false" />
-            <element signature="e#1243#1369#0" expanded="false" />
-            <element signature="e#1443#1547#0" expanded="false" />
-            <element signature="e#1674#1759#0" expanded="false" />
-            <element signature="e#1807#1828#0" expanded="false" />
-            <element signature="e#1890#1976#0" expanded="false" />
-            <element signature="e#2039#2127#0" expanded="false" />
-            <element signature="e#2243#2483#0" expanded="false" />
-            <element signature="e#3148#3173#0" expanded="false" />
-            <element signature="e#3228#3304#0" expanded="false" />
-            <element signature="e#3376#3647#0" expanded="false" />
-            <element signature="e#4284#4309#0" expanded="false" />
-            <element signature="e#4366#4445#0" expanded="false" />
-            <element signature="e#4518#4790#0" expanded="false" />
-            <element signature="e#5434#5459#0" expanded="false" />
-            <element signature="e#5522#5610#0" expanded="false" />
-            <element signature="e#5696#6065#0" expanded="false" />
-            <element signature="e#6730#6755#0" expanded="false" />
-            <element signature="e#6818#6906#0" expanded="false" />
-            <element signature="e#6993#7432#0" expanded="false" />
-            <element signature="e#8130#8155#0" expanded="false" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1354,10 +1325,53 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/View/Instance_Widget.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="12" column="2" selection-start-line="12" selection-start-column="2" selection-end-line="12" selection-end-column="2" />
+          <folding>
+            <element signature="e#438#544#0" expanded="false" />
+            <element signature="e#606#677#0" expanded="false" />
+            <element signature="e#723#742#0" expanded="false" />
+            <element signature="e#800#859#0" expanded="false" />
+            <element signature="e#945#1041#0" expanded="false" />
+            <element signature="e#1095#1189#0" expanded="false" />
+            <element signature="e#1243#1369#0" expanded="false" />
+            <element signature="e#1443#1547#0" expanded="false" />
+            <element signature="e#1674#1759#0" expanded="false" />
+            <element signature="e#1807#1828#0" expanded="false" />
+            <element signature="e#1890#1976#0" expanded="false" />
+            <element signature="e#2039#2127#0" expanded="false" />
+            <element signature="e#2243#2483#0" expanded="false" />
+            <element signature="e#3148#3173#0" expanded="false" />
+            <element signature="e#3228#3304#0" expanded="false" />
+            <element signature="e#3376#3647#0" expanded="false" />
+            <element signature="e#4284#4309#0" expanded="false" />
+            <element signature="e#4366#4445#0" expanded="false" />
+            <element signature="e#4518#4790#0" expanded="false" />
+            <element signature="e#5434#5459#0" expanded="false" />
+            <element signature="e#5522#5610#0" expanded="false" />
+            <element signature="e#5696#6065#0" expanded="false" />
+            <element signature="e#6730#6755#0" expanded="false" />
+            <element signature="e#6818#6906#0" expanded="false" />
+            <element signature="e#6993#7432#0" expanded="false" />
+            <element signature="e#8130#8155#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/View/Save_Option_Dialog.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="14" column="16" selection-start-line="14" selection-start-column="13" selection-end-line="14" selection-end-column="16" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/View/Graph_Widget.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.37921077">
-          <caret line="87" column="0" selection-start-line="87" selection-start-column="0" selection-end-line="87" selection-end-column="0" />
+        <state vertical-scroll-proportion="0.8989413">
+          <caret line="616" column="38" selection-start-line="616" selection-start-column="38" selection-end-line="616" selection-end-column="38" />
           <folding />
         </state>
       </provider>
