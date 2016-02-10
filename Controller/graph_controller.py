@@ -47,6 +47,16 @@ class GraphController(QtWidgets.QMainWindow):
             self._open_action.setToolTip("Open a new CAmkES ADL file (Top Level only)")
             self._open_action.triggered.connect(self.openNewFile)
         return self._open_action
+    
+    @property
+    def quit_action(self):
+        if self._quit_action is None:
+            self._quit_action = QtWidgets.QAction("Quit", self)
+            self._quit_action.setShortcut(QtGui.QKeySequence.Quit)
+            self._open_action.setStatusTip("Quit Application")
+            self._open_action.setToolTip("Quit Application")
+            self._open_action.triggered.connect(self.quit())
+        return self._open_action
 
     def __init__(self, path_to_camkes=None):
         """
@@ -108,6 +118,12 @@ class GraphController(QtWidgets.QMainWindow):
                 start_of_filename += 1
 
             self.setWindowTitle(path_to_file[start_of_filename:path_to_file.rfind('.')])
+
+    def quit(self):
+        if self.root_widget.ast:
+            self.root_widget.save_layout_to_file()
+
+        QtWidget.QApplication.quit()
 
     def show_component_info(self, component_name):
 
