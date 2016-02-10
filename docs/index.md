@@ -3021,6 +3021,80 @@ Client_HFILES := ${MathIface_EXPORT_HFILES} \
 include ${PWD}/tools/camkes/camkes.mk
 ```
 
+### Cached Hardware Dataports
+
+By default, memory backing hardware dataports (`seL4HardwareMMIO`) is mapped uncached.
+Typically such a dataport will be backed by a device's memory mapped registers rather
+than main memory. In such cases it's generally desired that after writing to a register
+the effect of the write is felt immediately, and changes to device registers are observable
+as soon as they occur, so mapping this memory uncached makes sense. There are however,
+cases where it is preferable to map this memory cached instead.
+
+For example, consider a system that updates a large memory mapped frame buffer for
+a display, by writing to it one word at a time. If this buffer was mapped uncached,
+each word written to the buffer would incur the full time taken to write to memory.
+If instead, the buffer was mapped cached, each word would be written to the cache,
+incurring a much shorter write time. Cache lines would then be written back to memory
+at a later point. This optimization works on the assumption that the throughput of
+the cache being written back to memory is higher than that of the CPU writing
+directly to memory a word at a time. After all the data has been written to the buffer,
+the cache must be flushed to ensure the data is actually in the buffer.
+
+CAmkES provides a mechanism for flushing the cache, but currently it is a no-op
+on all architectures other than ARM.
+
+#### Marking a hardware dataport as cached
+
+To map a hardware dataport cached, set the `<instance>.<interface>_cached` attribute to `true`:
+
+    component DisplayDevice {
+      hardware;
+      dataport FrameBuffer framebuffer;
+    }
+
+    component DisplayDriver {
+      ...
+      dataport FrameBuffer framebuffer;
+    }
+
+    assembly {
+      composition {
+        component DisplayDevice display_device;
+        component DisplayDriver display_driver;
+        ...
+
+        connection seL4HardwareMMIO fbconn(
+          from display_driver.framebuffer,
+          to display_device.framebuffer
+        );
+      }
+      configuration {
+        ...
+        display_device.framebuffer_cached = true; /* <-- set this attribute
+                                                   *     to mark dataport
+                                                   *     as cached
+                                                   */
+      }
+    }
+
+#### Flushing the cache
+
+After writing to a cached hardware dataport, it is necessary to flush the cache
+to ensure that all data written has been propagated to the device. CAmkES provides
+a function for each hardware dataport that flushes a range of addresses inside
+the dataport from the cache.
+
+For a dataport interface named `framebuffer`, the function that flushes its
+data from the cache will be:
+
+```c
+int framebuffer_flush_cache(size_t start_offset, size_t size);
+```
+
+`start_offset` and `size` are the offset in bytes into the dataport to start flushing,
+and the number of bytes to flush respectively. The function returns 0 on success
+and non-zero on error.
+
 ## Templating
 
 CAmkES glue code, code automatically introduced into your component system at
