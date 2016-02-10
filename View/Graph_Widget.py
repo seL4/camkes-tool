@@ -48,18 +48,20 @@ class GraphWidget(QtWidgets.QGraphicsView):
     @property
     def zoom_in_button(self):
         if self._zoom_in is None:
-            self._zoom_in = QtWidgets.QPushButton("Zoom In", self)
+            self._zoom_in = QtWidgets.QPushButton("Zoom &In", self)
             self._zoom_in.setAutoRepeat(True)
             self._zoom_in.clicked.connect(self.zoom_in)
+            self._zoom_in.setShortcut(QtGui.QKeySequence(QtCore.Qt.CTRL + QtCore.Qt.Key_Minus))
             self.update_outer_ui()
         return self._zoom_in
 
     @property
     def zoom_out_buttom(self):
         if self._zoom_out is None:
-            self._zoom_out = QtWidgets.QPushButton("Zoom Out", self)
+            self._zoom_out = QtWidgets.QPushButton("Zoom &Out", self)
             self._zoom_out.setAutoRepeat(True)
             self._zoom_out.clicked.connect(self.zoom_out)
+            self._zoom_out.setShortcut(QtGui.QKeySequence(QtCore.Qt.CTRL + QtCore.Qt.Key_Equal))
             self.update_outer_ui()
         return self._zoom_out
 
@@ -69,15 +71,18 @@ class GraphWidget(QtWidgets.QGraphicsView):
             self._save_picture_button = QtWidgets.QPushButton("Save Image", self)
             self._save_picture_button.setAutoRepeat(False)
             self._save_picture_button.clicked.connect(self.save_picture)
+            self._save_picture_button.setToolTip("Save the image as a PNG or SVG")
             self.update_outer_ui()
         return self._save_picture_button
 
     @property
     def autolayout_button(self):
         if self._autolayout_button is None:
-            self._autolayout_button = QtWidgets.QPushButton("Autolayout", self)
+            self._autolayout_button = QtWidgets.QPushButton("Auto&layout", self)
             self._autolayout_button.setAutoRepeat(False)
             self._autolayout_button.clicked.connect(self.autolayout)
+            self._autolayout_button.setShortcut(QtGui.QKeySequence(QtCore.Qt.CTRL + QtCore.Qt.Key_L))
+            self._autolayout_button.setToolTip("Reposition instances using graphviz calculations")
             self.update_outer_ui()
         return self._autolayout_button
 
@@ -545,9 +550,6 @@ class GraphWidget(QtWidgets.QGraphicsView):
 
         else:
             return
-
-
-
 
     def get_root_location(self, with_name=False):
         assembly = self.ast.assembly
