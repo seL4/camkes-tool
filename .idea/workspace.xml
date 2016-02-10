@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="9e94cc0d-524c-462a-bfa8-511eaa5dddfc" name="Default" comment="Added ability to open a new file from the">
+    <list default="true" id="9e94cc0d-524c-462a-bfa8-511eaa5dddfc" name="Default" comment="Found bug in change_vector_length - where it would crash if it attempted to change the length of a zero vector&#10;Moved initialisation of position and angle since it is accessed by instance widgets later on.&#10;Created a delete function to delete itself from the source and destination">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Controller/graph_controller.py" afterPath="$PROJECT_DIR$/Controller/graph_controller.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/View/Connection_Widget.py" afterPath="$PROJECT_DIR$/View/Connection_Widget.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/View/Graph_Widget.py" afterPath="$PROJECT_DIR$/View/Graph_Widget.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/View/Instance_Widget.py" afterPath="$PROJECT_DIR$/View/Instance_Widget.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/__main__.py" afterPath="$PROJECT_DIR$/__main__.py" />
     </list>
     <ignored path="VisualComponents.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -26,11 +28,21 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
+      <file leaf-file-name="__main__.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/__main__.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="17" column="37" selection-start-line="17" selection-start-column="37" selection-end-line="17" selection-end-column="37" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
       <file leaf-file-name="graph_controller.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Controller/graph_controller.py">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="88" column="106" selection-start-line="88" selection-start-column="106" selection-end-line="88" selection-end-column="106" />
+              <caret line="71" column="0" selection-start-line="71" selection-start-column="0" selection-end-line="71" selection-end-column="0" />
               <folding />
             </state>
           </provider>
@@ -39,19 +51,9 @@
       <file leaf-file-name="Graph_Widget.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/View/Graph_Widget.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-11.142858">
-              <caret line="153" column="63" selection-start-line="153" selection-start-column="63" selection-end-line="153" selection-end-column="63" />
-              <folding>
-                <element signature="e#3288#3540#0" expanded="false" />
-                <element signature="e#7304#8507#0" expanded="false" />
-                <element signature="e#8627#11699#0" expanded="false" />
-                <element signature="e#11751#11936#0" expanded="false" />
-                <element signature="e#15491#16890#0" expanded="false" />
-                <element signature="e#18475#18519#0" expanded="false" />
-                <element signature="e#18553#18598#0" expanded="false" />
-                <element signature="e#21929#22127#0" expanded="false" />
-                <element signature="e#22178#22320#0" expanded="false" />
-              </folding>
+            <state vertical-scroll-proportion="0.0">
+              <caret line="114" column="4" selection-start-line="114" selection-start-column="4" selection-end-line="114" selection-end-column="4" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -60,17 +62,17 @@
         <entry file="file://$PROJECT_DIR$/View/Save_Option_Dialog.py">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="162" column="50" selection-start-line="162" selection-start-column="50" selection-end-line="162" selection-end-column="50" />
+              <caret line="14" column="16" selection-start-line="14" selection-start-column="13" selection-end-line="14" selection-end-column="16" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Instance_Widget.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="Instance_Widget.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/View/Instance_Widget.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.57835823">
-              <caret line="583" column="26" selection-start-line="583" selection-start-column="26" selection-end-line="583" selection-end-column="26" />
+            <state vertical-scroll-proportion="0.0">
+              <caret line="513" column="0" selection-start-line="513" selection-start-column="0" selection-end-line="513" selection-end-column="0" />
               <folding>
                 <element signature="e#379#485#0" expanded="false" />
                 <element signature="e#547#618#0" expanded="false" />
@@ -85,39 +87,29 @@
                 <element signature="e#1831#1917#0" expanded="false" />
                 <element signature="e#1980#2068#0" expanded="false" />
                 <element signature="e#2184#2424#0" expanded="false" />
-                <element signature="e#2500#2740#0" expanded="false" />
-                <element signature="e#2819#3104#0" expanded="false" />
-                <element signature="e#3150#3175#0" expanded="false" />
-                <element signature="e#3230#3306#0" expanded="false" />
-                <element signature="e#3378#3649#0" expanded="false" />
-                <element signature="e#3721#3953#0" expanded="false" />
-                <element signature="e#4028#4305#0" expanded="false" />
-                <element signature="e#4347#4372#0" expanded="false" />
-                <element signature="e#4429#4508#0" expanded="false" />
-                <element signature="e#4581#4853#0" expanded="false" />
-                <element signature="e#4926#5160#0" expanded="false" />
-                <element signature="e#5236#5515#0" expanded="false" />
-                <element signature="e#5558#5583#0" expanded="false" />
-                <element signature="e#5646#5734#0" expanded="false" />
-                <element signature="e#5820#6189#0" expanded="false" />
-                <element signature="e#6265#6505#0" expanded="false" />
-                <element signature="e#6584#6869#0" expanded="false" />
-                <element signature="e#6915#6940#0" expanded="false" />
-                <element signature="e#7003#7091#0" expanded="false" />
-                <element signature="e#7178#7617#0" expanded="false" />
-                <element signature="e#7694#7934#0" expanded="false" />
-                <element signature="e#8014#8329#0" expanded="false" />
-                <element signature="e#8376#8401#0" expanded="false" />
+                <element signature="e#3089#3114#0" expanded="false" />
+                <element signature="e#3169#3245#0" expanded="false" />
+                <element signature="e#3317#3588#0" expanded="false" />
+                <element signature="e#4225#4250#0" expanded="false" />
+                <element signature="e#4307#4386#0" expanded="false" />
+                <element signature="e#4459#4731#0" expanded="false" />
+                <element signature="e#5375#5400#0" expanded="false" />
+                <element signature="e#5463#5551#0" expanded="false" />
+                <element signature="e#5637#6006#0" expanded="false" />
+                <element signature="e#6671#6696#0" expanded="false" />
+                <element signature="e#6759#6847#0" expanded="false" />
+                <element signature="e#6934#7373#0" expanded="false" />
+                <element signature="e#8071#8096#0" expanded="false" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Connection_Widget.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="Connection_Widget.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/View/Connection_Widget.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="319" column="60" selection-start-line="319" selection-start-column="8" selection-end-line="319" selection-end-column="60" />
+            <state vertical-scroll-proportion="0.008333334">
+              <caret line="443" column="85" selection-start-line="443" selection-start-column="85" selection-end-line="443" selection-end-column="85" />
               <folding>
                 <element signature="e#47#63#0" expanded="true" />
               </folding>
@@ -142,7 +134,7 @@
         <entry file="file://$PROJECT_DIR$/Model/AST_Model.py">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="36" column="14" selection-start-line="36" selection-start-column="14" selection-end-line="36" selection-end-column="14" />
+              <caret line="56" column="25" selection-start-line="56" selection-start-column="25" selection-end-line="56" selection-end-column="25" />
               <folding>
                 <element signature="e#47#56#0" expanded="true" />
               </folding>
@@ -177,11 +169,12 @@
         <option value="$PROJECT_DIR$/Model/Common.py" />
         <option value="$PROJECT_DIR$/View/Dataport_Connection_Widget.py" />
         <option value="$PROJECT_DIR$/README.md" />
-        <option value="$PROJECT_DIR$/View/Connection_Widget.py" />
         <option value="$PROJECT_DIR$/View/Save_Option_Dialog.py" />
-        <option value="$PROJECT_DIR$/Controller/graph_controller.py" />
         <option value="$PROJECT_DIR$/View/Graph_Widget.py" />
         <option value="$PROJECT_DIR$/View/Instance_Widget.py" />
+        <option value="$PROJECT_DIR$/__main__.py" />
+        <option value="$PROJECT_DIR$/Controller/graph_controller.py" />
+        <option value="$PROJECT_DIR$/View/Connection_Widget.py" />
       </list>
     </option>
   </component>
@@ -315,7 +308,7 @@
     <property name="SearchEverywhereHistoryKey" value="&#9;FILE&#9;file:///home/sthasarathan/Documents/VisualComponents/View/Instance_Widget.py" />
     <property name="full.screen.before.presentation.mode" value="false" />
   </component>
-  <component name="RunManager" selected="Python.graph_controller">
+  <component name="RunManager" selected="Python.__main__">
     <configuration default="false" name="Graph_Widget" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -346,6 +339,23 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <module name="VisualComponents" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/View/Connection_Widget.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <method />
+    </configuration>
+    <configuration default="false" name="__main__" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="VisualComponents" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/__main__.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <method />
@@ -489,15 +499,17 @@
       <option name="SHOW_COMMAND_LINE" value="false" />
       <method />
     </configuration>
-    <list size="3">
+    <list size="4">
       <item index="0" class="java.lang.String" itemvalue="Python.graph_controller" />
       <item index="1" class="java.lang.String" itemvalue="Python.Graph_Widget" />
       <item index="2" class="java.lang.String" itemvalue="Python.Connection_Widget" />
+      <item index="3" class="java.lang.String" itemvalue="Python.__main__" />
     </list>
     <recent_temporary>
-      <list size="2">
-        <item index="0" class="java.lang.String" itemvalue="Python.Connection_Widget" />
-        <item index="1" class="java.lang.String" itemvalue="Python.Graph_Widget" />
+      <list size="3">
+        <item index="0" class="java.lang.String" itemvalue="Python.__main__" />
+        <item index="1" class="java.lang.String" itemvalue="Python.Connection_Widget" />
+        <item index="2" class="java.lang.String" itemvalue="Python.Graph_Widget" />
       </list>
     </recent_temporary>
   </component>
@@ -511,12 +523,6 @@
       <created>1449214734746</created>
       <option name="number" value="Default" />
       <updated>1449214734746</updated>
-    </task>
-    <task id="LOCAL-00012" summary="Created a widget to represent connections. Currently doesn't work. Finding it difficult to draw a line between two other widgets. Will have to figure out a way in Milestone 3">
-      <created>1449714969997</created>
-      <option name="number" value="00012" />
-      <option name="project" value="LOCAL" />
-      <updated>1449714969997</updated>
     </task>
     <task id="LOCAL-00013" summary="Created a widget to represent an Instance.">
       <created>1449715008098</created>
@@ -806,20 +812,27 @@
       <option name="project" value="LOCAL" />
       <updated>1455063648913</updated>
     </task>
-    <option name="localTasksCounter" value="61" />
+    <task id="LOCAL-00061" summary="Division by zero error possible. Removed bug">
+      <created>1455064207795</created>
+      <option name="number" value="00061" />
+      <option name="project" value="LOCAL" />
+      <updated>1455064207795</updated>
+    </task>
+    <option name="localTasksCounter" value="62" />
     <servers />
   </component>
   <component name="ToolWindowManager">
     <frame x="1920" y="36" width="1920" height="1164" extended-state="6" />
-    <editor active="true" />
+    <editor active="false" />
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.18020834" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3292683" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.39979014" sideWeight="0.50208336" order="11" side_tool="true" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3292683" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3292683" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.22045028" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.5243902" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.24960506" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32964718" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
@@ -829,7 +842,6 @@
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.29590765" sideWeight="0.49791667" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3292683" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
     </layout>
     <layout-to-restore>
@@ -866,8 +878,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="true" />
-    <MESSAGE value="Fixed issue when re-syncing model with view (new widget was not successfully found in list when it was supposed to)" />
-    <MESSAGE value="Created an update_ui function, which will be called every time a new instance_object is assigned" />
     <MESSAGE value="Attempted moving position, but failed." />
     <MESSAGE value="Changed Instance widget to subclass QGraphicsWidget. Involves using LinearLayout (as VBoxLayout isn't available in the QGraphics word). And using proxy_widget as a placeholder (since design is no where near final anyway)" />
     <MESSAGE value="Updated GraphWidget to handle change of subclass in InstanceWidget" />
@@ -891,7 +901,9 @@
     <MESSAGE value="Graph_widget: Added the ability to zoom in and out by scaling view&#10;Instance_widget: emits when instance has moved" />
     <MESSAGE value="Moved all graphing logic to graph widget. Logic for saving, auto layout and zooming" />
     <MESSAGE value="Using geometry function to get the bottom corner&#10;Since file menu is added, need to offset the buttons by 20, 40 instead of 20,20. This is due to a weird behaviour with file menus." />
-    <option name="LAST_COMMIT_MESSAGE" value="Using geometry function to get the bottom corner&#10;Since file menu is added, need to offset the buttons by 20, 40 instead of 20,20. This is due to a weird behaviour with file menus." />
+    <MESSAGE value="Division by zero error possible. Removed bug" />
+    <MESSAGE value="Found bug in change_vector_length - where it would crash if it attempted to change the length of a zero vector&#10;Moved initialisation of position and angle since it is accessed by instance widgets later on.&#10;Created a delete function to delete itself from the source and destination" />
+    <option name="LAST_COMMIT_MESSAGE" value="Found bug in change_vector_length - where it would crash if it attempted to change the length of a zero vector&#10;Moved initialisation of position and angle since it is accessed by instance widgets later on.&#10;Created a delete function to delete itself from the source and destination" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -900,51 +912,6 @@
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/View/Instance_Widget.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="417" column="23" selection-start-line="417" selection-start-column="23" selection-end-line="417" selection-end-column="23" />
-          <folding>
-            <element signature="e#379#485#0" expanded="false" />
-            <element signature="e#547#618#0" expanded="false" />
-            <element signature="e#664#683#0" expanded="false" />
-            <element signature="e#741#800#0" expanded="false" />
-            <element signature="e#886#982#0" expanded="false" />
-            <element signature="e#1036#1130#0" expanded="false" />
-            <element signature="e#1184#1310#0" expanded="false" />
-            <element signature="e#1384#1488#0" expanded="false" />
-            <element signature="e#1615#1700#0" expanded="false" />
-            <element signature="e#1748#1769#0" expanded="false" />
-            <element signature="e#1831#1917#0" expanded="false" />
-            <element signature="e#1980#2068#0" expanded="false" />
-            <element signature="e#2184#2424#0" expanded="false" />
-            <element signature="e#2500#2740#0" expanded="false" />
-            <element signature="e#2819#3104#0" expanded="false" />
-            <element signature="e#3150#3175#0" expanded="false" />
-            <element signature="e#3230#3306#0" expanded="false" />
-            <element signature="e#3378#3649#0" expanded="false" />
-            <element signature="e#3721#3953#0" expanded="false" />
-            <element signature="e#4028#4305#0" expanded="false" />
-            <element signature="e#4347#4372#0" expanded="false" />
-            <element signature="e#4429#4508#0" expanded="false" />
-            <element signature="e#4581#4853#0" expanded="false" />
-            <element signature="e#4926#5160#0" expanded="false" />
-            <element signature="e#5236#5515#0" expanded="false" />
-            <element signature="e#5558#5583#0" expanded="false" />
-            <element signature="e#5646#5734#0" expanded="false" />
-            <element signature="e#5820#6189#0" expanded="false" />
-            <element signature="e#6265#6505#0" expanded="false" />
-            <element signature="e#6584#6869#0" expanded="false" />
-            <element signature="e#6915#6940#0" expanded="false" />
-            <element signature="e#7003#7091#0" expanded="false" />
-            <element signature="e#7178#7617#0" expanded="false" />
-            <element signature="e#7694#7934#0" expanded="false" />
-            <element signature="e#8014#8329#0" expanded="false" />
-            <element signature="e#8376#8401#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/View/Connection_Widget.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -1294,19 +1261,9 @@
     <entry file="file://$PROJECT_DIR$/Model/AST_Model.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="36" column="14" selection-start-line="36" selection-start-column="14" selection-end-line="36" selection-end-column="14" />
+          <caret line="56" column="25" selection-start-line="56" selection-start-column="25" selection-end-line="56" selection-end-column="25" />
           <folding>
             <element signature="e#47#56#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/View/Connection_Widget.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="319" column="60" selection-start-line="319" selection-start-column="8" selection-end-line="319" selection-end-column="60" />
-          <folding>
-            <element signature="e#47#63#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -1314,41 +1271,23 @@
     <entry file="file://$PROJECT_DIR$/View/Save_Option_Dialog.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="162" column="50" selection-start-line="162" selection-start-column="50" selection-end-line="162" selection-end-column="50" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Controller/graph_controller.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="88" column="106" selection-start-line="88" selection-start-column="106" selection-end-line="88" selection-end-column="106" />
+          <caret line="14" column="16" selection-start-line="14" selection-start-column="13" selection-end-line="14" selection-end-column="16" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/View/Graph_Widget.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-11.142858">
-          <caret line="153" column="63" selection-start-line="153" selection-start-column="63" selection-end-line="153" selection-end-column="63" />
-          <folding>
-            <element signature="e#3288#3540#0" expanded="false" />
-            <element signature="e#7304#8507#0" expanded="false" />
-            <element signature="e#8627#11699#0" expanded="false" />
-            <element signature="e#11751#11936#0" expanded="false" />
-            <element signature="e#15491#16890#0" expanded="false" />
-            <element signature="e#18475#18519#0" expanded="false" />
-            <element signature="e#18553#18598#0" expanded="false" />
-            <element signature="e#21929#22127#0" expanded="false" />
-            <element signature="e#22178#22320#0" expanded="false" />
-          </folding>
+        <state vertical-scroll-proportion="0.0">
+          <caret line="114" column="4" selection-start-line="114" selection-start-column="4" selection-end-line="114" selection-end-column="4" />
+          <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/View/Instance_Widget.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.57835823">
-          <caret line="583" column="26" selection-start-line="583" selection-start-column="26" selection-end-line="583" selection-end-column="26" />
+        <state vertical-scroll-proportion="0.0">
+          <caret line="513" column="0" selection-start-line="513" selection-start-column="0" selection-end-line="513" selection-end-column="0" />
           <folding>
             <element signature="e#379#485#0" expanded="false" />
             <element signature="e#547#618#0" expanded="false" />
@@ -1363,29 +1302,45 @@
             <element signature="e#1831#1917#0" expanded="false" />
             <element signature="e#1980#2068#0" expanded="false" />
             <element signature="e#2184#2424#0" expanded="false" />
-            <element signature="e#2500#2740#0" expanded="false" />
-            <element signature="e#2819#3104#0" expanded="false" />
-            <element signature="e#3150#3175#0" expanded="false" />
-            <element signature="e#3230#3306#0" expanded="false" />
-            <element signature="e#3378#3649#0" expanded="false" />
-            <element signature="e#3721#3953#0" expanded="false" />
-            <element signature="e#4028#4305#0" expanded="false" />
-            <element signature="e#4347#4372#0" expanded="false" />
-            <element signature="e#4429#4508#0" expanded="false" />
-            <element signature="e#4581#4853#0" expanded="false" />
-            <element signature="e#4926#5160#0" expanded="false" />
-            <element signature="e#5236#5515#0" expanded="false" />
-            <element signature="e#5558#5583#0" expanded="false" />
-            <element signature="e#5646#5734#0" expanded="false" />
-            <element signature="e#5820#6189#0" expanded="false" />
-            <element signature="e#6265#6505#0" expanded="false" />
-            <element signature="e#6584#6869#0" expanded="false" />
-            <element signature="e#6915#6940#0" expanded="false" />
-            <element signature="e#7003#7091#0" expanded="false" />
-            <element signature="e#7178#7617#0" expanded="false" />
-            <element signature="e#7694#7934#0" expanded="false" />
-            <element signature="e#8014#8329#0" expanded="false" />
-            <element signature="e#8376#8401#0" expanded="false" />
+            <element signature="e#3089#3114#0" expanded="false" />
+            <element signature="e#3169#3245#0" expanded="false" />
+            <element signature="e#3317#3588#0" expanded="false" />
+            <element signature="e#4225#4250#0" expanded="false" />
+            <element signature="e#4307#4386#0" expanded="false" />
+            <element signature="e#4459#4731#0" expanded="false" />
+            <element signature="e#5375#5400#0" expanded="false" />
+            <element signature="e#5463#5551#0" expanded="false" />
+            <element signature="e#5637#6006#0" expanded="false" />
+            <element signature="e#6671#6696#0" expanded="false" />
+            <element signature="e#6759#6847#0" expanded="false" />
+            <element signature="e#6934#7373#0" expanded="false" />
+            <element signature="e#8071#8096#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/__main__.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="17" column="37" selection-start-line="17" selection-start-column="37" selection-end-line="17" selection-end-column="37" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Controller/graph_controller.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="71" column="0" selection-start-line="71" selection-start-column="0" selection-end-line="71" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/View/Connection_Widget.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.008333334">
+          <caret line="443" column="85" selection-start-line="443" selection-start-column="85" selection-end-line="443" selection-end-column="85" />
+          <folding>
+            <element signature="e#47#63#0" expanded="true" />
           </folding>
         </state>
       </provider>

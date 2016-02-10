@@ -6,7 +6,6 @@ import math, six
 from PyQt5 import QtGui, QtWidgets, QtCore
 
 # TODO: Change
-import pydotplus as Pydot
 
 from Instance_Widget import InstanceWidget
 
@@ -166,7 +165,7 @@ class ConnectionWidget(QtWidgets.QGraphicsItem):
 
                 s_to_d = destination_control_point - source_control_point
 
-                length = math.sqrt(QtCore.QPointF.dotProduct(s_to_d, s_to_d))
+                length = math.sqrt(s_to_d.dotProduct(s_to_d, s_to_d))
                 if length < 30:
                     middle_vector = self.change_vector_length(s_to_d,length/2)
 
@@ -199,15 +198,16 @@ class ConnectionWidget(QtWidgets.QGraphicsItem):
         self.path.moveTo(source_point)
         self.path.lineTo(dest_point)
 
-
-
-
     @staticmethod
     def change_vector_length(old_point, new_length):
         assert isinstance(old_point, QtCore.QPointF)
-        old_length = math.sqrt(old_point.x() * old_point.x() + old_point.y()*old_point.y())
+        old_length = math.sqrt(old_point.x()*old_point.x() + old_point.y()*old_point.y())
 
-        new_point = QtCore.QPointF((old_point.x() * new_length) / old_length , (old_point.y()*new_length)/old_length)
+        if old_length == 0:
+            # It doesn't make sense to extend or shorten a zero vector
+            return old_point
+
+        new_point = QtCore.QPointF((old_point.x() * new_length) / old_length, (old_point.y()*new_length)/old_length)
         return new_point
 
     @staticmethod
@@ -255,8 +255,8 @@ class ConnectionWidget(QtWidgets.QGraphicsItem):
 
         normal_length = 10
 
-        if (math.sqrt(QtCore.QPointF.dotProduct(s_to_d, s_to_d)) / 2) < normal_length:
-            normal_length = math.sqrt(QtCore.QPointF.dotProduct(s_to_d, s_to_d)) / 2
+        if (math.sqrt(s_to_d.dotProduct(s_to_d, s_to_d)) / 2) < normal_length:
+            normal_length = math.sqrt(s_to_d.dotProduct(s_to_d, s_to_d)) / 2
 
         s_to_d = ConnectionWidget.change_vector_length(s_to_d, normal_length)
         perpend_vector = QtCore.QPointF(-s_to_d.y(), s_to_d.x())
@@ -274,6 +274,12 @@ class ConnectionWidget(QtWidgets.QGraphicsItem):
         self._connection_name = name
         self._connection_type = None
         self.connection_type = con_type
+
+        # Get points from attributes of the edge
+        self._source_pos = None
+        self._dest_pos = None
+        self._source_angle = None
+        self._dest_angle = None
 
         self._path = None
 
@@ -297,12 +303,6 @@ class ConnectionWidget(QtWidgets.QGraphicsItem):
 
         self.source_instance_widget.add_connection(self)
         self.dest_instance_widget.add_connection(self)
-
-        # Get points from attributes of the edge
-        self._source_pos = None
-        self._dest_pos = None
-        self._source_angle = None
-        self._dest_angle = None
 
     def paint(self, q_painter, style_option , widget=None):
 
@@ -343,11 +343,11 @@ class ConnectionWidget(QtWidgets.QGraphicsItem):
         assert isinstance(mouse_event, QtWidgets.QGraphicsSceneMouseEvent)
         print self.name + " clicked (edge)"
 
-    def __del__(self):
+    def delete(self):
         # TODO: Delete connection from source & destination
         self.source_instance_widget.remove_connection(self)
         self.dest_instance_widget.remove_connection(self)
-        print "deleted connection_widget"
+        print "\t\t\t\t\t\tdeleted connection_widget"
 
     # Method using QPainter to draw the edge points, spline
     # def draw_connection(self, q_painter):
@@ -441,7 +441,7 @@ class EventWidget(ConnectionWidget):
 
         straight_point = QtCore.QPointF(1,0)
 
-        start_straight_dot_product = QtCore.QPointF.dotProduct(new_vector, straight_point)
+        start_straight_dot_product = new_vector.dotProduct(new_vector, straight_point)
         perpend_length = math.sqrt(new_vector.x()*new_vector.x() + new_vector.y()*new_vector.y())
         straight_length = math.sqrt(straight_point.x()*straight_point.x() + straight_point.y()*straight_point.y())
 
