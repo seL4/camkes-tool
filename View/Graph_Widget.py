@@ -418,11 +418,11 @@ class GraphWidget(QtWidgets.QGraphicsView):
         # TODO: Save layout info
 
     def update_outer_ui(self):
-        bottom_corner = self.pos() + QtCore.QPoint(self.width(), self.height())
+        bottom_corner = self.geometry().bottomRight()
 
         zoom_in_position = bottom_corner - QtCore.QPoint(self.zoom_in_button.sizeHint().width(),
                                                          self.zoom_in_button.sizeHint().height()) \
-                                         - QtCore.QPoint(20, 20)
+                                         - QtCore.QPoint(20, 40) # 40 due to some weird behaviour with File Menus
 
         self.zoom_in_button.move(zoom_in_position)
         self.zoom_in_button.show()
