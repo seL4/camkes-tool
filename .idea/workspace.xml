@@ -4,7 +4,6 @@
     <list default="true" id="9e94cc0d-524c-462a-bfa8-511eaa5dddfc" name="Default" comment="Found bug in change_vector_length - where it would crash if it attempted to change the length of a zero vector&#10;Moved initialisation of position and angle since it is accessed by instance widgets later on.&#10;Created a delete function to delete itself from the source and destination">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Controller/graph_controller.py" afterPath="$PROJECT_DIR$/Controller/graph_controller.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/View/Connection_Widget.py" afterPath="$PROJECT_DIR$/View/Connection_Widget.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/View/Graph_Widget.py" afterPath="$PROJECT_DIR$/View/Graph_Widget.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/View/Instance_Widget.py" afterPath="$PROJECT_DIR$/View/Instance_Widget.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/__main__.py" afterPath="$PROJECT_DIR$/__main__.py" />
@@ -524,12 +523,6 @@
       <option name="number" value="Default" />
       <updated>1449214734746</updated>
     </task>
-    <task id="LOCAL-00013" summary="Created a widget to represent an Instance.">
-      <created>1449715008098</created>
-      <option name="number" value="00013" />
-      <option name="project" value="LOCAL" />
-      <updated>1449715008098</updated>
-    </task>
     <task id="LOCAL-00014" summary="Added code that would go through an AST Tree, make instance widgets and add them on the screen. A render function will then be immediately called. The render function will create a new graph (using graphviz), add nodes (and their sizes) to the graph, add connections as well, and use the final positions in the graph to display them on the root_widget (Gtk.Layout)">
       <created>1449715124132</created>
       <option name="number" value="00014" />
@@ -818,7 +811,13 @@
       <option name="project" value="LOCAL" />
       <updated>1455064207795</updated>
     </task>
-    <option name="localTasksCounter" value="62" />
+    <task id="LOCAL-00062" summary="Found bug in change_vector_length - where it would crash if it attempted to change the length of a zero vector&#10;Moved initialisation of position and angle since it is accessed by instance widgets later on.&#10;Created a delete function to delete itself from the source and destination&#10;Removed unnecessary pydotplus import&#10;I though QtPoint.dotProduct was a static function. Turns out it isn't in python (or maybe it is, but pycharm just likes to complain). Changed it anyway.">
+      <created>1455075650459</created>
+      <option name="number" value="00062" />
+      <option name="project" value="LOCAL" />
+      <updated>1455075650459</updated>
+    </task>
+    <option name="localTasksCounter" value="63" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -878,7 +877,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="true" />
-    <MESSAGE value="Attempted moving position, but failed." />
     <MESSAGE value="Changed Instance widget to subclass QGraphicsWidget. Involves using LinearLayout (as VBoxLayout isn't available in the QGraphics word). And using proxy_widget as a placeholder (since design is no where near final anyway)" />
     <MESSAGE value="Updated GraphWidget to handle change of subclass in InstanceWidget" />
     <MESSAGE value="Updated GraphController to handle change of subclass in InstanceWidget" />
@@ -903,7 +901,8 @@
     <MESSAGE value="Using geometry function to get the bottom corner&#10;Since file menu is added, need to offset the buttons by 20, 40 instead of 20,20. This is due to a weird behaviour with file menus." />
     <MESSAGE value="Division by zero error possible. Removed bug" />
     <MESSAGE value="Found bug in change_vector_length - where it would crash if it attempted to change the length of a zero vector&#10;Moved initialisation of position and angle since it is accessed by instance widgets later on.&#10;Created a delete function to delete itself from the source and destination" />
-    <option name="LAST_COMMIT_MESSAGE" value="Found bug in change_vector_length - where it would crash if it attempted to change the length of a zero vector&#10;Moved initialisation of position and angle since it is accessed by instance widgets later on.&#10;Created a delete function to delete itself from the source and destination" />
+    <MESSAGE value="Found bug in change_vector_length - where it would crash if it attempted to change the length of a zero vector&#10;Moved initialisation of position and angle since it is accessed by instance widgets later on.&#10;Created a delete function to delete itself from the source and destination&#10;Removed unnecessary pydotplus import&#10;I though QtPoint.dotProduct was a static function. Turns out it isn't in python (or maybe it is, but pycharm just likes to complain). Changed it anyway." />
+    <option name="LAST_COMMIT_MESSAGE" value="Found bug in change_vector_length - where it would crash if it attempted to change the length of a zero vector&#10;Moved initialisation of position and angle since it is accessed by instance widgets later on.&#10;Created a delete function to delete itself from the source and destination&#10;Removed unnecessary pydotplus import&#10;I though QtPoint.dotProduct was a static function. Turns out it isn't in python (or maybe it is, but pycharm just likes to complain). Changed it anyway." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

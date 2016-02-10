@@ -104,7 +104,6 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
         for dictionary in self.provides:
             if dictionary['Name'] == interface_name:
                 dictionary['Connection_Widget'] = connection
-                print "found"
                 break
 
     def remove_provide_connection(self, interface_name, connection):
@@ -112,7 +111,6 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
         for dictionary in self.provides:
             if dictionary['Name'] == interface_name and dictionary['Connection_Widget'] is connection:
                 dictionary['Connection_Widget'] = None
-                print "remove"
                 break
 
     def delete_provide(self, name):
@@ -139,7 +137,6 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
         for dictionary in self.uses:
             if dictionary['Name'] == interface_name:
                 dictionary['Connection_Widget'] = connection
-                print "found"
                 break
 
     def remove_use_connection(self, interface_name, connection):
@@ -147,7 +144,6 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
         for dictionary in self.uses:
             if dictionary['Name'] == interface_name and dictionary['Connection_Widget'] is connection:
                 dictionary['Connection_Widget'] = None
-                print "remove"
                 break
 
     def delete_use(self, name):
@@ -174,7 +170,6 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
         for dictionary in self.emits:
             if dictionary['Name'] == interface_name:
                 dictionary['Connection_Widget'] = connection
-                print "found"
                 break
 
     def remove_emit_connection(self, interface_name, connection):
@@ -182,7 +177,6 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
         for dictionary in self.emits:
             if dictionary['Name'] == interface_name and dictionary['Connection_Widget'] is connection:
                 dictionary['Connection_Widget'] = None
-                print "remove"
                 break
 
     def delete_emit(self, name):
@@ -211,7 +205,6 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
         for dictionary in self.consumes:
             if dictionary['Name'] == interface_name:
                 dictionary['Connection_Widget'] = connection
-                print "found"
                 break
 
     def remove_consume_connection(self, interface_name, connection):
@@ -219,7 +212,6 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
         for dictionary in self.consumes:
             if dictionary['Name'] == interface_name and dictionary['Connection_Widget'] is connection:
                 dictionary['Connection_Widget'] = None
-                print "remove"
                 break
 
     def delete_consume(self, name):
@@ -251,7 +243,6 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
         for dictionary in self.dataport:
             if dictionary['Name'] == interface_name:
                 dictionary['Connection_Widget'] = connection
-                print "found"
                 break
 
     def remove_dataport_connection(self, interface_name, connection):
@@ -260,7 +251,6 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
             if dictionary['Name'] == interface_name and \
                             dictionary['Connection_Widget'] is connection:
                 dictionary['Connection_Widget'] = None
-                print "remove"
                 break
 
     def delete_dataport(self, name):
@@ -295,6 +285,7 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
             raise NotImplementedError  # Something is wrong
 
         self._connections_list.append(connection)
+        self.update_connection_position(connection)
 
     def remove_connection(self, connection):
         assert isinstance(connection, Connection_Widget.ConnectionWidget)
@@ -466,11 +457,9 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
     def itemChange(self, change, value):
 
         if change == QtWidgets.QGraphicsWidget.ItemPositionHasChanged:  # and self._moved_at_least_once:
-            print "new position of " + str(self.name) + " is : " + str(self.scenePos())
             self.pinned = True
 
             self.update_connections()
-            print "About to emit, I am: " + str(self.__class__)
 
         return super(InstanceWidget, self).itemChange(change, value)
 
@@ -555,8 +544,6 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
         # print "\tother position:" + str(other_widget_pos) + " ours:" + str(our_pos)
         # print "\tvector: " + str(vector)
         # print "\tbounding rect: " + str(self.boundingRect())
-        print vector.y()
-        print vector.x()
 
         if vector.x() == 0:
             y = self.boundingRect().height() # To force into "Yo here 3/4"
