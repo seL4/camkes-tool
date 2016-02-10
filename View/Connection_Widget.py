@@ -5,12 +5,9 @@ import math, six
 
 from PyQt5 import QtGui, QtWidgets, QtCore
 
-# TODO: Change
-
 from Instance_Widget import InstanceWidget
 
 
-# TODO: Make connectionWidget totally independent of connection_object. Have links to the nodes that its connecting.
 class ConnectionWidget(QtWidgets.QGraphicsItem):
 
     @property
