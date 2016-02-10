@@ -83,6 +83,11 @@ class GraphController(QtWidgets.QMainWindow):
         fileMenu = self.menuBar().addMenu("&File")
         fileMenu.addAction(self.open_action)
         fileMenu.addAction(self.root_widget.export_action)
+    
+        fileMenu.addSeparator()
+    
+        fileMenu.addAction(self.quit_action)
+
 
         # Model, get a ASTObject from given camkes file
 
