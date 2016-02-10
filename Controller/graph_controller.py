@@ -1,10 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import sys, os
-
-# sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../'))
-# sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../'))
+import six
 
 from PyQt5 import QtWidgets, QtGui
 
@@ -47,6 +44,7 @@ class GraphController(QtWidgets.QMainWindow):
             self._open_action = QtWidgets.QAction("Open", self)
             self._open_action.setShortcut(QtGui.QKeySequence.Open)
             self._open_action.setStatusTip("Open a new CAmkES ADL file (Top Level only)")
+            self._open_action.setToolTip("Open a new CAmkES ADL file (Top Level only)")
             self._open_action.triggered.connect(self.openNewFile)
         return self._open_action
 
@@ -69,16 +67,17 @@ class GraphController(QtWidgets.QMainWindow):
         self._component_dock_widget = None
         self._open_action = None
 
-
+        self.setWindowTitle("CAmkES Visualisation Tool")
 
         # Menu
         fileMenu = self.menuBar().addMenu("&File")
         fileMenu.addAction(self.open_action)
+        fileMenu.addAction(self.root_widget.export_action)
 
         # Model, get a ASTObject from given camkes file
 
         if path_to_camkes is not None:
-            self.root_widget.ast = ASTModel.get_ast(path_to_camkes)
+            self.open_ast(path_to_camkes)
 
         self.setCentralWidget(self.root_widget)
         self.resize(700, 700)
@@ -89,40 +88,27 @@ class GraphController(QtWidgets.QMainWindow):
         new_file = QtWidgets.QFileDialog.getOpenFileName(caption="Open CAmkES ADL file",
                                                          filter="CAmkES ADL (*.camkes)",
                                                          options=QtWidgets.QFileDialog.DontUseNativeDialog)
+        self.open_ast(new_file[0])
 
-        if len(new_file[0]) > 1:
-            self.root_widget.ast = ASTModel.get_ast(new_file[0])
+    def open_ast(self, path_to_file):
+
+        assert isinstance(path_to_file, six.string_types)
+
+        if len(path_to_file) > 1:
+            self.root_widget.ast = ASTModel.get_ast(path_to_file)
+
+            # find last / (or last \ in windows)
+            start_of_filename = path_to_file.rfind("/")
+            if start_of_filename == -1:
+                start_of_filename = path_to_file.rfind('\\')
+
+            if start_of_filename == -1:
+                start_of_filename = 0
+            else:
+                start_of_filename += 1
+
+            self.setWindowTitle(path_to_file[start_of_filename:path_to_file.rfind('.')])
 
     def show_component_info(self, component_name):
 
         self.component_widget.component_object = ASTModel.find_component(self.ast.items, component_name)
-
-
-def main(arguments):
-
-    app = QtWidgets.QApplication(arguments)
-    # new_controller = GraphController("/home/sthasarathan/Documents/camkes-newExample/apps/complex/complex.camkes")
-    # new_controller = GraphController("/home/sthasarathan/Documents/camkes-newExample/apps/coffeeSimple/coffeeDD.camkes")
-    new_controller = GraphController()
-
-    # new_controller = GraphController("/home/sthasarathan/Documents/CAMKES-APPS/camkes-kitty-HDDMA/apps/bilbyfs/bilbyfs.camkes")
-    # new_controller = GraphController("/home/sthasarathan/Documents/test/cddc/apps/cddc/cddc.camkes")
-    # new_controller = GraphController("/home/sthasarathan/Documents/quadcopter/quadcopter-next/apps/quadcopter/quadcopter.camkes")
-
-    new_controller.show()
-
-    app.exec_()
-
-
-
-if __name__ == '__main__':
-    sys.exit(main(sys.argv))
-
-    # Printing Image as png
-    # image = QtGui.QImage(5000,5000, QtGui.QImage.Format_ARGB32)
-    # image.fill(QtCore.Qt.transparent)
-    #
-    # painter = QtGui.QPainter(image)
-    # painter.setRenderHint(QtGui.QPainter.Antialiasing)
-    # self.root_widget.scene().render(painter)
-    # image.save("Test.png")
