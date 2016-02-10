@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="9e94cc0d-524c-462a-bfa8-511eaa5dddfc" name="Default" comment="Moved all graphing logic to graph widget. Logic for saving, auto layout and zooming">
+    <list default="true" id="9e94cc0d-524c-462a-bfa8-511eaa5dddfc" name="Default" comment="Added ability to open a new file from the">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Controller/graph_controller.py" afterPath="$PROJECT_DIR$/Controller/graph_controller.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/View/Graph_Widget.py" afterPath="$PROJECT_DIR$/View/Graph_Widget.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/View/Instance_Widget.py" afterPath="$PROJECT_DIR$/View/Instance_Widget.py" />
     </list>
     <ignored path="VisualComponents.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -25,11 +26,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="graph_controller.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="graph_controller.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Controller/graph_controller.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.72761196">
-              <caret line="78" column="67" selection-start-line="78" selection-start-column="67" selection-end-line="78" selection-end-column="67" />
+            <state vertical-scroll-proportion="0.0">
+              <caret line="88" column="106" selection-start-line="88" selection-start-column="106" selection-end-line="88" selection-end-column="106" />
               <folding />
             </state>
           </provider>
@@ -38,20 +39,18 @@
       <file leaf-file-name="Graph_Widget.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/View/Graph_Widget.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-7.321429">
-              <caret line="424" column="113" selection-start-line="424" selection-start-column="113" selection-end-line="424" selection-end-column="113" />
+            <state vertical-scroll-proportion="-11.142858">
+              <caret line="153" column="63" selection-start-line="153" selection-start-column="63" selection-end-line="153" selection-end-column="63" />
               <folding>
                 <element signature="e#3288#3540#0" expanded="false" />
-                <element signature="e#4330#7235#0" expanded="false" />
                 <element signature="e#7304#8507#0" expanded="false" />
                 <element signature="e#8627#11699#0" expanded="false" />
                 <element signature="e#11751#11936#0" expanded="false" />
-                <element signature="e#12008#12535#0" expanded="false" />
-                <element signature="e#15312#16711#0" expanded="false" />
-                <element signature="e#18296#18340#0" expanded="false" />
-                <element signature="e#18374#18419#0" expanded="false" />
-                <element signature="e#21750#21948#0" expanded="false" />
-                <element signature="e#21999#22141#0" expanded="false" />
+                <element signature="e#15491#16890#0" expanded="false" />
+                <element signature="e#18475#18519#0" expanded="false" />
+                <element signature="e#18553#18598#0" expanded="false" />
+                <element signature="e#21929#22127#0" expanded="false" />
+                <element signature="e#22178#22320#0" expanded="false" />
               </folding>
             </state>
           </provider>
@@ -67,11 +66,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Instance_Widget.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="Instance_Widget.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/View/Instance_Widget.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="417" column="23" selection-start-line="417" selection-start-column="23" selection-end-line="417" selection-end-column="23" />
+            <state vertical-scroll-proportion="0.57835823">
+              <caret line="583" column="26" selection-start-line="583" selection-start-column="26" selection-end-line="583" selection-end-column="26" />
               <folding>
                 <element signature="e#379#485#0" expanded="false" />
                 <element signature="e#547#618#0" expanded="false" />
@@ -179,10 +178,10 @@
         <option value="$PROJECT_DIR$/View/Dataport_Connection_Widget.py" />
         <option value="$PROJECT_DIR$/README.md" />
         <option value="$PROJECT_DIR$/View/Connection_Widget.py" />
-        <option value="$PROJECT_DIR$/View/Instance_Widget.py" />
         <option value="$PROJECT_DIR$/View/Save_Option_Dialog.py" />
         <option value="$PROJECT_DIR$/Controller/graph_controller.py" />
         <option value="$PROJECT_DIR$/View/Graph_Widget.py" />
+        <option value="$PROJECT_DIR$/View/Instance_Widget.py" />
       </list>
     </option>
   </component>
@@ -513,12 +512,6 @@
       <option name="number" value="Default" />
       <updated>1449214734746</updated>
     </task>
-    <task id="LOCAL-00011" summary="Using AST_Widget to test out drawing lines. Failed attempt :(. This class won't (should be) used anyway.">
-      <created>1449714910459</created>
-      <option name="number" value="00011" />
-      <option name="project" value="LOCAL" />
-      <updated>1449714910459</updated>
-    </task>
     <task id="LOCAL-00012" summary="Created a widget to represent connections. Currently doesn't work. Finding it difficult to draw a line between two other widgets. Will have to figure out a way in Milestone 3">
       <created>1449714969997</created>
       <option name="number" value="00012" />
@@ -807,7 +800,13 @@
       <option name="project" value="LOCAL" />
       <updated>1453965375296</updated>
     </task>
-    <option name="localTasksCounter" value="60" />
+    <task id="LOCAL-00060" summary="Using geometry function to get the bottom corner&#10;Since file menu is added, need to offset the buttons by 20, 40 instead of 20,20. This is due to a weird behaviour with file menus.">
+      <created>1455063648910</created>
+      <option name="number" value="00060" />
+      <option name="project" value="LOCAL" />
+      <updated>1455063648913</updated>
+    </task>
+    <option name="localTasksCounter" value="61" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -816,6 +815,7 @@
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.18020834" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.39979014" sideWeight="0.50208336" order="11" side_tool="true" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3292683" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
@@ -825,7 +825,6 @@
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32964718" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.39962476" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.29590765" sideWeight="0.49791667" order="5" side_tool="false" content_ui="tabs" />
@@ -867,7 +866,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="true" />
-    <MESSAGE value="Changed to ASTModel, all ast helper functions should be here" />
     <MESSAGE value="Fixed issue when re-syncing model with view (new widget was not successfully found in list when it was supposed to)" />
     <MESSAGE value="Created an update_ui function, which will be called every time a new instance_object is assigned" />
     <MESSAGE value="Attempted moving position, but failed." />
@@ -892,7 +890,8 @@
     <MESSAGE value="Graph_controller: Support creating Connection Widget specific to the type&#10;Connection_widget: draw icons for different connection types. Pen thicker. &quot;Angle&quot; now mean distance between control point and straight line between source and destination. Code will be made clearer later.&#10;Instance_widget: changed to choose a &quot;angle&quot; (as per the new definition). Chooses angle better" />
     <MESSAGE value="Graph_widget: Added the ability to zoom in and out by scaling view&#10;Instance_widget: emits when instance has moved" />
     <MESSAGE value="Moved all graphing logic to graph widget. Logic for saving, auto layout and zooming" />
-    <option name="LAST_COMMIT_MESSAGE" value="Moved all graphing logic to graph widget. Logic for saving, auto layout and zooming" />
+    <MESSAGE value="Using geometry function to get the bottom corner&#10;Since file menu is added, need to offset the buttons by 20, 40 instead of 20,20. This is due to a weird behaviour with file menus." />
+    <option name="LAST_COMMIT_MESSAGE" value="Using geometry function to get the bottom corner&#10;Since file menu is added, need to offset the buttons by 20, 40 instead of 20,20. This is due to a weird behaviour with file menus." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1302,10 +1301,54 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/View/Instance_Widget.py">
+    <entry file="file://$PROJECT_DIR$/View/Connection_Widget.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="417" column="23" selection-start-line="417" selection-start-column="23" selection-end-line="417" selection-end-column="23" />
+          <caret line="319" column="60" selection-start-line="319" selection-start-column="8" selection-end-line="319" selection-end-column="60" />
+          <folding>
+            <element signature="e#47#63#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/View/Save_Option_Dialog.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="162" column="50" selection-start-line="162" selection-start-column="50" selection-end-line="162" selection-end-column="50" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Controller/graph_controller.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="88" column="106" selection-start-line="88" selection-start-column="106" selection-end-line="88" selection-end-column="106" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/View/Graph_Widget.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-11.142858">
+          <caret line="153" column="63" selection-start-line="153" selection-start-column="63" selection-end-line="153" selection-end-column="63" />
+          <folding>
+            <element signature="e#3288#3540#0" expanded="false" />
+            <element signature="e#7304#8507#0" expanded="false" />
+            <element signature="e#8627#11699#0" expanded="false" />
+            <element signature="e#11751#11936#0" expanded="false" />
+            <element signature="e#15491#16890#0" expanded="false" />
+            <element signature="e#18475#18519#0" expanded="false" />
+            <element signature="e#18553#18598#0" expanded="false" />
+            <element signature="e#21929#22127#0" expanded="false" />
+            <element signature="e#22178#22320#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/View/Instance_Widget.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.57835823">
+          <caret line="583" column="26" selection-start-line="583" selection-start-column="26" selection-end-line="583" selection-end-column="26" />
           <folding>
             <element signature="e#379#485#0" expanded="false" />
             <element signature="e#547#618#0" expanded="false" />
@@ -1344,52 +1387,6 @@
             <element signature="e#8014#8329#0" expanded="false" />
             <element signature="e#8376#8401#0" expanded="false" />
           </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/View/Save_Option_Dialog.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="162" column="50" selection-start-line="162" selection-start-column="50" selection-end-line="162" selection-end-column="50" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/View/Connection_Widget.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="319" column="60" selection-start-line="319" selection-start-column="8" selection-end-line="319" selection-end-column="60" />
-          <folding>
-            <element signature="e#47#63#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/View/Graph_Widget.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-7.321429">
-          <caret line="424" column="113" selection-start-line="424" selection-start-column="113" selection-end-line="424" selection-end-column="113" />
-          <folding>
-            <element signature="e#3288#3540#0" expanded="false" />
-            <element signature="e#4330#7235#0" expanded="false" />
-            <element signature="e#7304#8507#0" expanded="false" />
-            <element signature="e#8627#11699#0" expanded="false" />
-            <element signature="e#11751#11936#0" expanded="false" />
-            <element signature="e#12008#12535#0" expanded="false" />
-            <element signature="e#15312#16711#0" expanded="false" />
-            <element signature="e#18296#18340#0" expanded="false" />
-            <element signature="e#18374#18419#0" expanded="false" />
-            <element signature="e#21750#21948#0" expanded="false" />
-            <element signature="e#21999#22141#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Controller/graph_controller.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.72761196">
-          <caret line="78" column="67" selection-start-line="78" selection-start-column="67" selection-end-line="78" selection-end-column="67" />
-          <folding />
         </state>
       </provider>
     </entry>

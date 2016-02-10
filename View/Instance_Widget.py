@@ -575,7 +575,13 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
                 # print "\tYo here 2"
                 vector.setX(self.boundingRect().width() / 2)
         else:
-            vector.setX(vector.x() * math.fabs((self.boundingRect().height() / 2) / vector.y()))
+
+            if vector.y() == 0:
+                x = self.boundingRect().width()
+            else:
+                x = vector.x() * math.fabs((self.boundingRect().height() / 2) / vector.y())
+
+            vector.setX(x)
             if vector.y() < 0:
                 # print "\tYo here 3"
                 vector.setY(-self.boundingRect().height() / 2)
