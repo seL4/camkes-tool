@@ -112,7 +112,6 @@ class GraphWidget(QtWidgets.QGraphicsView):
         return color
 
 
-
     def __init__(self):
         super(GraphWidget, self).__init__()
         self._connection_widgets = None
@@ -145,6 +144,8 @@ class GraphWidget(QtWidgets.QGraphicsView):
         # --- For each instance, create a node in the graph & a widget. ---
         instance_list_copy = list(ast_assembly.instances)
 
+        widgets_to_remove = []
+
         # Update widget's instance object counterpart
         for widget in self.widget_instances:
             assert isinstance(widget, InstanceWidget)
@@ -155,7 +156,11 @@ class GraphWidget(QtWidgets.QGraphicsView):
                 instance_list_copy.remove(new_instance_object)
             else:
                 # Instance object for widget not found, probably deleted, so widget not necessary
-                self.remove_instance_widget(widget)
+                widgets_to_remove.append(widget)
+
+        # Delete the widget (since it is not possible to delete the widget during iteration
+        for widget in widgets_to_remove:
+            self.remove_instance_widget(widget)
 
         for instance in instance_list_copy:
             # For all new instances (instances without widget counterpart)
@@ -307,8 +312,14 @@ class GraphWidget(QtWidgets.QGraphicsView):
                           y_pos - (new_widget.preferredSize().height() / 2))
 
     def remove_instance_widget(self, old_widget):
-        # TODO: Remove from list and from scene
-        raise NotImplementedError
+
+        # Remove from vector list
+        self.widget_instances.remove(old_widget)
+
+        # Remove from scene
+        scene = self.scene()
+        assert isinstance(scene, QtWidgets.QGraphicsScene)
+        scene.removeItem(old_widget)
 
     def add_connection_widget(self, new_connection):
         assert isinstance(new_connection, ConnectionWidget)
@@ -322,8 +333,9 @@ class GraphWidget(QtWidgets.QGraphicsView):
 
         for connection in self.connection_widgets:
             scene.removeItem(connection)
-            self.connection_widgets.remove(connection)
-            del connection
+            connection.delete()
+
+        del self.connection_widgets[:]
 
     # --- View Function --
     # TODO: Pick better name
@@ -382,8 +394,6 @@ class GraphWidget(QtWidgets.QGraphicsView):
         rect = self.sceneRect()
         assert isinstance(rect, QtCore.QRectF)
 
-        print "Rect before: " + str(rect)
-
         smallest_x = 0
         smallest_y = 0
         largest_x = 0
@@ -400,7 +410,6 @@ class GraphWidget(QtWidgets.QGraphicsView):
 
             bottom_corner = instance_widget.scenePos() + QtCore.QPointF(instance_widget.boundingRect().width(),
                                                                         instance_widget.boundingRect().height())
-            print "Bottom Corner" + str(bottom_corner)
 
             if largest_x < bottom_corner.x():
                 largest_x = bottom_corner.x()
@@ -408,10 +417,7 @@ class GraphWidget(QtWidgets.QGraphicsView):
             if largest_y < bottom_corner.y():
                 largest_y = bottom_corner.y()
 
-        print str(smallest_x) + "," + str(smallest_y) + "," + str(largest_x) + "," + str(largest_y)
         new_rect = QtCore.QRectF(smallest_x, smallest_y, largest_x - smallest_x, largest_y - smallest_y)
-
-        print "Rect after: " + str(new_rect)
 
         self.setSceneRect(new_rect)
 
@@ -457,6 +463,9 @@ class GraphWidget(QtWidgets.QGraphicsView):
     def save_picture(self):
         print "saving picture"
 
+        if self.ast is None:
+            return
+
 
         # Ask user whether they want png or svg
         # If png, ask what dimensions
@@ -466,6 +475,8 @@ class GraphWidget(QtWidgets.QGraphicsView):
 
         if not dialog_code:
             return
+
+        file_filter = ""
 
         if save_option_dialog.picture_type() == save_option_dialog.PNG:
             file_filter = "Image (*.png)"
