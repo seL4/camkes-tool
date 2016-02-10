@@ -53,10 +53,10 @@ class GraphController(QtWidgets.QMainWindow):
         if self._quit_action is None:
             self._quit_action = QtWidgets.QAction("Quit", self)
             self._quit_action.setShortcut(QtGui.QKeySequence.Quit)
-            self._open_action.setStatusTip("Quit Application")
-            self._open_action.setToolTip("Quit Application")
-            self._open_action.triggered.connect(self.quit())
-        return self._open_action
+            self._quit_action.setStatusTip("Quit Application")
+            self._quit_action.setToolTip("Quit Application")
+            self._quit_action.triggered.connect(self.quit)
+        return self._quit_action
 
     def __init__(self, path_to_camkes=None):
         """
@@ -76,6 +76,7 @@ class GraphController(QtWidgets.QMainWindow):
         self._component_widget = None
         self._component_dock_widget = None
         self._open_action = None
+        self._quit_action = None
 
         self.setWindowTitle("CAmkES Visualisation Tool")
 
@@ -83,9 +84,9 @@ class GraphController(QtWidgets.QMainWindow):
         fileMenu = self.menuBar().addMenu("&File")
         fileMenu.addAction(self.open_action)
         fileMenu.addAction(self.root_widget.export_action)
-    
-        fileMenu.addSeparator()
-    
+   	
+	fileMenu.addSeparator()
+ 
         fileMenu.addAction(self.quit_action)
 
 
@@ -128,7 +129,7 @@ class GraphController(QtWidgets.QMainWindow):
         if self.root_widget.ast:
             self.root_widget.save_layout_to_file()
 
-        QtWidget.QApplication.quit()
+        QtWidgets.QApplication.quit()
 
     def show_component_info(self, component_name):
 
