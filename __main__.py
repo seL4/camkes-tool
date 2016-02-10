@@ -3,13 +3,13 @@
 
 import sys, os
 
-
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../'))
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from PyQt5 import QtWidgets
 
 from Controller.graph_controller import GraphController
+
 
 def main(argv, out, err):
     app = QtWidgets.QApplication(argv)

@@ -1,13 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import os
-import sys
 import argparse
 
-# TODO: Make CAmkES module importable
 from camkes.parser.parser import Parser
-from camkes.ast.liftedast import LiftedAST
 import camkes.ast
 
 

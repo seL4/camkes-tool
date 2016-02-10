@@ -10,6 +10,7 @@ from PyQt5 import QtGui, QtWidgets, QtCore
 import Connection_Widget
 from Model import Common
 
+# TODO: Delete itself from all connections when __del__ ed
 
 class InstanceWidget(QtWidgets.QGraphicsWidget):
 
