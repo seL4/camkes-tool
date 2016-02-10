@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import argparse
+import argparse,os
 
 from camkes.parser.parser import Parser
 import camkes.ast
@@ -23,8 +23,11 @@ class ASTModel:
                                                            'of directories that are searched to find the file "foo" '
                                                            'when encountering an expression "import <foo>;".',
                                action='append', default=[])
+
+	print os.path.join(os.path.dirname(os.path.abspath(__file__)),'../camkes/include/builtin')  
+
         args = args.parse_args(["--import-path",
-                                "/home/sthasarathan/Documents/camkes-newExample/tools/camkes/include/builtin"])
+                                os.path.join(os.path.dirname(os.path.abspath(__file__)),'../../../include/builtin')])
 
         camkes_parser = Parser(args)
         ast, _read = camkes_parser.parse_file(path_to_camkes_file)
