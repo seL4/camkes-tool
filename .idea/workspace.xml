@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="9e94cc0d-524c-462a-bfa8-511eaa5dddfc" name="Default" comment="Set Window Title to either &quot;CAmkES Visualisation Tool&quot; or the file name">
+    <list default="true" id="9e94cc0d-524c-462a-bfa8-511eaa5dddfc" name="Default" comment="Added export action for saving image">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Controller/graph_controller.py" afterPath="$PROJECT_DIR$/Controller/graph_controller.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/View/Graph_Widget.py" afterPath="$PROJECT_DIR$/View/Graph_Widget.py" />
     </list>
     <ignored path="VisualComponents.iws" />
@@ -35,10 +34,10 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="graph_controller.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="graph_controller.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Controller/graph_controller.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.33284885">
+            <state vertical-scroll-proportion="0.0">
               <caret line="89" column="106" selection-start-line="89" selection-start-column="106" selection-end-line="89" selection-end-column="106" />
               <folding>
                 <element signature="e#47#57#0" expanded="true" />
@@ -47,11 +46,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Graph_Widget.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="Graph_Widget.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/View/Graph_Widget.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="119" column="81" selection-start-line="119" selection-start-column="81" selection-end-line="119" selection-end-column="81" />
+            <state vertical-scroll-proportion="0.33284885">
+              <caret line="499" column="106" selection-start-line="499" selection-start-column="106" selection-end-line="499" selection-end-column="106" />
               <folding />
             </state>
           </provider>
@@ -531,12 +530,6 @@
       <option name="number" value="Default" />
       <updated>1449214734746</updated>
     </task>
-    <task id="LOCAL-00019" summary="Created a Widget class which will add widgets on a &quot;canvas&quot;, and add connections.">
-      <created>1450419049128</created>
-      <option name="number" value="00019" />
-      <option name="project" value="LOCAL" />
-      <updated>1450419049128</updated>
-    </task>
     <task id="LOCAL-00020" summary="Subclasses QWidget and draws a line given by graphviz">
       <created>1450419106458</created>
       <option name="number" value="00020" />
@@ -825,7 +818,13 @@
       <option name="project" value="LOCAL" />
       <updated>1455082433629</updated>
     </task>
-    <option name="localTasksCounter" value="68" />
+    <task id="LOCAL-00068" summary="Set Window Title to either &quot;CAmkES Visualisation Tool&quot; or the file name">
+      <created>1455082524725</created>
+      <option name="number" value="00068" />
+      <option name="project" value="LOCAL" />
+      <updated>1455082524726</updated>
+    </task>
+    <option name="localTasksCounter" value="69" />
     <servers />
   </component>
   <component name="TodoView">
@@ -894,7 +893,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="true" />
-    <MESSAGE value="Added function to find component" />
     <MESSAGE value="Added Event, Procedure and Dataport &quot;#defines&quot;" />
     <MESSAGE value="Made Instance Widget and Connection Widget independent of the AST Model. Widgets now store all the important information. Instance and Connection represent the graph. Graph_controller has functions to sync the instance with the Lifted_AST." />
     <MESSAGE value="Moved Create_connection_widget&#10;" />
@@ -919,7 +917,8 @@
     <MESSAGE value="Completed two simple TODO's and added a new one" />
     <MESSAGE value="Removed completed TODOs" />
     <MESSAGE value="Set Window Title to either &quot;CAmkES Visualisation Tool&quot; or the file name" />
-    <option name="LAST_COMMIT_MESSAGE" value="Set Window Title to either &quot;CAmkES Visualisation Tool&quot; or the file name" />
+    <MESSAGE value="Added export action for saving image" />
+    <option name="LAST_COMMIT_MESSAGE" value="Added export action for saving image" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1345,21 +1344,21 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/View/Graph_Widget.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="119" column="81" selection-start-line="119" selection-start-column="81" selection-end-line="119" selection-end-column="81" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/Controller/graph_controller.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.33284885">
+        <state vertical-scroll-proportion="0.0">
           <caret line="89" column="106" selection-start-line="89" selection-start-column="106" selection-end-line="89" selection-end-column="106" />
           <folding>
             <element signature="e#47#57#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/View/Graph_Widget.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.33284885">
+          <caret line="499" column="106" selection-start-line="499" selection-start-column="106" selection-end-line="499" selection-end-column="106" />
+          <folding />
         </state>
       </provider>
     </entry>

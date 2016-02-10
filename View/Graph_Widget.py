@@ -111,6 +111,16 @@ class GraphWidget(QtWidgets.QGraphicsView):
 
         return color
 
+    @property
+    def export_action(self):
+        if self._export_action is None:
+            self._export_action = QtWidgets.QAction("Export as Image", self)
+            self._export_action.setShortcut(QtGui.QKeySequence("Ctrl+E"))
+            self._export_action.setStatusTip("Save the graph as a PNG or SVG file")
+            self._export_action.setToolTip("Save the graph as a PNG or SVG file")
+            self._export_action.triggered.connect(self.save_picture)
+        return self._export_action
+
 
     def __init__(self):
         super(GraphWidget, self).__init__()
@@ -119,6 +129,7 @@ class GraphWidget(QtWidgets.QGraphicsView):
         self._zoom_in = None
         self._zoom_out = None
         self._save_picture_button = None
+        self._export_action = None
         self._autolayout_button = None
         self._ast = None
         self._color_seed = None
