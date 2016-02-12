@@ -13,7 +13,7 @@ from graphviz import *
 #                                  --install-option="--library-path=/usr/lib/graphviz/"
 #           http://stackoverflow.com/questions/32885486/pygraphviz-importerror-undefined-symbol-agundirected
 # from graphviz import Graph
-import pydot
+import pydotplus as pydot
 
 from camkes.ast import *
 from Model.AST_Model import ASTModel
