@@ -8,12 +8,12 @@ from PyQt5 import QtWidgets, QtGui, QtCore, QtSvg
 # install python-pyqt5.qtsvg
 # install libqt5svg5-dev
 
-from pygraphviz import *
+from graphviz import *
 # NOTES:    pip install pygraphviz --install-option="--include-path=/usr/include/graphviz"
 #                                  --install-option="--library-path=/usr/lib/graphviz/"
 #           http://stackoverflow.com/questions/32885486/pygraphviz-importerror-undefined-symbol-agundirected
 # from graphviz import Graph
-import pydotplus
+import pydot
 
 from camkes.ast import *
 from Model.AST_Model import ASTModel
@@ -394,7 +394,7 @@ class GraphWidget(QtWidgets.QGraphicsView):
             json.dump(node_positions,output, indent=4)
 
     def autolayout(self):
-        graph_viz = AGraph(strict=False, spline="line", directed=True)
+        graph_viz = Digraph(engine='dot')
 
         for widget_instance in self.widget_instances:
             assert isinstance(widget_instance, InstanceWidget)
@@ -402,18 +402,17 @@ class GraphWidget(QtWidgets.QGraphicsView):
             size = widget_instance.preferredSize()
             assert isinstance(size, QtCore.QSizeF)
 
-            graph_viz.add_node(widget_instance.name, width=size.width() / 72.0,
-                               height=size.height() / 72.0, shape="rect")
+            graph_viz.node(widget_instance.name, width=str(size.width() / 72.0),
+                               height=str(size.height() / 72.0), shape="rect")
 
         for connection in self.connection_widgets:
             assert isinstance(connection, ConnectionWidget)
-            graph_viz.add_edge(u=connection.source_instance_widget.name, v=connection.dest_instance_widget.name, minlen=2)
+            graph_viz.edge(connection.source_instance_widget.name, connection.dest_instance_widget.name, minlen=str(2))
 
-        graph_viz.layout('dot')
-        raw_dot_data = graph_viz.draw(format='dot')
+        raw_dot_data = graph_viz.pipe('dot')
         print raw_dot_data
 
-        dot_data = pydotplus.graph_from_dot_data(raw_dot_data)
+        dot_data = pydot.graph_from_dot_data(raw_dot_data)
 
         # Get graphviz height
         graph_attributes = dot_data.get_graph_defaults()
@@ -437,7 +436,7 @@ class GraphWidget(QtWidgets.QGraphicsView):
             # Get the node representing this instance, and get its attributes
             node_list = dot_data.get_node(instance_name)
             assert len(node_list) == 1  # Should only be one node
-            assert isinstance(node_list[0], pydotplus.Node)
+            assert isinstance(node_list[0], pydot.Node)
             node_attributes_dict = node_list[0].get_attributes()
 
             # Extract position of the node
