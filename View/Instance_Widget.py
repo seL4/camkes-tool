@@ -29,15 +29,6 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
         assert isinstance(value, QtCore.QPointF)
         self._velocity = value
 
-    @property
-    def pinned(self):
-        return self._pinned
-
-    @pinned.setter
-    def pinned(self, value):
-        assert isinstance(value, bool)
-        self._pinned = value
-
     # --- Information about Instance ---
 
     @property
@@ -457,8 +448,6 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
     def itemChange(self, change, value):
 
         if change == QtWidgets.QGraphicsWidget.ItemPositionHasChanged:  # and self._moved_at_least_once:
-            self.pinned = True
-
             self.update_connections()
 
         return super(InstanceWidget, self).itemChange(change, value)
