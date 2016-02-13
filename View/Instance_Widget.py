@@ -382,7 +382,6 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
         self.update()
 
     def boundingRect(self):
-        self.update_ui()  # TODO: NEED TO RETHINK THIS
         return self._bounding_rect
 
     def paint(self, painter, style_options, widget=None):
