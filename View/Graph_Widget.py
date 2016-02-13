@@ -51,6 +51,7 @@ class GraphWidget(QtWidgets.QGraphicsView):
             self._zoom_in.setAutoRepeat(True)
             self._zoom_in.clicked.connect(self.zoom_in)
             self._zoom_in.setShortcut(QtGui.QKeySequence(QtCore.Qt.CTRL + QtCore.Qt.Key_Minus))
+            self._zoom_in.setShortcut(QtGui.QKeySequence(QtCore.Qt.CTRL + QtCore.Qt.Key_Equal))
             self.update_outer_ui()
         return self._zoom_in
 
@@ -60,7 +61,7 @@ class GraphWidget(QtWidgets.QGraphicsView):
             self._zoom_out = QtWidgets.QPushButton("Zoom &Out", self)
             self._zoom_out.setAutoRepeat(True)
             self._zoom_out.clicked.connect(self.zoom_out)
-            self._zoom_out.setShortcut(QtGui.QKeySequence(QtCore.Qt.CTRL + QtCore.Qt.Key_Equal))
+            self._zoom_out.setShortcut(QtGui.QKeySequence(QtCore.Qt.CTRL + QtCore.Qt.Key_Minus))
             self.update_outer_ui()
         return self._zoom_out
 
