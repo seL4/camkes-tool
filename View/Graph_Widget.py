@@ -544,8 +544,8 @@ class GraphWidget(QtWidgets.QGraphicsView):
 
         filename = QtWidgets.QFileDialog.getSaveFileName(caption="Save file",
                                                          directory=self.get_root_location(with_name=True),
-                                                         filter=file_filter,
-                                                         options=QtWidgets.QFileDialog.DontUseNativeDialog)
+                                                         filter=file_filter) # ,
+                                                         # options=QtWidgets.QFileDialog.DontUseNativeDialog)
 
         image_location = filename[0]  # getSaveFileName returns a tuple. First index of tuple is the file name
 

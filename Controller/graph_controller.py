@@ -102,8 +102,8 @@ class GraphController(QtWidgets.QMainWindow):
 
     def openNewFile(self):
         new_file = QtWidgets.QFileDialog.getOpenFileName(caption="Open CAmkES ADL file",
-                                                         filter="CAmkES ADL (*.camkes)",
-                                                         options=QtWidgets.QFileDialog.DontUseNativeDialog)
+                                                         filter="CAmkES ADL (*.camkes)") #,
+                                                         # options=QtWidgets.QFileDialog.DontUseNativeDialog)
         self.open_ast(new_file[0])
 
     def open_ast(self, path_to_file):
