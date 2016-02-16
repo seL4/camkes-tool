@@ -416,7 +416,7 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
         bounding_rect_font = painter.boundingRect(QtCore.QRectF(1, 1, 1, 1), QtCore.Qt.AlignCenter, self.component_type)
 
         bounding_rect_font.moveTo(self.boundingRect().center().x() - bounding_rect_font.width() / 2,
-                                  self.boundingRect().center().y())
+                                  self.boundingRect().center().y() + font_metrics.descent())
 
         painter.drawText(bounding_rect_font, QtCore.Qt.AlignCenter, self.component_type)
 
@@ -433,7 +433,7 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
         bounding_rect_font = painter.boundingRect(QtCore.QRectF(1, 1, 1, 1), QtCore.Qt.AlignCenter, "C")
 
         bounding_rect_font.moveTo(control_hardware_x_pos - bounding_rect_font.width(),
-                                  self.boundingRect().center().y() - font_metrics.ascent())
+                                  self.boundingRect().center().y() - font_metrics.height())
         if self.control:
             painter.drawText(bounding_rect_font, QtCore.Qt.AlignCenter, "C")
 
