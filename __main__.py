@@ -10,17 +10,17 @@ from PyQt5 import QtWidgets, QtGui
 
 from Controller.graph_controller import GraphController
 
-# def tracefunc(frame, event, arg, indent=[0]):
-# 
-#       if "visualcomponents" not in frame.f_code.co_filename:
-#           return
-# 
-#       if event == "call":
-#           indent[0] += 2
-#           print "-" * indent[0] + "> call function", frame.f_code.co_name
-#       elif event == "return":
-#           indent[0] -= 2
-#       return tracefunc
+def tracefunc(frame, event, arg, indent=[0]):
+
+      if "visualcomponents" not in frame.f_code.co_filename:
+          return
+
+      if event == "call":
+          indent[0] += 2
+          print "-" * indent[0] + "> call function", frame.f_code.co_name
+      elif event == "return":
+          indent[0] -= 2
+      return tracefunc
 
 def main(argv, out, err):
     app = QtWidgets.QApplication(argv)
@@ -39,5 +39,5 @@ def main(argv, out, err):
 
     
 if __name__ == '__main__':
-#     sys.setprofile(tracefunc)
+    # sys.setprofile(tracefunc)
     sys.exit(main(sys.argv, sys.stdout, sys.stderr))
