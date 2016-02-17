@@ -3,7 +3,7 @@ Visualisation of Componentised Operating Systems
 
 This repository houses the work for the Taste of Research project. The aim is to visualise the components in a componentised system like CAmkES. This project will be done for CAmkES. Ideally the final result will be a GUI application, from which a "main".camkes file will be read. From here, the camkes-tool parser will generate an ASTObject (LiftedAST), and this application will allow you to visualise, modify and create CAmkES application with a mouse. Of course, the project will be done in steps - documented below.
 
-![An ambitious final GUI App](http://bitbucket.keg.ertos.in.nicta.com.au/users/sthasarathan/repos/visualcomponents/browse/doc/images/Ambitious%20Overview.JPG?raw)
+![An ambitious final GUI App](images/Ambitious%20Overview.JPG?raw)
 
 To keep a picture in my mind of what this app could achieve. The app could display the components on the left, and allow the user to edit their C files on the right. This feels quite ambitious. However the main focus will be to visualise the components. 
 Most likely however, this app will just have the visual graph part. The following will be a list of milestones I want to achieve. And I will indicate what I'm up to with (some arrow)
