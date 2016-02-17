@@ -358,7 +358,7 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
         control_rect = practise_font_metrics.boundingRect("C")
         hardware_rect = practise_font_metrics.boundingRect("H")
 
-        max_height = 2 * self._border_thickness + instance_name_rect.height() + hardware_rect.height() + 2.5
+        max_height = 2 * self._border_thickness + instance_name_rect.height() + hardware_rect.height() + 7
 
         max_width = 2 * self._border_thickness + 2 * control_rect.width() + 10
         if instance_name_rect.width() > component_name_rect.width():
@@ -433,14 +433,14 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
         bounding_rect_font = painter.boundingRect(QtCore.QRectF(1, 1, 1, 1), QtCore.Qt.AlignCenter, "C")
 
         bounding_rect_font.moveTo(control_hardware_x_pos - bounding_rect_font.width(),
-                                  self.boundingRect().center().y() - font_metrics.height())
+                                  self.boundingRect().center().y() - font_metrics.ascent())
         if self.control:
             painter.drawText(bounding_rect_font, QtCore.Qt.AlignCenter, "C")
 
         # The H
         bounding_rect_font = painter.boundingRect(QtCore.QRectF(1, 1, 1, 1), QtCore.Qt.AlignCenter, "H")
         bounding_rect_font.moveTo(control_hardware_x_pos - bounding_rect_font.width(),
-                                  self.boundingRect().center().y())
+                                  self.boundingRect().center().y() + font_metrics.descent())
         if self.hardware:
             painter.drawText(bounding_rect_font, QtCore.Qt.AlignCenter, "H")
 
