@@ -419,7 +419,10 @@ class GraphWidget(QtWidgets.QGraphicsView):
 
         for widget_instance in self.widget_instances:
             assert isinstance(widget_instance, InstanceWidget)
-
+ 
+            if widget_instance.hidden:
+                continue
+ 
             size = widget_instance.preferredSize()
             assert isinstance(size, QtCore.QSizeF)
 
@@ -428,7 +431,8 @@ class GraphWidget(QtWidgets.QGraphicsView):
 
         for connection in self.connection_widgets:
             assert isinstance(connection, ConnectionWidget)
-            graph_viz.edge(connection.source_instance_widget.name, connection.dest_instance_widget.name, minlen=str(2))
+            if not connection.hidden:
+                graph_viz.edge(connection.source_instance_widget.name, connection.dest_instance_widget.name, minlen=str(2))
 
         raw_dot_data = graph_viz.pipe('dot')
         print raw_dot_data
@@ -450,6 +454,9 @@ class GraphWidget(QtWidgets.QGraphicsView):
 
         for instance_widget in self.widget_instances:
             assert isinstance(instance_widget, InstanceWidget)
+
+            if instance_widget.hidden:
+                continue
 
             # Get instance's name
             instance_name = instance_widget.name
