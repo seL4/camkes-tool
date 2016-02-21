@@ -51,6 +51,7 @@ class GraphWidget(QtWidgets.QGraphicsView):
         if self._context_menu is None:
             menu = QtWidgets.QMenu()
             proxy_menu = self.scene().addWidget(menu)
+            proxy_menu.setFlag(QtWidgets.QGraphicsItem.ItemIgnoresTransformations)
             proxy_menu.setZValue(10)
             self._context_menu = proxy_menu
         # self.scene().additem(self._context_menu)
