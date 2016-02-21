@@ -21,6 +21,10 @@ class ConnectionWidget(QtWidgets.QGraphicsItem):
         assert isinstance(value, bool)
         self._hidden = value or self.source_instance_widget.hidden or \
                                  self.dest_instance_widget.hidden
+        if self._hidden:
+            self.setZValue(3)
+        else:
+            self.setZValue(5)
             
     @property
     def name(self):
