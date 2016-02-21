@@ -329,7 +329,7 @@ class ConnectionWidget(QtWidgets.QGraphicsItem):
             
             pen_color = pen.color()
             if self.hidden:
-                pen_color.setAlphaF(0.5)
+                pen_color.setAlphaF(0.2)
             else:
                 pen_color.setAlphaF(1)
             pen.setColor(pen_color)
