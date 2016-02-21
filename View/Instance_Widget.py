@@ -83,6 +83,18 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
     def hidden(self, value):
         assert isinstance(value, bool)
         self._hidden = value
+        
+        if value:
+            self.setZValue(3)
+        else:
+            self.setZValue(5)
+
+        for connection in self.connection_list:
+            connection.hidden = value  # This will only set if both source and destination is not hidden
+            connection.update()
+
+        self.update()
+
 
     @property
     def context_menu(self):
@@ -546,22 +558,9 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
 
     def show_component(self):
         self.hidden = False
-        self.setZValue(5)
-        self.update()
-        for connection in self.connection_list:
-            connection.hidden = False  # This will only set if both source and destination is not hidden
-            connection.setZValue(4)
-            connection.update()
-
 
     def hide_component(self):
         self.hidden = True
-        self.setZValue(3)
-        self.update()
-        for connection in self.connection_list:
-            connection.hidden = True  
-            connection.setZValue(2)
-            connection.update()
     
     def update_connections(self):
 
