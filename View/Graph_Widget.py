@@ -145,6 +145,14 @@ class GraphWidget(QtWidgets.QGraphicsView):
             self._export_action.triggered.connect(self.save_picture)
         return self._export_action
 
+    @property
+    def show_components_action(self):
+        if self._show_components_action is None:
+            self._show_components_action = QtWidgets.QAction("Show all components", self)
+            self._show_components_action.setStatusTip("Set all components to not hidden")
+            self._show_components_action.setToolTip("Set all components to not hidden")
+            self._show_components_action.triggered.connect(self.show_all_components)
+        return self._show_components_action
 
     def __init__(self):
         super(GraphWidget, self).__init__()
@@ -154,6 +162,7 @@ class GraphWidget(QtWidgets.QGraphicsView):
         self._zoom_out = None
         self._save_picture_button = None
         self._export_action = None
+        self._show_components_action = None
         self._autolayout_button = None
         self._ast = None
         self._color_seed = None
@@ -548,6 +557,10 @@ class GraphWidget(QtWidgets.QGraphicsView):
         self.autolayout_button.move(autolayout_position)
         self.autolayout_button.show()
 
+    def show_all_components(self):
+        for widget in self.widget_instances:
+            widget.hidden = False
+ 
     def zoom_in(self):
         print "Zoom in"
         self.scale(1.1, 1.1)

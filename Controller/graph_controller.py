@@ -89,6 +89,9 @@ class GraphController(QtWidgets.QMainWindow):
  
         fileMenu.addAction(self.quit_action)
 
+        viewMenu = self.menuBar().addMenu("&View")
+        viewMenu.addAction(self.root_widget.show_components_action)
+
 
         # Model, get a ASTObject from given camkes file
 
