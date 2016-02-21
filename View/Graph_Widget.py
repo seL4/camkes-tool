@@ -45,6 +45,22 @@ class GraphWidget(QtWidgets.QGraphicsView):
         self._widget_instances = value
 
     @property
+    def context_menu(self):
+        print "here"
+        # Setting up menu
+        if self._context_menu is None:
+            menu = QtWidgets.QMenu()
+            proxy_menu = self.scene().addWidget(menu)
+            proxy_menu.setZValue(10)
+            self._context_menu = proxy_menu
+        # self.scene().additem(self._context_menu)
+        return self._context_menu
+ 
+    def close_context_menu(self):
+        if self._context_menu is not None:
+            self._context_menu.widget().close()
+
+    @property
     def zoom_in_button(self):
         if self._zoom_in is None:
             self._zoom_in = QtWidgets.QPushButton("Zoom &In", self)
@@ -141,6 +157,8 @@ class GraphWidget(QtWidgets.QGraphicsView):
         self._ast = None
         self._color_seed = None
 
+        self._context_menu = None
+
         # Place new scene
         scene = QtWidgets.QGraphicsScene(self)
         scene.setItemIndexMethod(QtWidgets.QGraphicsScene.NoIndex)  # TODO: Not sure if this is necessary
@@ -148,6 +166,8 @@ class GraphWidget(QtWidgets.QGraphicsView):
         self.setScene(scene)
 
         self.setMinimumSize(500, 500)
+
+
 
         self.update_outer_ui()
 
@@ -185,7 +205,7 @@ class GraphWidget(QtWidgets.QGraphicsView):
             # Make a new widget
             assert isinstance(instance, Instance)
 
-            new_widget = InstanceWidget()
+            new_widget = InstanceWidget(self.context_menu)
             new_widget.color = self.random_color_generator()
             self.sync_instance(instance, new_widget)
             new_widget.widget_moved.connect(self.update_view)
@@ -341,7 +361,7 @@ class GraphWidget(QtWidgets.QGraphicsView):
     def add_connection_widget(self, new_connection):
         assert isinstance(new_connection, ConnectionWidget)
         self.scene().addItem(new_connection)
-        new_connection.setZValue(1)
+        new_connection.setZValue(4)
 
     def clear_connection_widgets(self):
 
@@ -611,10 +631,21 @@ class GraphWidget(QtWidgets.QGraphicsView):
     # --- Overridden Functions ---
 
     def mousePressEvent(self, mouse_event):
-        super(GraphWidget, self).mousePressEvent(mouse_event)
 
         assert isinstance(mouse_event, QtGui.QMouseEvent)
-        print "graph widget - clicked at: " + str(self.mapToScene(mouse_event.pos()))
+        scene_position = self.mapToScene(mouse_event.pos()) 
+        print "graph widget - clicked at: " + str(scene_position)
+
+        item = self.scene().itemAt(scene_position, self.transform())
+        
+        if not isinstance(item, QtWidgets.QGraphicsProxyWidget):
+            self.close_context_menu()
+        elif not isinstance(item.widget(), QtWidgets.QMenu):
+            self.close_context_menu()
+
+        super(GraphWidget, self).mousePressEvent(mouse_event)
+        
+
 
     def resizeEvent(self, resize_event):
         assert isinstance(resize_event, QtGui.QResizeEvent)
