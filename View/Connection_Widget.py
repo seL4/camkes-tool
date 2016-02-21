@@ -11,6 +11,18 @@ from Instance_Widget import InstanceWidget
 class ConnectionWidget(QtWidgets.QGraphicsItem):
 
     @property
+    def hidden(self):
+        return self._hidden
+
+    # Hidden will only work if a source and destination widget exist
+    # It will only be set false, if both source and destination is false
+    @hidden.setter
+    def hidden(self, value):
+        assert isinstance(value, bool)
+        self._hidden = value or self.source_instance_widget.hidden or \
+                                 self.dest_instance_widget.hidden
+            
+    @property
     def name(self):
         return self._connection_name
 
@@ -18,6 +30,7 @@ class ConnectionWidget(QtWidgets.QGraphicsItem):
     def name(self, value):
         assert isinstance(value, six.string_types)
         self._connection_name = value
+        self.setToolTip(value + " : " + self.connection_type) 
 
     @property
     def connection_type(self):
@@ -27,6 +40,8 @@ class ConnectionWidget(QtWidgets.QGraphicsItem):
     def connection_type(self, value):
         assert isinstance(value, six.string_types)
         self._connection_type = value
+        self.setToolTip(self.name + " : " + value) 
+        
 
     @property
     def path(self):
@@ -272,6 +287,8 @@ class ConnectionWidget(QtWidgets.QGraphicsItem):
         self._connection_type = None
         self.connection_type = con_type
 
+        self.setToolTip(name + " : " + con_type)
+
         # Get points from attributes of the edge
         self._source_pos = None
         self._dest_pos = None
@@ -279,6 +296,7 @@ class ConnectionWidget(QtWidgets.QGraphicsItem):
         self._dest_angle = None
 
         self._path = None
+        self._hidden = False
 
         assert isinstance(source, InstanceWidget)
         self._source_instance_widget = source
@@ -308,17 +326,18 @@ class ConnectionWidget(QtWidgets.QGraphicsItem):
 
         assert isinstance(q_painter, QtGui.QPainter)
 
-        # stroker = QtGui.QPainterPathStroker()
-        # stroker.setWidth(5)
-        # self.path.addPath(stroker.createStroke(self.path))
-
-        # q_painter.drawPath(self.path)
-
         q_painter.setRenderHint(QtGui.QPainter.Antialiasing)
 
         if self.source_pos is not None and self.dest_pos is not None:
             pen = QtGui.QPen(QtGui.QColor(66,66,66))
             pen.setWidth(2)
+            
+            pen_color = pen.color()
+            if self.hidden:
+                pen_color.setAlphaF(0.2)
+            else:
+                pen_color.setAlphaF(1)
+            pen.setColor(pen_color)
 
             q_painter.setPen(pen)
             q_painter.drawPath(self.path)
