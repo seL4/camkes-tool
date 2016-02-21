@@ -30,6 +30,7 @@ class ConnectionWidget(QtWidgets.QGraphicsItem):
     def name(self, value):
         assert isinstance(value, six.string_types)
         self._connection_name = value
+        self.setToolTip(value + " : " + self.connection_type) 
 
     @property
     def connection_type(self):
@@ -39,6 +40,8 @@ class ConnectionWidget(QtWidgets.QGraphicsItem):
     def connection_type(self, value):
         assert isinstance(value, six.string_types)
         self._connection_type = value
+        self.setToolTip(self.name + " : " + value) 
+        
 
     @property
     def path(self):
@@ -283,6 +286,8 @@ class ConnectionWidget(QtWidgets.QGraphicsItem):
         self._connection_name = name
         self._connection_type = None
         self.connection_type = con_type
+
+        self.setToolTip(name + " : " + con_type)
 
         # Get points from attributes of the edge
         self._source_pos = None
