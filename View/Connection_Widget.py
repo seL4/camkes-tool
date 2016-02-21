@@ -405,7 +405,7 @@ class DataportWidget(ConnectionWidget):
         self.path.lineTo(top_left)
 
 
-class EventWidget(ConnectionWidget):
+class ProcedureWidget(ConnectionWidget):
 
     def draw_connector_type(self, source_point, dest_point):
         assert isinstance(source_point, QtCore.QPointF)
@@ -459,7 +459,7 @@ class EventWidget(ConnectionWidget):
         self.path.lineTo(dest_point)
 
 
-class ProcedureWidget(ConnectionWidget):
+class EventWidget(ConnectionWidget):
 
     def draw_connector_type(self, source_point, dest_point):
         assert isinstance(source_point, QtCore.QPointF)
