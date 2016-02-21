@@ -117,7 +117,7 @@ class GraphWidget(QtWidgets.QGraphicsView):
         # TODO:
         # If layout exist:
         # Place nodes in original positions. New nodes are placed in middle
-        if os.path.isfile(self.get_root_location() + ".layout"):
+        if os.path.isfile(self.get_root_location() + ".visualCAmkES.layout"):
             self.layout_from_file()
         else:
             # If layout doesn't exist:
@@ -381,17 +381,21 @@ class GraphWidget(QtWidgets.QGraphicsView):
 
         print "Opening file"
 
-        with open(self.get_root_location() + ".layout", 'r') as input:
+        with open(self.get_root_location() + ".visualCAmkES.layout", 'r') as input:
             json_input = json.load(input)
 
             for widget in self.widget_instances:
                 assert isinstance(widget, InstanceWidget)
-                position = json_input.get(widget.name)
+                attributes = json_input.get(widget.name)
+
+                position = attributes['position']
                 if position is not None:
                     assert isinstance(position, list)
                     self.add_instance_widget(widget, position[0], position[1])
                 else:
                     self.add_instance_widget(widget, self.geometry()/2)
+
+                widget.hidden = attributes['hidden']
 
         self.update_view()
         self.save_layout_to_file()
@@ -403,14 +407,18 @@ class GraphWidget(QtWidgets.QGraphicsView):
         node_positions = {}
         for widget in self.widget_instances:
             assert isinstance(widget, InstanceWidget)
-
+            attributes = {}
+            
             position_array = [widget.pos().x() - (widget.preferredSize().width() / 2),
                               widget.pos().y() - (widget.preferredSize().height() / 2)]
+            attributes['position'] = position_array
 
-            node_positions[widget.name] = position_array
+            attributes['hidden'] = widget.hidden
+
+            node_positions[widget.name] = attributes
 
 
-        file_location = self.get_root_location() + ".layout"
+        file_location = self.get_root_location() + ".visualCAmkES.layout"
 
         with open(file_location,'w') as output:
             json.dump(node_positions,output, indent=4)
