@@ -395,7 +395,8 @@ class GraphWidget(QtWidgets.QGraphicsView):
                 else:
                     self.add_instance_widget(widget, self.geometry()/2)
 
-                widget.hidden = attributes['hidden']
+                if attributes['hidden'] is not None:
+                    widget.hidden = attributes['hidden']
 
         self.update_view()
         self.save_layout_to_file()
