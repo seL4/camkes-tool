@@ -75,6 +75,25 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
         self._hardware = value
         self.update_ui()
 
+    @property
+    def hidden(self):
+        return self._hidden
+
+    @hidden.setter
+    def hidden(self, value):
+        assert isinstance(value, bool)
+        self._hidden = value
+
+    @property
+    def context_menu(self):
+        return self._context_menu
+
+    @context_menu.setter
+    def context_menu(self, value):
+        assert isinstance(value, QtWidgets.QGraphicsProxyWidget)
+        assert isinstance(value.widget(), QtWidgets.QMenu)
+        self._context_menu = value     
+
     # Provides
     @property
     def provides(self):
@@ -307,7 +326,7 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
     open_component_info = QtCore.pyqtSignal(six.string_types)
     widget_moved = QtCore.pyqtSignal()
 
-    def __init__(self, preferred_point=None):
+    def __init__(self, context_menu, preferred_point=None):
         super(InstanceWidget, self).__init__()
         # Model
 
@@ -324,6 +343,10 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
         self._emits = None
         self._consumes = None
         self._dataport = None
+
+        self._context_menu = None
+        self.context_menu = context_menu
+        self._hidden = False
 
         self._connections_list = []
 
@@ -384,14 +407,34 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
         super(InstanceWidget, self).paint(painter, style_options, widget)
 
         painter.setRenderHint(QtGui.QPainter.Antialiasing)
+        
+        # If hidden, changing alpha values to transparent
+        color = self.color
+
+        if self.hidden:
+            color.setAlphaF(0.5)
+        else:
+            color.setAlphaF(1)
+        
+        # Setting brush color
+        brush = painter.brush()
+        brush.setColor(color)
+        painter.setBrush(brush)
+
+        pen = painter.pen()
+        pen_color = pen.color()
+        if self.hidden:
+            pen_color.setAlphaF(0.5)
+        else:
+            pen_color.setAlphaF(1)
+        pen.setColor(pen_color)
+        painter.setPen(pen)
 
         rounded_rect = QtGui.QPainterPath()
         assert isinstance(rounded_rect, QtGui.QPainterPath)
         rounded_rect.addRoundedRect(self.boundingRect(),5,5)
 
-        # painter.fillRect(self.boundingRect(), self.color)
-        # painter.drawRect(self.boundingRect())
-        painter.fillPath(rounded_rect, self.color)
+        painter.fillPath(rounded_rect, color)
         painter.drawPath(rounded_rect)
 
         # TODO: Update rect with new size
@@ -479,7 +522,47 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
         self._moved_at_least_once = True
         self.widget_moved.emit()
         super(InstanceWidget, self).mouseMoveEvent(mouse_event)
+    
+    def contextMenuEvent(self, event):
+        assert isinstance(event, QtWidgets.QGraphicsSceneContextMenuEvent)
+        
+        menu = self.context_menu.widget()
+        assert isinstance(menu, QtWidgets.QMenu)
+        
+        menu.clear()
+        if self.hidden:
+            showComponentAction = menu.addAction("Show component")
+            showComponentAction.triggered.connect(self.show_component)
+        else:
+            hideComponentAction = menu.addAction("Hide component")
+            hideComponentAction.triggered.connect(self.hide_component)
+        
+        self.context_menu.setPos(event.scenePos())
+        menu.exec_()
+        print "menu executed finished"
+        # self.scene().removeItem(self.context_menu)
 
+        # self.scene().clearSelection()
+
+    def show_component(self):
+        self.hidden = False
+        self.setZValue(5)
+        self.update()
+        for connection in self.connection_list:
+            connection.hidden = False  # This will only set if both source and destination is not hidden
+            connection.setZValue(4)
+            connection.update()
+
+
+    def hide_component(self):
+        self.hidden = True
+        self.setZValue(3)
+        self.update()
+        for connection in self.connection_list:
+            connection.hidden = True  
+            connection.setZValue(2)
+            connection.update()
+    
     def update_connections(self):
 
         for connection in self.connection_list:
