@@ -3,7 +3,7 @@
 
 import six
 
-from PyQt5 import QtWidgets, QtGui, QtCore
+from PyQt5 import QtWidgets, QtGui
 
 from ansi2html import Ansi2HTMLConverter
 
@@ -12,8 +12,7 @@ from Model.AST_Model import ASTModel
 from View.Graph_Widget import GraphWidget
 from View.Component_Window import ComponentWindow
 
-from camkes.ast.exception import ASTError
-from camkes.parser.exception import ParseError
+from camkes.internal.exception import CAmkESError
 
 class GraphController(QtWidgets.QMainWindow):
 
@@ -119,7 +118,7 @@ class GraphController(QtWidgets.QMainWindow):
         if len(path_to_file) > 1:
             try:
                 self.root_widget.ast = ASTModel.get_ast(path_to_file)
-            except ParseError as error:
+            except CAmkESError as error:
                 # For terminal users:
                 print str(error)
 
