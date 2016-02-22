@@ -3,14 +3,17 @@
 
 import six
 
-from PyQt5 import QtWidgets, QtGui
+from PyQt5 import QtWidgets, QtGui, QtCore
 
+from ansi2html import Ansi2HTMLConverter
 
 from Model.AST_Model import ASTModel
 
 from View.Graph_Widget import GraphWidget
 from View.Component_Window import ComponentWindow
 
+from camkes.ast.exception import ASTError
+from camkes.parser.exception import ParseError
 
 class GraphController(QtWidgets.QMainWindow):
 
@@ -114,19 +117,31 @@ class GraphController(QtWidgets.QMainWindow):
         assert isinstance(path_to_file, six.string_types)
 
         if len(path_to_file) > 1:
-            self.root_widget.ast = ASTModel.get_ast(path_to_file)
+            try:
+                self.root_widget.ast = ASTModel.get_ast(path_to_file)
+            except ParseError as error:
+                # For terminal users:
+                print str(error)
 
-            # find last / (or last \ in windows)
-            start_of_filename = path_to_file.rfind("/")
-            if start_of_filename == -1:
-                start_of_filename = path_to_file.rfind('\\')
-
-            if start_of_filename == -1:
-                start_of_filename = 0
+                messageBox = QtWidgets.QMessageBox()
+                messageBox.setText("Syntax Error")
+                conv = Ansi2HTMLConverter(inline=True, dark_bg=False)
+                html = conv.convert(str(error), full=False)
+                html = html.replace('\n', '<br/>').replace('^','') 
+                messageBox.setInformativeText('<p style="font-family: monospace;">' + html + '</p>')
+                messageBox.exec_()
             else:
-                start_of_filename += 1
+                # find last / (or last \ in windows)
+                start_of_filename = path_to_file.rfind("/")
+                if start_of_filename == -1:
+                    start_of_filename = path_to_file.rfind('\\')
 
-            self.setWindowTitle(path_to_file[start_of_filename:path_to_file.rfind('.')])
+                if start_of_filename == -1:
+                    start_of_filename = 0
+                else:
+                    start_of_filename += 1
+
+                self.setWindowTitle(path_to_file[start_of_filename:path_to_file.rfind('.')])
 
     def quit(self):
         if self.root_widget.ast:
