@@ -22,9 +22,9 @@ class ConnectionWidget(QtWidgets.QGraphicsItem):
         self._hidden = value or self.source_instance_widget.hidden or \
                                  self.dest_instance_widget.hidden
         if self._hidden:
-            self.setZValue(3)
+            self.setZValue(2)
         else:
-            self.setZValue(5)
+            self.setZValue(4)
             
     @property
     def name(self):
