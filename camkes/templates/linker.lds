@@ -26,7 +26,7 @@ SECTIONS {
         *(.rodata*)
     }
 
-    /*- if arch == 'aarch32' -*/
+    /*- if arch == 'aarch32' or arch == 'arm_hyp' -*/
     PROVIDE_HIDDEN (__exidx_start = .);
     .ARM.exidx   : { *(.ARM.exidx* .gnu.linkonce.armexidx.*) }
     PROVIDE_HIDDEN (__exidx_end = .);
@@ -67,7 +67,7 @@ SECTIONS {
 
     /*- for c in composition.connections -*/
     /*- if c.type.name == 'seL4HardwareMMIO' and c.from_instance == me -*/
-    /*- if arch == 'aarch32' -*/
+    /*- if arch == 'aarch32' or arch == 'arm_hyp' -*/
     ignore_/*? c.from_interface.name ?*/ (NOLOAD) : ALIGN(0x100000) { /*# ARM Section Size #*/
     /*- else -*/
     ignore_/*? c.from_interface.name ?*/ (NOLOAD) : ALIGN(0x400000) { /*# IA32 4M Page Size #*/
