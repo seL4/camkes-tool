@@ -117,19 +117,9 @@ class ConnectionWidget(QtWidgets.QGraphicsItem):
     def source_pos(self):
         return self._source_pos
 
-    # @source_pos.setter
-    # def source_pos(self, value):
-    #     print "set2"
-    #     self._source_pos = value
-    #     self.update_path()
-
     @property
     def source_angle(self):
         return self._source_angle
-
-    # @source_angle.setter
-    # def source_angle(self, value):
-    #     self._source_angle = value
 
     def set_source_pos_angle(self, pos, angle):
         assert isinstance(pos, QtCore.QPointF)
@@ -142,19 +132,9 @@ class ConnectionWidget(QtWidgets.QGraphicsItem):
     def dest_pos(self):
         return self._dest_pos
 
-    # @dest_pos.setter
-    # def dest_pos(self, value):
-    #     print "set"
-    #     self._dest_pos = value
-    #     self.update_path()
-
     @property
     def dest_angle(self):
         return self._dest_angle
-
-    # @dest_angle.setter
-    # def dest_angle(self, value):
-    #     self._dest_angle = value
 
     def set_dest_pos_angle(self, pos, angle):
         assert isinstance(pos, QtCore.QPointF)
@@ -368,35 +348,6 @@ class ConnectionWidget(QtWidgets.QGraphicsItem):
         self.source_instance_widget.remove_connection(self)
         self.dest_instance_widget.remove_connection(self)
         print "\t\t\t\t\t\tdeleted connection_widget"
-
-    # Method using QPainter to draw the edge points, spline
-    # def draw_connection(self, q_painter):
-    #     assert isinstance(q_painter, QtGui.QPainter)
-    #     q_painter.drawPath(self.path)
-    #
-    #     '''
-    #     color = QtGui.QColor(0,0,0)
-    #     pen = q_painter.pen()
-    #     pen.setColor(color)
-    #     q_painter.setPen(pen)
-    #
-    #     for point in self.edge_points:
-    #
-    #         color = q_painter.pen().color()
-    #         print "Before: " + str(color.red()) + " " + str(color.green()) + " " + str(color.blue())
-    #         color.setRed(color.red()+30)
-    #         print str(color.red()) + " " + str(color.green()) + " " + str(color.blue())
-    #
-    #         pen = q_painter.pen()
-    #         pen.setColor(color)
-    #         q_painter.setPen(pen)
-    #
-    #         color = q_painter.pen().color()
-    #         print "after" + str(color.red()) + " " + str(color.green()) + " " + str(color.blue())
-    #
-    #         q_painter.drawPoint(point[0], point[1])
-    #         q_painter.fillRect(QtCore.QRect(point[0], point[1], 4,4), color)
-    #     '''
 
 
 class DataportWidget(ConnectionWidget):
