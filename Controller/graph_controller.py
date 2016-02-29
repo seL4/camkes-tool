@@ -15,7 +15,7 @@ from camkes.internal.exception import CAmkESError
 from Model.AST_Model import ASTModel
 
 from View.Graph_Widget import GraphWidget
-from View.Component_Window import ComponentWindow
+# from View.Component_Window import ComponentWindow
 
 
 class GraphController(QtWidgets.QMainWindow):
@@ -49,9 +49,9 @@ class GraphController(QtWidgets.QMainWindow):
     # -- Actions --
     @property
     def open_action(self):
-        '''
+        """
         :return: QAction for opening files
-        '''
+        """
         if self._open_action is None:
             self._open_action = QtWidgets.QAction("Open", self)
             self._open_action.setShortcut(QtGui.QKeySequence.Open)
@@ -62,9 +62,10 @@ class GraphController(QtWidgets.QMainWindow):
     
     @property
     def quit_action(self):
-        '''
+        """
         :return: QAction for closing the application
-        '''
+        """
+
         if self._quit_action is None:
             self._quit_action = QtWidgets.QAction("Quit", self)
             self._quit_action.setShortcut(QtGui.QKeySequence.Quit)
@@ -117,21 +118,22 @@ class GraphController(QtWidgets.QMainWindow):
         self.rect = None
 
     # --- FUNCTION CALLS ---
-
-    def show_component_info(self, component_name):
-        '''
-        Open a window (or dock window) with information about component type
-        :param component_name: The component type of an instance
-        :return
-        '''
-        self.component_widget.component_object = ASTModel.find_component(self.ast.items, component_name)
+    # Attempt at creating a window which pops up when a user clickes on a component. Doesn't work atm
+    # def show_component_info(self, component_name):
+    #     """
+    #     Open a window (or dock window) with information about component type
+    #     :param component_name: The component type of an instance
+    #     :return
+    #     """
+    #
+    #     self.component_widget.component_object = ASTModel.find_component(self.ast.items, component_name)
 
     def open_ast(self, path_to_file):
-        '''
+        """
         Opens the given camkes file. Deals with the drawing. Shows an error if a CAmkES Error occurs
         :param path_to_file: The path to the camkes file. A string such as "/home/bob/camkes/app/kitty/kitty.camkes
         :return
-        '''
+        """
 
         assert isinstance(path_to_file, six.string_types)
 
@@ -176,19 +178,21 @@ class GraphController(QtWidgets.QMainWindow):
     # --- EVENTS ---
 
     def open_new_file(self):
-        '''
+        """
         Action for opening new file. Opens a dialog and gets the path to the .camkes file
         :return:
-        '''
+        """
+
         new_file = QtWidgets.QFileDialog.getOpenFileName(caption="Open CAmkES ADL file",
                                                          filter="CAmkES ADL (*.camkes)")
         self.open_ast(new_file[0])
 
     def quit(self):
-        '''
+        """
         Action for quiting the program. Saves the final layout and closes.
         :return:
-        '''
+        """
+
         if self.root_widget.ast:
             self.root_widget.save_layout_to_file()
 
