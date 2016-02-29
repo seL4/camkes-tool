@@ -6,12 +6,22 @@ from PyQt5 import QtWidgets, QtGui, QtCore
 
 class SaveOptionDialog(QtWidgets.QDialog):
 
-    PNG= 0
+    PNG = 0
     SVG = 1
 
     def __init__(self, parent, proportional_rect=None):
+        """
+        Creates a Dialog box specifically for asking user whether they want a PNG or SVG file.
+        If user wants SVG file - user has the option to give it a Title and Description for within the SVG file.
+        If user wants PNG file - user has the option to give a width and height
+        :param parent: Parent of this QDialog
+        :param proportional_rect: The rectangle of the graph for which the image will be proportional to.
+        :return:
+        """
+
         super(SaveOptionDialog, self).__init__(parent)
 
+        # ComboBox for choosing PNG or SVG
         self.format_combobox = QtWidgets.QComboBox(self)
         self.format_combobox.setInsertPolicy(QtWidgets.QComboBox.InsertAtBottom)
         self.format_combobox.addItem("Portable Network Graphics (*.png)")
@@ -22,16 +32,16 @@ class SaveOptionDialog(QtWidgets.QDialog):
         main_layout = QtWidgets.QVBoxLayout(self)
         main_layout.addWidget(self.format_combobox)
 
-        # --- PNG Options ---
+        # PNG Options
 
         self.png_options_widget = QtWidgets.QWidget(self)
         png_option_layout = QtWidgets.QVBoxLayout()
 
-        # --- Width ---
+        # ^- Width
 
         width_label = QtWidgets.QLabel("Width: ")
         px_label = QtWidgets.QLabel("px")
-        self.width_lineedit = self.new_lineedits("Width in pixels")
+        self.width_lineedit = self.__new_int_line_edits__("Width in pixels")
         self.width_lineedit.textEdited.connect(self.width_changed)
         width_label.setBuddy(self.width_lineedit)
 
@@ -42,11 +52,11 @@ class SaveOptionDialog(QtWidgets.QDialog):
 
         png_option_layout.addLayout(width_hlayout)
 
-        # --- Height ---
+        # ^- Height
 
         height_label = QtWidgets.QLabel("Height: ")
         px_label2 = QtWidgets.QLabel("px")
-        self.height_lineedit = self.new_lineedits("Height in pixels")
+        self.height_lineedit = self.__new_int_line_edits__("Height in pixels")
         self.height_lineedit.textEdited.connect(self.height_changed)
         height_label.setBuddy(self.height_lineedit)
 
@@ -66,7 +76,7 @@ class SaveOptionDialog(QtWidgets.QDialog):
         self.png_options_widget.setLayout(png_option_layout)
         main_layout.addWidget(self.png_options_widget)
 
-        # --- SVG Options ---
+        # SVG Options
 
         self.svg_option_widget = QtWidgets.QWidget(self)
 
@@ -95,7 +105,7 @@ class SaveOptionDialog(QtWidgets.QDialog):
 
         self.svg_option_widget.setVisible(False)
 
-        # --- Ok and Cancel buttons ---
+        # Ok and Cancel buttons
 
         button_box = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
         button_box.accepted.connect(self.accept)
@@ -108,15 +118,61 @@ class SaveOptionDialog(QtWidgets.QDialog):
         if proportional_rect:
             self.proportional_rect = proportional_rect
 
+    # --- FUNCTIONS ---
 
-    def new_lineedits(self, placeholder):
-        line_edit = QtWidgets.QLineEdit()
-        line_edit.setPlaceholderText(placeholder)
-        line_edit.setValidator(QtGui.QIntValidator())
+    def picture_type(self):
+        """
+        :return: Integer of whether user choose PNG or SVG. Use class PNG and SVG #defines.
+        """
 
-        return line_edit
+        return self.format_combobox.currentIndex()
+
+    def user_width(self):
+        """
+        PNG only
+        :return: Integer of user's definied width. Default is 0
+        """
+
+        try:
+            return int(self.width_lineedit.text())
+        except:
+            return 0
+
+    def user_height(self):
+        """
+        PNG only
+        :return: Integer of user's defined height. Default is 0
+        """
+
+        try:
+            return int(self.height_lineedit.text())
+        except:
+            return 0
+
+    def user_title(self):
+        """
+        SVG only
+        :return: String of user's chosen title.
+        """
+
+        return self.title_lineedit.text()
+
+    def user_description(self):
+        """
+        SVG only
+        :return: String of user's chosen description
+        """
+
+        return self.descrip_textedit.toPlainText()
+
+    # --- EVENTS ---
 
     def combox_changed(self, new_index):
+        """
+        Handles changes in the chosen format. Shows correct options for newly chosen format
+        :param new_index: The new format chosen.
+        """
+
         if new_index == self.PNG:
             self.svg_option_widget.setVisible(False)
             self.png_options_widget.setVisible(True)
@@ -125,6 +181,11 @@ class SaveOptionDialog(QtWidgets.QDialog):
             self.png_options_widget.setVisible(False)
 
     def width_changed(self, text):
+        """
+        Handles changes to the width number given. If proportional is checked, height is also updated.
+        :param text: new number in string format
+        """
+
         if len(text) <= 0:
             return
 
@@ -136,6 +197,11 @@ class SaveOptionDialog(QtWidgets.QDialog):
             self.height_lineedit.setText(str(int(height)))
 
     def height_changed(self, text):
+        """
+        Handles changes to the height number given. If proportional is checked, width is also updated.
+        :param text: new number in string format
+        """
+
         if len(text) <= 0:
             return
 
@@ -147,6 +213,11 @@ class SaveOptionDialog(QtWidgets.QDialog):
             self.width_lineedit.setText(str(int(width)))
 
     def proportional_state_change(self, state):
+        """
+        If proportional is checked, height is updated based on width.
+        :param state: New state of proportional button
+        """
+
         if state == QtCore.Qt.Checked:
             width = self.user_width()
             height = self.proportional_rect.height() * width / self.proportional_rect.width()
@@ -154,31 +225,28 @@ class SaveOptionDialog(QtWidgets.QDialog):
             self.height_lineedit.setText(str(int(height)))
 
     def accept(self):
+        """
+        If Ok (or equivalent button) is pressed, all required fields are checked to see if valid inputs
+        """
 
-        if (self.width_lineedit.text() != "" \
-                and self.height_lineedit.text() != "" \
-                and int(self.width_lineedit.text()) != 0 \
-                and int(self.height_lineedit.text()) != 0)\
+        # TODO: Highlight red the fields not complete
+
+        if (self.width_lineedit.text() != "" and int(self.width_lineedit.text()) != 0 \
+                and self.height_lineedit.text() != "" and int(self.height_lineedit.text()) != 0) \
                 or self.format_combobox.currentIndex() == self.SVG:
             super(SaveOptionDialog, self).accept()
 
-    def picture_type(self):
-        return self.format_combobox.currentIndex()
+    # --- PRIVATE FUNCTIONS ---
 
-    def user_width(self):
-        try:
-            return int(self.width_lineedit.text())
-        except:
-            return 0
+    @staticmethod
+    def __new_int_line_edits__(placeholder):
+        """
+        Helper Function for creating a QLineEdit object with placeholder and Integer Validation
+        :param placeholder: Placeholder text to be shown in the textbox
+        :return: QLineEdit object
+        """
+        line_edit = QtWidgets.QLineEdit()
+        line_edit.setPlaceholderText(placeholder)
+        line_edit.setValidator(QtGui.QIntValidator())
 
-    def user_height(self):
-        try:
-            return int(self.height_lineedit.text())
-        except:
-            return 0
-
-    def user_title(self):
-        return self.title_lineedit.text()
-
-    def user_description(self):
-        return self.descrip_textedit.toPlainText()
+        return line_edit
