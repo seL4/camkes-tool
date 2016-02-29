@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="9e94cc0d-524c-462a-bfa8-511eaa5dddfc" name="Default" comment="">
+    <list default="true" id="9e94cc0d-524c-462a-bfa8-511eaa5dddfc" name="Default" comment="Converted some functions to properties">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/View/Graph_Widget.py" afterPath="$PROJECT_DIR$/View/Graph_Widget.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/View/Save_Option_Dialog.py" afterPath="$PROJECT_DIR$/View/Save_Option_Dialog.py" />
     </list>
     <ignored path="VisualComponents.iws" />
@@ -60,8 +61,8 @@
       <file leaf-file-name="Save_Option_Dialog.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/View/Save_Option_Dialog.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.27403846">
-              <caret line="19" column="11" selection-start-line="19" selection-start-column="11" selection-end-line="19" selection-end-column="11" />
+            <state vertical-scroll-proportion="1.4968815">
+              <caret line="48" column="16" selection-start-line="48" selection-start-column="16" selection-end-line="48" selection-end-column="16" />
               <folding />
             </state>
           </provider>
@@ -472,12 +473,6 @@
       <option name="number" value="Default" />
       <updated>1449214734746</updated>
     </task>
-    <task id="LOCAL-00030" summary="Connection widget is now a graphics item, added it to the scene. Unnecessary to &quot;draw_background&quot; (i.e hack removed)">
-      <created>1452220283851</created>
-      <option name="number" value="00030" />
-      <option name="project" value="LOCAL" />
-      <updated>1452220283851</updated>
-    </task>
     <task id="LOCAL-00031" summary="Changed instance widget slot so that it doesn't need to give mouse event.">
       <created>1452220320007</created>
       <option name="number" value="00031" />
@@ -766,7 +761,13 @@
       <option name="project" value="LOCAL" />
       <updated>1456709631641</updated>
     </task>
-    <option name="localTasksCounter" value="79" />
+    <task id="LOCAL-00079" summary="Documentation for SaveOptionDialog">
+      <created>1456711298512</created>
+      <option name="number" value="00079" />
+      <option name="project" value="LOCAL" />
+      <updated>1456711298512</updated>
+    </task>
+    <option name="localTasksCounter" value="80" />
     <servers />
   </component>
   <component name="TodoView">
@@ -789,7 +790,7 @@
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3289597" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3292683" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.5238988" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.5238988" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.24960506" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32964718" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
@@ -835,7 +836,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="true" />
-    <MESSAGE value="Made connections lie below instance widgets" />
     <MESSAGE value="Graph_controller: Support creating Connection Widget specific to the type&#10;Connection_widget: draw icons for different connection types. Pen thicker. &quot;Angle&quot; now mean distance between control point and straight line between source and destination. Code will be made clearer later.&#10;Instance_widget: changed to choose a &quot;angle&quot; (as per the new definition). Chooses angle better" />
     <MESSAGE value="Graph_widget: Added the ability to zoom in and out by scaling view&#10;Instance_widget: emits when instance has moved" />
     <MESSAGE value="Moved all graphing logic to graph widget. Logic for saving, auto layout and zooming" />
@@ -860,7 +860,8 @@
     <MESSAGE value="Documentation for AST_Model" />
     <MESSAGE value="Documentation for Common" />
     <MESSAGE value="Component_window is unused atm." />
-    <option name="LAST_COMMIT_MESSAGE" value="Component_window is unused atm." />
+    <MESSAGE value="Documentation for SaveOptionDialog" />
+    <option name="LAST_COMMIT_MESSAGE" value="Documentation for SaveOptionDialog" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1284,8 +1285,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/View/Save_Option_Dialog.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.27403846">
-          <caret line="19" column="11" selection-start-line="19" selection-start-column="11" selection-end-line="19" selection-end-column="11" />
+        <state vertical-scroll-proportion="1.4968815">
+          <caret line="48" column="16" selection-start-line="48" selection-start-column="16" selection-end-line="48" selection-end-column="16" />
           <folding />
         </state>
       </provider>

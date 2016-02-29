@@ -9,6 +9,60 @@ class SaveOptionDialog(QtWidgets.QDialog):
     PNG = 0
     SVG = 1
 
+    # --- PROPERTIES ---
+
+    @property
+    def picture_type(self):
+        """
+        :return: Integer of whether user choose PNG or SVG. Use class PNG and SVG #defines.
+        """
+
+        return self.format_combobox.currentIndex()
+
+    @property
+    def user_width(self):
+        """
+        PNG only
+        :return: Integer of user's definied width. Default is 0
+        """
+
+        try:
+            return int(self.width_lineedit.text())
+        except:
+            return 0
+
+    @property
+    def user_height(self):
+        """
+        PNG only
+        :return: Integer of user's defined height. Default is 0
+        """
+
+        try:
+            return int(self.height_lineedit.text())
+        except:
+            return 0
+
+    @property
+    def user_title(self):
+        """
+        SVG only
+        :return: String of user's chosen title.
+        """
+
+        return self.title_lineedit.text()
+
+    @property
+    def user_description(self):
+        """
+        SVG only
+        :return: String of user's chosen description
+        """
+
+        return self.descrip_textedit.toPlainText()
+
+    # --- INITIALISATION ---
+
     def __init__(self, parent, proportional_rect=None):
         """
         Creates a Dialog box specifically for asking user whether they want a PNG or SVG file.
@@ -118,53 +172,6 @@ class SaveOptionDialog(QtWidgets.QDialog):
         if proportional_rect:
             self.proportional_rect = proportional_rect
 
-    # --- FUNCTIONS ---
-
-    def picture_type(self):
-        """
-        :return: Integer of whether user choose PNG or SVG. Use class PNG and SVG #defines.
-        """
-
-        return self.format_combobox.currentIndex()
-
-    def user_width(self):
-        """
-        PNG only
-        :return: Integer of user's definied width. Default is 0
-        """
-
-        try:
-            return int(self.width_lineedit.text())
-        except:
-            return 0
-
-    def user_height(self):
-        """
-        PNG only
-        :return: Integer of user's defined height. Default is 0
-        """
-
-        try:
-            return int(self.height_lineedit.text())
-        except:
-            return 0
-
-    def user_title(self):
-        """
-        SVG only
-        :return: String of user's chosen title.
-        """
-
-        return self.title_lineedit.text()
-
-    def user_description(self):
-        """
-        SVG only
-        :return: String of user's chosen description
-        """
-
-        return self.descrip_textedit.toPlainText()
-
     # --- EVENTS ---
 
     def combox_changed(self, new_index):
@@ -219,7 +226,7 @@ class SaveOptionDialog(QtWidgets.QDialog):
         """
 
         if state == QtCore.Qt.Checked:
-            width = self.user_width()
+            width = self.user_width
             height = self.proportional_rect.height() * width / self.proportional_rect.width()
             self.width_lineedit.setText(str(int(width)))
             self.height_lineedit.setText(str(int(height)))

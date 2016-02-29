@@ -587,9 +587,9 @@ class GraphWidget(QtWidgets.QGraphicsView):
 
         file_filter = ""
 
-        if save_option_dialog.picture_type() == save_option_dialog.PNG:
+        if save_option_dialog.picture_type == save_option_dialog.PNG:
             file_filter = "Image (*.png)"
-        elif save_option_dialog.picture_type() == save_option_dialog.SVG:
+        elif save_option_dialog.picture_type == save_option_dialog.SVG:
             file_filter = "Scalable Vector Graphics (*.svg)"
 
         filename = QtWidgets.QFileDialog.getSaveFileName(caption="Save file",
@@ -611,9 +611,9 @@ class GraphWidget(QtWidgets.QGraphicsView):
 
         painter = QtGui.QPainter()
 
-        if save_option_dialog.picture_type() == save_option_dialog.PNG:
-            image = QtGui.QImage(save_option_dialog.user_width(),
-                                 save_option_dialog.user_height(),
+        if save_option_dialog.picture_type == save_option_dialog.PNG:
+            image = QtGui.QImage(save_option_dialog.user_width,
+                                 save_option_dialog.user_height,
                                  QtGui.QImage.Format_ARGB32)
             image.fill(QtCore.Qt.transparent)
 
@@ -625,7 +625,7 @@ class GraphWidget(QtWidgets.QGraphicsView):
             print image_location
             image.save(image_location + ".png")
 
-        elif save_option_dialog.picture_type() == save_option_dialog.SVG:
+        elif save_option_dialog.picture_type == save_option_dialog.SVG:
             print image_location
             print QtCore.QSize(rect.width(), rect.height())
             print rect
@@ -633,8 +633,8 @@ class GraphWidget(QtWidgets.QGraphicsView):
             generator.setFileName(image_location + ".svg")
             generator.setSize(QtCore.QSize(rect.width(), rect.height()))
             # generator.setViewBox(rect)
-            generator.setTitle(save_option_dialog.user_title())
-            generator.setDescription(save_option_dialog.user_description())
+            generator.setTitle(save_option_dialog.user_title)
+            generator.setDescription(save_option_dialog.user_description)
 
             painter.begin(generator)
             painter.setRenderHint(QtGui.QPainter.Antialiasing)
