@@ -12,7 +12,12 @@ from Model import Common
 
 # TODO: Delete itself from all connections when __del__ ed
 
+
 class InstanceWidget(QtWidgets.QGraphicsWidget):
+    """
+    InstanceWidget - a View representation of camkes.ast.Instance.
+    If model changes, update the fields in InstanceWidget.
+    """
 
     # Constants and private class variables
     _bounding_rect = None
@@ -94,17 +99,6 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
             connection.update()
 
         self.update()
-
-
-    @property
-    def context_menu(self):
-        return self._context_menu
-
-    @context_menu.setter
-    def context_menu(self, value):
-        assert isinstance(value, QtWidgets.QGraphicsProxyWidget)
-        assert isinstance(value.widget(), QtWidgets.QMenu)
-        self._context_menu = value     
 
     # Provides
     @property
@@ -332,12 +326,23 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
 
         self._connections_list.remove(connection)
 
+    @property
+    def context_menu(self):
+        return self._context_menu
+
+    @context_menu.setter
+    def context_menu(self, value):
+        assert isinstance(value, QtWidgets.QGraphicsProxyWidget)
+        assert isinstance(value.widget(), QtWidgets.QMenu)
+        self._context_menu = value
+
     # -------
 
     # Signals & Slots
     open_component_info = QtCore.pyqtSignal(six.string_types)
     widget_moved = QtCore.pyqtSignal()
 
+    # --- INITIALISATION
     def __init__(self, context_menu, preferred_point=None):
         super(InstanceWidget, self).__init__()
         # Model
@@ -374,43 +379,15 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
 
         self.update_ui()
 
-    # --- UI Functions ---
-
-    def update_ui(self):
-
-        self.clear_canvas()
-
-        practise_font = QtGui.QFont("Helvetica", 15, QtGui.QFont.Normal)
-        practise_font_metrics = QtGui.QFontMetrics(practise_font)
-        instance_name_rect = practise_font_metrics.boundingRect(self.name)
-
-        practise_font.setPointSize(11)
-        practise_font_metrics = QtGui.QFontMetrics(practise_font)
-        component_name_rect = practise_font_metrics.boundingRect(self.component_type)
-
-        practise_font.setPointSize(12)
-        practise_font_metrics = QtGui.QFontMetrics(practise_font)
-        control_rect = practise_font_metrics.boundingRect("C")
-        hardware_rect = practise_font_metrics.boundingRect("H")
-
-        max_height = 2 * self._border_thickness + instance_name_rect.height() + hardware_rect.height() + 7
-
-        max_width = 2 * self._border_thickness + 2 * control_rect.width() + 10
-        if instance_name_rect.width() > component_name_rect.width():
-            max_width = max_width + instance_name_rect.width()
-        else:
-            max_width = max_width + component_name_rect.width()
-
-        self._bounding_rect = QtCore.QRectF(0, 0, max_width, max_height)
-
-        self.setPreferredSize(self._bounding_rect.width(), self._bounding_rect.height())
-
-        self.update()
-
-    def boundingRect(self):
-        return self._bounding_rect
-
+    # --- UI FUNCTIONS ---
     def paint(self, painter, style_options, widget=None):
+        """
+
+        :param painter:
+        :param style_options:
+        :param widget:
+        :return:
+        """
 
         assert isinstance(painter, QtGui.QPainter)
         assert isinstance(style_options, QtWidgets.QStyleOptionGraphicsItem)
@@ -419,7 +396,7 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
         super(InstanceWidget, self).paint(painter, style_options, widget)
 
         painter.setRenderHint(QtGui.QPainter.Antialiasing)
-        
+
         # If hidden, changing alpha values to transparent
         color = self.color
 
@@ -427,7 +404,7 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
             color.setAlphaF(0.2)
         else:
             color.setAlphaF(1)
-        
+
         # Setting brush color
         brush = painter.brush()
         brush.setColor(color)
@@ -499,70 +476,68 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
         if self.hardware:
             painter.drawText(bounding_rect_font, QtCore.Qt.AlignCenter, "H")
 
-    # --- Event Handling ---
-    def itemChange(self, change, value):
+    def update_ui(self):
+        """
 
-        if change == QtWidgets.QGraphicsWidget.ItemPositionHasChanged:  # and self._moved_at_least_once:
-            self.update_connections()
+        :return:
+        """
 
-        return super(InstanceWidget, self).itemChange(change, value)
+        self.clear_canvas()
 
-    def mousePressEvent(self, mouse_event):
-        # Change to must press a button to open component info
+        practise_font = QtGui.QFont("Helvetica", 15, QtGui.QFont.Normal)
+        practise_font_metrics = QtGui.QFontMetrics(practise_font)
+        instance_name_rect = practise_font_metrics.boundingRect(self.name)
 
-        string = " "
+        practise_font.setPointSize(11)
+        practise_font_metrics = QtGui.QFontMetrics(practise_font)
+        component_name_rect = practise_font_metrics.boundingRect(self.component_type)
 
-        for connection in self.connection_list:
-            string += connection.name + " "
+        practise_font.setPointSize(12)
+        practise_font_metrics = QtGui.QFontMetrics(practise_font)
+        control_rect = practise_font_metrics.boundingRect("C")
+        hardware_rect = practise_font_metrics.boundingRect("H")
 
-        print self.name + " contains: " + string
+        max_height = 2 * self._border_thickness + instance_name_rect.height() + hardware_rect.height() + 7
 
-        no_of_connections = len(self.dataport) + len(self.provides) + len(self.consumes) + len(self.uses) + \
-                            len(self.emits)
-        print "\tNumber of connections is: " + str(no_of_connections)
-        print "\tdataport: " + str(len(self.dataport))
-        print "\tprovides: " + str(len(self.provides))
-        print "\tconsumes: " + str(len(self.consumes))
-        print "\tuses: " + str(len(self.uses))
-        print "\temits: " + str(len(self.emits))
-
-        self.open_component_info.emit(self.component_type)
-
-    _moved_at_least_once = False
-
-    def mouseMoveEvent(self, mouse_event):
-        self._moved_at_least_once = True
-        self.widget_moved.emit()
-        super(InstanceWidget, self).mouseMoveEvent(mouse_event)
-    
-    def contextMenuEvent(self, event):
-        assert isinstance(event, QtWidgets.QGraphicsSceneContextMenuEvent)
-        
-        menu = self.context_menu.widget()
-        assert isinstance(menu, QtWidgets.QMenu)
-        
-        menu.clear()
-        if self.hidden:
-            showComponentAction = menu.addAction("Show component")
-            showComponentAction.triggered.connect(self.show_component)
+        max_width = 2 * self._border_thickness + 2 * control_rect.width() + 10
+        if instance_name_rect.width() > component_name_rect.width():
+            max_width = max_width + instance_name_rect.width()
         else:
-            hideComponentAction = menu.addAction("Hide component")
-            hideComponentAction.triggered.connect(self.hide_component)
-        
-        self.context_menu.setPos(event.scenePos())
-        menu.exec_()
-        print "menu executed finished"
-        # self.scene().removeItem(self.context_menu)
+            max_width = max_width + component_name_rect.width()
 
-        # self.scene().clearSelection()
+        self._bounding_rect = QtCore.QRectF(0, 0, max_width, max_height)
 
-    def show_component(self):
-        self.hidden = False
+        self.setPreferredSize(self._bounding_rect.width(), self._bounding_rect.height())
 
-    def hide_component(self):
-        self.hidden = True
-    
+        self.update()
+
+    def clear_canvas(self):
+        """
+
+        :return:
+        """
+
+        layout = self.layout()
+        assert isinstance(layout, QtWidgets.QGraphicsLayout)
+
+        while layout.count() > 0:
+            next_widget = layout.itemAt(0)
+            layout.removeAt(0)
+            del next_widget
+
+    def boundingRect(self):
+        """
+
+        :return:
+        """
+
+        return self._bounding_rect
+
     def update_connections(self):
+        """
+
+        :return:
+        """
 
         for connection in self.connection_list:
             self.update_connection_position(connection)
@@ -572,6 +547,12 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
                 connection.source_instance_widget.update_connection_position(connection)
 
     def update_connection_position(self, connection):
+        """
+
+        :param connection:
+        :return:
+        """
+
         assert isinstance(connection, Connection_Widget.ConnectionWidget)
         # print "This is " + self.name + " and updating: " + str(connection.name)
 
@@ -697,11 +678,91 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
         else:
             connection.set_dest_pos_angle(final_pos, angle)
 
-    def clear_canvas(self):
-        layout = self.layout()
-        assert isinstance(layout, QtWidgets.QGraphicsLayout)
 
-        while layout.count() > 0:
-            next_widget = layout.itemAt(0)
-            layout.removeAt(0)
-            del next_widget
+
+    # --- EVENTS ---
+    def itemChange(self, change, value):
+        """
+
+        :param change:
+        :param value:
+        :return:
+        """
+
+        if change == QtWidgets.QGraphicsWidget.ItemPositionHasChanged:  # and self._moved_at_least_once:
+            self.update_connections()
+
+        return super(InstanceWidget, self).itemChange(change, value)
+
+    def mousePressEvent(self, mouse_event):
+        """
+
+        :param mouse_event:
+        :return:
+        """
+
+        # Change to must press a button to open component info
+
+        string = " "
+
+        for connection in self.connection_list:
+            string += connection.name + " "
+
+        print self.name + " contains: " + string
+
+        no_of_connections = len(self.dataport) + len(self.provides) + len(self.consumes) + len(self.uses) + \
+                            len(self.emits)
+        print "\tNumber of connections is: " + str(no_of_connections)
+        print "\tdataport: " + str(len(self.dataport))
+        print "\tprovides: " + str(len(self.provides))
+        print "\tconsumes: " + str(len(self.consumes))
+        print "\tuses: " + str(len(self.uses))
+        print "\temits: " + str(len(self.emits))
+
+        self.open_component_info.emit(self.component_type)
+
+    _moved_at_least_once = False
+
+    def mouseMoveEvent(self, mouse_event):
+        """
+
+        :param mouse_event:
+        :return:
+        """
+
+        self._moved_at_least_once = True
+        self.widget_moved.emit()
+        super(InstanceWidget, self).mouseMoveEvent(mouse_event)
+    
+    def contextMenuEvent(self, event):
+        """
+
+        :param event:
+        :return:
+        """
+
+        assert isinstance(event, QtWidgets.QGraphicsSceneContextMenuEvent)
+        
+        menu = self.context_menu.widget()
+        assert isinstance(menu, QtWidgets.QMenu)
+        
+        menu.clear()
+        if self.hidden:
+            showComponentAction = menu.addAction("Show component")
+            showComponentAction.triggered.connect(self.show_component)
+        else:
+            hideComponentAction = menu.addAction("Hide component")
+            hideComponentAction.triggered.connect(self.hide_component)
+        
+        self.context_menu.setPos(event.scenePos())
+        menu.exec_()
+        print "menu executed finished"
+        # self.scene().removeItem(self.context_menu)
+
+        # self.scene().clearSelection()
+
+    def show_component(self):
+        self.hidden = False
+
+    def hide_component(self):
+        self.hidden = True

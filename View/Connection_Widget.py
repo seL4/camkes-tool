@@ -9,6 +9,10 @@ from Instance_Widget import InstanceWidget
 
 
 class ConnectionWidget(QtWidgets.QGraphicsItem):
+    """
+    ConnectionWidget - a View represetation for the camkes.ast.Connection objects.
+    This widget is a one time use. Instead of attempting to sync this connection with the model, just make a new object.
+    """
 
     @property
     def hidden(self):
@@ -20,12 +24,12 @@ class ConnectionWidget(QtWidgets.QGraphicsItem):
     def hidden(self, value):
         assert isinstance(value, bool)
         self._hidden = value or self.source_instance_widget.hidden or \
-                                 self.dest_instance_widget.hidden
+                       self.dest_instance_widget.hidden
         if self._hidden:
             self.setZValue(2)
         else:
             self.setZValue(4)
-            
+
     @property
     def name(self):
         return self._connection_name
@@ -34,7 +38,7 @@ class ConnectionWidget(QtWidgets.QGraphicsItem):
     def name(self, value):
         assert isinstance(value, six.string_types)
         self._connection_name = value
-        self.setToolTip(value + " : " + self.connection_type) 
+        self.setToolTip(value + " : " + self.connection_type)
 
     @property
     def connection_type(self):
@@ -44,8 +48,7 @@ class ConnectionWidget(QtWidgets.QGraphicsItem):
     def connection_type(self, value):
         assert isinstance(value, six.string_types)
         self._connection_type = value
-        self.setToolTip(self.name + " : " + value) 
-        
+        self.setToolTip(self.name + " : " + value)
 
     @property
     def path(self):
@@ -143,7 +146,110 @@ class ConnectionWidget(QtWidgets.QGraphicsItem):
 
         self.update_path()
 
+    # --- INITIALISATION ---
+
+    def __init__(self, name, con_type, source, source_type, source_inf_name, dest, dest_type, dest_inf_name):
+        super(ConnectionWidget, self).__init__()
+
+        self._connection_name = None
+        self._connection_name = name
+        self._connection_type = None
+        self.connection_type = con_type
+
+        self.setToolTip(name + " : " + con_type)
+
+        # Get points from attributes of the edge
+        self._source_pos = None
+        self._dest_pos = None
+        self._source_angle = None
+        self._dest_angle = None
+
+        self._path = None
+        self._hidden = False
+
+        assert isinstance(source, InstanceWidget)
+        self._source_instance_widget = source
+
+        self._source_connection_type = None
+        self.source_connection_type = source_type
+
+        self._source_interface_name = None
+        self.source_interface_name = source_inf_name
+
+        assert isinstance(dest, InstanceWidget)
+        self._dest_instance_widget = dest
+
+        self._dest_connection_type = None
+        self.dest_connection_type = dest_type
+
+        self._dest_interface_name = None
+        self.dest_interface_name = dest_inf_name
+
+        self.source_instance_widget.add_connection(self)
+        self.dest_instance_widget.add_connection(self)
+
+    # --- UI FUNCTION ---
+
+    def paint(self, q_painter, style_option, widget=None):
+        """
+
+        :param q_painter:
+        :param style_option:
+        :param widget:
+        :return:
+        """
+
+        # assert isinstance(style_option, QtWidgets.QStyleOptionGraphicsItem)
+        # assert isinstance(widget, QtWidgets.QWidget)
+
+        assert isinstance(q_painter, QtGui.QPainter)
+
+        q_painter.setRenderHint(QtGui.QPainter.Antialiasing)
+
+        if self.source_pos is not None and self.dest_pos is not None:
+            pen = QtGui.QPen(QtGui.QColor(66, 66, 66))
+            pen.setWidth(2)
+
+            pen_color = pen.color()
+            if self.hidden:
+                pen_color.setAlphaF(0.2)
+            else:
+                pen_color.setAlphaF(1)
+            pen.setColor(pen_color)
+
+            q_painter.setPen(pen)
+            q_painter.drawPath(self.path)
+            # q_painter.drawLine(self.source_pos, self.dest_pos)
+
+    def boundingRect(self):
+        """
+
+        :return:
+        """
+
+        rect = self.path.boundingRect()
+        assert isinstance(rect, QtCore.QRectF)
+        rect.adjust(-2.5, -2.5, 2.5, 2.5)
+
+        return rect
+
+    def shape(self):
+        """
+
+        :return:
+        """
+
+        stroker = QtGui.QPainterPathStroker()
+        stroker.setWidth(5)
+        return stroker.createStroke(self.path)
+
+    # -- Connector drawing --
+
     def update_path(self):
+        """
+
+        :return:
+        """
 
         if self.source_pos and self.dest_pos:
             self.clear_path()
@@ -163,12 +269,12 @@ class ConnectionWidget(QtWidgets.QGraphicsItem):
 
                 length = math.sqrt(s_to_d.dotProduct(s_to_d, s_to_d))
                 if length < 30:
-                    middle_vector = self.change_vector_length(s_to_d,length/2)
+                    middle_vector = self.change_vector_length(s_to_d, length / 2)
 
                     source_final_point = source_control_point + middle_vector
                     destination_final_point = destination_control_point - middle_vector
                 else:
-                    middle_vector = self.change_vector_length(s_to_d,length/2 - 15)
+                    middle_vector = self.change_vector_length(s_to_d, length / 2 - 15)
 
                     source_final_point = source_control_point + middle_vector
                     destination_final_point = destination_control_point - middle_vector
@@ -188,26 +294,61 @@ class ConnectionWidget(QtWidgets.QGraphicsItem):
             self.prepareGeometryChange()
 
     def draw_connector_type(self, source_point, dest_point):
+        """
+
+        :param source_point:
+        :param dest_point:
+        :return:
+        """
+
         assert isinstance(source_point, QtCore.QPointF)
         assert isinstance(dest_point, QtCore.QPointF)
 
         self.path.moveTo(source_point)
         self.path.lineTo(dest_point)
 
+    # --- EVENTS ---
+
+    def mousePressEvent(self, mouse_event):
+        """
+
+        :param mouse_event:
+        :return:
+        """
+
+        assert isinstance(mouse_event, QtWidgets.QGraphicsSceneMouseEvent)
+        print self.name + " clicked (edge)"
+
+    # --- HELPER FUNCTIONS ---
+
     @staticmethod
     def change_vector_length(old_point, new_length):
+        """
+
+        :param old_point:
+        :param new_length:
+        :return:
+        """
+
         assert isinstance(old_point, QtCore.QPointF)
-        old_length = math.sqrt(old_point.x()*old_point.x() + old_point.y()*old_point.y())
+        old_length = math.sqrt(old_point.x() * old_point.x() + old_point.y() * old_point.y())
 
         if old_length == 0:
             # It doesn't make sense to extend or shorten a zero vector
             return old_point
 
-        new_point = QtCore.QPointF((old_point.x() * new_length) / old_length, (old_point.y()*new_length)/old_length)
+        new_point = QtCore.QPointF((old_point.x() * new_length) / old_length, (old_point.y() * new_length) / old_length)
         return new_point
 
     @staticmethod
     def get_control_point(source_pos, dest_pos, angle):
+        """
+
+        :param source_pos:
+        :param dest_pos:
+        :param angle:
+        :return:
+        """
 
         assert isinstance(source_pos, QtCore.QPointF)
         assert isinstance(dest_pos, QtCore.QPointF)
@@ -262,88 +403,12 @@ class ConnectionWidget(QtWidgets.QGraphicsItem):
 
         return source_control_point
 
-
-    def __init__(self, name, con_type, source, source_type, source_inf_name, dest, dest_type, dest_inf_name):
-        super(ConnectionWidget, self).__init__()
-
-        self._connection_name = None
-        self._connection_name = name
-        self._connection_type = None
-        self.connection_type = con_type
-
-        self.setToolTip(name + " : " + con_type)
-
-        # Get points from attributes of the edge
-        self._source_pos = None
-        self._dest_pos = None
-        self._source_angle = None
-        self._dest_angle = None
-
-        self._path = None
-        self._hidden = False
-
-        assert isinstance(source, InstanceWidget)
-        self._source_instance_widget = source
-
-        self._source_connection_type = None
-        self.source_connection_type = source_type
-
-        self._source_interface_name = None
-        self.source_interface_name = source_inf_name
-
-        assert isinstance(dest, InstanceWidget)
-        self._dest_instance_widget = dest
-
-        self._dest_connection_type = None
-        self.dest_connection_type = dest_type
-
-        self._dest_interface_name = None
-        self.dest_interface_name = dest_inf_name
-
-        self.source_instance_widget.add_connection(self)
-        self.dest_instance_widget.add_connection(self)
-
-    def paint(self, q_painter, style_option , widget=None):
-
-        # assert isinstance(style_option, QtWidgets.QStyleOptionGraphicsItem)
-        # assert isinstance(widget, QtWidgets.QWidget)
-
-        assert isinstance(q_painter, QtGui.QPainter)
-
-        q_painter.setRenderHint(QtGui.QPainter.Antialiasing)
-
-        if self.source_pos is not None and self.dest_pos is not None:
-            pen = QtGui.QPen(QtGui.QColor(66,66,66))
-            pen.setWidth(2)
-            
-            pen_color = pen.color()
-            if self.hidden:
-                pen_color.setAlphaF(0.2)
-            else:
-                pen_color.setAlphaF(1)
-            pen.setColor(pen_color)
-
-            q_painter.setPen(pen)
-            q_painter.drawPath(self.path)
-            # q_painter.drawLine(self.source_pos, self.dest_pos)
-
-    def boundingRect(self):
-        rect = self.path.boundingRect()
-        assert isinstance(rect, QtCore.QRectF)
-        rect.adjust(-2.5,-2.5,2.5,2.5)
-
-        return rect
-
-    def shape(self):
-        stroker = QtGui.QPainterPathStroker()
-        stroker.setWidth(5)
-        return stroker.createStroke(self.path)
-
-    def mousePressEvent(self, mouse_event):
-        assert isinstance(mouse_event, QtWidgets.QGraphicsSceneMouseEvent)
-        print self.name + " clicked (edge)"
-
     def delete(self):
+        """
+
+        :return:
+        """
+
         # TODO: Delete connection from source & destination
         self.source_instance_widget.remove_connection(self)
         self.dest_instance_widget.remove_connection(self)
@@ -351,6 +416,9 @@ class ConnectionWidget(QtWidgets.QGraphicsItem):
 
 
 class DataportWidget(ConnectionWidget):
+    """
+
+    """
 
     def draw_connector_type(self, source_point, dest_point):
         assert isinstance(source_point, QtCore.QPointF)
@@ -380,6 +448,9 @@ class DataportWidget(ConnectionWidget):
 
 
 class ProcedureWidget(ConnectionWidget):
+    """
+
+    """
 
     def draw_connector_type(self, source_point, dest_point):
         assert isinstance(source_point, QtCore.QPointF)
@@ -410,16 +481,16 @@ class ProcedureWidget(ConnectionWidget):
         bottom_right = centre_point + QtCore.QPointF(14, 14)
         rect = QtCore.QRectF(top_left, bottom_right)
 
-        straight_point = QtCore.QPointF(1,0)
+        straight_point = QtCore.QPointF(1, 0)
 
         start_straight_dot_product = new_vector.dotProduct(new_vector, straight_point)
-        perpend_length = math.sqrt(new_vector.x()*new_vector.x() + new_vector.y()*new_vector.y())
-        straight_length = math.sqrt(straight_point.x()*straight_point.x() + straight_point.y()*straight_point.y())
+        perpend_length = math.sqrt(new_vector.x() * new_vector.x() + new_vector.y() * new_vector.y())
+        straight_length = math.sqrt(straight_point.x() * straight_point.x() + straight_point.y() * straight_point.y())
 
-        start_angle = math.degrees(math.acos(start_straight_dot_product/(perpend_length*straight_length)))
+        start_angle = math.degrees(math.acos(start_straight_dot_product / (perpend_length * straight_length)))
 
         if new_vector.y() > 0:
-            start_angle = 360-start_angle
+            start_angle = 360 - start_angle
 
         self.path.arcTo(rect, start_angle, -180)
 
@@ -434,6 +505,9 @@ class ProcedureWidget(ConnectionWidget):
 
 
 class EventWidget(ConnectionWidget):
+    """
+
+    """
 
     def draw_connector_type(self, source_point, dest_point):
         assert isinstance(source_point, QtCore.QPointF)
