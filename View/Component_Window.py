@@ -6,6 +6,8 @@ import six
 from PyQt5 import QtGui, QtWidgets, QtCore
 from camkes.ast import *
 
+# Unused class - kept for reference
+
 
 class ComponentWindow(QtWidgets.QGroupBox):
 
