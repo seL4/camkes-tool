@@ -10,6 +10,7 @@ import camkes.ast
 class ASTModel:
 
     def __init__(self):
+        # Nothing to do for initialization
         pass
 
     '''
@@ -17,6 +18,12 @@ class ASTModel:
     '''
     @staticmethod
     def get_ast(path_to_camkes_file):
+        """
+        Talks to the parser and gets an AST representation of the camkes ADL code
+        :param path_to_camkes_file: Path to .camkes file
+        :return: LiftedAST object
+        """
+
         args = argparse.ArgumentParser()
         args.add_argument('--import-path', '-I', help='Add this path to the list of paths to '
                                                            'search for built-in imports. That is, add it to the list '
@@ -32,13 +39,19 @@ class ASTModel:
         camkes_parser = Parser(parse_args)
         ast, _read = camkes_parser.parse_file(path_to_camkes_file)
 
-
         return ast
 
     @staticmethod
-    def find_instance(instance_list, instance_name):
-
-        for instance_object in instance_list:
+    def find_instance(list_of_ast_items, instance_name):
+        """
+        Find the instance (camkes.ast.Instance object) from list of instances give.
+        :param list_of_ast_items: list of camkes.ast.* objects
+        :param instance_name: The name of instance to looking for.
+        :return: camkes.ast.Instance object if found, None otherwise.
+        """
+        for instance_object in list_of_ast_items:
+            if not isinstance(instance_object, camkes.ast.Instance):
+                continue
             assert isinstance(instance_object, camkes.ast.Instance)
             if instance_name == instance_object.name:
                 return instance_object
@@ -47,7 +60,12 @@ class ASTModel:
 
     @staticmethod
     def find_component(list_of_ast_items, component_name):
-
+        """
+        Find the component (camkes.ast.Component) from list of AST objects items give.
+        :param list_of_ast_items: list of camkes.ast.* objects
+        :param component_name: The name of component type to looking for.
+        :return: camkes.ast.Component object if found, None otherwise
+        """
         for item in list_of_ast_items:
             if not isinstance(item, camkes.ast.Component):
                 continue
@@ -57,6 +75,7 @@ class ASTModel:
 
         return None
 
-    # TODO deleting connections with multiple froms, to:
-    # User will delete a specific from - to. When removing the "from" in the connection, make sure there aren't other "tos"
-    # in the connection (other than the "to" being deleted). Same vice-versa
+    # IDEAS:
+    # Deleting connections with multiple froms, to:
+    # User will delete a specific from - to. When removing the "from" in the connection, make sure there aren't
+    # other "tos" in the connection (other than the "to" being deleted). Same vice-versa

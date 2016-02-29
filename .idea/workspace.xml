@@ -3,7 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="9e94cc0d-524c-462a-bfa8-511eaa5dddfc" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Controller/graph_controller.py" afterPath="$PROJECT_DIR$/Controller/graph_controller.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Model/AST_Model.py" afterPath="$PROJECT_DIR$/Model/AST_Model.py" />
     </list>
     <ignored path="VisualComponents.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -24,25 +24,13 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="AST_Model.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="AST_Model.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/Model/AST_Model.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="32" column="66" selection-start-line="32" selection-start-column="66" selection-end-line="32" selection-end-column="66" />
+            <state vertical-scroll-proportion="0.34303534">
+              <caret line="11" column="23" selection-start-line="11" selection-start-column="23" selection-end-line="11" selection-end-column="23" />
               <folding>
                 <element signature="e#47#65#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="graph_controller.py" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/Controller/graph_controller.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.2451923">
-              <caret line="17" column="51" selection-start-line="17" selection-start-column="51" selection-end-line="17" selection-end-column="51" />
-              <folding>
-                <element signature="e#47#57#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -79,8 +67,8 @@
         <option value="$PROJECT_DIR$/View/Connection_Widget.py" />
         <option value="$PROJECT_DIR$/View/Graph_Widget.py" />
         <option value="$PROJECT_DIR$/__main__.py" />
-        <option value="$PROJECT_DIR$/Model/AST_Model.py" />
         <option value="$PROJECT_DIR$/Controller/graph_controller.py" />
+        <option value="$PROJECT_DIR$/Model/AST_Model.py" />
       </list>
     </option>
   </component>
@@ -453,12 +441,6 @@
       <option name="number" value="Default" />
       <updated>1449214734746</updated>
     </task>
-    <task id="LOCAL-00026" summary="Changed Controller to be a Main window&#10;DockWidget is just a decorder of another widget, so creating a dock_widget, and adding a component_widget inside.">
-      <created>1452145416137</created>
-      <option name="number" value="00026" />
-      <option name="project" value="LOCAL" />
-      <updated>1452145416137</updated>
-    </task>
     <task id="LOCAL-00027" summary="Changed controller to create a dock widget every time a component window is created. Component Window does not need mouse event anymore.">
       <created>1452220088241</created>
       <option name="number" value="00027" />
@@ -747,7 +729,13 @@
       <option name="project" value="LOCAL" />
       <updated>1456707811220</updated>
     </task>
-    <option name="localTasksCounter" value="75" />
+    <task id="LOCAL-00075" summary="Double quotes for docstrings. Removed ComponentWidget since unused atm.">
+      <created>1456707949001</created>
+      <option name="number" value="00075" />
+      <option name="project" value="LOCAL" />
+      <updated>1456707949001</updated>
+    </task>
+    <option name="localTasksCounter" value="76" />
     <servers />
   </component>
   <component name="TodoView">
@@ -770,7 +758,7 @@
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3289597" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3292683" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.5238988" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.5238988" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.24960506" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32964718" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
@@ -816,7 +804,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="true" />
-    <MESSAGE value="Added logic to remove a connection." />
     <MESSAGE value="DockWidget defaults to undocked." />
     <MESSAGE value="Logic to draw the information manually. Includes C for control, H for hardware" />
     <MESSAGE value="Added support for drawing edges manually&#10;* Instance Widget calculates the starting position and ending position of each connection (and calculates angles when there is a clash)&#10;* Connection Widget draws the straight or curved line (depending on angle) between two edges. It also has a static method which will draw the connection type. Plan is to subclass the connection depending on the connection type.&#10;* Commented out old edge algorithm given by graphviz" />
@@ -841,7 +828,8 @@
     <MESSAGE value="Graphviz has mathematically co-ordinates. Converted from maths co-ord to GUI co-ord" />
     <MESSAGE value="Edge has a minimum length, so symbols in edges should always be shown when using auto layout." />
     <MESSAGE value="Added documentation for Graph_Controller" />
-    <option name="LAST_COMMIT_MESSAGE" value="Added documentation for Graph_Controller" />
+    <MESSAGE value="Double quotes for docstrings. Removed ComponentWidget since unused atm." />
+    <option name="LAST_COMMIT_MESSAGE" value="Double quotes for docstrings. Removed ComponentWidget since unused atm." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1252,22 +1240,22 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Model/AST_Model.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="32" column="66" selection-start-line="32" selection-start-column="66" selection-end-line="32" selection-end-column="66" />
-          <folding>
-            <element signature="e#47#65#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/Controller/graph_controller.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.2451923">
           <caret line="17" column="51" selection-start-line="17" selection-start-column="51" selection-end-line="17" selection-end-column="51" />
           <folding>
             <element signature="e#47#57#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Model/AST_Model.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.34303534">
+          <caret line="11" column="23" selection-start-line="11" selection-start-column="23" selection-end-line="11" selection-end-column="23" />
+          <folding>
+            <element signature="e#47#65#0" expanded="true" />
           </folding>
         </state>
       </provider>
