@@ -3041,7 +3041,9 @@ directly to memory a word at a time. After all the data has been written to the 
 the cache must be flushed to ensure the data is actually in the buffer.
 
 CAmkES provides a mechanism for flushing the cache, but currently it is a no-op
-on all architectures other than ARM.
+on all architectures other than ARM. On x86, the DMA engine is cache-coherent,
+so there's no reason to explicitly flush the cache after writing to a cached
+hardware dataport.
 
 #### Marking a hardware dataport as cached
 
