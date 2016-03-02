@@ -34,12 +34,16 @@ SECTIONS {
 
     /* Data / BSS */
     .data : ALIGN(4096) {
+        PROVIDE(__data_start = .);
         *(.data)
+        PROVIDE(__data_end = .);
     }
 
     .bss : {
+        PROVIDE(__bss_start = .);
         *(.bss)
         *(COMMON)
+        PROVIDE(__bss_end = .);
     }
 
     guarded (NOLOAD) : ALIGN(4096) {
