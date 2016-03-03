@@ -1,14 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import six, math, random
-
-random.seed(20)
+import six
+import math
+import random
 
 from PyQt5 import QtGui, QtWidgets, QtCore
 
 import Connection_Widget
 from Model import Common
+
+random.seed(20)
+
 
 # TODO: Delete itself from all connections when __del__ ed
 
@@ -88,14 +91,15 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
     def hidden(self, value):
         assert isinstance(value, bool)
         self._hidden = value
-        
+
         if value:
             self.setZValue(3)
         else:
             self.setZValue(5)
 
         for connection in self.connection_list:
-            connection.hidden = value  # This will only set if both source and destination is not hidden
+            # This will only set if both source and destination is not hidden
+            connection.hidden = value
             connection.update()
 
         self.update()
@@ -112,7 +116,9 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
         assert isinstance(name, six.string_types)
         assert isinstance(interface_type, six.string_types)
 
-        self.provides.append({'Name': name, 'Interface_type': interface_type, 'Connection_Widget': connection})
+        self.provides.append({'Name': name,
+                              'Interface_type': interface_type,
+                              'Connection_Widget': connection})
 
         self.update_ui()
 
@@ -339,7 +345,7 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
     # -------
 
     # Signals & Slots
-    open_component_info = QtCore.pyqtSignal(six.string_types)
+    # open_component_info = QtCore.pyqtSignal(six.string_types)
     widget_moved = QtCore.pyqtSignal()
 
     # --- INITIALISATION
@@ -372,17 +378,12 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
 
         self.setFlag(QtWidgets.QGraphicsWidget.ItemIsMovable)
 
-        layout = QtWidgets.QGraphicsLinearLayout()
-        layout.setOrientation(QtCore.Qt.Vertical)
-
-        self.setLayout(layout)
-
         self.update_ui()
 
     # --- UI FUNCTIONS ---
     def paint(self, painter, style_options, widget=None):
         """
-
+        Overridden function, paints the box with name, type and the C H symbols.
         :param painter:
         :param style_options:
         :param widget:
@@ -397,7 +398,7 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
 
         painter.setRenderHint(QtGui.QPainter.Antialiasing)
 
-        # If hidden, changing alpha values to transparent
+        # -- If hidden, changing alpha values to transparent --
         color = self.color
 
         if self.hidden:
@@ -426,7 +427,7 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
         painter.fillPath(rounded_rect, color)
         painter.drawPath(rounded_rect)
 
-        # TODO: Update rect with new size
+        # TODO IDEA: Update rect with new size
 
         # Printing instance name
         font = QtGui.QFont("Helvetica", 15, QtGui.QFont.Normal)
@@ -478,64 +479,53 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
 
     def update_ui(self):
         """
-
+        Recalculates the expected size of the view, and calls a repaint.
         :return:
         """
 
-        self.clear_canvas()
-
+        # Calculate rect for instance name
         practise_font = QtGui.QFont("Helvetica", 15, QtGui.QFont.Normal)
         practise_font_metrics = QtGui.QFontMetrics(practise_font)
         instance_name_rect = practise_font_metrics.boundingRect(self.name)
 
+        # Calculate rect for component type
         practise_font.setPointSize(11)
         practise_font_metrics = QtGui.QFontMetrics(practise_font)
         component_name_rect = practise_font_metrics.boundingRect(self.component_type)
 
+        # Calculate rects for control and hardware symbols
         practise_font.setPointSize(12)
         practise_font_metrics = QtGui.QFontMetrics(practise_font)
         control_rect = practise_font_metrics.boundingRect("C")
         hardware_rect = practise_font_metrics.boundingRect("H")
 
+        # Find the max height
         max_height = 2 * self._border_thickness + instance_name_rect.height() + hardware_rect.height() + 7
 
+        # Find the max width
         max_width = 2 * self._border_thickness + 2 * control_rect.width() + 10
         if instance_name_rect.width() > component_name_rect.width():
             max_width = max_width + instance_name_rect.width()
         else:
             max_width = max_width + component_name_rect.width()
 
+        # Set bounding rect to new max width and height
         self._bounding_rect = QtCore.QRectF(0, 0, max_width, max_height)
 
         self.setPreferredSize(self._bounding_rect.width(), self._bounding_rect.height())
 
-        self.update()
-
-    def clear_canvas(self):
-        """
-
-        :return:
-        """
-
-        layout = self.layout()
-        assert isinstance(layout, QtWidgets.QGraphicsLayout)
-
-        while layout.count() > 0:
-            next_widget = layout.itemAt(0)
-            layout.removeAt(0)
-            del next_widget
+        self.update()  # Call a repaint
 
     def boundingRect(self):
         """
-
-        :return:
+        :return: QRect - bounding rectangle of this widget
         """
 
         return self._bounding_rect
 
     def update_connections(self):
         """
-
+        Forces all connections and connecting instances to update.
         :return:
         """
 
@@ -548,7 +538,7 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
 
     def update_connection_position(self, connection):
         """
-
+        Updates the touching point between the connection and this widget.
         :param connection:
         :return:
         """
@@ -560,7 +550,7 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
         angle_set = False
         decrease_angle = False
 
-        # other_widget = None
+        # Find the direction of the angle on the other end - if it is set. 
         if connection.source_instance_widget is self:
             other_widget = connection.dest_instance_widget
             if connection.dest_angle:
@@ -574,75 +564,88 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
             if connection.source_angle < 0:
                 decrease_angle = True
 
-        # TODO: Inefficient algorithm
+        # TODO: Potentially inefficient algorithm
 
         # --- Find position based on straight line distance between this and other widget ---
 
-        # Vector between other and this
+        # -- Vector between other and this --
         assert isinstance(other_widget, InstanceWidget)
 
         our_pos = self.scenePos()
+        # Get middle of widget
         our_pos.setX(our_pos.x() + self.boundingRect().width() / 2)
         our_pos.setY(our_pos.y() + self.boundingRect().height() / 2)
 
         other_widget_pos = other_widget.scenePos()
-        other_widget_pos.setX(other_widget_pos.x() + self.boundingRect().width() / 2)
-        other_widget_pos.setY(other_widget_pos.y() + self.boundingRect().height() / 2)
+        # Get middle of widget
+        other_widget_pos.setX(other_widget_pos.x() + other_widget.boundingRect().width() / 2)
+        other_widget_pos.setY(other_widget_pos.y() + other_widget.boundingRect().height() / 2)
 
         vector = other_widget_pos - our_pos
 
-        # print "Connection " + connection.name + " from: " + str(connection.source_instance_widget.name) + " to " + str(
-        #         connection.dest_instance_widget.name)
-        # print "\tother position:" + str(other_widget_pos) + " ours:" + str(our_pos)
-        # print "\tvector: " + str(vector)
-        # print "\tbounding rect: " + str(self.boundingRect())
+        # -- Finding intersection between vector and edge of this widget --
 
+        # Consider the case where x is bigger than y
+        #            .
+        #         .  .
+        #     .      .
+        # ............
+        # We reduce y, proportional to x, such that x is equal to width of widget.
+         
+        # If the x is 0, then it is a horizontal 
         if vector.x() == 0:
-            y = self.boundingRect().height() # To force into "Yo here 3/4"
+            y = self.boundingRect().height()
+            # If original y is negative, new y must also be negative
+            if vector.y() < 0:
+                y = -y
         else:
+            # Using ratios to get y value
             y = vector.y() * math.fabs((self.boundingRect().width() / 2) / vector.x())
-        # print "\ty is : " + str(y)
 
         half_height = self.boundingRect().height() / 2 + 1  # Bit of room for rounding
 
+        # If y is within the box then above assumption is correct
         if -half_height <= y <= half_height:
             vector.setY(y)
             if vector.x() < 0:
-                # print "\tYo here 1"
                 vector.setX(-self.boundingRect().width() / 2)
             else:
-                # print "\tYo here 2"
                 vector.setX(self.boundingRect().width() / 2)
         else:
-
+            # If y wasn't within the box, then we assumption is wrong, y is bigger than x
+            #      .
+            #      .
+            #    . .
+            #      .
+            #   .  .
+            #      .
+            # ......    
+            # We reduce x, proportional to y, such that y is equal to height.
             if vector.y() == 0:
-                x = self.boundingRect().width()
+                x = self.boundingRect().width() 
+                if vector.x() < 0:
+                    x = -x
             else:
                 x = vector.x() * math.fabs((self.boundingRect().height() / 2) / vector.y())
 
             vector.setX(x)
             if vector.y() < 0:
-                # print "\tYo here 3"
                 vector.setY(-self.boundingRect().height() / 2)
             else:
-                # print "\tYo here 4"
                 vector.setY(self.boundingRect().height() / 2)
 
-        # print "\tnew vector: " + str(vector)
-
+        # We got a vector from the center, now we get the final position
         final_pos = our_pos + vector
 
-        # --- Choose an angle, start with 0 degrees, and search through all connection points, looking for clashes
+        # Choose an angle, start with 0 degrees, and search through all connection points, looking for clashes
 
         for compare in self.connection_list:
             assert isinstance(compare, Connection_Widget.ConnectionWidget)
 
-            # print "\tchecking clash with: " + str(compare.name)
-
             if compare is connection:
-                continue
+                continue  # Not interested in the same connection, find others
 
-
+            # Get the current position and angle of the potential clashing connection
             if compare.source_instance_widget is self:
                 compare_pos = compare.source_pos
                 compare_angle = compare.source_angle
@@ -653,26 +656,26 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
                 raise NotImplementedError  # Something went wrong
 
             if compare_pos != final_pos:
-                # print "\t\tdoes not clash"
-                continue
+                continue  # Does not clash, continue searching
 
-            # print "\t\ttheir angle is " + str(compare_angle) + " and ours is " + str(angle)
-
+            # If clashing, find a angle which doesn't clash
             while compare_angle == angle:
-                # print "\t\ttried angle " + str(angle) + ", clashed"
-
-                if angle_set:
+                if angle_set:   
                     if decrease_angle:
                         angle += 35
                     else:
                         angle -= 35
                 else:
+                    # If angle is not set, try 0, -35, 35, -70, 70 etc
+                    # In order to alternate between positive and negative, 
+                    #    use decrease_angle as a toggle
                     angle = -angle
                     if decrease_angle:
                         angle -= 35
 
                     decrease_angle = not decrease_angle
-
+        
+        # Set our newly found position and angle (at the appropriate side of the connection)
         if connection.source_instance_widget is self:
             connection.set_source_pos_angle(final_pos, angle)
         else:
@@ -683,20 +686,21 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
     # --- EVENTS ---
     def itemChange(self, change, value):
         """
-
+        Deals with position changes. Updates connections when ever position changes
         :param change:
         :param value:
         :return:
         """
 
-        if change == QtWidgets.QGraphicsWidget.ItemPositionHasChanged:  # and self._moved_at_least_once:
+        if change == QtWidgets.QGraphicsWidget.ItemPositionHasChanged: 
             self.update_connections()
 
         return super(InstanceWidget, self).itemChange(change, value)
 
     def mousePressEvent(self, mouse_event):
         """
-
+        Deals with instances being pressed. Right now doesn't do anything special other than
+        printing the name, type and number of connections
         :param mouse_event:
         :return:
         """
@@ -719,33 +723,33 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
         print "\tuses: " + str(len(self.uses))
         print "\temits: " + str(len(self.emits))
 
-        self.open_component_info.emit(self.component_type)
-
-    _moved_at_least_once = False
+        # self.open_component_info.emit(self.component_type)
 
     def mouseMoveEvent(self, mouse_event):
         """
-
+        Deals with this instance being clicked and dragged. Emits a signal that component was moved.
         :param mouse_event:
         :return:
         """
 
-        self._moved_at_least_once = True
         self.widget_moved.emit()
         super(InstanceWidget, self).mouseMoveEvent(mouse_event)
     
     def contextMenuEvent(self, event):
         """
-
+        Shows a context menu for this instance, asking to either show or hide the component.
+        Uses context menu given by graph widget.
         :param event:
         :return:
         """
 
         assert isinstance(event, QtWidgets.QGraphicsSceneContextMenuEvent)
-        
+       
+        # Get menu widget from proxy widget
         menu = self.context_menu.widget()
         assert isinstance(menu, QtWidgets.QMenu)
         
+        # If current hidden, action is "Show" otherwise "Hide"
         menu.clear()
         if self.hidden:
             showComponentAction = menu.addAction("Show component")
@@ -754,12 +758,9 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
             hideComponentAction = menu.addAction("Hide component")
             hideComponentAction.triggered.connect(self.hide_component)
         
+        # Set the current position [of proxy widget] to mouse click position
         self.context_menu.setPos(event.scenePos())
         menu.exec_()
-        print "menu executed finished"
-        # self.scene().removeItem(self.context_menu)
-
-        # self.scene().clearSelection()
 
     def show_component(self):
         self.hidden = False
