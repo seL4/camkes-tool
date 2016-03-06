@@ -192,11 +192,11 @@ class ConnectionWidget(QtWidgets.QGraphicsItem):
 
     def paint(self, q_painter, style_option, widget=None):
         """
-
-        :param q_painter:
-        :param style_option:
-        :param widget:
-        :return:
+        Deals with the drawing of the connection when asked to paint. 
+        Realies on self.path to be set
+        :param q_painter: QPainter to paint on
+        :param style_option: styling options - unused atm
+        :param widget: unused atm
         """
 
         # assert isinstance(style_option, QtWidgets.QStyleOptionGraphicsItem)
@@ -223,8 +223,8 @@ class ConnectionWidget(QtWidgets.QGraphicsItem):
 
     def boundingRect(self):
         """
-
-        :return:
+        Calculates bounding rect from current self.path with 2.5 margin
+        :return: QRectF
         """
 
         rect = self.path.boundingRect()
@@ -235,8 +235,8 @@ class ConnectionWidget(QtWidgets.QGraphicsItem):
 
     def shape(self):
         """
-
-        :return:
+        Returns the self.path with width = 5
+        :return: QPainterPath
         """
 
         stroker = QtGui.QPainterPathStroker()
@@ -247,26 +247,38 @@ class ConnectionWidget(QtWidgets.QGraphicsItem):
 
     def update_path(self):
         """
-
-        :return:
+        Recreates path based on the current (which maybe newly set) source and destination points.
+        Relies on: self.source_pos and self.dest_pos to be set.
         """
 
+        # If there is a source and destination point to work with
         if self.source_pos and self.dest_pos:
             self.clear_path()
 
-            # print "Making path - source is :" + str(self.source_pos) + " destination is:" +str(self.dest_pos) + " angle is:" + str(self.source_angle)
-
+            # Start at source point
             self.path.moveTo(self.source_pos)
+
+            # For a beizer curve, there are three points that make a curve (for a cubic beizer curve).
+            # The middle point is called the control point (since it controls the curvature).
+            # There are two curves, one on either side. In the middle, a icon will be drawn if there is space.
 
             source_control_point = self.get_control_point(self.source_pos, self.dest_pos, self.source_angle)
 
             destination_control_point = self.get_control_point(self.dest_pos, self.source_pos, self.dest_angle)
 
-            if source_control_point != destination_control_point:
-                # Draw connection stuff
+            # Find final points for both source and destionation
+            if source_control_point != destination_control_point: 
+                # It doesn't make sense to compare points as < or >, because its a bit ambigious.
+                # If we consider * to be source points, and X to be destination point, the following
+                # will not occur due to the get_control_point algorithm.
+                # * - - - X - - * - - X
 
+                # Find vector from source to dest
                 s_to_d = destination_control_point - source_control_point
 
+                # Get length, and then find source and destination final points.
+                # if less than 30 - no enough for icon.
+                # otherwise keep 30 pixel space for icon when finding final points
                 length = math.sqrt(s_to_d.dotProduct(s_to_d, s_to_d))
                 if length < 30:
                     middle_vector = self.change_vector_length(s_to_d, length / 2)
@@ -280,24 +292,29 @@ class ConnectionWidget(QtWidgets.QGraphicsItem):
                     destination_final_point = destination_control_point - middle_vector
 
             else:
+                # Make final points the same as control points.
                 source_final_point = source_control_point
                 destination_final_point = destination_control_point
 
+            # Draw source cubic beizer curve
             self.path.quadTo(source_control_point, source_final_point)
 
+            # Draw icon (if possible)
             self.draw_connector_type(source_final_point, destination_final_point)
 
+            # Draw dest cubic curve
             self.path.moveTo(destination_final_point)
-
             self.path.quadTo(destination_control_point, self.dest_pos)
 
+            # Let graphicitem know that geometry has changed.
             self.prepareGeometryChange()
 
     def draw_connector_type(self, source_point, dest_point):
         """
-
-        :param source_point:
-        :param dest_point:
+        Draws the icon between two points. 
+        Expected to be subclassed for different connector types.
+        :param source_point: QPointF - the starting point
+        :param dest_point: QPointF - the ending point
         :return:
         """
 
@@ -311,23 +328,22 @@ class ConnectionWidget(QtWidgets.QGraphicsItem):
 
     def mousePressEvent(self, mouse_event):
         """
-
-        :param mouse_event:
-        :return:
+        Deals with mouse pressed events. Does nothing atm.
+        :param mouse_event: QGraphicsSceneMouseEvent
         """
-
         assert isinstance(mouse_event, QtWidgets.QGraphicsSceneMouseEvent)
         print self.name + " clicked (edge)"
-
+        super(ConnectionWidget, self).mousePressEvent(mouse_event)
+        
     # --- HELPER FUNCTIONS ---
 
     @staticmethod
     def change_vector_length(old_point, new_length):
         """
-
-        :param old_point:
-        :param new_length:
-        :return:
+        Helper function to change the length of a vector
+        :param old_point: The current vector
+        :param new_length: The new length of the vector
+        :return: QPointF - new vector with the new length
         """
 
         assert isinstance(old_point, QtCore.QPointF)
@@ -343,55 +359,26 @@ class ConnectionWidget(QtWidgets.QGraphicsItem):
     @staticmethod
     def get_control_point(source_pos, dest_pos, angle):
         """
-
-        :param source_pos:
-        :param dest_pos:
-        :param angle:
-        :return:
+        Get the middle point of the cubic beizer curve. 
+        To get the source control point - pass in source point as source_pos and destination point as dest_pos
+        To get the dest control porint - pass in destination point as source_pos and source point as source_pos
+        :param source_pos: QPointF - source point
+        :param dest_pos: QPointF - destination point
+        :param angle: int - the distance that the final point has to be, from the straight line
+        :return: QPointF - the middle control point
         """
 
         assert isinstance(source_pos, QtCore.QPointF)
         assert isinstance(dest_pos, QtCore.QPointF)
 
-        # --- To get control point. ---
-        # # Get vector from source to destination
-        # s_to_d = dest_pos - source_pos
-        # assert isinstance(s_to_d, QtCore.QPointF)
-        # print "\ts_to_d is " + str(s_to_d)
-        # # Rotate by angle degrees:
-        # # x' = xcos(a) - ysin(a)
-        # # y' = xsin(a) - ycos(a)
-        # new_x = s_to_d.x() * math.cos(math.radians(angle)) - \
-        #         s_to_d.y() * math.sin(math.radians(angle))
-        # new_y = s_to_d.x() * math.sin(math.radians(angle)) + \
-        #         s_to_d.y() * math.cos(math.radians(angle))
-        # print "\trotation to " + str(new_x) + "," + str(new_y)
-        #
-        # # And then ensure this vector's cos(a) is of length 10 (normal_length)
-        # # x'' = x' * (10/cos(a))/|v|
-        # # y'' = y' * (10/cos(a))/|v|
-        #
-        # normal_length = 10
-        #
-        # if (math.sqrt(QtCore.QPointF.dotProduct(s_to_d, s_to_d)) / 2) < normal_length:
-        #     normal_length = math.sqrt(QtCore.QPointF.dotProduct(s_to_d, s_to_d)) / 2
-        #
-        # length = math.cos(math.radians(angle)) * math.sqrt(new_x * new_x + new_y * new_y)
-        # new_x = (new_x * normal_length) / length
-        # new_y = (new_y * normal_length) / length
-        #
-        # print "\t normalised to " + str(new_x) + "," + str(new_y)
-        # source_control_point = QtCore.QPointF(new_x, new_y)
-        # source_control_point += source_pos
-        # print "\t final point is " + str(source_control_point)
-
-
+        # Get vector from start to end
         s_to_d = dest_pos - source_pos
         assert isinstance(s_to_d, QtCore.QPointF)
-        # print "\ts_to_d is " + str(s_to_d)
 
         normal_length = 10
 
+        # If the s_to_d length is less than 20, then set normal_length to half s_to_d length
+        # This will mean that source and destination control points are the same
         if (math.sqrt(s_to_d.dotProduct(s_to_d, s_to_d)) / 2) < normal_length:
             normal_length = math.sqrt(s_to_d.dotProduct(s_to_d, s_to_d)) / 2
 
@@ -405,7 +392,7 @@ class ConnectionWidget(QtWidgets.QGraphicsItem):
 
     def delete(self):
         """
-
+        Before removing the connection, make sure to call this function. 
         :return:
         """
 
@@ -417,9 +404,11 @@ class ConnectionWidget(QtWidgets.QGraphicsItem):
 
 class DataportWidget(ConnectionWidget):
     """
-
+    Subclass of ConnectionWidget, which deals with the drawing of the Dataport icon
+    for the connection type.
     """
 
+    # Draws a rectangle
     def draw_connector_type(self, source_point, dest_point):
         assert isinstance(source_point, QtCore.QPointF)
         assert isinstance(dest_point, QtCore.QPointF)
@@ -430,6 +419,7 @@ class DataportWidget(ConnectionWidget):
         s_to_d = dest_point - source_point
         assert isinstance(s_to_d, QtCore.QPointF)
 
+        # Convert s_to_d to perpendicular vector
         old_x = s_to_d.x()
         s_to_d.setX(-s_to_d.y())
         s_to_d.setY(old_x)
@@ -449,9 +439,11 @@ class DataportWidget(ConnectionWidget):
 
 class ProcedureWidget(ConnectionWidget):
     """
-
+    Subclass of ConnectionWidget, which deals with the drawing of the Procedure icon
+    for the connection type.
     """
 
+    # Draws a circle
     def draw_connector_type(self, source_point, dest_point):
         assert isinstance(source_point, QtCore.QPointF)
         assert isinstance(dest_point, QtCore.QPointF)
@@ -506,9 +498,11 @@ class ProcedureWidget(ConnectionWidget):
 
 class EventWidget(ConnectionWidget):
     """
-
+    Subclass of ConnectionWidget, which deals with the drawing of the Event icon
+    for the connection type.
     """
 
+    # Draws a triangle
     def draw_connector_type(self, source_point, dest_point):
         assert isinstance(source_point, QtCore.QPointF)
         assert isinstance(dest_point, QtCore.QPointF)
