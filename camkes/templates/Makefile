@@ -82,6 +82,8 @@ endif
     $(/*? i.type.name ?*/_CFILES:%=$(abspath ${BUILD_DIR})/src//*? i.name ?*//static/%)
 /*? i.name ?*/_CXXFILES += \
     $(/*? i.type.name ?*/_CXXFILES:%=$(abspath ${BUILD_DIR})/src//*? i.name ?*//static/%)
+/*? i.name ?*/_RUST += \
+    $(/*? i.type.name ?*/_RUST:%=%)
 /*? i.name ?*/_OFILES += \
     $(/*? i.type.name ?*/_OFILES:%=$(abspath ${BUILD_DIR})/src//*? i.name ?*//static/%)
 /*? i.name ?*/_ASMFILES += \
@@ -97,6 +99,16 @@ endif
 /*? rule_cp('$(abspath ${BUILD_DIR})/src/' + i.name + '/static/%', '/%') ?*/
 /*? rule_cp('$(abspath ${BUILD_DIR})/include/' + i.name + '/static/%', '/%') ?*/
 
+/*- endfor -*/
+
+# Rust rules for camkes components that use rust.
+/*- for i in instances if not i.type.hardware -*/
+.PHONY: /*? i.name ?*/_rust
+/*? i.name ?*/_rust:
+	@echo " [RS] $(/*? i.name ?*/_RUST)"
+	$(Q) RUST_TARGET_PATH=${STAGE_DIR}/common/ RUSTFLAGS='--sysroot=${RUST_LIBDIR}/${RUST_RELEASE_MODE}' \
+	cargo build --lib $(RUST_CARGO_FLAGS)--manifest-path $(SOURCE_DIR)/components//*? i.type.name ?*//Cargo.toml --target=$(RUST_CUSTOM_TARGET)
+	$(Q) cp $(SOURCE_DIR)/components//*? i.type.name ?*//target/${RUST_CUSTOM_TARGET}/${RUST_RELEASE_MODE}/$(/*? i.name ?*/_RUST:%=lib%.a) $(/*? i.name ?*/_RUST:%=%.a)
 /*- endfor -*/
 
 # Library dependencies required by glue code.
@@ -358,10 +370,11 @@ FINOBJFILES ?= $(shell $(CC) $(CFLAGS) $(CPPFLAGS) -print-file-name=crtend.o) $(
                              $(/*? i.name ?*/_CXXFILES:%.cxx=%.o) \
                              $(/*? i.name ?*/_ASMFILES:%.S=%.o) \
                              $(/*? i.name ?*/_OFILES) \
+                             $(/*? i.name ?*/_RUST:%=/*? i.name ?*/_rust) \
                              $(/*? i.name ?*/_instance_LIBS:%=lib%.a) \
                              $(abspath ${BUILD_DIR})/ld//*? i.name ?*//generated/linker.lds
 	@echo " [LD] $(notdir $@)"
-	${Q}${CC} $(CRTOBJFILES) $(filter %.o,$^) $(FINOBJFILES) ${/*? i.name ?*/_instance_LDFLAGS} -o $@
+	${Q}${CC} $(CRTOBJFILES) $(filter %.o,$^) $(/*? i.name ?*/_RUST:%=%.a) $(FINOBJFILES) ${/*? i.name ?*/_instance_LDFLAGS} -o $@
 /*- set p = Perspective(group=i.address_space) -*/
 /*? p['elf_name'] ?*/: /*? i.name ?*/.instance-copy.bin
 /*# The actual recipe for the above target is generated below. Remember, groups
