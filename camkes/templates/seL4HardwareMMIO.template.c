@@ -146,6 +146,7 @@ void * /*? me.from_interface.name ?*/_unwrap_ptr(dataport_ptr_t *p) {
             size_t frame_end_offset = ((frame_top - 1) % /*? frame_size ?*/) + 1;
             int error = sel4_flush_cache(frame_cap, frame_start_offset,  frame_end_offset);
             if (error) {
+                ZF_LOGE("Cache flush syscall returned with error: %d", error);
                 return error;
             }
             current_offset = frame_top;
