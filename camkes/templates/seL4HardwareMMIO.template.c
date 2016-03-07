@@ -12,6 +12,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <sel4/sel4.h>
+#include <utils/util.h>
 /*? macros.show_includes(me.from_instance.type.includes) ?*/
 
 /*- set p = Perspective(dataport=me.from_interface.name) -*/
