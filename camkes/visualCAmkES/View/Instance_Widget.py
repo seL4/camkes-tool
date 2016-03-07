@@ -723,8 +723,6 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
         print "\tuses: " + str(len(self.uses))
         print "\temits: " + str(len(self.emits))
 
-        # self.open_component_info.emit(self.component_type)
-
     def mouseMoveEvent(self, mouse_event):
         """
         Deals with this instance being clicked and dragged. Emits a signal that component was moved.

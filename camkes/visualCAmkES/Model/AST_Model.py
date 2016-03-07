@@ -34,8 +34,6 @@ class ASTModel:
         parse_args = args.parse_args(["--import-path",
                                 os.path.join(os.path.dirname(os.path.abspath(__file__)),'../../../include/builtin')])
 
-        print parse_args.__class__
-
         camkes_parser = Parser(parse_args)
         ast, _read = camkes_parser.parse_file(path_to_camkes_file)
 

@@ -146,6 +146,7 @@ class GraphController(QtWidgets.QMainWindow):
                 # If error occurred
 
                 # For terminal users:
+                print "Error occurred when opening the file... please refer to the following error"
                 print str(error)
 
                 # Show Error as a message popup

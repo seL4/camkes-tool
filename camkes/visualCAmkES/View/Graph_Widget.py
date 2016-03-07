@@ -442,8 +442,6 @@ class GraphWidget(QtWidgets.QGraphicsView):
         :return:
         """
 
-        print "Saving file"
-
         node_positions = {}
         for widget in self.widget_instances:
             assert isinstance(widget, InstanceWidget)
@@ -493,6 +491,7 @@ class GraphWidget(QtWidgets.QGraphicsView):
 
         # Generate / Render graph into 'dot' format
         raw_dot_data = graph_viz.pipe('dot')
+        print "Graphviz rendering... the following is the dot file from graphviz"
         print raw_dot_data
 
         # Read dot format (using pydotplus)
@@ -738,13 +737,9 @@ class GraphWidget(QtWidgets.QGraphicsView):
             self.scene().render(painter, source=rect)
             painter.end()
 
-            print image_location
             image.save(image_location + ".png")
 
         elif save_option_dialog.picture_type == save_option_dialog.SVG:
-            print image_location
-            print QtCore.QSize(rect.width(), rect.height())
-            print rect
             generator = QtSvg.QSvgGenerator()
             generator.setFileName(image_location + ".svg")
             generator.setSize(QtCore.QSize(rect.width(), rect.height()))

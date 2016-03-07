@@ -332,7 +332,6 @@ class ConnectionWidget(QtWidgets.QGraphicsItem):
         :param mouse_event: QGraphicsSceneMouseEvent
         """
         assert isinstance(mouse_event, QtWidgets.QGraphicsSceneMouseEvent)
-        print self.name + " clicked (edge)"
         super(ConnectionWidget, self).mousePressEvent(mouse_event)
         
     # --- HELPER FUNCTIONS ---
@@ -399,7 +398,6 @@ class ConnectionWidget(QtWidgets.QGraphicsItem):
         # TODO: Delete connection from source & destination
         self.source_instance_widget.remove_connection(self)
         self.dest_instance_widget.remove_connection(self)
-        print "\t\t\t\t\t\tdeleted connection_widget"
 
 
 class DataportWidget(ConnectionWidget):
