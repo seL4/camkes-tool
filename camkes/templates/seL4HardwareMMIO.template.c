@@ -136,6 +136,11 @@ void * /*? me.from_interface.name ?*/_unwrap_ptr(dataport_ptr_t *p) {
     int /*? me.from_interface.name ?*/_flush_cache(size_t start_offset UNUSED, size_t size UNUSED) {
         /*- if arch == 'aarch32' or arch == 'arm_hyp' -*/
 
+        if (start_offset >= /*? size ?*/ || size > /*? size ?*/ || /*? size ?*/ - size < start_offset) {
+            ZF_LOGE("Specified range is outside the bounds of the dataport");
+            return -1;
+        }
+
         size_t current_offset = start_offset;
         size_t end_offset = start_offset + size;
 
