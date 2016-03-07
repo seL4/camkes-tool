@@ -80,7 +80,7 @@ void * /*? me.from_interface.name ?*/_unwrap_ptr(dataport_ptr_t *p) {
     }
 
     /*# Types and sizes of frames is hardware-specific #*/
-    /*- if arch == 'aarch32' -*/
+    /*- if arch == 'aarch32' or arch == 'arm_hyp' -*/
         /*- set large_frame_size = 1024 * 1024 -*/
         /*- set large_frame_type = seL4_ARM_SectionObject -*/
     /*- else -*/
@@ -125,7 +125,7 @@ void * /*? me.from_interface.name ?*/_unwrap_ptr(dataport_ptr_t *p) {
     /*- endfor -*/
     };
 
-    /*- if arch == 'aarch32' -*/
+    /*- if arch == 'aarch32' or arch == 'arm_hyp' -*/
     static int sel4_flush_cache(seL4_CPtr frame_cap, seL4_Word start, seL4_Word end) {
         return seL4_ARM_Page_Clean_Data(frame_cap, start, end);
     }
@@ -133,7 +133,7 @@ void * /*? me.from_interface.name ?*/_unwrap_ptr(dataport_ptr_t *p) {
 
     /* Flush data corresponding to the dataport-relative address range from the CPU cache */
     int /*? me.from_interface.name ?*/_flush_cache(size_t start_offset UNUSED, size_t size UNUSED) {
-        /*- if arch == 'aarch32' -*/
+        /*- if arch == 'aarch32' or arch == 'arm_hyp' -*/
 
         size_t current_offset = start_offset;
         size_t end_offset = start_offset + size;
