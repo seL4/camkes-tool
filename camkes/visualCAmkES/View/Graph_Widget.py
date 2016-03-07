@@ -523,6 +523,12 @@ class GraphWidget(QtWidgets.QGraphicsView):
 
             # Get the node representing this instance, and get its attributes
             node_list = dot_data.get_node(instance_name)
+
+            if len(node_list) < 1:
+                # Name may be quoted due to special characters
+                quoted_name = '"' + instance_name + '"'
+                node_list = dot_data.get_node(quoted_name)
+
             assert len(node_list) == 1  # Should only be one node
             assert isinstance(node_list[0], pydotplus.Node)
             node_attributes_dict = node_list[0].get_attributes()
