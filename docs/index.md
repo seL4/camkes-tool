@@ -967,6 +967,14 @@ all tools.
   unlikely to run into any problems in this respect. This option is only
   available for the runner.
 
+  The [Template Cache](#template-cache) is unaware of C header files included
+  with the `#include` preprocessor directive. Thus, after modifying an included
+  header, the template cache must be flushed before the change will take effect
+  inside CAmkES ADL files. The template cache can be flushed by deleting the
+  directory specified by `--cache-dir`. A common pattern is to use the
+  `--cache-dir` option to specify a directory inside the "build" directory. The
+  effect of this is running `make clean` will flush the template cache.
+
 **-D**, **--debug**
 **-q**, **--quiet**
 **-v**, **--verbose**
