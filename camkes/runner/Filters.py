@@ -349,7 +349,8 @@ def collapse_shared_frames(ast, obj_space, cspaces, elfs, options, **_):
                 p = Perspective(to_interface=connections[0].to_interface.name)
                 hardware_attribute = p['hardware_attribute']
                 conf = assembly.configuration[connections[0].to_instance.name].get(hardware_attribute)
-                assert conf is not None
+                assert conf is not None, "%s.%s not found in configuration" % \
+                    (connections[0].to_instance.name, hardware_attribute)
                 paddr, size = conf.strip('"').split(':')
                 # Round up the MMIO size to PAGE_SIZE
                 try:
