@@ -345,7 +345,6 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
     # -------
 
     # Signals & Slots
-    # open_component_info = QtCore.pyqtSignal(six.string_types)
     widget_moved = QtCore.pyqtSignal()
 
     # --- INITIALISATION
@@ -704,8 +703,6 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
         :param mouse_event:
         :return:
         """
-
-        # Change to must press a button to open component info
 
         string = " "
 

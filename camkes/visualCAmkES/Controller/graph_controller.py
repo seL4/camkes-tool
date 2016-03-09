@@ -15,7 +15,6 @@ from camkes.internal.exception import CAmkESError
 from Model.AST_Model import ASTModel
 
 from View.Graph_Widget import GraphWidget
-# from View.Component_Window import ComponentWindow
 
 
 class GraphController(QtWidgets.QMainWindow):
@@ -34,17 +33,6 @@ class GraphController(QtWidgets.QMainWindow):
     def root_widget(self, value):
         assert isinstance(value, GraphWidget)
         self._root_widget = value
-
-    # Attempt at creating a window which pops up when a user clickes on a component. Doesn't work atm
-    # @property
-    # def component_widget(self):
-    #     if self._component_widget is None:
-    #         self._component_widget = ComponentWindow(None)
-    #         self._component_dock_widget = QtWidgets.QDockWidget("Component Info")
-    #         self._component_dock_widget.setWidget(self._component_widget)
-    #         # self.addDockWidget(QtCore.Qt.NoDockWidgetArea, self._component_dock_widget)
-    #     # self._component_dock_widget.setVisible(True)
-    #     return self._component_widget
 
     # -- Actions --
     @property
@@ -88,8 +76,6 @@ class GraphController(QtWidgets.QMainWindow):
         self._widget_instances = None
         self._widget_connections = None
         self._root_widget = None
-        self._component_widget = None
-        self._component_dock_widget = None
         self._open_action = None
         self._quit_action = None
 
@@ -118,15 +104,6 @@ class GraphController(QtWidgets.QMainWindow):
         self.rect = None
 
     # --- FUNCTION CALLS ---
-    # Attempt at creating a window which pops up when a user clickes on a component. Doesn't work atm
-    # def show_component_info(self, component_name):
-    #     """
-    #     Open a window (or dock window) with information about component type
-    #     :param component_name: The component type of an instance
-    #     :return
-    #     """
-    #
-    #     self.component_widget.component_object = ASTModel.find_component(self.ast.items, component_name)
 
     def open_ast(self, path_to_file):
         """
