@@ -142,8 +142,8 @@ def parse_args(argv, out, err):
         help='Minimise the number of functions in generated C files.')
     parser.add_argument('--largeframe', action='store_true',
         help='Try to use large frames when possible.')
-    parser.add_argument('--architecture', '--arch', default='arm',
-        type=lambda x: type('')(x).lower(), choices=('arm', 'arm_hyp', 'ia32'),
+    parser.add_argument('--architecture', '--arch', default='aarch32',
+        type=lambda x: type('')(x).lower(), choices=('aarch32', 'arm_hyp', 'ia32'),
         help='Target architecture.')
     parser.add_argument('--makefile-dependencies', '-MD',
         type=argparse.FileType('w'), help='Write Makefile dependency rule to '
