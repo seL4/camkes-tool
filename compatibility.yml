@@ -2,4 +2,8 @@
   capdl: 45988f6893da81fb120d10c133279f1ad09a89ca
   seL4:
   - 2.0.0
+2.1.x:
+  capdl: a088a4f4811c99170cc67f1793add8d613bae76f
+  seL4:
+  - 3.0.0
 
