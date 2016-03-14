@@ -14,7 +14,6 @@ sudo apt-get install python-pyqt5.qtsvg
 #### From source (for Macs and all linux distros, and possibly windows)
 ##### Installing Qt libraries
 ```
-cd /some/temp/directory/like/Downloads
 git clone git://code.qt.io/qt/qt5.git
 cd qt5
 git checkout 5.5
@@ -32,7 +31,6 @@ make install
 
 ##### Installing sip
 ```
-cd /some/temp/directory/like/Downloads
 curl -O http://liquidtelecom.dl.sourceforge.net/project/pyqt/sip/sip-4.17/sip-4.17.tar.gz
 tar -xvf sip-4.17.tar.gz
 cd sip-4.17
@@ -45,7 +43,6 @@ make install
 
 ##### Installing PyQt5
 ```
-cd /some/temp/directory/like/Downloads
 curl -O http://liquidtelecom.dl.sourceforge.net/project/pyqt/PyQt5/PyQt-5.5.1/PyQt-gpl-5.5.1.tar.gz
 tar -xvf PyQt-gpl-5.5.1.tar.gz
 cd PyQt-gpl-5.5.1
