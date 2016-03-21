@@ -15,9 +15,9 @@ def test(argv):
     # Create graph widget
     app = QtWidgets.QApplication(argv)
     graph = GraphWidget()
-    graph.ast = ASTModel.get_ast("../")
+    graph.ast = ASTModel.get_ast("../../../../apps/simple/simple.camkes")
 
-    print ASTModel.find_instance(graph.ast.assembly.instances, "hello") is not None
+    print ASTModel.find_instance(graph.ast.assembly.instances, "echo") is not None
     # find_component is not being tested because it is not used anywhere. However
     # there is no reason why find_component will fail to work, if everything else worked.
 
