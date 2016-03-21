@@ -22,6 +22,7 @@ def test(argv):
     # there is no reason why find_component will fail to work, if everything else worked.
 
     print "visualCAmkES test passed"
+    return 0
 
 if __name__ == '__main__':
     sys.exit(test(sys.argv))
