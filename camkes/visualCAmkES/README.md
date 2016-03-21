@@ -59,15 +59,15 @@ make install
 #### Debian / Ubuntu / (Possibly other linux distros with different package managers)
 ```
 sudo apt-get install graphviz
-sudo pip install graphviz
-sudo pip install pydotplus
+pip install --user graphviz
+pip install --user pydotplus
 ```
 #### For macs
 For macs, to install graphviz (first step above), visit this website: http://www.ryandesign.com/graphviz/ , download the latest development (or stable as long as greater than version 16), and install the dmg. Pip will work on the mac.
 
 ### Installing other python dependies
 ```
-sudo pip install ansi2html
+pip install --user ansi2html
 ```
 
 ## How to use
