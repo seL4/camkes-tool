@@ -233,7 +233,8 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
     def remove_consume_connection(self, interface_name, connection):
         assert self._consumes is not None
         for dictionary in self.consumes:
-            if dictionary['Name'] == interface_name and dictionary['Connection_Widget'] is connection:
+            if dictionary['Name'] == interface_name and \
+                    dictionary['Connection_Widget'] is connection:
                 dictionary['Connection_Widget'] = None
                 break
 
@@ -509,7 +510,7 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
             max_width = max_width + component_name_rect.width()
 
         # Set bounding rect to new max width and height
-        self._bounding_rect = QtCore.QRectF(0, 0, max_width, max_height)
+        self._bounding_rect = QtCore.QRectF(self.scenePos().x(), self.scenePos().y(), max_width, max_height)
 
         self.setPreferredSize(self._bounding_rect.width(), self._bounding_rect.height())
 
@@ -538,32 +539,25 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
     def update_connection_position(self, connection):
         """
         Updates the touching point between the connection and this widget.
-        :param connection:
+        :param connection: The connection to be updated
         :return:
         """
 
         assert isinstance(connection, Connection_Widget.ConnectionWidget)
         # print "This is " + self.name + " and updating: " + str(connection.name)
 
-        angle = 0
-        angle_set = False
-        decrease_angle = False
+        decrease_angle = None
 
-        # Find the direction of the angle on the other end - if it is set. 
+        # Find the direction of the angle on the other end - if it is set.
         if connection.source_instance_widget is self:
             other_widget = connection.dest_instance_widget
             if connection.dest_angle:
-                angle_set = True
-                if connection.dest_angle < 0:
-                    decrease_angle = True
+                decrease_angle = connection.dest_angle >= 0
         else:
             other_widget = connection.source_instance_widget
             if connection.source_angle:
-                angle_set = True
-            if connection.source_angle < 0:
-                decrease_angle = True
+                decrease_angle = connection.source_angle >= 0
 
-        # TODO: Potentially inefficient algorithm
 
         # --- Find position based on straight line distance between this and other widget ---
 
@@ -583,6 +577,38 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
         vector = other_widget_pos - our_pos
 
         # -- Finding intersection between vector and edge of this widget --
+        final_pos = self.edge_intersection(our_pos, vector)
+
+        # Check if final_pos is inside other_widget
+        # If inside, use the centre of this widget instead.
+        other_widget_top_left = other_widget.scenePos()
+        other_widget_bottom_right = QtCore.QPointF(other_widget.scenePos().x() + \
+                                                           other_widget.boundingRect().width(),
+                                                   other_widget.scenePos().y() + \
+                                                           other_widget.boundingRect().height())
+        if final_pos.x() >= other_widget_top_left.x() and \
+            final_pos.x() <= other_widget_bottom_right.x() and \
+            final_pos.y() >= other_widget_top_left.y() and \
+            final_pos.y() <= other_widget_bottom_right.y():
+            final_pos = our_pos
+
+        # Find unclashing angle
+        angle = self.find_free_angle(final_pos, connection, decrease_angle)
+
+        # Set our newly found position and angle (at the appropriate side of the connection)
+        if connection.source_instance_widget is self:
+            connection.set_source_pos_angle(final_pos, angle)
+        else:
+            connection.set_dest_pos_angle(final_pos, angle)
+
+    # TODO: Potentially inefficient algorithm
+    def edge_intersection(self, our_pos, vector):
+        """
+        Finding the intersection between the vector + pos , to the edge of the widget
+        :param our_pos: The starting position of the vector (usually centre of widget)
+        :param vector: The vector from the starting position
+        :return: PyQt5.QPointF - The position of the intersection with the edge.
+        """
 
         # Consider the case where x is bigger than y
         #            .
@@ -590,22 +616,22 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
         #     .      .
         # ............
         # We reduce y, proportional to x, such that x is equal to width of widget.
-         
-        # If the x is 0, then it is a horizontal 
+
+        # If the x is 0, then it is a horizontal
         if vector.x() == 0:
-            y = self.boundingRect().height()
+            y_pos = self.boundingRect().height()
             # If original y is negative, new y must also be negative
             if vector.y() < 0:
-                y = -y
+                y_pos = -y_pos
         else:
             # Using ratios to get y value
-            y = vector.y() * math.fabs((self.boundingRect().width() / 2) / vector.x())
+            y_pos = vector.y() * math.fabs((self.boundingRect().width() / 2) / vector.x())
 
         half_height = self.boundingRect().height() / 2 + 1  # Bit of room for rounding
 
         # If y is within the box then above assumption is correct
-        if -half_height <= y <= half_height:
-            vector.setY(y)
+        if -half_height <= y_pos <= half_height:
+            vector.setY(y_pos)
             if vector.x() < 0:
                 vector.setX(-self.boundingRect().width() / 2)
             else:
@@ -618,16 +644,19 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
             #      .
             #   .  .
             #      .
-            # ......    
+            # ......
             # We reduce x, proportional to y, such that y is equal to height.
-            if vector.y() == 0:
-                x = self.boundingRect().width() 
-                if vector.x() < 0:
-                    x = -x
-            else:
-                x = vector.x() * math.fabs((self.boundingRect().height() / 2) / vector.y())
 
-            vector.setX(x)
+            # If y is 0, then it is vertical
+            if vector.y() == 0:
+                x_pos = self.boundingRect().width()
+                if vector.x() < 0:
+                    x_pos = -x_pos
+            else:
+                # Using ratios to get x value
+                x_pos = vector.x() * math.fabs((self.boundingRect().height() / 2) / vector.y())
+
+            vector.setX(x_pos)
             if vector.y() < 0:
                 vector.setY(-self.boundingRect().height() / 2)
             else:
@@ -636,8 +665,29 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
         # We got a vector from the center, now we get the final position
         final_pos = our_pos + vector
 
-        # Choose an angle, start with 0 degrees, and search through all connection points, looking for clashes
+        return final_pos
 
+    # TODO: Potentially inefficient algorithm
+    def find_free_angle(self, pos, connection, decrease_angle=None):
+        """
+        Find a angle which doesn't collide with any other connection
+        at the same position.
+        :param pos: Position to find angle
+        :param connection: The current connection we are checking for
+        :param decrease_angle: If a specific direction is required, then use this variable
+                               to specific whether the final angle is positive or negative.
+                               Default is None.
+        """
+        angle = 0
+
+        if decrease_angle is None:
+            decrease_angle = False
+            angle_set = False
+        else:
+            angle_set = True
+
+        # Choose an angle, start with 0 degrees, and search through all connection points,
+        # looking for clashes
         for compare in self.connection_list:
             assert isinstance(compare, Connection_Widget.ConnectionWidget)
 
@@ -654,32 +704,27 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
             else:
                 raise NotImplementedError  # Something went wrong
 
-            if compare_pos != final_pos:
+            if compare_pos != pos:
                 continue  # Does not clash, continue searching
 
             # If clashing, find a angle which doesn't clash
             while compare_angle == angle:
-                if angle_set:   
+                if angle_set:
                     if decrease_angle:
-                        angle += 35
-                    else:
                         angle -= 35
+                    else:
+                        angle += 35
                 else:
                     # If angle is not set, try 0, -35, 35, -70, 70 etc
-                    # In order to alternate between positive and negative, 
+                    # In order to alternate between positive and negative,
                     #    use decrease_angle as a toggle
                     angle = -angle
                     if decrease_angle:
                         angle -= 35
 
                     decrease_angle = not decrease_angle
-        
-        # Set our newly found position and angle (at the appropriate side of the connection)
-        if connection.source_instance_widget is self:
-            connection.set_source_pos_angle(final_pos, angle)
-        else:
-            connection.set_dest_pos_angle(final_pos, angle)
 
+        return angle
 
 
     # --- EVENTS ---

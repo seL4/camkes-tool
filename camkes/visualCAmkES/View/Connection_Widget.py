@@ -272,6 +272,7 @@ class ConnectionWidget(QtWidgets.QGraphicsItem):
                 # If we consider * to be source points, and X to be destination point, the following
                 # will not occur due to the get_control_point algorithm.
                 # * - - - X - - * - - X
+                # It would normally look like: * - - - * - - X - - - X
 
                 # Find vector from source to dest
                 s_to_d = destination_control_point - source_control_point
