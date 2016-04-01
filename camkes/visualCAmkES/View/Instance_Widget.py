@@ -434,13 +434,21 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
             outline_rect = outline_rect.adjusted(-1,-1,1,1)
             rounded_rect = QtGui.QPainterPath()
             rounded_rect.addRoundedRect(outline_rect, 5,5)
-            
-            # Change color to BLUE
+
+            # Make a BLUE color pen
             pen = QtGui.QPen(QtCore.Qt.blue)
             pen.setWidth(5)
             painter.strokePath(rounded_rect, pen)
 
         # Draw outline to highlight hardware components
+        if self.hardware:
+            outline_rect = outline_rect.adjusted(-1,-1,1,1)
+            rounded_rect = QtGui.QPainterPath()
+            rounded_rect.addRoundedRect(outline_rect, 5,5)
+
+            pen = QtGui.QPen(QtCore.Qt.green)
+            pen.setWidth(5)
+            painter.strokePath(rounded_rect,pen)
 
 
         # TODO IDEA: Update rect with new size
