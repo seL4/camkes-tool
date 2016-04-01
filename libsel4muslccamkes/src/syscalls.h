@@ -36,6 +36,7 @@ long sys_access(va_list ap);
 long sys_fcntl64(va_list ap);
 long sys_brk(va_list ap);
 long sys_mmap2(va_list ap);
+long sys_mmap(va_list ap);
 long sys_mremap(va_list ap);
 long sys_writev(va_list ap);
 long sys_pause(va_list ap);

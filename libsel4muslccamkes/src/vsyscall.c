@@ -37,16 +37,27 @@ static long (*syscall_table[])(va_list) = {
     [__NR_ioctl] = sys_ioctl,
     [__NR_prlimit64] = sys_prlimit64,
     [__NR_lseek] = sys_lseek,
+#ifdef __NR__llseek
     [__NR__llseek] = sys__llseek,
+#endif
     [__NR_access] = sys_access,
     [__NR_brk] = sys_brk,
+#ifdef __NR_mmap
+    [__NR_mmap] = sys_mmap,
+#endif
+#ifdef __NR__mmap2
     [__NR_mmap2] = sys_mmap2,
+#endif
     [__NR_mremap] = sys_mremap,
     [__NR_pause] = sys_pause,
     [__NR_munmap] = sys_munmap,
     [__NR_clock_gettime] = sys_clock_gettime,
+#ifdef __NR__newselect
     [__NR__newselect] = sys__newselect,
+#endif
+#ifdef __NR_sigcation
     [__NR_sigaction] = sys_sigaction,
+#endif
     [__NR_rt_sigaction] = sys_rt_sigaction,
 #if !defined(ARCH_IA32)
     [__NR_socket] = sys_socket,
@@ -56,7 +67,9 @@ static long (*syscall_table[])(va_list) = {
     [__NR_accept] = sys_accept,
     [__NR_setsockopt] = sys_setsockopt,
 #endif
+#ifdef __NR_fcntl64
     [__NR_fcntl64] = sys_fcntl64,
+#endif
     [__NR_write] = sys_write,
     [__NR_tkill] = sys_tkill,
 };

@@ -192,6 +192,12 @@ sys_mmap2(va_list ap)
     }
 }
 
+long
+sys_mmap(va_list ap)
+{
+    return sys_mmap2(ap);
+}
+
 static long
 sys_mremap_dynamic(va_list ap)
 {
