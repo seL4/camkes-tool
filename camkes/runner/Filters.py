@@ -267,7 +267,7 @@ def collapse_shared_frames(ast, obj_space, elfs, shmem, options, **_):
                 # promoted to large frames.
                 if options.architecture == 'arm_hyp':
                     large_frame_size = 2 * 1024 * 1024 # 2M
-                elif options.architecture == 'arm':
+                elif options.architecture == 'aarch32':
                     large_frame_size = 1024 * 1024 # 1M
                 else:
                     assert options.architecture == 'ia32'

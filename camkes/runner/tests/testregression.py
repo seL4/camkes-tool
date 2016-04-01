@@ -86,7 +86,7 @@ class TestRegression(CAmkESTest):
         # Run the code generator once.
         subprocess.check_call([camkessh, '--cache', '--cache-dir', cachedir,
             '--import-path', builtins, '--templates', templates,
-            '--architecture', 'arm', '--file', os.path.join(specdir, 'spec'),
+            '--architecture', 'aarch32', '--file', os.path.join(specdir, 'spec'),
             '--item', 'f/from/source/0', '--outfile',
             os.path.join(outdir, 'out1'), '--platform', 'seL4'], env=env)
 
@@ -102,7 +102,7 @@ class TestRegression(CAmkESTest):
         # Re-run the code generator.
         subprocess.check_call([camkessh, '--cache', '--cache-dir', cachedir,
             '--import-path', builtins, '--templates', templates,
-            '--architecture', 'arm', '--file', os.path.join(specdir, 'spec'),
+            '--architecture', 'aarch32', '--file', os.path.join(specdir, 'spec'),
             '--item', 'f/from/source/0', '--outfile',
             os.path.join(outdir, 'out2'), '--platform', 'seL4'], env=env)
 
