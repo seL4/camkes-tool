@@ -427,28 +427,25 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
         painter.fillPath(rounded_rect, color)
         painter.drawPath(rounded_rect)
 
-        outline_rect = self.boundingRect()
+        # Draw an outline if the instance is control or hardware
+        # Assumption is, an instance cannot be both control and hardware
+        outline_rect = self.boundingRect().adjusted(-2,-2,2,2)
+        outline_rect_path = QtGui.QPainterPath()
+        outline_rect_path.addRoundedRect(outline_rect, 5, 5)
+        stroker = QtGui.QPainterPathStroker()
+        stroker.setWidth(5)
+        outline_rounded_rect = stroker.createStroke(outline_rect_path)
 
         # Draw outline to highlight control components
         if self.control:
-            outline_rect = outline_rect.adjusted(-1,-1,1,1)
-            rounded_rect = QtGui.QPainterPath()
-            rounded_rect.addRoundedRect(outline_rect, 5,5)
-
             # Make a BLUE color pen
-            pen = QtGui.QPen(QtCore.Qt.blue)
-            pen.setWidth(5)
-            painter.strokePath(rounded_rect, pen)
+            pen_color.setBlue(255)
+            painter.fillPath(outline_rounded_rect, pen_color)
 
         # Draw outline to highlight hardware components
         if self.hardware:
-            outline_rect = outline_rect.adjusted(-1,-1,1,1)
-            rounded_rect = QtGui.QPainterPath()
-            rounded_rect.addRoundedRect(outline_rect, 5,5)
-
-            pen = QtGui.QPen(QtCore.Qt.green)
-            pen.setWidth(5)
-            painter.strokePath(rounded_rect,pen)
+            pen_color.setGreen(255)
+            painter.fillPath(outline_rounded_rect, pen_color)
 
 
         # TODO IDEA: Update rect with new size
