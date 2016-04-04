@@ -49,7 +49,7 @@ def get_symbol(elf, symbol):
         if stdout is None:
             # We haven't run objdump on this output yet. Need to do it now.
             # Construct the bash invocation we want
-            argument = "%s --syms %s | grep -E '^[0-9a-fA-F]{8}' | sed -r 's/^([0-9a-fA-F]{8})[ \\t].*[ \\t]([0-9a-fA-F]{8})[ \\t]+(.*)/\\3 \\1 \\2/'" % (objdump, elf[0])
+            argument = "%s --syms %s | grep -E '^[0-9a-fA-F]{8}' | sed -r 's/^([0-9a-fA-F]{8,})[ \\t].*[ \\t]([0-9a-fA-F]{8,})[ \\t]+(.*)/\\3 \\1 \\2/'" % (objdump, elf[0])
             stdout = subprocess.check_output(['sh', '-c', argument],
                 universal_newlines=True)
             # Cache the result for future symbol lookups.
@@ -57,10 +57,14 @@ def get_symbol(elf, symbol):
         sym_index = stdout.find('\n%s ' % symbol)
         if sym_index == -1:
             return None, None
-        vaddr_index = sym_index + len(symbol) + 2
-        size_index = vaddr_index + 9
-        return int(stdout[vaddr_index:vaddr_index+8], 16), \
-            int(stdout[size_index:size_index+8], 16)
+        end_index = stdout[sym_index+1:].find('\n')
+        vaddr_start_index = sym_index + len(symbol) + 2
+        if end_index == -1:
+            substring = stdout[vaddr_start_index:]
+        else:
+            substring = stdout[vaddr_start_index:sym_index + end_index + 1]
+        [vaddr, size] = substring.split()
+        return int(vaddr, 16), int(size, 16)
     else:
         return elf[1].get_symbol_vaddr(symbol), elf[1].get_symbol_size(symbol)
 
