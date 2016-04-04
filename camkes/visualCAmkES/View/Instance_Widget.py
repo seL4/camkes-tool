@@ -422,14 +422,18 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
 
         rounded_rect = QtGui.QPainterPath()
         assert isinstance(rounded_rect, QtGui.QPainterPath)
-        rounded_rect.addRoundedRect(self.boundingRect(),5,5)
+        # If instance is control or hardware, boundedRect will compensate for that.
+        inner_rect = self.boundingRect().adjusted(0,0,0,0)  # Hacking way to get a copy of rect
+        if self.hardware or self.control:
+            inner_rect.adjust(2,2,-2,-2)
+        rounded_rect.addRoundedRect(inner_rect,5,5)
 
         painter.fillPath(rounded_rect, color)
         painter.drawPath(rounded_rect)
 
         # Draw an outline if the instance is control or hardware
         # Assumption is, an instance cannot be both control and hardware
-        outline_rect = self.boundingRect().adjusted(-2,-2,2,2)
+        outline_rect = inner_rect.adjusted(-1,-1,1,1)
         outline_rect_path = QtGui.QPainterPath()
         outline_rect_path.addRoundedRect(outline_rect, 5, 5)
         stroker = QtGui.QPainterPathStroker()
@@ -447,7 +451,6 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
             pen_color.setGreen(255)
             painter.fillPath(outline_rounded_rect, pen_color)
 
-
         # TODO IDEA: Update rect with new size
 
         # Printing instance name
@@ -457,8 +460,8 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
         assert isinstance(font_metrics, QtGui.QFontMetrics)
         bounding_rect_font = painter.boundingRect(QtCore.QRectF(1, 1, 1, 1), QtCore.Qt.AlignCenter, self.name)
 
-        bounding_rect_font.moveTo(self.boundingRect().center().x() - bounding_rect_font.width() / 2,
-                                  self.boundingRect().center().y() - font_metrics.ascent())
+        bounding_rect_font.moveTo(inner_rect.center().x() - bounding_rect_font.width() / 2,
+                                  inner_rect.center().y() - font_metrics.ascent())
 
         painter.drawText(bounding_rect_font, QtCore.Qt.AlignCenter, self.name)
 
@@ -469,8 +472,8 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
         painter.setFont(font)
         bounding_rect_font = painter.boundingRect(QtCore.QRectF(1, 1, 1, 1), QtCore.Qt.AlignCenter, self.component_type)
 
-        bounding_rect_font.moveTo(self.boundingRect().center().x() - bounding_rect_font.width() / 2,
-                                  self.boundingRect().center().y() + font_metrics.descent())
+        bounding_rect_font.moveTo(inner_rect.center().x() - bounding_rect_font.width() / 2,
+                                  inner_rect.center().y() + font_metrics.descent())
 
         painter.drawText(bounding_rect_font, QtCore.Qt.AlignCenter, self.component_type)
 
@@ -487,14 +490,14 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
         bounding_rect_font = painter.boundingRect(QtCore.QRectF(1, 1, 1, 1), QtCore.Qt.AlignCenter, "C")
 
         bounding_rect_font.moveTo(control_hardware_x_pos - bounding_rect_font.width(),
-                                  self.boundingRect().center().y() - font_metrics.ascent())
+                                  inner_rect.center().y() - font_metrics.ascent())
         if self.control:
             painter.drawText(bounding_rect_font, QtCore.Qt.AlignCenter, "C")
 
         # The H
         bounding_rect_font = painter.boundingRect(QtCore.QRectF(1, 1, 1, 1), QtCore.Qt.AlignCenter, "H")
         bounding_rect_font.moveTo(control_hardware_x_pos - bounding_rect_font.width(),
-                                  self.boundingRect().center().y() + font_metrics.descent())
+                                  inner_rect.center().y() + font_metrics.descent())
         if self.hardware:
             painter.drawText(bounding_rect_font, QtCore.Qt.AlignCenter, "H")
 
@@ -532,6 +535,10 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
 
         # Set bounding rect to new max width and height
         self._bounding_rect = QtCore.QRectF(self.scenePos().x(), self.scenePos().y(), max_width, max_height)
+
+        # Adjust for new hardware or control border
+        if self.hardware or self.control:
+            self._bounding_rect.adjust(-2,-2,2,2)
 
         self.setPreferredSize(self._bounding_rect.width(), self._bounding_rect.height())
 
