@@ -3,7 +3,7 @@
 
 import six
 
-from PyQt5 import QtWidgets, QtGui
+from PyQt5 import QtWidgets, QtGui, QtCore
 
 # Required for converting ANSI Red color messages to HTML for QMessageBox
 from ansi2html import Ansi2HTMLConverter
@@ -26,7 +26,7 @@ class GraphController(QtWidgets.QMainWindow):
     def root_widget(self):
         # Lazy Instantiation
         if self._root_widget is None:
-            self._root_widget = GraphWidget()
+            self._root_widget = GraphWidget(self.property_dock_widget)
         return self._root_widget
 
     @root_widget.setter
@@ -62,6 +62,17 @@ class GraphController(QtWidgets.QMainWindow):
             self._quit_action.triggered.connect(self.quit)
         return self._quit_action
 
+    @property
+    def property_dock_widget(self):
+        """
+        :return: The dock widget for properties
+        """
+        if self._property_dock is None:
+            self._property_dock = QtWidgets.QDockWidget("Properties", self)
+            self._property_dock.setAllowedAreas(QtCore.Qt.LeftDockWidgetArea |
+                                                QtCore.Qt.RightDockWidgetArea)
+        return self._property_dock
+
     def __init__(self, path_to_camkes=None):
         """
         Initialises GraphController
@@ -78,6 +89,7 @@ class GraphController(QtWidgets.QMainWindow):
         self._root_widget = None
         self._open_action = None
         self._quit_action = None
+        self._property_dock = None
 
         self.setWindowTitle("CAmkES Visualisation Tool")
 
@@ -99,9 +111,14 @@ class GraphController(QtWidgets.QMainWindow):
             self.open_ast(path_to_camkes)
 
         self.setCentralWidget(self.root_widget)
-        self.resize(700, 700)
+        self.resize(700, 900)
 
         self.rect = None
+
+        self.property_dock_widget.setWidget(QtWidgets.QWidget())
+        self.addDockWidget(QtCore.Qt.RightDockWidgetArea, self.property_dock_widget)
+        self.setTabPosition(QtCore.Qt.LeftDockWidgetArea | QtCore.Qt.RightDockWidgetArea, QtWidgets.QTabWidget.North)
+        self.setTabShape(QtWidgets.QTabWidget.Triangular)
 
     # --- FUNCTION CALLS ---
 
