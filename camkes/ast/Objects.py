@@ -219,7 +219,8 @@ class Composition(ASTObject):
             group_names = [x.address_space for x in self.instances if x]
             groups = []
             for g in group_names:
-                groups.append(Group(g, [x for x in self.instances if x.address_space == g]))
+                if g is not None:
+                    groups.append(Group(g, [x for x in self.instances if x.address_space == g]))
         grouped = sum(map(lambda x: x.children(), groups), [])
         return 'composition %(name)s { %(groups)s %(instances)s %(connections)s }' % {
             'name':self.name or '',
