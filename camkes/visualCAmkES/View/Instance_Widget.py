@@ -443,12 +443,16 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
         # Draw outline to highlight control components
         if self.control:
             # Make a BLUE color pen
-            pen_color.setBlue(255)
+            pen_color.setRed(30)
+            pen_color.setGreen(136)
+            pen_color.setBlue(229)
             painter.fillPath(outline_rounded_rect, pen_color)
 
         # Draw outline to highlight hardware components
         if self.hardware:
-            pen_color.setGreen(255)
+            pen_color.setRed(67)
+            pen_color.setGreen(160)
+            pen_color.setBlue(71)
             painter.fillPath(outline_rounded_rect, pen_color)
 
         # TODO IDEA: Update rect with new size
