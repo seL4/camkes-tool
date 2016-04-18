@@ -168,8 +168,8 @@
 
 static seL4_Word /*? me.to_interface.name ?*/_badge = 0;
 
-seL4_Word /*? me.to_interface.name ?*/_get_badge(void) {
-    return /*? me.to_interface.name ?*/_badge;
+unsigned int /*? me.to_interface.name ?*/_get_sender_id(void) {
+    return (unsigned int)/*? me.to_interface.name ?*/_badge;
 }
 
 /*- set call_tls_var = c_symbol('call_tls_var_to') -*/
