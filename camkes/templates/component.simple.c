@@ -202,7 +202,7 @@ static seL4_Error simple_camkes_get_frame_cap(void *data, void *paddr, int size_
         /*- for paddr, size, bits in mmio_regions -*/
             /*- set mmio_key = '%d%d' % (paddr, size) -*/
             if ((uintptr_t)paddr >= (uintptr_t)/*? paddr ?*/ && (uintptr_t)paddr < (uintptr_t)/*? paddr ?*/ + (uintptr_t)/*? size ?*/ && size_bits == /*? bits ?*/) {
-                return seL4_CNode_Copy(path->root, path->capPtr, path->capDepth, /*? self_cnode ?*/, mmio_cap_lookup_/*? mmio_key ?*/[((uintptr_t)paddr - (uintptr_t)/*? paddr ?*/) >> /*? bits ?*/], 32, seL4_AllRights);
+                return seL4_CNode_Copy(path->root, path->capPtr, path->capDepth, /*? self_cnode ?*/, mmio_cap_lookup_/*? mmio_key ?*/[((uintptr_t)paddr - (uintptr_t)/*? paddr ?*/) >> /*? bits ?*/], CONFIG_WORD_SIZE, seL4_AllRights);
             }
         /*- endfor -*/
     /*- endif -*/
@@ -319,7 +319,7 @@ static seL4_Error simple_camkes_get_iospace(void *data, uint16_t domainID, uint1
             default:
                 return seL4_FailedLookup;
         }
-        return seL4_CNode_Copy(path->root, path->capPtr, path->capDepth, /*? self_cnode ?*/, cap, 32, seL4_AllRights);
+        return seL4_CNode_Copy(path->root, path->capPtr, path->capDepth, /*? self_cnode ?*/, cap, CONFIG_WORD_SIZE, seL4_AllRights);
     /*- else -*/
         return seL4_FailedLookup;
     /*- endif -*/
@@ -347,7 +347,7 @@ static seL4_Error simple_camkes_get_irq(void *data, int irq, seL4_CNode cnode, s
         switch(irq) {
         /*- for irq,cap in irqs -*/
             case /*? irq ?*/:
-                return seL4_CNode_Copy(cnode, index, depth, /*? self_cnode ?*/, /*? cap ?*/, 32, seL4_AllRights);
+                return seL4_CNode_Copy(cnode, index, depth, /*? self_cnode ?*/, /*? cap ?*/, CONFIG_WORD_SIZE, seL4_AllRights);
         /*- endfor -*/
             default:
                 return seL4_FailedLookup;
@@ -387,8 +387,8 @@ static uintptr_t make_frame_get_paddr(seL4_CPtr untyped) {
         }), ({
             return (uintptr_t)NULL;
         }));
-    seL4_CNode_Delete(/*? self_cnode ?*/, /*? holding_slot ?*/, 32);
-    seL4_CNode_Recycle(/*? self_cnode ?*/, untyped, 32);
+    seL4_CNode_Delete(/*? self_cnode ?*/, /*? holding_slot ?*/, CONFIG_WORD_SIZE);
+    seL4_CNode_Recycle(/*? self_cnode ?*/, untyped, CONFIG_WORD_SIZE);
     return ret;
 }
 
@@ -399,7 +399,7 @@ void camkes_make_simple(simple_t *simple) {
             /*# If there is no size specified in the configuration then we assume the cnode
                 will be as small as possible to hold all the capabilities that are currently
                 defined #*/
-            simple_data.cnodesizebits = 32 - __builtin_clz(/*? holding_slot ?*/) + 1;
+            simple_data.cnodesizebits = CONFIG_WORD_SIZE - __builtin_clz(/*? holding_slot ?*/) + 1;
         /*- endif -*/
         /*# Find untyped physical addresses. We only care if the untyped is at least a page size #*/
         /*- for u in untyped_obj_list -*/
