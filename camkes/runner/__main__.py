@@ -47,7 +47,7 @@ import argparse, collections, functools, jinja2, locale, os, re, sqlite3, \
     traceback
 
 from capdl import seL4_CapTableObject, ObjectAllocator, CSpaceAllocator, \
-    ELF, seL4_PageDirectoryObject
+    ELF, lookup_architecture
 
 from camkes.parser import parse_file, parse_string, ParseError
 
@@ -415,7 +415,7 @@ def main(argv, out, err):
             cnode = obj_space.alloc(seL4_CapTableObject,
                 name=p['cnode'], label=i.address_space)
             cspaces[i.address_space] = CSpaceAllocator(cnode)
-            pd = obj_space.alloc(seL4_PageDirectoryObject, name=p['pd'],
+            pd = obj_space.alloc(lookup_architecture(options.architecture).vspace().object, name=p['pd'],
                 label=i.address_space)
             pds[i.address_space] = pd
 
