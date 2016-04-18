@@ -8,6 +8,7 @@
  * @TAG(NICTA_BSD)
  */
 
+#include <autoconf.h>
 #include <assert.h>
 #include <camkes/tls.h>
 #include <sel4/sel4.h>
@@ -53,7 +54,7 @@ void camkes_protect_reply_cap(void) {
              * has no knowledge of how to respond to this failure.
              */
             tls->reply_cap_save_error = seL4_CNode_SaveCaller(tls->cnode_cap,
-                tls->reply_cap_slot, 32);
+                tls->reply_cap_slot, CONFIG_WORD_SIZE);
         }
 
         tls->reply_cap_in_tcb = false;

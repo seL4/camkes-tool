@@ -16,6 +16,7 @@
 /*# Whether or not we trust our partner #*/
 /*? assert(isinstance(trust_partner, bool)) ?*/
 
+#include <autoconf.h>
 #include <assert.h>
 #include <limits.h>
 #include <stddef.h>
@@ -301,7 +302,7 @@ int /*? me.interface.name ?*/__run(void) {
                         /*- set result = c_symbol() -*/
                         /*? assert(cnode is defined and cnode > 0) ?*/
                         /*? assert(reply_cap_slot is defined and reply_cap_slot > 0) ?*/
-                        int /*? result ?*/ UNUSED = seL4_CNode_SaveCaller(/*? cnode ?*/, /*? reply_cap_slot ?*/, 32);
+                        int /*? result ?*/ UNUSED = seL4_CNode_SaveCaller(/*? cnode ?*/, /*? reply_cap_slot ?*/, CONFIG_WORD_SIZE);
                         ERR_IF(/*? result ?*/ != 0, /*? error_handler ?*/, ((camkes_error_t){
                                 .type = CE_SYSCALL_FAILED,
                                 .instance = "/*? instance ?*/",
