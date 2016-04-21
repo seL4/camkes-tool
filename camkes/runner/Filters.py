@@ -22,7 +22,6 @@ from camkes.internal.memoization import memoize
 from NameMangling import Perspective
 
 PAGE_SIZE = 4096 # bytes
-IPC_BUFFER_SIZE = 512 # bytes
 
 # PERF/HACK: This function is memoized and optionally calls out to objdump
 # because it becomes a performance bottleneck in large systems. Note that the
@@ -73,8 +72,9 @@ def get_symbol_size(elf, symbol):
 def get_elf_arch(elf):
     return elf[1].get_arch()
 
-def set_tcb_info(cspaces, elfs, **_):
+def set_tcb_info(cspaces, elfs, options, **_):
     '''Set relevant extra info for TCB objects.'''
+    arch = lookup_architecture(options.architecture)
 
     for group, space in cspaces.items():
         cnode = space.cnode
@@ -128,7 +128,7 @@ def set_tcb_info(cspaces, elfs, **_):
             assert stack_size % PAGE_SIZE == 0
             tcb.sp = get_symbol_vaddr(elf, stack_symbol) + stack_size - PAGE_SIZE
             tcb.addr = get_symbol_vaddr(elf, ipc_buffer_symbol) + \
-                2 * PAGE_SIZE - IPC_BUFFER_SIZE
+                2 * PAGE_SIZE - arch.ipc_buffer_size()
 
             # Each TCB needs to be passed its 'thread_id' that is the value
             # it branches on in main(). This corresponds to the slot index
