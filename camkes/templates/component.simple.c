@@ -332,8 +332,8 @@ static void simple_camkes_print(void *data) {
 
 static seL4_Error simple_camkes_set_ASID(void *data, seL4_CPtr vspace) {
     /*- if configuration[me.name].get('asid_pool') == 'true' -*/
-#ifdef CONFIG_ARCH_IA32
-        return seL4_IA32_ASIDPool_Assign(/*? asidpool ?*/, vspace);
+#ifdef CONFIG_ARCH_X86
+        return seL4_X86_ASIDPool_Assign(/*? asidpool ?*/, vspace);
 #elif CONFIG_ARCH_ARM
         return seL4_ARM_ASIDPool_Assign(/*? asidpool ?*/, vspace);
 #endif

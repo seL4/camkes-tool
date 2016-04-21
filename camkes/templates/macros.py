@@ -45,7 +45,7 @@ def ipc_buffer(sym):
            '    ALIGN(PAGE_SIZE_4K);\n' % sym
 
 def save_ipc_buffer_address(sym):
-    return '#ifdef ARCH_IA32\n' \
+    return '#ifdef ARCH_X86\n' \
            '    /* We need to save the address of the IPC buffer (for\n' \
            '     * marshalling/unmarshalling) per-thread. Essentially what we\'re after\n' \
            '     * is TLS. Use the IPC buffer\'s user data word for that. Note that we\n' \
