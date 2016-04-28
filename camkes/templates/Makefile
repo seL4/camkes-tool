@@ -106,8 +106,8 @@ endif
 .PHONY: /*? i.name ?*/_rust
 /*? i.name ?*/_rust:
 	@echo " [RS] $(/*? i.name ?*/_RUST)"
-	$(Q) RUST_TARGET_PATH=${STAGE_DIR}/common/ RUSTFLAGS='--sysroot=${RUST_LIBDIR}/${RUST_RELEASE_MODE}' \
-	cargo build --lib $(RUST_CARGO_FLAGS)--manifest-path $(SOURCE_DIR)/components//*? i.type.name ?*//Cargo.toml --target=$(RUST_CUSTOM_TARGET)
+	$(Q) RUST_TARGET_PATH=${STAGE_DIR}/common/ \
+	xargo build --lib $(RUST_CARGO_FLAGS)--manifest-path $(SOURCE_DIR)/components//*? i.type.name ?*//Cargo.toml --target=$(RUST_CUSTOM_TARGET)
 	$(Q) cp $(SOURCE_DIR)/components//*? i.type.name ?*//target/${RUST_CUSTOM_TARGET}/${RUST_RELEASE_MODE}/$(/*? i.name ?*/_RUST:%=lib%.a) $(/*? i.name ?*/_RUST:%=%.a)
 /*- endfor -*/
 
@@ -342,6 +342,7 @@ $(/*? i.name ?*/_CFILES:%.c=%.c_pp): ${/*? i.name ?*/_HFILES} ${/*? i.name ?*/_C
     ${STARTGROUP} \
     $(/*? i.name ?*/_instance_LIBS:%=-l%) \
     ${LIBGCC} \
+    $(CONFIG_USE_RUST:%=-lcompiler-rt) \
     ${ENDGROUP} \
     -static -nostdlib \
     -u _camkes_start \
