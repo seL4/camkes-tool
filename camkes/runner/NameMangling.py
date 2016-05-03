@@ -239,11 +239,11 @@ DERIVATIONS = {
         BackwardDeriver(r'^([^_].*)_budget$', 'budget_attribute', 'interface'),
         # ForwardDeriver('%(preinit)s_budget_preinit', 'budget_attribute'),
 
-        ControlDeriver(r'^_flags$', 'flags_attribute'),
-        FromControlDeriver('_flags', 'flags_attribute'),
-        ForwardDeriver('%(interface)s_flags', 'flags_attribute'),
-        BackwardDeriver(r'^([^_].*)_flags$', 'flags_attribute', 'interface'),
-        # ForwardDeriver('%(preinit)s_flags_preinit', 'flags_attribute'),
+        ControlDeriver(r'^_data$', 'data_attribute'),
+        FromControlDeriver('_data', 'data_attribute'),
+        ForwardDeriver('%(interface)s_data', 'data_attribute'),
+        BackwardDeriver(r'^([^_].*)_data$', 'data_attribute', 'interface'),
+        # ForwardDeriver('%(preinit)s_data_preinit', 'data_attribute'),
 
         ForwardDeriver('cnode_%(group)s', 'cnode'),
         BackwardDeriver(r'^cnode_(.+)$', 'cnode', 'group'),

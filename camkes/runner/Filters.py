@@ -783,7 +783,7 @@ def sc_default_properties(ast, obj_space, cspaces, elfs, options, shmem):
     for s in filter(lambda x: isinstance(x, SC), obj_space):
         s.period = options.default_period
         s.budget = options.default_budget
-        # s.flags = options.default_flags
+        s.data = options.default_data
 
 def sc_properties(ast, obj_space, cspaces, elfs, options, shmem):
     ''' Override an SC's default properties if the user has specified this in an
@@ -824,12 +824,12 @@ def sc_properties(ast, obj_space, cspaces, elfs, options, shmem):
             if budget is not None:
                 sc.budget = budget
 
-            # Find the flags if it was set.
-            flags_attribute = perspective['flags_attribute']
+            # Find the data if it was set.
+            data_attribute = perspective['data_attribute']
             name = perspective['instance']
-            flags = assembly.configuration[name].get(flags_attribute)
-            if flags is not None:
-                sc.flags = flags
+            data = assembly.configuration[name].get(data_attribute)
+            if data is not None:
+                sc.data = data
 
 CAPDL_FILTERS = [
     set_tcb_info,
