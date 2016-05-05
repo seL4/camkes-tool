@@ -413,12 +413,15 @@ void camkes_make_simple(simple_t *simple) {
     /* Assume we are called from init */
     simple_data.inittcb = camkes_get_tls()->tcb_cap;
     simple->data = &simple_data;
+    simple->arch_simple.data = &simple_data;
     simple->frame_info = /*&simple_camkes_get_frame_info*/NULL;
     simple->frame_cap = &simple_camkes_get_frame_cap;
     simple->frame_mapping = /*&simple_camkes_get_frame_mapping*/NULL;
-    simple->irq = &simple_camkes_get_irq;
+    simple->arch_simple.irq = &simple_camkes_get_irq;
     simple->ASID_assign = &simple_camkes_set_ASID;
-    simple->IOPort_cap = &simple_camkes_get_IOPort_cap;
+#ifdef CONFIG_ARCH_X86
+    simple->arch_simple.IOPort_cap = &simple_camkes_get_IOPort_cap;
+#endif
     simple->cap_count = &simple_camkes_cap_count;
     simple->nth_cap = &simple_camkes_nth_cap;
     simple->init_cap = &simple_camkes_init_cap;
