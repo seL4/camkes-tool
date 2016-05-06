@@ -667,12 +667,20 @@ class GraphWidget(QtWidgets.QGraphicsView):
         elif not isinstance(item.widget(), QtWidgets.QMenu):
             self.close_context_menu()
 
-        # If item has property to show and edit
-        if isinstance(item, PropertyInterface):
-            self.property_widget_dock.setWidget(item.property_widget)
-            self.property_widget_dock.setVisible(True)
-
         super(GraphWidget, self).mousePressEvent(mouse_event)
+
+    def mouseDoubleClickEvent(self, mouse_event):
+        # Get scene position from global position
+        scene_position = self.mapToScene(mouse_event.pos())
+
+        item = self.scene().itemAt(scene_position, self.transform())
+
+        if mouse_event.button() == QtCore.Qt.LeftButton:
+            # If item has property to show and edit
+
+            if isinstance(item, PropertyInterface):
+                self.property_widget_dock.setWidget(item.property_widget)
+                self.property_widget_dock.setVisible(True)
 
     def mouseReleaseEvent(self, mouse_event):
         """
