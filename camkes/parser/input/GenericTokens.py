@@ -31,7 +31,7 @@ t_LARROW = r'<-'
 t_ignore = ' \t\r'
 
 def t_STRING(t):
-    r'"[^"]*"'
+    r'"[^"]*" | \'[^\']*\''
     t.value = t.value[1:-1] # Strip quotes
     return t
 
