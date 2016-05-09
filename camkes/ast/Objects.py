@@ -316,9 +316,21 @@ class Connection(ASTObject):
             self.try_collapse(i)
 
     def __repr__(self):
-        return 'connection %(type)s %(name)s(from ' \
-            '%(from_instance)s.%(from_interface)s, to ' \
-            '%(to_instance)s.%(to_interface)s);' % self.__dict__
+        # Virtual components don't have instances,
+        # so they don't get referred to when talking about the interface
+        if isinstance(self.from_instance, Instance) and \
+           self.from_instance.name == "__virtual__":
+            from_side = self.from_interface
+        else:
+            from_side = "%(from_instance)s.%(from_interface)s" % self.__dict__
+        if isinstance(self.to_instance, Instance) and \
+           self.to_instance.name == "__virtual__":
+            to_side = self.to_interface
+        else:
+            to_side = "%(to_instance)s.%(to_interface)s" % self.__dict__
+        return 'connection %(type)s %(name)s \
+                (from  %(from_side)s, to %(to_side)s);' % ({'type': self.type, 'name': self.name,
+                                                           'from_side': from_side, 'to_side': to_side})
 
 class Setting(ASTObject):
     def __init__(self, instance, attribute, value, filename=None, lineno=-1):
