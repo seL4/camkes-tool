@@ -379,7 +379,9 @@ class Component(ASTObject):
 
 
     def __repr__(self):
-        s = '{ %(control)s %(hardware)s %(provides)s %(uses)s %(emits)s %(consumes)s %(dataports)s %(mutexes)s %(semaphores)s %(includes)s %(composition)s %(configuration)s}' % {
+        s = '{ %(control)s %(hardware)s %(provides)s %(uses)s %(emits)s %(consumes)s \
+        %(dataports)s %(mutexes)s %(semaphores)s %(includes)s %(attributes)s \
+        %(composition)s %(configuration)s}' % {
             'control':'control;' if self.control else '',
             'hardware':'hardware;' if self.hardware else '',
             'provides':' '.join(map(str, self.provides)),
