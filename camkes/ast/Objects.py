@@ -581,7 +581,7 @@ class Method(ASTObject):
         return '%(return_type)s %(name)s(%(parameters)s);' % {
             'return_type':self.return_type or 'void',
             'name':self.name,
-            'parameters':' '.join(map(str, self.parameters)),
+            'parameters':', '.join(map(str, self.parameters)),
         }
 
 class Attribute(ASTObject):
