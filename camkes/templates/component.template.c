@@ -446,7 +446,7 @@ int USED /*? p['entry_symbol'] ?*/(int thread_id) {
                 /*- set my_sc = sc('%s_tcb_%s' % (me.name, i.name)) -*/
                 /*- if my_sc == None -*/
                     /*- set my_init_sc = alloc('sc_%s_init' % i.name, seL4_SchedContextObject) -*/
-                    seL4_SchedContext_BindTCB(/*? my_init_sc ?*/, /*? tcb ?*/);
+                    seL4_SchedContext_Bind(/*? my_init_sc ?*/, /*? tcb ?*/);
 
                     /* @ikuz: this shouldn't be necessary, but the currently the thread won't
                      * be started without it (kernel bug?). Unfortunately the Resume will
@@ -485,7 +485,7 @@ int USED /*? p['entry_symbol'] ?*/(int thread_id) {
                     seL4_Word badge_/*? i.name ?*/;
                     seL4_MessageInfo_t /*? info ?*/_/*? i.name ?*/ = seL4_MessageInfo_new(0, 0, 0, 0);
                     /*? info ?*/_/*? i.name ?*/ = seL4_Recv(/*? ret_init_sc_ep ?*/, &badge_/*? i.name ?*/);
-                    seL4_SchedContext_UnbindTCB(/*? my_init_sc ?*/);
+                    seL4_SchedContext_Unbind(/*? my_init_sc ?*/);
                 /*- endif -*/
             /*- endfor -*/
             /*- if me.type.control -*/
