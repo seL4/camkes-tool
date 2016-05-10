@@ -442,32 +442,38 @@ int USED /*? p['entry_symbol'] ?*/(int thread_id) {
             /*? init ?*/();
             /* Wake all of our passive threads (by binding a scheduling context) so they can initialise */
             /*- for i in all_interfaces -*/
-	        /*- set tcb = alloc('tcb_%s' % i.name, seL4_TCBObject) -*/
-		/*- set my_sc = sc('%s_tcb_%s' % (me.name, i.name)) -*/
+                /*- set tcb = alloc('tcb_%s' % i.name, seL4_TCBObject) -*/
+                /*- set my_sc = sc('%s_tcb_%s' % (me.name, i.name)) -*/
                 /*- set my_init_sc = alloc('sc_%s_init' % i.name, seL4_SchedContextObject) -*/
-		/*- if my_sc == None -*/
+                /*- if my_sc == None -*/
                     seL4_SchedContext_BindTCB(/*? my_init_sc ?*/, /*? tcb ?*/);
-		    seL4_TCB_Resume(/*? tcb ?*/); // @ikuz: this shouldn't be necessary, but the currently the thread won't be started without it (kernel bug?).  Unfortunately the Resume will cancel any pending IPCs, which would be bad news for a component with higher priority that has already started trying to do IPC.
-		/*- endif -*/
-	    /*- endfor -*/
+
+                    /* @ikuz: this shouldn't be necessary, but the currently the thread won't
+                     * be started without it (kernel bug?). Unfortunately the Resume will
+                     * cancel any pending IPCs, which would be bad news for a component with
+                     * higher priority that has already started trying to do IPC.
+                     */
+                    seL4_TCB_Resume(/*? tcb ?*/);
+                /*- endif -*/
+            /*- endfor -*/
             /*- if options.fsupport_init -*/
                 if (pre_init) {
                     pre_init();
                 }
                 /* Wake all the interface threads. */
                 /*- for i in all_interfaces -*/
-		    sync_sem_bare_post(/*? pre_init_ep ?*/, &/*? pre_init_lock ?*/);
+                    sync_sem_bare_post(/*? pre_init_ep ?*/, &/*? pre_init_lock ?*/);
                 /*- endfor -*/
                 /* wait for all the interface threads to run their inits. */
                 /*- for i in all_interfaces -*/
-		    sync_sem_bare_wait(/*? interface_init_ep ?*/, &/*? interface_init_lock ?*/);
+                    sync_sem_bare_wait(/*? interface_init_ep ?*/, &/*? interface_init_lock ?*/);
                 /*- endfor -*/
                 if (post_init) {
                     post_init();
                 }
                 /* Wake all the interface threads. */
                 /*- for i in all_interfaces -*/
-		    sync_sem_bare_post(/*? post_init_ep ?*/, &/*? post_init_lock ?*/);
+                    sync_sem_bare_post(/*? post_init_ep ?*/, &/*? post_init_lock ?*/);
                 /*- endfor -*/
             /*- endif -*/
             /* Unbind scheduling context from all passive interface threads. */
@@ -476,10 +482,10 @@ int USED /*? p['entry_symbol'] ?*/(int thread_id) {
                 /*- set my_init_sc = alloc('sc_%s_init' % i.name, seL4_SchedContextObject) -*/
                 /*- set ret_init_sc_ep = alloc('ret_sc_%s_init_ep' %i.name, seL4_EndpointObject, read=True, write=True) -*/
                 /*- if my_sc == None -*/
-                   seL4_Word badge_/*? i.name ?*/;
-                   seL4_MessageInfo_t /*? info ?*/_/*? i.name ?*/ = seL4_MessageInfo_new(0, 0, 0, 0);
-                   /*? info ?*/_/*? i.name ?*/ = seL4_Recv(/*? ret_init_sc_ep ?*/, &badge_/*? i.name ?*/);
-                   seL4_SchedContext_UnbindTCB(/*? my_init_sc ?*/);
+                    seL4_Word badge_/*? i.name ?*/;
+                    seL4_MessageInfo_t /*? info ?*/_/*? i.name ?*/ = seL4_MessageInfo_new(0, 0, 0, 0);
+                    /*? info ?*/_/*? i.name ?*/ = seL4_Recv(/*? ret_init_sc_ep ?*/, &badge_/*? i.name ?*/);
+                    seL4_SchedContext_UnbindTCB(/*? my_init_sc ?*/);
                 /*- endif -*/
             /*- endfor -*/
             /*- if me.type.control -*/
@@ -514,9 +520,9 @@ int USED /*? p['entry_symbol'] ?*/(int thread_id) {
                 } else {
                     /* Interface not connected. */
                     /*- if my_sc == None -*/
-                      /* Recv shouldn't ever return */
-                      seL4_MessageInfo_t /*? info ?*/ = seL4_MessageInfo_new(0, 0, 0, 0);
-                      seL4_NBSendRecv(/*? ret_init_sc_ep ?*/, /*? info ?*/, /*? ret_init_sc_ep ?*/, NULL);
+                        /* Recv shouldn't ever return */
+                        seL4_MessageInfo_t /*? info ?*/ = seL4_MessageInfo_new(0, 0, 0, 0);
+                        seL4_NBSendRecv(/*? ret_init_sc_ep ?*/, /*? info ?*/, /*? ret_init_sc_ep ?*/, NULL);
                     /*- endif -*/
                     return 0;
                 }
