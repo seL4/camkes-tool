@@ -447,13 +447,6 @@ int USED /*? p['entry_symbol'] ?*/(int thread_id) {
                 /*- if my_sc == None -*/
                     /*- set my_init_sc = alloc('sc_%s_init' % i.name, seL4_SchedContextObject) -*/
                     seL4_SchedContext_Bind(/*? my_init_sc ?*/, /*? tcb ?*/);
-
-                    /* @ikuz: this shouldn't be necessary, but the currently the thread won't
-                     * be started without it (kernel bug?). Unfortunately the Resume will
-                     * cancel any pending IPCs, which would be bad news for a component with
-                     * higher priority that has already started trying to do IPC.
-                     */
-                    seL4_TCB_Resume(/*? tcb ?*/);
                 /*- endif -*/
             /*- endfor -*/
             /*- if options.fsupport_init -*/
