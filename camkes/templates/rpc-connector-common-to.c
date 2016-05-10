@@ -206,9 +206,9 @@ int /*? me.to_interface.name ?*/__run(void) {
     /*- set my_sc = sc('%s_tcb_%s' % (me.to_instance.name, me.to_interface.name)) -*/
     /*- if my_sc == None -*/
         /* This interface has a passive thread, must let the control thread know before waiting */
-        /*- set ret_init_sc_ep = alloc_entity('ret_sc_%s_init_ep' % me.to_interface.name, seL4_EndpointObject, me.to_instance.name, read=True, write=True) -*/
+        /*- set my_init_ntfn = alloc_entity('ntfn_%s_init' % me.to_interface.name, seL4_NotificationObject, me.to_instance.name, read=True, write=True) -*/
         seL4_MessageInfo_t /*? info ?*/ = seL4_MessageInfo_new(0, 0, 0, 0);
-        /*? info ?*/ = seL4_NBSendRecv(/*? ret_init_sc_ep ?*/, /*? info ?*/, /*? ep ?*/, & /*? me.to_interface.name ?*/_badge);
+        /*? info ?*/ = seL4_NBSendRecv(/*? my_init_ntfn ?*/, /*? info ?*/, /*? ep ?*/, & /*? me.to_interface.name ?*/_badge);
     /*- else -*/
        /* This interface has an active thread, just wait for an RPC */
        seL4_MessageInfo_t /*? info ?*/ = seL4_Recv(/*? ep ?*/, & /*? me.to_interface.name ?*/_badge);

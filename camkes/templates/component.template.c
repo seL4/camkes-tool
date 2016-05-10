@@ -482,9 +482,9 @@ int USED /*? p['entry_symbol'] ?*/(int thread_id) {
                 /*- set ret_init_sc_ep = alloc('ret_sc_%s_init_ep' %i.name, seL4_EndpointObject, read=True, write=True) -*/
                 /*- if my_sc == None -*/
                     /*- set my_init_sc = alloc('sc_%s_init' % i.name, seL4_SchedContextObject) -*/
+                    /*- set my_init_ntfn = alloc_entity('ntfn_%s_init' % i.name, seL4_NotificationObject, me.name, read=True, write=True) -*/
                     seL4_Word badge_/*? i.name ?*/;
-                    seL4_MessageInfo_t /*? info ?*/_/*? i.name ?*/ = seL4_MessageInfo_new(0, 0, 0, 0);
-                    /*? info ?*/_/*? i.name ?*/ = seL4_Recv(/*? ret_init_sc_ep ?*/, &badge_/*? i.name ?*/);
+                    seL4_Wait(/*? my_init_ntfn ?*/, &badge_/*? i.name ?*/);
                     seL4_SchedContext_Unbind(/*? my_init_sc ?*/);
                 /*- endif -*/
             /*- endfor -*/
@@ -520,9 +520,11 @@ int USED /*? p['entry_symbol'] ?*/(int thread_id) {
                 } else {
                     /* Interface not connected. */
                     /*- if my_sc == None -*/
+                        /*- set my_init_ntfn = alloc_entity('ntfn_%s_init' % i.name, seL4_NotificationObject, me.name, read=True, write=True) -*/
+
                         /* Recv shouldn't ever return */
                         seL4_MessageInfo_t /*? info ?*/ = seL4_MessageInfo_new(0, 0, 0, 0);
-                        seL4_NBSendRecv(/*? ret_init_sc_ep ?*/, /*? info ?*/, /*? ret_init_sc_ep ?*/, NULL);
+                        seL4_NBSendRecv(/*? my_init_ntfn ?*/, /*? info ?*/, /*? ret_init_sc_ep ?*/, NULL);
                     /*- endif -*/
                     return 0;
                 }
