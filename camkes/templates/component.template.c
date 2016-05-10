@@ -479,7 +479,6 @@ int USED /*? p['entry_symbol'] ?*/(int thread_id) {
             /* Unbind scheduling context from all passive interface threads. */
             /*- for i in all_interfaces -*/
                 /*- set my_sc = sc('%s_tcb_%s' % (me.name, i.name)) -*/
-                /*- set ret_init_sc_ep = alloc('ret_sc_%s_init_ep' %i.name, seL4_EndpointObject, read=True, write=True) -*/
                 /*- if my_sc == None -*/
                     /*- set my_init_sc = alloc('sc_%s_init' % i.name, seL4_SchedContextObject) -*/
                     /*- set my_init_ntfn = alloc_entity('ntfn_%s_init' % i.name, seL4_NotificationObject, me.name, read=True, write=True) -*/
@@ -498,7 +497,6 @@ int USED /*? p['entry_symbol'] ?*/(int thread_id) {
         /*- for index, i in enumerate(all_interfaces) -*/
             /*- set tcb = alloc('tcb_%s' % i.name, seL4_TCBObject) -*/
             /*- set my_sc = sc('%s_tcb_%s' % (me.name, i.name)) -*/
-            /*- set ret_init_sc_ep = alloc('ret_sc_%s_init_ep' %i.name, seL4_EndpointObject, read=True, write=True) -*/
             case /*? tcb ?*/ : { /* Interface /*? i.name ?*/ */
                 /*- if options.fsupport_init -*/
                     /* Wait for `pre_init` to complete. */
@@ -522,9 +520,11 @@ int USED /*? p['entry_symbol'] ?*/(int thread_id) {
                     /*- if my_sc == None -*/
                         /*- set my_init_ntfn = alloc_entity('ntfn_%s_init' % i.name, seL4_NotificationObject, me.name, read=True, write=True) -*/
 
-                        /* Recv shouldn't ever return */
-                        seL4_MessageInfo_t /*? info ?*/ = seL4_MessageInfo_new(0, 0, 0, 0);
-                        seL4_NBSendRecv(/*? my_init_ntfn ?*/, /*? info ?*/, /*? ret_init_sc_ep ?*/, NULL);
+                        // Inform the main component thread that we're finished initializing
+                        seL4_Signal(/*? my_init_ntfn ?*/);
+
+                        // Block forever
+                        seL4_TCB_Suspend(/*? tcb ?*/);
                     /*- endif -*/
                     return 0;
                 }
