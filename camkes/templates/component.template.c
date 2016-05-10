@@ -444,8 +444,8 @@ int USED /*? p['entry_symbol'] ?*/(int thread_id) {
             /*- for i in all_interfaces -*/
                 /*- set tcb = alloc('tcb_%s' % i.name, seL4_TCBObject) -*/
                 /*- set my_sc = sc('%s_tcb_%s' % (me.name, i.name)) -*/
-                /*- set my_init_sc = alloc('sc_%s_init' % i.name, seL4_SchedContextObject) -*/
                 /*- if my_sc == None -*/
+                    /*- set my_init_sc = alloc('sc_%s_init' % i.name, seL4_SchedContextObject) -*/
                     seL4_SchedContext_BindTCB(/*? my_init_sc ?*/, /*? tcb ?*/);
 
                     /* @ikuz: this shouldn't be necessary, but the currently the thread won't
@@ -479,9 +479,9 @@ int USED /*? p['entry_symbol'] ?*/(int thread_id) {
             /* Unbind scheduling context from all passive interface threads. */
             /*- for i in all_interfaces -*/
                 /*- set my_sc = sc('%s_tcb_%s' % (me.name, i.name)) -*/
-                /*- set my_init_sc = alloc('sc_%s_init' % i.name, seL4_SchedContextObject) -*/
                 /*- set ret_init_sc_ep = alloc('ret_sc_%s_init_ep' %i.name, seL4_EndpointObject, read=True, write=True) -*/
                 /*- if my_sc == None -*/
+                    /*- set my_init_sc = alloc('sc_%s_init' % i.name, seL4_SchedContextObject) -*/
                     seL4_Word badge_/*? i.name ?*/;
                     seL4_MessageInfo_t /*? info ?*/_/*? i.name ?*/ = seL4_MessageInfo_new(0, 0, 0, 0);
                     /*? info ?*/_/*? i.name ?*/ = seL4_Recv(/*? ret_init_sc_ep ?*/, &badge_/*? i.name ?*/);
