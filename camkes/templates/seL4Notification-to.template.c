@@ -43,19 +43,6 @@ static volatile int sleepers;
 int /*? me.to_interface.name ?*/__run(void) {
     /*- set info = c_symbol('info') -*/
 
-    /*- set my_sc = sc('%s_tcb_%s' % (me.to_instance.name, me.to_interface.name)) -*/
-    /*- if my_sc == None -*/
-	/* Bind the notification to an empty scheduling context to receive * donation */
-	/* FIXME: It would be nicer to recycle the unbound init_sc allocated in
-	 * the component template, but that is hard in practice. */
-        /*- set sc = alloc('sc_%s' % me.to_instance.name, seL4_SchedContextObject) -*/
-        seL4_SchedContext_BindNotification(/*? sc ?*/, /*? notification ?*/);
-
-       /* This interface has a passive thread, must let the control thread know before waiting */
-       /*- set ret_init_sc_ep = alloc_entity('ret_sc_%s_init_ep' % me.to_interface.name, seL4_EndpointObject, me.to_instance.name, read=True, write=True) -*/
-       seL4_MessageInfo_t /*? info ?*/ = seL4_SignalRecv(/*? ret_init_sc_ep ?*/, /*? notification ?*/, NULL);
-    /*- endif -*/
-
     while (1) {
         int handled = 0;
 
