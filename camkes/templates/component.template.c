@@ -377,7 +377,7 @@ static void /*? init ?*/(void) {
     /*- if configuration[me.name].get(p['sc_attribute'], True) != '"none"' -*/
         /*- set sc = alloc('sc_%s' % i.name, seL4_SchedContextObject) -*/
     /*- else -*/
-        /*- set my_init_sc = alloc('sc_%s_init' % i.name, seL4_SchedContextObject) -*/
+        /*- set init_sc = alloc('sc_%s_init' % i.name, seL4_SchedContextObject) -*/
     /*- endif -*/
 /*- endfor -*/
 
@@ -453,8 +453,8 @@ int USED /*? p['entry_symbol'] ?*/(int thread_id) {
                 /*- set tcb = alloc('tcb_%s' % i.name, seL4_TCBObject) -*/
                 /*- set p = Perspective(instance=me.name, interface=i.name) -*/
                 /*- if configuration[me.name].get(p['sc_attribute'], True) == '"none"' -*/
-                    /*- set my_init_sc = alloc('sc_%s_init' % i.name, seL4_SchedContextObject) -*/
-                    seL4_SchedContext_Bind(/*? my_init_sc ?*/, /*? tcb ?*/);
+                    /*- set init_sc = alloc('sc_%s_init' % i.name, seL4_SchedContextObject) -*/
+                    seL4_SchedContext_Bind(/*? init_sc ?*/, /*? tcb ?*/);
                 /*- endif -*/
             /*- endfor -*/
             /*- if options.fsupport_init -*/
@@ -481,11 +481,11 @@ int USED /*? p['entry_symbol'] ?*/(int thread_id) {
             /*- for i in all_interfaces -*/
                 /*- set p = Perspective(instance=me.name, interface=i.name) -*/
                 /*- if configuration[me.name].get(p['sc_attribute'], True) == '"none"' -*/
-                    /*- set my_init_sc = alloc('sc_%s_init' % i.name, seL4_SchedContextObject) -*/
-                    /*- set my_init_ntfn = alloc_entity('ntfn_%s_init' % i.name, seL4_NotificationObject, me.name, read=True, write=True) -*/
+                    /*- set init_sc = alloc('sc_%s_init' % i.name, seL4_SchedContextObject) -*/
+                    /*- set init_ntfn = alloc_entity('ntfn_%s_init' % i.name, seL4_NotificationObject, me.name, read=True, write=True) -*/
                     seL4_Word badge_/*? i.name ?*/;
-                    seL4_Wait(/*? my_init_ntfn ?*/, &badge_/*? i.name ?*/);
-                    seL4_SchedContext_Unbind(/*? my_init_sc ?*/);
+                    seL4_Wait(/*? init_ntfn ?*/, &badge_/*? i.name ?*/);
+                    seL4_SchedContext_Unbind(/*? init_sc ?*/);
                 /*- endif -*/
             /*- endfor -*/
             /*- if me.type.control -*/
@@ -519,7 +519,7 @@ int USED /*? p['entry_symbol'] ?*/(int thread_id) {
                     /* Interface not connected. */
                     /*- set p = Perspective(instance=me.name, interface=i.name) -*/
                     /*- if configuration[me.name].get(p['sc_attribute'], True) == '"none"' -*/
-                        /*- set my_init_ntfn = alloc_entity('ntfn_%s_init' % i.name, seL4_NotificationObject, me.name, read=True, write=True) -*/
+                        /*- set init_ntfn = alloc_entity('ntfn_%s_init' % i.name, seL4_NotificationObject, me.name, read=True, write=True) -*/
 
                         // Inform the main component thread that we're finished initializing
                         seL4_Signal(/*? init_ntfn ?*/);
