@@ -197,18 +197,24 @@ seL4_Word /*? me.to_interface.name ?*/_get_badge(void) {
 
 /*- include 'array-typedef-check.c' -*/
 
-int /*? me.to_interface.name ?*/__run(void) {
+/*- set p = Perspective(instance=me.to_instance.name, interface=me.to_interface.name) -*/
+int
+/*- if configuration[me.to_instance.name].get(p['sc_attribute'], True) == '"none"' -*/
+    /*? me.to_interface.name ?*/__run_passive(seL4_CPtr init_ntfn)
+/*- else -*/
+    /*? me.to_interface.name ?*/__run(void)
+/*- endif -*/
+{
+
     /*# Check any typedefs we have been given are not arrays. #*/
     /*- include 'call-array-typedef-check.c' -*/
 
     /*- set info = c_symbol('info') -*/
 
-    /*- set p = Perspective(instance=me.to_instance.name, interface=me.to_interface.name) -*/
     /*- if configuration[me.name].get(p['sc_attribute'], True) == '"none"' -*/
         /* This interface has a passive thread, must let the control thread know before waiting */
-        /*- set init_ntfn = alloc_entity('ntfn_%s_init' % me.to_interface.name, seL4_NotificationObject, me.to_instance.name, read=True, write=True) -*/
         seL4_MessageInfo_t /*? info ?*/ = seL4_MessageInfo_new(0, 0, 0, 0);
-        /*? info ?*/ = seL4_NBSendRecv(/*? init_ntfn ?*/, /*? info ?*/, /*? ep ?*/, & /*? me.to_interface.name ?*/_badge);
+        /*? info ?*/ = seL4_NBSendRecv(init_ntfn, /*? info ?*/, /*? ep ?*/, & /*? me.to_interface.name ?*/_badge);
     /*- else -*/
        /* This interface has an active thread, just wait for an RPC */
        seL4_MessageInfo_t /*? info ?*/ = seL4_Recv(/*? ep ?*/, & /*? me.to_interface.name ?*/_badge);

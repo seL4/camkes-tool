@@ -482,7 +482,7 @@ int USED /*? p['entry_symbol'] ?*/(int thread_id) {
                 /*- set p = Perspective(instance=me.name, interface=i.name) -*/
                 /*- if configuration[me.name].get(p['sc_attribute'], True) == '"none"' -*/
                     /*- set init_sc = alloc('sc_%s_init' % i.name, seL4_SchedContextObject) -*/
-                    /*- set init_ntfn = alloc_entity('ntfn_%s_init' % i.name, seL4_NotificationObject, me.name, read=True, write=True) -*/
+                    /*- set init_ntfn = alloc('ntfn_%s_init' % i.name, seL4_NotificationObject, read=True, write=True) -*/
                     seL4_Word badge_/*? i.name ?*/;
                     seL4_Wait(/*? init_ntfn ?*/, &badge_/*? i.name ?*/);
                     seL4_SchedContext_Unbind(/*? init_sc ?*/);
@@ -510,25 +510,34 @@ int USED /*? p['entry_symbol'] ?*/(int thread_id) {
                     sync_sem_bare_wait(/*? post_init_ep ?*/, &/*? post_init_lock ?*/);
                 /*- endif -*/
 
-                /*# If this is a passive interface, the __run function must NBSendRecv to tell the control
-                 *# thread to unbind its sc, and simultaneously start waiting for rpc calls. #*/
-                extern int /*? i.name ?*/__run(void) __attribute__((weak));
-                if (/*? i.name ?*/__run) {
-                    return /*? i.name ?*/__run();
-                } else {
-                    /* Interface not connected. */
-                    /*- set p = Perspective(instance=me.name, interface=i.name) -*/
-                    /*- if configuration[me.name].get(p['sc_attribute'], True) == '"none"' -*/
-                        /*- set init_ntfn = alloc_entity('ntfn_%s_init' % i.name, seL4_NotificationObject, me.name, read=True, write=True) -*/
+
+                /*- set p = Perspective(instance=me.name, interface=i.name) -*/
+                /*- if configuration[me.name].get(p['sc_attribute'], True) == '"none"' -*/
+
+                    /*- set init_ntfn = alloc('ntfn_%s_init' % i.name, seL4_NotificationObject, read=True, write=True) -*/
+
+                    /*# If this is a passive interface, the __run function must NBSendRecv to tell the control
+                     *# thread to unbind its sc, and simultaneously start waiting for rpc calls. #*/
+                    extern int /*? i.name ?*/__run_passive(seL4_CPtr init_ntfn) __attribute__((weak));
+                    if (/*? i.name ?*/__run_passive) {
+                        return /*? i.name ?*/__run_passive(/*? init_ntfn ?*/);
+                    } else {
+                        /* Interface not connected. */
 
                         // Inform the main component thread that we're finished initializing
                         seL4_Signal(/*? init_ntfn ?*/);
 
                         // Block forever
                         seL4_TCB_Suspend(/*? tcb ?*/);
-                    /*- endif -*/
-                    return 0;
-                }
+                    }
+                /*- else -*/
+                    extern int /*? i.name ?*/__run(void) __attribute__((weak));
+                    if (/*? i.name ?*/__run) {
+                        return /*? i.name ?*/__run();
+                    }
+                /*- endif -*/
+
+                return 0;
 
             }
         /*- endfor -*/
