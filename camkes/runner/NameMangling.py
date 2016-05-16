@@ -155,6 +155,11 @@ DERIVATIONS = {
         ForwardDeriver('%(instance)s_tls_setup', 'tls_symbol'),
         BackwardDeriver(r'^(.+)_tls_setup$', 'tls_symbol', 'instance'),
         ForwardDeriver('camkes_dma_pool', 'dma_pool_symbol'),
+
+        ControlDeriver(r'_sc$', 'sc_attribute'),
+        FromControlDeriver('_sc', 'sc_attribute'),
+        ForwardDeriver('%(interface)s_sc', 'sc_attribute'),
+        BackwardDeriver(r'([^_].*)_sc$', 'sc_attribute', 'interface'),
     ], FILTERS:[
         ForwardDeriver('%(instance)s_tcb_%(interface)s', 'tcb'),
         FromControlDeriver('%(instance)s_tcb_0_control', 'tcb'),

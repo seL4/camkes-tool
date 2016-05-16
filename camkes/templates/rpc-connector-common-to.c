@@ -203,8 +203,8 @@ int /*? me.to_interface.name ?*/__run(void) {
 
     /*- set info = c_symbol('info') -*/
 
-    /*- set my_sc = sc('%s_tcb_%s' % (me.to_instance.name, me.to_interface.name)) -*/
-    /*- if my_sc == None -*/
+    /*- set p = Perspective(instance=me.to_instance.name, interface=me.to_interface.name) -*/
+    /*- if configuration[me.name].get(p['sc_attribute'], True) == '"none"' -*/
         /* This interface has a passive thread, must let the control thread know before waiting */
         /*- set my_init_ntfn = alloc_entity('ntfn_%s_init' % me.to_interface.name, seL4_NotificationObject, me.to_instance.name, read=True, write=True) -*/
         seL4_MessageInfo_t /*? info ?*/ = seL4_MessageInfo_new(0, 0, 0, 0);

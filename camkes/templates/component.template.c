@@ -371,6 +371,16 @@ static void /*? init ?*/(void) {
     /*- endif -*/
 /*- endfor -*/
 
+/* Scheduling Contexts */
+/*- for i in all_interfaces -*/
+    /*- set p = Perspective(instance=me.name, interface=i.name) -*/
+    /*- if configuration[me.name].get(p['sc_attribute'], True) != '"none"' -*/
+        /*- set sc = alloc('sc_%s' % i.name, seL4_SchedContextObject) -*/
+    /*- else -*/
+        /*- set my_init_sc = alloc('sc_%s_init' % i.name, seL4_SchedContextObject) -*/
+    /*- endif -*/
+/*- endfor -*/
+
 /*- set p = Perspective(instance=me.name) -*/
 void USED /*? p['tls_symbol'] ?*/(int thread_id) {
     switch (thread_id) {
@@ -386,8 +396,6 @@ void USED /*? p['tls_symbol'] ?*/(int thread_id) {
         /*# Interface threads #*/
         /*- for index, i in enumerate(all_interfaces) -*/
             /*- set tcb = alloc('tcb_%s' % i.name, seL4_TCBObject) -*/
-            /*- set sc = alloc('sc_%s' % i.name, seL4_SchedContextObject) -*/
-            /*- set sc_init = alloc('sc_%s_init' % i.name, seL4_SchedContextObject) -*/
             case /*? tcb ?*/ : { /* Interface /*? i.name ?*/ */
                 /*- set p = Perspective(instance=me.name, interface=i.name) -*/
                 /*? macros.save_ipc_buffer_address(p['ipc_buffer_symbol']) ?*/
@@ -443,8 +451,8 @@ int USED /*? p['entry_symbol'] ?*/(int thread_id) {
             /* Wake all of our passive threads (by binding a scheduling context) so they can initialise */
             /*- for i in all_interfaces -*/
                 /*- set tcb = alloc('tcb_%s' % i.name, seL4_TCBObject) -*/
-                /*- set my_sc = sc('%s_tcb_%s' % (me.name, i.name)) -*/
-                /*- if my_sc == None -*/
+                /*- set p = Perspective(instance=me.name, interface=i.name) -*/
+                /*- if configuration[me.name].get(p['sc_attribute'], True) == '"none"' -*/
                     /*- set my_init_sc = alloc('sc_%s_init' % i.name, seL4_SchedContextObject) -*/
                     seL4_SchedContext_Bind(/*? my_init_sc ?*/, /*? tcb ?*/);
                 /*- endif -*/
@@ -471,8 +479,8 @@ int USED /*? p['entry_symbol'] ?*/(int thread_id) {
             /*- endif -*/
             /* Unbind scheduling context from all passive interface threads. */
             /*- for i in all_interfaces -*/
-                /*- set my_sc = sc('%s_tcb_%s' % (me.name, i.name)) -*/
-                /*- if my_sc == None -*/
+                /*- set p = Perspective(instance=me.name, interface=i.name) -*/
+                /*- if configuration[me.name].get(p['sc_attribute'], True) == '"none"' -*/
                     /*- set my_init_sc = alloc('sc_%s_init' % i.name, seL4_SchedContextObject) -*/
                     /*- set my_init_ntfn = alloc_entity('ntfn_%s_init' % i.name, seL4_NotificationObject, me.name, read=True, write=True) -*/
                     seL4_Word badge_/*? i.name ?*/;
@@ -489,7 +497,6 @@ int USED /*? p['entry_symbol'] ?*/(int thread_id) {
         /*# Interface threads #*/
         /*- for index, i in enumerate(all_interfaces) -*/
             /*- set tcb = alloc('tcb_%s' % i.name, seL4_TCBObject) -*/
-            /*- set my_sc = sc('%s_tcb_%s' % (me.name, i.name)) -*/
             case /*? tcb ?*/ : { /* Interface /*? i.name ?*/ */
                 /*- if options.fsupport_init -*/
                     /* Wait for `pre_init` to complete. */
@@ -502,19 +509,20 @@ int USED /*? p['entry_symbol'] ?*/(int thread_id) {
                     /* Wait for the `post_init` to complete. */
                     sync_sem_bare_wait(/*? post_init_ep ?*/, &/*? post_init_lock ?*/);
                 /*- endif -*/
-                /*- if my_sc == None -*/
-                    /* The __run function must do a SendRecv rather than a Recv to cause the sc to be unbound -*/
-                /*- endif -*/
+
+                /*# If this is a passive interface, the __run function must NBSendRecv to tell the control
+                 *# thread to unbind its sc, and simultaneously start waiting for rpc calls. #*/
                 extern int /*? i.name ?*/__run(void) __attribute__((weak));
                 if (/*? i.name ?*/__run) {
                     return /*? i.name ?*/__run();
                 } else {
                     /* Interface not connected. */
-                    /*- if my_sc == None -*/
+                    /*- set p = Perspective(instance=me.name, interface=i.name) -*/
+                    /*- if configuration[me.name].get(p['sc_attribute'], True) == '"none"' -*/
                         /*- set my_init_ntfn = alloc_entity('ntfn_%s_init' % i.name, seL4_NotificationObject, me.name, read=True, write=True) -*/
 
                         // Inform the main component thread that we're finished initializing
-                        seL4_Signal(/*? my_init_ntfn ?*/);
+                        seL4_Signal(/*? init_ntfn ?*/);
 
                         // Block forever
                         seL4_TCB_Suspend(/*? tcb ?*/);
