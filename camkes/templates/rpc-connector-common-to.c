@@ -198,8 +198,9 @@ seL4_Word /*? me.to_interface.name ?*/_get_badge(void) {
 /*- include 'array-typedef-check.c' -*/
 
 /*- set p = Perspective(instance=me.to_instance.name, interface=me.to_interface.name) -*/
+/*- set passive = configuration[me.to_instance.name].get(p['sc_attribute']) == '"none"' -*/
 int
-/*- if configuration[me.to_instance.name].get(p['sc_attribute'], True) == '"none"' -*/
+/*- if passive -*/
     /*? me.to_interface.name ?*/__run_passive(seL4_CPtr init_ntfn)
 /*- else -*/
     /*? me.to_interface.name ?*/__run(void)
@@ -211,7 +212,7 @@ int
 
     /*- set info = c_symbol('info') -*/
 
-    /*- if configuration[me.name].get(p['sc_attribute'], True) == '"none"' -*/
+    /*- if passive -*/
         /* This interface has a passive thread, must let the control thread know before waiting */
         seL4_MessageInfo_t /*? info ?*/ = seL4_MessageInfo_new(0, 0, 0, 0);
         /*? info ?*/ = seL4_NBSendRecv(init_ntfn, /*? info ?*/, /*? ep ?*/, & /*? me.to_interface.name ?*/_badge);

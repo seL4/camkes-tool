@@ -371,13 +371,15 @@ static void /*? init ?*/(void) {
     /*- endif -*/
 /*- endfor -*/
 
+/*- set passive_interfaces = set() -*/
 /* Scheduling Contexts */
 /*- for i in all_interfaces -*/
     /*- set p = Perspective(instance=me.name, interface=i.name) -*/
-    /*- if configuration[me.name].get(p['sc_attribute'], True) != '"none"' -*/
-        /*- set sc = alloc('sc_%s' % i.name, seL4_SchedContextObject) -*/
-    /*- else -*/
+    /*- if configuration[me.name].get(p['sc_attribute']) == '"none"' -*/
+        /*- do passive_interfaces.add(i.name) -*/
         /*- set init_sc = alloc('sc_%s_init' % i.name, seL4_SchedContextObject) -*/
+    /*- else -*/
+        /*- set sc = alloc('sc_%s' % i.name, seL4_SchedContextObject) -*/
     /*- endif -*/
 /*- endfor -*/
 
@@ -451,8 +453,7 @@ int USED /*? p['entry_symbol'] ?*/(int thread_id) {
             /* Wake all of our passive threads (by binding a scheduling context) so they can initialise */
             /*- for i in all_interfaces -*/
                 /*- set tcb = alloc('tcb_%s' % i.name, seL4_TCBObject) -*/
-                /*- set p = Perspective(instance=me.name, interface=i.name) -*/
-                /*- if configuration[me.name].get(p['sc_attribute'], True) == '"none"' -*/
+                /*- if i.name in passive_interfaces -*/
                     /*- set init_sc = alloc('sc_%s_init' % i.name, seL4_SchedContextObject) -*/
                     seL4_SchedContext_Bind(/*? init_sc ?*/, /*? tcb ?*/);
                 /*- endif -*/
@@ -479,12 +480,10 @@ int USED /*? p['entry_symbol'] ?*/(int thread_id) {
             /*- endif -*/
             /* Unbind scheduling context from all passive interface threads. */
             /*- for i in all_interfaces -*/
-                /*- set p = Perspective(instance=me.name, interface=i.name) -*/
-                /*- if configuration[me.name].get(p['sc_attribute'], True) == '"none"' -*/
+                /*- if i.name in passive_interfaces -*/
                     /*- set init_sc = alloc('sc_%s_init' % i.name, seL4_SchedContextObject) -*/
                     /*- set init_ntfn = alloc('ntfn_%s_init' % i.name, seL4_NotificationObject, read=True, write=True) -*/
-                    seL4_Word badge_/*? i.name ?*/;
-                    seL4_Wait(/*? init_ntfn ?*/, &badge_/*? i.name ?*/);
+                    seL4_Wait(/*? init_ntfn ?*/, NULL);
                     seL4_SchedContext_Unbind(/*? init_sc ?*/);
                 /*- endif -*/
             /*- endfor -*/
@@ -511,8 +510,7 @@ int USED /*? p['entry_symbol'] ?*/(int thread_id) {
                 /*- endif -*/
 
 
-                /*- set p = Perspective(instance=me.name, interface=i.name) -*/
-                /*- if configuration[me.name].get(p['sc_attribute'], True) == '"none"' -*/
+                /*- if i.name in passive_interfaces -*/
 
                     /*- set init_ntfn = alloc('ntfn_%s_init' % i.name, seL4_NotificationObject, read=True, write=True) -*/
 
