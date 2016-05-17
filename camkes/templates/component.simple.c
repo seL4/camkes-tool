@@ -208,15 +208,7 @@ static seL4_Error simple_camkes_get_frame_cap(void *data, void *paddr, int size_
         /*- endfor -*/
     /*- endif -*/
     /*- if len(untyped_mmio) > 0 -*/
-#ifdef CONFIG_KERNEL_STABLE
-        /*- for paddr, size_bits, cap in untyped_mmio -*/
-            if ((uintptr_t)paddr >= (uintptr_t)/*? paddr ?*/ && (uintptr_t)paddr + BIT(size_bits) <= (uintptr_t)/*? paddr ?*/ + (uintptr_t)/*? 2**size_bits ?*/) {
-                return seL4_Untyped_RetypeAtOffset(/*? cap ?*/, kobject_get_type(KOBJECT_FRAME, size_bits), (seL4_Word)(paddr - /*? paddr ?*/), size_bits, path->root, path->dest, path->destDepth, path->offset, 1);
-            }
-        /*- endfor -*/
-#else
-#error Untyped MMIO regions requested, but not running on experimental kernel
-#endif
+#error Untyped MMIO regions requested, but not supported
     /*- endif -*/
     return seL4_FailedLookup;
 }
@@ -363,11 +355,7 @@ static uintptr_t make_frame_get_paddr(seL4_CPtr untyped) {
     int error;
     uintptr_t ret;
     type = seL4_ARCH_4KPage;
-#ifdef CONFIG_KERNEL_STABLE
-    error = seL4_Untyped_RetypeAtOffset(untyped, type, 0, 12, /*? self_cnode ?*/, 0, 0, /*? holding_slot ?*/, 1);
-#else
     error = seL4_Untyped_Retype(untyped, type, 12, /*? self_cnode ?*/, 0, 0, /*? holding_slot ?*/, 1);
-#endif
     ERR_IF(error != seL4_NoError, camkes_error, ((camkes_error_t){
             .type = CE_SYSCALL_FAILED,
             .instance = "/*? me.name ?*/",
