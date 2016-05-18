@@ -25,6 +25,7 @@
 #include <stdint.h>
 #include <camkes/error.h>
 #include <camkes/tls.h>
+#include <utils/util.h>
 #include <vka/kobject_t.h>
 
 #include <simple/simple.h>
@@ -281,7 +282,7 @@ static uint8_t simple_camkes_cnode_size(void *data) {
     /*- endif -*/
 }
 
-static seL4_CPtr simple_camkes_get_IOPort_cap(void *data, uint16_t start_port, uint16_t end_port) {
+static seL4_CPtr UNUSED simple_camkes_get_IOPort_cap(void *data, uint16_t start_port, uint16_t end_port) {
     assert(start_port <= end_port);
     /*- for cap, start, end in ioports -*/
         if (start_port >= /*? start ?*/ && end_port <= /*? end ?*/) {
