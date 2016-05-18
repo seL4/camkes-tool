@@ -17,7 +17,7 @@ from __future__ import absolute_import, division, print_function, \
     unicode_literals
 from camkes.internal.seven import cmp, filter, map, zip
 
-import Context
+from .Context import new_context
 from camkes.internal.mkdirp import mkdirp
 from camkes.internal.version import version
 from camkes.templates import TemplateError, TEMPLATES
@@ -101,7 +101,7 @@ class Renderer(object):
 
     def render(self, me, assembly, template, obj_space, cap_space, shmem,
             **kwargs):
-        context = Context.new_context(me, assembly, obj_space, cap_space,
+        context = new_context(me, assembly, obj_space, cap_space,
             shmem, **kwargs)
 
         t = self.env.get_template(template)

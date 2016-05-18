@@ -59,4 +59,4 @@ else
     fi
 fi
 
-${PYTHON} ${O} ${DIR}/camkes/runner/__main__.py "${@}"
+${PYTHON} ${O} -m camkes.runner "${@}"
