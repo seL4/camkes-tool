@@ -21,7 +21,7 @@ from __future__ import absolute_import, division, print_function, \
 from camkes.internal.seven import cmp, filter, map, zip
 
 from .memoization import memoize
-import hashlib, os, re, six
+import hashlib, os, re, six, sys
 
 @memoize()
 def sources():
@@ -55,6 +55,26 @@ def sources():
                     content = open(abspath, 'rb').read()
                     result.append((abspath, hashlib.sha256(content).hexdigest()))
                     break
+
+    # Do the same for the python-capdl module sources. Though it's not strictly
+    # part of CAmkES, the manner in which we use it means that effectively it
+    # is. In particular, we want the cache to notice changes made by a developer
+    # touching its sources. Note that if this fails because python-capdl is not
+    # where we think it is, we just silently fall back on excluding its sources.
+    capdl_root = None
+    for path in sys.path:
+        candidate = os.path.join(path, 'capdl/__init__.py')
+        if os.path.exists(candidate):
+            # Found the location it is imported from.
+            capdl_root = os.path.abspath(os.path.dirname(candidate))
+            break
+    if capdl_root is not None:
+        for base, _, files in os.walk(capdl_root):
+            for f in files:
+                abspath = os.path.join(base, f)
+                if abspath.endswith('.py'):
+                    content = open(abspath, 'rb').read()
+                    result.append((abspath, hashlib.sha256(content).hexdigest()))
 
     return result
 
