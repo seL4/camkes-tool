@@ -150,8 +150,8 @@ class ConnectionWidget(QtWidgets.QGraphicsItem, PropertyInterface):
 
     @PropertyInterface.property_widget.getter
     def property_widget(self):
-        newWidget = ConnectionPropertyWidget(self);
-        return newWidget;
+        newWidget = ConnectionPropertyWidget(self)
+        return newWidget
 
     # --- INITIALISATION ---
 

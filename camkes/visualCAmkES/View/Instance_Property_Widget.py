@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import math, six
-
-from PyQt5 import QtGui, QtWidgets, QtCore
+from PyQt5 import QtWidgets
 
 import Instance_Widget
 from Interface.Property import PropertyInterface
@@ -14,7 +12,7 @@ class InstancePropertyWidget(QtWidgets.QGroupBox):
     """
     ConnectionPropertyWidget - shows the properties of a connection.
     """
-   
+
     # Connection Widget that this widget represent
     @property
     def instance_widget(self):
@@ -25,21 +23,6 @@ class InstancePropertyWidget(QtWidgets.QGroupBox):
     def instance_widget(self, value):
         assert isinstance(value, Instance_Widget.InstanceWidget)
         self._instance_widget = value
-
-    # the controller to the graph
-    # Not needed at the moment
-    '''
-    @property
-    def graph_widget(self):
-        assert self._graph_widget is not None
-        
-        return self._graph_widget
-
-    @graph_widget.setter
-    def graph_widget(self, value):
-        assert isinstance(value, GraphWidget)
-        self._graph_widget = value
-   ''' 
 
     # views
 
@@ -56,19 +39,19 @@ class InstancePropertyWidget(QtWidgets.QGroupBox):
         if self._type_widget is None:
             self._type_widget = QtWidgets.QLabel(self.instance_widget.component_type)
         return self._type_widget
-    
+
     @property
     def hardware_widget(self):
         if self._hardware_widget is None and self.instance_widget.hardware:
             self._hardware_widget = QtWidgets.QLabel("Hardware")
         return self._hardware_widget
-    
+
     @property
     def control_widget(self):
         if self._control_widget is None and self.instance_widget.control:
             self._control_widget = QtWidgets.QLabel("Control")
         return self._control_widget
-    
+
     # --- INITIALISATION ---
 
     def __init__(self, instance_widget):
@@ -79,11 +62,11 @@ class InstancePropertyWidget(QtWidgets.QGroupBox):
         self._control_widget = None
 
         self.instance_widget = instance_widget
-        
+
         super(InstancePropertyWidget, self).__init__()
 
         grid_layout = QtWidgets.QGridLayout()
-        
+
         row = 0
         # Following must be done after setting instance widget
         # Name
@@ -100,7 +83,7 @@ class InstancePropertyWidget(QtWidgets.QGroupBox):
         if self.hardware_widget:
             grid_layout.addWidget(self.hardware_widget, row, 0, 1, -1)
             row = row + 1
-        
+
         # Control
         if self.control_widget:
             grid_layout.addWidget(self.control_widget, row, 0, 1, -1)
@@ -112,7 +95,7 @@ class InstancePropertyWidget(QtWidgets.QGroupBox):
         grid_layout.addWidget(separator, row, 0, 1, -1)
         row = row + 1
 
-        
+
         # List all connection
         grid_layout.addWidget(QtWidgets.QLabel("Connections"), row, 0, 1, -1)
         row = row + 1
@@ -134,7 +117,7 @@ class InstancePropertyWidget(QtWidgets.QGroupBox):
             grid_layout.addWidget(QtWidgets.QLabel(emit_dict["Interface_type"] + \
                     " : " + emit_dict["Name"]), row, 1)
             row = row + 1
-        
+
         for consume_dict in self.instance_widget.consumes:
             grid_layout.addWidget(QtWidgets.QLabel("Event"), row, 0)
             grid_layout.addWidget(QtWidgets.QLabel(consume_dict["Interface_type"] + \
@@ -146,6 +129,6 @@ class InstancePropertyWidget(QtWidgets.QGroupBox):
             grid_layout.addWidget(QtWidgets.QLabel(dataport_dict["Interface_type"] + \
                     " : " + dataport_dict["Name"]), row, 1)
             row = row + 1
-        
+
         self.setLayout(grid_layout)
 

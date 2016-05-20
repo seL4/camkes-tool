@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import math, six
-
-from PyQt5 import QtGui, QtWidgets, QtCore
+from PyQt5 import QtWidgets
 
 from Interface.Property import PropertyInterface
 import Connection_Widget
@@ -25,21 +23,6 @@ class ConnectionPropertyWidget(QtWidgets.QGroupBox):
     def connection_widget(self, value):
         assert isinstance(value, Connection_Widget.ConnectionWidget)
         self._connection_widget = value
-
-    # the controller to the graph
-    # Not needed at the moment
-    '''
-    @property
-    def graph_widget(self):
-        assert self._graph_widget is not None
-        
-        return self._graph_widget
-
-    @graph_widget.setter
-    def graph_widget(self, value):
-        assert isinstance(value, GraphWidget)
-        self._graph_widget = value
-   ''' 
 
     # views
 

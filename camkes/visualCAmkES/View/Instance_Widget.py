@@ -3,17 +3,13 @@
 
 import six
 import math
-import random
 
 from PyQt5 import QtGui, QtWidgets, QtCore
 
 import Connection_Widget
 from Model import Common
-from Interface.Property import PropertyInterface 
+from Interface.Property import PropertyInterface
 from Instance_Property_Widget import InstancePropertyWidget
-
-random.seed(20)
-
 
 # TODO: Delete itself from all connections when __del__ ed
 
