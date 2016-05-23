@@ -19,7 +19,7 @@ from camkes.internal.seven import cmp, filter, map, zip
 import os, re, six, subprocess
 from capdl import Cap, CNode, Frame, TCB, page_sizes, lookup_architecture
 from camkes.internal.memoization import memoize
-from NameMangling import Perspective
+from .NameMangling import Perspective
 
 PAGE_SIZE = 4096 # bytes
 

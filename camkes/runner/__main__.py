@@ -39,9 +39,9 @@ from camkes.internal.cacheb import Cache as LevelBCache, \
 import camkes.internal.log as log
 from camkes.internal.version import sources, version
 from camkes.templates import TemplateError
-from NameMangling import Perspective, RUNNER
-from Renderer import Renderer
-from Filters import CAPDL_FILTERS
+from camkes.runner.NameMangling import Perspective, RUNNER
+from camkes.runner.Renderer import Renderer
+from camkes.runner.Filters import CAPDL_FILTERS
 
 import argparse, collections, functools, jinja2, locale, os, re, sqlite3, \
     traceback

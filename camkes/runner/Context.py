@@ -45,7 +45,7 @@ import camkes.ast as AST
 from camkes.internal.DeterministicSet import DeterministicSet
 from camkes.internal.Counter import Counter
 from camkes.templates import macros, TemplateError
-from NameMangling import TEMPLATES, FILTERS, Perspective
+from .NameMangling import TEMPLATES, FILTERS, Perspective
 
 def new_context(entity, assembly, obj_space, cap_space, shmem, **kwargs):
     '''Create a new default context for rendering.'''
