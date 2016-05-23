@@ -514,7 +514,7 @@ int USED /*? p['entry_symbol'] ?*/(int thread_id) {
 
                     /*- set init_ntfn = alloc('ntfn_%s_init' % i.name, seL4_NotificationObject, read=True, write=True) -*/
 
-                    /*# If this is a passive interface, the __run function must NBSendRecv to tell the control
+                    /*# If this is a passive interface, the __run function must SignalRecv to tell the control
                      *# thread to unbind its sc, and simultaneously start waiting for rpc calls. #*/
                     extern int /*? i.name ?*/__run_passive(seL4_CPtr init_ntfn) __attribute__((weak));
                     if (/*? i.name ?*/__run_passive) {
