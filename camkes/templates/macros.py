@@ -20,7 +20,7 @@ from camkes.internal.seven import cmp, filter, map, zip
 from camkes.ast import Composition, Instance, Parameter
 from camkes.internal.isabelle_symbols import ISABELLE_SYMBOLS
 from capdl import page_sizes
-import math, os, re, six, subprocess
+import collections, math, os, re, six, subprocess
 
 def header_guard(filename):
     return '#ifndef %(guard)s\n' \
@@ -191,3 +191,9 @@ def isabelle_encode(content):
 
 def isabelle_decode(content):
     return reduce(lambda acc, x: acc.replace(x[1], x[0]), ISABELLE_SYMBOLS, content)
+
+def to_isabelle_set(xs):
+    assert isinstance(xs, collections.Iterable)
+    if all(isinstance(x, six.string_types) for x in xs):
+        return '{%s}' % ', '.join('\'\'%s\'\'' % x for x in xs)
+    raise NotImplementedError
