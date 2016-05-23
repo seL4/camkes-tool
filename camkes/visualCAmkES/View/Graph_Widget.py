@@ -15,6 +15,7 @@ from Model import Common
 from Connection_Widget import ConnectionWidget, DataportWidget, ProcedureWidget, EventWidget
 from Instance_Widget import InstanceWidget
 from Save_Option_Dialog import SaveOptionDialog
+from Interface.Property import PropertyInterface
 
 
 class GraphWidget(QtWidgets.QGraphicsView):
@@ -114,6 +115,7 @@ class GraphWidget(QtWidgets.QGraphicsView):
             # If layout doesn't exist use graphviz to place nodes in position
             self.autolayout()
 
+    # ----- ACTIONS -----
     @property
     def export_action(self):
         if self._export_action is None:
@@ -133,9 +135,14 @@ class GraphWidget(QtWidgets.QGraphicsView):
             self._show_components_action.triggered.connect(self.show_all_components)
         return self._show_components_action
 
+    # ---- OTHER WIDGETS ----
+    @property
+    def property_widget_dock(self):
+        return self._property_widget_dock
+
     # --- INITIALISATION ---
 
-    def __init__(self):
+    def __init__(self, property_widget_dock):
         super(GraphWidget, self).__init__()
         self._connection_widgets = None
         self._widget_instances = None
@@ -147,6 +154,7 @@ class GraphWidget(QtWidgets.QGraphicsView):
         self._autolayout_button = None
         self._ast = None
         self._color_seed = None
+        self._property_widget_dock = property_widget_dock
 
         self._context_menu = None
 
@@ -660,6 +668,19 @@ class GraphWidget(QtWidgets.QGraphicsView):
             self.close_context_menu()
 
         super(GraphWidget, self).mousePressEvent(mouse_event)
+
+    def mouseDoubleClickEvent(self, mouse_event):
+        # Get scene position from global position
+        scene_position = self.mapToScene(mouse_event.pos())
+
+        item = self.scene().itemAt(scene_position, self.transform())
+
+        if mouse_event.button() == QtCore.Qt.LeftButton:
+            # If item has property to show and edit
+
+            if isinstance(item, PropertyInterface):
+                self.property_widget_dock.setWidget(item.property_widget)
+                self.property_widget_dock.setVisible(True)
 
     def mouseReleaseEvent(self, mouse_event):
         """

@@ -3,20 +3,18 @@
 
 import six
 import math
-import random
 
 from PyQt5 import QtGui, QtWidgets, QtCore
 
 import Connection_Widget
 from Model import Common
-
-random.seed(20)
-
+from Interface.Property import PropertyInterface
+from Instance_Property_Widget import InstancePropertyWidget
 
 # TODO: Delete itself from all connections when __del__ ed
 
 
-class InstanceWidget(QtWidgets.QGraphicsWidget):
+class InstanceWidget(QtWidgets.QGraphicsWidget, PropertyInterface):
     """
     InstanceWidget - a View representation of camkes.ast.Instance.
     If model changes, update the fields in InstanceWidget.
@@ -38,7 +36,7 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
         self._velocity = value
 
     # --- Information about Instance ---
-
+    
     @property
     def name(self):
         if self._name is None:
@@ -343,6 +341,10 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
         assert isinstance(value.widget(), QtWidgets.QMenu)
         self._context_menu = value
 
+    @property
+    def property_widget(self):
+        self._property_widget = InstancePropertyWidget(self)
+        return self._property_widget
     # -------
 
     # Signals & Slots
@@ -370,6 +372,7 @@ class InstanceWidget(QtWidgets.QGraphicsWidget):
         self._context_menu = None
         self.context_menu = context_menu
         self._hidden = False
+        self._property_widget = None
 
         self._connections_list = []
 

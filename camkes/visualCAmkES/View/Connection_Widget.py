@@ -5,10 +5,12 @@ import math, six
 
 from PyQt5 import QtGui, QtWidgets, QtCore
 
+from Interface.Property import PropertyInterface
 from Instance_Widget import InstanceWidget
+from Connection_Property_Widget import ConnectionPropertyWidget
 
 
-class ConnectionWidget(QtWidgets.QGraphicsItem):
+class ConnectionWidget(QtWidgets.QGraphicsItem, PropertyInterface):
     """
     ConnectionWidget - a View represetation for the camkes.ast.Connection objects.
     This widget is a one time use. Instead of attempting to sync this connection with the model, just make a new object.
@@ -145,6 +147,11 @@ class ConnectionWidget(QtWidgets.QGraphicsItem):
         self._dest_angle = angle
 
         self.update_path()
+
+    @PropertyInterface.property_widget.getter
+    def property_widget(self):
+        newWidget = ConnectionPropertyWidget(self)
+        return newWidget
 
     # --- INITIALISATION ---
 
