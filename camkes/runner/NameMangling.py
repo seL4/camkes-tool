@@ -220,10 +220,10 @@ DERIVATIONS = {
         ForwardDeriver('%(interface)s_domain', 'domain_attribute'),
         BackwardDeriver(r'^([a-zA-Z_]\w*)_domain$', 'domain_attribute', 'interface'),
 
-        ControlDeriver(r'^_sc$', 'sc_attribute'),
+        ControlDeriver(r'_sc$', 'sc_attribute'),
         FromControlDeriver('_sc', 'sc_attribute'),
         ForwardDeriver('%(interface)s_sc', 'sc_attribute'),
-        BackwardDeriver(r'^([^_].*)_sc$', 'sc_attribute', 'interface'),
+        BackwardDeriver(r'([^_].*)_sc$', 'sc_attribute', 'interface'),
 
         # BackwardDeriver(r'^([^_].*)_sc__preinit$', 'sc', 'preinit'),
 
