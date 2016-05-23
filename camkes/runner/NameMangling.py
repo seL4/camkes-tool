@@ -156,10 +156,10 @@ DERIVATIONS = {
         BackwardDeriver(r'^(.+)_tls_setup$', 'tls_symbol', 'instance'),
         ForwardDeriver('camkes_dma_pool', 'dma_pool_symbol'),
 
-        ControlDeriver(r'_sc$', 'sc_attribute'),
-        FromControlDeriver('_sc', 'sc_attribute'),
-        ForwardDeriver('%(interface)s_sc', 'sc_attribute'),
-        BackwardDeriver(r'([^_].*)_sc$', 'sc_attribute', 'interface'),
+        ControlDeriver(r'_passive$', 'passive_attribute'),
+        FromControlDeriver('_passive', 'passive_attribute'),
+        ForwardDeriver('%(interface)s_passive', 'passive_attribute'),
+        BackwardDeriver(r'([^_].*)_passive$', 'passive_attribute', 'interface'),
     ], FILTERS:[
         ForwardDeriver('%(instance)s_tcb_%(interface)s', 'tcb'),
         FromControlDeriver('%(instance)s_tcb_0_control', 'tcb'),
@@ -225,10 +225,10 @@ DERIVATIONS = {
         ForwardDeriver('%(interface)s_domain', 'domain_attribute'),
         BackwardDeriver(r'^([a-zA-Z_]\w*)_domain$', 'domain_attribute', 'interface'),
 
-        ControlDeriver(r'_sc$', 'sc_attribute'),
-        FromControlDeriver('_sc', 'sc_attribute'),
-        ForwardDeriver('%(interface)s_sc', 'sc_attribute'),
-        BackwardDeriver(r'([^_].*)_sc$', 'sc_attribute', 'interface'),
+        ControlDeriver(r'_passive$', 'passive_attribute'),
+        FromControlDeriver('_passive', 'passive_attribute'),
+        ForwardDeriver('%(interface)s_passive', 'passive_attribute'),
+        BackwardDeriver(r'([^_].*)_passive$', 'passive_attribute', 'interface'),
 
         # BackwardDeriver(r'^([^_].*)_sc__preinit$', 'sc', 'preinit'),
 

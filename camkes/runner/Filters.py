@@ -238,12 +238,12 @@ def set_tcb_caps(ast, obj_space, cspaces, elfs, options, **_):
             sc = None
             sc_name = perspective['sc']
             # first check if this thread has been configured to not have an SC
-            sc_attribute = perspective['sc_attribute']
+            passive_attribute = perspective['passive_attribute']
             name = perspective['instance']
-            sc_attributes = filter(lambda x: \
-                x.instance == name and x.attribute == sc_attribute,
+            passive_attributes = filter(lambda x: \
+                x.instance == name and x.attribute == passive_attribute,
                 settings)
-            if len(sc_attributes) != 1 or sc_attributes[0].value != '"none"':
+            if len(passive_attributes) != 1 or passive_attributes[0].value:
                 scs = filter(lambda x: x.name == sc_name, obj_space.spec.objs) 
                 if len(scs) > 1:
                     raise Exception('Multiple SCs found for %s' % group)

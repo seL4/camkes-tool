@@ -375,7 +375,7 @@ static void /*? init ?*/(void) {
 /* Scheduling Contexts */
 /*- for i in all_interfaces -*/
     /*- set p = Perspective(instance=me.name, interface=i.name) -*/
-    /*- if configuration[me.name].get(p['sc_attribute']) == '"none"' -*/
+    /*- if parse_bool(configuration[me.name].get(p['passive_attribute'], 'false')) -*/
         /*- do passive_interfaces.add(i.name) -*/
         /*- set init_sc = alloc('sc_%s_init' % i.name, seL4_SchedContextObject) -*/
     /*- else -*/

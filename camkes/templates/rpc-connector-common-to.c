@@ -199,7 +199,7 @@ seL4_Word /*? me.to_interface.name ?*/_get_badge(void) {
 /*- include 'array-typedef-check.c' -*/
 
 /*- set p = Perspective(instance=me.to_instance.name, interface=me.to_interface.name) -*/
-/*- set passive = configuration[me.to_instance.name].get(p['sc_attribute']) == '"none"' -*/
+/*- set passive = parse_bool(configuration[me.to_instance.name].get(p['passive_attribute'], 'false')) -*/
 int
 /*- if passive -*/
     /*? me.to_interface.name ?*/__run_passive(seL4_CPtr init_ntfn)
