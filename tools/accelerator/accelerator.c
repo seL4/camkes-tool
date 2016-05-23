@@ -118,7 +118,7 @@ static int copy_file(const char *source, const char *destination) {
         goto fail2;
     }
 
-    int out = open(destination, O_WRONLY|O_CREAT, st.st_mode);
+    int out = open(destination, O_WRONLY|O_CREAT|O_TRUNC, st.st_mode);
     if (unlikely(out == -1)) {
         ERR("failed to open %s for writing", destination);
         goto fail2;
