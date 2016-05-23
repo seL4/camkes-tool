@@ -23,6 +23,7 @@
 #include <camkes/marshal.h>
 #include <camkes/error.h>
 #include <camkes/tls.h>
+#include <camkes/sel4.h>
 #include <sel4/sel4.h>
 #include <camkes/dataport.h>
 #include <utils/util.h>
@@ -228,13 +229,13 @@ int
             /*- set result = c_symbol() -*/
             /*- set cnode = alloc_cap('cnode', my_cnode, write=True) -*/
             /*- set reply_cap_slot = alloc_cap('reply_cap_slot', None) -*/
-            int /*? result ?*/ UNUSED = seL4_CNode_SaveCaller(/*? cnode ?*/, /*? reply_cap_slot ?*/, 32);
+            int /*? result ?*/ UNUSED = camkes_cnode_save_caller(/*? cnode ?*/, /*? reply_cap_slot ?*/, 32);
             ERR_IF(/*? result ?*/ != 0, /*? error_handler ?*/, ((camkes_error_t){
                     .type = CE_SYSCALL_FAILED,
                     .instance = "/*? instance ?*/",
                     .interface = "/*? interface ?*/",
                     .description = "failed to save reply cap in /*? name ?*/",
-                    .syscall = CNodeSaveCaller,
+                    .syscall = CamkesCNodeSaveCaller,
                     .error = /*? result ?*/,
                 }), ({
                     // @ikuz: should this be a SignalRecv? otherwise the caller will be blocked waiting for a reply (or an error message)?

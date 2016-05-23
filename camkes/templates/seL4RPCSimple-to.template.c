@@ -10,6 +10,7 @@
 
 #include <assert.h>
 #include <camkes/tls.h>
+#include <camkes/sel4.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -276,7 +277,7 @@ static seL4_MessageInfo_t /*? me.to_interface.name ?*/__run_internal(bool /*? fi
         /*? info ?*/ = seL4_Recv(/*? ep ?*/, NULL);
 
         /*- if not options.fcall_leave_reply_cap or len(me.to_instance.type.provides + me.to_instance.type.uses + me.to_instance.type.consumes + me.to_instance.type.mutexes + me.to_instance.type.semaphores) > 1 -*/
-            int /*? result ?*/ UNUSED = seL4_CNode_SaveCaller(/*? cnode ?*/, /*? reply_cap_slot ?*/, 32);
+            int /*? result ?*/ UNUSED = camkes_cnode_save_caller(/*? cnode ?*/, /*? reply_cap_slot ?*/, 32);
             assert(/*? result ?*/ == 0);
         /*- endif -*/
     }
@@ -298,7 +299,7 @@ static seL4_MessageInfo_t /*? me.to_interface.name ?*/__run_internal(bool /*? fi
                 /*- if not options.fcall_leave_reply_cap or len(me.to_instance.type.provides + me.to_instance.type.uses + me.to_instance.type.consumes + me.to_instance.type.mutexes + me.to_instance.type.semaphores) > 1 -*/
                     seL4_Send(/*? reply_cap_slot ?*/, /*? info ?*/);
                     /*? info ?*/ = seL4_Recv(/*? ep ?*/, NULL);
-                    int /*? result ?*/ UNUSED = seL4_CNode_SaveCaller(/*? cnode ?*/, /*? reply_cap_slot ?*/, 32);
+                    int /*? result ?*/ UNUSED = camkes_cnode_save_caller(/*? cnode ?*/, /*? reply_cap_slot ?*/, 32);
                     assert(/*? result ?*/ == 0);
                 /*- else -*/
                     seL4_ReplyRecv(/*? ep ?*/, /*? info ?*/, NULL);
