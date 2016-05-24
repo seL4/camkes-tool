@@ -95,7 +95,7 @@ where
     []"
 
 lemma wf_/*? i.name ?*/: "wellformed_procedure /*? i.name ?*/"
-  by eval
+  by code_simp
 /*- endfor -*/
 
 (* Event interfaces *)
@@ -106,7 +106,7 @@ where
     "/*? i.name ?*/ \<equiv> /*? i.id ?*/"
 
 lemma wf_/*? i.name ?*/: "wellformed_event /*? i.name ?*/"
-  by eval
+  by code_simp
 /*- endfor -*/
 
 (* Dataport interfaces *)
@@ -123,7 +123,7 @@ where
     "
 
 lemma wf_/*? i.name ?*/: "wellformed_dataport /*? i.name ?*/"
-  by eval
+  by code_simp
 /*- endfor -*/
 
 /*- for c in uniq(map(lambda('x: x.type'), me.composition.instances)) -*/
@@ -171,7 +171,7 @@ where
     \<rparr>"
 
 lemma wf_/*? c.name ?*/: "wellformed_component /*? c.name ?*/"
-  by eval
+  by code_simp
 /*- endfor -*/
 
 /*- for i in me.composition.instances -*/
@@ -181,7 +181,7 @@ where
     "/*? i.name ?*/ \<equiv> /*? i.type.name ?*/"
 
 lemma wf_/*? i.name ?*/: "wellformed_component /*? i.name ?*/"
-  by eval
+  by code_simp
 /*- endfor -*/
 
 /*- for c in me.composition.connections -*/
@@ -201,7 +201,7 @@ where
     \<rparr>"
 
 lemma wf_/*? c.name ?*/: "wellformed_connection /*? c.name ?*/"
-  by eval
+  by code_simp
 /*- endfor -*/
 
 definition
@@ -221,7 +221,7 @@ where
     \<rparr>"
 
 lemma wf_/*? composition ?*/: "wellformed_composition /*? composition ?*/"
-  by eval
+  by code_simp
 
 definition
     /*? configuration ?*/ :: "configuration option"
@@ -241,7 +241,7 @@ where
 lemma wf_/*? configuration ?*/:
 /*- if me.configuration -*/
     "wellformed_configuration the /*? configuration ?*/"
-    by eval
+    by code_simp
 /*- else -*/
     /*# If there is no configuration it is trivially wellformed. #*/
     "True"
@@ -257,6 +257,6 @@ where
     \<rparr>"
 
 lemma wf_/*? assembly ?*/: "wellformed_assembly /*? assembly ?*/"
-  by eval
+  by code_simp
 
 end
