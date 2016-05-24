@@ -216,6 +216,9 @@ def new_context(entity, assembly, obj_space, cap_space, shmem, **kwargs):
         #  ... my template ...
         #  /*- endif -*/
         'included':set(),
+
+        # Parses a bool from a case-insensitive string
+        'parse_bool':parse_bool,
     }.items() + kwargs.items())
 
 def _assert(condition):
@@ -397,3 +400,12 @@ def sizeof(word_size, t):
         return 1
     else:
         raise NotImplementedError
+
+def parse_bool(string):
+    lowercase = string.lower()
+    if lowercase == 'true':
+        return True
+    elif lowercase == 'false':
+        return False
+    else:
+        raise Exception('Boolean string expected. Got "%s".' % string)
