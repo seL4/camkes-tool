@@ -139,25 +139,33 @@ class Accumulate(Pass):
         return None
 
 class CompressBrackets(Pass):
+    sub1 = re.compile(r'([^ ]) \)')
+    sub2 = re.compile(r'\( ([^ ])')
+
     def __init__(self):
         super(CompressBrackets, self).__init__('compress-brackets', True,
             'remove space between leading and trailing brackets')
     def __call__(self, line, *_):
-        return re.sub(r'([^ ]) \)', r'\1)', re.sub(r'\( ([^ ])', r'(\1', line))
+        return self.sub1.sub(r'\1)', self.sub2.sub(r'(\1', line))
 
 class CompressBraces(Pass):
+    sub1 = re.compile(r'([^ ]) \}')
+    sub2 = re.compile(r'\{ ([^ ])')
+
     def __init__(self):
         super(CompressBraces, self).__init__('compress-braces', True,
             'remove space between leading and trailing braces')
     def __call__(self, line, *_):
-        return re.sub(r'([^ ]) \}', r'\1}', re.sub(r'\{ ([^ ])', r'{\1', line))
+        return self.sub1.sub(r'\1}', self.sub2.sub(r'{\1', line))
 
 class CompressCommas(Pass):
+    sub1 = re.compile(r'([^ ]) ,')
+
     def __init__(self):
         super(CompressCommas, self).__init__('compress-commas', True,
             'remove space before commas')
     def __call__(self, line, *_):
-        return re.sub(r'([^ ]) ,', r'\1,', line)
+        return self.sub1.sub(r'\1,', line)
 
 def main():
     p = argparse.ArgumentParser(description='Isabelle theory pre-processor')

@@ -19,8 +19,9 @@ from camkes.internal.seven import cmp, filter, map, zip
 
 from camkes.ast import Composition, Instance, Parameter
 from camkes.internal.isabelle_symbols import ISABELLE_SYMBOLS
-from capdl import page_sizes
-import math, os, re, six, subprocess
+from capdl import ASIDPool, CNode, Endpoint, Frame, IODevice, IOPageTable, \
+    Notification, page_sizes, PageDirectory, PageTable, TCB, Untyped
+import collections, math, os, re, six, subprocess
 
 def header_guard(filename):
     return '#ifndef %(guard)s\n' \
@@ -191,3 +192,64 @@ def isabelle_encode(content):
 
 def isabelle_decode(content):
     return reduce(lambda acc, x: acc.replace(x[1], x[0]), ISABELLE_SYMBOLS, content)
+
+def to_isabelle_set(xs):
+    assert isinstance(xs, collections.Iterable)
+    if all(isinstance(x, six.string_types) for x in xs):
+        return '{%s}' % ', '.join('\'\'%s\'\'' % x for x in xs)
+    raise NotImplementedError
+
+def capdl_sorter(arch, a, b):
+    '''
+    This function replicates `sorter` from the CapDL translator. The purpose is
+    to enable us to sort objects in templates in the same way that the
+    translator does.
+    '''
+
+    def size_of(obj):
+        '''
+        This function logic is clagged from the CapDL translator's `sizeOf`.
+        '''
+        if isinstance(obj, Frame):
+            return obj.size
+        elif isinstance(obj, Untyped):
+            return 2 ** obj.size_bits
+        elif isinstance(obj, CNode):
+            if obj.size_bits == 'auto':
+                raise NotImplementedError
+            return 16 * 2 ** obj.size_bits
+        elif isinstance(obj, Endpoint):
+            return 16
+        elif isinstance(obj, Notification):
+            return 16
+        elif isinstance(obj, ASIDPool):
+            return 4 * 2 ** 10
+        elif isinstance(obj, IOPageTable):
+            return 4 * 2 ** 10
+        elif isinstance(obj, IODevice):
+            return 1
+        elif isinstance(obj, TCB):
+            if arch in ('arm', 'arm_hyp'):
+                return 512
+            elif arch == 'ia32':
+                return 2 ** 10
+        elif isinstance(obj, PageDirectory):
+            if arch in ('arm', 'arm_hyp'):
+                return 16 * 2 ** 10
+            elif arch == 'ia32':
+                return 4 * 2 ** 10
+        elif isinstance(obj, PageTable):
+            if arch == 'arm':
+                return 2 ** 10
+            elif arch == 'arm_hyp':
+                return 2 * 2 ** 10
+            elif arch == 'ia32':
+                return 4 * 2 ** 10
+        raise NotImplementedError
+
+    a_size = size_of(a)
+    b_size = size_of(b)
+
+    if a_size != b_size:
+        return (a_size < b_size) - (a_size > b_size)
+    return (a.name > b.name) - (a.name < b.name)

@@ -24,8 +24,8 @@ from __future__ import absolute_import, division, print_function, \
 from camkes.internal.seven import cmp, filter, map, zip
 
 from functools import partial
-import capdl, code, collections, copy, inspect, itertools, numbers, os, pdb, \
-    re, six, sys, textwrap
+import capdl, code, collections, copy, inspect, itertools, functools, numbers, \
+    os, pdb, re, six, sys, textwrap
 
 from capdl.Allocator import seL4_TCBObject, seL4_EndpointObject, \
     seL4_NotificationObject, seL4_CanRead, seL4_CanWrite, seL4_AllRights, \
@@ -142,6 +142,7 @@ def new_context(entity, assembly, obj_space, cap_space, shmem, **kwargs):
         # Expose some library functions
         'assert':_assert,
         'itertools':itertools,
+        'functools':functools,
         'lambda':lambda s: eval('lambda %s' % s),
         'numbers':numbers,
         'os':os,

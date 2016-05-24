@@ -15,7 +15,7 @@
 /*- set thy = os.path.splitext(os.path.basename(options.outfile.name))[0] -*/
 header {* RPC Receive *}
 (*<*)
-theory /*? thy ?*/ imports
+theory "/*? thy ?*/" imports
   "~~/../l4v/tools/c-parser/CTranslation"
   "~~/../l4v/tools/autocorres/AutoCorres"
   "~~/../l4v/tools/autocorres/NonDetMonadEx"
@@ -49,7 +49,7 @@ install_C_file "/*? thy ?*/_seL4RPCSimple_pruned.c_pp"
  *)
 autocorres [ts_rules = nondet, no_heap_abs = seL4_SetMR] "/*? thy ?*/_seL4RPCSimple_pruned.c_pp"
 
-context /*? thy ?*/_seL4RPCSimple_pruned begin
+context "/*? thy ?*/_seL4RPCSimple_pruned" begin
 
 definition
   seL4_SetMR_lifted' :: "int \<Rightarrow> word32 \<Rightarrow> lifted_globals \<Rightarrow> (unit \<times> lifted_globals) set \<times> bool"
@@ -413,7 +413,7 @@ text {*
 /*- for m in me.interface.type.methods -*/
 
 (** TPP: condense = True *)
-lemma /*? thy ?*/_/*? m.name ?*/_internal_nf:
+lemma "/*? thy ?*/_/*? m.name ?*/_internal_nf":
   notes seL4_GetMR_wp[wp] seL4_SetMR_wp[wp]
   shows
   /*- set state0 = isabelle_symbol('s0') -*/
@@ -439,8 +439,8 @@ lemma /*? thy ?*/_/*? m.name ?*/_internal_nf:
   done
 (** TPP: condense = False *)
 
-lemmas /*? thy ?*/_/*? m.name ?*/_internal_wp[wp_unsafe] =
-  /*? thy ?*/_/*? m.name ?*/_internal_nf[THEN validNF_make_schematic_post, simplified]
+lemmas "/*? thy ?*/_/*? m.name ?*/_internal_wp"[wp_unsafe] =
+  "/*? thy ?*/_/*? m.name ?*/_internal_nf"[THEN validNF_make_schematic_post, simplified]
 
 /*- endfor -*/
 
@@ -452,7 +452,7 @@ text {*
 *}
 
 (** TPP: condense = True *)
-lemma /*? thy ?*/_run_internal_wp[wp_unsafe]:
+lemma "/*? thy ?*/_run_internal_wp"[wp_unsafe]:
   notes seL4_SetMR_axiom[simp] seL4_SetMR_wp[wp] seL4_GetMR_wp[wp]
   /*- set state = isabelle_symbol('s') -*/
   shows

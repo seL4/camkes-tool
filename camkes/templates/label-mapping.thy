@@ -9,7 +9,7 @@
  #*/
 
 /*- set thy = os.path.splitext(os.path.basename(options.outfile.name))[0] -*/
-theory /*? thy ?*/ imports
+theory "/*? thy ?*/" imports
   CapDLSpec (* generated *)
   "~~/../l4v/camkes/cdl-refine/Generator_CAMKES_CDL"
   ArchSpec (* generated *)

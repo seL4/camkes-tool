@@ -65,11 +65,17 @@ class SourceLocation(object):
             assert isinstance(self.term, plyplus.ParseError)
 
             # Try to extract the line number from a plyplus error.'''
-            m = re.search(r'^.*\sline\s+(?P<line>\d+)\s+col\s+(?P<col>\d+)$',
+            m = re.search(r'^Syntax error in input at \'(?P<token>[^\']*)\' '
+                r'\(type [^\)]*\) line\s+(?P<line>\d+)'
+                r'(?:\s+col\s+(?P<col>\d+))?$',
                 str(self.term), flags=re.MULTILINE)
             if m is not None:
                 plyplus_line = int(m.group('line'))
-                self._min_col = int(m.group('col'))
+                if m.group('col') is not None:
+                    self._min_col = int(m.group('col'))
+                    if len(m.group('token')) > 0:
+                        self._max_col = self._min_col + len(m.group('token')) \
+                            - 1
             else:
                 plyplus_line = None
 
