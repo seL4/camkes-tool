@@ -402,10 +402,11 @@ def sizeof(word_size, t):
         raise NotImplementedError
 
 def parse_bool(string):
-    lowercase = string.lower()
-    if lowercase == 'true':
-        return True
-    elif lowercase == 'false':
-        return False
-    else:
-        raise Exception('Boolean string expected. Got "%s".' % string)
+    if isinstance(string, str):
+        lowercase = string.lower()
+        if lowercase == 'true':
+            return True
+        elif lowercase == 'false':
+            return False
+
+    raise Exception('Boolean string expected. Got "%s".' % string)
