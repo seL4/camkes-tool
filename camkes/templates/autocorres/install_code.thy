@@ -35,7 +35,7 @@ autocorres [ts_rules = nondet, skip_word_abs] "/*? thy ?*/_pruned.c_pp"
   ML {* PolyML.fullGC () *}
 /*- endif -*/
 
-context /*? thy ?*/_pruned begin
+context "/*? thy ?*/_pruned" begin
 
 /*- include 'autocorres/abort.thy' -*/
 /*- include 'autocorres/inv.thy' -*/

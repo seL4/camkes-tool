@@ -15,7 +15,7 @@
 /*- set thy = os.path.splitext(os.path.basename(options.outfile.name))[0] -*/
 header {* Shared Memory *}
 (*<*)
-theory /*? thy ?*/ imports
+theory "/*? thy ?*/" imports
   "~~/../l4v/tools/c-parser/CTranslation"
   "~~/../l4v/tools/autocorres/AutoCorres"
   "~~/../l4v/tools/autocorres/NonDetMonadEx"
@@ -31,7 +31,7 @@ install_C_file "/*? thy ?*/_seL4SharedData_pruned.c_pp"
 
 autocorres [ts_rules = nondet] "/*? thy ?*/_seL4SharedData_pruned.c_pp"
 
-locale /*? thy ?*/_seL4SharedData_glue = /*? thy ?*/_seL4SharedData_pruned
+locale "/*? thy ?*/_seL4SharedData_glue" = "/*? thy ?*/_seL4SharedData_pruned"
 begin
 (*>*)
 

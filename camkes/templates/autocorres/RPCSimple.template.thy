@@ -26,7 +26,7 @@
 /*- macro wrap_facts(indent, xs) -*//*? ('\n%s' % (' ' * indent)).join(textwrap.wrap(' '.join(xs), 100 - indent)) ?*//*- endmacro -*/
 
 (** TPP: condense = True *)
-theory /*? thy ?*/ imports
+theory "/*? thy ?*/" imports
   /*- if options.verbosity >= 2 -*/
   /*? thy ?*/_base
   /*- else -*/
@@ -79,7 +79,7 @@ lemma validNF_intro_binder:"\<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace>! \<Longrig
 
 (** TPP: condense = True *)
 (* Extend the C locale with assumptions on the user's code. *)
-locale /*? thy ?*/_pruned_glue = /*? thy ?*/_pruned +
+locale "/*? thy ?*/_pruned_glue" = "/*? thy ?*/_pruned" +
 /*- set user_preconditions = {} -*/
 /*- set user_postconditions = {} -*/
 /*- set pcount = Counter() -*/

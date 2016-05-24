@@ -14,7 +14,7 @@
 
 /*- set thy = os.path.splitext(os.path.basename(options.outfile.name))[0] -*/
 (*<*)
-theory /*? thy ?*/ imports
+theory "/*? thy ?*/" imports
   "~~/../l4v/tools/c-parser/CTranslation"
   "~~/../l4v/tools/autocorres/AutoCorres"
   "~~/../l4v/tools/autocorres/NonDetMonadEx"
@@ -33,7 +33,7 @@ install_C_file "/*? thy ?*/_seL4RPCSimple_pruned.c_pp"
  *)
 autocorres [ts_rules = nondet, no_heap_abs = seL4_SetMR] "/*? thy ?*/_seL4RPCSimple_pruned.c_pp"
 
-context /*? thy ?*/_seL4RPCSimple_pruned begin
+context "/*? thy ?*/_seL4RPCSimple_pruned" begin
 
 (* Introduce this definition here so we can refer to it in the locale extension below. *)
 definition
@@ -53,7 +53,7 @@ where
 
 end
 
-locale /*? thy ?*/_seL4RPCSimple_glue = /*? thy ?*/_seL4RPCSimple_pruned +
+locale "/*? thy ?*/_seL4RPCSimple_glue" = "/*? thy ?*/_seL4RPCSimple_pruned" +
   assumes seL4_SetMR_axiom: "exec_concrete lift_global_heap (seL4_SetMR' i val) = seL4_SetMR_lifted' i val"
 begin
 (*>*)
