@@ -235,22 +235,46 @@ def set_tcb_caps(ast, obj_space, cspaces, elfs, options, **_):
             # FIXME@ikuz: check this for correct use of perspective 
             assembly = find_assembly(ast) 
             settings = assembly.configuration.settings if assembly.configuration is not None else []
-            sc = None
-            sc_name = perspective['sc']
             # first check if this thread has been configured to not have an SC
-            passive_attribute = perspective['passive_attribute']
-            name = perspective['instance']
-            passive_attributes = filter(lambda x: \
-                x.instance == name and x.attribute == passive_attribute,
-                settings)
-            if len(passive_attributes) != 1 or passive_attributes[0].value:
-                scs = filter(lambda x: x.name == sc_name, obj_space.spec.objs) 
-                if len(scs) > 1:
+            passive_attribute_name = perspective['passive_attribute']
+            instance_name = perspective['instance']
+            passive_attributes = [x for x in settings if x.instance == instance_name and \
+                                                         x.attribute == passive_attribute_name]
+
+            # Determine whether a passive component instance thread was specified
+            if len(passive_attributes) == 0:
+                passive_instance = False
+            elif len(passive_attributes) == 1:
+                if passive_attributes[0].value is None:
+                    passive_instance = False
+                elif isinstance(passive_attributes[0].value, str):
+                    passive_attribute = passive_attributes[0].value.lower()
+                    if passive_attribute == 'true':
+                        passive_instance = True
+                    elif passive_attribute == 'false':
+                        passive_instance = False
+                    else:
+                        raise Exception('Boolean string expected for %s.%s. Got "%s".' % (
+                            instance_name, passive_attribute_name, passive_attribute))
+                else:
+                    raise Exception('Boolean string expected for %s.%s. Got "%s".' % (
+                        instance_name, passive_attribute_name, passive_attributes[0].value))
+            else:
+                raise Exception('Multiple settings of attribute %s.%s.' % (
+                    instance_name, passive_attribute_name))
+
+            # Attach the SC to the component instance thread if it isn't passive
+            if not passive_instance:
+                sc_name = perspective['sc']
+                scs = [x for x in obj_space.spec.objs if x.name == sc_name]
+                if len(scs) == 0:
+                    raise Exception('No SC found for active component instance %s' % instance_name)
+                elif len(scs) > 1:
                     raise Exception('Multiple SCs found for %s' % group)
-                elif len(scs) == 1:
+                else:
+                    assert len(scs) == 1
                     sc, = scs
                     tcb['sc_slot'] = Cap(sc)
-                # If no SC was found then this is a passive thread, no problem.
 
             # TODO@ikuz: add temp_fault_ep_slot
 
