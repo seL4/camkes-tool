@@ -101,7 +101,7 @@ class TestStaticAnalysis(CAmkESTest):
         '''
         accelerator = os.path.join(MY_DIR, 'accelerator.c')
         ret, stdout, stderr = self.execute(['cppcheck', '--error-exitcode=-1',
-            accelerator])
+            '--library=gnu.cfg', accelerator])
         if ret != 0:
             self.fail('%s\n%s' % (stdout, stderr))
 
