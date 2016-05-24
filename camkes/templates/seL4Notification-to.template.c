@@ -8,6 +8,11 @@
  *# @TAG(NICTA_BSD)
  #*/
 
+/*- set p = Perspective(instance=me.to_instance.name, interface=me.to_interface.name) -*/
+/*- if parse_bool(configuration[me.to_instance.name].get(p['passive_attribute'], 'false')) -*/
+    /*? raise(Exception("Interfaces connected with %s may not be declared passive." % me.type.name)) ?*/
+/*- endif -*/
+
 #include <assert.h>
 #include <sel4/sel4.h>
 #include <stddef.h>
