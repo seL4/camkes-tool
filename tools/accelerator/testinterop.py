@@ -302,6 +302,66 @@ class TestCacheAInterop(CAmkESTest):
         self.assertEqual(stdout, '')
         self.assertEqual(stderr, '')
 
+    def test_cache_hit_truncate(self):
+        '''
+        A previous accelerator bug resulted in the output file not being
+        truncated before the accelerator wrote to it. The result was that an
+        output resulting from a cache hit that was delivered via the
+        accelerator would have trailing garbage if it was shorter than the
+        existing file content. More specifically, the following sequence could
+        occur:
+
+          1. Build with cache A enabled and "short string" is output and
+             cached;
+          2. Build with different config and "a slightly longer string" is
+             output (and cached);
+          3. Build with original config and the accelerator enabled and "short
+             string" is retrieved, but written without truncating the output.
+
+        As a result, the final file content would end up as "short stringonger
+        string". This test validates that this problem has not been
+        reintroduced.
+        '''
+
+        root = self.mkdtemp()
+
+        internal_root = os.path.join(root, version(), 'cachea')
+        c = Cache(internal_root)
+
+        # Setup a basic, single-input entry.
+        input1 = self.mkstemp()
+        with open(input1, 'wt') as f:
+            f.write('hello world')
+        inputs = prime_inputs([input1])
+
+        cwd = self.mkdtemp()
+
+        output = self.mkstemp()
+
+        args = ['--cache-dir', root, '--outfile', output]
+
+        # Write the entry to the cache with a specific short value.
+        content = 'moo cow'
+        c.save(args[:-2], cwd, content, inputs)
+        c.flush()
+
+        del c
+
+        # Now write something *longer* into the output file.
+        with open(output, 'wt') as f:
+            f.write('some lengthier text')
+
+        # Now run the accelerator to retrieve the original, shorter output.
+        ret, stdout, stderr = self.execute([self.accelerator] + args, cwd=cwd)
+
+        # It should have hit the cache and written the correct, shorter output.
+        self.assertEqual(ret, 0)
+        self.assertEqual(stdout, '')
+        self.assertEqual(stderr, '')
+        with open(output) as f:
+            data = f.read()
+        self.assertEqual(data, content)
+
     # Various Valgrind tests of the above follow. Note that they try to trigger
     # any problems in the debug version of the accelerator first because we get
     # more precise backtraces in the Valgrind output when debugging symbols are
