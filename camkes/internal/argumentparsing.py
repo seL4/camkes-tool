@@ -57,7 +57,7 @@ TOOLS = {
             '--default-max-priority',
             '--default-criticality',
             '--default-max-criticality',
-            '--default-period',            
+            '--default-period',
             '--default-budget',
             '--default-data',
             '--elf',
