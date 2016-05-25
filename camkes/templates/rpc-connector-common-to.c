@@ -238,7 +238,6 @@ int
                     .syscall = CamkesCNodeSaveCaller,
                     .error = /*? result ?*/,
                 }), ({
-                    // @ikuz: should this be a SignalRecv? otherwise the caller will be blocked waiting for a reply (or an error message)?
                     /*? info ?*/ = seL4_Recv(/*? ep ?*/, & /*? me.to_interface.name ?*/_badge);
                     continue;
                 }));
@@ -286,7 +285,6 @@ int
                     .length = /*? size ?*/,
                     .current_index = sizeof(* /*? call_ptr ?*/),
                 }), ({
-                    // @ikuz: should this be an (NB)SendRecv or ReplyRecv? otherwise the caller will be blocked waiting for a reply (or an error message)?
                     /*? info ?*/ = seL4_Recv(/*? ep ?*/, & /*? me.to_interface.name ?*/_badge);
                     continue;
                 }));
@@ -326,7 +324,6 @@ int
                     int /*? err ?*/ = /*- include 'call-unmarshal-inputs.c' -*/;
                     if (unlikely(/*? err ?*/ != 0)) {
                         /* Error in unmarshalling; return to event loop. */
-                        // @ikuz: should this be an (NB)SendRecv or ReplyRecv? otherwise the caller will be blocked waiting for a reply (or an error message)?
                         /*? info ?*/ = seL4_Recv(/*? ep ?*/, & /*? me.to_interface.name ?*/_badge);
                         continue;
                     }
@@ -395,7 +392,6 @@ int
                      */
                     if (unlikely(/*? length ?*/ == UINT_MAX)) {
                         /* Error occurred; return to event loop. */
-                        // @ikuz: should this be an (NB)SendRecv or ReplyRecv? otherwise the caller will be blocked waiting for a reply (or an error message)?
                         /*? info ?*/ = seL4_Recv(/*? ep ?*/, & /*? me.to_interface.name ?*/_badge);
                         continue;
                     }
@@ -467,7 +463,6 @@ int
                         .upper_bound = /*? methods_len ?*/ - 1,
                         .invalid_index = * /*? call_ptr ?*/,
                     }), ({
-                        // @ikuz: should this be an (NB)SendRecv or ReplyRecv? otherwise the caller will be blocked waiting for a reply (or an error message)?
                         /*? info ?*/ = seL4_Recv(/*? ep ?*/, & /*? me.to_interface.name ?*/_badge);
                         continue;
                     }));
