@@ -231,8 +231,6 @@ def set_tcb_caps(ast, obj_space, cspaces, elfs, options, **_):
             # Currently no fault EP (fault_ep_slot).
 
             # add SC 
-            # FIXME@ikuz: python can be tightened up
-            # FIXME@ikuz: check this for correct use of perspective 
             assembly = find_assembly(ast) 
             settings = assembly.configuration.settings if assembly.configuration is not None else []
             # first check if this thread has been configured to not have an SC
@@ -276,7 +274,7 @@ def set_tcb_caps(ast, obj_space, cspaces, elfs, options, **_):
                     sc, = scs
                     tcb['sc_slot'] = Cap(sc)
 
-            # TODO@ikuz: add temp_fault_ep_slot
+            # TODO add temp_fault_ep_slot
 
 
 def collapse_shared_frames(ast, obj_space, elfs, options, **_):
@@ -743,7 +741,6 @@ def tcb_priorities(ast, cspaces, **_):
                     tcb.prio = prio
 
             # Find the max_priority if it was set.
-            # FIXME@ikuz: check this for correct use of perspective
             max_prio_attribute = perspective['max_priority_attribute']
             name = perspective['instance']
             max_prio = assembly.configuration[name].get(max_prio_attribute)
@@ -751,7 +748,6 @@ def tcb_priorities(ast, cspaces, **_):
                 tcb.max_prio = max_prio
 
             # Find the criticality if it was set.
-            # FIXME@ikuz: check this for correct use of perspective
             crit_attribute = perspective['criticality_attribute']
             name = perspective['instance']
             crit =  assembly.configuration[name].get(crit_attribute)
@@ -759,7 +755,6 @@ def tcb_priorities(ast, cspaces, **_):
                 tcb.crit = crit
 
             # Find the max_criticality if it was set.
-            # FIXME@ikuz: check this for correct use of perspective
             max_crit_attribute = perspective['max_criticality_attribute']
             name = perspective['instance']
             max_crit = assembly.configuration[name].get(max_crit_attribute)
