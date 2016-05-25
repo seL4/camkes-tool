@@ -25,6 +25,7 @@
 #include <stdint.h>
 #include <camkes/error.h>
 #include <camkes/tls.h>
+#include <utils/util.h>
 #include <vka/kobject_t.h>
 
 #include <simple/simple.h>
@@ -208,15 +209,7 @@ static seL4_Error simple_camkes_get_frame_cap(void *data, void *paddr, int size_
         /*- endfor -*/
     /*- endif -*/
     /*- if len(untyped_mmio) > 0 -*/
-#ifdef CONFIG_KERNEL_STABLE
-        /*- for paddr, size_bits, cap in untyped_mmio -*/
-            if ((uintptr_t)paddr >= (uintptr_t)/*? paddr ?*/ && (uintptr_t)paddr + BIT(size_bits) <= (uintptr_t)/*? paddr ?*/ + (uintptr_t)/*? 2**size_bits ?*/) {
-                return seL4_Untyped_RetypeAtOffset(/*? cap ?*/, kobject_get_type(KOBJECT_FRAME, size_bits), (seL4_Word)(paddr - /*? paddr ?*/), size_bits, path->root, path->dest, path->destDepth, path->offset, 1);
-            }
-        /*- endfor -*/
-#else
-#error Untyped MMIO regions requested, but not running on experimental kernel
-#endif
+#error Untyped MMIO regions requested, but not supported
     /*- endif -*/
     return seL4_FailedLookup;
 }
@@ -289,7 +282,7 @@ static uint8_t simple_camkes_cnode_size(void *data) {
     /*- endif -*/
 }
 
-static seL4_CPtr simple_camkes_get_IOPort_cap(void *data, uint16_t start_port, uint16_t end_port) {
+static seL4_CPtr UNUSED simple_camkes_get_IOPort_cap(void *data, uint16_t start_port, uint16_t end_port) {
     assert(start_port <= end_port);
     /*- for cap, start, end in ioports -*/
         if (start_port >= /*? start ?*/ && end_port <= /*? end ?*/) {
@@ -363,11 +356,7 @@ static uintptr_t make_frame_get_paddr(seL4_CPtr untyped) {
     int error;
     uintptr_t ret;
     type = seL4_ARCH_4KPage;
-#ifdef CONFIG_KERNEL_STABLE
-    error = seL4_Untyped_RetypeAtOffset(untyped, type, 0, 12, /*? self_cnode ?*/, 0, 0, /*? holding_slot ?*/, 1);
-#else
     error = seL4_Untyped_Retype(untyped, type, 12, /*? self_cnode ?*/, 0, 0, /*? holding_slot ?*/, 1);
-#endif
     ERR_IF(error != seL4_NoError, camkes_error, ((camkes_error_t){
             .type = CE_SYSCALL_FAILED,
             .instance = "/*? me.name ?*/",
@@ -413,12 +402,15 @@ void camkes_make_simple(simple_t *simple) {
     /* Assume we are called from init */
     simple_data.inittcb = camkes_get_tls()->tcb_cap;
     simple->data = &simple_data;
+    simple->arch_simple.data = &simple_data;
     simple->frame_info = /*&simple_camkes_get_frame_info*/NULL;
     simple->frame_cap = &simple_camkes_get_frame_cap;
     simple->frame_mapping = /*&simple_camkes_get_frame_mapping*/NULL;
-    simple->irq = &simple_camkes_get_irq;
+    simple->arch_simple.irq = &simple_camkes_get_irq;
     simple->ASID_assign = &simple_camkes_set_ASID;
-    simple->IOPort_cap = &simple_camkes_get_IOPort_cap;
+#ifdef CONFIG_ARCH_X86
+    simple->arch_simple.IOPort_cap = &simple_camkes_get_IOPort_cap;
+#endif
     simple->cap_count = &simple_camkes_cap_count;
     simple->nth_cap = &simple_camkes_nth_cap;
     simple->init_cap = &simple_camkes_init_cap;

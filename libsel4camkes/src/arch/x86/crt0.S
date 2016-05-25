@@ -28,25 +28,25 @@ _camkes_start:
 #ifndef CONFIG_CAPDL_LOADER_CC_REGISTERS
     /* If we've been passed the arguments on the stack we need to shuffle them
      * into registers for now */
-    popl    %eax
-    popl    %ebx
     popl    %ecx
+    popl    %edx
+    popl    %eax
 #endif
 
-    movw    $IPCBUF_GDT_SELECTOR, %dx
-    movw    %dx, %gs
+    movw    $IPCBUF_GDT_SELECTOR, %bx
+    movw    %bx, %gs
 
     /* Save thread_id and entry_point so we can
      * put them into argv later */
-    pushl %eax
-    pushl %ebx
+    pushl %ecx
+    pushl %edx
 
     /* Setup per thread tls */
-    pushl %eax
-    call *%ecx
+    pushl %ecx
+    call *%eax
     addl $4, %esp
 
-    /* Restore */
+    /* Restore entry_point and thread_id */
     popl %ebx
     popl %eax
 

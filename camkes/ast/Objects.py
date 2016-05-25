@@ -219,7 +219,8 @@ class Composition(ASTObject):
             group_names = [x.address_space for x in self.instances if x]
             groups = []
             for g in group_names:
-                groups.append(Group(g, [x for x in self.instances if x.address_space == g]))
+                if g is not None:
+                    groups.append(Group(g, [x for x in self.instances if x.address_space == g]))
         grouped = sum(map(lambda x: x.children(), groups), [])
         return 'composition %(name)s { %(groups)s %(instances)s %(connections)s }' % {
             'name':self.name or '',
@@ -334,7 +335,7 @@ class Setting(ASTObject):
 class Component(ASTObject):
     def __init__(self, name=None, includes=None, control=False, hardware=False, \
             provides=None, uses=None, emits=None, consumes=None, dataports=None, \
-            attributes=[], mutexes=None, semaphores=None, composition=None, \
+            attributes=None, mutexes=None, semaphores=None, composition=None, \
             configuration=None, filename=None, lineno=-1):
         assert name is None or isinstance(name, str)
         assert isinstance(control, bool)
@@ -545,7 +546,10 @@ class Procedure(ASTObject):
             self.try_collapse_list(i)
 
     def __repr__(self):
-        s = '{ %s }' % ' '.join(map(str, self.methods))
+        s = '{ %(includes)s %(methods)s }' % {
+            'includes':' '.join(map(str, self.includes)),
+            'methods':' '.join(map(str, self.methods)),
+        }
         if self.name:
             s = 'procedure %(name)s %(defn)s' % {
                 'name':self.name,

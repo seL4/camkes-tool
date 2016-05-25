@@ -245,6 +245,7 @@ def main():
         die('No assembly found')
 
     obj_space = ObjectAllocator()
+    obj_space.spec.arch = options.architecture
     cspaces = {}
     pds = {}
     conf = assembly.configuration
@@ -408,27 +409,12 @@ def main():
 
     # Derive a set of usable ELF objects from the filenames we were passed.
     elfs = {}
-    arch = None
     for e in options.elf:
         try:
             name = os.path.basename(e)
             if name in elfs:
                 raise Exception('duplicate ELF files of name \'%s\' encountered' % name)
-            elf = ELF(e, name)
-            if not arch:
-                # The spec's arch will have defaulted to ARM, but we want it to
-                # be the same as whatever ELF format we're parsing.
-                arch = elf.get_arch()
-                if arch == 'ARM':
-                    obj_space.spec.arch = 'arm11'
-                elif arch == 'x86':
-                    obj_space.spec.arch = 'ia32'
-                else:
-                    raise NotImplementedError
-            else:
-                # All ELF files we're parsing should be the same format.
-                if arch != elf.get_arch():
-                    raise Exception('ELF files are not all the same architecture')
+            elf = ELF(e, name, options.architecture)
             p = Perspective(phase=RUNNER, elf_name=name)
             group = p['group']
             # Avoid inferring a TCB as we've already created our own.

@@ -33,7 +33,7 @@ Throughout this document some domain specific terminology is used that may have
 connotations outside CAmkES/component systems. To avoid confusion the meanings
 of these terms are made explicit below.
 
-**Abstract Syntax Tree (AST)**
+### Abstract Syntax Tree (AST)
 
 > An internal representation of the results of parsing a generalised grammar.
   More thorough definitions of ASTs are provided
@@ -41,7 +41,7 @@ of these terms are made explicit below.
   noted here because the abbreviation 'AST' is used heavily in this
   documentation.
 
-**Architecture Description Language (ADL)**
+### Architecture Description Language (ADL)
 
 > The CAmkES syntax for describing a component system. Most component platforms
   have their own architecture description language for describing a set of
@@ -49,7 +49,7 @@ of these terms are made explicit below.
   in this documentation to exclusively refer to the CAmkES input specification
   language.
 
-**Assembly**
+### Assembly
 
 > A top-level element that encapsulates a component system description. An
   assembly can be thought of as a complete description of a full system.
@@ -58,7 +58,7 @@ of these terms are made explicit below.
   and configuration sections are the concatenation of the composition and
   configuration sections of each assembly.
 
-**Attribute**
+### Attribute
 
 > Components and connectors can have extra data of an arbitrary type associated
   with them. These are referred to as attributes. The description of a
@@ -67,7 +67,7 @@ of these terms are made explicit below.
   is instantiated, and this assignment is referred to as a _setting_. Attributes
   are generally used to specialise or differentiate a component at runtime.
 
-**Component**
+### Component
 
 > A _type_ of functional entity. It is important to stress this distinction.
   'Component' is used colloquially to refer to both types and instances, but in
@@ -75,67 +75,67 @@ of these terms are made explicit below.
   concrete, the statement `component foo f` describes a component _instance_ f,
   whose _type_ is foo.
 
-**Composition**
+### Composition
 
 > A container for the component and connector instantiations that form a system.
   This is essentially a syntactic element for delimiting sections in a
   specification. It is contained by an assembly block, along with an optional
   configuration.
 
-**Compound Component**
+### Compound Component
 
 > A component with a composition section, and optionally a configuration section.
 
-**Configuration**
+### Configuration
 
 > A container for describing settings. This is a syntactic element to hold the
   assignment of attributes for a given system. It is expressed inside an
   assembly block.
 
-**Connection**
+### Connection
 
 > An instantiation of a connector. Connections connect two _instances_. Because
   the instantiation of a connector does not really specialise the connector in
   any particular way, it is easy to conflate the two. However, the sources make
   important distinctions between connectors and connections.
 
-**Connector**
+### Connector
 
 > A _type_ of link between instances. The distinction between 'connector' and
   'connection' is the same as that between 'component' and 'instance,' i.e. a
   connection is an instantiation of a particular connector.
 
-**Consumes**
+### Consumes
 
 > Event interfaces that are accepted by a component. If a component consumes a
   particular event it means that it is expecting to receive and handle that
   event.
 
-**Dataport**
+### Dataport
 
 > Port interfaces that are used by a component. A component's dataports
   are expected to be available to it at runtime as shared memory regions.
 
-**Direction**
+### Direction
 
 > The flow of a parameter of a procedure method. The only possible directions
   are 'in' (caller to callee), 'out' (callee to caller), 'inout'
   (bidirectional) and 'refin' (identical to 'in' except for the C backend where
   this is optimised to pass-by-reference).
 
-**Emits**
+### Emits
 
 > Event interfaces that are expressed by a component. If a component emits a
   given event it means that it produces events of this type.
 
-**Event**
+### Event
 
 > An asynchronous signal interface of a component. Events are defined completely
   by their identifier, a numerical value. It may be helpful to think of this
   value as mapping to something like an interrupt number or a signal type,
   although they do not necessarily represent hardware messages.
 
-**Export Connector**
+### Export Connector
 
 > A special type of connector which can only appear inside a compound component's
   composition section. It can be used to connect one of the compound component's
@@ -144,86 +144,86 @@ of these terms are made explicit below.
   connector are considered "Virtual Interfaces". Interfaces of internal instances
   connected to virtual interfaces are known as "Exported Interfaces".
 
-**Exported Interface**
+### Exported Interface
 
 > An interface of an internal instance connected to a virtual interface with an export connector.
 
-**Instance**
+### Instance
 
 > An instantiation of a component type. Of course 'instance' can be used to
   refer to an instantiation of any type, but when you see the term 'instance' in
   the sources it is generally referring to the instantiation of a component. To
   give a concrete example, in the statement `component foo f` f is an instance.
 
-**Interface**
+### Interface
 
 > An abstract exposed interaction point of a component. There could be a
   distinction made here between type and instance of one of these interaction
   points, but in practice this is not necessary and ambiguity rarely arises. The
   subcategories of interface are _procedure_, _event_ and _port_.
 
-**Interface Definition Language (IDL)**
+### Interface Definition Language (IDL)
 
 > A subset of CAmkES ADL for describing interfaces of components. Previously
   this was considered distinct from ADL, but now the term 'ADL' is intended to
   encompass both syntaxes. The CAmkES IDL subset is heavily inspired by
   [OMG IDL](http://www.omg.org/gettingstarted/omg_idl.htm).
 
-**Internal Instance**
+### Internal Instance
 
 > A component instance declared inside a compound component's composition section.
 
-**Internal Connection**
+### Internal Connection
 
 > A connection declared inside a compound component which connects two internal
   instance interfaces. That is, any connection declared inside a compound component
   which does not use an export connector.
 
-**Method**
+### Method
 
 > An item of a procedure. When targeting a conventional programming language,
   methods usually map directly to generated functions.
 
-**Parameter**
+### Parameter
 
 > A piece of data referenced by a procedure method. This can be thought of as an
   argument to a function.
 
-**Port**
+### Port
 
 > The interface type that represents shared memory semantics.
 
-**Procedure**
+### Procedure
 
 > An interface with function call semantics. Procedures consist of a series of
   methods that can be invoked independently.
 
-**Provides**
+### Provides
 
 > Procedure interfaces implemented by a component. When targeting a conventional
   programming language this typically means that the component contains
   functions that are implementations of each method in the procedures provided.
 
-**Setting**
+### Setting
 
 > An assignment of an attribute to a specific value. A setting does not specify
   the type of the attribute, because this has already been described by the
   attribute as specified in the component/connector description.
 
-**Type**
+### Type
 
 > A procedure method's return type or parameter type. This information does not
   include the direction of a parameter. An example type is something like
   'string.'
 
-**Uses**
+### Uses
 
 > Procedure interfaces that are invoked by a component. When targeting a
   conventional programming language this typically means that the component
   contains calls to functions that are expected to implement each method in the
   procedures used.
 
-**Virtual Interface**
+### Virtual Interface
 
 > An interface of a compound component connected to an internal instance's interface
   using an export connector.
@@ -280,6 +280,327 @@ A concrete example:
 * `f` and `b` are **instance**s
 * `RPC`, `Notification` and `SharedData` are **connector**s
 * `c1`, `c2` and `c3` are **connection**s
+
+## Keywords
+
+In example usage of keywords, brackets around a term indicates it is optional,
+and `$` preceding a term indicates it is an example name rather than a keyword.
+Terms in quotes or angle brackets are examples.
+
+### `assembly`
+
+Defines an [assembly](#assembly).
+
+`assembly [$name] { ... }`
+
+### `attribute`
+
+Declares that a component has an [attribute](#attribute).
+
+```
+component $ComponentType {
+  ...
+  attribute $type $name;
+}
+```
+
+### `component`
+
+Declares an [instance of a component](#instance), OR introduces a new [component](#component) type.
+
+```
+composition [$name] {
+  component $ComponentType $component_instance_name;
+  ...
+}
+```
+
+```
+component $ComponentType {
+  ...
+}
+```
+
+
+### `composition`
+
+Defines a [composition](#composition) section inside an assembly or component.
+
+```
+assembly [$name] {
+  composition [$name] { ... }
+}
+```
+
+```
+component $ComponentType {
+  ...
+  composition [$name] { ... }
+}
+```
+
+
+### `configuration`
+
+Defines a [configuration](#configuration) section inside an assembly or component.
+Configuration sections are optional.
+
+```
+assembly [$name] {
+  composition [$name] { ... }
+  [configuration [$name] { ... }]
+}
+```
+
+```
+component $ComponentType {
+  ...
+  composition [$name] { ... }
+  [configuration [$name] { ... }]
+}
+```
+
+
+### `connection`
+
+Declare that a pair of interfaces are connected by a specific connector instance.
+See [connection](#connection).
+
+```
+connection $ConnectorType $name(
+  from $component_name.$interface_name,
+  to $component_name.$interface_name
+);
+```
+
+
+### `connector`
+
+Introduces a new [connector](#connector) type.
+
+```
+connector $ConnectorType {
+  from $FromInterfaceType $from_interface_name [template "connector-from.c"];
+  to $ToInterfaceType $to_interface_name [template "connector-to.c"];
+}
+```
+
+### `consumes`
+
+Declares that a component [consumes](#consumes) an event.
+
+```
+component $ComponentType {
+  consumes $InterfaceType $interface_name;
+}
+```
+
+### `control`
+
+Indicates that a component has a thread of control. There must be a `run`
+function (`int run(void);`) implemented for that component, which will be called
+from the component's control thread.
+
+```
+component $ComponentType {
+  control;
+  ...
+}
+```
+
+### `dataport`
+
+Introduces a dataport interface.
+
+```
+component $ComponentType {
+  dataport $InterfaceType $interface_name;
+}
+```
+
+### `emits`
+
+Declares that a component [emits](#emits) [events](#event) on an interface.
+
+```
+component $ComponentType {
+  emits $InterfaceType $interface_name;
+}
+```
+
+### `from`
+
+Precedes the "from" side of a [connector](#connector) definition or
+[connection](#connection) declaration.
+
+```
+connector $ConnectorType {
+  from $FromInterfaceType $from_interface_name [template "connector-from.c"];
+  to $ToInterfaceType $to_interface_name [template "connector-to.c"];
+}
+```
+
+```
+connection $ConnectorType $name(
+  from $component_name.$interface_name,
+  to $component_name.$interface_name
+);
+```
+
+### `group`
+
+Indicates that a collection of component instances are to share an address space.
+
+```
+assembly [$name] {
+  composition [$name] {
+    group [$name] {
+      component $ComponentType1 $component_instance_name1;
+      component $ComponentType2 $component_instance_name2;
+    }
+  }
+}
+
+```
+
+### `hardware`
+
+Indicates that a component is a [hardware component](#hardware-components).
+
+```
+component $ComponentType {
+  hardware;
+  ...
+}
+```
+
+### `has`
+
+Introduces a [mutex or semaphore](#mutexes-and-semaphores) in a component's definition.
+For examples, see documentation of the [mutex](#mutex) and [semaphore](#semaphore) keywords.
+
+
+### `import`
+
+Imports a file into the current file. The import statement will be treated as
+if it was replaced by the contents of the imported file, much like the
+`#include` directive in c.
+
+`import "path/to/relative/file.camkes";`
+
+`import <path/to/absolute/file.camkes>;`
+
+### `include`
+
+Includes a c header file from related generated code.
+For each component, a c header file ("camkes.h") is generated which contains
+function prototypes and extern variable declarations for interface methods
+and variables accessible to that component. All header files included using the
+`include` keyword inside a component's definition are `#include`'d from the
+generated "camkes.h" for that component.
+
+Quotes and angle brackets
+around header files are treated as they are in c.
+
+```
+component $ComponentType {
+  include "my_type.h";
+  include <string.h>;
+  dataport $my_type_t $interface_name;
+}
+```
+
+### `mutex` {#mutex}
+
+Introduces a [mutex](#mutexes-and-semaphores) in a component's definition.
+
+```
+component $ComponentType {
+  ...
+  has mutex $mutex_name;
+}
+```
+
+### `provides`
+
+Declares that a component [provides](#provides) an implementation of [procedure](#procedure) interface.
+The component must contain implementations of all methods defined in the interface.
+
+```
+component $ComponentType {
+  provides $InterfaceType $interface_name;
+}
+```
+
+### `maybe`
+
+Declares that an interface is optional. Usually, interfaces declared with `uses`,
+`consumes` and `dataport` must be connected to a corresponding `provides`,
+`emits` or `dataport` interface respectively. This is checked at compile time,
+and a compilation error occurs if no such connection is present. Declaring a
+`uses`, `consumes` or `dataport` interface with the `maybe` keyword ignores
+cases when the required connection is missing.
+
+```
+component $ComponentType {
+  maybe uses $ProcedureInterfaceType $procedure_interface_name;
+  maybe consumes $EventInterfaceType $event_interface_name;
+  maybe dataport $DataportInterfaceType $dataport_interface_name;
+}
+```
+
+### `semaphore` {#semaphore}
+
+Introduces a [semaphore](#mutexes-and-semaphores) in a component's definition.
+
+```
+component $ComponentType {
+  ...
+  has semaphore $semaphore_name;
+}
+```
+
+### `template`
+
+Specifies the template file to use for a connector. See the
+[templating](#templating) section for more information on template files.
+
+```
+connector $ConnectorType {
+  from $FromInterfaceType $from_interface_name [template "connector-from.c"];
+  to $ToInterfaceType $to_interface_name [template "connector-to.c"];
+}
+```
+
+### `to`
+
+Precedes the "to" side of a [connector](#connector) definition or
+[connection](#connection) declaration.
+
+```
+connector $ConnectorType {
+  from $FromInterfaceType $from_interface_name [template "connector-from.c"];
+  to $ToInterfaceType $to_interface_name [template "connector-to.c"];
+}
+```
+
+```
+connection $ConnectorType $name(
+  from $component_name.$interface_name,
+  to $component_name.$interface_name
+);
+```
+
+### `uses`
+
+Declares that a component [uses](#uses) a [procedure](#procedure) interface. The
+component must be connected to another component which provides the interface.
+
+```
+component $ComponentType {
+  uses $InterfaceType $interface_name;
+}
+```
 
 ## Usage
 
@@ -706,8 +1027,10 @@ This example will demonstrate both.
 Create two components that will use a pair of dataports for communication:
 
 ```bash
-mkdir -p apps/hellodataport/components/Ping
-mkdir -p apps/hellodataport/components/Pong
+mkdir -p apps/hellodataport/components/Ping/src
+mkdir -p apps/hellodataport/components/Pong/src
+
+mkdir -p apps/hellodataport/include
 ```
 
 Let's define a struct that will be used as one of the dataports:
@@ -742,8 +1065,6 @@ Now let's create an ADL description of the Ping component:
 
     /* apps/hellodataport/components/Ping/Ping.camkes */
 
-    import "Porttype.idl4";
-
     component Ping {
       include "porttype.h";
       control;
@@ -757,8 +1078,6 @@ the `MyData_t` type. Add a similar description for Pong:
 
     /* apps/hellodataport/components/Pong/Pong.camkes */
 
-    import "Porttype.idl4";
-
     component Pong {
       include "porttype.h";
       control;
@@ -769,7 +1088,7 @@ the `MyData_t` type. Add a similar description for Pong:
 Now we'll create some basic code for each component to use the dataports:
 
 ```c
-/* apps/components/Ping/src/main.c */
+/* apps/hellodataport/components/Ping/src/main.c */
 
 #include <camkes.h>
 #include <porttype.h>
@@ -780,20 +1099,20 @@ int run(void) {
   char *hello = "hello";
 
   printf("Ping: sending %s...\n", hello);
-  strcpy((void*)d1_data, hello);
+  strcpy((void*)d1, hello);
 
-  /* Wait for Pong to reply. We can assume d2_data is
+  /* Wait for Pong to reply. We can assume d2 is
    * zeroed on startup by seL4.
    */
-  while (!d2_data->data[0]);
-  printf("Ping: received %s.\n", d2_data->data);
+  while (!d2->data[0]);
+  printf("Ping: received %s.\n", d2->data);
 
   return 0;
 }
 ```
 
 ```c
-/* apps/components/Pong/src/main.c */
+/* apps/hellodataport/components/Pong/src/main.c */
 
 #include <camkes.h>
 #include <porttype.h>
@@ -803,14 +1122,14 @@ int run(void) {
 int run(void) {
   char *world = "world";
 
-  /* Wait for Ping to message us. We can assume s1_data is
+  /* Wait for Ping to message us. We can assume s1 is
    * zeroed on startup by seL4.
    */
-  while (!*(volatile char*)s1_data);
-  printf("Pong: received %s\n", (volatile char*)s1_data);
+  while (!*(volatile char*)s1);
+  printf("Pong: received %s\n", (volatile char*)s1);
 
   printf("Pong: sending %s...\n", world);
-  strcpy((void*)s2_data->data, world);
+  strcpy((void*)s2->data, world);
 
   return 0;
 }
@@ -839,9 +1158,57 @@ top-level ADL file:
       }
     }
 
-Add the now familiar apps/hellodataport/Kconfig, apps/hellodataport/Makefile,
-Kconfig and apps/hellodataport/Kbuild. If you now compile and run the resulting
-image you should see some output like the following:
+Add a Kconfig and Kbuild for this application:
+
+```Kconfig
+# apps/hellodataport/Kconfig
+
+config APP_HELLODATAPORT
+bool "Hello world dataport application"
+default n
+    help
+        Hello world using a dataport.
+```
+
+```Makefile
+# apps/hellodataport/Kbuild
+
+apps-$(CONFIG_APP_HELLODATAPORT) += hellodataport
+hellodataport: libsel4 libmuslc libsel4platsupport \
+  libsel4muslccamkes libsel4sync libsel4debug libsel4bench
+```
+
+For the application's Makefile, note that we need to specify the headers we're
+including as well:
+
+```Makefile
+# apps/hellodataport/Makefile
+
+TARGETS := hellodataport.cdl
+ADL := hellodataport.camkes
+
+Ping_CFILES := components/Ping/src/main.c
+Ping_HFILES := components/Ping/include/porttype.h
+
+Pong_CFILES := components/Pong/src/main.c
+Pong_HFILES := components/Pong/include/porttype.h
+
+include ${SOURCE_DIR}/../../tools/camkes/camkes.mk
+```
+
+Add the now familiar entry for this application in the top level Kconfig and we
+can now compile the application:
+
+```bash
+make menuconfig
+# De-select previous application and select the one just created.
+
+make clean
+make
+```
+
+You should now be able to run the resulting image. If you followed the steps
+correctly you should see some output like the following:
 
     Ping: sending hello...
     Pong: received hello
@@ -882,6 +1249,15 @@ are described below. When an argument is only accepted by some of the tools,
 this is noted. If no limitation is mentioned then the argument is accepted by
 all tools.
 
+**--architecture**
+
+> The target architecture for which code should be generated. This argument is
+  only relevant to the runner. Currently the valid options are:
+
+  * "aarch32" - 32-bit ARM (default)
+  * "arm_hyp" - ARM Hyp mode
+  * "ia32" - 32-bit x86
+
 **--cache**, **-c**
 **--cache-dir**
 
@@ -911,6 +1287,14 @@ all tools.
   if it was. The CAmkES ADL grammar is sufficiently similar to C that you are
   unlikely to run into any problems in this respect. This option is only
   available for the runner.
+
+  The [Template Cache](#template-cache) is unaware of C header files included
+  with the `#include` preprocessor directive. Thus, after modifying an included
+  header, the template cache must be flushed before the change will take effect
+  inside CAmkES ADL files. The template cache can be flushed by deleting the
+  directory specified by `--cache-dir`. A common pattern is to use the
+  `--cache-dir` option to specify a directory inside the "build" directory. The
+  effect of this is running `make clean` will flush the template cache.
 
 **-D**, **--debug**
 **-q**, **--quiet**
@@ -1318,7 +1702,7 @@ The following functions are available at runtime:
 
 > Translate a pointer into a DMA region into a physical address. This function
   assumes that the pointer you are passing in is to a byte within a region
-  allocated to you by `camkes_dma_alloc_page`. The reason for needing to obtain
+  allocated to you by `camkes_dma_alloc`. The reason for needing to obtain
   the physical address of a pointer is typically to pass to a device that is
   going to access this region outside of the scope of the MMU. For more
   information, see the [DMA](#direct-memory-access) section below.
@@ -1445,7 +1829,7 @@ The following functions are available at runtime:
 > In a component that consumes an event a function prefixed with the event's
   name is available that blocks until the event is received.
 
-### Mutexes and Semaphores
+### Mutexes and Semaphores {#mutexes-and-semaphores}
 
 CAmkES provides two primitives for intra-component mutual exclusion. Mutexes
 and semaphores are declared similarly as properties of a component definition:
@@ -1617,7 +2001,7 @@ const char * a = "Hello, World!";
 const int b = 42;
 ```
 
-### Hardware Components
+### Hardware Components {#hardware-components}
 
 A hardware component represents an interface to hardware in the form of a component.
 Declaring a component with the `hardware` keyword creates a hardware component.
@@ -2965,6 +3349,82 @@ Client_HFILES := ${MathIface_EXPORT_HFILES} \
 
 include ${PWD}/tools/camkes/camkes.mk
 ```
+
+### Cached Hardware Dataports
+
+By default, memory backing hardware dataports (`seL4HardwareMMIO`) is mapped uncached.
+Typically such a dataport will be backed by a device's memory mapped registers rather
+than main memory. In such cases it's generally desired that after writing to a register
+the effect of the write is felt immediately, and changes to device registers are observable
+as soon as they occur, so mapping this memory uncached makes sense. There are however,
+cases where it is preferable to map this memory cached instead.
+
+For example, consider a system that updates a large memory mapped frame buffer for
+a display, by writing to it one word at a time. If this buffer was mapped uncached,
+each word written to the buffer would incur the full time taken to write to memory.
+If instead, the buffer was mapped cached, each word would be written to the cache,
+incurring a much shorter write time. Cache lines would then be written back to memory
+at a later point. This optimization works on the assumption that the throughput of
+the cache being written back to memory is higher than that of the CPU writing
+directly to memory a word at a time. After all the data has been written to the buffer,
+the cache must be flushed to ensure the data is actually in the buffer.
+
+CAmkES provides a mechanism for flushing the cache, but currently it is a no-op
+on all architectures other than ARM. On x86, the DMA engine is cache-coherent,
+so there's no reason to explicitly flush the cache after writing to a cached
+hardware dataport.
+
+#### Marking a hardware dataport as cached
+
+To map a hardware dataport cached, set the `<instance>.<interface>_cached` attribute to `true`:
+
+    component DisplayDevice {
+      hardware;
+      dataport FrameBuffer framebuffer;
+    }
+
+    component DisplayDriver {
+      ...
+      dataport FrameBuffer framebuffer;
+    }
+
+    assembly {
+      composition {
+        component DisplayDevice display_device;
+        component DisplayDriver display_driver;
+        ...
+
+        connection seL4HardwareMMIO fbconn(
+          from display_driver.framebuffer,
+          to display_device.framebuffer
+        );
+      }
+      configuration {
+        ...
+        display_device.framebuffer_cached = true; /* <-- set this attribute
+                                                   *     to mark dataport
+                                                   *     as cached
+                                                   */
+      }
+    }
+
+#### Flushing the cache
+
+After writing to a cached hardware dataport, it is necessary to flush the cache
+to ensure that all data written has been propagated to the device. CAmkES provides
+a function for each hardware dataport that flushes a range of addresses inside
+the dataport from the cache.
+
+For a dataport interface named `framebuffer`, the function that flushes its
+data from the cache will be:
+
+```c
+int framebuffer_flush_cache(size_t start_offset, size_t size);
+```
+
+`start_offset` and `size` are the offset in bytes into the dataport to start flushing,
+and the number of bytes to flush respectively. The function returns 0 on success
+and non-zero on error.
 
 ## Templating
 

@@ -20,7 +20,6 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
-#include <camkes/marshal.h>
 #include <camkes/error.h>
 #include <camkes/tls.h>
 #include <camkes/sel4.h>
@@ -170,8 +169,8 @@
 
 static seL4_Word /*? me.to_interface.name ?*/_badge = 0;
 
-seL4_Word /*? me.to_interface.name ?*/_get_badge(void) {
-    return /*? me.to_interface.name ?*/_badge;
+unsigned int /*? me.to_interface.name ?*/_get_sender_id(void) {
+    return (unsigned int)/*? me.to_interface.name ?*/_badge;
 }
 
 /*- set call_tls_var = c_symbol('call_tls_var_to') -*/
@@ -222,26 +221,6 @@ int
     /*- endif -*/
 
     while (1) {
-        /*- if not options.fcall_leave_reply_cap or len(me.to_instance.type.provides + me.to_instance.type.uses + me.to_instance.type.consumes + me.to_instance.type.mutexes + me.to_instance.type.semaphores) > 1 -*/
-            /* We need to save the reply cap because the user's implementation may
-             * perform operations that overwrite or discard it.
-             */
-            /*- set result = c_symbol() -*/
-            /*- set cnode = alloc_cap('cnode', my_cnode, write=True) -*/
-            /*- set reply_cap_slot = alloc_cap('reply_cap_slot', None) -*/
-            int /*? result ?*/ UNUSED = camkes_cnode_save_caller(/*? cnode ?*/, /*? reply_cap_slot ?*/, 32);
-            ERR_IF(/*? result ?*/ != 0, /*? error_handler ?*/, ((camkes_error_t){
-                    .type = CE_SYSCALL_FAILED,
-                    .instance = "/*? instance ?*/",
-                    .interface = "/*? interface ?*/",
-                    .description = "failed to save reply cap in /*? name ?*/",
-                    .syscall = CamkesCNodeSaveCaller,
-                    .error = /*? result ?*/,
-                }), ({
-                    /*? info ?*/ = seL4_Recv(/*? ep ?*/, & /*? me.to_interface.name ?*/_badge);
-                    continue;
-                }));
-        /*- endif -*/
 
         /*- set buffer = c_symbol('buffer') -*/
         void * /*? buffer ?*/ UNUSED = (void*)/*? BUFFER_BASE ?*/;
@@ -328,6 +307,27 @@ int
                         continue;
                     }
 
+                    /*- if not options.fcall_leave_reply_cap or len(me.to_instance.type.provides + me.to_instance.type.uses + me.to_instance.type.consumes + me.to_instance.type.mutexes + me.to_instance.type.semaphores) > 1 -*/
+                        /* We need to save the reply cap because the user's implementation may
+                         * perform operations that overwrite or discard it.
+                         */
+                        /*- set result = c_symbol() -*/
+                        /*- set cnode = alloc_cap('cnode', my_cnode, write=True) -*/
+                        /*- set reply_cap_slot = alloc_cap('reply_cap_slot', None) -*/
+                        int /*? result ?*/ UNUSED = camkes_cnode_save_caller(/*? cnode ?*/, /*? reply_cap_slot ?*/, 32);
+                        ERR_IF(/*? result ?*/ != 0, /*? error_handler ?*/, ((camkes_error_t){
+                                .type = CE_SYSCALL_FAILED,
+                                .instance = "/*? instance ?*/",
+                                .interface = "/*? interface ?*/",
+                                .description = "failed to save reply cap in /*? name ?*/",
+                                .syscall = CamkesCNodeSaveCaller,
+                                .error = /*? result ?*/,
+                            }), ({
+                                /*? info ?*/ = seL4_Recv(/*? ep ?*/, & /*? me.to_interface.name ?*/_badge);
+                                continue;
+                            }));
+                    /*- endif -*/
+
                     /* Call the implementation */
                     /*- set ret = c_symbol('ret') -*/
                     /*- set ret_sz = c_symbol('ret_sz') -*/
@@ -376,8 +376,8 @@ int
                       /*- if p.array -*/
                         /*- if isinstance(p.type, camkes.ast.Type) and p.type.type == 'string' -*/
                           /*- set mcount = c_symbol() -*/
-                          for (int /*? mcount ?*/ = 0; /*? mcount ?*/ < * /*? p.name ?*/_sz; /*? mcount ?*/ ++) {
-                            free((* /*? p.name ?*/)[/*? mcount ?*/]);
+                          for (int /*? mcount ?*/ = 0; /*? mcount ?*/ < * /*? p.name ?*/_sz_ptr; /*? mcount ?*/ ++) {
+                            free((* /*? p.name ?*/_ptr)[/*? mcount ?*/]);
                           }
                         /*- endif -*/
                         free(* /*? p.name ?*/_ptr);

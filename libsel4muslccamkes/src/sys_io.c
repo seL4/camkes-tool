@@ -324,8 +324,6 @@ long sys_write(va_list ap)
     ssize_t ret = 0;
     ssize_t size;
     int sockfd;
-    muslcsys_fd_t *fdt = get_fd_struct(fd);
-
     if (count > SSIZE_MAX) {
         return -EINVAL;
     }
@@ -333,6 +331,8 @@ long sys_write(va_list ap)
     if (fd == STDOUT_FD || fd == STDERR_FD) {
             ret = sys_platform_write(buf, count);
     } else {
+        muslcsys_fd_t *fdt = get_fd_struct(fd);
+
         if (fdt->filetype == FILE_TYPE_SOCKET && sock_write && sock_data_data) {
             sockfd = *(int*)fdt->data;
             size = count > PAGE_SIZE_4K ? PAGE_SIZE_4K : count;

@@ -28,6 +28,10 @@ const char *get_instance_name(void);
     extern const /*? show(a.type) ?*/ /*? a.name ?*/;
 /*- endfor -*/
 
+/*- for i in me.type.provides -*/
+    unsigned int /*? i.name ?*/_get_sender_id(void) __attribute__((weak));
+/*- endfor -*/
+
 /*- for u in me.type.uses + me.type.provides -*/
     /*- for m in u.type.methods -*/
         /*- if m.return_type is not none -*/
@@ -103,6 +107,10 @@ const char *get_instance_name(void);
 
 /*- for d in me.type.dataports -*/
     extern volatile /*? show(d.type) ?*/ * /*? d.name ?*/
+    /*- if d.optional -*/
+        __attribute__((weak))
+    /*- endif -*/;
+    int /*? d.name ?*/_flush_cache(size_t start_offset, size_t size)
     /*- if d.optional -*/
         __attribute__((weak))
     /*- endif -*/;

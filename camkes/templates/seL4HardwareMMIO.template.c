@@ -11,6 +11,8 @@
 #include <camkes/dataport.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <sel4/sel4.h>
+#include <utils/util.h>
 /*? macros.show_includes(me.from_instance.type.includes) ?*/
 
 /*- set p = Perspective(dataport=me.from_interface.name) -*/
@@ -58,11 +60,105 @@ void * /*? me.from_interface.name ?*/_unwrap_ptr(dataport_ptr_t *p) {
     /*- set paddr, size = attr.strip('"').split(':') -*/
     _Static_assert(sizeof(/*? show(me.from_interface.type) ?*/) == /*? size ?*/, "Data type mismatch!");
 
+    /*- set cached = configuration[me.to_instance.name].get(p['hardware_cached']) -*/
+    /*- if cached is none -*/
+        /*- set cached = False -*/
+    /*- elif cached.lower() == 'true' -*/
+        /*- set cached = True -*/
+    /*- elif cached.lower() == 'false' -*/
+        /*- set cached = False -*/
+    /*- else -*/
+        /*? raise(Exception("Value of %s.%s_cached must be either 'true' or 'false'. Got '%s'." %
+                    (me.to_instance.name, me.to_interface.name, cached))) ?*/
+    /*- endif -*/
+
     void * /*? me.from_interface.name ?*/_translate_paddr(
             uintptr_t paddr, size_t size) {
-        if (paddr >= /*? paddr ?*/ && paddr + size <= /*? paddr ?*/ + /*? size ?*/) {
+        if (paddr >= /*? paddr ?*/ && paddr + size <= /*? paddr ?*/lu + /*? size ?*/lu) {
             return (void*)((uintptr_t)/*? me.from_interface.name ?*/ + (paddr - /*? paddr ?*/));
         }
         return NULL;
     }
+
+    /*# Types and sizes of frames is hardware-specific #*/
+    /*- if arch == 'aarch32' or arch == 'arm_hyp' -*/
+        /*- set large_frame_size = 1024 * 1024 -*/
+        /*- set large_frame_type = seL4_ARM_SectionObject -*/
+    /*- else -*/
+        /*- set large_frame_size = 4 * 1024 * 1024 -*/
+        /*- set large_frame_type = seL4_IA32_4M -*/
+    /*- endif -*/
+
+    /*# Convert from string to int #*/
+    /*- if re.match('((0x[\da-fA-F]+)|([1-9]\d*))$', paddr) is none -*/
+        /*? raise(Exception("Invalid physical address specified for %s.%s: %s\n" %
+                    (me.to_instance.name, me.to_interface.name, paddr))) ?*/
+    /*- endif -*/
+    /*- if re.match('((0x[\da-fA-F]+)|([1-9]\d*))$', size) is none -*/
+        /*? raise(Exception("Invalid size specified for %s.%s: %s\n" %
+                    (me.to_instance.name, me.to_interface.name, size))) ?*/
+    /*- endif -*/
+
+    /*- set paddr = int(paddr, 0) -*/
+    /*- set size = int(size, 0) -*/
+
+    /*- set frame_caps = c_symbol('frame_caps') -*/
+    static const seL4_CPtr /*? frame_caps ?*/[] = {
+    /*# Allocate frame objects to back the hardware dataport #*/
+    /*- if paddr % large_frame_size == 0 and size % large_frame_size == 0 -*/
+        /*- set frame_size = large_frame_size -*/
+        /*- set n_frames = size // large_frame_size -*/
+        /*- set name_prefix = "large_frame_" -*/
+        /*- set frame_type = large_frame_type -*/
+    /*- else -*/
+        /*- set frame_size = PAGE_SIZE -*/
+        /*- set n_frames = (size + PAGE_SIZE - 1) // PAGE_SIZE -*/
+        /*- set name_prefix = "frame_" -*/
+        /*- set frame_type = seL4_FrameObject -*/
+    /*- endif -*/
+
+    /*- for i in range(n_frames) -*/
+        /*- set name = "%s_%s_%d (%s.%s)" % (name_prefix, me.from_instance.name, i, me.to_instance.name, me.to_interface.name) -*/
+        /*- set offset = frame_size * i -*/
+        /*- set frame_obj = alloc_obj(name, frame_type, paddr=(paddr + offset)) -*/
+        /*- set frame_cap = alloc_cap(name, frame_obj) -*/
+        /*? frame_cap ?*/,
+    /*- endfor -*/
+    };
+
+    /*- if arch == 'aarch32' or arch == 'arm_hyp' -*/
+    static int sel4_flush_cache(seL4_CPtr frame_cap, seL4_Word start, seL4_Word end) {
+        return seL4_ARM_Page_Clean_Data(frame_cap, start, end);
+    }
+    /*- endif -*/
+
+    /* Flush data corresponding to the dataport-relative address range from the CPU cache */
+    int /*? me.from_interface.name ?*/_flush_cache(size_t start_offset UNUSED, size_t size UNUSED) {
+        /*- if arch == 'aarch32' or arch == 'arm_hyp' -*/
+
+        if (start_offset >= /*? size ?*/ || size > /*? size ?*/ || /*? size ?*/ - size < start_offset) {
+            ZF_LOGE("Specified range is outside the bounds of the dataport");
+            return -1;
+        }
+
+        size_t current_offset = start_offset;
+        size_t end_offset = start_offset + size;
+
+        while (current_offset < end_offset) {
+            size_t frame_top = MIN(ROUND_UP(current_offset + 1, /*? frame_size ?*/), end_offset);
+            seL4_CPtr frame_cap = /*? frame_caps ?*/[current_offset / /*? frame_size ?*/];
+            size_t frame_start_offset = current_offset % /*? frame_size ?*/;
+            size_t frame_end_offset = ((frame_top - 1) % /*? frame_size ?*/) + 1;
+            int error = sel4_flush_cache(frame_cap, frame_start_offset,  frame_end_offset);
+            if (error) {
+                ZF_LOGE("Cache flush syscall returned with error: %d", error);
+                return error;
+            }
+            current_offset = frame_top;
+        }
+
+        /*- endif -*/
+        return 0;
+    }
+
 /*- endif -*/

@@ -20,6 +20,8 @@ from NameMangling import Perspective
 PAGE_SIZE = 4096 # bytes
 IPC_BUFFER_SIZE = 512 # bytes
 
+HARDWARE_FRAME_NAME_PATTERN = re.compile(r'([^ ]*) \(([^.]*)\.([^.]*)\)$')
+
 def find_assembly(ast):
     assemblies = [x for x in ast if isinstance(x, AST.Assembly)]
     assert len(assemblies) == 1 # Our parent should have ensured this.
@@ -213,14 +215,14 @@ def set_tcb_caps(ast, obj_space, cspaces, elfs, options, **_):
                 ipc_vaddr = get_symbol_vaddr(elf, ipc_symbol) + PAGE_SIZE
 
                 # Relate this virtual address to a PT.
-                pt_index = page_table_index(get_elf_arch(elf), ipc_vaddr)
+                pt_index = page_table_index(options.architecture, ipc_vaddr)
                 if pt_index not in pd:
                     raise Exception('IPC buffer of TCB %s in group %s does ' \
                         'not appear to be backed by a frame' % (tcb.name, group))
                 pt = pd[pt_index].referent
 
                 # Continue on to infer the physical frame.
-                p_index = page_index(get_elf_arch(elf), ipc_vaddr)
+                p_index = page_index(options.architecture, ipc_vaddr)
                 if p_index not in pt:
                     raise Exception('IPC buffer of TCB %s in group %s does ' \
                         'not appear to be backed by a frame' % (tcb.name, group))
@@ -230,8 +232,8 @@ def set_tcb_caps(ast, obj_space, cspaces, elfs, options, **_):
 
             # Currently no fault EP (fault_ep_slot).
 
-            # add SC 
-            assembly = find_assembly(ast) 
+            # add SC
+            assembly = find_assembly(ast)
             settings = assembly.configuration.settings if assembly.configuration is not None else []
             # first check if this thread has been configured to not have an SC
             passive_attribute_name = perspective['passive_attribute']
@@ -276,6 +278,33 @@ def set_tcb_caps(ast, obj_space, cspaces, elfs, options, **_):
 
             # TODO add temp_fault_ep_slot
 
+def find_hardware_frame_in_cspace(cspace, paddr, instance_name, interface_name):
+    """Returns the cap to a frame backing a hardware dataport with a given physical
+    address, instance and interface. Throws an exception if no matching frame is found.
+    The check for instance and interface is done by examining the frame object name.
+    This function expects name of the form "eventual_name (instance_name.interface_name)".
+    When a match is found, the object name is changed to "eventual_name".
+    """
+    for cap in (v for v in cspace.cnode.slots.values() if v is not None):
+
+        obj = cap.referent
+
+        if isinstance(obj, Frame) and obj.paddr == paddr:
+
+            match = HARDWARE_FRAME_NAME_PATTERN.match(obj.name)
+
+            if match is not None \
+                and match.group(2) == instance_name \
+                and match.group(3) == interface_name:
+
+                obj.name = match.group(1)
+                return cap
+
+    # If no cap was found it means the hardware dataport template didn't allocate a
+    # frame at that address. Since this template allocates all hardware dataport
+    # frames, this indicates either the template isn't generating the correct frames
+    # or this function was called erroneously.
+    assert False, "No frame found in hardware dataport at paddr 0x%8x" % paddr
 
 def collapse_shared_frames(ast, obj_space, elfs, options, **_):
     """Find regions in virtual address spaces that are intended to be backed by
@@ -305,8 +334,6 @@ def collapse_shared_frames(ast, obj_space, elfs, options, **_):
         pds = [x for x in obj_space.spec.objs if x.name == pd_name]
         assert len(pds) == 1
         pd, = pds
-
-        large_frame_uid = 0
 
         for d in i.type.dataports:
 
@@ -340,12 +367,10 @@ def collapse_shared_frames(ast, obj_space, elfs, options, **_):
             sz = get_symbol_size(elf, sym)
             assert sz != 0
 
-            arch = get_elf_arch(elf)
-
             # Infer the page table(s) and page(s) that back this region.
             pts, p_indices = zip(*[\
-                (pd[page_table_index(arch, v)].referent,
-                 page_index(arch, v)) \
+                (pd[page_table_index(options.architecture, v)].referent,
+                 page_index(options.architecture, v)) \
                 for v in xrange(vaddr, vaddr + sz, PAGE_SIZE)])
 
             # Determine the rights this mapping should have. We use these to
@@ -370,11 +395,33 @@ def collapse_shared_frames(ast, obj_space, elfs, options, **_):
                 p = Perspective(to_interface=connections[0].to_interface.name)
                 hardware_attribute = p['hardware_attribute']
                 conf = assembly.configuration[connections[0].to_instance.name].get(hardware_attribute)
-                assert conf is not None
+                assert conf is not None, "%s.%s not found in configuration" % \
+                    (connections[0].to_instance.name, hardware_attribute)
                 paddr, size = conf.strip('"').split(':')
                 # Round up the MMIO size to PAGE_SIZE
-                paddr = int(paddr, 0)
-                size = int(size, 0)
+                try:
+                    paddr = int(paddr, 0)
+                except ValueError:
+                    raise Exception("Invalid physical address specified for %s.%s: %s\n" %
+                                    (me.to_instance.name, me.to_interface.name, paddr))
+
+                try:
+                    size = int(size, 0)
+                except ValueError:
+                    raise Exception("Invalid size specified for %s.%s: %s\n" %
+                                    (me.to_instance.name, me.to_interface.name, size))
+
+                hardware_cached = p['hardware_cached']
+                cached = assembly.configuration[connections[0].to_instance.name].get(hardware_cached)
+                if cached is None:
+                    cached = False
+                elif cached.lower() == 'true':
+                    cached = True
+                elif cached.lower() == 'false':
+                    cached = False
+                else:
+                    raise Exception("Value of %s.%s_cached must be either 'true' or 'false'. Got '%s'." %
+                                    (me.to_instance.name, me.to_interface.name, cached))
 
                 instance_name = connections[0].to_instance.name
 
@@ -400,7 +447,7 @@ def collapse_shared_frames(ast, obj_space, elfs, options, **_):
                     n_pts = size / large_size
 
                     # index of first page table in page directory backing the device memory
-                    base_pt_index = page_table_index(get_elf_arch(elf), vaddr)
+                    base_pt_index = page_table_index(options.architecture, vaddr)
                     pt_indices = xrange(base_pt_index, base_pt_index + n_pts)
 
                     # loop over all the page table indices and replace the page tables
@@ -410,18 +457,26 @@ def collapse_shared_frames(ast, obj_space, elfs, options, **_):
                         # look up the page table at the current index
                         pt = pd[pt_index].referent
 
-                        name = 'large_frame_%s_%d' % (instance_name, large_frame_uid)
-                        large_frame_uid += 1
+                        offset = count * large_size
+                        frame_paddr = paddr + offset
 
-                        frame_paddr = paddr + large_size * count
+                        # lookup the frame, already allocated by a template
+                        frame_cap = find_hardware_frame_in_cspace(
+                                        cspaces[i.address_space],
+                                        frame_paddr,
+                                        connections[0].to_instance.name,
+                                        connections[0].to_interface.name)
+                        frame_obj = frame_cap.referent
 
-                        # allocate a new large frame
-                        frame = obj_space.alloc(large_object_type, name, paddr=frame_paddr)
+                        # create a new cap for the frame to use for its mapping
+                        mapping_frame_cap = Cap(frame_obj, read, write, execute)
+                        mapping_frame_cap.set_cached(cached)
 
-                        # insert the frame cap into the page directory
-                        frame_cap = Cap(frame, read, write, execute)
-                        frame_cap.set_cached(False)
-                        pd[pt_index] = frame_cap
+                        # add the mapping to the spec
+                        pd[pt_index] = mapping_frame_cap
+
+                        # add the mapping information to the original cap
+                        frame_cap.set_mapping(pd, pt_index)
 
                         # remove all the small frames from the spec
                         for p_index in pt:
@@ -442,13 +497,46 @@ def collapse_shared_frames(ast, obj_space, elfs, options, **_):
                             raise Exception('MMIO attributes specify device ' \
                                 'memory that is larger than the dataport it is ' \
                                 'associated with')
-                        frame_obj.paddr = paddr + PAGE_SIZE * idx
-                        cap = Cap(frame_obj, read, write, execute)
-                        cap.set_cached(False)
-                        pts[idx].slots[p_indices[idx]] = cap
+
+                        offset = idx * PAGE_SIZE
+                        frame_paddr = paddr + offset
+
+                        # lookup the frame, already allocated by a template
+                        frame_cap = find_hardware_frame_in_cspace(
+                                        cspaces[i.address_space],
+                                        frame_paddr,
+                                        connections[0].to_instance.name,
+                                        connections[0].to_interface.name)
+                        frame_obj = frame_cap.referent
+
+                        # create a new cap for the frame to use for its mapping
+                        mapping_frame_cap = Cap(frame_obj, read, write, execute)
+                        mapping_frame_cap.set_cached(cached)
+
+                        # add the mapping to the spec
+                        pt = pts[idx]
+                        slot = p_indices[idx]
+                        pt.slots[slot] = mapping_frame_cap
+
+                        # add the mapping information to the original cap
+                        frame_cap.set_mapping(pt, slot)
+
                         obj_space.relabel(conn_name, frame_obj)
 
                 continue
+
+            # If any objects still have names indicating they are part of a hardware
+            # dataport, it means that dataport hasn't been given a paddr or size.
+            # This indicates an error, and the object name is invalid in capdl,
+            # so catch the error here rather than having the capdl translator fail.
+
+            for cap in (v for v in cspaces[i.address_space].cnode.slots.values() if v is not None):
+
+                obj = cap.referent
+
+                match = HARDWARE_FRAME_NAME_PATTERN.match(obj.name)
+                assert (match is None or match.group(2) != connections[0].to_instance.name), \
+                    "Missing hardware attributes for %s.%s" % (match.group(2), match.group(3))
 
             shm_keys = []
             for c in connections:
@@ -528,8 +616,8 @@ def replace_dma_frames(ast, obj_space, elfs, options, **_):
 
         for index, v in enumerate(base_vaddrs):
             # Locate the mapping.
-            pt_index = page_table_index(get_elf_arch(elf), v)
-            p_index = page_index(get_elf_arch(elf), v)
+            pt_index = page_table_index(options.architecture, v)
+            p_index = page_index(options.architecture, v)
 
             # It should contain an existing frame.
             assert pt_index in pd
@@ -608,7 +696,7 @@ def guard_pages(obj_space, cspaces, elfs, options, **_):
                 pre_guard = get_symbol_vaddr(elf, ipc_symbol)
 
                 # Relate this virtual address to a PT.
-                pt_index = page_table_index(get_elf_arch(elf), pre_guard)
+                pt_index = page_table_index(options.architecture, pre_guard)
                 if pt_index not in pd:
                     raise Exception('IPC buffer region of TCB %s in group %s '
                         'does not appear to be backed by a page table' %
@@ -616,7 +704,7 @@ def guard_pages(obj_space, cspaces, elfs, options, **_):
                 pt = pd[pt_index].referent
 
                 # Continue on to infer the page.
-                p_index = page_index(get_elf_arch(elf), pre_guard)
+                p_index = page_index(options.architecture, pre_guard)
                 if p_index not in pt:
                     raise Exception('IPC buffer region of TCB %s in ' \
                         'group %s does not appear to be backed by a frame' \
@@ -633,14 +721,14 @@ def guard_pages(obj_space, cspaces, elfs, options, **_):
 
                 post_guard = pre_guard + 2 * PAGE_SIZE
 
-                pt_index = page_table_index(get_elf_arch(elf), post_guard)
+                pt_index = page_table_index(options.architecture, post_guard)
                 if pt_index not in pd:
                     raise Exception('IPC buffer region of TCB %s in group %s '
                         'does not appear to be backed by a page table' %
                         (tcb.name, group))
                 pt = pd[pt_index].referent
 
-                p_index = page_index(get_elf_arch(elf), post_guard)
+                p_index = page_index(options.architecture, post_guard)
                 if p_index not in pt:
                     raise Exception('IPC buffer region of TCB %s in ' \
                         'group %s does not appear to be backed by a frame' \
@@ -657,14 +745,14 @@ def guard_pages(obj_space, cspaces, elfs, options, **_):
 
                 pre_guard = get_symbol_vaddr(elf, stack_symbol)
 
-                pt_index = page_table_index(get_elf_arch(elf), pre_guard)
+                pt_index = page_table_index(options.architecture, pre_guard)
                 if pt_index not in pd:
                     raise Exception('stack region of TCB %s in group %s does '
                         'not appear to be backed by a page table' % (tcb.name,
                         group))
                 pt = pd[pt_index].referent
 
-                p_index = page_index(get_elf_arch(elf), pre_guard)
+                p_index = page_index(options.architecture, pre_guard)
                 if p_index not in pt:
                     raise Exception('stack region of TCB %s in ' \
                         'group %s does not appear to be backed by a frame' \
@@ -683,14 +771,14 @@ def guard_pages(obj_space, cspaces, elfs, options, **_):
                     'stack region has no room for guard pages'
                 post_guard = pre_guard + stack_region_size - PAGE_SIZE
 
-                pt_index = page_table_index(get_elf_arch(elf), post_guard)
+                pt_index = page_table_index(options.architecture, post_guard)
                 if pt_index not in pd:
                     raise Exception('stack region of TCB %s in group %s does '
                         'not appear to be backed by a page table' % (tcb.name,
                         group))
                 pt = pd[pt_index].referent
 
-                p_index = page_index(get_elf_arch(elf), post_guard)
+                p_index = page_index(options.architecture, post_guard)
                 if p_index not in pt:
                     raise Exception('stack region of TCB %s in ' \
                         'group %s does not appear to be backed by a frame' \
