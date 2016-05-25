@@ -20,7 +20,7 @@ import plyplus, re
 # The directives that CPP emits to indicate a change of source file and/or line
 # number.
 LINE_DIRECTIVE = re.compile(
-    r'^\s*#\s*(?:line)?\s*(?P<lineno>\d+)\s+"(?P<filename>[^"]*)".*$',
+    r'^\s*#\s*(?:line)?\s*(?P<lineno>\d+)(?:\s+"(?P<filename>[^"]*)")?.*$',
     flags=re.UNICODE)
 
 class SourceLocation(object):
@@ -103,7 +103,8 @@ class SourceLocation(object):
             m = LINE_DIRECTIVE.match(line)
             if m is not None:
                 # The current line is a line directive.
-                current_filename = m.group('filename')
+                if m.group('filename') is not None:
+                    current_filename = m.group('filename')
                 current_lineno = int(m.group('lineno'))
             else:
                 # Standard (CAmkES) line.
