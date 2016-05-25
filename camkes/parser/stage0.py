@@ -120,5 +120,5 @@ def parse_makefile_rule(f):
         for dep in line.split():
             if dep != '\\':
                 yield dep
-        if not line.endswith(' \\'):
+        if not line.endswith('\\'):
             return
