@@ -1,0 +1,26 @@
+connector GenericRPC {
+    from Procedure;
+    to Procedure;
+}
+
+procedure Hello {
+    char getchar(void);
+    int putchar(char x);
+}
+
+component Foo {
+    control;
+    uses Hello s;
+}
+
+component Bar {
+    provides Hello t;
+}
+
+assembly {
+  composition {
+    component Foo foo;
+    component Bar bar;
+    connection GenericRPC con(from foo.s, to bar.t);
+  }
+}

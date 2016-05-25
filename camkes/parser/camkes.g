@@ -150,7 +150,7 @@ include: INCLUDE (quoted_string | angle_string) ';';
 method_decl: (VOID | type) id '\(' (VOID | (parameter (',' parameter)* ','?)?) '\)' ';';
 @parameter: array_parameter | scalar_parameter;
 array_parameter: scalar_parameter '\[' '\]';
-scalar_parameter: direction type id;
+scalar_parameter: direction? type id;
 direction: IN | INOUT | OUT | REFIN;
 type: signed_int | unsigned_int | struct_type | char | signed_char | unsigned_char | ID;
 signed_int: SIGNED? (INT | INTEGER);

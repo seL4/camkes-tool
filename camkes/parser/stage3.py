@@ -540,7 +540,14 @@ def _lift_provides(location, ref, id2):
 def _lift_reference(location, *ids):
     return Reference(list(ids), None, location)
 
-def _lift_scalar_parameter(location, direction, type, id):
+def _lift_scalar_parameter(location, *args):
+    if len(args) == 2:
+        # Default the direction to 'in' if not specified.
+        direction = 'in'
+        type, id = args
+    else:
+        assert len(args) == 3
+        direction, type, id = args
     return Parameter(id, direction, type, location=location)
 
 def _lift_semaphore(location, id):

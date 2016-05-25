@@ -941,5 +941,68 @@ class TestStage3(CAmkESTest):
             self.parser.parse_string(
                 'configuration { foo.bar = 1 << 2 ** 64; }')
 
+    def test_basic_default_parameter_direction(self):
+        '''
+        A feature that was added late to CAmkES was the ability to omit the
+        direction of a method parameter and have it assumed to be 'in'. This
+        tests that such syntax is supported.
+        '''
+        content, _ = self.parser.parse_string('procedure P {\n'
+                                              '  void foo(int x);\n'
+                                              '}')
+
+        self.assertLen(content.children, 1)
+        P = content.children[0]
+        self.assertIsInstance(P, Procedure)
+
+        self.assertLen(P.methods, 1)
+        foo = P.methods[0]
+
+        self.assertLen(foo.parameters, 1)
+        x = foo.parameters[0]
+
+        self.assertEqual(x.direction, 'in')
+
+    def test_complex_default_parameter_direction(self):
+        '''
+        Test a more complex example of default parameter directions.
+        '''
+        content, _ = self.parser.parse_string(
+            'procedure P {\n'
+            '  void foo(int x, inout unsigned int y, unsigned int z);\n'
+            '  void bar(out int x, struct foo y, MyType_t z);\n'
+            '}')
+
+        self.assertLen(content.children, 1)
+        P = content.children[0]
+        self.assertIsInstance(P, Procedure)
+
+        self.assertLen(P.methods, 2)
+        foo, bar = P.methods
+
+        self.assertLen(foo.parameters, 3)
+        x, y, z = foo.parameters
+
+        self.assertEqual(x.direction, 'in')
+        self.assertEqual(x.type, 'int')
+
+        self.assertEqual(y.direction, 'inout')
+        self.assertEqual(y.type, 'unsigned int')
+
+        self.assertEqual(z.direction, 'in')
+        self.assertEqual(z.type, 'unsigned int')
+
+        self.assertLen(bar.parameters, 3)
+        x, y, z = bar.parameters
+
+        self.assertEqual(x.direction, 'out')
+        self.assertEqual(x.type, 'int')
+
+        self.assertEqual(y.direction, 'in')
+        self.assertEqual(y.type, 'struct foo')
+
+        self.assertEqual(z.direction, 'in')
+        self.assertEqual(z.type, 'MyType_t')
+
 if __name__ == '__main__':
     unittest.main()
