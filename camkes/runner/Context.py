@@ -97,14 +97,6 @@ def new_context(entity, assembly, obj_space, cap_space, shmem, **kwargs):
                 '%s_%s' % (entity.name, name), type, label=entity.name,
                 **kwargs),
                 **kwargs)) if cap_space else None,
-        'alloc_entity':(lambda name, type, entity_name, **kwargs:
-            alloc_cap((entity, cap_space), cap_space, name,
-            alloc_obj((entity, obj_space), obj_space, 
-                '%s_%s' % (entity_name, name), type, label=entity_name,
-                **kwargs),
-                **kwargs)) if cap_space else None,
-
-
 
         # Functionality for templates to inform us that they've emitted a C
         # variable that's intended to map to a shared variable. It is
