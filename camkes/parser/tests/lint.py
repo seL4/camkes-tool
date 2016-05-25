@@ -39,7 +39,7 @@ def lint(self, path):
         self.fail('\n'.join(err))
 
 srcdir = os.path.join(os.path.dirname(ME), '..')
-regex = re.compile(r'^.*\.py$')
+regex = re.compile(r'.*\.py$')
 sub = re.compile(r'[^\w]')
 for src in os.listdir(srcdir):
     if regex.match(src) is None:

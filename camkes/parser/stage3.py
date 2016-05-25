@@ -670,7 +670,7 @@ LIFT = {
 }
 
 # Sanity checks.
-assert all(map(re.compile(r'^\w+$').match, LIFT)), 'illegal character in ' \
+assert all(map(re.compile(r'\w+$').match, LIFT)), 'illegal character in ' \
     'LIFT key; all keys should correspond to grammar rule names'
 
 assert len(list(DONT_LIFT) + list(LIFT)) == len(set(list(DONT_LIFT) +

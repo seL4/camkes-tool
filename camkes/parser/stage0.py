@@ -112,7 +112,7 @@ def parse_makefile_rule(f):
         if line == '':
             continue
         if not in_deps:
-            head = re.match(r'^.*?:(.*)$', line)
+            head = re.match(r'.*?:(.*)$', line)
             if head is None:
                 raise ParseError('unexpected dependency line %s found' % line)
             in_deps = True

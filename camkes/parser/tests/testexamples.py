@@ -62,7 +62,7 @@ class TestExamples(CAmkESTest):
 # case for each parser.
 added_good = False
 for eg in os.listdir(os.path.join(os.path.dirname(ME), 'good')):
-    if re.match(r'^.*\.camkes$', eg) is not None:
+    if re.match(r'.*\.camkes$', eg) is not None:
         path = os.path.join(os.path.dirname(ME), 'good', eg)
         for parser in PARSERS:
             test_name = 'test_good_%s_%s' % (parser, re.sub(r'[^\w]', '_', eg))
@@ -91,7 +91,7 @@ for p in PARSERS:
     if not os.path.exists(dirname):
         continue
     for eg in os.listdir(dirname):
-        if re.match(r'^.*\.camkes$', eg) is not None:
+        if re.match(r'.*\.camkes$', eg) is not None:
             path = os.path.join(dirname, eg)
             test_name = 'test_bad_at_%s_%s' % (p, re.sub(r'[^\w]', '_', eg))
             setattr(TestExamples, test_name,

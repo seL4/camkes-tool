@@ -36,9 +36,9 @@ def sources():
 
     # Files to count as "CAmkES sources."
     include = [re.compile(x) for x in
-        (r'^camkes\.sh$', r'^camkes/ast/[^/]*\.py$',
-        r'^camkes/internal/[^/]*\.(py|sql)$', r'^camkes/parser/[^/]*\.py$',
-        r'^camkes/runner/[^/]*\.py$', r'^camkes/templates/.*$')]
+        (r'camkes\.sh$', r'camkes/ast/[^/]*\.py$',
+        r'camkes/internal/[^/]*\.(py|sql)$', r'camkes/parser/[^/]*\.py$',
+        r'camkes/runner/[^/]*\.py$', r'camkes/templates/.*$')]
 
     # Directory from which the above paths are relevant.
     root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))

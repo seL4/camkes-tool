@@ -20,7 +20,7 @@ import plyplus, re
 # The directives that CPP emits to indicate a change of source file and/or line
 # number.
 LINE_DIRECTIVE = re.compile(
-    r'^\s*#\s*(?:line)?\s*(?P<lineno>\d+)(?:\s+"(?P<filename>[^"]*)")?.*$',
+    r'\s*#\s*(?:line)?\s*(?P<lineno>\d+)(?:\s+"(?P<filename>[^"]*)")?.*$',
     flags=re.UNICODE)
 
 class SourceLocation(object):

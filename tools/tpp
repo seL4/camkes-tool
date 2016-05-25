@@ -199,7 +199,7 @@ def main():
     # Directives can be provided in the input in the form:
     #  (** TPP: property = value *)
     # We construct this regex ahead of time for performance reasons.
-    directive_syntax = re.compile(r'^\(\*\*\s+TPP:\s*(\w+)\s*=\s*(.*)\s*\*\)$')
+    directive_syntax = re.compile(r'\(\*\*\s+TPP:\s*(\w+)\s*=\s*(.*)\s*\*\)$')
 
     properties = {}
     lineno = 0

@@ -40,20 +40,20 @@ class TestPyLint(CAmkESTest):
 to_ignore = frozenset([
 
     # Pylint header.
-    re.compile(r'^\*+\sModule\s\w+$'),
+    re.compile(r'\*+\sModule\s\w+$'),
 
     # Pylint always warns about missing Jinja supports.
-    re.compile(r'^E:\s*\d+,\s*\d+:\s+Undefined variable\s+\'(environment|dummy)\'\s+\(undefined-variable\)$'),
+    re.compile(r'E:\s*\d+,\s*\d+:\s+Undefined variable\s+\'(environment|dummy)\'\s+\(undefined-variable\)$'),
 
     # Jinja sometimes re-uses internal function names.
-    re.compile(r'^E:\s*\d+,\s*\d+:\s+function already defined line \d+ \(function-redefined\)$'),
+    re.compile(r'E:\s*\d+,\s*\d+:\s+function already defined line \d+ \(function-redefined\)$'),
 
     # Output from jinja_pylint.py (the other one, not us) itself.
     re.compile('compiling to [^\s]+?\.\.\.$'),
     re.compile('running pylint on [^\s]+?\.\.\.$'),
 
     # Blank lines.
-    re.compile('^$'),
+    re.compile('$'),
 ])
 
 def _lint(self, path):
