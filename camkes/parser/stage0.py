@@ -116,7 +116,7 @@ def parse_makefile_rule(f):
             if head is None:
                 raise ParseError('unexpected dependency line %s found' % line)
             in_deps = True
-            line = head.group(0)
+            line = head.group(1)
         for dep in line.split():
             if dep != '\\':
                 yield dep
