@@ -140,6 +140,13 @@ def main():
             if content != '':
                 raise SyntaxError('%s:%d: tailing content \'%s\' in an else '
                     'statement' % (sys.argv[1], t.line, content))
+            if stack[-1] == 'for':
+                # This is not a guaranteed error, but more of a code smell. The
+                # semantics of this construct in Jinja mean it is almost always
+                # indicative of a mistake.
+                sys.stderr.write('%s:%d: warning: else inside for block; this '
+                    'has different semantics to Python\n' % (sys.argv[1],
+                    t.line))
         elif token == 'endfor':
             if len(stack) == 0:
                 raise SyntaxError('%s:%d: endfor while not inside a block' %
