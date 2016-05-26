@@ -155,7 +155,6 @@ def new_context(entity, assembly, obj_space, cap_space, shmem, **kwargs):
         'arch':kwargs['options'].architecture,
         'textwrap':textwrap,
         'copy':copy,
-        'None':None,
 
         # Allocation pools. In general, do not touch these in templates, but
         # interact with them through the alloc* functions. They are only in the
