@@ -157,7 +157,7 @@ def set_tcb_sc(tcb, ast, perspective, obj_space, group):
     # first check if this thread has been configured to not have an SC
     passive_attribute_name = perspective['passive_attribute']
     instance_name = perspective['instance']
-    passive_attributes = [x for x in settings if x.instance == instance_name and \
+    passive_attributes = [x for x in settings if x.instance == instance_name and
                                                  x.attribute == passive_attribute_name]
 
     # Determine whether a passive component instance thread was specified

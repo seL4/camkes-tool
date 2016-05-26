@@ -222,6 +222,6 @@ def parse_args(tool):
         help='Native word size of the target platform.')
     add_arg('--architecture', default='aarch32', choices=('aarch32', 'arm_hyp', 'ia32'),
         help='Architecture of the target platform.')
-    add_arg('--realtime', action='store_true', \
+    add_arg('--realtime', action='store_true',
         help='Target realtime seL4.')
     return p.parse_args()
