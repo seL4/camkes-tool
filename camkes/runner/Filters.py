@@ -279,7 +279,8 @@ def set_tcb_caps(ast, obj_space, cspaces, elfs, options, **_):
 
             # Currently no fault EP (fault_ep_slot).
 
-            set_tcb_sc(tcb, ast, perspective, obj_space, group)
+            if options.realtime:
+                set_tcb_sc(tcb, ast, perspective, obj_space, group)
 
 def find_hardware_frame_in_cspace(cspace, paddr, instance_name, interface_name):
     """Returns the cap to a frame backing a hardware dataport with a given physical

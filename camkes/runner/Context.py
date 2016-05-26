@@ -210,6 +210,9 @@ def new_context(entity, assembly, obj_space, cap_space, shmem, **kwargs):
 
         # Parses a bool from a case-insensitive string
         'parse_bool':parse_bool,
+
+        # Flag indicating realtime extensions are to be used
+        'realtime':kwargs['options'].realtime,
     }.items() + kwargs.items())
 
 def _assert(condition):

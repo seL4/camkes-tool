@@ -373,15 +373,17 @@ static void /*? init ?*/(void) {
 
 /*- set passive_interfaces = set() -*/
 /* Scheduling Contexts */
-/*- for i in all_interfaces -*/
-    /*- set p = Perspective(instance=me.name, interface=i.name) -*/
-    /*- if parse_bool(configuration[me.name].get(p['passive_attribute'], 'false')) -*/
-        /*- do passive_interfaces.add(i.name) -*/
-        /*- set init_sc = alloc('sc_%s_init' % i.name, seL4_SchedContextObject) -*/
-    /*- else -*/
-        /*- set sc = alloc('sc_%s' % i.name, seL4_SchedContextObject) -*/
-    /*- endif -*/
-/*- endfor -*/
+/*- if realtime -*/
+    /*- for i in all_interfaces -*/
+        /*- set p = Perspective(instance=me.name, interface=i.name) -*/
+        /*- if parse_bool(configuration[me.name].get(p['passive_attribute'], 'false')) -*/
+            /*- do passive_interfaces.add(i.name) -*/
+            /*- set init_sc = alloc('sc_%s_init' % i.name, seL4_SchedContextObject) -*/
+        /*- else -*/
+            /*- set sc = alloc('sc_%s' % i.name, seL4_SchedContextObject) -*/
+        /*- endif -*/
+    /*- endfor -*/
+/*- endif -*/
 
 /*- set p = Perspective(instance=me.name, control=True) -*/
 /*- if parse_bool(configuration[me.name].get(p['passive_attribute'], 'false')) -*/
@@ -402,7 +404,9 @@ static void /*? init ?*/(void) {
 void USED /*? p['tls_symbol'] ?*/(int thread_id) {
     switch (thread_id) {
         /*- set tcb_control = alloc('tcb_0_control', seL4_TCBObject) -*/
-        /*- set sc_control = alloc('sc__control', seL4_SchedContextObject) -*/
+        /*- if realtime -*/
+            /*- set sc_control = alloc('sc__control', seL4_SchedContextObject) -*/
+        /*- endif -*/
         case /*? tcb_control ?*/ : /* Control thread */
             /*- set p = Perspective(instance=me.name, control=True) -*/
             /*? macros.save_ipc_buffer_address(p['ipc_buffer_symbol']) ?*/
