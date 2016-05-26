@@ -406,7 +406,7 @@ int
 
                     /* Send the response */
                     /*- if not options.fcall_leave_reply_cap or len(me.to_instance.type.provides + me.to_instance.type.uses + me.to_instance.type.consumes + me.to_instance.type.mutexes + me.to_instance.type.semaphores) > 1 -*/
-                        /*? info ?*/ = seL4_SingalRecv(/*? reply_cap_slot ?*/, /*? ep ?*/, & /*? me.to_interface.name ?*/_badge);
+                        /*? info ?*/ = seL4_SignalRecv(/*? reply_cap_slot ?*/, /*? ep ?*/, & /*? me.to_interface.name ?*/_badge);
                     /*- else -*/
 
                         /*- if options.fspecialise_syscall_stubs and methods_len == 1 and m.return_type is none and len(m.parameters) == 0 -*/
