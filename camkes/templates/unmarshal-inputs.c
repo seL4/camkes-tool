@@ -232,7 +232,7 @@ unsigned int /*? size ?*/
     if (/*? length ?*/ == UINT_MAX) {
       /*- for q in input_parameters -*/
         /*- if q == p -*/
-          /*- do break -*/
+          /*- break -*/
         /*- endif -*/
         /*- if q.array -*/
           /*- if q.type == 'string' -*/
