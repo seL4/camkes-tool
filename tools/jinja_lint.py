@@ -123,9 +123,13 @@ def main():
             if context != 'if':
                 raise SyntaxError('%s:%d: endif while inside a %s block' %
                     (sys.argv[1], t.line, context))
-        elif token in ['elif', 'else']:
+        elif token == 'elif':
             if len(stack) == 0 or stack[-1] != 'if':
                 raise SyntaxError('%s:%d: %s while not inside an if block' %
+                    (sys.argv[1], t.line, token))
+        elif token == 'else':
+            if len(stack) == 0 or stack[-1] not in ['if', 'for']:
+                raise SyntaxError('%s:%d: %s while not inside an if or for block' %
                     (sys.argv[1], t.line, token))
         elif token == 'endfor':
             if len(stack) == 0:
