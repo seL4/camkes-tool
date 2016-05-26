@@ -234,25 +234,20 @@ DERIVATIONS = {
         ForwardDeriver('%(interface)s_passive', 'passive_attribute'),
         BackwardDeriver(r'([^_].*)_passive$', 'passive_attribute', 'interface'),
 
-        # BackwardDeriver(r'^([^_].*)_sc__preinit$', 'sc', 'preinit'),
-
         ControlDeriver(r'^_period$', 'period_attribute'),
         FromControlDeriver('_period', 'period_attribute'),
         ForwardDeriver('%(interface)s_period', 'period_attribute'),
         BackwardDeriver(r'^([^_].*)_period$', 'period_attribute', 'interface'),
-        # ForwardDeriver('%(preinit)s_period_preinit', 'period_attribute'),
 
         ControlDeriver(r'^_budget$', 'budget_attribute'),
         FromControlDeriver('_budget', 'budget_attribute'),
         ForwardDeriver('%(interface)s_budget', 'budget_attribute'),
         BackwardDeriver(r'^([^_].*)_budget$', 'budget_attribute', 'interface'),
-        # ForwardDeriver('%(preinit)s_budget_preinit', 'budget_attribute'),
 
         ControlDeriver(r'^_data$', 'data_attribute'),
         FromControlDeriver('_data', 'data_attribute'),
         ForwardDeriver('%(interface)s_data', 'data_attribute'),
         BackwardDeriver(r'^([^_].*)_data$', 'data_attribute', 'interface'),
-        # ForwardDeriver('%(preinit)s_data_preinit', 'data_attribute'),
 
         ForwardDeriver('cnode_%(group)s', 'cnode'),
         BackwardDeriver(r'^cnode_(.+)$', 'cnode', 'group'),
@@ -322,6 +317,5 @@ class Perspective(object):
         if key not in self.kwargs:
             self._infer(key)
         if key not in self.kwargs:
-            # raise Exception('not enough information to infer attribute, %s' % key)
             raise Exception('not enough information to infer attribute, %s kwargs %s' % ( key, self.kwargs ))
         return self.kwargs[key]
