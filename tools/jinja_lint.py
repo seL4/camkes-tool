@@ -148,12 +148,12 @@ def main():
                 raise SyntaxError('%s:%d: endmacro while inside a %s block' %
                     (sys.argv[1], t.line, context))
         elif token == 'break':
-            if len(stack) == 0 or stack[-1] not in ['for', 'if']:
-                raise SyntaxError('%s:%d: break while not inside a for or if' %
+            if 'for' not in stack:
+                raise SyntaxError('%s:%d: break while not inside a for block' %
                     (sys.argv[1], t.line))
         elif token == 'continue':
             if 'for' not in stack:
-                raise SyntaxError('%s:%d: continue while not inside a for' %
+                raise SyntaxError('%s:%d: continue while not inside a for block' %
                     (sys.argv[1], t.line))
         elif token in ['do', 'import', 'include', 'set']:
             # Ignore; allowable anywhere.
