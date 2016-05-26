@@ -383,6 +383,21 @@ static void /*? init ?*/(void) {
     /*- endif -*/
 /*- endfor -*/
 
+/*- set p = Perspective(instance=me.name, control=True) -*/
+/*- if parse_bool(configuration[me.name].get(p['passive_attribute'], 'false')) -*/
+/* Control thread declared passive. Ensure the realtime kernel is in use. */
+#ifndef CONFIG_KERNEL_RT
+#error Passive control thread can only be used with the realtime kernel
+#endif
+/*- endif -*/
+
+/*- if passive_interfaces -*/
+/* Passive interfaces are present. Ensure the realtime kernel is in use. */
+#ifndef CONFIG_KERNEL_RT
+#error Passive interfaces can only be used with the realtime kernel
+#endif
+/*- endif -*/
+
 /*- set p = Perspective(instance=me.name) -*/
 void USED /*? p['tls_symbol'] ?*/(int thread_id) {
     switch (thread_id) {
