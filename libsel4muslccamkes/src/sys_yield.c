@@ -12,9 +12,16 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <sel4/sel4.h>
+#include <errno.h>
+#include <autoconf.h>
 
 long sys_sched_yield(va_list ap)
 {
-    /* won't work */
+#ifdef CONFIG_KERNEL_RT
+    errno = ENOSYS;
+    return -1;
+#else
+    seL4_Yield();
     return 0;
+#endif
 }
