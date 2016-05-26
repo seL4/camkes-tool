@@ -126,6 +126,9 @@ def main():
             if context != 'if':
                 raise SyntaxError('%s:%d: endif while inside a %s block' %
                     (sys.argv[1], t.line, context))
+            if content != '':
+                raise SyntaxError('%s:%d: tailing content \'%s\' in an endif '
+                    'statement' % (sys.argv[1], t.line, content))
         elif token == 'elif':
             if len(stack) == 0 or stack[-1] != 'if':
                 raise SyntaxError('%s:%d: %s while not inside an if block' %
@@ -134,6 +137,9 @@ def main():
             if len(stack) == 0 or stack[-1] not in ['if', 'for']:
                 raise SyntaxError('%s:%d: %s while not inside an if or for block' %
                     (sys.argv[1], t.line, token))
+            if content != '':
+                raise SyntaxError('%s:%d: tailing content \'%s\' in an else '
+                    'statement' % (sys.argv[1], t.line, content))
         elif token == 'endfor':
             if len(stack) == 0:
                 raise SyntaxError('%s:%d: endfor while not inside a block' %
@@ -142,6 +148,9 @@ def main():
             if context != 'for':
                 raise SyntaxError('%s:%d: endfor while inside a %s block' %
                     (sys.argv[1], t.line, context))
+            if content != '':
+                raise SyntaxError('%s:%d: tailing content \'%s\' in an endfor '
+                    'statement' % (sys.argv[1], t.line, content))
         elif token == 'endmacro':
             if len(stack) == 0:
                 raise SyntaxError('%s:%d: endmacro while not inside a block' %
@@ -150,14 +159,23 @@ def main():
             if context != 'macro':
                 raise SyntaxError('%s:%d: endmacro while inside a %s block' %
                     (sys.argv[1], t.line, context))
+            if content != '':
+                raise SyntaxError('%s:%d: tailing content \'%s\' in an endmacro '
+                    'statement' % (sys.argv[1], t.line, content))
         elif token == 'break':
             if 'for' not in stack:
                 raise SyntaxError('%s:%d: break while not inside a for block' %
                     (sys.argv[1], t.line))
+            if content != '':
+                raise SyntaxError('%s:%d: tailing content \'%s\' in a break '
+                    'statement' % (sys.argv[1], t.line, content))
         elif token == 'continue':
             if 'for' not in stack:
                 raise SyntaxError('%s:%d: continue while not inside a for block' %
                     (sys.argv[1], t.line))
+            if content != '':
+                raise SyntaxError('%s:%d: tailing content \'%s\' in a continue '
+                    'statement' % (sys.argv[1], t.line, content))
         elif token == 'do':
             if DO_WORD_MATCH.match(content) is not None:
                 raise SyntaxError('%s:%d: seemingly incorrect expression '
