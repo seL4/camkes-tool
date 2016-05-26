@@ -45,7 +45,7 @@ class Tokeniser(six.with_metaclass(abc.ABCMeta, collections.Iterator)):
             if token.group(1) == '\n':
                 self.line += 1
                 continue
-            text = token.group(2)
+            text = token.groups()[1:]
             break
         return text
 
@@ -69,7 +69,7 @@ class HighTokeniser(Tokeniser):
     '''
     def __init__(self, filename):
         super(HighTokeniser, self).__init__(filename)
-        self.regex = re.compile(r'(?:(\n)|/\*-[-\+]?[\s]*([\S]+)\s.*?-\*/)',
+        self.regex = re.compile(r'(?:(\n)|/\*-[-\+]?[\s]*([\S]+)\s(.*?)\s*[-\+]?-\*/)',
             flags=re.MULTILINE)
 
 def main():
@@ -86,7 +86,7 @@ def main():
     last = None
     starter = re.compile(r'/\*.$')
 
-    for token in t:
+    for token, in t:
         if starter.match(token) is not None:
             if last is not None:
                 raise SyntaxError('%s:%d: opening %s while still inside '
@@ -112,7 +112,10 @@ def main():
 
     t = HighTokeniser(sys.argv[1])
 
-    for token in t:
+    DO_WORD_MATCH = re.compile(r'\w*$')
+    SET_MATCH = re.compile(r'.*?\S\s*=\s*\S')
+
+    for token, content in t:
         if token in ['if', 'for', 'macro']:
             stack.append(token)
         elif token == 'endif':
@@ -155,7 +158,15 @@ def main():
             if 'for' not in stack:
                 raise SyntaxError('%s:%d: continue while not inside a for block' %
                     (sys.argv[1], t.line))
-        elif token in ['do', 'import', 'include', 'set']:
+        elif token == 'do':
+            if DO_WORD_MATCH.match(content) is not None:
+                raise SyntaxError('%s:%d: seemingly incorrect expression '
+                    '\'%s\' in do statement' % (sys.argv[1], t.line, content))
+        elif token == 'set':
+            if SET_MATCH.match(content) is None:
+                raise SyntaxError('%s:%d: seemingly incorrect expression '
+                    '\'%s\' in set statement' % (sys.argv[1], t.line, content))
+        elif token in ['import', 'include']:
             # Ignore; allowable anywhere.
             pass
         else:
