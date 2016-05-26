@@ -44,6 +44,7 @@ CAMKES_FLAGS += \
     $(if ${V},--debug,) \
     --cache $(if ${CONFIG_CAMKES_CACHE_READWRITE},on,$(if ${CONFIG_CAMKES_CACHE_READONLY},readonly,$(if ${CONFIG_CAMKES_CACHE_WRITEONLY},writeonly,off))) \
     $(if ${CONFIG_CAMKES_CPP},--cpp,) \
+    $(if ${CONFIG_KERNEL_RT},--realtime,) \
     --cpp-flag=-I${KERNEL_ROOT_PATH}/../include/generated \
     $(foreach path, ${PWD}/tools/camkes/include/builtin ${CONFIG_CAMKES_IMPORT_PATH}, --import-path=${path}) \
     $(if ${TEMPLATES}, $(patsubst %,--templates "${SOURCE_DIR}/%",${TEMPLATES}),) \
