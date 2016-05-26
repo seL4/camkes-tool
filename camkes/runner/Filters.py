@@ -306,7 +306,7 @@ def find_hardware_frame_in_cspace(cspace, paddr, instance_name, interface_name):
     # or this function was called erroneously.
     assert False, "No frame found in hardware dataport at paddr 0x%8x" % paddr
 
-def collapse_shared_frames(ast, obj_space, elfs, options, **_):
+def collapse_shared_frames(ast, obj_space, cspaces, elfs, options, **_):
     """Find regions in virtual address spaces that are intended to be backed by
     shared frames and adjust the capability distribution to reflect this."""
 
