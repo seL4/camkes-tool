@@ -164,9 +164,7 @@ def set_tcb_sc(tcb, ast, perspective, obj_space, group):
     if len(passive_attributes) == 0:
         passive_instance = False
     elif len(passive_attributes) == 1:
-        if passive_attributes[0].value is None:
-            passive_instance = False
-        elif isinstance(passive_attributes[0].value, str):
+        if isinstance(passive_attributes[0].value, str):
             passive_attribute = passive_attributes[0].value.lower()
             if passive_attribute == 'true':
                 passive_instance = True
