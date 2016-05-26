@@ -317,5 +317,5 @@ class Perspective(object):
         if key not in self.kwargs:
             self._infer(key)
         if key not in self.kwargs:
-            raise Exception('not enough information to infer attribute, %s kwargs %s' % ( key, self.kwargs ))
+            raise Exception('not enough information to infer attribute, %s kwargs %s' % (key, self.kwargs))
         return self.kwargs[key]
