@@ -1239,11 +1239,11 @@ lemma policy_from_state: "cdl_state_objs_to_policy CapDLSpec.state = concrete_po
              /*- for cap in obj.slots.values() -*/
                /*- if cap is not none and isinstance(cap.referent, capdl.Endpoint) -*/
                  /*- do have_eps.__setitem__(0, True) -*/
-                 /*- do break -*/
+                 /*- break -*/
                /*- endif -*/
              /*- endfor -*/
              /*- if have_eps[0] -*/
-               /*- do break -*/
+               /*- break -*/
              /*- endif -*/
            /*- endif -*/
          /*- endfor -*/
@@ -1276,11 +1276,11 @@ lemma policy_from_state: "cdl_state_objs_to_policy CapDLSpec.state = concrete_po
              /*- for cap in obj.slots.values() -*/
                /*- if cap is not none and isinstance(cap.referent, capdl.AsyncEndpoint) -*/
                  /*- do have_aeps.__setitem__(0, True) -*/
-                 /*- do break -*/
+                 /*- break -*/
                /*- endif -*/
              /*- endfor -*/
              /*- if have_aeps[0] -*/
-               /*- do break -*/
+               /*- break -*/
              /*- endif -*/
            /*- endif -*/
          /*- endfor -*/
