@@ -422,8 +422,6 @@ int USED /*? p['entry_symbol'] ?*/(int thread_id) {
     seL4_DebugNameThread(camkes_get_tls()->tcb_cap, /*? thread_name ?*/);
 #endif
 
-    /*- set info = c_symbol('info') -*/
-
     /*- if options.fsupport_init -*/
         /*# Locks for synchronising init ops. #*/
         /*- set pre_init_ep = alloc('pre_init_ep', seL4_EndpointObject, read=True, write=True) -*/

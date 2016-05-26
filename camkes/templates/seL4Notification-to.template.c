@@ -46,8 +46,6 @@ static volatile int sleepers;
 #define WAKE() seL4_Signal(/*? lock ?*/)
 
 int /*? me.to_interface.name ?*/__run(void) {
-    /*- set info = c_symbol('info') -*/
-
     while (1) {
         int handled = 0;
 
