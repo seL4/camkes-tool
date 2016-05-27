@@ -316,7 +316,7 @@ unsigned int /*? size ?*/
       /*- endif -*/
       /*- for q in output_parameters -*/
         /*- if q == p -*/
-          /*- do break -*/
+          /*- break -*/
         /*- endif -*/
         /*- if q.array -*/
           /*- if q.type == 'string' -*/

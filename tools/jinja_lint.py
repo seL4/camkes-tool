@@ -45,7 +45,7 @@ class Tokeniser(six.with_metaclass(abc.ABCMeta, collections.Iterator)):
             if token.group(1) == '\n':
                 self.line += 1
                 continue
-            text = token.group(2)
+            text = token.groups()[1:]
             break
         return text
 
@@ -69,7 +69,7 @@ class HighTokeniser(Tokeniser):
     '''
     def __init__(self, filename):
         super(HighTokeniser, self).__init__(filename)
-        self.regex = re.compile(r'(?:(\n)|/\*-[\s]*([\S]+)\s.*?-\*/)',
+        self.regex = re.compile(r'(?:(\n)|/\*-[-\+]?[\s]*([\S]+)\s(.*?)\s*[-\+]?-\*/)',
             flags=re.MULTILINE)
 
 def main():
@@ -86,7 +86,7 @@ def main():
     last = None
     starter = re.compile(r'/\*.$')
 
-    for token in t:
+    for token, in t:
         if starter.match(token) is not None:
             if last is not None:
                 raise SyntaxError('%s:%d: opening %s while still inside '
@@ -112,7 +112,10 @@ def main():
 
     t = HighTokeniser(sys.argv[1])
 
-    for token in t:
+    DO_WORD_MATCH = re.compile(r'\w*$')
+    SET_MATCH = re.compile(r'.*?\S\s*=\s*\S')
+
+    for token, content in t:
         if token in ['if', 'for', 'macro']:
             stack.append(token)
         elif token == 'endif':
@@ -123,10 +126,27 @@ def main():
             if context != 'if':
                 raise SyntaxError('%s:%d: endif while inside a %s block' %
                     (sys.argv[1], t.line, context))
-        elif token in ['elif', 'else']:
+            if content != '':
+                raise SyntaxError('%s:%d: tailing content \'%s\' in an endif '
+                    'statement' % (sys.argv[1], t.line, content))
+        elif token == 'elif':
             if len(stack) == 0 or stack[-1] != 'if':
                 raise SyntaxError('%s:%d: %s while not inside an if block' %
                     (sys.argv[1], t.line, token))
+        elif token == 'else':
+            if len(stack) == 0 or stack[-1] not in ['if', 'for']:
+                raise SyntaxError('%s:%d: %s while not inside an if or for block' %
+                    (sys.argv[1], t.line, token))
+            if content != '':
+                raise SyntaxError('%s:%d: tailing content \'%s\' in an else '
+                    'statement' % (sys.argv[1], t.line, content))
+            if stack[-1] == 'for':
+                # This is not a guaranteed error, but more of a code smell. The
+                # semantics of this construct in Jinja mean it is almost always
+                # indicative of a mistake.
+                sys.stderr.write('%s:%d: warning: else inside for block; this '
+                    'has different semantics to Python\n' % (sys.argv[1],
+                    t.line))
         elif token == 'endfor':
             if len(stack) == 0:
                 raise SyntaxError('%s:%d: endfor while not inside a block' %
@@ -135,6 +155,9 @@ def main():
             if context != 'for':
                 raise SyntaxError('%s:%d: endfor while inside a %s block' %
                     (sys.argv[1], t.line, context))
+            if content != '':
+                raise SyntaxError('%s:%d: tailing content \'%s\' in an endfor '
+                    'statement' % (sys.argv[1], t.line, content))
         elif token == 'endmacro':
             if len(stack) == 0:
                 raise SyntaxError('%s:%d: endmacro while not inside a block' %
@@ -143,15 +166,32 @@ def main():
             if context != 'macro':
                 raise SyntaxError('%s:%d: endmacro while inside a %s block' %
                     (sys.argv[1], t.line, context))
+            if content != '':
+                raise SyntaxError('%s:%d: tailing content \'%s\' in an endmacro '
+                    'statement' % (sys.argv[1], t.line, content))
         elif token == 'break':
-            if len(stack) == 0 or stack[-1] not in ['for', 'if']:
-                raise SyntaxError('%s:%d: break while not inside a for or if' %
+            if 'for' not in stack:
+                raise SyntaxError('%s:%d: break while not inside a for block' %
                     (sys.argv[1], t.line))
+            if content != '':
+                raise SyntaxError('%s:%d: tailing content \'%s\' in a break '
+                    'statement' % (sys.argv[1], t.line, content))
         elif token == 'continue':
             if 'for' not in stack:
-                raise SyntaxError('%s:%d: continue while not inside a for' %
+                raise SyntaxError('%s:%d: continue while not inside a for block' %
                     (sys.argv[1], t.line))
-        elif token in ['do', 'import', 'include', 'set']:
+            if content != '':
+                raise SyntaxError('%s:%d: tailing content \'%s\' in a continue '
+                    'statement' % (sys.argv[1], t.line, content))
+        elif token == 'do':
+            if DO_WORD_MATCH.match(content) is not None:
+                raise SyntaxError('%s:%d: seemingly incorrect expression '
+                    '\'%s\' in do statement' % (sys.argv[1], t.line, content))
+        elif token == 'set':
+            if SET_MATCH.match(content) is None:
+                raise SyntaxError('%s:%d: seemingly incorrect expression '
+                    '\'%s\' in set statement' % (sys.argv[1], t.line, content))
+        elif token in ['import', 'include']:
             # Ignore; allowable anywhere.
             pass
         else:
