@@ -23,7 +23,7 @@ from camkes.internal.seven import cmp, filter, map, zip
 
 from .base import Transformer
 from .exception import ParseError
-from camkes.ast import Assembly, ASTObject, Attribute, AttributeReference, \
+from camkes.ast import Assembly, ASTObject, AttributeReference, \
     Component, Composition, Configuration, Consumes, Dataport, Emits, \
     Instance, Interface, Provides, Setting, Uses
 import copy, six

@@ -21,7 +21,7 @@ ME = os.path.abspath(__file__)
 # Make CAmkES importable
 sys.path.append(os.path.join(os.path.dirname(ME), '../../..'))
 
-from camkes.ast import Assembly, Attribute, AttributeReference, Component, \
+from camkes.ast import Assembly, AttributeReference, Component, \
     Composition, Connection, ConnectionEnd, Connector, Group, Instance, \
     LiftedAST, Procedure, Provides, Setting, Uses
 from camkes.internal.tests.utils import CAmkESTest
