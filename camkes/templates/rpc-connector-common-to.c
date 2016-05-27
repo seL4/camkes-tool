@@ -406,7 +406,12 @@ int
 
                     /* Send the response */
                     /*- if not options.fcall_leave_reply_cap or len(me.to_instance.type.provides + me.to_instance.type.uses + me.to_instance.type.consumes + me.to_instance.type.mutexes + me.to_instance.type.semaphores) > 1 -*/
-                        /*? info ?*/ = seL4_SignalRecv(/*? reply_cap_slot ?*/, /*? ep ?*/, & /*? me.to_interface.name ?*/_badge);
+                        /*- if realtime -*/
+                            /*? info ?*/ = seL4_SignalRecv(/*? reply_cap_slot ?*/, /*? ep ?*/, & /*? me.to_interface.name ?*/_badge);
+                        /*- else -*/
+                            seL4_Send(/*? reply_cap_slot ?*/, /*? info ?*/);
+                            /*? info ?*/ = seL4_Recv(/*? ep ?*/, & /*? me.to_interface.name ?*/_badge);
+                        /*- endif -*/
                     /*- else -*/
 
                         /*- if options.fspecialise_syscall_stubs and methods_len == 1 and m.return_type is none and len(m.parameters) == 0 -*/
