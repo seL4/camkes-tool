@@ -2338,7 +2338,7 @@ their corresponding referent attributes.
 The `<-` operator is used to set an attribute to refer to another. Lines of the following form
 may appear in the configuration section of a compound component:
 
-```
+```camkes
 entity_name.attribute_name <- local_attribute_name;
 ```
 
