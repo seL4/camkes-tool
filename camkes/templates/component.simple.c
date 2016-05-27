@@ -209,7 +209,15 @@ static seL4_Error simple_camkes_get_frame_cap(void *data, void *paddr, int size_
         /*- endfor -*/
     /*- endif -*/
     /*- if len(untyped_mmio) > 0 -*/
-#error Untyped MMIO regions requested, but not supported
+#ifdef CONFIG_KERNEL_STABLE
+        /*- for paddr, size_bits, cap in untyped_mmio -*/
+            if ((uintptr_t)paddr >= (uintptr_t)/*? paddr ?*/ && (uintptr_t)paddr + BIT(size_bits) <= (uintptr_t)/*? paddr ?*/ + (uintptr_t)/*? 2**size_bits ?*/) {
+                return seL4_Untyped_RetypeAtOffset(/*? cap ?*/, kobject_get_type(KOBJECT_FRAME, size_bits), (seL4_Word)(paddr - /*? paddr ?*/), size_bits, path->root, path->dest, path->destDepth, path->offset, 1);
+            }
+        /*- endfor -*/
+#else
+#error Untyped MMIO regions requested, but not running on experimental kernel
+#endif
     /*- endif -*/
     return seL4_FailedLookup;
 }
@@ -356,7 +364,11 @@ static uintptr_t make_frame_get_paddr(seL4_CPtr untyped) {
     int error;
     uintptr_t ret;
     type = seL4_ARCH_4KPage;
+#ifdef CONFIG_KERNEL_STABLE
+    error = seL4_Untyped_RetypeAtOffset(untyped, type, 0, 12, /*? self_cnode ?*/, 0, 0, /*? holding_slot ?*/, 1);
+#else
     error = seL4_Untyped_Retype(untyped, type, 12, /*? self_cnode ?*/, 0, 0, /*? holding_slot ?*/, 1);
+#endif
     ERR_IF(error != seL4_NoError, camkes_error, ((camkes_error_t){
             .type = CE_SYSCALL_FAILED,
             .instance = "/*? me.name ?*/",
@@ -402,13 +414,21 @@ void camkes_make_simple(simple_t *simple) {
     /* Assume we are called from init */
     simple_data.inittcb = camkes_get_tls()->tcb_cap;
     simple->data = &simple_data;
+#ifndef CONFIG_KERNEL_STABLE
     simple->arch_simple.data = &simple_data;
+#endif
     simple->frame_info = /*&simple_camkes_get_frame_info*/NULL;
     simple->frame_cap = &simple_camkes_get_frame_cap;
     simple->frame_mapping = /*&simple_camkes_get_frame_mapping*/NULL;
+#ifdef CONFIG_KERNEL_STABLE
+    simple->irq = &simple_camkes_get_irq;
+#else
     simple->arch_simple.irq = &simple_camkes_get_irq;
+#endif
     simple->ASID_assign = &simple_camkes_set_ASID;
-#ifdef CONFIG_ARCH_X86
+#ifdef CONFIG_KERNEL_STABLE
+    simple->IOPort_cap = &simple_camkes_get_IOPort_cap;
+#else
     simple->arch_simple.IOPort_cap = &simple_camkes_get_IOPort_cap;
 #endif
     simple->cap_count = &simple_camkes_cap_count;
