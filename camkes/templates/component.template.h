@@ -107,17 +107,17 @@ const char *get_instance_name(void);
         /*- if irq[0] -*/ WARNING("/*? c.name ?*/_wait is not provided by "
             "seL4HardwareInterrupt") /*- endif -*/
         ;
-    int /*? c.name ?*/_poll(void)
+    int /*? c.name ?*/_poll(void) WARN_UNUSED_RESULT
         /*- if c.optional -*/ WEAK /*- endif -*/
         /*- if irq[0] -*/ WARNING("/*? c.name ?*/_poll is not provided by "
             "seL4HardwareInterrupt") /*- endif -*/
         ;
-    int /*? c.name ?*/_reg_callback(void (*callback)(void*), void *arg)
+    int /*? c.name ?*/_reg_callback(void (*callback)(void*), void *arg) WARN_UNUSED_RESULT
         /*- if c.optional -*/ WEAK /*- endif -*/
         /*- if irq[0] -*/ WARNING("/*? c.name ?*/_reg_callback is not provided "
             "by seL4HardwareInterrupt") /*- endif -*/
         ;
-    int /*? c.name ?*/_acknowledge(void)
+    int /*? c.name ?*/_acknowledge(void) WARN_UNUSED_RESULT
         /*- if c.optional -*/ WEAK /*- endif -*/;
     /* Implemented by user code. */
     void /*? c.name ?*/_handle(void);
@@ -135,14 +135,14 @@ const char *get_instance_name(void);
 /*- endfor -*/
 
 /*- for m in me.type.mutexes -*/
-    int /*? m.name ?*/_lock(void);
-    int /*? m.name ?*/_unlock(void);
+    int /*? m.name ?*/_lock(void) WARN_UNUSED_RESULT;
+    int /*? m.name ?*/_unlock(void) WARN_UNUSED_RESULT;
 /*- endfor -*/
 
 /*- for s in me.type.semaphores -*/
-    int /*? s.name ?*/_wait(void);
-    int /*? s.name ?*/_trywait(void);
-    int /*? s.name ?*/_post(void);
+    int /*? s.name ?*/_wait(void) WARN_UNUSED_RESULT;
+    int /*? s.name ?*/_trywait(void) WARN_UNUSED_RESULT;
+    int /*? s.name ?*/_post(void) WARN_UNUSED_RESULT;
 /*- endfor -*/
 
 /* Entry point expected to be provided by the user. */
