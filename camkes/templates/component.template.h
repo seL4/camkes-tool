@@ -86,7 +86,7 @@ const char *get_instance_name(void);
             /*- if len(m.parameters) == 0 -*/
               void
             /*- endif -*/
-        ) /*- if isinstance(u, camkes.ast.Uses) and u.optional -*/ WEAK /*- endif -*/;
+        ) NONNULL_ALL /*- if isinstance(u, camkes.ast.Uses) and u.optional -*/ WEAK /*- endif -*/;
     /*- endfor -*/
 /*- endfor -*/
 
