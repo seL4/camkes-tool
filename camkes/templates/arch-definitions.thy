@@ -240,7 +240,7 @@ where
 
 lemma wf_/*? configuration ?*/:
 /*- if me.configuration -*/
-    "wellformed_configuration the /*? configuration ?*/"
+    "wellformed_configuration (the /*? configuration ?*/)"
     by code_simp
 /*- else -*/
     /*# If there is no configuration it is trivially wellformed. #*/
