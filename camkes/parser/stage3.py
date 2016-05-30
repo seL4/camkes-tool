@@ -152,11 +152,15 @@ def _lift_assembly_defn(location, *args):
     return Assembly(composition=composition, configuration=configuration,
         location=location)
 
-def _lift_attribute(location, type, id):
-    return Attribute(type, id, location)
+def _lift_attribute(location, type, id, default=None):
+    if isinstance(default, six.string_types):
+        assert default[0] == default[-1] == '"', 'unquoted string used as ' \
+            'attribute default value (bug in stage 1 parser?)'
+        default = default[1:-1] # Strip quotes
+    return Attribute(type, id, default, location)
 
 def _lift_attribute_decl(location, type, id):
-    return Attribute(type, id, location)
+    return Attribute(type, id, location=location)
 
 def _lift_attribute_reference(location, *ids):
     return AttributeReference('.'.join(ids), location)

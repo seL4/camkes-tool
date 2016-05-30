@@ -312,5 +312,57 @@ assembly {
         with six.assertRaisesRegex(self, ASTError, 'duplicate use of interface'):
             self.parser.parse_string(spec)
 
+    def test_attribute_default_values_in_settings(self):
+        '''
+        Test that an attribute without its value set has its default value
+        accessible through the configuration settings.
+        '''
+        spec = '''
+            connector C {
+                from Procedures;
+                to Procedure;
+            }
+            procedure P {}
+            component Foo {
+                attribute string x = "hello world";
+                attribute int y;
+                uses P p;
+            }
+            component Bar {
+                provides P p;
+            }
+            assembly {
+                composition {
+                    component Foo f1;
+                    component Foo f2;
+                    component Bar b;
+                    connection C conn1(from f1.p, from f2.p, to b.p);
+                }
+                configuration {
+                    f1.x = "moo cow";
+                    f1.y = 1;
+                    f2.y = 2;
+                }
+            }
+        '''
+
+        ast, _ = self.parser.parse_string(spec)
+
+        conf = ast.assembly.configuration
+
+        self.assertIn('f1', conf)
+        self.assertIn('x', conf['f1'])
+        self.assertEqual(conf['f1']['x'], 'moo cow')
+
+        self.assertIn('y', conf['f1'])
+        self.assertEqual(conf['f1']['y'], 1)
+
+        self.assertIn('f2', conf)
+        self.assertIn('x', conf['f2'])
+        self.assertEqual(conf['f2']['x'], 'hello world')
+
+        self.assertIn('y', conf['f2'])
+        self.assertEqual(conf['f2']['y'], 2)
+
 if __name__ == '__main__':
     unittest.main()

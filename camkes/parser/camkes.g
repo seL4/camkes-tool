@@ -97,7 +97,7 @@ component_defn: '\{' (attribute | consumes | control | dataport | emits |
                     ((composition_sing configuration_sing?) | configuration_sing composition_sing)? '\}';
 component_ref: reference | component_defn;
 
-attribute: ATTRIBUTE type id ';';
+attribute: ATTRIBUTE type id ('=' item)? ';';
 consumes: maybe? CONSUMES id id ';';
 control: CONTROL ';';
 dataport: maybe? DATAPORT dataport_type id ';';
