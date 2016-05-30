@@ -14,8 +14,9 @@
 #include <bits/errno.h>
 #include <camkes/tls.h>
 #include <sel4utils/arch/util.h>
+#include <utils/util.h>
 
-long sys_set_thread_area(va_list ap) {
+long sys_set_thread_area(va_list ap UNUSED) {
 #if defined(CONFIG_ARCH_IA32) && defined(CONFIG_KERNEL_STABLE)
     int error;
     uintptr_t p = (uintptr_t)va_arg(ap, uintptr_t);
@@ -33,6 +34,6 @@ long sys_set_thread_area(va_list ap) {
     return 0;
 }
 
-long sys_set_tid_address(va_list ap) {
+long sys_set_tid_address(va_list ap UNUSED) {
     return -ENOSYS;
 }

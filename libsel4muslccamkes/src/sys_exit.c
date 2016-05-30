@@ -13,6 +13,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <camkes/tls.h>
+#include <utils/util.h>
 
 /* Implemented in Musl C. */
 void abort(void);
@@ -30,46 +31,46 @@ sel4_abort(void)
 }
 
 long
-sys_exit(va_list ap)
+sys_exit(va_list ap UNUSED)
 {
     abort();
     return 0;
 }
 
 long
-sys_rt_sigprocmask(va_list ap)
+sys_rt_sigprocmask(va_list ap UNUSED)
 {
     return 0;
 }
 
 long
-sys_gettid(va_list ap)
+sys_gettid(va_list ap UNUSED)
 {
     return 0;
 }
 
 long
-sys_getpid(va_list ap)
+sys_getpid(va_list ap UNUSED)
 {
     return 1234;
 }
 
 long
-sys_tgkill(va_list ap)
+sys_tgkill(va_list ap UNUSED)
 {
     sel4_abort();
     return 0;
 }
 
 long
-sys_tkill(va_list ap)
+sys_tkill(va_list ap UNUSED)
 {
     sel4_abort();
     return 0;
 }
 
 long
-sys_exit_group(va_list ap)
+sys_exit_group(va_list ap UNUSED)
 {
     return 0;
 }

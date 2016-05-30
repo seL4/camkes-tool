@@ -12,8 +12,9 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <sel4/sel4.h>
+#include <utils/util.h>
 
-long sys_sched_yield(va_list ap)
+long sys_sched_yield(va_list ap UNUSED)
 {
     seL4_Yield();
     return 0;

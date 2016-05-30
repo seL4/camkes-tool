@@ -13,9 +13,9 @@
 #include <assert.h>
 #include <camkes/tls.h>
 #include <sel4/sel4.h>
+#include <utils/util.h>
 
-long sys_pause(va_list ap) {
-    (void)ap;
+long sys_pause(va_list ap UNUSED) {
 
     /* Suspend ourselves. This will cap fault if a setup routine has not saved
      * our TCB cap in the TLS region.
@@ -23,6 +23,6 @@ long sys_pause(va_list ap) {
     seL4_TCB_Suspend(camkes_get_tls()->tcb_cap);
 
     /* We expect to never be woken up. */
-    assert(!"unreachable");
+    UNREACHABLE();
     return 0;
 }
