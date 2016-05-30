@@ -163,7 +163,7 @@ sys_mmap2_dynamic(va_list ap)
     if (!muslc_this_vspace || !muslc_brk_reservation.res || !muslc_brk_reservation_start) {
         LOG_ERROR("Need to assign vspace for sys_brk to work!\n");
         assert(muslc_this_vspace && muslc_brk_reservation.res && muslc_brk_reservation_start);
-        return 0;
+        return -ENOMEM;
     }
     if (flags & MAP_ANONYMOUS) {
         /* determine how many pages we need */
@@ -185,7 +185,7 @@ sys_mmap2(va_list ap)
     } else {
         LOG_ERROR("mmap requires morecore_area or muslc* vars to be initialised\n");
         assert(morecore_area != NULL || muslc_this_vspace != NULL);
-        return 0;
+        return -ENOMEM;
     }
 }
 
