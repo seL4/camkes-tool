@@ -30,7 +30,6 @@
 #include <string.h>
 #include <strings.h>
 #include <sync/sem-bare.h>
-#include <sel4debug/identity.h>
 #include <sel4utils/mapping.h>
 #include <utils/util.h>
 
@@ -262,7 +261,6 @@ static void /*? init ?*/(void) {
         }), ({
             return;
         }));
-    debug_set_id_fn(get_instance_name);
     /*- for m in me.type.mutexes -*/
         res = mutex_/*? m.name ?*/_init();
         ERR_IF(res != 0, camkes_error, ((camkes_error_t){
