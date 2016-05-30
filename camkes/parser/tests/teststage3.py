@@ -1004,5 +1004,29 @@ class TestStage3(CAmkESTest):
         self.assertEqual(z.direction, 'in')
         self.assertEqual(z.type, 'MyType_t')
 
+    def test_default_attributes(self):
+        '''
+        Test that we can set default values for attributes.
+        '''
+        content, _ = self.parser.parse_string(
+            'component Foo {\n'
+            '  attribute string x;\n'
+            '  attribute string y = "hello world";\n'
+            '  attribute int z = 42;\n'
+            '}')
+
+        self.assertLen(content.children, 1)
+        Foo = content.children[0]
+        self.assertIsInstance(Foo, Component)
+
+        self.assertLen(Foo.attributes, 3)
+        x, y, z = Foo.attributes
+
+        self.assertIsNone(x.default)
+
+        self.assertEqual(y.default, 'hello world')
+
+        self.assertEqual(z.default, 42)
+
 if __name__ == '__main__':
     unittest.main()
