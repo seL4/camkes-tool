@@ -39,28 +39,24 @@ sys_exit(va_list ap)
 long
 sys_rt_sigprocmask(va_list ap)
 {
-//    printf("Ignoring call to %s\n", __FUNCTION__);
     return 0;
 }
 
 long
 sys_gettid(va_list ap)
 {
- //   printf("Ignoring call to %s\n", __FUNCTION__);
     return 0;
 }
 
 long
 sys_getpid(va_list ap)
 {
-//    printf("Ignoring call to %s\n", __FUNCTION__);
     return 1234;
 }
 
 long
 sys_tgkill(va_list ap)
 {
-//    printf("%s assuming self kill\n", __FUNCTION__);
     sel4_abort();
     return 0;
 }
@@ -75,6 +71,5 @@ sys_tkill(va_list ap)
 long
 sys_exit_group(va_list ap)
 {
-//    printf("Ignoring call to %s\n", __FUNCTION__);
     return 0;
 }
