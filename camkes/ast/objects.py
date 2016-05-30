@@ -1434,12 +1434,13 @@ class Method(ASTObject):
         super(Method, self).freeze()
 
 class Attribute(ASTObject):
-    def __init__(self, type, name, location=None):
+    def __init__(self, type, name, default=None, location=None):
         assert isinstance(type, six.string_types)
         assert isinstance(name, six.string_types)
         super(Attribute, self).__init__(location)
         self._name = name
         self._type = type
+        self._default = default
 
     @property
     def name(self):
@@ -1462,6 +1463,18 @@ class Attribute(ASTObject):
             raise TypeError('you cannot set the \'type\' field of a frozen '
                 'object')
         self._type = value
+
+    @property
+    def default(self):
+        return self._default
+    @default.setter
+    def default(self, value):
+        assert value is None or isinstance(value, (numbers.Number, list, dict)
+            + six.string_types)
+        if self.frozen:
+            raise TypeError('you cannot set the \'default\' field of a frozen '
+                'object')
+        self._default = value
 
 class Parameter(ASTObject):
     def __init__(self, name, direction, type, array=False, location=None):

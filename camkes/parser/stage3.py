@@ -153,10 +153,10 @@ def _lift_assembly_defn(location, *args):
         location=location)
 
 def _lift_attribute(location, type, id):
-    return Attribute(type, id, location)
+    return Attribute(type, id, location=location)
 
 def _lift_attribute_decl(location, type, id):
-    return Attribute(type, id, location)
+    return Attribute(type, id, location=location)
 
 def _lift_attribute_reference(location, *ids):
     return AttributeReference('.'.join(ids), location)
