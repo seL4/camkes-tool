@@ -137,6 +137,10 @@ sys_mmap2_static(va_list ap)
     (void)fd;
     (void)offset;
     if (flags & MAP_ANONYMOUS) {
+        if (length > morecore_top) {
+            /* The subtraction we're about to do will underflow. */
+            return -ENOMEM;
+        }
         /* Steal from the top */
         uintptr_t base = morecore_top - length;
         if (base < morecore_base) {
