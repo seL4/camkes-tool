@@ -23,6 +23,7 @@
 
 #include <sel4utils/util.h>
 #include <sel4utils/mapping.h>
+#include <utils/util.h>
 
 /* dynamic morecore based on a vspace. These need to be defined somewhere (probably in the
  * main function of your app. And setup something like
@@ -126,16 +127,12 @@ sys_brk(va_list ap)
 static long
 sys_mmap2_static(va_list ap)
 {
-    void *addr = va_arg(ap, void*);
+    void *addr UNUSED = va_arg(ap, void*);
     size_t length = va_arg(ap, size_t);
-    int prot = va_arg(ap, int);
+    int prot UNUSED = va_arg(ap, int);
     int flags = va_arg(ap, int);
-    int fd = va_arg(ap, int);
-    off_t offset = va_arg(ap, off_t);
-    (void)addr;
-    (void)prot;
-    (void)fd;
-    (void)offset;
+    int fd UNUSED = va_arg(ap, int);
+    off_t offset UNUSED = va_arg(ap, off_t);
     if (flags & MAP_ANONYMOUS) {
         if (length > morecore_top) {
             /* The subtraction we're about to do will underflow. */
@@ -157,16 +154,12 @@ sys_mmap2_static(va_list ap)
 static long
 sys_mmap2_dynamic(va_list ap)
 {
-    void *addr = va_arg(ap, void*);
+    void *addr UNUSED = va_arg(ap, void*);
     size_t length = va_arg(ap, size_t);
-    int prot = va_arg(ap, int);
+    int prot UNUSED = va_arg(ap, int);
     int flags = va_arg(ap, int);
-    int fd = va_arg(ap, int);
-    off_t offset = va_arg(ap, off_t);
-    (void)addr;
-    (void)prot;
-    (void)fd;
-    (void)offset;
+    int fd UNUSED = va_arg(ap, int);
+    off_t offset UNUSED = va_arg(ap, off_t);
     if (!muslc_this_vspace || !muslc_brk_reservation.res || !muslc_brk_reservation_start) {
         LOG_ERROR("Need to assign vspace for sys_brk to work!\n");
         assert(muslc_this_vspace && muslc_brk_reservation.res && muslc_brk_reservation_start);
