@@ -359,6 +359,17 @@ int
                         /*- endfor -*/
                     );
 
+                    /*- if realtime and passive and (not options.fcall_leave_reply_cap or len(me.to_instance.type.provides + me.to_instance.type.uses + me.to_instance.type.consumes + me.to_instance.type.mutexes + me.to_instance.type.semaphores)) > 1 -*/
+                        /*# We will be seL4_ReplyRecv-ing after marshalling, so
+                         *# the reply cap must be swapped into the thread's reply
+                         *# cap slot. Swapping must be done before marshalling, as
+                         *# cap invocations use the ipc buffer, and so would
+                         *# corrupt the message placed there during marshalling.
+                         #*/
+                        /* Swap the saved reply cap into the tcb's reply cap slot */
+                        /*? result ?*/ = seL4_CNode_SwapCaller(/*? cnode ?*/, /*? reply_cap_slot ?*/, 32);
+                    /*- endif -*/
+
                     /* Marshal the response */
                     /*- set function = '%s_marshal_outputs' % m.name -*/
                     /*- set output_parameters = filter(lambda('x: x.direction in [\'out\', \'inout\']'), m.parameters) -*/
@@ -406,8 +417,24 @@ int
 
                     /* Send the response */
                     /*- if not options.fcall_leave_reply_cap or len(me.to_instance.type.provides + me.to_instance.type.uses + me.to_instance.type.consumes + me.to_instance.type.mutexes + me.to_instance.type.semaphores) > 1 -*/
-                        /*- if realtime -*/
-                            /*? info ?*/ = seL4_SignalRecv(/*? reply_cap_slot ?*/, /*? ep ?*/, & /*? me.to_interface.name ?*/_badge);
+                        /*- if realtime and passive -*/
+                            /*# Check the result of seL4_CNode_SwapCaller above.
+                             *# This is done here so dynamically allocated memory
+                             *# can be freed before a potential error.
+                             #*/
+                            ERR_IF(/*? result ?*/ != 0, /*? error_handler ?*/, ((camkes_error_t){
+                                    .type = CE_SYSCALL_FAILED,
+                                    .instance = "/*? instance ?*/",
+                                    .interface = "/*? interface ?*/",
+                                    .description = "failed to swap reply cap in /*? name ?*/",
+                                    .syscall = seL4_CNode_SwapCaller,
+                                    .error = /*? result ?*/,
+                                }), ({
+                                    /*? info ?*/ = seL4_Recv(/*? ep ?*/, & /*? me.to_interface.name ?*/_badge);
+                                    continue;
+                                }));
+
+                            /*? info ?*/ = seL4_ReplyRecv(/*? ep ?*/, /*? info ?*/, & /*? me.to_interface.name ?*/_badge);
                         /*- else -*/
                             seL4_Send(/*? reply_cap_slot ?*/, /*? info ?*/);
                             /*? info ?*/ = seL4_Recv(/*? ep ?*/, & /*? me.to_interface.name ?*/_badge);
