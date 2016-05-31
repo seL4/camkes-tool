@@ -316,6 +316,8 @@ class Perspective(object):
             'getting \'%s\' that is not inferrable' % key
         if key not in self.kwargs:
             self._infer(key)
-        if key not in self.kwargs:
-            raise Exception('not enough information to infer attribute, %s kwargs %s' % (key, self.kwargs))
+
+        assert key in self.kwargs, \
+            'not enough information to infer attribute for key: %s, kwargs: %s' % (key, self.kwargs)
+
         return self.kwargs[key]
