@@ -282,7 +282,7 @@ static unsigned int /*? function ?*/(
       /*- endif -*/
       /*? p.name ?*/
     );
-    if (/*? length ?*/ == UINT_MAX) {
+    if (unlikely(/*? length ?*/ == UINT_MAX)) {
       return UINT_MAX;
     }
   /*- endfor -*/

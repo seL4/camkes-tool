@@ -229,7 +229,7 @@ unsigned int /*? size ?*/
       /*- endif -*/
       /*? p.name ?*/
     );
-    if (/*? length ?*/ == UINT_MAX) {
+    if (unlikely(/*? length ?*/ == UINT_MAX)) {
       /*- for q in itertools.islice(input_parameters, index) -*/
         /*- if q.array -*/
           /*- if q.type == 'string' -*/

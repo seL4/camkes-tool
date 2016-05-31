@@ -296,7 +296,7 @@ unsigned int /*? size ?*/
     /*? length ?*/ = /*? function ?*/_/*? ret_fn ?*/(/*? size ?*/, /*? length ?*/,
       /*? ret ?*/
     );
-    if (/*? length ?*/ == UINT_MAX) {
+    if (unlikely(/*? length ?*/ == UINT_MAX)) {
       return -1;
     }
   /*- endif -*/
@@ -310,7 +310,7 @@ unsigned int /*? size ?*/
       /*- endif -*/
       /*? p.name ?*/
     );
-    if (/*? length ?*/ == UINT_MAX) {
+    if (unlikely(/*? length ?*/ == UINT_MAX)) {
       /*- if return_type == 'string' -*/
         free(* /*? ret ?*/);
       /*- endif -*/

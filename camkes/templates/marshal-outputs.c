@@ -214,7 +214,7 @@ static unsigned int /*? function ?*/(
     /*? length ?*/ = /*? function ?*/_/*? ret_fn ?*/(/*? length ?*/,
       /*? ret ?*/
     );
-    if (/*? length ?*/ == UINT_MAX) {
+    if (unlikely(/*? length ?*/ == UINT_MAX)) {
       return UINT_MAX;
     }
   /*- endif -*/
@@ -228,7 +228,7 @@ static unsigned int /*? function ?*/(
       /*- endif -*/
       /*? p.name ?*/
     );
-    if (/*? length ?*/ == UINT_MAX) {
+    if (unlikely(/*? length ?*/ == UINT_MAX)) {
       return UINT_MAX;
     }
   /*- endfor -*/
