@@ -481,7 +481,7 @@ endif
                  *# implementations provided by the 'to' side.
                  #*/ \
                 /*- for e in c.from_ends -*/ \
-                    /*- if e.instance == i -*/ \
+                    /*- if id(e.instance) == id(i) -*/ \
                         /*- for m in e.interface.type.methods -*/ \
                             --redefine-sym /*? e.interface.name ?*/_/*? m.name ?*/="camkes connection /*? e.parent.name ?*/_/*? m.name ?*/" \
                         /*- endfor -*/ \
@@ -493,7 +493,7 @@ endif
                  *# they will not be visible during the next link.
                  #*/ \
                 /*- for e in c.to_ends -*/ \
-                    /*- if e.instance == i -*/ \
+                    /*- if id(e.instance) == id(i) -*/ \
                         /*- if '%s_%s' % (i.name, e.interface.name) in instancelist -*/ \
                             /*- continue -*/ \
                         /*- endif -*/ \
