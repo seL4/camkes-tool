@@ -1,0 +1,24 @@
+procedure P {
+    void foo(in int x, out string x);
+}
+
+connector C {
+    from Procedure;
+    to Procedure;
+}
+
+component A {
+    uses P p;
+}
+
+component B {
+    provides P p;
+}
+
+assembly {
+    composition {
+        component A a;
+        component B b;
+        connection C conn(from a.p, to b.p);
+    }
+}
