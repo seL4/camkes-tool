@@ -26,7 +26,7 @@ long sys_clock_gettime(va_list ap)
     if (clk_get_time && clk == CLOCK_REALTIME && ts) {
         curtime = clk_get_time();
         ts->tv_sec = curtime / MS_IN_S;
-        ts->tv_nsec = curtime % MS_IN_S * 1000000;
+        ts->tv_nsec = curtime % MS_IN_S * NS_IN_MS;
     } else {
         assert(!"sys_clock_gettime not implemented");
         return -ENOSYS;
