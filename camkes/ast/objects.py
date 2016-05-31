@@ -640,6 +640,9 @@ class Setting(ASTObject):
         if isinstance(self.value, Reference):
             raise ASTError('setting %s.%s is a reference with no resolved '
                 'value' % (self.instance, self.attribute), self)
+        if self.attribute in C_KEYWORDS:
+            raise ASTError('setting name \'%s\' clashes with a C keyword' %
+                self.attribute, self)
         if isinstance(self.value, list):
             self.value = tuple(self.value)
         elif isinstance(self.value, dict):
@@ -1483,6 +1486,14 @@ class Attribute(ASTObject):
             raise TypeError('you cannot set the \'default\' field of a frozen '
                 'object')
         self._default = value
+
+    def freeze(self):
+        if self.frozen:
+            return
+        if self.name in C_KEYWORDS:
+            raise ASTError('attribute name \'%s\' clashes with a C keyword' %
+                self.name, self)
+        super(Attribute, self).freeze()
 
 class Parameter(ASTObject):
     def __init__(self, name, direction, type, array=False, location=None):
