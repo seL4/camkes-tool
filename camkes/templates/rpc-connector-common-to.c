@@ -427,7 +427,7 @@ int
                                     .instance = "/*? instance ?*/",
                                     .interface = "/*? interface ?*/",
                                     .description = "failed to swap reply cap in /*? name ?*/",
-                                    .syscall = seL4_CNode_SwapCaller,
+                                    .syscall = CNodeSwapCaller,
                                     .error = /*? result ?*/,
                                 }), ({
                                     /*? info ?*/ = seL4_Recv(/*? ep ?*/, & /*? me.to_interface.name ?*/_badge);
