@@ -351,8 +351,6 @@ long sys_readv(va_list ap)
     int fd = va_arg(ap, int);
     struct iovec *iov = va_arg(ap, struct iovec*);
     int iovcnt = va_arg(ap, int);
-    int i;
-    long read;
 
     if (fd < FIRST_USER_FD) {
         assert(!"not implemented");
@@ -372,8 +370,8 @@ long sys_readv(va_list ap)
         return -EINVAL;
     }
     cpio_file_data_t *cpio_fd = muslc_fd->data;
-    read = 0;
-    for (i = 0; i < iovcnt && cpio_fd->current < cpio_fd->size; i++) {
+    long read = 0;
+    for (int i = 0; i < iovcnt && cpio_fd->current < cpio_fd->size; i++) {
         long max = cpio_fd->size - cpio_fd->current;
         long len = max < iov[i].iov_len ? max : iov[i].iov_len;
         memcpy(iov[i].iov_base, cpio_fd->start + cpio_fd->current, len);
