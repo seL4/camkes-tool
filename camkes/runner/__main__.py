@@ -43,8 +43,8 @@ from camkes.runner.NameMangling import Perspective, RUNNER
 from camkes.runner.Renderer import Renderer
 from camkes.runner.Filters import CAPDL_FILTERS
 
-import argparse, collections, functools, jinja2, locale, os, re, sqlite3, \
-    traceback
+import argparse, collections, functools, jinja2, locale, numbers, os, re, \
+    six, sqlite3, traceback
 
 from capdl import seL4_CapTableObject, ObjectAllocator, CSpaceAllocator, \
     ELF, lookup_architecture
@@ -280,6 +280,29 @@ def main(argv, out, err):
     assembly = ast.assembly
     if assembly is None:
         die('No assembly found')
+
+    # Do some extra checks if the user asked for verbose output.
+    if options.verbosity >= 2:
+
+        # Try to catch type mismatches in attribute settings. Note that it is
+        # not possible to conclusively evaluate type correctness because the
+        # attributes' type system is (deliberately) too loose. That is, the
+        # type of an attribute can be an uninterpreted C type the user will
+        # provide post hoc.
+        for i in assembly.composition.instances:
+            for a in i.type.attributes:
+                value = assembly.configuration[i.name].get(a.name)
+                if value is not None:
+                    if a.type == 'string' and not \
+                            isinstance(value, six.string_types):
+                        log.warning('attribute %s.%s has type string but is '
+                            'set to a value that is not a string' % (i.name,
+                            a.name))
+                    elif a.type == 'int' and not \
+                            isinstance(value, numbers.Number):
+                        log.warning('attribute %s.%s has type int but is set '
+                            'to a value that is not an integer' % (i.name,
+                                a.name))
 
     obj_space = ObjectAllocator()
     obj_space.spec.arch = options.architecture

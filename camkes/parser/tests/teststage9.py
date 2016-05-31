@@ -364,5 +364,68 @@ assembly {
         self.assertIn('y', conf['f2'])
         self.assertEqual(conf['f2']['y'], 2)
 
+    def test_attribute_c_keyword(self):
+        '''
+        Confirm that we can't use an attribute name that is a C keyword.
+        '''
+        spec = '''
+            connector C {
+                from Procedure;
+                to Procedure;
+            }
+            procedure P {
+            }
+            component Foo {
+                attribute string for;
+                provides P p;
+            }
+            component Baz {
+                uses P p;
+            }
+            assembly {
+                composition {
+                    component Foo f;
+                    component Baz b;
+                    connection C c(from b.p, to f.p);
+                }
+            }
+            '''
+
+        with self.assertRaises(ASTError):
+            self.parser.parse_string(spec)
+
+    def test_setting_c_keyword(self):
+        '''
+        Confirm that we can't set an undeclared attribute with the name of a C
+        keyword.
+        '''
+        spec = '''
+            connector C {
+                from Procedure;
+                to Procedure;
+            }
+            procedure P {
+            }
+            component Foo {
+                provides P p;
+            }
+            component Baz {
+                uses P p;
+            }
+            assembly {
+                composition {
+                    component Foo f;
+                    component Baz b;
+                    connection C c(from b.p, to f.p);
+                }
+                configuration {
+                    f.for = "hello world";
+                }
+            }
+            '''
+
+        with self.assertRaises(ASTError):
+            self.parser.parse_string(spec)
+
 if __name__ == '__main__':
     unittest.main()
