@@ -221,7 +221,7 @@ unsigned int /*? size ?*/
   /*- endif -*/
 
   /* Unmarshal input parameters. */
-  /*- for p in input_parameters -*/
+  /*- for index, p in enumerate(input_parameters) -*/
     /*? assert(isinstance(p.type, six.string_types)) ?*/
     /*? length ?*/ = /*? function ?*/_/*? p.name ?*/(/*? size ?*/, /*? length ?*/,
       /*- if p.array -*/
@@ -230,10 +230,7 @@ unsigned int /*? size ?*/
       /*? p.name ?*/
     );
     if (/*? length ?*/ == UINT_MAX) {
-      /*- for q in input_parameters -*/
-        /*- if q == p -*/
-          /*- break -*/
-        /*- endif -*/
+      /*- for q in itertools.islice(input_parameters, index) -*/
         /*- if q.array -*/
           /*- if q.type == 'string' -*/
             /*- set mcount = c_symbol() -*/

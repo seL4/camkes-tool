@@ -302,7 +302,7 @@ unsigned int /*? size ?*/
   /*- endif -*/
 
   /* Unmarshal the parameters. */
-  /*- for p in output_parameters -*/
+  /*- for index, p in enumerate(output_parameters) -*/
     /*? assert(isinstance(p.type, six.string_types)) ?*/
     /*? length ?*/ = /*? function ?*/_/*? p.name ?*/(/*? size ?*/, /*? length ?*/,
       /*- if p.array -*/
@@ -314,10 +314,7 @@ unsigned int /*? size ?*/
       /*- if return_type == 'string' -*/
         free(* /*? ret ?*/);
       /*- endif -*/
-      /*- for q in output_parameters -*/
-        /*- if q == p -*/
-          /*- break -*/
-        /*- endif -*/
+      /*- for q in itertools.islice(output_parameters, index) -*/
         /*- if q.array -*/
           /*- if q.type == 'string' -*/
             /*- set mcount = c_symbol() -*/
