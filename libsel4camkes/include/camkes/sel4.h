@@ -8,8 +8,7 @@
  * @TAG(NICTA_BSD)
  */
 
-#ifndef _CAMKES_SEL4_H_
-#define _CAMKES_SEL4_H_
+#pragma once
 
 #include <autoconf.h>
 #include <sel4/sel4.h>
@@ -33,5 +32,3 @@ static inline int camkes_cnode_save_caller(seL4_CNode service,
     return seL4_CNode_SaveCaller(service, index, depth);
 #endif
 }
-
-#endif
