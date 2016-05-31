@@ -191,10 +191,9 @@ sys_platform_write(void *data, size_t count)
 long
 sys_open(va_list ap)
 {
-    const char *pathname __attribute__((unused)) = va_arg(ap, const char *);
+    const char *pathname UNUSED = va_arg(ap, const char *);
     int flags = va_arg(ap, int);
-    mode_t mode = va_arg(ap, mode_t);
-    (void) mode;
+    mode_t mode UNUSED = va_arg(ap, mode_t);
 
     /* mask out flags we can support */
     flags &= ~O_LARGEFILE;
@@ -260,10 +259,10 @@ sys_close(va_list ap)
     if (fds->filetype == FILE_TYPE_CPIO) {
         free(fds->data);
     } else if (fds->filetype == FILE_TYPE_SOCKET && sock_close) {
-	sock_close(*(int*)fds->data);
-	fds->filetype = -1;
-	free(fds->data);
-	fds->data = NULL;
+        sock_close(*(int*)fds->data);
+        fds->filetype = -1;
+        free(fds->data);
+        fds->data = NULL;
     } else {
         assert(!"not implemented");
     }
@@ -331,7 +330,7 @@ long sys_write(va_list ap)
     }
 
     if (fd == STDOUT_FD || fd == STDERR_FD) {
-            ret = sys_platform_write(buf, count);
+        ret = sys_platform_write(buf, count);
     } else {
         if (fdt->filetype == FILE_TYPE_SOCKET && sock_write && sock_data_data) {
             sockfd = *(int*)fdt->data;
@@ -339,9 +338,9 @@ long sys_write(va_list ap)
             memcpy((char*)sock_data_data, buf, size);
             ret = sock_write(sockfd, size);
         } else {
-	    assert(!"Not implemented");
-	    return -EBADF;
-	}
+            assert(!"Not implemented");
+            return -EBADF;
+        }
     }
 
     return ret;
@@ -352,8 +351,6 @@ long sys_readv(va_list ap)
     int fd = va_arg(ap, int);
     struct iovec *iov = va_arg(ap, struct iovec*);
     int iovcnt = va_arg(ap, int);
-    int i;
-    long read;
 
     if (fd < FIRST_USER_FD) {
         assert(!"not implemented");
@@ -373,8 +370,8 @@ long sys_readv(va_list ap)
         return -EINVAL;
     }
     cpio_file_data_t *cpio_fd = muslc_fd->data;
-    read = 0;
-    for (i = 0; i < iovcnt && cpio_fd->current < cpio_fd->size; i++) {
+    long read = 0;
+    for (int i = 0; i < iovcnt && cpio_fd->current < cpio_fd->size; i++) {
         long max = cpio_fd->size - cpio_fd->current;
         long len = max < iov[i].iov_len ? max : iov[i].iov_len;
         memcpy(iov[i].iov_base, cpio_fd->start + cpio_fd->current, len);
@@ -396,11 +393,11 @@ long sys_read(va_list ap)
     int ret, sockfd, size;
     muslcsys_fd_t *fdt = get_fd_struct(fd);
     if (fdt->filetype == FILE_TYPE_SOCKET && sock_read && sock_data_data) {
-	    sockfd = *(int*)fdt->data;
-	    size = count > PAGE_SIZE_4K ? PAGE_SIZE_4K : count;
-	    ret = sock_read(sockfd, size);
-	    memcpy(buf, (char*)sock_data_data, ret);
-	    return ret;
+        sockfd = *(int*)fdt->data;
+        size = count > PAGE_SIZE_4K ? PAGE_SIZE_4K : count;
+        ret = sock_read(sockfd, size);
+        memcpy(buf, (char*)sock_data_data, ret);
+        return ret;
     }
 
     return readv(fd, &iov, 1);
@@ -410,29 +407,26 @@ long
 sys_ioctl(va_list ap)
 {
     int fd = va_arg(ap, int);
-    int request = va_arg(ap, int);
-    (void)request;
+    int request UNUSED = va_arg(ap, int);
     /* muslc does some ioctls to stdout, so just allow these to silently
        go through */
     if (fd == STDOUT_FD) {
         return 0;
     }
     assert(!"not implemented");
-    return 0;
+    return -EINVAL;
 }
 
 
 long 
 sys_prlimit64(va_list ap)
 {
-    pid_t pid = va_arg(ap, pid_t);
+    /* we have no concept of pids, so ignore this for now */
+    pid_t pid UNUSED = va_arg(ap, pid_t);
     int resource = va_arg(ap, int);
     const struct rlimit *new_limit = va_arg(ap, const struct rlimit *);
     struct rlimit *old_limit = va_arg(ap, struct rlimit *);
     int result = 0;
-
-    /* we have no concept of pids, so ignore this for now */
-    (void) pid;
 
     if (resource == RLIMIT_NOFILE) {
         if (old_limit) {
@@ -444,13 +438,14 @@ sys_prlimit64(va_list ap)
 
         if (new_limit) {
             if (new_limit->rlim_cur < num_fds) {
-                printf("Trying to reduce open file limit. Operation not supported, ignoring\n");
+                LOG_INFO("Trying to reduce open file limit. Operation not supported, ignoring");
             } else {
                 result = grow_fds(new_limit->rlim_cur - num_fds);
             }
         }
     } else {
-        assert(!"not implemented");
+       assert(!"not implemented");
+       return -EINVAL;
     }
 
     return result;
@@ -573,11 +568,11 @@ long sys_fcntl64(va_list ap)
     int sockfd;
     muslcsys_fd_t *fdt = get_fd_struct(fd);
     if (fdt->filetype == FILE_TYPE_SOCKET && sock_fcntl) {
-	    sockfd = *(int*)fdt->data;
-	    long val = va_arg(ap, long);
-	    return sock_fcntl(sockfd, cmd, val);
+        sockfd = *(int*)fdt->data;
+        long val = va_arg(ap, long);
+        return sock_fcntl(sockfd, cmd, val);
     }
 
     assert(!"sys_fcntl64 not implemented");
-    return 0;
+    return -EINVAL;
 }
