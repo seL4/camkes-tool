@@ -16,7 +16,7 @@
 /* Contains wrappers of seL4 invocations providing compatibility across
  * different kernel versions */
 
-enum camkes_invocation_label {
+enum {
 #ifdef CONFIG_KERNEL_RT
     CamkesCNodeSaveCaller = CNodeSwapCaller,
 #else
