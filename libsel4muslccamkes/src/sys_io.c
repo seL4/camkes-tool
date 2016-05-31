@@ -438,7 +438,7 @@ sys_prlimit64(va_list ap)
 
         if (new_limit) {
             if (new_limit->rlim_cur < num_fds) {
-                printf("Trying to reduce open file limit. Operation not supported, ignoring\n");
+                LOG_INFO("Trying to reduce open file limit. Operation not supported, ignoring");
             } else {
                 result = grow_fds(new_limit->rlim_cur - num_fds);
             }

@@ -16,12 +16,12 @@
 
 long sys_sigaction(va_list ap UNUSED)
 {
-	printf("Warning: %s ignored.\n", __func__);
+	LOG_INFO("Warning: %s ignored.\n", __func__);
 	return 0;
 }
 
 long sys_rt_sigaction(va_list ap UNUSED)
 {
-	printf("Warning: %s ignored.\n", __func__);
+	LOG_INFO("Warning: %s ignored.\n", __func__);
 	return 0;
 }
