@@ -64,7 +64,7 @@ class SourceLocation(object):
         else:
             assert isinstance(self.term, plyplus.ParseError)
 
-            # Try to extract the line number from a plyplus error.'''
+            # Try to extract the line number from a plyplus error.
             m = re.search(r'^Syntax error in input at \'(?P<token>[^\']*)\' '
                 r'\(type [^\)]*\) line\s+(?P<line>\d+)'
                 r'(?:\s+col\s+(?P<col>\d+))?$',
