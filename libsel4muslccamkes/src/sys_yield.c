@@ -18,8 +18,7 @@
 long sys_sched_yield(va_list ap)
 {
 #ifdef CONFIG_KERNEL_RT
-    errno = ENOSYS;
-    return -1;
+    return -ENOSYS;
 #else
     seL4_Yield();
     return 0;
