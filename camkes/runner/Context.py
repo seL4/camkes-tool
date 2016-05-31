@@ -24,7 +24,8 @@ from capdl.Allocator import seL4_TCBObject, seL4_EndpointObject, \
     seL4_NotificationObject, seL4_CanRead, seL4_CanWrite, seL4_AllRights, \
     seL4_ARM_SmallPageObject, seL4_FrameObject, seL4_IRQControl, \
     seL4_UntypedObject, seL4_IA32_IOPort, seL4_IA32_IOSpace, \
-    seL4_ARM_SectionObject, seL4_ARM_SuperSectionObject
+    seL4_ARM_SectionObject, seL4_ARM_SuperSectionObject, \
+    seL4_SchedContextObject
 
 # Depending on what kernel branch we are on, we may or may not have ASIDs.
 # There are separate python-capdl branches for this, but this import allows us
@@ -58,6 +59,7 @@ def new_context(entity, assembly, obj_space, cap_space, shmem, **kwargs):
         'seL4_UntypedObject':seL4_UntypedObject,
         'seL4_IA32_IOPort':seL4_IA32_IOPort,
         'seL4_IA32_IOSpace':seL4_IA32_IOSpace,
+        'seL4_SchedContextObject':seL4_SchedContextObject,
         'seL4_ASID_Pool':seL4_ASID_Pool,
 
         # Cap allocator
@@ -205,6 +207,12 @@ def new_context(entity, assembly, obj_space, cap_space, shmem, **kwargs):
         #  ... my template ...
         #  /*- endif -*/
         'included':set(),
+
+        # Parses a bool from a case-insensitive string
+        'parse_bool':parse_bool,
+
+        # Flag indicating realtime extensions are to be used
+        'realtime':kwargs['options'].realtime,
     }.items() + kwargs.items())
 
 def _assert(condition):
@@ -386,3 +394,13 @@ def sizeof(word_size, t):
         return 1
     else:
         raise NotImplementedError
+
+def parse_bool(string):
+    if isinstance(string, str):
+        lowercase = string.lower()
+        if lowercase == 'true':
+            return True
+        elif lowercase == 'false':
+            return False
+
+    raise Exception('Boolean string expected. Got "%s".' % string)

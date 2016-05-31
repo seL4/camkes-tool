@@ -12,7 +12,7 @@
 
 import os, re, subprocess
 import camkes.ast as AST
-from capdl import Cap, CNode, TCB, page_table_index, page_index, \
+from capdl import Cap, CNode, TCB, SC, page_table_index, page_index, \
                   Frame, seL4_ARM_SectionObject, seL4_IA32_4M
 from camkes.internal.memoization import memoized
 from NameMangling import Perspective
@@ -150,6 +150,51 @@ def set_tcb_info(cspaces, elfs, **_):
                 raise Exception('TLS symbol, %s, of %s not found' % (tls_setup, tcb.name))
             tcb.init.append(vaddr)
 
+def set_tcb_sc(tcb, ast, perspective, obj_space, group):
+    # add SC
+    assembly = find_assembly(ast)
+    settings = assembly.configuration.settings if assembly.configuration is not None else []
+    # first check if this thread has been configured to not have an SC
+    passive_attribute_name = perspective['passive_attribute']
+    instance_name = perspective['instance']
+    passive_attributes = [x for x in settings if x.instance == instance_name and
+                                                 x.attribute == passive_attribute_name]
+
+    # Determine whether a passive component instance thread was specified
+    if len(passive_attributes) == 0:
+        passive_instance = False
+    elif len(passive_attributes) == 1:
+        if isinstance(passive_attributes[0].value, str):
+            passive_attribute = passive_attributes[0].value.lower()
+            if passive_attribute == 'true':
+                passive_instance = True
+            elif passive_attribute == 'false':
+                passive_instance = False
+            else:
+                raise Exception('Boolean string expected for %s.%s. Got "%s".' % (
+                    instance_name, passive_attribute_name, passive_attribute))
+        else:
+            raise Exception('Boolean string expected for %s.%s. Got "%s".' % (
+                instance_name, passive_attribute_name, passive_attributes[0].value))
+    else:
+        raise Exception('Multiple settings of attribute %s.%s.' % (
+            instance_name, passive_attribute_name))
+
+    # Attach the SC to the component instance thread if it isn't passive
+    if not passive_instance:
+        sc_name = perspective['sc']
+        scs = [x for x in obj_space.spec.objs if x.name == sc_name]
+        if len(scs) == 0:
+            raise Exception('No SC found for active component instance %s' % instance_name)
+        elif len(scs) > 1:
+            raise Exception('Multiple SCs found for %s' % group)
+        else:
+            assert len(scs) == 1
+            sc, = scs
+            tcb['sc_slot'] = Cap(sc)
+
+    # TODO add temp_fault_ep_slot
+
 def set_tcb_caps(ast, obj_space, cspaces, elfs, options, **_):
     assembly = find_assembly(ast)
 
@@ -231,6 +276,9 @@ def set_tcb_caps(ast, obj_space, cspaces, elfs, options, **_):
                 tcb['ipc_buffer_slot'] = Cap(frame, True, True, False) # RW
 
             # Currently no fault EP (fault_ep_slot).
+
+            if options.realtime:
+                set_tcb_sc(tcb, ast, perspective, obj_space, group)
 
 def find_hardware_frame_in_cspace(cspace, paddr, instance_name, interface_name):
     """Returns the cap to a frame backing a hardware dataport with a given physical
@@ -748,6 +796,9 @@ def tcb_default_priorities(obj_space, options, **_):
 
     for t in [x for x in obj_space if isinstance(x, TCB)]:
         t.prio = options.default_priority
+        t.max_prio = options.default_max_priority
+        t.crit = options.default_criticality
+        t.max_crit = options.default_max_criticality
 
 def tcb_priorities(ast, cspaces, **_):
     ''' Override a TCB's default priority if the user has specified this in an
@@ -778,6 +829,27 @@ def tcb_priorities(ast, cspaces, **_):
                 prio = assembly.configuration[name].get('priority')
                 if prio is not None:
                     tcb.prio = prio
+
+            # Find the max_priority if it was set.
+            max_prio_attribute = perspective['max_priority_attribute']
+            name = perspective['instance']
+            max_prio = assembly.configuration[name].get(max_prio_attribute)
+            if max_prio is not None:
+                tcb.max_prio = max_prio
+
+            # Find the criticality if it was set.
+            crit_attribute = perspective['criticality_attribute']
+            name = perspective['instance']
+            crit =  assembly.configuration[name].get(crit_attribute)
+            if crit is not None:
+                tcb.crit = crit
+
+            # Find the max_criticality if it was set.
+            max_crit_attribute = perspective['max_criticality_attribute']
+            name = perspective['instance']
+            max_crit = assembly.configuration[name].get(max_crit_attribute)
+            if max_crit is not None:
+                tcb.max_crit = max_crit
 
 def tcb_domains(ast, cspaces, **_):
     '''Set the domain of a TCB if the user has specified this in an
@@ -812,6 +884,62 @@ def remove_tcb_caps(cspaces, options, **_):
                     if v is not None and isinstance(v.referent, TCB)]:
                 del space.cnode[slot]
 
+
+def sc_default_properties(ast, obj_space, cspaces, elfs, options, shmem):
+    '''Set up default scheduling context properties. Note this filter needs to operate
+    *before* sc_properties.'''
+
+    for s in (x for x in obj_space if isinstance(x, SC)):
+        s.period = options.default_period
+        s.budget = options.default_budget
+        s.data = options.default_data
+
+def sc_properties(ast, obj_space, cspaces, elfs, options, shmem):
+    ''' Override an SC's default properties if the user has specified this in an
+    attribute.'''
+
+    assembly = find_assembly(ast)
+
+    if assembly.configuration is None or \
+            len(assembly.configuration.settings) == 0:
+        # We have nothing to do if no properties were set.
+        return
+
+    settings = assembly.configuration.settings
+
+    for group, space in cspaces.items():
+        cnode = space.cnode
+        for cap in cnode.slots.values():
+
+            if cap is None:
+                continue
+            sc = cap.referent
+            if not isinstance(sc, SC):
+                continue
+
+            perspective = Perspective(group=group, sc=sc.name)
+
+            # Find the period if it was set.
+            period_attribute = perspective['period_attribute']
+            name = perspective['instance']
+            period = assembly.configuration[name].get(period_attribute)
+            if period is not None:
+                sc.period = period
+
+            # Find the budget if it was set.
+            budget_attribute = perspective['budget_attribute']
+            name = perspective['instance']
+            budget = assembly.configuration[name].get(budget_attribute)
+            if budget is not None:
+                sc.budget = budget
+
+            # Find the data if it was set.
+            data_attribute = perspective['data_attribute']
+            name = perspective['instance']
+            data = assembly.configuration[name].get(data_attribute)
+            if data is not None:
+                sc.data = data
+
 CAPDL_FILTERS = [
     set_tcb_info,
     set_tcb_caps,
@@ -823,4 +951,6 @@ CAPDL_FILTERS = [
     tcb_priorities,
     tcb_domains,
     remove_tcb_caps,
+    sc_default_properties,
+    sc_properties,
 ]

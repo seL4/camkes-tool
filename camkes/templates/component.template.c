@@ -371,10 +371,42 @@ static void /*? init ?*/(void) {
     /*- endif -*/
 /*- endfor -*/
 
+/*- set passive_interfaces = set() -*/
+/* Scheduling Contexts */
+/*- if realtime -*/
+    /*- for i in all_interfaces -*/
+        /*- set p = Perspective(instance=me.name, interface=i.name) -*/
+        /*- if parse_bool(configuration[me.name].get(p['passive_attribute'], 'false')) -*/
+            /*- do passive_interfaces.add(i.name) -*/
+            /*- set init_sc = alloc('sc_%s_init' % i.name, seL4_SchedContextObject) -*/
+        /*- else -*/
+            /*- set sc = alloc('sc_%s' % i.name, seL4_SchedContextObject) -*/
+        /*- endif -*/
+    /*- endfor -*/
+/*- endif -*/
+
+/*- set p = Perspective(instance=me.name, control=True) -*/
+/*- if parse_bool(configuration[me.name].get(p['passive_attribute'], 'false')) -*/
+/* Control thread declared passive. Ensure the realtime kernel is in use. */
+#ifndef CONFIG_KERNEL_RT
+#error Passive control thread can only be used with the realtime kernel
+#endif
+/*- endif -*/
+
+/*- if passive_interfaces -*/
+/* Passive interfaces are present. Ensure the realtime kernel is in use. */
+#ifndef CONFIG_KERNEL_RT
+#error Passive interfaces can only be used with the realtime kernel
+#endif
+/*- endif -*/
+
 /*- set p = Perspective(instance=me.name) -*/
 void USED /*? p['tls_symbol'] ?*/(int thread_id) {
     switch (thread_id) {
         /*- set tcb_control = alloc('tcb_0_control', seL4_TCBObject) -*/
+        /*- if realtime -*/
+            /*- set sc_control = alloc('sc__control', seL4_SchedContextObject) -*/
+        /*- endif -*/
         case /*? tcb_control ?*/ : /* Control thread */
             /*- set p = Perspective(instance=me.name, control=True) -*/
             /*? macros.save_ipc_buffer_address(p['ipc_buffer_symbol']) ?*/
@@ -422,6 +454,9 @@ int USED /*? p['entry_symbol'] ?*/(int thread_id) {
         static volatile int UNUSED /*? post_init_lock ?*/ = 0;
     /*- endif -*/
 
+    /*- set result = c_symbol() -*/
+    int /*? result ?*/ UNUSED;
+
     switch (thread_id) {
 
         case 0:
@@ -435,6 +470,23 @@ int USED /*? p['entry_symbol'] ?*/(int thread_id) {
         /*- set tcb_control = alloc('tcb_0_control', seL4_TCBObject) -*/
         case /*? tcb_control ?*/ : /* Control thread */
             /*? init ?*/();
+            /* Wake all of our passive threads (by binding a scheduling context) so they can initialise */
+            /*- for i in all_interfaces -*/
+                /*- set tcb = alloc('tcb_%s' % i.name, seL4_TCBObject) -*/
+                /*- if i.name in passive_interfaces -*/
+                    /*- set init_sc = alloc('sc_%s_init' % i.name, seL4_SchedContextObject) -*/
+                    /*? result ?*/ = seL4_SchedContext_Bind(/*? init_sc ?*/, /*? tcb ?*/);
+                    ERR_IF(/*? result ?*/ != 0, camkes_error, ((camkes_error_t){
+                            .type = CE_SYSCALL_FAILED,
+                            .instance = "/*? me.name ?*/",
+                            .description = "failed to bind initialisation scheduling context for interface \"/*? i.name ?*/\"",
+                            .syscall = SchedContextBind,
+                            .error = /*? result ?*/,
+                        }), ({
+                            return -1;
+                        }));
+                /*- endif -*/
+            /*- endfor -*/
             /*- if options.fsupport_init -*/
                 if (pre_init) {
                     pre_init();
@@ -455,6 +507,24 @@ int USED /*? p['entry_symbol'] ?*/(int thread_id) {
                     sync_sem_bare_post(/*? post_init_ep ?*/, &/*? post_init_lock ?*/);
                 /*- endfor -*/
             /*- endif -*/
+            /* Unbind scheduling context from all passive interface threads. */
+            /*- for i in all_interfaces -*/
+                /*- if i.name in passive_interfaces -*/
+                    /*- set init_sc = alloc('sc_%s_init' % i.name, seL4_SchedContextObject) -*/
+                    /*- set init_ntfn = alloc('ntfn_%s_init' % i.name, seL4_NotificationObject, read=True, write=True) -*/
+                    seL4_Wait(/*? init_ntfn ?*/, NULL);
+                    /*? result ?*/ = seL4_SchedContext_Unbind(/*? init_sc ?*/);
+                    ERR_IF(/*? result ?*/ != 0, camkes_error, ((camkes_error_t){
+                            .type = CE_SYSCALL_FAILED,
+                            .instance = "/*? me.name ?*/",
+                            .description = "failed to unbind initialisation scheduling context for interface \"/*? i.name ?*/\"",
+                            .syscall = SchedContextUnbind,
+                            .error = /*? result ?*/,
+                        }), ({
+                            return -1;
+                        }));
+                /*- endif -*/
+            /*- endfor -*/
             /*- if me.type.control -*/
                 return run();
             /*- else -*/
@@ -476,13 +546,35 @@ int USED /*? p['entry_symbol'] ?*/(int thread_id) {
                     /* Wait for the `post_init` to complete. */
                     sync_sem_bare_wait(/*? post_init_ep ?*/, &/*? post_init_lock ?*/);
                 /*- endif -*/
-                extern int /*? i.name ?*/__run(void) __attribute__((weak));
-                if (/*? i.name ?*/__run) {
-                    return /*? i.name ?*/__run();
-                } else {
-                    /* Interface not connected. */
-                    return 0;
-                }
+
+
+                /*- if i.name in passive_interfaces -*/
+
+                    /*- set init_ntfn = alloc('ntfn_%s_init' % i.name, seL4_NotificationObject, read=True, write=True) -*/
+
+                    /*# If this is a passive interface, the __run function must SignalRecv to tell the control
+                     *# thread to unbind its sc, and simultaneously start waiting for rpc calls. #*/
+                    extern int /*? i.name ?*/__run_passive(seL4_CPtr init_ntfn) __attribute__((weak));
+                    if (/*? i.name ?*/__run_passive) {
+                        return /*? i.name ?*/__run_passive(/*? init_ntfn ?*/);
+                    } else {
+                        /* Interface not connected. */
+
+                        // Inform the main component thread that we're finished initializing
+                        seL4_Signal(/*? init_ntfn ?*/);
+
+                        // Block forever
+                        seL4_TCB_Suspend(/*? tcb ?*/);
+                    }
+                /*- else -*/
+                    extern int /*? i.name ?*/__run(void) __attribute__((weak));
+                    if (/*? i.name ?*/__run) {
+                        return /*? i.name ?*/__run();
+                    }
+                /*- endif -*/
+
+                return 0;
+
             }
         /*- endfor -*/
 

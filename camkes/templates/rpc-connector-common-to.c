@@ -22,6 +22,7 @@
 #include <string.h>
 #include <camkes/error.h>
 #include <camkes/tls.h>
+#include <camkes/sel4.h>
 #include <sel4/sel4.h>
 #include <camkes/dataport.h>
 #include <utils/util.h>
@@ -196,12 +197,29 @@ unsigned int /*? me.to_interface.name ?*/_get_sender_id(void) {
 
 /*- include 'array-typedef-check.c' -*/
 
-int /*? me.to_interface.name ?*/__run(void) {
+/*- set p = Perspective(instance=me.to_instance.name, interface=me.to_interface.name) -*/
+/*- set passive = parse_bool(configuration[me.to_instance.name].get(p['passive_attribute'], 'false')) -*/
+int
+/*- if passive -*/
+    /*? me.to_interface.name ?*/__run_passive(seL4_CPtr init_ntfn)
+/*- else -*/
+    /*? me.to_interface.name ?*/__run(void)
+/*- endif -*/
+{
+
     /*# Check any typedefs we have been given are not arrays. #*/
     /*- include 'call-array-typedef-check.c' -*/
 
     /*- set info = c_symbol('info') -*/
-    seL4_MessageInfo_t /*? info ?*/ = seL4_Recv(/*? ep ?*/, & /*? me.to_interface.name ?*/_badge);
+
+    /*- if passive -*/
+        /* This interface has a passive thread, must let the control thread know before waiting */
+        seL4_MessageInfo_t /*? info ?*/ = seL4_SignalRecv(init_ntfn, /*? ep ?*/, & /*? me.to_interface.name ?*/_badge);
+    /*- else -*/
+       /* This interface has an active thread, just wait for an RPC */
+       seL4_MessageInfo_t /*? info ?*/ = seL4_Recv(/*? ep ?*/, & /*? me.to_interface.name ?*/_badge);
+    /*- endif -*/
+
     while (1) {
 
         /*- set buffer = c_symbol('buffer') -*/
@@ -296,13 +314,13 @@ int /*? me.to_interface.name ?*/__run(void) {
                         /*- set result = c_symbol() -*/
                         /*- set cnode = alloc_cap('cnode', my_cnode, write=True) -*/
                         /*- set reply_cap_slot = alloc_cap('reply_cap_slot', None) -*/
-                        int /*? result ?*/ UNUSED = seL4_CNode_SaveCaller(/*? cnode ?*/, /*? reply_cap_slot ?*/, 32);
+                        int /*? result ?*/ UNUSED = camkes_cnode_save_caller(/*? cnode ?*/, /*? reply_cap_slot ?*/, 32);
                         ERR_IF(/*? result ?*/ != 0, /*? error_handler ?*/, ((camkes_error_t){
                                 .type = CE_SYSCALL_FAILED,
                                 .instance = "/*? instance ?*/",
                                 .interface = "/*? interface ?*/",
                                 .description = "failed to save reply cap in /*? name ?*/",
-                                .syscall = CNodeSaveCaller,
+                                .syscall = CamkesCNodeSaveCaller,
                                 .error = /*? result ?*/,
                             }), ({
                                 /*? info ?*/ = seL4_Recv(/*? ep ?*/, & /*? me.to_interface.name ?*/_badge);
@@ -340,6 +358,17 @@ int /*? me.to_interface.name ?*/__run(void) {
                             /*- if not loop.last -*/,/*- endif -*/
                         /*- endfor -*/
                     );
+
+                    /*- if realtime and passive and (not options.fcall_leave_reply_cap or len(me.to_instance.type.provides + me.to_instance.type.uses + me.to_instance.type.consumes + me.to_instance.type.mutexes + me.to_instance.type.semaphores)) > 1 -*/
+                        /*# We will be seL4_ReplyRecv-ing after marshalling, so
+                         *# the reply cap must be swapped into the thread's reply
+                         *# cap slot. Swapping must be done before marshalling, as
+                         *# cap invocations use the ipc buffer, and so would
+                         *# corrupt the message placed there during marshalling.
+                         #*/
+                        /* Swap the saved reply cap into the tcb's reply cap slot */
+                        /*? result ?*/ = seL4_CNode_SwapCaller(/*? cnode ?*/, /*? reply_cap_slot ?*/, 32);
+                    /*- endif -*/
 
                     /* Marshal the response */
                     /*- set function = '%s_marshal_outputs' % m.name -*/
@@ -388,8 +417,28 @@ int /*? me.to_interface.name ?*/__run(void) {
 
                     /* Send the response */
                     /*- if not options.fcall_leave_reply_cap or len(me.to_instance.type.provides + me.to_instance.type.uses + me.to_instance.type.consumes + me.to_instance.type.mutexes + me.to_instance.type.semaphores) > 1 -*/
-                        seL4_Send(/*? reply_cap_slot ?*/, /*? info ?*/);
-                        /*? info ?*/ = seL4_Recv(/*? ep ?*/, & /*? me.to_interface.name ?*/_badge);
+                        /*- if realtime and passive -*/
+                            /*# Check the result of seL4_CNode_SwapCaller above.
+                             *# This is done here so dynamically allocated memory
+                             *# can be freed before a potential error.
+                             #*/
+                            ERR_IF(/*? result ?*/ != 0, /*? error_handler ?*/, ((camkes_error_t){
+                                    .type = CE_SYSCALL_FAILED,
+                                    .instance = "/*? instance ?*/",
+                                    .interface = "/*? interface ?*/",
+                                    .description = "failed to swap reply cap in /*? name ?*/",
+                                    .syscall = CNodeSwapCaller,
+                                    .error = /*? result ?*/,
+                                }), ({
+                                    /*? info ?*/ = seL4_Recv(/*? ep ?*/, & /*? me.to_interface.name ?*/_badge);
+                                    continue;
+                                }));
+
+                            /*? info ?*/ = seL4_ReplyRecv(/*? ep ?*/, /*? info ?*/, & /*? me.to_interface.name ?*/_badge);
+                        /*- else -*/
+                            seL4_Send(/*? reply_cap_slot ?*/, /*? info ?*/);
+                            /*? info ?*/ = seL4_Recv(/*? ep ?*/, & /*? me.to_interface.name ?*/_badge);
+                        /*- endif -*/
                     /*- else -*/
 
                         /*- if options.fspecialise_syscall_stubs and methods_len == 1 and m.return_type is none and len(m.parameters) == 0 -*/

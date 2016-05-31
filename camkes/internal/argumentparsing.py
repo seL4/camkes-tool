@@ -55,6 +55,12 @@ TOOLS = {
             '--cpp-flag',
             '--debug',
             '--default-priority',
+            '--default-max-priority',
+            '--default-criticality',
+            '--default-max-criticality',
+            '--default-period',
+            '--default-budget',
+            '--default-data',
             '--elf',
             '--file',
             '--frpc-lock-elision',
@@ -76,6 +82,7 @@ TOOLS = {
             '--ply-optimise',
             '--prune',
             '--quiet',
+            '--realtime',
             '--templates',
             '--verbose',
             '--version',
@@ -193,6 +200,18 @@ def parse_args(tool):
         help='Do not support pre_init, post_init and friends.')
     add_arg('--default-priority', type=int, default=254,
         help='Default component thread priority.')
+    add_arg('--default-max-priority', type=int, default=254,
+        help='Default component thread maximum priority.')
+    add_arg('--default-criticality', type=int, default=1,
+        help='Default component thread criticality.')
+    add_arg('--default-max-criticality', type=int, default=1,
+        help='Default component thread maximum criticality.')
+    add_arg('--default-period', type=int, default=10000,
+        help='Default component thread scheduling context period.')
+    add_arg('--default-budget', type=int, default=10000,
+        help='Default component thread scheduling context budget.')
+    add_arg('--default-data', type=int, default=0,
+        help='Default component thread scheduling context data.')
     add_arg('--prune', action='store_true', \
         help='Minimise the number of functions in generated C files.')
     add_arg('--ply-optimise', action='store_true', \
@@ -203,5 +222,6 @@ def parse_args(tool):
         help='Native word size of the target platform.')
     add_arg('--architecture', default='aarch32', choices=('aarch32', 'arm_hyp', 'ia32'),
         help='Architecture of the target platform.')
-
+    add_arg('--realtime', action='store_true',
+        help='Target realtime seL4.')
     return p.parse_args()

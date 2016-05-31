@@ -157,12 +157,25 @@ DERIVATIONS = {
         ForwardDeriver('%(instance)s_tls_setup', 'tls_symbol'),
         BackwardDeriver(r'^(.+)_tls_setup$', 'tls_symbol', 'instance'),
         ForwardDeriver('camkes_dma_pool', 'dma_pool_symbol'),
+
+        ControlDeriver(r'_passive$', 'passive_attribute'),
+        FromControlDeriver('_passive', 'passive_attribute'),
+        ForwardDeriver('%(interface)s_passive', 'passive_attribute'),
+        BackwardDeriver(r'([^_].*)_passive$', 'passive_attribute', 'interface'),
     ], FILTERS:[
         ForwardDeriver('%(instance)s_tcb_%(interface)s', 'tcb'),
         FromControlDeriver('%(instance)s_tcb_0_control', 'tcb'),
         BackwardDeriver(r'^(.+)_tcb_.+$', 'tcb', 'instance'),
         BackwardDeriver(r'^.+_tcb_([a-zA-Z_]\w*)$', 'tcb', 'interface'),
         ControlDeriver(r'^.+_tcb_0_control$', 'tcb'),
+
+        ForwardDeriver('%(instance)s_sc_%(interface)s', 'sc'),
+        ForwardDeriver('%(instance)s_sc_%(interface)s__init', 'sc_init'),
+        FromControlDeriver('%(instance)s_sc__control', 'sc'),
+        BackwardDeriver(r'^(.+)_sc_.+$', 'sc', 'instance'),
+        BackwardDeriver(r'^.+_sc_([^_].*)$', 'sc', 'interface'),
+        ControlDeriver(r'^.+_sc__control$', 'sc'),
+
         ForwardDeriver('_camkes_ipc_buffer_%(instance)s_%(interface)s', 'ipc_buffer_symbol'),
         FromControlDeriver('_camkes_ipc_buffer_%(instance)s_0_control', 'ipc_buffer_symbol'),
         ControlDeriver(r'^_camkes_ipc_buffer_.+_0_control$', 'ipc_buffer_symbol'),
@@ -197,10 +210,45 @@ DERIVATIONS = {
         FromControlDeriver('_priority', 'priority_attribute'),
         ForwardDeriver('%(interface)s_priority', 'priority_attribute'),
         BackwardDeriver(r'^([a-zA-Z_]\w*)_priority$', 'priority_attribute', 'interface'),
+
+        ControlDeriver(r'^_max_priority$', 'max_priority_attribute'),
+        FromControlDeriver('_max_priority', 'max_priority_attribute'),
+        ForwardDeriver('%(interface)s_max_priority', 'max_priority_attribute'),
+        BackwardDeriver(r'^([^_].*)_max_priority$', 'max_priority_attribute', 'interface'),
+        ControlDeriver(r'^_criticality$', 'criticality_attribute'),
+        FromControlDeriver('_criticality', 'criticality_attribute'),
+        ForwardDeriver('%(interface)s_criticality', 'criticality_attribute'),
+        BackwardDeriver(r'^([^_].*)_criticality$', 'criticality_attribute', 'interface'),
+        ControlDeriver(r'^_max_criticality$', 'max_criticality_attribute'),
+        FromControlDeriver('_max_criticality', 'max_criticality_attribute'),
+        ForwardDeriver('%(interface)s_max_criticality', 'max_criticality_attribute'),
+        BackwardDeriver(r'^([^_].*)_max_criticality$', 'max_criticality_attribute', 'interface'),
+
         ControlDeriver(r'^_domain$', 'domain_attribute'),
         FromControlDeriver('_domain', 'domain_attribute'),
         ForwardDeriver('%(interface)s_domain', 'domain_attribute'),
         BackwardDeriver(r'^([a-zA-Z_]\w*)_domain$', 'domain_attribute', 'interface'),
+
+        ControlDeriver(r'_passive$', 'passive_attribute'),
+        FromControlDeriver('_passive', 'passive_attribute'),
+        ForwardDeriver('%(interface)s_passive', 'passive_attribute'),
+        BackwardDeriver(r'([^_].*)_passive$', 'passive_attribute', 'interface'),
+
+        ControlDeriver(r'^_period$', 'period_attribute'),
+        FromControlDeriver('_period', 'period_attribute'),
+        ForwardDeriver('%(interface)s_period', 'period_attribute'),
+        BackwardDeriver(r'^([^_].*)_period$', 'period_attribute', 'interface'),
+
+        ControlDeriver(r'^_budget$', 'budget_attribute'),
+        FromControlDeriver('_budget', 'budget_attribute'),
+        ForwardDeriver('%(interface)s_budget', 'budget_attribute'),
+        BackwardDeriver(r'^([^_].*)_budget$', 'budget_attribute', 'interface'),
+
+        ControlDeriver(r'^_data$', 'data_attribute'),
+        FromControlDeriver('_data', 'data_attribute'),
+        ForwardDeriver('%(interface)s_data', 'data_attribute'),
+        BackwardDeriver(r'^([^_].*)_data$', 'data_attribute', 'interface'),
+
         ForwardDeriver('cnode_%(group)s', 'cnode'),
         BackwardDeriver(r'^cnode_(.+)$', 'cnode', 'group'),
     ],
@@ -243,7 +291,7 @@ class Perspective(object):
                         # We already knew this symbol. It had better have been
                         # the same as what we just derived for consistency.
                         assert self.kwargs[k] == v, \
-                            'perspective is internally inconsistent: %s' % self.kwargs
+                            'perspective is internally inconsistent for key: %s, kwargs: %s' % (k, self.kwargs)
                     else:
                         self.kwargs[k] = v
             next_keys = set(self.kwargs.keys())
@@ -268,6 +316,8 @@ class Perspective(object):
             'getting \'%s\' that is not inferrable' % key
         if key not in self.kwargs:
             self._infer(key)
-        if key not in self.kwargs:
-            raise Exception('not enough information to infer attribute, %s' % key)
+
+        assert key in self.kwargs, \
+            'not enough information to infer attribute for key: %s, kwargs: %s' % (key, self.kwargs)
+
         return self.kwargs[key]
