@@ -14,8 +14,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <time.h>
-
-#define MS_IN_SEC 1000UL  //How many milliseconds in one second.
+#include <utils/util.h>
 
 int clk_get_time(void) __attribute__((weak));
 long sys_clock_gettime(va_list ap)
@@ -26,8 +25,8 @@ long sys_clock_gettime(va_list ap)
 
     if (clk_get_time && clk == CLOCK_REALTIME && ts) {
         curtime = clk_get_time();
-        ts->tv_sec = curtime / MS_IN_SEC;
-        ts->tv_nsec = curtime % MS_IN_SEC * 1000000;
+        ts->tv_sec = curtime / MS_IN_S;
+        ts->tv_nsec = curtime % MS_IN_S * 1000000;
     } else {
         assert(!"sys_clock_gettime not implemented");
         return -ENOSYS;
