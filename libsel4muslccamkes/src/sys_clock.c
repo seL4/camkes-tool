@@ -23,7 +23,7 @@ long sys_clock_gettime(va_list ap)
 	struct timespec *ts = va_arg(ap, struct timespec*);
 	uint32_t curtime;
 
-	if (clk_get_time && (clk == CLOCK_REALTIME) && ts) {
+	if (clk_get_time && clk == CLOCK_REALTIME && ts) {
 		curtime = clk_get_time();
 		ts->tv_sec = curtime / MS_IN_SEC;
 		ts->tv_nsec = curtime % MS_IN_SEC * 1000000;
