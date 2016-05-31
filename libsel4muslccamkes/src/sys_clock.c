@@ -9,6 +9,7 @@
  */
 
 #include <assert.h>
+#include <errno.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -29,6 +30,7 @@ long sys_clock_gettime(va_list ap)
         ts->tv_nsec = curtime % MS_IN_SEC * 1000000;
     } else {
         assert(!"sys_clock_gettime not implemented");
+        return -ENOSYS;
     }
 
     return 0;

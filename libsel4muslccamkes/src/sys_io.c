@@ -418,7 +418,7 @@ sys_ioctl(va_list ap)
         return 0;
     }
     assert(!"not implemented");
-    return 0;
+    return -EINVAL;
 }
 
 
@@ -450,7 +450,8 @@ sys_prlimit64(va_list ap)
             }
         }
     } else {
-        assert(!"not implemented");
+       assert(!"not implemented");
+       return -EINVAL;
     }
 
     return result;
@@ -579,5 +580,5 @@ long sys_fcntl64(va_list ap)
     }
 
     assert(!"sys_fcntl64 not implemented");
-    return 0;
+    return -EINVAL;
 }
