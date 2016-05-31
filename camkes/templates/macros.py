@@ -152,6 +152,12 @@ def sizeof(arch, t):
         toolprefix = os.environ.get('TOOLPREFIX', '')
         compiler = '%sg++' % toolprefix
 
+        cxxflags = ['-x', 'c++', '-', '-o', os.devnull]
+
+        # Account for the fact that we may be on an x86_64 host targeting x86.
+        if arch == 'ia32':
+            cxxflags.append('-m32')
+
         # Construct a new environment with a locale that forces the compiler
         # not to show us things like smart quotes in error messages.
         env = dict(list(os.environ.items()) + [('LANG', 'en_US')])
@@ -159,9 +165,9 @@ def sizeof(arch, t):
         # Run the compiler with a fragment of C++ to trick it into compile-time
         # evaluating the size of the type.
         try:
-            p = subprocess.Popen([compiler, '-x', 'c++', '-', '-o',
-                os.devnull], stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE, env=env, universal_newlines=True)
+            p = subprocess.Popen([compiler] + cxxflags, stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env,
+                universal_newlines=True)
             _, stderr = p.communicate('template<int>struct X;X<sizeof(%s)>x;' %
                 t)
         except OSError:
