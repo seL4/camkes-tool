@@ -106,7 +106,7 @@ endif
 
 # Instance entry point generation.
 /*- for i in instances -*/
-/*? rule_gen('$(abspath ${BUILD_DIR})/src/' + i.name + '/generated/' + i.type.name + '.c', ' '.join(imported), '%s/source' % i.name, i.name) ?*/
+/*? rule_gen('$(abspath ${BUILD_DIR})/src/' + i.name + '/generated/camkes.c', ' '.join(imported), '%s/source' % i.name, i.name) ?*/
 /*- if configuration[i.name].get('simple') == 'true' -*/
     /*? rule_gen('$(abspath ${BUILD_DIR})/src/' + i.name + '/generated/' + i.type.name + '.simple.c', ' '.join(imported), '%s/simple' % i.name, i.name) ?*/
 /*- endif -*/
