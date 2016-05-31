@@ -97,7 +97,7 @@ const char *get_instance_name(void);
      #*/
     /*- set irq = [False] -*/
     /*- for conn in composition.connections -*/
-      /*- if conn.type.name == 'seL4HardwareInterrupt' and conn.to_ends[0].interface == c -*/
+      /*- if conn.type.name == 'seL4HardwareInterrupt' and id(conn.to_ends[0].interface) == id(c) -*/
         /*- do irq.__setitem__(0, True) -*/
         /*- break -*/
       /*- endif -*/
