@@ -454,6 +454,9 @@ int USED /*? p['entry_symbol'] ?*/(int thread_id) {
         static volatile int UNUSED /*? post_init_lock ?*/ = 0;
     /*- endif -*/
 
+    /*- set result = c_symbol() -*/
+    int /*? result ?*/ UNUSED;
+
     switch (thread_id) {
 
         case 0:
@@ -472,7 +475,16 @@ int USED /*? p['entry_symbol'] ?*/(int thread_id) {
                 /*- set tcb = alloc('tcb_%s' % i.name, seL4_TCBObject) -*/
                 /*- if i.name in passive_interfaces -*/
                     /*- set init_sc = alloc('sc_%s_init' % i.name, seL4_SchedContextObject) -*/
-                    seL4_SchedContext_Bind(/*? init_sc ?*/, /*? tcb ?*/);
+                    /*? result ?*/ = seL4_SchedContext_Bind(/*? init_sc ?*/, /*? tcb ?*/);
+                    ERR_IF(/*? result ?*/ != 0, camkes_error, ((camkes_error_t){
+                            .type = CE_SYSCALL_FAILED,
+                            .instance = "/*? me.name ?*/",
+                            .description = "failed to bind initialisation scheduling context for interface \"/*? i.name ?*/\"",
+                            .syscall = SchedContextBind,
+                            .error = /*? result ?*/,
+                        }), ({
+                            return -1;
+                        }));
                 /*- endif -*/
             /*- endfor -*/
             /*- if options.fsupport_init -*/
@@ -501,7 +513,16 @@ int USED /*? p['entry_symbol'] ?*/(int thread_id) {
                     /*- set init_sc = alloc('sc_%s_init' % i.name, seL4_SchedContextObject) -*/
                     /*- set init_ntfn = alloc('ntfn_%s_init' % i.name, seL4_NotificationObject, read=True, write=True) -*/
                     seL4_Wait(/*? init_ntfn ?*/, NULL);
-                    seL4_SchedContext_Unbind(/*? init_sc ?*/);
+                    /*? result ?*/ = seL4_SchedContext_Unbind(/*? init_sc ?*/);
+                    ERR_IF(/*? result ?*/ != 0, camkes_error, ((camkes_error_t){
+                            .type = CE_SYSCALL_FAILED,
+                            .instance = "/*? me.name ?*/",
+                            .description = "failed to unbind initialisation scheduling context for interface \"/*? i.name ?*/\"",
+                            .syscall = SchedContextUnbind,
+                            .error = /*? result ?*/,
+                        }), ({
+                            return -1;
+                        }));
                 /*- endif -*/
             /*- endfor -*/
             /*- if me.type.control -*/
