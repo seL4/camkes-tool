@@ -168,7 +168,7 @@ def sizeof(t):
             # Compiler not found.
             raise NotImplementedError
         assert p.returncode != 0, '%s compiled an incomplete C++ fragment ' \
-            '(broken toolchain?)'
+            '(broken toolchain?)' % compiler
 
         # Regex the compiler's error to get the size of the type.
         match = re.match(r'<stdin>:\d+:\d+: error: aggregate '
