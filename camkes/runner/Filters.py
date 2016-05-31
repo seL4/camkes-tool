@@ -889,7 +889,7 @@ def sc_default_properties(ast, obj_space, cspaces, elfs, options, shmem):
     '''Set up default scheduling context properties. Note this filter needs to operate
     *before* sc_properties.'''
 
-    for s in filter(lambda x: isinstance(x, SC), obj_space):
+    for s in (x for x in obj_space if isinstance(x, SC)):
         s.period = options.default_period
         s.budget = options.default_budget
         s.data = options.default_data
