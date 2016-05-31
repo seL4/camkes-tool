@@ -191,10 +191,9 @@ sys_platform_write(void *data, size_t count)
 long
 sys_open(va_list ap)
 {
-    const char *pathname __attribute__((unused)) = va_arg(ap, const char *);
+    const char *pathname UNUSED = va_arg(ap, const char *);
     int flags = va_arg(ap, int);
-    mode_t mode = va_arg(ap, mode_t);
-    (void) mode;
+    mode_t mode UNUSED = va_arg(ap, mode_t);
 
     /* mask out flags we can support */
     flags &= ~O_LARGEFILE;
@@ -410,8 +409,7 @@ long
 sys_ioctl(va_list ap)
 {
     int fd = va_arg(ap, int);
-    int request = va_arg(ap, int);
-    (void)request;
+    int request UNUSED = va_arg(ap, int);
     /* muslc does some ioctls to stdout, so just allow these to silently
        go through */
     if (fd == STDOUT_FD) {
@@ -425,14 +423,12 @@ sys_ioctl(va_list ap)
 long 
 sys_prlimit64(va_list ap)
 {
-    pid_t pid = va_arg(ap, pid_t);
+    /* we have no concept of pids, so ignore this for now */
+    pid_t pid UNUSED = va_arg(ap, pid_t);
     int resource = va_arg(ap, int);
     const struct rlimit *new_limit = va_arg(ap, const struct rlimit *);
     struct rlimit *old_limit = va_arg(ap, struct rlimit *);
     int result = 0;
-
-    /* we have no concept of pids, so ignore this for now */
-    (void) pid;
 
     if (resource == RLIMIT_NOFILE) {
         if (old_limit) {

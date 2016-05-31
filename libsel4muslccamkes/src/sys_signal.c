@@ -12,14 +12,15 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <utils/util.h>
 
-long sys_sigaction(va_list ap)
+long sys_sigaction(va_list ap UNUSED)
 {
 	printf("Warning: %s ignored.\n", __func__);
 	return 0;
 }
 
-long sys_rt_sigaction(va_list ap)
+long sys_rt_sigaction(va_list ap UNUSED)
 {
 	printf("Warning: %s ignored.\n", __func__);
 	return 0;
