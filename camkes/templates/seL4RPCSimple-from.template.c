@@ -51,10 +51,10 @@ static unsigned int /*? me.interface.name ?*/_/*? m.name ?*/_marshal(
     /*- for p in input_parameters -*/
         seL4_SetMR(/*? length ?*/, (seL4_Word)/*? p.name ?*/);
         /*? length ?*/++;
-        /*- if macros.sizeof(p) > macros.sizeof('void*') -*/
+        /*- if macros.sizeof(options.architecture, p) > macros.sizeof(options.architecture, 'void*') -*/
             seL4_SetMR(/*? length ?*/, (seL4_Word)(((uint64_t)/*? p.name ?*/) >> __WORDSIZE));
             /*? length ?*/++;
-            /*? assert(macros.sizeof(p) <= 2 * macros.sizeof('void*')) ?*/
+            /*? assert(macros.sizeof(options.architecture, p) <= 2 * macros.sizeof(options.architecture, 'void*')) ?*/
         /*- endif -*/
     /*- endfor -*/
 
@@ -99,22 +99,22 @@ static
         /*? m.return_type ?*/ /*? ret ?*/ =
             (/*? m.return_type ?*/)seL4_GetMR(/*? mr ?*/);
         /*? mr ?*/++;
-        /*- if macros.sizeof(m.return_type) > macros.sizeof('void*') -*/
+        /*- if macros.sizeof(options.architecture, m.return_type) > macros.sizeof(options.architecture, 'void*') -*/
             /*? ret ?*/ |=
                 (/*? m.return_type ?*/)(((uint64_t)seL4_GetMR(/*? mr ?*/)) << __WORDSIZE);
             /*? mr ?*/++;
-            /*? assert(macros.sizeof(m.return_type) <= 2 * macros.sizeof('void*')) ?*/
+            /*? assert(macros.sizeof(options.architecture, m.return_type) <= 2 * macros.sizeof(options.architecture, 'void*')) ?*/
         /*- endif -*/
     /*- endif -*/
 
     /*- for p in output_parameters -*/
         * /*? p.name ?*/ = (/*? p.type ?*/)seL4_GetMR(/*? mr ?*/);
         /*? mr ?*/++;
-        /*- if macros.sizeof(p) > macros.sizeof('void*') -*/
+        /*- if macros.sizeof(options.architecture, p) > macros.sizeof(options.architecture, 'void*') -*/
             * /*? p.name ?*/ |=
                 (/*? p.type ?*/)(((uint64_t)seL4_GetMR(/*? mr ?*/)) << __WORDSIZE);
             /*? mr ?*/++;
-            /*? assert(macros.sizeof(p) <= 2 * macros.sizeof('void*')) ?*/
+            /*? assert(macros.sizeof(options.architecture, p) <= 2 * macros.sizeof(options.architecture, 'void*')) ?*/
         /*- endif -*/
     /*- endfor -*/
 

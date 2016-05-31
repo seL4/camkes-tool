@@ -349,7 +349,7 @@ lemma get_/*? m.name ?*/_/*? p.name ?*/_wp[wp_unsafe]:
         tls_valid /*? state ?*/ \<and>
         thread_index_C (tls /*? state ?*/) \<in> {1..thread_count} \<and>
         /*- for t in six.moves.range(threads) -*/
-          is_valid_w/*? macros.sizeof(p) * 8 ?*/'ptr /*? state ?*/ (Ptr (symbol_table ''/*? m.name ?*/_/*? p.name ?*/_ptr_/*? t + 1 ?*/'')) \<and>
+          is_valid_w/*? macros.sizeof(options.architecture, p) * 8 ?*/'ptr /*? state ?*/ (Ptr (symbol_table ''/*? m.name ?*/_/*? p.name ?*/_ptr_/*? t + 1 ?*/'')) \<and>
         /*- endfor -*/
         /*# Somewhat awkward. We need to know whether the type of the members of this array is
          *# signed or unsigned. Although both signed and unsigned types are consolidated (per
@@ -363,11 +363,11 @@ lemma get_/*? m.name ?*/_/*? p.name ?*/_wp[wp_unsafe]:
             /*- set word_type = 'word' -*/
         /*- endif -*/
         /*- for t in six.moves.range(threads) -*/
-          (\<forall>(a :: /*? word_type ?*//*? macros.sizeof(p) * 8 ?*/ ptr)\<in>set (array_addrs (Ptr (symbol_table ''/*? m.name ?*/_/*? p.name ?*/_/*? t + 1 ?*/'')) (uint seL4_MsgMaxLength)). is_valid_w/*? macros.sizeof(p) * 8 ?*/ /*? state ?*/ (ptr_coerce a)) \<and>
+          (\<forall>(a :: /*? word_type ?*//*? macros.sizeof(options.architecture, p) * 8 ?*/ ptr)\<in>set (array_addrs (Ptr (symbol_table ''/*? m.name ?*/_/*? p.name ?*/_/*? t + 1 ?*/'')) (uint seL4_MsgMaxLength)). is_valid_w/*? macros.sizeof(options.architecture, p) * 8 ?*/ /*? state ?*/ (ptr_coerce a)) \<and>
         /*- endfor -*/
         /*- for t in six.moves.range(threads) -*/
 (** TPP: accumulate = True *)
-          (\<forall>x. P x (heap_w/*? macros.sizeof(p) * 8 ?*/'ptr_update (\<lambda>x. x(Ptr (symbol_table ''/*? m.name ?*/_/*? p.name ?*/_ptr_/*? t + 1 ?*/'') := Ptr (symbol_table ''/*? m.name ?*/_/*? p.name ?*/_/*? t + 1 ?*/''))) /*? state ?*/))
+          (\<forall>x. P x (heap_w/*? macros.sizeof(options.architecture, p) * 8 ?*/'ptr_update (\<lambda>x. x(Ptr (symbol_table ''/*? m.name ?*/_/*? p.name ?*/_ptr_/*? t + 1 ?*/'') := Ptr (symbol_table ''/*? m.name ?*/_/*? p.name ?*/_/*? t + 1 ?*/''))) /*? state ?*/))
           /*- if not loop.last -*/
             \<and>
           /*- endif -*/
@@ -438,7 +438,7 @@ lemma /*? me.interface.name ?*/_/*? m.name ?*/_nf:
   /*# Any 'out' or 'inout' parameters are passed to us as valid pointers. #*/
   /*- for p in m.parameters -*/
     /*- if p.direction in ['out', 'inout'] -*/
-      /*- set size = macros.sizeof(p) -*/
+      /*- set size = macros.sizeof(options.architecture, p) -*/
       /*# The size must be something AutoCorres can handle. #*/
       /*? assert(size in [1, 2, 4, 8]) ?*/
       is_valid_w/*? size * 8 ?*/ /*? state ?*/ (ptr_coerce /*? p.name ?*/) \<and>
@@ -464,7 +464,7 @@ lemma /*? me.interface.name ?*/_/*? m.name ?*/_nf:
   /*# Any 'out' or 'inout' parameter pointers are still valid. #*/
   /*- for p in m.parameters -*/
     /*- if p.direction in ['out', 'inout'] -*/
-      /*- set size = macros.sizeof(p) -*/
+      /*- set size = macros.sizeof(options.architecture, p) -*/
       /*# The size must be something AutoCorres can handle. #*/
       /*? assert(size in [1, 2, 4, 8]) ?*/
       is_valid_w/*? size * 8 ?*/ /*? state ?*/ (ptr_coerce /*? p.name ?*/) \<and>

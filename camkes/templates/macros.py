@@ -139,11 +139,11 @@ _sizes = {
     'int64_t':8,
     'uint64_t':8,
 }
-def sizeof(t):
+def sizeof(arch, t):
     assert isinstance(t, (Parameter,) + six.string_types)
 
     if isinstance(t, Parameter):
-        return sizeof(t.type)
+        return sizeof(arch, t.type)
 
     size = _sizes.get(t)
     if size is None:

@@ -119,7 +119,7 @@ where
 /*- set simps_emitted = set() -*/
 /*- for m in me.interface.type.methods -*/
   /*- for p in m.parameters -*/
-    /*- set w = macros.sizeof(p) * 8 -*/
+    /*- set w = macros.sizeof(options.architecture, p) * 8 -*/
     /*- if w not in simps_emitted -*/
 lemma [simp]:"globals_frame_intact (heap_w/*? w ?*/_update /*? x ?*/ /*? s ?*/) = globals_frame_intact /*? s ?*/"
   by (simp add:globals_frame_intact_def)
@@ -151,7 +151,7 @@ lemma [simp]:"/*? i ?*/ \<ge> 0 \<and> /*? i ?*/ < unat seL4_MsgMaxLength \<Long
   /*- for p in m.parameters -*/
     /*- for t in six.moves.range(threads) -*/
 lemma [simp]:"/*? i ?*/ \<ge> 0 \<and> /*? i ?*/ < unat seL4_MsgMaxLength \<Longrightarrow>
-    is_valid_w/*? macros.sizeof(p) * 8 ?*/ (setMR /*? s ?*/ /*? i ?*/ /*? x ?*/) (Ptr (symbol_table ''/*? m.name ?*/_/*? p.name ?*/_/*? t + 1 ?*/'')) = is_valid_w/*? macros.sizeof(p) * 8 ?*/ /*? s ?*/ (Ptr (symbol_table ''/*? m.name ?*/_/*? p.name ?*/_/*? t + 1 ?*/''))"
+    is_valid_w/*? macros.sizeof(options.architecture, p) * 8 ?*/ (setMR /*? s ?*/ /*? i ?*/ /*? x ?*/) (Ptr (symbol_table ''/*? m.name ?*/_/*? p.name ?*/_/*? t + 1 ?*/'')) = is_valid_w/*? macros.sizeof(options.architecture, p) * 8 ?*/ /*? s ?*/ (Ptr (symbol_table ''/*? m.name ?*/_/*? p.name ?*/_/*? t + 1 ?*/''))"
   by (simp add:setMR_def seL4_MsgMaxLength_def)
     /*- endfor -*/
   /*- endfor -*/
@@ -170,7 +170,7 @@ where
     /*- for m in me.interface.type.methods -*/
       /*- for p in m.parameters -*/
         /*- for t in six.moves.range(threads) -*/
-          \<and> is_valid_w/*? macros.sizeof(p) * 8 ?*/ /*? state ?*/ (Ptr (symbol_table ''/*? m.name ?*/_/*? p.name ?*/_/*? t + 1 ?*/''))
+          \<and> is_valid_w/*? macros.sizeof(options.architecture, p) * 8 ?*/ /*? state ?*/ (Ptr (symbol_table ''/*? m.name ?*/_/*? p.name ?*/_/*? t + 1 ?*/''))
         /*- endfor -*/
       /*- endfor -*/
     /*- endfor -*/
@@ -340,7 +340,7 @@ lemma get_/*? m.name ?*/_/*? p.name ?*/_nf:
       tls_valid /*? state ?*/ \<and>
       thread_index_C (tls /*? state ?*/) \<in> {1..thread_count} \<and>
       /*- for t in six.moves.range(threads) -*/
-        is_valid_w/*? macros.sizeof(p) * 8 ?*/ /*? state ?*/ (Ptr (symbol_table ''/*? m.name ?*/_/*? p.name ?*/_/*? t + 1 ?*/'')) \<and>
+        is_valid_w/*? macros.sizeof(options.architecture, p) * 8 ?*/ /*? state ?*/ (Ptr (symbol_table ''/*? m.name ?*/_/*? p.name ?*/_/*? t + 1 ?*/'')) \<and>
       /*- endfor -*/
       /*? state ?*/ = /*? inv_state ?*/\<rbrace>
      get_/*? m.name ?*/_/*? p.name ?*/'
@@ -378,14 +378,14 @@ lemmas get_/*? m.name ?*/_/*? p.name ?*/_wp[wp_unsafe] =
  *# dynamically rather than emitting these global update functions because (a) we don't want the
  *# ones we don't need and (b) we may have dynamic sized heaps in future.
  #*/
-/*- set width = macros.sizeof(p) * 8 -*/
+/*- set width = macros.sizeof(options.architecture, p) * 8 -*/
 /*- if width not in update_global_emitted -*/
 definition
   update_global_w/*? width ?*/ :: "char list \<Rightarrow> word32 \<Rightarrow> lifted_globals \<Rightarrow> lifted_globals"
 where
   "update_global_w/*? width ?*/ symbol v s \<equiv>
      heap_w/*? width ?*/_update (\<lambda>c. c(Ptr (symbol_table symbol) := (ucast v))) s"
-/*- if width > macros.sizeof('void*') * 8 -*/
+/*- if width > macros.sizeof(options.architecture, 'void*') * 8 -*/
 /*# For types of a greater width than word-size-bits, we need a separate definition for setting the
  *# high bits.
  #*/
@@ -464,7 +464,7 @@ lemma "/*? thy ?*/_run_internal_wp"[wp_unsafe]:
   /*- for m in me.interface.type.methods -*/
     /*- for p in m.parameters -*/
       /*- for t in six.moves.range(threads) -*/
-        is_valid_w/*? macros.sizeof(p) * 8 ?*/ /*? state ?*/ (Ptr (symbol_table ''/*? m.name ?*/_/*? p.name ?*/_/*? t + 1 ?*/'')) \<and>
+        is_valid_w/*? macros.sizeof(options.architecture, p) * 8 ?*/ /*? state ?*/ (Ptr (symbol_table ''/*? m.name ?*/_/*? p.name ?*/_/*? t + 1 ?*/'')) \<and>
       /*- endfor -*/
     /*- endfor -*/
   /*- endfor -*/
@@ -481,7 +481,7 @@ lemma "/*? thy ?*/_run_internal_wp"[wp_unsafe]:
   /*- for m in me.interface.type.methods -*/
     /*- for p in m.parameters -*/
       /*- for t in six.moves.range(threads) -*/
-        is_valid_w/*? macros.sizeof(p) * 8 ?*/ /*? state ?*/ (Ptr (symbol_table ''/*? m.name ?*/_/*? p.name ?*/_/*? t + 1 ?*/'')) \<and>
+        is_valid_w/*? macros.sizeof(options.architecture, p) * 8 ?*/ /*? state ?*/ (Ptr (symbol_table ''/*? m.name ?*/_/*? p.name ?*/_/*? t + 1 ?*/'')) \<and>
       /*- endfor -*/
     /*- endfor -*/
   /*- endfor -*/
@@ -503,10 +503,10 @@ lemma "/*? thy ?*/_run_internal_wp"[wp_unsafe]:
   /*- set update_global_used = set() -*/
   /*- for m in me.interface.type.methods -*/
     /*- for p in m.parameters -*/
-      /*- set width = macros.sizeof(p) * 8 -*/
+      /*- set width = macros.sizeof(options.architecture, p) * 8 -*/
       /*- if width not in update_global_used -*/
         update_global_w/*? width ?*/_def
-        /*- if width > macros.sizeof('void*') * 8 -*/
+        /*- if width > macros.sizeof(options.architecture, 'void*') * 8 -*/
           update_global_w/*? width ?*/_high_def
         /*- endif -*/
         /*- do update_global_used.add(width) -*/

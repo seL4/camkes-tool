@@ -97,13 +97,13 @@ static void /*? me.interface.name ?*/_/*? m.name ?*/_unmarshal(
     /*- for p in input_parameters -*/
         /*- if p.array or p.type == 'string' -*/
             /*? raise(TemplateError('unsupported')) ?*/
-        /*- elif macros.sizeof(p) <= macros.sizeof('void*') -*/
+        /*- elif macros.sizeof(options.architecture, p) <= macros.sizeof(options.architecture, 'void*') -*/
             * /*? p.name ?*/ = seL4_GetMR(/*? mr ?*/);
             /*? mr ?*/++;
         /*- else -*/
             * /*? p.name ?*/ = (/*? p.type ?*/)(((uint64_t)seL4_GetMR(/*? mr ?*/)) | (((uint64_t)seL4_GetMR(/*? mr ?*/ + 1)) << __WORDSIZE));
             /*? mr ?*/ += 2;
-            /*? assert(macros.sizeof(p) <= 2 * macros.sizeof('void*')) ?*/
+            /*? assert(macros.sizeof(options.architecture, p) <= 2 * macros.sizeof(options.architecture, 'void*')) ?*/
         /*- endif -*/
     /*- endfor -*/
 }
@@ -181,10 +181,10 @@ static unsigned int /*? me.interface.name ?*/_/*? m.name ?*/_marshal(
     /*- if m.return_type is not none -*/
         seL4_SetMR(/*? mr ?*/, (seL4_Word)/*? ret ?*/);
         /*? mr ?*/++;
-        /*- if macros.sizeof(m.return_type) > macros.sizeof('void*') -*/
+        /*- if macros.sizeof(options.architecture, m.return_type) > macros.sizeof(options.architecture, 'void*') -*/
             seL4_SetMR(/*? mr ?*/, (seL4_Word)(((uint64_t)/*? ret ?*/) >> __WORDSIZE));
             /*? mr ?*/++;
-            /*? assert(macros.sizeof(m.return_type) <= 2 * macros.sizeof('void*')) ?*/
+            /*? assert(macros.sizeof(options.architecture, m.return_type) <= 2 * macros.sizeof(options.architecture, 'void*')) ?*/
         /*- endif -*/
     /*- endif -*/
 
@@ -194,10 +194,10 @@ static unsigned int /*? me.interface.name ?*/_/*? m.name ?*/_marshal(
         /*- else -*/
             seL4_SetMR(/*? mr ?*/, (seL4_Word)/*? p.name ?*/);
             /*? mr ?*/++;
-            /*- if macros.sizeof(p) > macros.sizeof('void*') -*/
+            /*- if macros.sizeof(options.architecture, p) > macros.sizeof(options.architecture, 'void*') -*/
                 seL4_SetMR(/*? mr ?*/, (seL4_Word)(((uint64_t)/*? p.name ?*/) >> __WORDSIZE));
                 /*? mr ?*/++;
-                /*? assert(macros.sizeof(p) <= 2 * macros.sizeof('void*')) ?*/
+                /*? assert(macros.sizeof(options.architecture, p) <= 2 * macros.sizeof(options.architecture, 'void*')) ?*/
             /*- endif -*/
         /*- endif -*/
     /*- endfor -*/

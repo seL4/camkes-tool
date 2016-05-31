@@ -51,11 +51,11 @@ text {*
   safety of such functions.
 *}
 lemma /*? me.interface.name ?*/_wrap_ptr_nf:
-  "\<lbrace>\<lambda>s. (\<forall>x\<in>set (array_addrs (Ptr (symbol_table ''/*? me.interface.name ?*/_data'')) /*? macros.sizeof(me.interface.type) ?*/).
+  "\<lbrace>\<lambda>s. (\<forall>x\<in>set (array_addrs (Ptr (symbol_table ''/*? me.interface.name ?*/_data'')) /*? macros.sizeof(options.architecture, me.interface.type) ?*/).
           is_valid_w8 s x) \<and>
          is_valid_dataport_ptr__C s x\<rbrace>
     /*? me.interface.name ?*/_wrap_ptr' x y
-   \<lbrace>\<lambda>_ s. (\<forall>x\<in>set (array_addrs (Ptr (symbol_table ''/*? me.interface.name ?*/_data'')) /*? macros.sizeof(me.interface.type) ?*/).
+   \<lbrace>\<lambda>_ s. (\<forall>x\<in>set (array_addrs (Ptr (symbol_table ''/*? me.interface.name ?*/_data'')) /*? macros.sizeof(options.architecture, me.interface.type) ?*/).
            is_valid_w8 s x) \<and>
           is_valid_dataport_ptr__C s x\<rbrace>!"
   apply (simp add:/*? me.interface.name ?*/_wrap_ptr'_def)
@@ -68,16 +68,16 @@ lemma /*? me.interface.name ?*/_wrap_ptr_nf:
  * i.e. that the wrapper pointed is correct. Todo below.
  *)
 lemma
-  "\<lbrace>\<lambda>s. (\<forall>x\<in>set (array_addrs (Ptr (symbol_table ''/*? me.interface.name ?*/_data'')) /*? macros.sizeof(me.interface.type) ?*/). is_valid_w8 s x) \<and>
+  "\<lbrace>\<lambda>s. (\<forall>x\<in>set (array_addrs (Ptr (symbol_table ''/*? me.interface.name ?*/_data'')) /*? macros.sizeof(options.architecture, me.interface.type) ?*/). is_valid_w8 s x) \<and>
         is_valid_dataport_ptr__C s x \<and>
         (ptr_val y) \<ge> (symbol_table ''/*? me.interface.name ?*/_data'') \<and>
-        (ptr_val y) < (symbol_table ''/*? me.interface.name ?*/_data'') + /*? macros.sizeof(me.interface.type) ?*/\<rbrace>
+        (ptr_val y) < (symbol_table ''/*? me.interface.name ?*/_data'') + /*? macros.sizeof(options.architecture, me.interface.type) ?*/\<rbrace>
         /*? me.interface.name ?*/_wrap_ptr' x y
    \<lbrace>\<lambda>r s. r = 0 \<and>
-          (\<forall>x\<in>set (array_addrs (Ptr (symbol_table ''/*? me.interface.name ?*/_data'')) /*? macros.sizeof(me.interface.type) ?*/). is_valid_w8 s x) \<and>
+          (\<forall>x\<in>set (array_addrs (Ptr (symbol_table ''/*? me.interface.name ?*/_data'')) /*? macros.sizeof(options.architecture, me.interface.type) ?*/). is_valid_w8 s x) \<and>
           is_valid_dataport_ptr__C s x \<and>
           (ptr_val y) \<ge> (symbol_table ''/*? me.interface.name ?*/_data'') \<and>
-          (ptr_val y) < (symbol_table ''/*? me.interface.name ?*/_data'') + /*? macros.sizeof(me.interface.type) ?*/\<rbrace>!"
+          (ptr_val y) < (symbol_table ''/*? me.interface.name ?*/_data'') + /*? macros.sizeof(options.architecture, me.interface.type) ?*/\<rbrace>!"
   apply (unfold /*? me.interface.name ?*/_wrap_ptr'_def)
   apply wp
   apply clarsimp
@@ -86,11 +86,11 @@ lemma
 /*- endif -*/
 
 lemma /*? me.interface.name ?*/_unwrap_ptr_nf:
-  "\<lbrace>\<lambda>s. (\<forall>x\<in>set (array_addrs (Ptr (symbol_table ''/*? me.interface.name ?*/_data'')) /*? macros.sizeof(me.interface.type) ?*/).
+  "\<lbrace>\<lambda>s. (\<forall>x\<in>set (array_addrs (Ptr (symbol_table ''/*? me.interface.name ?*/_data'')) /*? macros.sizeof(options.architecture, me.interface.type) ?*/).
           is_valid_w8 s x) \<and>
          is_valid_dataport_ptr__C s x\<rbrace>
     /*? me.interface.name ?*/_unwrap_ptr' x
-   \<lbrace>\<lambda>_ s. (\<forall>x\<in>set (array_addrs (Ptr (symbol_table ''/*? me.interface.name ?*/_data'')) /*? macros.sizeof(me.interface.type) ?*/).
+   \<lbrace>\<lambda>_ s. (\<forall>x\<in>set (array_addrs (Ptr (symbol_table ''/*? me.interface.name ?*/_data'')) /*? macros.sizeof(options.architecture, me.interface.type) ?*/).
            is_valid_w8 s x) \<and>
           is_valid_dataport_ptr__C s x\<rbrace>!"
   apply (simp add:/*? me.interface.name ?*/_unwrap_ptr'_def)
