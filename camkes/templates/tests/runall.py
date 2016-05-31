@@ -22,6 +22,7 @@ from lint import TestPyLintOnSource
 from lintsource import TestSourceLint
 from testcustomtemplates import TestCustomTemplates
 from testsel4_async import TestSel4Async
+from testmacros import TestMacros
 
 if __name__ == '__main__':
     unittest.main()
