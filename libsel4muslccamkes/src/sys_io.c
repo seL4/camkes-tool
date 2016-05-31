@@ -260,10 +260,10 @@ sys_close(va_list ap)
     if (fds->filetype == FILE_TYPE_CPIO) {
         free(fds->data);
     } else if (fds->filetype == FILE_TYPE_SOCKET && sock_close) {
-	sock_close(*(int*)fds->data);
-	fds->filetype = -1;
-	free(fds->data);
-	fds->data = NULL;
+        sock_close(*(int*)fds->data);
+        fds->filetype = -1;
+        free(fds->data);
+        fds->data = NULL;
     } else {
         assert(!"not implemented");
     }
@@ -331,7 +331,7 @@ long sys_write(va_list ap)
     }
 
     if (fd == STDOUT_FD || fd == STDERR_FD) {
-            ret = sys_platform_write(buf, count);
+        ret = sys_platform_write(buf, count);
     } else {
         if (fdt->filetype == FILE_TYPE_SOCKET && sock_write && sock_data_data) {
             sockfd = *(int*)fdt->data;
@@ -339,9 +339,9 @@ long sys_write(va_list ap)
             memcpy((char*)sock_data_data, buf, size);
             ret = sock_write(sockfd, size);
         } else {
-	    assert(!"Not implemented");
-	    return -EBADF;
-	}
+            assert(!"Not implemented");
+            return -EBADF;
+        }
     }
 
     return ret;
@@ -396,11 +396,11 @@ long sys_read(va_list ap)
     int ret, sockfd, size;
     muslcsys_fd_t *fdt = get_fd_struct(fd);
     if (fdt->filetype == FILE_TYPE_SOCKET && sock_read && sock_data_data) {
-	    sockfd = *(int*)fdt->data;
-	    size = count > PAGE_SIZE_4K ? PAGE_SIZE_4K : count;
-	    ret = sock_read(sockfd, size);
-	    memcpy(buf, (char*)sock_data_data, ret);
-	    return ret;
+        sockfd = *(int*)fdt->data;
+        size = count > PAGE_SIZE_4K ? PAGE_SIZE_4K : count;
+        ret = sock_read(sockfd, size);
+        memcpy(buf, (char*)sock_data_data, ret);
+        return ret;
     }
 
     return readv(fd, &iov, 1);
@@ -573,9 +573,9 @@ long sys_fcntl64(va_list ap)
     int sockfd;
     muslcsys_fd_t *fdt = get_fd_struct(fd);
     if (fdt->filetype == FILE_TYPE_SOCKET && sock_fcntl) {
-	    sockfd = *(int*)fdt->data;
-	    long val = va_arg(ap, long);
-	    return sock_fcntl(sockfd, cmd, val);
+        sockfd = *(int*)fdt->data;
+        long val = va_arg(ap, long);
+        return sock_fcntl(sockfd, cmd, val);
     }
 
     assert(!"sys_fcntl64 not implemented");
