@@ -428,7 +428,7 @@ void camkes_make_simple(simple_t *simple) {
     simple->ASID_assign = &simple_camkes_set_ASID;
 #ifdef CONFIG_KERNEL_STABLE
     simple->IOPort_cap = &simple_camkes_get_IOPort_cap;
-#else
+#elif defined(CONFIG_ARCH_X86)
     simple->arch_simple.IOPort_cap = &simple_camkes_get_IOPort_cap;
 #endif
     simple->cap_count = &simple_camkes_cap_count;
