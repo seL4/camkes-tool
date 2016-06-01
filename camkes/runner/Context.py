@@ -350,4 +350,13 @@ def register_shared_variable(shmem, global_name, local_context, local_name,
      local_name - The name of this variable in the owner's address space
     '''
     shmem[global_name][local_context].append((local_name, permissions, paddr))
-    return ''
+
+    # Return code to:
+    #  1. page-align the shared variable;
+    #  2. make it visible in the final ELF; and
+    #  3. Check that it is page-sized.
+    return 'extern typeof(%(sym)s) %(sym)s ALIGN(PAGE_SIZE_4K) VISIBLE;\n'      \
+           'static_assert(sizeof(%(sym)s) %% PAGE_SIZE_4K == 0,\n'              \
+           '  "%(sym)s not page-sized. Template bug in its declaration? '       \
+           'Suggested formulation: `char %(sym)s[ROUND_UP_UNSAFE(sizeof(...), ' \
+           'PAGE_SIZE_4K)];`");' % {'sym':local_name}
