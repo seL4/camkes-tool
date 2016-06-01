@@ -21,7 +21,7 @@ from camkes.ast import Composition, Instance, Parameter
 from camkes.internal.isabelle_symbols import ISABELLE_SYMBOLS
 from capdl import ASIDPool, CNode, Endpoint, Frame, IODevice, IOPageTable, \
     Notification, page_sizes, PageDirectory, PageTable, TCB, Untyped
-import collections, math, os, re, six, subprocess
+import collections, math, os, platform, re, six, subprocess
 
 def header_guard(filename):
     return '#ifndef %(guard)s\n' \
@@ -154,9 +154,12 @@ def sizeof(arch, t):
 
         cxxflags = ['-x', 'c++', '-', '-o', os.devnull]
 
-        # Account for the fact that we may be on an x86_64 host targeting x86.
-        if arch == 'ia32':
+        # Account for the fact that we may be cross-compiling using our native
+        # compiler.
+        if arch == 'ia32' and platform.machine() == 'x86_64':
             cxxflags.append('-m32')
+        elif arch == 'x86_64' and platform.machine() == 'i386':
+            cxxflags.append('-m64')
 
         # Construct a new environment with a locale that forces the compiler
         # not to show us things like smart quotes in error messages.
