@@ -232,7 +232,7 @@ camkes_error_action_t camkes_error(camkes_error_t *e);
      */
     #define ERR(handler, edata, action) ({ \
         /* Tell the compiler to deprioritise this code path. */ \
-        JOIN(camkes_error_path_, __COUNTER__): __attribute__((cold, unused)); \
+        JOIN(camkes_error_path_, __COUNTER__): COLD UNUSED; \
             camkes_error_t _e = edata; \
             _e.filename = __FILE__; \
             _e.lineno = __LINE__; \
