@@ -46,7 +46,7 @@ import "camkes-hardware.idl4";
  * the components.
  */
 connector seL4Asynch {
-    from Event;
+    from Event with 0 threads;
     to Events;
 }
 connector seL4AsynchBind {
