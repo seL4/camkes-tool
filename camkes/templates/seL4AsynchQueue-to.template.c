@@ -14,6 +14,8 @@
 #include <sel4/sel4.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <sync/bin_sem_bare.h>
+#include <sync/sem-bare.h>
 #include <utils/util.h>
 
 /*? macros.show_includes(me.instance.type.includes) ?*/
