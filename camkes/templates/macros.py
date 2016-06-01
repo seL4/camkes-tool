@@ -18,7 +18,6 @@ from __future__ import absolute_import, division, print_function, \
 from camkes.internal.seven import cmp, filter, map, zip
 
 from camkes.ast import Composition, Instance, Parameter
-from camkes.internal.isabelle_symbols import ISABELLE_SYMBOLS
 from capdl import ASIDPool, CNode, Endpoint, Frame, IODevice, IOPageTable, \
     Notification, page_sizes, PageDirectory, PageTable, TCB, Untyped
 import collections, math, os, platform, re, six, subprocess
@@ -28,9 +27,6 @@ def header_guard(filename):
            '#define %(guard)s\n' % {
                'guard':'_CAMKES_%s_' % filename.upper(),
            }
-
-def header_file(filename):
-    return '.'.join(filename.split('.')[:-1]) + '.h'
 
 def thread_stack(sym, size='CONFIG_CAMKES_DEFAULT_STACK_SIZE'):
     return 'char %s[ROUND_UP_UNSAFE(%s, ' \
@@ -195,12 +191,6 @@ def sizeof(arch, t):
 
     assert size is not None
     return size
-
-def isabelle_encode(content):
-    return reduce(lambda acc, x: acc.replace(x[0], x[1]), ISABELLE_SYMBOLS, content)
-
-def isabelle_decode(content):
-    return reduce(lambda acc, x: acc.replace(x[1], x[0]), ISABELLE_SYMBOLS, content)
 
 def to_isabelle_set(xs):
     assert isinstance(xs, collections.Iterable)
