@@ -9,6 +9,7 @@
  #*/
 
 #include <assert.h>
+#include <camkes/sel4.h>
 #include <camkes/tls.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -232,7 +233,7 @@ static unsigned int /*? me.interface.name ?*/_/*? m.name ?*/_internal(void) {
     /*- if not options.fcall_leave_reply_cap or len(me.instance.type.provides + me.instance.type.uses + me.instance.type.consumes + me.instance.type.mutexes + me.instance.type.semaphores) > 1 -*/
         /*- set result = c_symbol() -*/
 
-        int /*? result ?*/ UNUSED = seL4_CNode_SaveCaller(/*? cnode ?*/, /*? reply_cap_slot ?*/, 32);
+        int /*? result ?*/ UNUSED = camkes_cnode_save_caller(/*? cnode ?*/, /*? reply_cap_slot ?*/, 32);
         assert(/*? result ?*/ == 0);
     /*- endif -*/
 
