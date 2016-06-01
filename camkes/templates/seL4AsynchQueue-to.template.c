@@ -29,7 +29,7 @@
 
 /*- set ep = alloc('ep_%d' % id, seL4_EndpointObject, read=True) -*/
 /*- set handoff = alloc('handoff_%d' % id, seL4_EndpointObject, read=True, write=True) -*/
-static volatile int handoff;
+static volatile int handoff_value;
 
 char to_/*? id ?*/_/*? me.interface.name ?*/_data[ROUND_UP_UNSAFE(sizeof(int), PAGE_SIZE_4K)]
     ALIGN(PAGE_SIZE_4K)
@@ -56,8 +56,16 @@ static void *callback_arg;
 
 int /*? me.interface.name ?*/__run(void) {
     while (true) {
-restart:
-        seL4_Wait(/*? ep ?*/, NULL);
+restart:;
+        int result UNUSED = sync_sem_bare_wait(/*? ep ?*/, value);
+        ERR_IF(result != 0, /*? error_handler ?*/, ((camkes_error_t){
+                .type = CE_OVERFLOW,
+                .instance = "/*? me.instance.name ?*/",
+                .interface = "/*? me.interface.name ?*/",
+                .description = "waiting on semaphore failed",
+            }), ({
+                goto restart;
+            }));
 
         if (lock() != 0) {
             ERR(/*? error_handler ?*/, ((camkes_error_t){
@@ -75,7 +83,7 @@ restart:
         void *arg = callback_arg;
 
         if (cb == NULL) {
-            ERR_IF(handoff == INT_MAX, /*? error_handler ?*/, ((camkes_error_t){
+            ERR_IF(handoff_value == INT_MAX, /*? error_handler ?*/, ((camkes_error_t){
                     .type = CE_OVERFLOW,
                     .instance = "/*? me.instance.name ?*/",
                     .interface = "/*? me.interface.name ?*/",
@@ -85,10 +93,10 @@ restart:
                     assert(result == 0);
                     goto restart;
                 }));
-            sync_sem_bare_post(/*? handoff ?*/, &handoff);
+            sync_sem_bare_post(/*? handoff ?*/, &handoff_value);
         }
 
-        int result UNUSED = unlock();
+        result = unlock();
         assert(result == 0);
 
         if (cb != NULL) {
@@ -97,13 +105,17 @@ restart:
     }
 }
 
+static int poll(void) {
+    return sync_sem_bare_trywait(/*? handoff ?*/, &handoff_value) == 0;
+}
+
 int /*? me.interface.name ?*/_poll(void) {
-    return sync_sem_bare_trywait(/*? handoff ?*/, &handoff) == 0;
+    return poll();
 }
 
 void /*? me.interface.name ?*/_wait(void) {
     camkes_protect_reply_cap();
-    if (sync_sem_bare_wait(/*? handoff ?*/, &handoff) != 0) {
+    if (sync_sem_bare_wait(/*? handoff ?*/, &handoff_value) != 0) {
         ERR(/*? error_handler ?*/, ((camkes_error_t){
                 .type = CE_OVERFLOW,
                 .instance = "/*? me.instance.name ?*/",
@@ -117,23 +129,16 @@ void /*? me.interface.name ?*/_wait(void) {
 
 int /*? me.interface.name ?*/_reg_callback(void (*cb)(void*), void *arg) {
 
-    if (sync_sem_bare_trywait(/*? handoff ?*/, &handoff) == 0) {
+    if (poll()) {
         cb(arg);
         return 0;
     }
 
     if (lock() != 0) {
-        ERR(/*? error_handler ?*/, ((camkes_error_t){
-                .type = CE_OVERFLOW,
-                .instance = "/*? me.instance.name ?*/",
-                .interface = "/*? me.interface.name ?*/",
-                .description = "lock acquisition failed due to too many outstanding lock holders",
-            }), ({
-                return -1;
-            }));
+        return -1;
     }
 
-    if (sync_sem_bare_trywait(/*? handoff ?*/, &handoff) == 0) {
+    if (poll()) {
         int result UNUSED = unlock();
         assert(result == 0);
         cb(arg);
