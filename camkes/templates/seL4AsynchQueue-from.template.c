@@ -41,6 +41,8 @@ void /*? me.interface.name ?*/_emit_underlying(void) {
             .instance = "/*? me.instance.name ?*/",
             .interface = "/*? me.interface.name ?*/",
             .description = "failed to send event to 'to' end #/*? index ?*/ due to potential overflow",
+          }), ({
+              return;
           }));
     /*- endfor -*/
 }

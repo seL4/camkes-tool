@@ -62,6 +62,8 @@ restart:
                     .instance = "/*? me.instance.name ?*/",
                     .interface = "/*? me.interface.name ?*/",
                     .description = "lock acquisition failed due to too many outstanding lock holders",
+                }), ({
+                    goto restart;
                 }));
         }
 
@@ -104,6 +106,8 @@ void /*? me.interface.name ?*/_wait(void) {
                 .instance = "/*? me.instance.name ?*/",
                 .interface = "/*? me.interface.name ?*/",
                 .description = "wait failed due to future counter overflow",
+            }), ({
+                return;
             }));
     }
 }
@@ -121,6 +125,8 @@ int /*? me.interface.name ?*/_reg_callback(void (*cb)(void*), void *arg) {
                 .instance = "/*? me.instance.name ?*/",
                 .interface = "/*? me.interface.name ?*/",
                 .description = "lock acquisition failed due to too many outstanding lock holders",
+            }), ({
+                return -1;
             }));
     }
 
