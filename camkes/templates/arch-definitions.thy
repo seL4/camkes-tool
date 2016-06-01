@@ -99,13 +99,13 @@ lemma wf_/*? i.name ?*/: "wellformed_procedure /*? i.name ?*/"
 /*- endfor -*/
 
 (* Event interfaces *)
-/*- for i in uniq(map(lambda('x: x.type'), flatMap(lambda('x: x.type.emits + x.type.consumes'), me.composition.instances))) -*/
+/*- for index, i in enumerate(uniq(map(lambda('x: x.type'), flatMap(lambda('x: x.type.emits + x.type.consumes'), me.composition.instances)))) -*/
 definition
-    /*? i.name ?*/ :: event
+    /*? i ?*/ :: event
 where
-    "/*? i.name ?*/ \<equiv> /*? i.id ?*/"
+    "/*? i ?*/ \<equiv> /*? index ?*/"
 
-lemma wf_/*? i.name ?*/: "wellformed_event /*? i.name ?*/"
+lemma wf_/*? i ?*/: "wellformed_event /*? i ?*/"
   by code_simp
 /*- endfor -*/
 
@@ -155,12 +155,12 @@ where
         [],
         emits =
         /*- for i in c.emits -*/
-            (''/*? i.name ?*/'', /*? i.type.name ?*/) #
+            (''/*? i.name ?*/'', /*? i.type ?*/) #
         /*- endfor -*/
         [],
         consumes =
         /*- for i in c.consumes -*/
-            (''/*? i.name ?*/'', /*? i.type.name ?*/) #
+            (''/*? i.name ?*/'', /*? i.type ?*/) #
         /*- endfor -*/
         [],
         attributes =
