@@ -10,6 +10,7 @@
 
 #include <camkes/error.h>
 #include <sel4/sel4.h>
+#include <sync/sem-bare.h>
 #include <utils/util.h>
 
 /*? macros.show_includes(me.instance.type.includes) ?*/
