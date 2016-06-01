@@ -16,6 +16,7 @@
 /*? macros.show_includes(me.instance.type.includes) ?*/
 
 /* Interface-specific error handling. */
+/*- set interface = me.interface.name -*/
 /*- set error_handler = '%s_error_handler' % me.interface.name -*/
 /*- include 'error-handler.c' -*/
 
