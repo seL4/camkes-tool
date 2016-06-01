@@ -110,7 +110,7 @@ endif
 /*- if configuration[i.name].get('simple') == 'true' -*/
     /*? rule_gen('$(abspath ${BUILD_DIR})/src/' + i.name + '/generated/camkes.simple.c', ' '.join(imported), '%s/simple' % i.name, i.name) ?*/
 /*- endif -*/
-/*? rule_gen('$(abspath ${BUILD_DIR})/include/' + i.name + '/generated/' + 'camkes.h', ' '.join(imported), '%s/header' % i.name) ?*/
+/*? rule_gen('$(abspath ${BUILD_DIR})/include/' + i.name + '/generated/camkes.h', ' '.join(imported), '%s/header' % i.name) ?*/
 /*- endfor -*/
 
 # Connection code generation.
