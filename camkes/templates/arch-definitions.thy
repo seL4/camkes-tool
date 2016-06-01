@@ -112,17 +112,11 @@ lemma wf_/*? i ?*/: "wellformed_event /*? i ?*/"
 (* Dataport interfaces *)
 /*- for i in uniq(map(lambda('x: x.type'), flatMap(lambda('x: x.type.dataports'), me.composition.instances))) -*/
 definition
-    /*? i.name ?*/ :: dataport
+    /*? i ?*/ :: dataport
 where
-    "/*? i.name ?*/ \<equiv>
-    /*- if i.type is not none -*/
-        Some ''/*? i.type ?*/''
-    /*- else -*/
-        None
-    /*- endif -*/
-    "
+    "/*? i ?*/ \<equiv> Some ''/*? i ?*/''"
 
-lemma wf_/*? i.name ?*/: "wellformed_dataport /*? i.name ?*/"
+lemma wf_/*? i ?*/: "wellformed_dataport /*? i ?*/"
   by code_simp
 /*- endfor -*/
 
@@ -150,7 +144,7 @@ where
         [],
         dataports =
         /*- for i in c.dataports -*/
-            (''/*? i.name ?*/'', /*? i.type.name ?*/) #
+            (''/*? i.name ?*/'', /*? i.type ?*/) #
         /*- endfor -*/
         [],
         emits =
