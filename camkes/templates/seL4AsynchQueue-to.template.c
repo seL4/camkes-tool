@@ -31,9 +31,7 @@
 /*- set handoff = alloc('handoff_%d' % id, seL4_EndpointObject, read=True, write=True) -*/
 static volatile int handoff_value;
 
-char to_/*? id ?*/_/*? me.interface.name ?*/_data[ROUND_UP_UNSAFE(sizeof(int), PAGE_SIZE_4K)]
-    ALIGN(PAGE_SIZE_4K)
-    VISIBLE;
+char to_/*? id ?*/_/*? me.interface.name ?*/_data[ROUND_UP_UNSAFE(sizeof(int), PAGE_SIZE_4K)];
 static volatile int *value = (volatile int*)to_/*? id ?*/_/*? me.interface.name ?*/_data;
 /*? register_shared_variable('%s_%d_data' % (me.parent.name, id), 'to_%d_%s_data' % (id, me.interface.name), 'RW') ?*/
 

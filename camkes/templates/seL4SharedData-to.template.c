@@ -17,14 +17,11 @@
 
 /*- set index = me.parent.to_ends.index(me) -*/
 
-#define SHM_ALIGN (1 << 12)
 struct {
     char content[ROUND_UP_UNSAFE(/*? macros.dataport_size(me.interface.type) ?*/,
         PAGE_SIZE_4K)];
 } to_/*? index ?*/_/*? me.interface.name ?*/_data
-        ALIGN(SHM_ALIGN)
-        __attribute__((section("shared_to_/*? index ?*/_/*? me.interface.name ?*/")))
-        VISIBLE;
+        __attribute__((section("shared_to_/*? index ?*/_/*? me.interface.name ?*/")));
 /*- set perm = configuration[me.instance.name].get('%s_access' % me.interface.name) -*/
 /*- if perm is not none and re.match('^R?W?X?$', perm) -*/
   /*? raise(TemplateError('invalid permissions attribute %s.%s_access' % (me.instance.name, me.interface.name), configuration)) ?*/

@@ -26,9 +26,7 @@
 /*- for index in six.moves.range(len(me.parent.to_ends)) -*/
   /*- do eps.append(alloc('ep_%d' % index, seL4_EndpointObject, read=True, write=True)) -*/
 
-  char from_/*? my_index ?*/_/*? me.interface.name ?*/_/*? index ?*/_data[ROUND_UP_UNSAFE(sizeof(int), PAGE_SIZE_4K)]
-      ALIGN(PAGE_SIZE_4K)
-      VISIBLE;
+  char from_/*? my_index ?*/_/*? me.interface.name ?*/_/*? index ?*/_data[ROUND_UP_UNSAFE(sizeof(int), PAGE_SIZE_4K)];
   volatile int *counter_/*? index ?*/ = (volatile int*)from_/*? my_index ?*/_/*? me.interface.name ?*/_/*? index ?*/_data;
   /*? register_shared_variable('%s_%d_data' % (me.parent.name, index), 'from_%d_%s_%d_data' % (my_index, me.interface.name, index), 'RW') ?*/
 /*- endfor -*/

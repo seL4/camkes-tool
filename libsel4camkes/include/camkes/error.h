@@ -209,7 +209,7 @@ camkes_error_handler_t camkes_register_error_handler(
 /* Throw an error from glue code. This function is not expected to be called by
  * user code.
  */
-camkes_error_action_t camkes_error(camkes_error_t *e);
+camkes_error_action_t camkes_error(camkes_error_t *e) COLD;
 
 /* Convenience for using halt() inside macro definitions. This is not expected
  * to be called from user code. Note that it does not halt on a non-debug
@@ -231,6 +231,7 @@ camkes_error_action_t camkes_error(camkes_error_t *e);
      *    statement).
      */
     #define ERR(handler, edata, action) ({ \
+            COLD_PATH(); \
             camkes_error_t _e = edata; \
             _e.filename = __FILE__; \
             _e.lineno = __LINE__; \
