@@ -404,6 +404,11 @@ void USED _camkes_tls_init(int thread_id) {
     switch (thread_id) {
         /*- set _tcb_control = alloc_obj('%d_0_control_%d_tcb' % (len(me.name), len('0_control')), seL4_TCBObject) -*/
         /*- set tcb_control = alloc_cap('%d_0_control_%d_tcb' % (len(me.name), len('0_control')), _tcb_control) -*/
+
+        /*- if options.realtime -*/
+            /*- set sc_control = alloc('0_control_sc', seL4_SchedContextObject) -*/
+        /*- endif -*/
+
         /*- if options.debug_fault_handlers -*/
           /*? assert(fault_ep is defined and fault_ep is not none) ?*/
           /*- set fault_ep_cap = alloc_cap('fault_ep_0_control', fault_ep, read=True, write=True, grant=True) -*/
@@ -421,6 +426,11 @@ void USED _camkes_tls_init(int thread_id) {
         /*- for index, t in enumerate(threads[1:]) -*/
             /*- set _tcb = alloc_obj('%d_%s_%d_%04d_tcb' % (len(me.name), t.interface.name, len(t.interface.name), t.intra_index), seL4_TCBObject) -*/
             /*- set tcb = alloc_cap('%d_%s_%d_%04d_tcb' % (len(me.name), t.interface.name, len(t.interface.name), t.intra_index), _tcb) -*/
+
+            /*- if options.realtime -*/
+                /*- set sc = alloc('%s_%04d_sc' % (t.interface.name, t.intra_index), seL4_SchedContextObject) -*/
+            /*- endif -*/
+
             /*- if options.debug_fault_handlers -*/
               /*? assert(fault_ep is defined and fault_ep is not none) ?*/
               /*- set fault_ep_cap = alloc_cap('fault_ep_%s_%04d' % (t.interface.name, t.intra_index), fault_ep, read=True, write=True, grant=True) -*/
@@ -438,6 +448,11 @@ void USED _camkes_tls_init(int thread_id) {
 
         /*- if options.debug_fault_handlers -*/
             /*- set tcb = alloc('%d_0_fault_handler_%d_0000_tcb' % (len(me.name), len('0_fault_handler')), seL4_TCBObject) -*/
+
+            /*- if options.realtime -*/
+                /*- set sc = alloc('0_fault_handler_0000_sc', seL4_SchedContextObject) -*/
+            /*- endif -*/
+
             case /*? tcb ?*/ : { /* Fault handler thread */
                 /*- set p = Perspective(instance=me.name, interface='0_fault_handler', intra_index=0) -*/
                 /*? macros.save_ipc_buffer_address(p['ipc_buffer_symbol']) ?*/

@@ -310,6 +310,8 @@ DERIVATIONS = {
         ForwardDeriver('%(group)s_cnode', 'cnode'),
         BackwardDeriver(r'(.+)_cnode$', 'cnode', 'group'),
         BackwardDeriver(r'.*?\.?([a-zA-Z_]\w*)$', 'instance', 'safe_instance'),
+        ForwardDeriver('%(instance)s_%(interface)s_%(intra_index)s_sc', 'sc'),
+        FromControlDeriver('%(instance)s_0_control_sc', 'sc'),
     ],
 }
 

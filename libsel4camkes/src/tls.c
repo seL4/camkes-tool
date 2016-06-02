@@ -10,6 +10,7 @@
 
 #include <autoconf.h>
 #include <assert.h>
+#include <camkes/sel4.h>
 #include <camkes/tls.h>
 #include <sel4/sel4.h>
 #include <stdbool.h>
@@ -53,7 +54,7 @@ void camkes_protect_reply_cap(void) {
              * this reply cap. The reason is that the caller of this function
              * has no knowledge of how to respond to this failure.
              */
-            tls->reply_cap_save_error = seL4_CNode_SaveCaller(tls->cnode_cap,
+            tls->reply_cap_save_error = camkes_cnode_save_caller(tls->cnode_cap,
                 tls->reply_cap_slot, CONFIG_WORD_SIZE);
         }
 

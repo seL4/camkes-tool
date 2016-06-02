@@ -13,9 +13,15 @@
 #include <stdarg.h>
 #include <sel4/sel4.h>
 #include <utils/util.h>
+#include <errno.h>
+#include <autoconf.h>
 
 long sys_sched_yield(va_list ap UNUSED)
 {
+#ifdef CONFIG_KERNEL_RT
+    return -ENOSYS;
+#else
     seL4_Yield();
     return 0;
+#endif
 }
