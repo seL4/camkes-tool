@@ -17,7 +17,7 @@ from __future__ import absolute_import, division, print_function, \
 from camkes.internal.seven import cmp, filter, map, zip
 
 import os, re, six, subprocess
-from capdl import Cap, CNode, Frame, TCB, page_sizes, lookup_architecture
+from capdl import Cap, CNode, Frame, TCB, SC, page_sizes, lookup_architecture
 from camkes.internal.memoization import memoize
 from .NameMangling import Perspective
 
@@ -72,7 +72,7 @@ def get_symbol_size(elf, symbol):
 def get_elf_arch(elf):
     return elf[1].get_arch()
 
-def set_tcb_info(cspaces, elfs, options, **_):
+def set_tcb_info(cspaces, obj_space, elfs, options, **_):
     '''Set relevant extra info for TCB objects.'''
     arch = lookup_architecture(options.architecture)
 
@@ -134,6 +134,10 @@ def set_tcb_info(cspaces, elfs, options, **_):
             # it branches on in main(). This corresponds to the slot index
             # to a cap to it in the component's CNode.
             tcb.init.append(index)
+
+            if options.realtime:
+                sc = obj_space[perspective['sc']]
+                tcb['sc_slot'] = Cap(sc)
 
 def make_indices(arch, vaddr, size):
     '''Construct a set of indices that could be used to traverse to the mapping
@@ -603,6 +607,14 @@ def tcb_default_priorities(obj_space, options, **_):
     for t in [x for x in obj_space if isinstance(x, TCB)]:
         t.prio = options.default_priority
 
+def sc_default_properties(obj_space, options, **_):
+    '''Set up default scheduling context properties.'''
+
+    for s in (x for x in obj_space if isinstance(x, SC)):
+        s.period = options.default_period
+        s.budget = options.default_budget
+        s.data = options.default_data
+
 def tcb_priorities(ast, cspaces, options, **_):
     ''' Override a TCB's default priority if the user has specified this in an
     attribute.'''
@@ -695,4 +707,5 @@ CAPDL_FILTERS = [
     tcb_priorities,
     tcb_domains,
     remove_tcb_caps,
+    sc_default_properties,
 ]

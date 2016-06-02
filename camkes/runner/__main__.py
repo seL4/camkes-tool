@@ -138,6 +138,18 @@ def parse_args(argv, out, err):
         'friends.')
     parser.add_argument('--default-priority', type=int, default=254,
         help='Default component thread priority.')
+    parser.add_argument('--default-max-priority', type=int, default=254,
+        help='Default component thread maximum priority.')
+    parser.add_argument('--default-criticality', type=int, default=1,
+        help='Default component thread criticality.')
+    parser.add_argument('--default-max-criticality', type=int, default=1,
+        help='Default component thread maximum criticality.')
+    parser.add_argument('--default-period', type=int, default=10000,
+        help='Default component thread scheduling context period.')
+    parser.add_argument('--default-budget', type=int, default=10000,
+        help='Default component thread scheduling context budget.')
+    parser.add_argument('--default-data', type=int, default=0,
+        help='Default component thread scheduling context data.')
     parser.add_argument('--prune', action='store_true',
         help='Minimise the number of functions in generated C files.')
     parser.add_argument('--largeframe', action='store_true',
