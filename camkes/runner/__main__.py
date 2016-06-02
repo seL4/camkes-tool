@@ -159,6 +159,9 @@ def parse_args(argv, out, err):
         'purposes of debugging')
     parser.add_argument('--largeframe-dma', action='store_true',
         help='promote frames backing DMA pools to large frames where possible')
+    parser.add_argument('--realtime', action='store_true',
+        help='Target realtime seL4.')
+
 
     # Juggle the standard streams either side of parsing command-line arguments
     # because argparse provides no mechanism to control this.
