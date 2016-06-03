@@ -90,12 +90,12 @@ endif
     $(/*? i.type.name ?*/_HFILES:%=$(abspath ${BUILD_DIR})/include//*? i.name ?*//static/%)
 
 # This will be matched for local source and header files.
-/*? rule_cp('$(abspath ${BUILD_DIR})/src/' + i.name + '/static/%', '${SOURCE_DIR}/%') ?*/
-/*? rule_cp('$(abspath ${BUILD_DIR})/include/' + i.name + '/static/%', '${SOURCE_DIR}/%') ?*/
+/*? rule_cp('$(abspath ${BUILD_DIR})/src/%s/static/%%' % i.name, '${SOURCE_DIR}/%') ?*/
+/*? rule_cp('$(abspath ${BUILD_DIR})/include/%s/static/%%' % i.name, '${SOURCE_DIR}/%') ?*/
 
 # This will be matched for global source and header files.
-/*? rule_cp('$(abspath ${BUILD_DIR})/src/' + i.name + '/static/%', '/%') ?*/
-/*? rule_cp('$(abspath ${BUILD_DIR})/include/' + i.name + '/static/%', '/%') ?*/
+/*? rule_cp('$(abspath ${BUILD_DIR})/src/%s/static/%%', '/%') ?*/
+/*? rule_cp('$(abspath ${BUILD_DIR})/include/%s/static/%%' % i.name, '/%') ?*/
 
 /*- endfor -*/
 
@@ -106,11 +106,11 @@ endif
 
 # Instance entry point generation.
 /*- for i in instances -*/
-/*? rule_gen('$(abspath ${BUILD_DIR})/src/' + i.name + '/generated/camkes.c', ' '.join(imported), '%s/source' % i.name, i.name) ?*/
+/*? rule_gen('$(abspath ${BUILD_DIR})/src/%s/generated/camkes.c' % i.name, ' '.join(imported), '%s/source' % i.name, i.name) ?*/
 /*- if configuration[i.name].get('simple') == 'true' -*/
-    /*? rule_gen('$(abspath ${BUILD_DIR})/src/' + i.name + '/generated/camkes.simple.c', ' '.join(imported), '%s/simple' % i.name, i.name) ?*/
+    /*? rule_gen('$(abspath ${BUILD_DIR})/src/%s/generated/camkes.simple.c' % i.name, ' '.join(imported), '%s/simple' % i.name, i.name) ?*/
 /*- endif -*/
-/*? rule_gen('$(abspath ${BUILD_DIR})/include/' + i.name + '/generated/camkes.h', ' '.join(imported), '%s/header' % i.name) ?*/
+/*? rule_gen('$(abspath ${BUILD_DIR})/include/%s/generated/camkes.h' % i.name, ' '.join(imported), '%s/header' % i.name) ?*/
 /*- endfor -*/
 
 # Connection code generation.

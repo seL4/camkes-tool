@@ -262,7 +262,7 @@ int /*? me.interface.name ?*/__run(void) {
 
         switch (* /*? call_ptr ?*/) {
             /*- for i, m in enumerate(me.interface.type.methods) -*/
-                case /*? i ?*/: { /*? '/' + '* ' + m.name + ' *' + '/' ?*/
+                case /*? i ?*/: { /*? '%s%s%s%s%s' % ('/', '* ', m.name, ' *', '/') ?*/
                     /*# Declare parameters. #*/
                     /*- for p in m.parameters -*/
 

@@ -292,7 +292,7 @@ static seL4_MessageInfo_t /*? me.interface.name ?*/__run_internal(bool /*? first
 
     switch (/*? call ?*/) {
         /*- for i, m in enumerate(me.interface.type.methods) -*/
-            case /*? i ?*/: { /*? '/' + '* ' + m.name + ' *' + '/' ?*/
+            case /*? i ?*/: { /*? '%s%s%s%s%s' % ('/', '* ', m.name, ' *', '/') ?*/
                 /*- set length = c_symbol('length') -*/
                 unsigned int /*? length ?*/ = /*? me.interface.name ?*/_/*? m.name ?*/_internal();
 
