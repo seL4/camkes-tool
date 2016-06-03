@@ -74,7 +74,7 @@ static void save_paddr(region_t *r, uintptr_t paddr) {
     assert(r != NULL);
     r->paddr_upper = paddr >> PAGE_BITS_4K;
 }
-static uintptr_t try_extract_paddr(region_t *r) {
+static uintptr_t PURE try_extract_paddr(region_t *r) {
     assert(r != NULL);
     uintptr_t paddr = r->paddr_upper;
     if (paddr != 0) {
