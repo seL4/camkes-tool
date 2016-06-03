@@ -3426,6 +3426,154 @@ int framebuffer_flush_cache(size_t start_offset, size_t size);
 and the number of bytes to flush respectively. The function returns 0 on success
 and non-zero on error.
 
+### Realtime Extensions
+
+When used with the realtime version of seL4, the realtime properties of
+[instances](#instance) and [interfaces](#interface) can be specified. seL4's
+realtime API provides "Scheduling Contexts" - a representation of access to CPU
+time. For a thread to run, it must either be bound to a scheduling context, or
+have a scheduling context donated to it.
+
+Realtime properties of threads can be set in an application's [configuration](#configuration)
+section. Additionally, scheduling contexts have properties that can be
+configured in the same way. By default each thread created by CAmkES will have a
+bound scheduling context, however it is possible to configure a thread to have
+no scheduling context. Such threads are known as "Passive Threads".
+
+The remainder of this section will document the realtime properties of threads and
+scheduling contexts. Assumed knowledge:
+
+- [CAmkES Thread Model](#thread-model) for the correspondence between
+  [instances](#instance), [interfaces](#interface) and seL4 threads
+- seL4's realtime API to understand the related properties of threads and
+  scheduling contexts. This is documented in the [seL4 Reference Manual
+  (RT)](https://wiki.sel4.systems/seL4%201.0.0-rt-dev).
+
+#### Thread Properties
+
+Each property is specified in the same way as [thread
+priorities](#thread-priorities). For interface threads, properties are
+specified in the form `instance.interface_property = value;`. Additionally,
+properties of the control thread of an instance may be specified in the form
+`instance._property = value;`. Additionally, default values of properties can be
+given as command-line arguments to the runner.
+
+Each thread property corresponds to a field of the `seL4_Prio_t` type. Consult
+the seL4 manual for descriptions of each field.
+
+Examples of each property will be given in the context of the following simple
+CAmkES specification. Each example can be placed in the configuration
+section of the assembly.
+
+    component Foo {
+      uses MyInterface i;
+    }
+
+    assembly {
+      composition {
+        component Foo f;
+        ...
+      }
+      configuration {
+        ...
+      }
+    }
+
+##### Priority
+
+The default priority can be specified with the argument `--default-priority`.
+
+    f._priority = 100;  // set the priority of the instance f
+    f.i_priority = 100; // set the priority of the interface i of f
+
+##### Max Priority
+
+The default max priority can be specified with the argument `--default-max-priority`.
+
+    f._max_priority = 100;  // set the max priority of the instance f
+    f.i_max_priority = 100; // set the max priority of the interface i of f
+
+
+##### Criticality
+
+The default criticality can be specified with the argument `--default-criticality`.
+
+    f._criticality = 100;  // set the criticality of the instance f
+    f.i_criticality = 100; // set the criticality of the interface i of f
+
+##### Max Criticality
+
+The default max criticality can be specified with the argument `--default-max-criticality`.
+
+    f._max_criticality = 100;  // set the max criticality of the instance f
+    f.i_max_criticality = 100; // set the max criticality of the interface i of f
+
+
+#### Scheduling Context Properties
+
+These are specified in the same ways as thread properties. Each property
+corresponds to an argument of `seL4_SchedControl_Configure`, documented in the
+seL4 manual. Examples are given in the same context as the thread properties above.
+
+##### Budget
+
+The default budget can be specified with the argument `--default-budget`.
+
+    f._budget = 100;  // set the budget of the instance f
+    f.i_budget = 100; // set the budget of the interface i of f
+
+##### Period
+
+The default period can be specified with the argument `--default-period`.
+
+    f._period = 100;  // set the period of the instance f
+    f.i_period = 100; // set the period of the interface i of f
+
+##### Data
+
+The default data can be specified with the argument `--default-data`.
+
+    f._data = 100;  // set the data of the instance f
+    f.i_data = 100; // set the data of the interface i of f
+
+#### Passive Threads
+
+A passive thread is a thread without a bound scheduling context. If a passive
+thread is blocked on an endpoint, and another thread `seL4_Call`s
+the endpoint, the passive thread is unblocked and runs on the caller's
+scheduling context. This process is known as scheduling context donation. The
+scheduling context is returned to the caller when the passive thread replies by
+sending on the reply cap it received from the caller. For a more detailed
+description of scheduling context donation, consult the seL4 manual.
+
+[Instances](#instance) and [interfaces](#interface) can be specified as passive,
+meaning their associated threads will be passive. This allows passive servers to
+be implemented in CAmkES. The following example outlines this use case.
+
+    component Client {
+      control;
+      uses MyInterface i;
+    }
+
+    component Server {
+      provides MyInterface i;
+    }
+
+    assembly {
+      composition {
+        component Client c;
+        component Server s;
+        connection seL4RPCCall con(from client.i, to server.i);
+      }
+      configuration {
+        s.i_passive = true; // specifies the interface i of s as passive
+      }
+    }
+
+In this case, the server side of the connection will not have a scheduling
+context. When the client makes an RPC call to the server, the server will run on
+the client's scheduling context as it handles the call.
+
 ## Templating
 
 CAmkES glue code, code automatically introduced into your component system at
