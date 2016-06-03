@@ -107,7 +107,7 @@ endif
 /*? i.name ?*/_rust:
 	@echo " [RS] $(/*? i.name ?*/_RUST)"
 	$(Q) RUST_TARGET_PATH=${STAGE_DIR}/common/ \
-	xargo build --lib $(RUST_CARGO_FLAGS)--manifest-path $(SOURCE_DIR)/components//*? i.type.name ?*//Cargo.toml --target=$(RUST_CUSTOM_TARGET)
+	$(XARGO) build --lib $(RUST_CARGO_FLAGS)--manifest-path $(SOURCE_DIR)/components//*? i.type.name ?*//Cargo.toml --target=$(RUST_CUSTOM_TARGET)
 	$(Q) cp $(SOURCE_DIR)/components//*? i.type.name ?*//target/${RUST_CUSTOM_TARGET}/${RUST_RELEASE_MODE}/$(/*? i.name ?*/_RUST:%=lib%.a) $(/*? i.name ?*/_RUST:%=%.a)
 /*- endfor -*/
 
