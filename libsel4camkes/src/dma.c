@@ -216,7 +216,7 @@ static void check_consistency(void) {
 #endif
 
 /* Defragment the free list. Can safely be called at any time. The complexity
- * of this function is at least O(n^2).
+ * of this function is at least O(n²).
  *
  * Over time the free list can evolve to contain separate chunks that are
  * actually contiguous, both physically and virtually. This fragmentation can
