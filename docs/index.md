@@ -3446,7 +3446,7 @@ Inside a template you write C code as you would normally, but use the following
 special comments to run Python code:
 
 * `/*- execute code -*/` (equivalent of Python's `exec`)
-* `/*? execute code and replace with result -*/` (equivalent of Python's `eval`)
+* `/*? execute code and replace with result ?*/` (equivalent of Python's `eval`)
 * `/*# a comment to be removed at instantiation #*/`
 
 In general, when writing code in a template, refer to the Jinja documentation
