@@ -52,20 +52,26 @@ begin
 
 /*- set instances = composition.instances -*/
 /*- set connections = composition.connections -*/
-/*- set components = reduce(lambda('xs, b: xs + ([b.type] if b.type not in xs else [])'), instances, []) -*/
+/*- set components = set(map(lambda('x: x.type'), instances)) -*/
 
 (* Connections *)
-datatype channel =
-/*- set j = joiner('|') -*/
+datatype channel
 /*- for c in connections -*/
-    /*? j() ?*/ /*? c.name ?*/
+  /*- if loop.first --*/
+    =
+  /*-- else --*/
+    |
+  /*-- endif -*/ /*? c.name ?*/
 /*- endfor -*/
 
 (* Component instances *)
-datatype inst =
-/*- set j = joiner('|') -*/
+datatype inst
 /*- for i in instances -*/
-    /*? j() ?*/ /*? i.name ?*/
+  /*- if loop.first --*/
+    =
+  /*-- else --*/
+    |
+  /*-- endif -*/ /*? i.name ?*/
 /*- endfor -*/
 /*- for c in connections -*/
   /*- if c.type.from_type == 'Event' -*/
@@ -79,9 +85,12 @@ datatype inst =
 
     (* /*? c.name ?*/'s interfaces *)
     datatype /*? c.name ?*/_channel =
-    /*- set j = joiner('|') -*/
     /*- for i in c.uses + c.provides + c.emits + c.consumes + c.dataports -*/
-        /*? j() ?*/ /*? c.name ?*/_/*? i.name ?*/
+        /*- if loop.first --*/
+          =
+        /*-- else --*/
+          |
+        /*-- endif -*/ /*? c.name ?*/_/*? i.name ?*/
     /*- endfor -*/
 
     /*# Glue code for each outgoing procedural interface. #*/
