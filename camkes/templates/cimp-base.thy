@@ -80,7 +80,7 @@ datatype inst =
     (* /*? c.name ?*/'s interfaces *)
     datatype /*? c.name ?*/_channel =
     /*- set j = joiner('|') -*/
-    /*- for i in c.children() -*/
+    /*- for i in c.uses + c.provides + c.emits + c.consumes + c.dataports -*/
         /*? j() ?*/ /*? c.name ?*/_/*? i.name ?*/
     /*- endfor -*/
 
@@ -480,7 +480,7 @@ begin
         "/*? c.name ?*/_untrusted /*? ch ?*/ \<equiv>
             LOOP (
                 UserStep
-                /*- for i in c.children() -*/
+                /*- for i in c.uses + c.provides + c.emits + c.consumes + c.dataports -*/
                     \<squnion> ArbitraryRequest (/*? ch ?*/ /*? c.name ?*/_/*? i.name ?*/)
                     \<squnion> ArbitraryResponse (/*? ch ?*/ /*? c.name ?*/_/*? i.name ?*/)
                 /*- endfor -*/
