@@ -288,6 +288,13 @@ endif
   /*- elif c.to_interface in c.to_instance.type.provides -*/ \
     /*# nothing extra required #*/ \
   /*- endif -*/ \
+  /*# unconditionally keep some things verification refers to. #*/ \
+  --keep camkes_get_tls \
+  --keep seL4_Call \
+  --keep seL4_Notify \
+  --keep seL4_Poll \
+  --keep seL4_ReplyWait \
+  --keep seL4_Wait \
   $(foreach i,${PRUNER_BLACKLIST},--blacklist $i) --output "$@" "$<" \
   --blacklist /*? c.to_interface.name ?*/_error_handler_fn \
   --blacklist /*? c.from_interface.name ?*/_error_handler_fn
