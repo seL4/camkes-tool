@@ -68,11 +68,11 @@ datatype inst =
     /*? j() ?*/ /*? i.name ?*/
 /*- endfor -*/
 /*- for c in connections -*/
-    /*- if c.type.from_type == 'Event' -*/
-        /*? j ?*/ /*? c.name ?*/\<^isub>e
-    /*- elif c.type.from_type == 'Dataport' -*/
-        /*? j ?*/ /*? c.name ?*/\<^isub>d
-    /*- endif -*/
+  /*- if c.type.from_type == 'Event' -*/
+  | /*? c.name ?*/\<^sub>e
+  /*- elif c.type.from_type == 'Dataport' -*/
+  | /*? c.name ?*/\<^sub>d
+  /*- endif -*/
 /*- endfor -*/
 
 /*- for c in components -*/
@@ -110,7 +110,7 @@ datatype inst =
                 /*- set ch = isabelle_symbol('ch') -*/
                 "Call_/*? c.name ?*/_/*? u.name ?*/_/*? m.name ?*/ /*? ch ?*/
                 /*- for p in filter(lambda('x: x.direction in [\'in\', \'inout\']'), m.parameters) -*/
-                    /*? p.name ?*/\<^isub>P
+                    /*? p.name ?*/\<^sub>P
                 /*- endfor -*/
                 /*- if m.return_type is not none or len(list(filter(lambda('x: x.direction in [\'out\', \'inout\']'), m.parameters))) > 0 -*/
                     embed
@@ -118,7 +118,7 @@ datatype inst =
                 /*- set s = isabelle_symbol('s') -*/
                 \<equiv> Request (\<lambda>/*? s ?*/. {\<lparr>q_channel = /*? ch ?*/ /*? c.name ?*/_/*? u.name ?*/, q_data = Call /*? i ?*/ (
                 /*- for p in filter(lambda('x: x.direction in [\'in\', \'inout\']'), m.parameters) -*/
-                    /*? show_wrapped_type(p.type) ?*/ (/*? p.name ?*/\<^isub>P /*? s ?*/) #
+                    /*? show_wrapped_type(p.type) ?*/ (/*? p.name ?*/\<^sub>P /*? s ?*/) #
                 /*- endfor -*/
                 [])\<rparr>}) discard ;;
                 /*- set q = isabelle_symbol() -*/
@@ -168,14 +168,14 @@ datatype inst =
             "Recv_/*? c.name ?*/_/*? u.name ?*/ /*? ch ?*/
             /*- for m in u.type.methods -*/
                 /*- if len(list(filter(lambda('x: x.direction in [\'in\', \'inout\']'), m.parameters))) > 0 -*/
-                    /*? m.name ?*/\<^isub>E
+                    /*? m.name ?*/\<^sub>E
                 /*- endif -*/
                 /*? c.name ?*/_/*? u.name ?*/_/*? m.name ?*/
                 /*- if m.return_type is not none -*/
-                    /*? m.name ?*/_return\<^isub>P
+                    /*? m.name ?*/_return\<^sub>P
                 /*- endif -*/
                 /*- for p in filter(lambda('x: x.direction in [\'out\', \'inout\']'), m.parameters) -*/
-                    /*? m.name ?*/_/*? p.name ?*/\<^isub>P
+                    /*? m.name ?*/_/*? p.name ?*/\<^sub>P
                 /*- endfor -*/
             /*- endfor -*/
             \<equiv>
@@ -189,7 +189,7 @@ datatype inst =
                 /*- set xs = isabelle_symbol() -*/
                 (Response (\<lambda>/*? q ?*/ /*? s ?*/. case q_data /*? q ?*/ of Call /*? n ?*/ /*? xs ?*/ \<Rightarrow> (if /*? n ?*/ = /*? i ?*/ then {(
                 /*- if len(list(filter(lambda('x: x.direction in [\'in\', \'inout\']'), m.parameters))) > 0 -*/
-                    /*? m.name ?*/\<^isub>E /*? s ?*/
+                    /*? m.name ?*/\<^sub>E /*? s ?*/
                     /*- for k, p in enumerate(filter(lambda('x: x.direction in [\'in\', \'inout\']'), m.parameters)) -*/
                         /*- set v = isabelle_symbol() -*/
                         (case /*? xs ?*/ ! /*? k ?*/ of /*? show_wrapped_type(p.type) ?*/ /*? v ?*/ \<Rightarrow> /*? v ?*/)
@@ -202,10 +202,10 @@ datatype inst =
                 /*- set s = isabelle_symbol() -*/
                 Request (\<lambda>/*? s ?*/. {\<lparr>q_channel = /*? ch ?*/ /*? c.name ?*/_/*? u.name ?*/, q_data = Return (
                 /*- if m.return_type is not none -*/
-                    /*? show_wrapped_type(m.return_type) ?*/ (/*? m.name ?*/_return\<^isub>P /*? s ?*/) #
+                    /*? show_wrapped_type(m.return_type) ?*/ (/*? m.name ?*/_return\<^sub>P /*? s ?*/) #
                 /*- endif -*/
                 /*- for p in filter(lambda('x: x.direction in [\'out\', \'inout\']'), m.parameters) -*/
-                    /*? show_wrapped_type(p.type) ?*/ (/*? m.name ?*/_/*? p.name ?*/\<^isub>P /*? s ?*/) #
+                    /*? show_wrapped_type(p.type) ?*/ (/*? m.name ?*/_/*? p.name ?*/\<^sub>P /*? s ?*/) #
                 /*- endfor -*/
                 [])\<rparr>}) discard)
             /*- endfor -*/
@@ -503,13 +503,13 @@ begin
 /*- for d in reduce(lambda('xs, b: xs + ([b.type] if b.type not in xs else [])'), flatMap(lambda('x: x.dataports'), components), []) -*/
     /*# The built-in type 'Buf' is defined in Connector.thy. #*/
     /*- if d != 'Buf' -*/
-        type_synonym /*? d ?*/\<^isub>d_channel = unit
+        type_synonym /*? d ?*/\<^sub>d_channel = unit
 
         definition
-            /*? d ?*/\<^isub>d :: "(/*? d ?*/\<^isub>d_channel \<Rightarrow> channel) \<Rightarrow> (channel, 'cs) comp"
+            /*? d ?*/\<^sub>d :: "(/*? d ?*/\<^sub>d_channel \<Rightarrow> channel) \<Rightarrow> (channel, 'cs) comp"
         where
             /*- set ch = isabelle_symbol('ch') -*/
-            "/*? d ?*/\<^isub>d /*? ch ?*/ \<equiv> memory (/*? ch ?*/ ())"
+            "/*? d ?*/\<^sub>d /*? ch ?*/ \<equiv> memory (/*? ch ?*/ ())"
     /*- endif -*/
 /*- endfor -*/
 
@@ -544,17 +544,17 @@ begin
 /*# Simulated component instance for each event connection. #*/
 /*- for c in filter(lambda('x: x.type.from_type == \'Event\''), connections) -*/
     definition
-        /*? c.name ?*/\<^isub>e_instance :: "(channel, 'cs) comp"
+        /*? c.name ?*/\<^sub>e_instance :: "(channel, 'cs) comp"
     where
-        "/*? c.name ?*/\<^isub>e_instance \<equiv> /*? c.from_interface.type ?*/ (\<lambda>_. /*? c.name ?*/)"
+        "/*? c.name ?*/\<^sub>e_instance \<equiv> /*? c.from_interface.type ?*/ (\<lambda>_. /*? c.name ?*/)"
 /*- endfor -*/
 
 /*# Simulated component instance for each dataport connection. #*/
 /*- for c in filter(lambda('x: x.type.from_type == \'Dataport\''), connections) -*/
     definition
-        /*? c.name ?*/\<^isub>d_instance :: "(channel, 'cs) comp"
+        /*? c.name ?*/\<^sub>d_instance :: "(channel, 'cs) comp"
     where
-        "/*? c.name ?*/\<^isub>d_instance \<equiv> /*? c.from_interface.type ?*/\<^isub>d (\<lambda>_. /*? c.name ?*/)"
+        "/*? c.name ?*/\<^sub>d_instance \<equiv> /*? c.from_interface.type ?*/\<^sub>d (\<lambda>_. /*? c.name ?*/)"
 /*- endfor -*/
 
 (* Global initial state *)
@@ -562,11 +562,11 @@ begin
  ** full.
  #*/
 definition
-    gs\<^isub>0 :: "(inst, channel, 'cs) global_state"
+    gs\<^sub>0 :: "(inst, channel, 'cs) global_state"
 where
     /*- set p = isabelle_symbol('p') -*/
     /*- set s = isabelle_symbol() -*/
-    "gs\<^isub>0 /*? p ?*/ \<equiv> case trusted /*? p ?*/ of Some /*? s ?*/ \<Rightarrow> Some /*? s ?*/ | _ \<Rightarrow> (case /*? p ?*/ of
+    "gs\<^sub>0 /*? p ?*/ \<equiv> case trusted /*? p ?*/ of Some /*? s ?*/ \<Rightarrow> Some /*? s ?*/ | _ \<Rightarrow> (case /*? p ?*/ of
     /*- set j = joiner('|') -*/
     /*- for i in instances -*/
         /*? j() ?*/ /*? i.name ?*/ \<Rightarrow> Some (/*? i.name ?*/_untrusted, Component init_component_state)
@@ -579,9 +579,9 @@ where
             /*? j() ?*/ /*? c.name ?*/_/*? conn.from_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
         /*- endif -*/
         /*- if c.type.from_type == 'Event' -*/
-            /*? j() ?*/ /*? c.name ?*/\<^isub>e \<Rightarrow> Some (/*? c.name ?*/\<^isub>e_instance, init_event_state)
+            /*? j() ?*/ /*? c.name ?*/\<^sub>e \<Rightarrow> Some (/*? c.name ?*/\<^sub>e_instance, init_event_state)
         /*- elif c.type.from_type == 'Dataport' -*/
-            /*? j() ?*/ /*? c.name ?*/\<^isub>d \<Rightarrow> Some (/*? c.name ?*/\<^isub>d_instance, init_memory_state)
+            /*? j() ?*/ /*? c.name ?*/\<^sub>d \<Rightarrow> Some (/*? c.name ?*/\<^sub>d_instance, init_memory_state)
         /*- endif -*/
     /*- endfor -*/
     )"
