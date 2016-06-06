@@ -338,9 +338,6 @@ datatype inst =
                     /*- if conn.from_instance.name == i.name -*/
                         /*? j() ?*/ /*? c.name ?*/_/*? conn.from_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
                     /*- endif -*/
-                    /*- if conn.from_instance.name == i.name -*/
-                        /*? j() ?*/ /*? c.name ?*/_/*? conn.from_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
-                    /*- endif -*/
                     /*- if conn.to_instance.name == i.name -*/
                         /*? j() ?*/ /*? c.name ?*/_/*? conn.to_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
                     /*- endif -*/
@@ -358,9 +355,6 @@ datatype inst =
             /*- for conn in connections -*/
                 /*- if len(conn.to_ends) != 1 -*/
                     /*? raise(TemplateError('connections without a single to end are not supported', conn)) ?*/
-                /*- endif -*/
-                /*- if conn.from_instance.name == i.name -*/
-                    /*? j() ?*/ /*? c.name ?*/_/*? conn.from_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
                 /*- endif -*/
                 /*- if conn.from_instance.name == i.name -*/
                     /*? j() ?*/ /*? c.name ?*/_/*? conn.from_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
@@ -386,9 +380,6 @@ datatype inst =
                 /*- if conn.from_instance.name == i.name -*/
                     /*? j() ?*/ /*? c.name ?*/_/*? conn.from_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
                 /*- endif -*/
-                /*- if conn.from_instance.name == i.name -*/
-                    /*? j() ?*/ /*? c.name ?*/_/*? conn.from_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
-                /*- endif -*/
                 /*- if conn.to_instance.name == i.name -*/
                     /*? j() ?*/ /*? c.name ?*/_/*? conn.to_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
                 /*- endif -*/
@@ -404,9 +395,6 @@ datatype inst =
             /*- for conn in connections -*/
                 /*- if len(conn.to_ends) != 1 -*/
                     /*? raise(TemplateError('connections without a single to end are not supported', conn)) ?*/
-                /*- endif -*/
-                /*- if conn.from_instance.name == i.name -*/
-                    /*? j() ?*/ /*? c.name ?*/_/*? conn.from_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
                 /*- endif -*/
                 /*- if conn.from_instance.name == i.name -*/
                     /*? j() ?*/ /*? c.name ?*/_/*? conn.from_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
@@ -432,9 +420,6 @@ datatype inst =
                 /*- if conn.from_instance.name == i.name -*/
                     /*? j() ?*/ /*? c.name ?*/_/*? conn.from_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
                 /*- endif -*/
-                /*- if conn.from_instance.name == i.name -*/
-                    /*? j() ?*/ /*? c.name ?*/_/*? conn.from_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
-                /*- endif -*/
                 /*- if conn.to_instance.name == i.name -*/
                     /*? j() ?*/ /*? c.name ?*/_/*? conn.to_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
                 /*- endif -*/
@@ -450,9 +435,6 @@ datatype inst =
             /*- for conn in connections -*/
                 /*- if len(conn.to_ends) != 1 -*/
                     /*? raise(TemplateError('connections without a single to end are not supported', conn)) ?*/
-                /*- endif -*/
-                /*- if conn.from_instance.name == i.name -*/
-                    /*? j() ?*/ /*? c.name ?*/_/*? conn.from_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
                 /*- endif -*/
                 /*- if conn.from_instance.name == i.name -*/
                     /*? j() ?*/ /*? c.name ?*/_/*? conn.from_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
@@ -530,9 +512,6 @@ begin
             /*- if conn.from_instance.name == i.name -*/
                 /*? j() ?*/ /*? c.name ?*/_/*? conn.from_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
             /*- endif -*/
-            /*- if conn.from_instance.name == i.name -*/
-                /*? j() ?*/ /*? c.name ?*/_/*? conn.from_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
-            /*- endif -*/
             /*- if conn.to_instance.name == i.name -*/
                 /*? j() ?*/ /*? c.name ?*/_/*? conn.to_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
             /*- endif -*/
@@ -572,11 +551,8 @@ where
         /*? j() ?*/ /*? i.name ?*/ \<Rightarrow> Some (/*? i.name ?*/_untrusted, Component init_component_state)
     /*- endfor -*/
     /*- for c in connections -*/
-        /*- if len(conn.to_ends) != 1 -*/
-            /*? raise(TemplateError('connections without a single to end are not supported', conn)) ?*/
-        /*- endif -*/
-        /*- if conn.from_instance.name == i.name -*/
-            /*? j() ?*/ /*? c.name ?*/_/*? conn.from_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
+        /*- if len(c.to_ends) != 1 -*/
+            /*? raise(TemplateError('connections without a single to end are not supported', c)) ?*/
         /*- endif -*/
         /*- if c.type.from_type == 'Event' -*/
             /*? j() ?*/ /*? c.name ?*/\<^sub>e \<Rightarrow> Some (/*? c.name ?*/\<^sub>e_instance, init_event_state)
