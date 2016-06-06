@@ -270,7 +270,7 @@ datatype inst =
                     ('cs local_state \<Rightarrow> /*? show_native_type(p.type) ?*/) \<Rightarrow>
                 /*- endfor -*/
                 /*- if m.return_type is not none or len(list(filter(lambda('x: x.direction in [\'out\', \'inout\']'), m.parameters))) > 0 -*/
-                    ('cs local_state \<Rightarrow>
+                    ('cs local_state
                 /*- endif -*/
                 /*- if m.return_type is not none -*/
                     \<Rightarrow> /*? show_native_type(m.return_type) ?*/
