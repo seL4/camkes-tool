@@ -81,6 +81,10 @@ class Condense(Pass):
         if properties.get('condense', False) and not line.strip():
             return None
         return line
+    def __del__(self):
+        if self.condense:
+            sys.stderr.write('warning: condense was still enabled at end of '
+                'file\n')
 
 class LockIndent(Pass):
     def __init__(self):
