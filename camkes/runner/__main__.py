@@ -38,7 +38,6 @@ from camkes.internal.cacheb import Cache as LevelBCache, \
     prime_ast_hash as level_b_prime
 import camkes.internal.log as log
 from camkes.internal.version import sources, version
-from camkes.templates import TemplateError
 from camkes.runner.NameMangling import Perspective, RUNNER
 from camkes.runner.Renderer import Renderer
 from camkes.runner.Filters import CAPDL_FILTERS
