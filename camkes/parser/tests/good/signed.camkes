@@ -1,0 +1,28 @@
+/* Test that we can parse a spec using the parameter type 'signed' */
+
+connector C {
+    from Procedure;
+    to Procedure;
+}
+
+procedure P {
+    void foo(in signed x);
+}
+
+component Foo {
+    control;
+    uses P p;
+}
+
+component Bar {
+    provides P p;
+}
+
+assembly {
+    composition {
+        component Foo foo;
+        component Bar bar;
+
+        connection C conn(from foo.p, to bar.p);
+    }
+}
