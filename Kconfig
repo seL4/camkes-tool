@@ -406,6 +406,13 @@ menu "CAmkES Options"
             Generate an Isabelle theory specifying the architecture of the
             system, using the l4.verified formal model of ADL.
 
+        config CAMKES_CIMP_THY
+        bool "Generate dynamic behavioural specification"
+        default n
+        help
+            Generate an Isabelle theory specifying the dynamic behaviour of the
+            system. This theory builds on top of the CIMP formalisation.
+
         config CAMKES_CAPDL_THY
         bool "Generate CapDL Isabelle specification"
         default n

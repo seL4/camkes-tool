@@ -309,6 +309,13 @@ ifeq (${CONFIG_CAMKES_ARCH_THY},y)
 ${TARGETS}: /*? arch_thy ?*/
 endif
 
+# Behavioural formalisation.
+/*- set thy = '$(abspath ${BUILD_DIR})/thy/CimpBase.thy' -*/
+/*? rule_gen(thy, ' '.join(imported), 'base', platform='CIMP') ?*/
+ifeq (${CONFIG_CAMKES_CIMP_THY},y)
+${TARGETS}: /*? thy ?*/
+endif
+
 # Each component file may depend on the per-component generated header.
 /*- for i in instances if not i.type.hardware -*/
     /*- set header = '$(abspath ${BUILD_DIR})/include/%s/generated/camkes.h' % i.name -*/
