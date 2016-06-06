@@ -113,7 +113,7 @@ datatype inst =
                     /*? p.name ?*/\<^sub>P
                 /*- endfor -*/
                 /*- if m.return_type is not none or len(list(filter(lambda('x: x.direction in [\'out\', \'inout\']'), m.parameters))) > 0 -*/
-                    embed
+                    embed_ret
                 /*- endif -*/
                 /*- set s = isabelle_symbol('s') -*/
                 \<equiv> Request (\<lambda>/*? s ?*/. {\<lparr>q_channel = /*? ch ?*/ /*? c.name ?*/_/*? u.name ?*/, q_data = Call /*? i ?*/ (
@@ -126,7 +126,7 @@ datatype inst =
                 /*- set xs = isabelle_symbol() -*/
                 Response (\<lambda>/*? q ?*/ /*? s ?*/. case q_data /*? q ?*/ of Return /*? xs ?*/ \<Rightarrow>
                 /*- if m.return_type is not none or len(list(filter(lambda('x: x.direction in [\'out\', \'inout\']'), m.parameters))) > 0 -*/
-                    {(embed /*? s ?*/
+                    {(embed_ret /*? s ?*/
                     /*- if m.return_type is not none -*/
                         /*- set v = isabelle_symbol() -*/
                         (case hd /*? xs ?*/ of /*? show_wrapped_type(m.return_type) ?*/ /*? v ?*/ \<Rightarrow> /*? v ?*/)
