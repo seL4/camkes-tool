@@ -48,7 +48,7 @@ import argparse, collections, functools, jinja2, locale, numbers, os, re, \
 from capdl import seL4_CapTableObject, ObjectAllocator, CSpaceAllocator, \
     ELF, lookup_architecture
 
-from camkes.parser import parse_file, parse_string, ParseError
+from camkes.parser import parse_file, ParseError
 
 def safe_decode(s):
     '''
