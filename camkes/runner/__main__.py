@@ -44,18 +44,36 @@ from camkes.runner.Renderer import Renderer
 from camkes.runner.Filters import CAPDL_FILTERS
 
 import argparse, collections, functools, jinja2, locale, numbers, os, re, \
-    six, sqlite3, traceback
+    six, sqlite3, string, traceback
 
 from capdl import seL4_CapTableObject, ObjectAllocator, CSpaceAllocator, \
     ELF, lookup_architecture
 
 from camkes.parser import parse_file, parse_string, ParseError
 
+def safe_decode(s):
+    '''
+    Safely extract a string that may contain invalid character encodings.
+
+    When formatting a traceback that crosses a boundary between compiled and
+    interpreted code, the backtracer can lose the frame pointer and start
+    appending garbage to the traceback. If we try to print this we trigger a
+    UnicodeDecodeError. To avoid this, wrap traceback printing in this
+    function.
+    '''
+    r = []
+    for c in s:
+        if c not in string.printable:
+            r.append('\n  <MALFORMED BYTES>\n')
+            break
+        r.append(c)
+    return ''.join(r)
+
 def _die(options, s):
     log.error(str(s))
     tb = traceback.format_exc()
     log.debug('\n --- Python traceback ---\n%s ------------------------\n' %
-        tb)
+        safe_decode(tb))
     if options.cache and re.search(r'^\s*File\s+".*\.pyc",\s+line\s+\d+,\s*in'
             r'\s*top-level\s*template\s*code$', tb, flags=re.MULTILINE) is \
             not None:
