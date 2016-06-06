@@ -395,6 +395,7 @@ menu "CAmkES Options"
         config CAMKES_UNIFIED_THY
         bool "Generate unified correctness proof"
         default n
+        depends on CAMKES_PRUNE_GENERATED
         help
             Generate an AutoCorred-based theory combining the two glue code halves
             of a connector, resulting in a final correctness statement.
