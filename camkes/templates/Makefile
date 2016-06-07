@@ -294,7 +294,9 @@ endif
   --keep seL4_Notify \
   --keep seL4_Poll \
   --keep seL4_ReplyWait \
+  --keep seL4_ReplyRecv \
   --keep seL4_Wait \
+  --keep seL4_Recv \
   $(foreach i,${PRUNER_BLACKLIST},--blacklist $i) --output "$@" "$<" \
   --blacklist /*? c.to_interface.name ?*/_error_handler_fn \
   --blacklist /*? c.from_interface.name ?*/_error_handler_fn
