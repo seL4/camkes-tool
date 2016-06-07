@@ -22,7 +22,6 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
-#include <camkes/marshal.h>
 #include <camkes/error.h>
 #include <camkes/sel4.h>
 #include <camkes/tls.h>

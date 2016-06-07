@@ -23,7 +23,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sync/sem-bare.h>
-#include <camkes/marshal.h>
 #include <camkes/dataport.h>
 #include <camkes/error.h>
 #include <camkes/tls.h>
