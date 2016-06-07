@@ -25,7 +25,7 @@ from camkes.internal.seven import cmp, filter, map, zip
 
 from functools import partial
 import capdl, code, collections, copy, inspect, itertools, functools, numbers, \
-    os, pdb, re, six, sys, textwrap
+    orderedset, os, pdb, re, six, sys, textwrap
 
 from capdl.Allocator import seL4_TCBObject, seL4_EndpointObject, \
     seL4_NotificationObject, seL4_CanRead, seL4_CanWrite, seL4_AllRights, \
@@ -43,7 +43,6 @@ except ImportError:
     seL4_ASID_Pool = None
 
 import camkes.ast as AST
-from camkes.internal.DeterministicSet import DeterministicSet
 from camkes.internal.Counter import Counter
 from camkes.templates import macros, TemplateError
 from .NameMangling import TEMPLATES, FILTERS, Perspective
@@ -152,7 +151,7 @@ def new_context(entity, assembly, obj_space, cap_space, shmem, **kwargs):
         'raise':_raise,
         're':re,
         'six':six,
-        'set':DeterministicSet,
+        'set':orderedset.OrderedSet,
         'textwrap':textwrap,
         'copy':copy,
         'zip':zip,
