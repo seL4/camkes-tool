@@ -17,9 +17,7 @@ begin
 /*# Ignore the following line. It is intended to apply to the output of this
  *# template.
 #*/
-(* THIS FILE IS GENERATED. DO NOT EDIT.
- * It is expected to be hosted in l4v/camkes/adl-spec.
- *)
+(* THIS FILE IS GENERATED. DO NOT EDIT. *)
 
 /*- macro param_type(type) -*/
     /*- if type == 'int' -*/
