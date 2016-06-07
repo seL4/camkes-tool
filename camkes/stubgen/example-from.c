@@ -47,7 +47,7 @@
 ) {
     /* Marshal all the inputs */
     void *_buffer = IPC_BUFFER;
-    unsigned int _method_index = /*? i ?*/;
+    unsigned _method_index = /*? i ?*/;
     MARSHAL(_buffer, _method_index);
     /*- for p in m.parameters -*/
         /*- if p.direction == 'in' -*/

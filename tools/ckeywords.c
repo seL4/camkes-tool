@@ -79,7 +79,7 @@ static char *keywords[] = {
 };
 
 static const char *indent = "    ";
-static const unsigned int wrap_at = 80; /* characters */
+static const unsigned wrap_at = 80; /* characters */
 static const char *header = "#!/usr/bin/env python\n"
                             "# -*- coding: utf-8 -*-\n"
                             "\n"
@@ -106,7 +106,7 @@ static const char *footer = "])\n";
 
 int main(void) {
     bool newline = true;
-    unsigned int column = 0;
+    unsigned column = 0;
 
     /* Construct a regex that matches CAmkES identifiers. */
     regex_t regex;
@@ -117,7 +117,7 @@ int main(void) {
 
     printf("%s", header);
 
-    for (unsigned int i = 0; i < sizeof(keywords) / sizeof(keywords[0]); i++) {
+    for (unsigned i = 0; i < sizeof(keywords) / sizeof(keywords[0]); i++) {
 
         /* This keyword was irrelevant in our current environment. */
         if (keywords[i] == NULL)
@@ -127,7 +127,7 @@ int main(void) {
         if (regexec(&regex, keywords[i], 0, NULL, 0) == REG_NOMATCH)
             continue;
 
-        unsigned int len = strlen(keywords[i]);
+        unsigned len = strlen(keywords[i]);
         if (column + len + 4 > wrap_at) {
             printf("\n");
             column = 0;

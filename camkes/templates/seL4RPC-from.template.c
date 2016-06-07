@@ -15,7 +15,6 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <camkes/marshal.h>
 #include <camkes/dataport.h>
 #include <camkes/error.h>
 #include <camkes/timing.h>
@@ -200,7 +199,7 @@ int /*? me.interface.name ?*/__run(void) {
 
     /*- set function = '%s_marshal_inputs' % m.name -*/
     /*- set length = c_symbol('length') -*/
-    unsigned int /*? length ?*/ = /*- include 'call-marshal-inputs.c' -*/;
+    unsigned /*? length ?*/ = /*- include 'call-marshal-inputs.c' -*/;
     if (unlikely(/*? length ?*/ == UINT_MAX)) {
         /* Error in marshalling; bail out. */
         /*- if m.return_type is not none -*/
@@ -241,7 +240,7 @@ int /*? me.interface.name ?*/__run(void) {
 
     /* Unmarshal the response */
     /*- set size = c_symbol('size') -*/
-    unsigned int /*? size ?*/ = seL4_MessageInfo_get_length(/*? info ?*/) * sizeof(seL4_Word);
+    unsigned /*? size ?*/ = seL4_MessageInfo_get_length(/*? info ?*/) * sizeof(seL4_Word);
 
     /*- set function = '%s_unmarshal_outputs' % m.name -*/
     /*- set return_type = m.return_type -*/

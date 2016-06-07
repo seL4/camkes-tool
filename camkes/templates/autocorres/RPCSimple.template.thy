@@ -37,9 +37,7 @@ theory "/*? thy ?*/" imports
 begin
 (** TPP: condense = False *)
 
-(* THIS THEORY IS GENERATED. DO NOT EDIT.
- * It is expected to be hosted in l4v/camkes/glue-proofs.
- *)
+(* THIS THEORY IS GENERATED. DO NOT EDIT. *)
 
 (* FIXME: MOVE *)
 lemma circ_break:"\<lbrakk>f = g; h = i\<rbrakk> \<Longrightarrow> f \<circ> h = g \<circ> i"

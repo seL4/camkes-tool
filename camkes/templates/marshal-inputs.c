@@ -42,7 +42,7 @@
 
 /*- for p in input_parameters -*/
   /*- set offset = c_symbol('offset') -*/
-  static unsigned int /*? function ?*/_/*? p.name ?*/(unsigned int /*? offset ?*/,
+  static unsigned /*? function ?*/_/*? p.name ?*/(unsigned /*? offset ?*/,
     /*- if p.direction == 'in' -*/
       /*- if p.array -*/
         size_t /*? p.name ?*/_sz,
@@ -212,7 +212,7 @@
   /*? call ?*/ = /*? method_index ?*/;
 /*- endif -*/
 
-static unsigned int /*? function ?*/(
+static unsigned /*? function ?*/(
 /*- for p in input_parameters -*/
   /*- if p.direction == 'in' -*/
     /*- if p.array -*/
@@ -252,7 +252,7 @@ static unsigned int /*? function ?*/(
 ) {
 
   /*- set length = c_symbol('length') -*/
-  unsigned int /*? length ?*/ = 0;
+  unsigned /*? length ?*/ = 0;
 
   /*- set base = c_symbol('buffer_base') -*/
   void * /*? base ?*/ UNUSED = (void*)(/*? buffer ?*/);

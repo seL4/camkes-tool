@@ -98,7 +98,7 @@
 #define unlikely(cond) __builtin_expect((cond), 0)
 
 /* Chunk size used for allocation at various points. */
-static const unsigned int CHUNK_SIZE = 1024;
+static const unsigned CHUNK_SIZE = 1024;
 
 static int copy_file(const char *source, const char *destination) {
     assert(source != NULL);
@@ -187,7 +187,7 @@ static int write_dependency(FILE *f, const char *path) {
     (strncmp((s1), s2_literal, sizeof("" s2_literal "")) == 0)
 
 static void digest_to_hex_digest(const unsigned char *digest, char *hexdigest) {
-    for (unsigned int i = 0; i < SHA256_DIGEST_LENGTH; i++) {
+    for (unsigned i = 0; i < SHA256_DIGEST_LENGTH; i++) {
         sprintf(&hexdigest[i * 2], "%02x", digest[i]);
     }
 }
@@ -508,7 +508,7 @@ int MAIN(int argc, char **argv) {
     }
     size_t args_len = 0;
     args[0] = '\0';
-    for (unsigned int i = 1; i < (unsigned int)argc; i++) {
+    for (unsigned i = 1; i < (unsigned)argc; i++) {
         size_t len = strlen(argv[i]);
 
         /* Parse command line arguments. We could do this with getopt, but
@@ -525,18 +525,18 @@ int MAIN(int argc, char **argv) {
             free(args);
             return 0;
         } else if (str_eq(argv[i], "--cache-dir") &&
-                   i + 1 < (unsigned int)argc) {
+                   i + 1 < (unsigned)argc) {
             cache_prefix = argv[i + 1];
         } else if ((str_eq(argv[i], "--outfile") ||
                     str_eq(argv[i], "-O")) &&                                   /* goanna: suppress=ARR-inv-index-ptr-pos */
-                   i + 1 < (unsigned int)argc) {
+                   i + 1 < (unsigned)argc) {
             output = argv[i + 1];
             /* Skip --outfile and its parameter. */
             i++;
             continue;
         } else if ((str_eq(argv[i], "--makefile-dependencies") ||
                     str_eq(argv[i], "-MD")) &&
-                   i + 1 < (unsigned int)argc) {
+                   i + 1 < (unsigned)argc) {
             deps_file = argv[i + 1];
         }
 

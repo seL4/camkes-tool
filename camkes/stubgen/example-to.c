@@ -46,10 +46,10 @@ extern /*? m.return_type or 'void' ?*/ /*? m.name ?*/(seL4_Word _badge
     /*- endfor -*/
 );
 
-static unsigned int handle_/*? m.name ?*/(seL4_Word _badge) {
+static unsigned handle_/*? m.name ?*/(seL4_Word _badge) {
     void *_buffer = IPC_BUFFER;
     /* skip over method index */
-    _buffer += sizeof(unsigned int);
+    _buffer += sizeof(unsigned);
 
     /* Unmarshal the inputs */
     /*- for p in m.parameters -*/
@@ -95,11 +95,11 @@ int run_/*? p.name ?*/(seL4_CPtr _ep) {
     while (true) {
         seL4_Word _badge;
         seL4_MessageInfo_t _info = seL4_Recv(_ep, &_badge);
-        unsigned int _method_index = seL4_GetMR(0);
+        unsigned _method_index = seL4_GetMR(0);
         switch (_method_index) {
             /*- for i, m in enumerate(me.methods) -*/
                 case /*? i ?*/:;
-                    unsigned int length = handle_/*? m.name ?*/(_badge);
+                    unsigned length = handle_/*? m.name ?*/(_badge);
                     _info = seL4_MessageInfo_new(0, 0, 0, length);
                     break;
             /*- endfor -*/

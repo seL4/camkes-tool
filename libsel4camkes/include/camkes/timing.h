@@ -35,9 +35,9 @@
         *points = libsel4camkes_timing_points; \
         *size = ARRAY_SIZE(libsel4camkes_timing_points); \
     } \
-    uint64_t pref##_timing_get_entry(unsigned int iteration, char *point) { \
+    uint64_t pref##_timing_get_entry(unsigned iteration, char *point) { \
         assert(iteration * ARRAY_SIZE(libsel4camkes_timing_points) < TIMING_ENTRIES); \
-        for (unsigned int offset = 0; offset < ARRAY_SIZE(libsel4camkes_timing_points); offset++) { \
+        for (unsigned offset = 0; offset < ARRAY_SIZE(libsel4camkes_timing_points); offset++) { \
             if (!strcmp(libsel4camkes_timing_points[offset], point)) { \
                 return (uint64_t)libsel4camkes_timing_buffer[iteration * ARRAY_SIZE(libsel4camkes_timing_points) + offset]; \
             } \
@@ -79,7 +79,7 @@
         *points = NULL; \
         *size = 0; \
     } \
-    uint64_t pref##timing_get_entry(unsigned int iteration, char *point) { \
+    uint64_t pref##timing_get_entry(unsigned iteration, char *point) { \
         return 0; \
     } \
     void pref##timing_reset(void) { \

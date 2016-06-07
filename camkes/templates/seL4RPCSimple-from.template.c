@@ -25,7 +25,7 @@
 /*- for i, m in enumerate(me.interface.type.methods) -*/
 
 /*- set input_parameters = list(filter(lambda('x: x.direction in [\'in\', \'inout\']'), m.parameters)) -*/
-static unsigned int /*? me.interface.name ?*/_/*? m.name ?*/_marshal(
+static unsigned /*? me.interface.name ?*/_/*? m.name ?*/_marshal(
     /*- for p in input_parameters -*/
         /*- if p.array or p.type == 'string' -*/
             /*? raise(TemplateError('unsupported')) ?*/
@@ -42,7 +42,7 @@ static unsigned int /*? me.interface.name ?*/_/*? m.name ?*/_marshal(
     /*- endif -*/
 ) {
     /*- set length = c_symbol('length') -*/
-    unsigned int /*? length ?*/ = 0;
+    unsigned /*? length ?*/ = 0;
 
     /* Marshal the method index. */
     seL4_SetMR(/*? length ?*/, /*? i ?*/);
@@ -61,7 +61,7 @@ static unsigned int /*? me.interface.name ?*/_/*? m.name ?*/_marshal(
     return /*? length ?*/;
 }
 
-static void /*? me.interface.name ?*/_/*? m.name ?*/_call(unsigned int length) {
+static void /*? me.interface.name ?*/_/*? m.name ?*/_call(unsigned length) {
     /* Call the endpoint */
     seL4_MessageInfo_t info = seL4_MessageInfo_new(0, 0, 0, length);
     (void)seL4_Call(/*? ep ?*/, info);
@@ -92,7 +92,7 @@ static
     /*- endif -*/
 ) {
     /*- set mr = c_symbol('mr') -*/
-    unsigned int /*? mr ?*/ UNUSED = 0;
+    unsigned /*? mr ?*/ UNUSED = 0;
 
     /*- set ret = c_symbol('ret') -*/
     /*- if m.return_type is not none -*/
@@ -152,7 +152,7 @@ static
 
     /* Marshal input parameters. */
     /*- set mr = c_symbol('mr_index') -*/
-    unsigned int /*? mr ?*/ = /*? me.interface.name ?*/_/*? m.name ?*/_marshal(
+    unsigned /*? mr ?*/ = /*? me.interface.name ?*/_/*? m.name ?*/_marshal(
         /*- for p in input_parameters -*/
             /*- if p.direction == 'inout' -*/
                 *

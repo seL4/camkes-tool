@@ -26,7 +26,7 @@
 /*- if return_type is not none -*/
   /*- set offset = c_symbol('offset') -*/
   /*- set ret = c_symbol('return') -*/
-  static unsigned int /*? function ?*/_/*? ret_fn ?*/(unsigned int /*? offset ?*/,
+  static unsigned /*? function ?*/_/*? ret_fn ?*/(unsigned /*? offset ?*/,
     /*- if return_type == 'string' -*/
       char ** /*? ret ?*/
     /*- else -*/
@@ -74,7 +74,7 @@
 /*- endif -*/
 /*- for p in output_parameters -*/
   /*- set offset = c_symbol('offset') -*/
-  static unsigned int /*? function ?*/_/*? p.name ?*/(unsigned int /*? offset ?*/,
+  static unsigned /*? function ?*/_/*? p.name ?*/(unsigned /*? offset ?*/,
     /*- if p.array -*/
       const size_t * /*? p.name ?*/_sz,
       /*- if p.type == 'string' -*/
@@ -173,7 +173,7 @@
   }
 /*- endfor -*/
 
-static unsigned int /*? function ?*/(
+static unsigned /*? function ?*/(
 /*- set ret = c_symbol('return') -*/
 /*- if return_type is not none -*/
   /*- if return_type == 'string' -*/
@@ -208,7 +208,7 @@ static unsigned int /*? function ?*/(
 ) {
 
   /*- set length = c_symbol('length') -*/
-  unsigned int /*? length ?*/ = 0;
+  unsigned /*? length ?*/ = 0;
 
   /*- if return_type is not none -*/
     /*? length ?*/ = /*? function ?*/_/*? ret_fn ?*/(/*? length ?*/,

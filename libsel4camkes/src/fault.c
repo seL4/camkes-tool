@@ -113,7 +113,7 @@ void camkes_show_fault(seL4_MessageInfo_t info, seL4_CPtr thread_id,
                     break;
 
                 case seL4_MissingCapability: {
-                    unsigned int unresolved = seL4_GetMR(4);
+                    unsigned unresolved = seL4_GetMR(4);
                     SHOW("cap fault (missing capability with %u unresolved "
                         "bits) from %s.%s (ID 0x%x), pc = %p, slot = 0x%x\n",
                         unresolved, get_instance_name(), safe_name, thread_id,
@@ -122,8 +122,8 @@ void camkes_show_fault(seL4_MessageInfo_t info, seL4_CPtr thread_id,
                 }
 
                 case seL4_DepthMismatch: {
-                    unsigned int unresolved = seL4_GetMR(4);
-                    unsigned int resolved = seL4_GetMR(5);
+                    unsigned unresolved = seL4_GetMR(4);
+                    unsigned resolved = seL4_GetMR(5);
                     SHOW("cap fault (depth mismatch with %u unresolved bits "
                         "and %u resolved bits) from %s.%s (ID 0x%x), pc = %p, "
                         "slot = 0x%x\n", unresolved, resolved, get_instance_name(),
@@ -132,9 +132,9 @@ void camkes_show_fault(seL4_MessageInfo_t info, seL4_CPtr thread_id,
                 }
 
                 case seL4_GuardMismatch: {
-                    unsigned int unresolved = seL4_GetMR(4);
+                    unsigned unresolved = seL4_GetMR(4);
                     seL4_Word guard = seL4_GetMR(5);
-                    unsigned int guard_size = seL4_GetMR(6);
+                    unsigned guard_size = seL4_GetMR(6);
                     SHOW("cap fault (guard mismatch with %u unresolved bits "
                         "and %u bit guard of 0x%x) from %s.%s (ID 0x%x), pc = "
                         "%p, slot = 0x%x\n", unresolved, guard_size, guard,

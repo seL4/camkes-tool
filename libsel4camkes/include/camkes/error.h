@@ -100,12 +100,12 @@ typedef struct {
         struct /* CE_BUFFER_LENGTH_EXCEEDED */ {
 
             /* The current byte offset into the buffer. */
-            unsigned int current_length;
+            unsigned current_length;
 
             /* The byte offset we're about to reach if we perform the next
              * write. I.e. an offset out-of-bounds of the buffer itself.
              */
-            unsigned int target_length;
+            unsigned target_length;
         };
 
         struct /* CE_INVALID_METHOD_INDEX */ {
@@ -121,12 +121,12 @@ typedef struct {
         struct /* CE_MALFORMED_RPC_PAYLOAD */ {
 
             /* The (possibly invalid) length of the payload. */
-            unsigned int length;
+            unsigned length;
 
             /* The current byte offset into the buffer. I.e. the point at which
              * we realised we had an invalid payload.
              */
-            unsigned int current_index;
+            unsigned current_index;
         };
 
         struct /* CE_SYSCALL_FAILED */ {

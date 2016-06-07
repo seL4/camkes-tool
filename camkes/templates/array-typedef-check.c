@@ -53,7 +53,7 @@
          __builtin_types_compatible_p(short[2], /*? type ?*/) ||
          __builtin_types_compatible_p(unsigned short[2], /*? type ?*/) ||
          __builtin_types_compatible_p(int[1], /*? type ?*/) ||
-         __builtin_types_compatible_p(unsigned int[1], /*? type ?*/) ||
+         __builtin_types_compatible_p(unsigned[1], /*? type ?*/) ||
          __builtin_types_compatible_p(long[1], /*? type ?*/) ||
          __builtin_types_compatible_p(unsigned long[1], /*? type ?*/) ||
          __builtin_types_compatible_p(long long[1], /*? type ?*/) ||
