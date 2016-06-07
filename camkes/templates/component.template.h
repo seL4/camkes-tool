@@ -157,7 +157,7 @@ void post_init(void) WEAK;
     void /*? i.name ?*/__init(void) WEAK;
 
     void /*? i.name ?*/_timing_get_points(char ***points, size_t *size);
-    uint64_t /*? i.name ?*/_timing_get_entry(unsigned int iteration, char *point);
+    uint64_t /*? i.name ?*/_timing_get_entry(unsigned iteration, char *point);
     void /*? i.name ?*/_timing_reset(void);
 /*- endfor -*/
 

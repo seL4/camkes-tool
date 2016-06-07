@@ -19,13 +19,13 @@
  * Returns 0 on success.
  */
 int camkes_provide(seL4_ObjectType type, seL4_CPtr ptr, size_t size,
-    unsigned int attributes);
+    unsigned attributes);
 
 /* Allocate a seL4 object. Flags should be specified as a bitmask of the
  * attributes the caller requires of the object. Returns a pointer to a cap to
  * the object on success or seL4_CapNull on failure.
  */
-seL4_CPtr camkes_alloc(seL4_ObjectType type, size_t size, unsigned int flags);
+seL4_CPtr camkes_alloc(seL4_ObjectType type, size_t size, unsigned flags);
 
 /* Free a pointer that was allocated through this interface. Behaviour is
  * undefined if you pass in a pointer that was not allocated by this allocator.

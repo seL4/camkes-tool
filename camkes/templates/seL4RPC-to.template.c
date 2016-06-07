@@ -187,7 +187,7 @@ int /*? me.interface.name ?*/__run(void) {
         seL4_MessageInfo_t /*? info ?*/ = seL4_Recv(/*? ep ?*/, NULL);
 
         /*- set size = c_symbol('size') -*/
-        unsigned int /*? size ?*/ = seL4_MessageInfo_get_length(/*? info ?*/) * sizeof(seL4_Word);
+        unsigned /*? size ?*/ = seL4_MessageInfo_get_length(/*? info ?*/) * sizeof(seL4_Word);
         assert(/*? size ?*/ <= seL4_MsgMaxLength * sizeof(seL4_Word));
 
         /*- set buffer = c_symbol('buffer') -*/
@@ -196,8 +196,8 @@ int /*? me.interface.name ?*/__run(void) {
         /*- set call = c_symbol('call') -*/
         /*- set call_ptr = c_symbol('call_ptr') -*/
         /*- if methods_len <= 1 -*/
-          unsigned int /*? call ?*/ UNUSED;
-          unsigned int * /*? call_ptr ?*/ = TLS_PTR(/*? call_tls_var ?*/, /*? call ?*/);
+          unsigned /*? call ?*/ UNUSED;
+          unsigned * /*? call_ptr ?*/ = TLS_PTR(/*? call_tls_var ?*/, /*? call ?*/);
           * /*? call_ptr ?*/ = 0;
         /*- elif methods_len <= 2 ** 8 -*/
           uint8_t /*? call ?*/ UNUSED;
@@ -297,7 +297,7 @@ int /*? me.interface.name ?*/__run(void) {
                     /*- set output_parameters = list(filter(lambda('x: x.direction in [\'out\', \'inout\']'), m.parameters)) -*/
                     /*- set return_type = m.return_type -*/
                     /*- set length = c_symbol('length') -*/
-                    unsigned int /*? length ?*/ = /*- include 'call-marshal-outputs.c' -*/;
+                    unsigned /*? length ?*/ = /*- include 'call-marshal-outputs.c' -*/;
 
                     /*# We no longer need anything we previously malloced #*/
                     /*- if m.return_type is not none -*/

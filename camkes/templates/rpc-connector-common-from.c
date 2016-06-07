@@ -273,7 +273,7 @@ int /*? me.interface.name ?*/__run(void) {
     /* Marshal all the parameters */
     /*- set function = '%s_marshal_inputs' % m.name -*/
     /*- set length = c_symbol('length') -*/
-    unsigned int /*? length ?*/ = /*- include 'call-marshal-inputs.c' -*/;
+    unsigned /*? length ?*/ = /*- include 'call-marshal-inputs.c' -*/;
     if (unlikely(/*? length ?*/ == UINT_MAX)) {
         /* Error in marshalling; bail out. */
         /*- if m.return_type is not none -*/
@@ -300,7 +300,7 @@ int /*? me.interface.name ?*/__run(void) {
     /*? info ?*/ = seL4_Call(/*? ep ?*/, /*? info ?*/);
 
     /*- set size = c_symbol('size') -*/
-    unsigned int /*? size ?*/ =
+    unsigned /*? size ?*/ =
     /*- if userspace_ipc -*/
         /*? buffer_size ?*/;
     /*- else -*/

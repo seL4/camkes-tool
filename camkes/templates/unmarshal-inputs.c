@@ -22,7 +22,7 @@
 /*- for p in input_parameters -*/
   /*- set size = c_symbol('size') -*/
   /*- set offset = c_symbol('offset') -*/
-  static unsigned int /*? function ?*/_/*? p.name ?*/(unsigned int /*? size ?*/, unsigned int /*? offset ?*/,
+  static unsigned /*? function ?*/_/*? p.name ?*/(unsigned /*? size ?*/, unsigned /*? offset ?*/,
     /*- if p.array -*/
       size_t * /*? p.name ?*/_sz,
       /*- if p.type == 'string' -*/
@@ -174,7 +174,7 @@
 
 static int /*? function ?*/(
 /*- set size = c_symbol('size') -*/
-unsigned int /*? size ?*/
+unsigned /*? size ?*/
 /*- if len(input_parameters) > 0 -*/
   ,
 /*- endif -*/
@@ -198,7 +198,7 @@ unsigned int /*? size ?*/
 ) {
 
   /*- set length = c_symbol('length') -*/
-  unsigned int /*? length ?*/ UNUSED = 0;
+  unsigned /*? length ?*/ UNUSED = 0;
 
   /*- set base = c_symbol('buffer_base') -*/
   void * /*? base ?*/ UNUSED = (void*)(/*? buffer ?*/);

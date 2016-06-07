@@ -23,7 +23,7 @@
 /* Extend this struct as required. */
 typedef struct camkes_tls_t {
     seL4_CPtr tcb_cap;
-    unsigned int thread_index;
+    unsigned thread_index;
 
     /* Cap to our own CNode. May be 0 if we don't have a cap to it. */
     seL4_CPtr cnode_cap;

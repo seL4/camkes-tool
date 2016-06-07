@@ -93,7 +93,7 @@ static void /*? me.interface.name ?*/_/*? m.name ?*/_unmarshal(
     /*- endif -*/
 ) {
     /*- set mr = c_symbol('mr') -*/
-    unsigned int /*? mr ?*/ UNUSED = 1; /* 0 contained the method index. */
+    unsigned /*? mr ?*/ UNUSED = 1; /* 0 contained the method index. */
 
     /*- for p in input_parameters -*/
         /*- if p.array or p.type == 'string' -*/
@@ -153,7 +153,7 @@ static
 }
 
 /*- set output_parameters = list(filter(lambda('x: x.direction in [\'inout\', \'out\']'), m.parameters)) -*/
-static unsigned int /*? me.interface.name ?*/_/*? m.name ?*/_marshal(
+static unsigned /*? me.interface.name ?*/_/*? m.name ?*/_marshal(
     /*- set ret = c_symbol('ret') -*/
     /*- if m.return_type is not none -*/
         /*? m.return_type ?*/ /*? ret ?*/
@@ -177,7 +177,7 @@ static unsigned int /*? me.interface.name ?*/_/*? m.name ?*/_marshal(
     /*- endif -*/
 ) {
     /*- set mr = c_symbol('mr') -*/
-    unsigned int /*? mr ?*/ = 0;
+    unsigned /*? mr ?*/ = 0;
 
     /*- if m.return_type is not none -*/
         seL4_SetMR(/*? mr ?*/, (seL4_Word)/*? ret ?*/);
@@ -206,7 +206,7 @@ static unsigned int /*? me.interface.name ?*/_/*? m.name ?*/_marshal(
     return /*? mr ?*/;
 }
 
-static unsigned int /*? me.interface.name ?*/_/*? m.name ?*/_internal(void) {
+static unsigned /*? me.interface.name ?*/_/*? m.name ?*/_internal(void) {
     /*- for p in m.parameters -*/
         /*- if p.array or p.type == 'string' -*/
             /*? raise(TemplateError('unsupported')) ?*/
@@ -255,7 +255,7 @@ static unsigned int /*? me.interface.name ?*/_/*? m.name ?*/_internal(void) {
     );
 
     /*- set length = c_symbol('length') -*/
-    unsigned int /*? length ?*/ = /*? me.interface.name ?*/_/*? m.name ?*/_marshal(
+    unsigned /*? length ?*/ = /*? me.interface.name ?*/_/*? m.name ?*/_marshal(
         /*- if m.return_type is not none -*/
             /*? ret ?*/
             /*- if len(output_parameters) > 0 -*/
@@ -294,7 +294,7 @@ static seL4_MessageInfo_t /*? me.interface.name ?*/__run_internal(bool /*? first
         /*- for i, m in enumerate(me.interface.type.methods) -*/
             case /*? i ?*/: { /*? '%s%s%s%s%s' % ('/', '* ', m.name, ' *', '/') ?*/
                 /*- set length = c_symbol('length') -*/
-                unsigned int /*? length ?*/ = /*? me.interface.name ?*/_/*? m.name ?*/_internal();
+                unsigned /*? length ?*/ = /*? me.interface.name ?*/_/*? m.name ?*/_internal();
 
                 /* Send the response */
                 /*? info ?*/ = seL4_MessageInfo_new(0, 0, 0, /*? length ?*/);

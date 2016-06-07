@@ -12,12 +12,12 @@
 #include <string.h>
 #include <camkes/marshal.h>
 
-void *camkes_marshal(void *buffer, const void *data, unsigned int sz) {
+void *camkes_marshal(void *buffer, const void *data, unsigned sz) {
     memcpy(buffer, data, sz);
     return buffer + sz;
 }
 
-void *camkes_unmarshal(const void *buffer, void *data, unsigned int sz) {
+void *camkes_unmarshal(const void *buffer, void *data, unsigned sz) {
     memcpy(data, buffer, sz);
     return (void*)(buffer + sz);
 }
