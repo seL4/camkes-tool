@@ -159,6 +159,7 @@ DEPENDENCIES = {
                      PythonModule('plyplus', 'Python parsing module'),
                      PythonModule('ply', 'Python parsing module'),
                      PythonModule('elftools', 'Python ELF parsing module'),
+                     PythonModule('orderedset', 'Python OrderedSet module (orderedset)'),
                      PythonModuleWith('six', 'Python 2/3 compatibility layer', 'assertCountEqual'),
                      PythonModule('sqlite3', 'Python SQLite module')),
     'seL4':(Binary('gcc', 'C compiler'),
