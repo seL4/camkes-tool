@@ -619,6 +619,25 @@ def sc_default_properties(obj_space, options, **_):
         s.budget = options.default_budget
         s.data = options.default_data
 
+def maybe_set_property_from_configuration(assembly, perspective, obj, field_name, attribute_name):
+    '''Sets a field "field_name" of an object "obj" to the value of a configuration
+    setting of the form:
+    instance.attribute = value;
+    where "instance" and "attribute" are obtained from the perspective argument
+    which is queried for the current instance, and the value corresponding to
+    attribute_name respectively.
+    If such a setting exists, the field is set and this function returns True.
+    Otherwise it leaves the object unchanged and returns False.'''
+
+    name = perspective['instance']
+    attribute = perspective[attribute_name]
+    value = assembly.configuration[name].get(attribute)
+    if value is None:
+        return False
+    else:
+        setattr(obj, field_name, value)
+        return True
+
 def tcb_priorities(ast, cspaces, options, **_):
     ''' Override a TCB's default priority if the user has specified this in an
     attribute.'''
@@ -655,36 +674,15 @@ def tcb_priorities(ast, cspaces, options, **_):
 
             perspective = Perspective(group=group, tcb=tcb.name)
 
-            instance_name = perspective['instance']
-
-            # Find the priority if it was set.
-            prio_attribute = perspective['priority_attribute']
-            prio = assembly.configuration[instance_name].get(prio_attribute)
-            if prio is not None:
-                tcb.prio = prio
-            else:
+            if not maybe_set_property_from_configuration(assembly, perspective, tcb, 'prio', 'priority_attribute'):
                 # See if the user assigned a general priority to this component.
-                prio = assembly.configuration[instance_name].get('priority')
+                prio = assembly.configuration[perspective['instance']].get('priority')
                 if prio is not None:
                     tcb.prio = prio
 
-             # Find the max_priority if it was set.
-            max_prio_attribute = perspective['max_priority_attribute']
-            max_prio = assembly.configuration[instance_name].get(max_prio_attribute)
-            if max_prio is not None:
-                tcb.max_prio = max_prio
-
-            # Find the criticality if it was set.
-            crit_attribute = perspective['criticality_attribute']
-            crit =  assembly.configuration[instance_name].get(crit_attribute)
-            if crit is not None:
-                tcb.crit = crit
-
-            # Find the max_criticality if it was set.
-            max_crit_attribute = perspective['max_criticality_attribute']
-            max_crit = assembly.configuration[instance_name].get(max_crit_attribute)
-            if max_crit is not None:
-                tcb.max_crit = max_crit
+            maybe_set_property_from_configuration(assembly, perspective, tcb, 'max_prio', 'max_priority_attribute')
+            maybe_set_property_from_configuration(assembly, perspective, tcb, 'crit', 'criticality_attribute')
+            maybe_set_property_from_configuration(assembly, perspective, tcb, 'max_crit', 'max_criticality_attribute')
 
 def sc_properties(ast, cspaces, obj_space, **_):
     ''' Override an SC's default properties if the user has specified this in an
@@ -704,26 +702,9 @@ def sc_properties(ast, cspaces, obj_space, **_):
 
             perspective = Perspective(group=group, sc=sc.name)
 
-            # Find the period if it was set.
-            period_attribute = perspective['period_attribute']
-            name = perspective['instance']
-            period = assembly.configuration[name].get(period_attribute)
-            if period is not None:
-                sc.period = period
-
-            # Find the budget if it was set.
-            budget_attribute = perspective['budget_attribute']
-            name = perspective['instance']
-            budget = assembly.configuration[name].get(budget_attribute)
-            if budget is not None:
-                sc.budget = budget
-
-            # Find the data if it was set.
-            data_attribute = perspective['data_attribute']
-            name = perspective['instance']
-            data = assembly.configuration[name].get(data_attribute)
-            if data is not None:
-                sc.data = data
+            maybe_set_property_from_configuration(assembly, perspective, sc, 'period', 'period_attribute')
+            maybe_set_property_from_configuration(assembly, perspective, sc, 'budget', 'budget_attribute')
+            maybe_set_property_from_configuration(assembly, perspective, sc, 'data', 'data_attribute')
 
 def tcb_domains(ast, cspaces, **_):
     '''Set the domain of a TCB if the user has specified this in an
