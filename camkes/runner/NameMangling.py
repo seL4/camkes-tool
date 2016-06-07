@@ -132,66 +132,74 @@ class DMAFrameIndexDeriver(Deriver):
             return None
         return int(m.group(1))
 
-class TCBDeriver(Deriver):
+class PerThreadDeriver(Deriver):
+    def __init__(self, name):
+        self.name = name
     def inputs(self):
         return set(('instance', 'interface', 'intra_index'))
     def output(self):
-        return 'tcb'
+        return self.name
     def derive(self, perspective):
-        return '%s_%d_%s_%d_%s_tcb' % (
+        return '%s_%d_%s_%d_%s_%s' % (
             perspective['instance'],
             len(perspective['instance']),
             perspective['interface'],
             len(perspective['interface']),
-            perspective['intra_index'])
+            perspective['intra_index'],
+            self.name)
 
-class FromControlTCBDeriver(Deriver):
+class FromControlPerThreadDeriver(Deriver):
+    def __init__(self, name):
+        self.name = name
     def inputs(self):
         return set(('instance',))
     def output(self):
-        return 'tcb'
+        return self.name
     def derive(self, perspective):
         if not perspective.get('control', False):
             return None
-        return '%s_%d_0_control_%d_tcb' % (
+        return '%s_%d_0_control_%d_%s' % (
             perspective['instance'],
             len(perspective['instance']),
-            len('0_control'))
+            len('0_control'),
+            self.name)
 
-class TCBInstanceDeriver(Deriver):
-    def __init__(self):
-        self.outer = re.compile(r'(?P<remainder>.*)_(?P<len>\d+)_\d{4}_tcb$')
+class PerThreadInstanceDeriver(Deriver):
+    def __init__(self, name):
+        self.name = name
+        self.outer = re.compile(r'(?P<remainder>.*)_(?P<len>\d+)_\d{4}_%s$' % self.name)
         self.inner = re.compile(r'(?P<instance>.*)_(?P<len>\d+)_$')
     def inputs(self):
-        return set(('tcb',))
+        return set((self.name,))
     def output(self):
         return 'instance'
     def derive(self, perspective):
-        m = self.outer.match(perspective['tcb'])
+        m = self.outer.match(perspective[self.name])
         if m is None:
             return None
         l = int(m.group('len'))
         assert len(m.group('remainder')) >= l, 'unexpected fault in undoing ' \
-            'TCB name mangling (name mangling and inverse mismatched?)'
+            '%s name mangling (name mangling and inverse mismatched?)' % self.name
         remainder = m.group('remainder')[:-l]
         m = self.inner.match(remainder)
         if m is None:
             return None
         l = int(m.group('len'))
         assert len(m.group('instance')) == l, 'unexpected fault in undoing ' \
-            'TCB name mangling (name mangling and inverse mismatched?)'
+            '%s name mangling (name mangling and inverse mismatched?)' % self.name
         return m.group('instance')
 
-class FromControlTCBInstanceDeriver(Deriver):
-    def __init__(self):
+class FromControlPerThreadInstanceDeriver(Deriver):
+    def __init__(self, name):
+        self.name = name
         self.regex = re.compile(r'(?P<instance>.*)_(?P<instance_len>\d+)'
-            r'_0_control_(?P<control_len>\d+)_tcb$')
+            r'_0_control_(?P<control_len>\d+)_%s$' % self.name)
     def inputs(self):
-        return set(('tcb',))
+        return set((self.name,))
     def output(self):
         return 'instance'
     def derive(self, perspective):
-        m = self.regex.match(perspective['tcb'])
+        m = self.regex.match(perspective[self.name])
         if m is None:
             return None
         control_len = int(m.group('control_len'))
@@ -202,44 +210,47 @@ class FromControlTCBInstanceDeriver(Deriver):
             return None
         return m.group('instance')
 
-class TCBInterfaceDeriver(Deriver):
-    def __init__(self):
-        self.prefix = re.compile(r'(?P<interface>.*)_(?P<len>\d+)_\d{4}_tcb$')
+class PerThreadInterfaceDeriver(Deriver):
+    def __init__(self, name):
+        self.name = name
+        self.prefix = re.compile(r'(?P<interface>.*)_(?P<len>\d+)_\d{4}_%s$' % self.name)
     def inputs(self):
-        return set(('tcb',))
+        return set((self.name,))
     def output(self):
         return 'interface'
     def derive(self, perspective):
-        m = self.prefix.match(perspective['tcb'])
+        m = self.prefix.match(perspective[self.name])
         if m is None:
             return None
         l = int(m.group('len'))
         assert len(m.group('interface')) >= l, 'unexpected fault in undoing ' \
-            'TCB name mangling (name mangling and inverse mismatched?)'
+            '%s name mangling (name mangling and inverse mismatched?)' % self.name
         return m.group('interface')[-l:]
 
-class TCBIntraindexDeriver(Deriver):
-    def __init__(self):
-        self.regex = re.compile(r'.*_(?P<intra_index>\d{4})_tcb$')
+class PerThreadIntraindexDeriver(Deriver):
+    def __init__(self, name):
+        self.name = name
+        self.regex = re.compile(r'.*_(?P<intra_index>\d{4})_%s$' % self.name)
     def inputs(self):
-        return set(('tcb',))
+        return set((self.name,))
     def output(self):
         return 'intra_index'
     def derive(self, perspective):
-        m = self.regex.match(perspective['tcb'])
+        m = self.regex.match(perspective[self.name])
         if m is None:
             return None
         return m.group('intra_index')
 
-class ToControlTCBDeriver(Deriver):
-    def __init__(self):
-        self.regex = re.compile(r'.*_0_control_(?P<len>\d+)_tcb$')
+class ToControlPerThreadDeriver(Deriver):
+    def __init__(self, name):
+        self.name = name
+        self.regex = re.compile(r'.*_0_control_(?P<len>\d+)_%s$' % self.name)
     def inputs(self):
-        return set(('tcb',))
+        return set((self.name,))
     def output(self):
         return 'control'
     def derive(self, perspective):
-        m = self.regex.match(perspective['tcb'])
+        m = self.regex.match(perspective[self.name])
         if m is None:
             return False
         return int(m.group('len')) == len('0_control')
@@ -271,13 +282,13 @@ DERIVATIONS = {
         ForwardDeriver('camkes_dma_pool', 'dma_pool_symbol'),
         BackwardDeriver(r'.*?\.?([a-zA-Z_]\w*)$', 'instance', 'safe_instance'),
     ], FILTERS:[
-        TCBDeriver(),
-        FromControlTCBDeriver(),
-        TCBInstanceDeriver(),
-        FromControlTCBInstanceDeriver(),
-        TCBInterfaceDeriver(),
-        TCBIntraindexDeriver(),
-        ToControlTCBDeriver(),
+        PerThreadDeriver('tcb'),
+        FromControlPerThreadDeriver('tcb'),
+        PerThreadInstanceDeriver('tcb'),
+        FromControlPerThreadInstanceDeriver('tcb'),
+        PerThreadInterfaceDeriver('tcb'),
+        PerThreadIntraindexDeriver('tcb'),
+        ToControlPerThreadDeriver('tcb'),
         ForwardDeriver('_camkes_ipc_buffer_%(safe_instance)s_%(interface)s_%(intra_index)s', 'ipc_buffer_symbol'),
         FromControlDeriver('_camkes_ipc_buffer_%(safe_instance)s_0_control', 'ipc_buffer_symbol'),
         ControlDeriver(r'_camkes_ipc_buffer_.+_0_control$', 'ipc_buffer_symbol'),
