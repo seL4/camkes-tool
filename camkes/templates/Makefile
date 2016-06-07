@@ -157,15 +157,7 @@ ifeq (${CONFIG_CAMKES_PRUNE_GENERATED},y)
 	        --keep /*? e.interface.name ?*/_/*? m.name ?*/ \
 	    /*- endfor -*/ \
 	/*- endif -*/ \
-	  /*# unconditionally keep some things verification refers to. #*/ \
-	  --keep camkes_get_tls \
-	  --keep seL4_Call \
-	  --keep seL4_Notify \
-	  --keep seL4_Poll \
-	  --keep seL4_ReplyWait \
-	  --keep seL4_ReplyRecv \
-	  --keep seL4_Wait \
-	  --keep seL4_Recv \
+	$(foreach i,${PRUNER_WHITELIST},--keep $i) \
 	$(foreach i,${PRUNER_BLACKLIST},--blacklist $i) \
       --blacklist /*? e.interface.name ?*/_error_handler_fn \
       --output "$@" "$<"
@@ -197,15 +189,7 @@ ifeq (${CONFIG_CAMKES_PRUNE_GENERATED},y)
 	/*- elif e.interface in e.instance.type.provides -*/ \
 	    /*# nothing extra required #*/ \
 	/*- endif -*/ \
-	  /*# unconditionally keep some things verification refers to. #*/ \
-	  --keep camkes_get_tls \
-	  --keep seL4_Call \
-	  --keep seL4_Notify \
-	  --keep seL4_Poll \
-	  --keep seL4_ReplyWait \
-	  --keep seL4_ReplyRecv \
-	  --keep seL4_Wait \
-	  --keep seL4_Recv \
+	$(foreach i,${PRUNER_WHITELIST},--keep $i) \
 	$(foreach i,${PRUNER_BLACKLIST},--blacklist $i) \
       --blacklist /*? e.interface.name ?*/_error_handler_fn \
       --output "$@" "$<"
@@ -288,15 +272,7 @@ endif
   /*- elif c.to_interface in c.to_instance.type.provides -*/ \
     /*# nothing extra required #*/ \
   /*- endif -*/ \
-  /*# unconditionally keep some things verification refers to. #*/ \
-  --keep camkes_get_tls \
-  --keep seL4_Call \
-  --keep seL4_Notify \
-  --keep seL4_Poll \
-  --keep seL4_ReplyWait \
-  --keep seL4_ReplyRecv \
-  --keep seL4_Wait \
-  --keep seL4_Recv \
+  $(foreach i,${PRUNER_WHITELIST},--keep $i) \
   $(foreach i,${PRUNER_BLACKLIST},--blacklist $i) --output "$@" "$<" \
   --blacklist /*? c.to_interface.name ?*/_error_handler_fn \
   --blacklist /*? c.from_interface.name ?*/_error_handler_fn

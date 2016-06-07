@@ -125,6 +125,9 @@ PRUNER_BLACKLIST = FILE fpos_t opterr optind optopt stderr stdin stdout \
   pthread_attr_t pthread_mutex_t pthread_cond_t pthread_rwlock_t \
   pthread_barrier_t sel4bench_arm1136_pmnc_t
 
+PRUNER_WHITELIST = camkes_get_tls seL4_Call seL4_Notify seL4_Poll \
+  seL4_ReplyWait seL4_Wait seL4_ReplyRecv seL4_Recv
+
 # The included Makefile is generated automatically by the following rule at the
 # bottom of this Makefile.
 include ${BUILD_DIR}/camkes-gen.mk
