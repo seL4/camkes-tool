@@ -699,13 +699,8 @@ def sc_properties(ast, cspaces, obj_space, **_):
 
     for group, space in cspaces.items():
         cnode = space.cnode
-        for cap in cnode.slots.values():
-
-            if cap is None:
-                continue
-            sc = cap.referent
-            if not isinstance(sc, SC):
-                continue
+        for sc in (cap.referent for cap in cnode.slots.values()
+                if cap is not None and isinstance(cap.referent, SC)):
 
             perspective = Perspective(group=group, sc=sc.name)
 
