@@ -611,7 +611,8 @@ def tcb_default_priorities(obj_space, options, **_):
         t.max_crit = options.default_max_criticality
 
 def sc_default_properties(obj_space, options, **_):
-    '''Set up default scheduling context properties.'''
+    '''Set up default scheduling context properties. Note this filter needs to operate
+    *before* sc_properties.'''
 
     for s in (x for x in obj_space if isinstance(x, SC)):
         s.period = options.default_period
@@ -685,6 +686,50 @@ def tcb_priorities(ast, cspaces, options, **_):
             if max_crit is not None:
                 tcb.max_crit = max_crit
 
+def sc_properties(ast, cspaces, obj_space, **_):
+    ''' Override an SC's default properties if the user has specified this in an
+    attribute.'''
+
+    assembly = ast.assembly
+
+    if assembly.configuration is None or \
+            len(assembly.configuration.settings) == 0:
+        # We have nothing to do if no properties were set.
+        return
+
+    for group, space in cspaces.items():
+        cnode = space.cnode
+        for cap in cnode.slots.values():
+
+            if cap is None:
+                continue
+            sc = cap.referent
+            if not isinstance(sc, SC):
+                continue
+
+            perspective = Perspective(group=group, sc=sc.name)
+
+            # Find the period if it was set.
+            period_attribute = perspective['period_attribute']
+            name = perspective['instance']
+            period = assembly.configuration[name].get(period_attribute)
+            if period is not None:
+                sc.period = period
+
+            # Find the budget if it was set.
+            budget_attribute = perspective['budget_attribute']
+            name = perspective['instance']
+            budget = assembly.configuration[name].get(budget_attribute)
+            if budget is not None:
+                sc.budget = budget
+
+            # Find the data if it was set.
+            data_attribute = perspective['data_attribute']
+            name = perspective['instance']
+            data = assembly.configuration[name].get(data_attribute)
+            if data is not None:
+                sc.data = data
+
 def tcb_domains(ast, cspaces, **_):
     '''Set the domain of a TCB if the user has specified this in an
     attribute.'''
@@ -730,4 +775,5 @@ CAPDL_FILTERS = [
     tcb_domains,
     remove_tcb_caps,
     sc_default_properties,
+    sc_properties,
 ]

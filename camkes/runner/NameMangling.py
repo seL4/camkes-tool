@@ -340,6 +340,18 @@ DERIVATIONS = {
         FromControlDeriver('_max_criticality', 'max_criticality_attribute'),
         ForwardDeriver('%(interface)s_max_criticality', 'max_criticality_attribute'),
         BackwardDeriver(r'^([^_].*)_max_criticality$', 'max_criticality_attribute', 'interface'),
+        ControlDeriver(r'^_period$', 'period_attribute'),
+        FromControlDeriver('_period', 'period_attribute'),
+        ForwardDeriver('%(interface)s_period', 'period_attribute'),
+        BackwardDeriver(r'^([^_].*)_period$', 'period_attribute', 'interface'),
+        ControlDeriver(r'^_budget$', 'budget_attribute'),
+        FromControlDeriver('_budget', 'budget_attribute'),
+        ForwardDeriver('%(interface)s_budget', 'budget_attribute'),
+        BackwardDeriver(r'^([^_].*)_budget$', 'budget_attribute', 'interface'),
+        ControlDeriver(r'^_data$', 'data_attribute'),
+        FromControlDeriver('_data', 'data_attribute'),
+        ForwardDeriver('%(interface)s_data', 'data_attribute'),
+        BackwardDeriver(r'^([^_].*)_data$', 'data_attribute', 'interface'),
     ],
 }
 
