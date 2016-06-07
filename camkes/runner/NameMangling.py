@@ -328,6 +328,18 @@ DERIVATIONS = {
         PerThreadInterfaceDeriver('sc'),
         PerThreadIntraindexDeriver('sc'),
         ToControlPerThreadDeriver('sc'),
+        ControlDeriver(r'^_max_priority$', 'max_priority_attribute'),
+        FromControlDeriver('_max_priority', 'max_priority_attribute'),
+        ForwardDeriver('%(interface)s_max_priority', 'max_priority_attribute'),
+        BackwardDeriver(r'^([^_].*)_max_priority$', 'max_priority_attribute', 'interface'),
+        ControlDeriver(r'^_criticality$', 'criticality_attribute'),
+        FromControlDeriver('_criticality', 'criticality_attribute'),
+        ForwardDeriver('%(interface)s_criticality', 'criticality_attribute'),
+        BackwardDeriver(r'^([^_].*)_criticality$', 'criticality_attribute', 'interface'),
+        ControlDeriver(r'^_max_criticality$', 'max_criticality_attribute'),
+        FromControlDeriver('_max_criticality', 'max_criticality_attribute'),
+        ForwardDeriver('%(interface)s_max_criticality', 'max_criticality_attribute'),
+        BackwardDeriver(r'^([^_].*)_max_criticality$', 'max_criticality_attribute', 'interface'),
     ],
 }
 

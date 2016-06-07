@@ -606,6 +606,9 @@ def tcb_default_priorities(obj_space, options, **_):
 
     for t in [x for x in obj_space if isinstance(x, TCB)]:
         t.prio = options.default_priority
+        t.max_prio = options.default_max_priority
+        t.crit = options.default_criticality
+        t.max_crit = options.default_max_criticality
 
 def sc_default_properties(obj_space, options, **_):
     '''Set up default scheduling context properties.'''
@@ -651,17 +654,36 @@ def tcb_priorities(ast, cspaces, options, **_):
 
             perspective = Perspective(group=group, tcb=tcb.name)
 
+            instance_name = perspective['instance']
+
             # Find the priority if it was set.
             prio_attribute = perspective['priority_attribute']
-            name = perspective['instance']
-            prio = assembly.configuration[name].get(prio_attribute)
+            prio = assembly.configuration[instance_name].get(prio_attribute)
             if prio is not None:
                 tcb.prio = prio
             else:
                 # See if the user assigned a general priority to this component.
-                prio = assembly.configuration[name].get('priority')
+                prio = assembly.configuration[instance_name].get('priority')
                 if prio is not None:
                     tcb.prio = prio
+
+             # Find the max_priority if it was set.
+            max_prio_attribute = perspective['max_priority_attribute']
+            max_prio = assembly.configuration[instance_name].get(max_prio_attribute)
+            if max_prio is not None:
+                tcb.max_prio = max_prio
+
+            # Find the criticality if it was set.
+            crit_attribute = perspective['criticality_attribute']
+            crit =  assembly.configuration[instance_name].get(crit_attribute)
+            if crit is not None:
+                tcb.crit = crit
+
+            # Find the max_criticality if it was set.
+            max_crit_attribute = perspective['max_criticality_attribute']
+            max_crit = assembly.configuration[instance_name].get(max_crit_attribute)
+            if max_crit is not None:
+                tcb.max_crit = max_crit
 
 def tcb_domains(ast, cspaces, **_):
     '''Set the domain of a TCB if the user has specified this in an
