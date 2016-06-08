@@ -1028,5 +1028,28 @@ class TestStage3(CAmkESTest):
 
         self.assertEqual(z.default, 42)
 
+    def test_string_concat(self):
+        '''
+        Test that C-style string concatenation works.
+        '''
+
+        content, _ = self.parser.parse_string(
+            'configuration {\n'
+            '  foo.bar = "hello" "world";\n'
+            '}')
+
+        self.assertLen(content.children, 1)
+        conf = content.children[0]
+        self.assertIsInstance(conf, Configuration)
+
+        self.assertLen(conf.settings, 1)
+        foobar = conf.settings[0]
+        self.assertIsInstance(foobar, Setting)
+
+        self.assertEqual(foobar.instance, 'foo')
+        self.assertEqual(foobar.attribute, 'bar')
+
+        self.assertEqual(foobar.value, 'helloworld')
+
 if __name__ == '__main__':
     unittest.main()
