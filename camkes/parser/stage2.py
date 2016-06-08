@@ -42,7 +42,11 @@ class Parse2(Parser):
         while len(queue) > 0:
             source, filename, item = queue.popleft()
 
-            if item.head == 'import':
+            if not hasattr(item, 'head'):
+                # Empty statement.
+                continue
+
+            elif item.head == 'import':
 
                 target = None
 
