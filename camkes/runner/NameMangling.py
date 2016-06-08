@@ -167,7 +167,7 @@ class FromControlPerThreadDeriver(Deriver):
 class PerThreadInstanceDeriver(Deriver):
     def __init__(self, name):
         self.name = name
-        self.outer = re.compile(r'(?P<remainder>.*)_(?P<len>\d+)_\d{4}_%s$' % self.name)
+        self.outer = re.compile(r'(?P<remainder>.*)_(?P<len>\d+)_\d{4}_(?P<type>.*)$')
         self.inner = re.compile(r'(?P<instance>.*)_(?P<len>\d+)_$')
     def inputs(self):
         return set((self.name,))
@@ -180,6 +180,8 @@ class PerThreadInstanceDeriver(Deriver):
         l = int(m.group('len'))
         assert len(m.group('remainder')) >= l, 'unexpected fault in undoing ' \
             '%s name mangling (name mangling and inverse mismatched?)' % self.name
+        assert m.group('type') == self.name, 'unexpected type suffix deriving instance ' \
+            'from %s (expected %s, got %s)' % (perspective[self.name], self.name, m.group('type'))
         remainder = m.group('remainder')[:-l]
         m = self.inner.match(remainder)
         if m is None:
@@ -193,7 +195,7 @@ class FromControlPerThreadInstanceDeriver(Deriver):
     def __init__(self, name):
         self.name = name
         self.regex = re.compile(r'(?P<instance>.*)_(?P<instance_len>\d+)'
-            r'_0_control_(?P<control_len>\d+)_%s$' % self.name)
+            r'_0_control_(?P<control_len>\d+)_(?P<type>.*)$')
     def inputs(self):
         return set((self.name,))
     def output(self):
@@ -202,6 +204,8 @@ class FromControlPerThreadInstanceDeriver(Deriver):
         m = self.regex.match(perspective[self.name])
         if m is None:
             return None
+        assert m.group('type') == self.name, 'unexpected type suffix deriving instance ' \
+            'from %s (expected %s, got %s)' % (perspective[self.name], self.name, m.group('type'))
         control_len = int(m.group('control_len'))
         if control_len != len('0_control'):
             return None
@@ -213,7 +217,7 @@ class FromControlPerThreadInstanceDeriver(Deriver):
 class PerThreadInterfaceDeriver(Deriver):
     def __init__(self, name):
         self.name = name
-        self.prefix = re.compile(r'(?P<interface>.*)_(?P<len>\d+)_\d{4}_%s$' % self.name)
+        self.prefix = re.compile(r'(?P<interface>.*)_(?P<len>\d+)_\d{4}_(?P<type>.*)$')
     def inputs(self):
         return set((self.name,))
     def output(self):
@@ -225,12 +229,14 @@ class PerThreadInterfaceDeriver(Deriver):
         l = int(m.group('len'))
         assert len(m.group('interface')) >= l, 'unexpected fault in undoing ' \
             '%s name mangling (name mangling and inverse mismatched?)' % self.name
+        assert m.group('type') == self.name, 'unexpected type suffix deriving interface ' \
+            'from %s (expected %s, got %s)' % (perspective[self.name], self.name, m.group('type'))
         return m.group('interface')[-l:]
 
 class PerThreadIntraindexDeriver(Deriver):
     def __init__(self, name):
         self.name = name
-        self.regex = re.compile(r'.*_(?P<intra_index>\d{4})_%s$' % self.name)
+        self.regex = re.compile(r'.*_(?P<intra_index>\d{4})_(?P<type>.*)$')
     def inputs(self):
         return set((self.name,))
     def output(self):
@@ -239,12 +245,14 @@ class PerThreadIntraindexDeriver(Deriver):
         m = self.regex.match(perspective[self.name])
         if m is None:
             return None
+        assert m.group('type') == self.name, 'unexpected type suffix deriving intra index ' \
+            'from %s (expected %s, got %s)' % (perspective[self.name], self.name, m.group('type'))
         return m.group('intra_index')
 
 class ToControlPerThreadDeriver(Deriver):
     def __init__(self, name):
         self.name = name
-        self.regex = re.compile(r'.*_0_control_(?P<len>\d+)_%s$' % self.name)
+        self.regex = re.compile(r'.*_0_control_(?P<len>\d+)_(?P<type>.*)$')
     def inputs(self):
         return set((self.name,))
     def output(self):
@@ -253,6 +261,8 @@ class ToControlPerThreadDeriver(Deriver):
         m = self.regex.match(perspective[self.name])
         if m is None:
             return False
+        assert m.group('type') == self.name, 'unexpected type suffix deriving control ' \
+            'from %s (expected %s, got %s)' % (perspective[self.name], self.name, m.group('type'))
         return int(m.group('len')) == len('0_control')
 
 # Phases.
