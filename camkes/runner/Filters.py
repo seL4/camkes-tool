@@ -647,8 +647,7 @@ def tcb_priorities(ast, cspaces, options, **_):
 
     assembly = ast.assembly
 
-    if assembly.configuration is None or \
-            len(assembly.configuration.settings) == 0:
+    if len(assembly.configuration.settings) == 0:
         # We have nothing to do if no priorities were set.
         return
 
@@ -688,8 +687,7 @@ def sc_properties(ast, cspaces, obj_space, **_):
 
     assembly = ast.assembly
 
-    if assembly.configuration is None or \
-            len(assembly.configuration.settings) == 0:
+    if len(assembly.configuration.settings) == 0:
         # We have nothing to do if no properties were set.
         return
 
