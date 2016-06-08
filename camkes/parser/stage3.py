@@ -415,7 +415,7 @@ def _lift_group_defn(location, *instances):
     return Group(instances=list(instances), location=location)
 
 def _lift_include(location, source):
-    return Include(source.tail[0][1:-1], source.head == 'quoted_string',
+    return Include(source.tail[0][1:-1], source.head == 'multi_string',
         location)
 
 def _lift_hardware(location, *_):
@@ -437,6 +437,11 @@ def _lift_method_decl(location, *args):
         return_type = None # void
     id = args[0]
     return Method(id, return_type, list(args[1:]), location)
+
+def _lift_multi_string(location, *strings):
+    assert len(strings) >= 1, 'multi_string without any contained ' \
+        'quoted_strings (bug in base grammar?)'
+    return '"%s"' % ''.join(x[1:-1] for x in strings)
 
 def _lift_mutex(location, id):
     return Mutex(id, location)
@@ -648,6 +653,7 @@ LIFT = {
     'logical_not':_lift_logical_not,
     'maybe':_collapse,
     'method_decl':_lift_method_decl,
+    'multi_string':_lift_multi_string,
     'mutex':_lift_mutex,
     'number':_lift_number,
     'precedence1':_lift_numeric_expr,
