@@ -61,7 +61,8 @@ DONT_DESCEND = frozenset([
     'from',
     'hardware',
     'id',
-    'include',
+    'include', # Marked DONT_DESCEND because we need to discriminate between
+               # double quoted strings and angle bracketed strings.
     'maybe',
     'quoted_string',
     'signed_char',
@@ -415,8 +416,13 @@ def _lift_group_defn(location, *instances):
     return Group(instances=list(instances), location=location)
 
 def _lift_include(location, source):
-    return Include(source.tail[0][1:-1], source.head == 'multi_string',
-        location)
+    if source.head == 'multi_string':
+        return Include(''.join(str(x.tail[0][1:-1]) for x in source.tail), True,
+            location)
+    assert source.head == 'angle_string', '%s inside an include statement ' \
+        'where only a multi_string or angle_string are expected (mismatch ' \
+        'between grammar and stage 3 parser?)' % source.head
+    return Include(source.tail[0][1:-1], False, location)
 
 def _lift_hardware(location, *_):
     return 'hardware'
