@@ -1075,5 +1075,12 @@ class TestStage3(CAmkESTest):
 
         self.assertEqual(foobar.value, 'helloworld')
 
+    def test_loose_semicolons(self):
+        '''
+        Test that we can cope with empty statements.
+        '''
+        content, _ = self.parser.parse_string(';;;')
+        self.assertLen(content.children, 0)
+
 if __name__ == '__main__':
     unittest.main()
