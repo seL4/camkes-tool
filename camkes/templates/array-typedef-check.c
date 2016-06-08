@@ -47,20 +47,25 @@
        *# could be extended in future to cope with these as well.
        #*/
       (sizeof(/*? type ?*/) == sizeof(void*) &&
-        (__builtin_types_compatible_p(char[4], /*? type ?*/) ||
-         __builtin_types_compatible_p(signed char[4], /*? type ?*/) ||
-         __builtin_types_compatible_p(unsigned char[4], /*? type ?*/) ||
-         __builtin_types_compatible_p(short[2], /*? type ?*/) ||
-         __builtin_types_compatible_p(unsigned short[2], /*? type ?*/) ||
-         __builtin_types_compatible_p(int[1], /*? type ?*/) ||
-         __builtin_types_compatible_p(unsigned[1], /*? type ?*/) ||
-         __builtin_types_compatible_p(long[1], /*? type ?*/) ||
-         __builtin_types_compatible_p(unsigned long[1], /*? type ?*/) ||
-         __builtin_types_compatible_p(long long[1], /*? type ?*/) ||
-         __builtin_types_compatible_p(unsigned long long[1], /*? type ?*/) ||
-         __builtin_types_compatible_p(double[1], /*? type ?*/) ||
-         __builtin_types_compatible_p(long double[1], /*? type ?*/) ||
-         __builtin_types_compatible_p(float[1], /*? type ?*/))),
+        (__builtin_types_compatible_p(char[sizeof(void*)], /*? type ?*/) ||
+         __builtin_types_compatible_p(signed char[sizeof(void*)], /*? type ?*/) ||
+         __builtin_types_compatible_p(unsigned char[sizeof(void*)], /*? type ?*/) ||
+         __builtin_types_compatible_p(short[sizeof(void*) / sizeof(short)], /*? type ?*/) ||
+         __builtin_types_compatible_p(unsigned short[sizeof(void*) / sizeof(unsigned short)], /*? type ?*/) ||
+         __builtin_types_compatible_p(int[sizeof(void*) / sizeof(int)], /*? type ?*/) ||
+         __builtin_types_compatible_p(unsigned[sizeof(void*) / sizeof(unsigned)], /*? type ?*/) ||
+         __builtin_types_compatible_p(long[sizeof(void*) / sizeof(long)], /*? type ?*/) ||
+         __builtin_types_compatible_p(unsigned long[sizeof(void*) / sizeof(unsigned long)], /*? type ?*/) ||
+         (sizeof(void*) / sizeof(long long) > 0 &&
+           __builtin_types_compatible_p(long long[sizeof(void*) / sizeof(long long)], /*? type ?*/)) ||
+         (sizeof(void*) / sizeof(unsigned long long) > 0 &&
+           __builtin_types_compatible_p(unsigned long long[sizeof(void*) / sizeof(unsigned long long)], /*? type ?*/)) ||
+         (sizeof(void*) / sizeof(double) > 0 &&
+           __builtin_types_compatible_p(double[sizeof(void*) / sizeof(double)], /*? type ?*/)) ||
+         (sizeof(void*) / sizeof(long double) > 0 &&
+           __builtin_types_compatible_p(long double[sizeof(void*) / sizeof(long double)], /*? type ?*/)) ||
+         (sizeof(void*) / sizeof(float) > 0 &&
+           __builtin_types_compatible_p(float[sizeof(void*) / sizeof(float)], /*? type ?*/)))),
 
       /* trigger a compile-time warning: */ /*? tmp ?*/(),
       /* do nothing: */ (void)0);
