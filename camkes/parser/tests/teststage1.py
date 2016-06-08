@@ -495,15 +495,15 @@ class TestStage1(CAmkESTest):
                 'accounted for')
 
     def test_list_dict_key(self):
-       '''
-       Test using a list as a key in a dictionary used as a setting. Should
-       not be accepted.
-       '''
-       with self.assertRaises(ParseError):
-           self.parser.parse_string(
-               'configuration {\n'
-               '  foo.bar = {[1, 2, 3]: 3};\n'
-               '}')
+        '''
+        Test using a list as a key in a dictionary used as a setting. Should
+        not be accepted.
+        '''
+        with self.assertRaises(ParseError):
+            self.parser.parse_string(
+                'configuration {\n'
+                '  foo.bar = {[1, 2, 3]: 3};\n'
+                '}')
 
 if __name__ == '__main__':
     unittest.main()
