@@ -140,12 +140,12 @@ connector_end_type: DATAPORT_TYPE | EVENT_TYPE | PROCEDURE_TYPE
                      | threads
                      | template threads
                      | threads template;
-@template: TEMPLATE quoted_string;
+@template: TEMPLATE multi_string;
 @threads: WITH numeric_expr (THREAD | THREADS);
 
-import: IMPORT (quoted_string | angle_string) ';';
+import: IMPORT (multi_string | angle_string) ';';
 
-include: INCLUDE (quoted_string | angle_string) ';';
+include: INCLUDE (multi_string | angle_string) ';';
 
 method_decl: (VOID | type) id '\(' (VOID | (parameter (',' parameter)* ','?)?) '\)' ';';
 @parameter: array_parameter | scalar_parameter;
@@ -206,12 +206,13 @@ bitwise_not: '~' precedence0;
 
 /* Literals */
 number: '(0x[0-9a-fA-F]+|\d+(\.\d+)?)';
+multi_string: quoted_string+;
 quoted_string: '"[^"]*"'; // "
 angle_string: '<[^>]*>';
 list: '\[' (item (',' item)* ','?)? '\]';
 dict: '\{' (key ':' item (',' key ':' item)* ','?)? '\}';
-@key: numeric_expr | quoted_string;
-@item: numeric_expr | quoted_string | list | dict;
+@key: numeric_expr | multi_string;
+@item: numeric_expr | multi_string | list | dict;
 boolean_literal: TRUE1 | TRUE2 | FALSE1 | FALSE2;
 
 /* Things to ignore */

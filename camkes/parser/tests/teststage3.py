@@ -21,7 +21,8 @@ ME = os.path.abspath(__file__)
 # Make CAmkES importable
 sys.path.append(os.path.join(os.path.dirname(ME), '../../..'))
 
-from camkes.ast import Component, Configuration, LiftedAST, Procedure, Setting
+from camkes.ast import Component, Configuration, Include, LiftedAST, \
+    Procedure, Setting
 from camkes.internal.tests.utils import CAmkESTest, cpp_available, \
     plyplus_introspectible
 from camkes.parser.stage0 import CPP, Reader
@@ -1027,6 +1028,96 @@ class TestStage3(CAmkESTest):
         self.assertEqual(y.default, 'hello world')
 
         self.assertEqual(z.default, 42)
+
+    def test_string_concat(self):
+        '''
+        Test that C-style string concatenation works.
+        '''
+
+        content, _ = self.parser.parse_string(
+            'configuration {\n'
+            '  foo.bar = "hello" "world";\n'
+            '}')
+
+        self.assertLen(content.children, 1)
+        conf = content.children[0]
+        self.assertIsInstance(conf, Configuration)
+
+        self.assertLen(conf.settings, 1)
+        foobar = conf.settings[0]
+        self.assertIsInstance(foobar, Setting)
+
+        self.assertEqual(foobar.instance, 'foo')
+        self.assertEqual(foobar.attribute, 'bar')
+
+        self.assertEqual(foobar.value, 'helloworld')
+
+    def test_string_concat_line_split(self):
+        '''
+        Test that C-style string concatenation works across line breaks.
+        '''
+
+        content, _ = self.parser.parse_string(
+            'configuration {\n'
+            '  foo.bar = "hello" \n'
+            '"world";\n'
+            '}')
+
+        self.assertLen(content.children, 1)
+        conf = content.children[0]
+        self.assertIsInstance(conf, Configuration)
+
+        self.assertLen(conf.settings, 1)
+        foobar = conf.settings[0]
+        self.assertIsInstance(foobar, Setting)
+
+        self.assertEqual(foobar.instance, 'foo')
+        self.assertEqual(foobar.attribute, 'bar')
+
+        self.assertEqual(foobar.value, 'helloworld')
+
+    def test_loose_semicolons(self):
+        '''
+        Test that we can cope with empty statements.
+        '''
+        content, _ = self.parser.parse_string(';;;')
+        self.assertLen(content.children, 0)
+
+    def test_c_include(self):
+        '''
+        Test we can parse a relative C include.
+        '''
+        content, _ = self.parser.parse_string(
+            'procedure P { include "hello.h"; }')
+
+        self.assertLen(content.children, 1)
+        P = content.children[0]
+        self.assertIsInstance(P, Procedure)
+
+        self.assertLen(P.children, 1)
+        include = P.children[0]
+        self.assertIsInstance(include, Include)
+
+        self.assertTrue(include.relative)
+        self.assertEqual(include.source, 'hello.h')
+
+    def test_c_include2(self):
+        '''
+        Test we can parse a relative C include that relies on multi strings.
+        '''
+        content, _ = self.parser.parse_string(
+            'procedure P { include "hello" "world"; }')
+
+        self.assertLen(content.children, 1)
+        P = content.children[0]
+        self.assertIsInstance(P, Procedure)
+
+        self.assertLen(P.children, 1)
+        include = P.children[0]
+        self.assertIsInstance(include, Include)
+
+        self.assertTrue(include.relative)
+        self.assertEqual(include.source, 'helloworld')
 
 if __name__ == '__main__':
     unittest.main()

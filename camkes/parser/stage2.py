@@ -42,16 +42,25 @@ class Parse2(Parser):
         while len(queue) > 0:
             source, filename, item = queue.popleft()
 
-            if item.head == 'import':
+            if not hasattr(item, 'head'):
+                # Empty statement.
+                continue
+
+            elif item.head == 'import':
 
                 target = None
 
                 assert len(item.tail) == 1, 'unexpected raw AST structure'
 
                 import_type = item.tail[0].head
-                import_content = item.tail[0].tail[0][1:-1] # ← strip quotes
+                assert import_type in ('multi_string', 'angle_string'), \
+                    'unexpected child of import statement (stage 2 parser ' \
+                    'inconsistent with grammar?)'
 
-                if import_type == 'quoted_string':
+                if import_type == 'multi_string':
+                    # Concatenate, stripping quotes.
+                    import_content = ''.join(x.tail[0][1:-1]
+                        for x in item.tail[0].tail)
                     if filename is None:
                         target = os.path.abspath(import_content)
                     else:
@@ -61,6 +70,7 @@ class Parse2(Parser):
                         target = None
 
                 else:
+                    import_content = item.tail[0].tail[0][1:-1] # ← strip angles
                     # The import should be resolved in the built-in context.
                     for prefix in self.importpath:
                         target = os.path.abspath(os.path.join(prefix,

@@ -494,5 +494,52 @@ class TestStage1(CAmkESTest):
             self.assertRegexpMatches(str(e), 'A:44:', 'line directive not '
                 'accounted for')
 
+    def test_list_dict_key(self):
+        '''
+        Test using a list as a key in a dictionary used as a setting. Should
+        not be accepted.
+        '''
+        with self.assertRaises(ParseError):
+            self.parser.parse_string(
+                'configuration {\n'
+                '  foo.bar = {[1, 2, 3]: 3};\n'
+                '}')
+
+    def test_c_include(self):
+        '''
+        Test we can parse a C relative path include.
+        '''
+        _, content, _ = self.parser.parse_string(
+            'procedure Foo { include "hello.h"; }')
+
+        self.assertEqual(content.head, 'start')
+        self.assertLen(content.tail, 1)
+
+        self.assertEqual(content.tail[0].head, 'procedure_decl')
+        proc_decl = content.tail[0]
+
+        self.assertLen(proc_decl.tail, 2)
+        self.assertEqual(proc_decl.tail[0].head, 'id')
+        self.assertLen(proc_decl.tail[0].tail, 1)
+        self.assertEqual(proc_decl.tail[0].tail[0], 'Foo')
+
+        self.assertEqual(proc_decl.tail[1].head, 'procedure_defn')
+        proc_defn = proc_decl.tail[1]
+
+        self.assertLen(proc_defn.tail, 1)
+        self.assertEqual(proc_defn.tail[0].head, 'include')
+        include = proc_defn.tail[0]
+
+        self.assertLen(include.tail, 1)
+        self.assertEqual(include.tail[0].head, 'multi_string')
+        multi_string = include.tail[0]
+
+        self.assertLen(multi_string.tail, 1)
+        self.assertEqual(multi_string.tail[0].head, 'quoted_string')
+        quoted_string = multi_string.tail[0]
+
+        self.assertLen(quoted_string.tail, 1)
+        self.assertEqual(quoted_string.tail[0], '"hello.h"')
+
 if __name__ == '__main__':
     unittest.main()
