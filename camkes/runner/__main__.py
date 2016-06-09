@@ -438,8 +438,25 @@ def main(argv, out, err):
 
             # Save entries in both caches.
             cachea.save(new_args, cwd, value, inputs)
-            cacheb.save(ast_hash, new_args, set(options.elf) | extra_templates,
-                value)
+            if item != 'Makefile':
+                # We avoid caching the generated Makefile because it is not
+                # safe. The inputs to generation of the Makefile are not only
+                # the AST, but also the file names (`inputs`). If we cache it in
+                # the level B cache we risk the following scenario:
+                #
+                #   1. Generate the Makefile, caching it in the level B cache;
+                #   2. Modify the spec to import a file containing only white
+                #      space and/or comments; then
+                #   3. Generate the Makefile, missing the level A cache, but
+                #      hitting the level B cache.
+                #
+                # At this point, the generated Makefile is incorrect because it
+                # does not capture any dependencies on the imported file. We can
+                # now introduce something semantically relevant into this file
+                # (e.g. an Assembly block) and it will not be seen by the build
+                # system.
+                cacheb.save(ast_hash, new_args,
+                    set(options.elf) | extra_templates, value)
     else:
         def save(item, value):
             pass
