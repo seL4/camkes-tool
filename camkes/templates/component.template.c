@@ -418,6 +418,15 @@ void USED _camkes_tls_init(int thread_id) {
             camkes_get_tls()->thread_index = 1;
             break;
 
+        /*- if options.realtime -*/
+            /*# Dict mapping prefixes of passive threads to tuples of cptrs of the form (sc, ntfn) for use in initialising the threads.
+             *# It serves two purposes:
+             *#   - checking if a thread is passive given its prefix
+             *#   - looking up the caps needed to initialise a passive thread
+             #*/
+            /*- set passive_init_caps = {} -*/
+        /*- endif -*/
+
         /*# Interface threads #*/
         /*- for index, t in enumerate(threads[1:]) -*/
             /*# Prefix for names of TCBs and SCs in capdl spec #*/
@@ -426,8 +435,18 @@ void USED _camkes_tls_init(int thread_id) {
             /*- set _tcb = alloc_obj('%s_tcb' % prefix, seL4_TCBObject) -*/
             /*- set tcb = alloc_cap('%s_tcb' % prefix, _tcb) -*/
 
+            /*- set p = Perspective(instance=me.name, interface=t.interface.name, intra_index=t.intra_index) -*/
+
             /*- if options.realtime -*/
                 /*- set sc = alloc('%s_sc' % prefix, seL4_SchedContextObject) -*/
+                /*- if configuration[me.name].get(p['passive_attribute'], False) -*/
+                    /*# This notification will allow passive interface threads to inform the main thread when it has completed
+                     *# interface-specific initialisation. At this point, the main thread will unbind the interface thread's
+                     *# scheduling context, making it passive.
+                     #*/
+                    /*- set init_ntfn = alloc('%s_passive_init_ntfn' % prefix, seL4_NotificationObject, read=True, write=True) -*/
+                    /*- do passive_init_caps.__setitem__(prefix, (sc, init_ntfn)) -*/
+                /*- endif -*/
             /*- endif -*/
 
             /*- if options.debug_fault_handlers -*/
@@ -437,7 +456,6 @@ void USED _camkes_tls_init(int thread_id) {
               /*- do setattr(_tcb, 'fault_ep_slot', fault_ep_cap) -*/
             /*- endif -*/
             case /*? tcb ?*/ : { /* Interface /*? t.interface.name ?*/ */
-                /*- set p = Perspective(instance=me.name, interface=t.interface.name, intra_index=t.intra_index) -*/
                 /*? macros.save_ipc_buffer_address(p['ipc_buffer_symbol']) ?*/
                 camkes_get_tls()->tcb_cap = /*? tcb ?*/;
                 camkes_get_tls()->thread_index = /*? index ?*/ + 2;
@@ -745,6 +763,26 @@ int USED main(int argc UNUSED, char *argv[]) {
                     sync_sem_bare_post(/*? post_init_ep ?*/, &/*? post_init_lock ?*/);
                 /*- endfor -*/
             /*- endif -*/
+
+            /*- if options.realtime -*/
+                /* Unbind scheduling contexts from passive threads */
+                /*- for prefix, (sc, init_ntfn) in passive_init_caps.items() -*/
+                    /*# Wait until the passive interface is finished initialising, then unbind its scheduling context. #*/
+                    seL4_Wait(/*? init_ntfn ?*/, NULL);
+                    /*- set result = c_symbol() -*/
+                    int /*? result ?*/ UNUSED = seL4_SchedContext_Unbind(/*? sc ?*/);
+                    ERR_IF(/*? result ?*/ != 0, camkes_error, ((camkes_error_t){
+                            .type = CE_SYSCALL_FAILED,
+                            .instance = "/*? me.name ?*/",
+                            .description = "failed to unbind initialisation scheduling context for thread \"/*? prefix ?*/_tcb\"",
+                            .syscall = SchedContextUnbind,
+                            .error = /*? result ?*/,
+                        }), ({
+                            return -1;
+                        }));
+                /*- endfor -*/
+            /*- endif -*/
+
             /*- if me.type.control -*/
                 return run();
             /*- else -*/
@@ -766,13 +804,31 @@ int USED main(int argc UNUSED, char *argv[]) {
                     /* Wait for the `post_init` to complete. */
                     sync_sem_bare_wait(/*? post_init_ep ?*/, &/*? post_init_lock ?*/);
                 /*- endif -*/
-                extern int /*? t.interface.name ?*/__run(void) WEAK;
-                if (/*? t.interface.name ?*/__run) {
-                    return /*? t.interface.name ?*/__run();
-                } else {
-                    /* Interface not connected. */
-                    return 0;
-                }
+
+                /*- set prefix = '%d_%s_%d_%04d' % (len(me.name), t.interface.name, len(t.interface.name), t.intra_index) -*/
+                /*- if options.realtime and prefix in passive_init_caps -*/
+
+                    /*- set sc, init_ntfn = passive_init_caps[prefix] -*/
+
+                    /*# If this is a passive interface, the __run_passive function must SignalRecv to tell the control
+                     *# thread to unbind its sc, and simultaneously start waiting for rpc calls. #*/
+                    extern int /*? t.interface.name ?*/__run_passive(seL4_CPtr) WEAK;
+                    if (/*? t.interface.name ?*/__run_passive) {
+                        return /*? t.interface.name ?*/__run_passive(/*? init_ntfn ?*/);
+                    } else {
+                        /* Inform the main component thread that we're finished initialising */
+                        seL4_Signal(/*? init_ntfn ?*/);
+
+                        return 0;
+                    }
+                /*- else -*/
+                    extern int /*? t.interface.name ?*/__run(void) WEAK;
+                    if (/*? t.interface.name ?*/__run) {
+                        return /*? t.interface.name ?*/__run();
+                    }
+                /*- endif -*/
+
+                return 0;
             }
         /*- endfor -*/
 

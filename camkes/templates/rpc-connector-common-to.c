@@ -193,7 +193,22 @@ seL4_Word /*? me.interface.name ?*/_get_badge(void) {
 
 /*- include 'array-typedef-check.c' -*/
 
-int /*? me.interface.name ?*/__run(void) {
+
+/*- set p = Perspective(instance=me.instance.name, interface=me.interface.name) -*/
+/*- set passive = options.realtime and configuration[me.instance.name].get(p['passive_attribute'], False) -*/
+
+/*# Passive interface "run" functions must be passed a ntfn cap as part of the passive thread init protocol.
+ *# As such if this is a passive interface, a different function prototype is needed for "run".
+ #*/
+int
+/*- if passive -*/
+    /*- set init_ntfn = c_symbol() -*/
+    /*? me.interface.name ?*/__run_passive(seL4_CPtr /*? init_ntfn ?*/)
+/*- else -*/
+    /*? me.interface.name ?*/__run(void)
+/*- endif -*/
+{
+
     /*# Check any typedefs we have been given are not arrays. #*/
     /*- include 'call-array-typedef-check.c' -*/
 
@@ -207,7 +222,14 @@ int /*? me.interface.name ?*/__run(void) {
     /*- endif -*/
 
     /*- set info = c_symbol('info') -*/
-    seL4_MessageInfo_t /*? info ?*/ = seL4_Recv(/*? ep ?*/, & /*? me.interface.name ?*/_badge);
+    /*- if passive -*/
+        /* This interface has a passive thread, must let the control thread know before waiting */
+        seL4_MessageInfo_t /*? info ?*/ = seL4_SignalRecv(/*? init_ntfn ?*/, /*? ep ?*/, & /*? me.interface.name ?*/_badge);
+    /*- else -*/
+       /* This interface has an active thread, just wait for an RPC */
+       seL4_MessageInfo_t /*? info ?*/ = seL4_Recv(/*? ep ?*/, & /*? me.interface.name ?*/_badge);
+    /*- endif -*/
+
     while (1) {
 
         /*- set buffer = c_symbol('buffer') -*/
