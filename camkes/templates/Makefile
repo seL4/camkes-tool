@@ -49,6 +49,9 @@
 # All targets need to be rebuilt if the source CAmkES descriptions change.
 ${TARGETS}: /*? ' '.join(imported) ?*/
 
+# This Makefile itself needs to be rebuilt if the source CAmkES descriptions change.
+/*? options.outfile.name ?*/: /*? ' '.join(imported) ?*/
+
 /*- set instances = composition.instances -*/
 /*- set connections = composition.connections -*/
 
