@@ -420,11 +420,14 @@ void USED _camkes_tls_init(int thread_id) {
 
         /*# Interface threads #*/
         /*- for index, t in enumerate(threads[1:]) -*/
-            /*- set _tcb = alloc_obj('%d_%s_%d_%04d_tcb' % (len(me.name), t.interface.name, len(t.interface.name), t.intra_index), seL4_TCBObject) -*/
-            /*- set tcb = alloc_cap('%d_%s_%d_%04d_tcb' % (len(me.name), t.interface.name, len(t.interface.name), t.intra_index), _tcb) -*/
+            /*# Prefix for names of TCBs and SCs in capdl spec #*/
+            /*- set prefix = '%d_%s_%d_%04d' % (len(me.name), t.interface.name, len(t.interface.name), t.intra_index) -*/
+
+            /*- set _tcb = alloc_obj('%s_tcb' % prefix, seL4_TCBObject) -*/
+            /*- set tcb = alloc_cap('%s_tcb' % prefix, _tcb) -*/
 
             /*- if options.realtime -*/
-                /*- set sc = alloc('%d_%s_%d_%04d_sc' % (len(me.name), t.interface.name, len(t.interface.name), t.intra_index), seL4_SchedContextObject) -*/
+                /*- set sc = alloc('%s_sc' % prefix, seL4_SchedContextObject) -*/
             /*- endif -*/
 
             /*- if options.debug_fault_handlers -*/
