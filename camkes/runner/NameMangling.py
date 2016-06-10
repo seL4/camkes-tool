@@ -291,6 +291,10 @@ DERIVATIONS = {
         BackwardDeriver(r'(.+)_group_bin', 'elf_name', 'group'),
         ForwardDeriver('camkes_dma_pool', 'dma_pool_symbol'),
         BackwardDeriver(r'.*?\.?([a-zA-Z_]\w*)$', 'instance', 'safe_instance'),
+        ControlDeriver(r'_passive$', 'passive_attribute'),
+        FromControlDeriver('_passive', 'passive_attribute'),
+        ForwardDeriver('%(interface)s_passive', 'passive_attribute'),
+        BackwardDeriver(r'([^_].*)_passive$', 'passive_attribute', 'interface'),
     ], FILTERS:[
         PerThreadDeriver('tcb'),
         FromControlPerThreadDeriver('tcb'),
