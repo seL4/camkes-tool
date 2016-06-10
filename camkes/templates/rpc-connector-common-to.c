@@ -383,6 +383,35 @@ int
                         /*- endfor -*/
                     );
 
+
+                    /*- set tls = c_symbol() -*/
+                    camkes_tls_t * /*? tls ?*/ UNUSED = camkes_get_tls();
+
+
+                    /*- if passive -*/
+                        /*# We will be seL4_ReplyRecv-ing after marshalling, so
+                         *# the reply cap must be swapped into the thread's reply
+                         *# cap slot. Swapping must be done before marshalling, as
+                         *# cap invocations use the ipc buffer, and so would
+                         *# corrupt the message placed there during marshalling.
+                         #*/
+
+                        /* Swap the saved reply cap into the tcb's reply cap slot */
+
+                        /*- set swap_caller_result = c_symbol() -*/
+                        int /*? swap_caller_result ?*/ UNUSED = seL4_NoError;
+
+                        /*- if not options.fcall_leave_reply_cap -*/
+                            /*? swap_caller_result ?*/ = seL4_CNode_SwapCaller(/*? cnode ?*/, /*? reply_cap_slot ?*/, 32);
+                        /*- elif len(me.instance.type.provides + me.instance.type.uses + me.instance.type.consumes + me.instance.type.mutexes + me.instance.type.semaphores) > 1 -*/
+                            if (!(/*? tls ?*/->reply_cap_in_tcb)) {
+                                /* Reply cap isn't in our tcb - swap it in */
+                                /*? swap_caller_result ?*/ = seL4_CNode_SwapCaller(/*? cnode ?*/, /*? reply_cap_slot ?*/, 32);
+                            }
+                        /*- endif -*/
+                    /*- endif -*/
+
+
                     /* Marshal the response */
                     /*- set function = '%s_marshal_outputs' % m.name -*/
                     /*- set output_parameters = list(filter(lambda('x: x.direction in [\'out\', \'inout\']'), m.parameters)) -*/
@@ -408,6 +437,40 @@ int
                       /*- endif -*/
                     /*- endfor -*/
 
+                    /*- if passive -*/
+                        /*# Check the result of seL4_CNode_SwapCaller above.
+                         *# This is done here so dynamically allocated memory
+                         *# can be freed before a potential error.
+                         #*/
+                        /*- if not options.fcall_leave_reply_cap -*/
+                            ERR_IF(/*? swap_caller_result ?*/ != 0, /*? error_handler ?*/, ((camkes_error_t){
+                                    .type = CE_SYSCALL_FAILED,
+                                    .instance = "/*? instance ?*/",
+                                    .interface = "/*? interface ?*/",
+                                    .description = "failed to swap reply cap in /*? m.name ?*/",
+                                    .syscall = CNodeSwapCaller,
+                                    .error = /*? swap_caller_result ?*/,
+                                }), ({
+                                    /*? info ?*/ = seL4_Recv(/*? ep ?*/, & /*? me.interface.name ?*/_badge);
+                                    continue;
+                                }));
+                        /*- elif len(me.instance.type.provides + me.instance.type.uses + me.instance.type.consumes + me.instance.type.mutexes + me.instance.type.semaphores) > 1 -*/
+                            if (!(/*? tls ?*/->reply_cap_in_tcb)) {
+                                ERR_IF(/*? swap_caller_result ?*/ != 0, /*? error_handler ?*/, ((camkes_error_t){
+                                    .type = CE_SYSCALL_FAILED,
+                                    .instance = "/*? instance ?*/",
+                                    .interface = "/*? interface ?*/",
+                                    .description = "failed to swap reply cap in /*? m.name ?*/",
+                                    .syscall = CNodeSwapCaller,
+                                    .error = /*? swap_caller_result ?*/,
+                                }), ({
+                                    /*? info ?*/ = seL4_Recv(/*? ep ?*/, & /*? me.interface.name ?*/_badge);
+                                    continue;
+                                }));
+                            }
+                        /*- endif -*/
+                    /*- endif -*/
+
                     /* Check if there was an error during marshalling. We do
                      * this after freeing internal parameter variables to avoid
                      * leaking memory on errors.
@@ -428,11 +491,16 @@ int
 
                     /* Send the response */
                     /*- if not options.fcall_leave_reply_cap -*/
-                        seL4_Send(/*? reply_cap_slot ?*/, /*? info ?*/);
-                        /*? info ?*/ = seL4_Recv(/*? ep ?*/, & /*? me.interface.name ?*/_badge);
+
+                        /*- if passive -*/
+                            /*# The reply cap was swapped into the tcb's reply cap slot #*/
+                            /*? info ?*/ = seL4_ReplyRecv(/*? ep ?*/, /*? info ?*/, & /*? me.interface.name ?*/_badge);
+                        /*- else -*/
+                            seL4_Send(/*? reply_cap_slot ?*/, /*? info ?*/);
+                            /*? info ?*/ = seL4_Recv(/*? ep ?*/, & /*? me.interface.name ?*/_badge);
+                        /*- endif -*/
+
                     /*- elif len(me.instance.type.provides + me.instance.type.uses + me.instance.type.consumes + me.instance.type.mutexes + me.instance.type.semaphores) > 1 -*/
-                        /*- set tls = c_symbol() -*/
-                        camkes_tls_t * /*? tls ?*/ = camkes_get_tls();
                         assert(/*? tls ?*/ != NULL);
                         if (/*? tls ?*/->reply_cap_in_tcb) {
                             /*? tls ?*/->reply_cap_in_tcb = false;
@@ -451,8 +519,14 @@ int
                                     /*? info ?*/ = seL4_Recv(/*? ep ?*/, & /*? me.interface.name ?*/_badge);
                                     continue;
                                 }));
-                            seL4_Send(/*? reply_cap_slot ?*/, /*? info ?*/);
-                            /*? info ?*/ = seL4_Recv(/*? ep ?*/, & /*? me.interface.name ?*/_badge);
+
+                            /*- if passive -*/
+                                /*? info ?*/ = seL4_ReplyRecv(/*? ep ?*/, /*? info ?*/, & /*? me.interface.name ?*/_badge);
+                            /*- else -*/
+                                seL4_Send(/*? reply_cap_slot ?*/, /*? info ?*/);
+                                /*? info ?*/ = seL4_Recv(/*? ep ?*/, & /*? me.interface.name ?*/_badge);
+                            /*- endif -*/
+
                         }
                     /*- else -*/
 
