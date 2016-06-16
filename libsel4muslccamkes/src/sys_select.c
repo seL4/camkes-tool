@@ -9,6 +9,7 @@
  */
 
 #include <assert.h>
+#include <errno.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -138,7 +139,6 @@ long sys__newselect(va_list ap)
 		
 	} else {
 		assert(!"sys__newselect not implemented");
+        return -ENOSYS;
 	}
-	
-	return -1;
 }
