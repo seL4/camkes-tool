@@ -28,9 +28,39 @@ extern int camkes_io_port_in(void *cookie, uint32_t port, int io_size,
 extern int camkes_io_port_out(void *cookie, uint32_t port, int io_size,
     uint32_t val);
 
+/* Basic linked-list implementation. */
+typedef struct ll_ {
+    void *data;
+    struct ll_ *next;
+} ll_t;
+
+static UNUSED int ll_prepend(ll_t **list, const void *data) {
+    ll_t *node = malloc(sizeof *node);
+    if (node == NULL) {
+        return -1;
+    }
+    node->data = (void*)data;
+    node->next = *list;
+    *list = node;
+    return 0;
+}
+
+static UNUSED int ll_remove(ll_t **list, const void *data) {
+    for (ll_t **l = list; *l != NULL; l = &(*l)->next) {
+        if ((*l)->data == data) {
+            /* found it */
+            ll_t *temp = *l;
+            *l = (*l)->next;
+            free(temp);
+            return 0;
+        }
+    }
+    return -1;
+}
+
 typedef struct {
     ps_io_map_fn_t map;
-    list_t mapped;
+    ll_t *mapped;
 } cookie_t;
 
 /* Debug wrapper for IO map. This function calls the underlying map function
@@ -48,7 +78,7 @@ static UNUSED void * io_map(void *cookie, uintptr_t paddr, size_t size,
         /* The IO map function gave us a successful result; track this pointer
          * to lookup during unmapping.
          */
-        if (list_prepend(&c->mapped, p) != 0) {
+        if (ll_prepend(&c->mapped, p) != 0) {
             LOG_ERROR("failed to track mapped IO pointer %p\n", p);
         }
     }
@@ -73,7 +103,7 @@ static void io_unmap(void *cookie UNUSED, void *vaddr UNUSED, size_t size UNUSED
 #ifndef NDEBUG
     cookie_t *c = cookie;
     /* Make sure we previously mapped the pointer the caller gave us. */
-    if (list_remove(&c->mapped, vaddr, pointer_compare) != 0) {
+    if (ll_remove(&c->mapped, vaddr) != 0) {
         LOG_ERROR("unmapping an IO pointer that was not previously mapped: %p\n",
             vaddr);
     }
@@ -91,10 +121,7 @@ int camkes_io_mapper(ps_io_mapper_t *mapper) {
         return -1;
     }
     c->map = camkes_io_map;
-    if (list_init(&c->mapped) != 0) {
-        free(c);
-        return -1;
-    }
+    c->mapped = NULL;
     mapper->cookie = c;
     mapper->io_map_fn = io_map;
 #endif
