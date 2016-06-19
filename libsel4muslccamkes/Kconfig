@@ -22,11 +22,3 @@ config LIB_SEL4_MUSLC_CAMKES_CPIO_FS
     help
         If this is enabled open and read syscalls will attempt to use the cpio archive
         _cpio_archive. This implements a basic read only POSIX interface to that file system
-
-config LIB_SEL4_MUSLC_CAMKES_ARCH_PUTCHAR_WEAK
-    bool "Make __arch_putchar a weak symbol"
-    default n
-    depends on LIB_SEL4_MUSLC_CAMKES
-    help
-        This allows you to override __arch_putchar in another library or your
-	application.
