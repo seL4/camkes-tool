@@ -30,7 +30,6 @@ static long (*syscall_table[])(va_list) = {
     [__NR_getpid] = sys_getpid,
     [__NR_tgkill] = sys_tgkill,
     [__NR_exit_group] = sys_exit_group,
-    [__NR_open] = sys_open,
     [__NR_close] = sys_close,
     [__NR_readv] = sys_readv,
     [__NR_read] = sys_read,

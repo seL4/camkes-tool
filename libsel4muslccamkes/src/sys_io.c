@@ -190,58 +190,6 @@ sys_platform_write(void *data, size_t count)
     return count;
 }
 
-long
-sys_open(va_list ap)
-{
-    const char *pathname UNUSED = va_arg(ap, const char *);
-    int flags = va_arg(ap, int);
-    mode_t mode UNUSED = va_arg(ap, mode_t);
-
-    /* mask out flags we can support */
-    flags &= ~O_LARGEFILE;
-    /* only support reading in basic modes */
-    if (flags != O_RDONLY) {
-        LOG_ERROR("Open only supports O_RDONLY, not 0x%x on %s\n", flags, pathname);
-        flags = O_RDONLY;
-    }
-    /* as we do not support create, ignore the mode */
-    long unsigned int size;
-    /* wrapped in a config because the _cpio_archive definition is wrapped in a config */
-    char *file = NULL;
-#ifdef CONFIG_LIB_SEL4_MUSLC_CAMKES_CPIO_FS
-    file = cpio_get_file(_cpio_archive, pathname, &size);
-    if (!file && strncmp(pathname, "./", 2) == 0) {
-        file = cpio_get_file(_cpio_archive, pathname + 2, &size);
-    }
-#else
-    LOG_ERROR("Warning: attempted to use fopen with no file system (CONFIG_LIB_SEL4_MUSLC_CAMKES_CPIO_FS not set)\n");
-    return -ENOENT;
-#endif
-    if (!file) {
-        LOG_ERROR("Failed to open file %s\n", pathname);
-        return -ENOENT;
-    }
-    int fd = allocate_fd();
-    if (fd == -EMFILE) {
-        LOG_ERROR("Out of fds!\n");
-        return -EMFILE;
-    }
-
-    muslcsys_fd_t *fds = get_fd_struct(fd);
-    fds->filetype = FILE_TYPE_CPIO;
-    fds->data = malloc(sizeof(cpio_file_data_t));
-    if (!fds->data) {
-        LOG_ERROR("Malloc failed\n");
-        add_free_fd(fd);
-        return -ENOMEM;
-    }
-    cpio_file_data_t *fd_data = (cpio_file_data_t*)fds->data;
-    fd_data->start = file;
-    fd_data->size = size;
-    fd_data->current = 0;
-    return fd;
-}
-
 int sock_close(int fd) __attribute__((weak));
 long
 sys_close(va_list ap)
