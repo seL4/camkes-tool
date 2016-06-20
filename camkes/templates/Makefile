@@ -354,12 +354,6 @@ $(/*? i.name ?*/_CFILES:%.c=%.c_pp): ${/*? i.name ?*/_HFILES} ${/*? i.name ?*/_C
 /*? i.name ?*/_instance_LDFLAGS += -Wl,--relocatable
 /*- endif -*/
 
-# Memory allocation debugging. Note these symbols only need to be wrapped at
-# the instance level because they are resolved in the first link.
-ifeq (${CONFIG_CAMKES_DEBUG_MALLOC},y)
-/*? i.name ?*/_instance_LDFLAGS += $(foreach i,malloc free realloc calloc,-Wl,--wrap=$i)
-endif
-
 CRTOBJFILES ?= $(SEL4_LIBDIR)/crt1.o $(SEL4_LIBDIR)/crti.o $(shell $(CC) $(CFLAGS) $(CPPFLAGS)  -print-file-name=crtbegin.o)
 FINOBJFILES ?= $(shell $(CC) $(CFLAGS) $(CPPFLAGS) -print-file-name=crtend.o) $(SEL4_LIBDIR)/crtn.o
 

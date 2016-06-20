@@ -322,13 +322,6 @@ menu "CAmkES Options"
 
     menu "Debugging"
 
-        config CAMKES_DEBUG_MALLOC
-        bool "Enable allocation debugging"
-        default n
-        help
-            This option instruments memory allocation functions to catch heap
-            corruption. Use this for debugging dynamic memory problems.
-
         config CAMKES_FAULT_HANDLERS
         bool "Debugging fault handlers"
         default y
