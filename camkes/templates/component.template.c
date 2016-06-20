@@ -232,22 +232,18 @@ int /*? s.name ?*/_post(void) {
 /*- set heap_size = configuration[me.name].get('heap_size', 'CONFIG_CAMKES_DEFAULT_HEAP_SIZE') -*/
 
 /*- set heap = c_symbol() -*/
-#if /*? heap_size ?*/ > 0
 static char /*? heap ?*/[/*? heap_size ?*/];
 extern char *morecore_area;
 extern size_t morecore_size;
-#endif
 
 /* General CAmkES platform initialisation. Expects to be run in a
  * single-threaded, exclusive context. On failure it does not return.
  */
 /*- set init = c_symbol() -*/
 static void /*? init ?*/(void) {
-#if /*? heap_size ?*/ > 0
     /* Assign the heap */
     morecore_area = /*? heap ?*/;
     morecore_size = /*? heap_size ?*/;
-#endif
 
     /* The user has actually had no opportunity to install any error handlers at
      * this point, so any error triggered below will certainly be fatal.
