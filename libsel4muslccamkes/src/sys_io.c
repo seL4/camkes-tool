@@ -206,9 +206,7 @@ sys_close(va_list ap)
 
     muslcsys_fd_t *fds = get_fd_struct(fd);
     
-    if (fds->filetype == FILE_TYPE_CPIO) {
-        free(fds->data);
-    } else if (fds->filetype == FILE_TYPE_SOCKET && sock_close) {
+    if (fds->filetype == FILE_TYPE_SOCKET && sock_close) {
         sock_close(*(int*)fds->data);
         fds->filetype = -1;
         free(fds->data);
