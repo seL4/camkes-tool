@@ -28,7 +28,6 @@ long sys_read(va_list ap);
 long sys_write(va_list ap);
 long sys_ioctl(va_list ap);
 long sys_prlimit64(va_list ap);
-long sys_access(va_list ap);
 long sys_fcntl64(va_list ap);
 long sys_brk(va_list ap);
 long sys_madvise(va_list ap);

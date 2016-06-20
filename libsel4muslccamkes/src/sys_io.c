@@ -372,22 +372,6 @@ safe_addition(int a, int b) {
            !(a < 0 && b < INT_MAX - a);
 }
 
-long sys_access(va_list ap) {
-    const char *pathname = va_arg(ap, const char *);
-    int mode = va_arg(ap, int);
-    /* just try and open. currently we only support reading with the CPIO file system */
-    if (mode == F_OK || mode == R_OK) {
-        int fd = open(pathname, O_RDONLY, 0);
-        if(fd < 0) {
-            return -EACCES;
-        }
-        close(fd);
-        return 0;
-    }
-    LOG_ERROR("Must pass F_OK or R_OK to %s\n", __FUNCTION__);
-    return -EACCES;
-}
-
 int sock_fcntl(int sockfd, int cmd, int val) __attribute__((weak));
 long sys_fcntl64(va_list ap)
 {
