@@ -114,10 +114,8 @@ sys_brk(va_list ap)
     } else if (muslc_this_vspace != NULL) {
         return sys_brk_dynamic(ap);
     } else {
-        LOG_ERROR("You need to define either morecore_area or the muslc*");
-        LOG_ERROR("global variables to use malloc\n");
-        assert(morecore_area != NULL || muslc_this_vspace != NULL);
-        return 0;
+        ZF_LOGE("brk called before morecore_area has been initialised");
+        return -ENOSYS;
     }
 }
 
@@ -183,9 +181,8 @@ sys_mmap2(va_list ap)
     } else if (muslc_this_vspace != NULL) {
         return sys_mmap2_dynamic(ap);
     } else {
-        LOG_ERROR("mmap requires morecore_area or muslc* vars to be initialised\n");
-        assert(morecore_area != NULL || muslc_this_vspace != NULL);
-        return -ENOMEM;
+        ZF_LOGE("mmap called before morecore_area has been initialised");
+        return -ENOSYS;
     }
 }
 
@@ -282,9 +279,8 @@ sys_mremap(va_list ap)
     } else if (muslc_this_vspace != NULL) {
         return sys_mremap_dynamic(ap);
     } else {
-        LOG_ERROR("mrepmap requires morecore_area or muslc* vars to be initialised\n");
-        assert(morecore_area != NULL || muslc_this_vspace != NULL);
-        return 0;
+        ZF_LOGE("mremap called before morecore_area has been initialised");
+        return -ENOSYS;
     }
 }
 
