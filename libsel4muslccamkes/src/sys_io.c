@@ -29,25 +29,12 @@
 #include <sys/socket.h>
 #include <bits/syscall.h>
 
-#include <cpio/cpio.h>
-
 #include <sel4utils/util.h>
 
 #include "sys_io.h"
 
-/* We need to wrap this in the config to prevent linker errors */
-#ifdef CONFIG_LIB_SEL4_MUSLC_CAMKES_CPIO_FS
-extern char _cpio_archive[];
-#endif
-
 /* CAmkES dataport for socket interface. */
 extern volatile char sock_data_data[PAGE_SIZE_4K] __attribute__((weak));
-
-typedef struct cpio_file_data {
-    char *start;
-    uint32_t size;
-    off_t current;
-} cpio_file_data_t;
 
 /* file table, indexed by file descriptor */
 static muslcsys_fd_t *fd_table = NULL;
