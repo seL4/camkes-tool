@@ -372,65 +372,6 @@ safe_addition(int a, int b) {
            !(a < 0 && b < INT_MAX - a);
 }
 
-long
-sys_lseek(va_list ap)
-{
-    int fd = va_arg(ap, int);
-    off_t offset = va_arg(ap, off_t);
-    int whence = va_arg(ap, int);
-
-    if (!valid_fd(fd)) {
-        return -EBADF;
-    }
-
-    muslcsys_fd_t *muslc_fd = get_fd_struct(fd);
-    if (muslc_fd == NULL) {
-        return -EBADF;
-    }
-
-    if (muslc_fd->filetype != FILE_TYPE_CPIO) {
-        assert(!"Not implemented\n");
-        return -EBADF;
-    }
-
-    /* if its a valid fd it must be a cpio file, we
-     * don't support anything else */
-    cpio_file_data_t *cpio_fd = muslc_fd->data;
-
-    int new_offset = 0;
-    switch (whence) {
-        case SEEK_SET:
-            new_offset = offset;
-            break;
-        case SEEK_CUR:
-            if (!safe_addition(cpio_fd->current, offset)) {
-                return -EOVERFLOW;
-            }
-            new_offset = cpio_fd->current + offset;
-            break;
-        case SEEK_END:
-            if (offset > 0) {
-                /* can't seek beyond the end of the cpio file */
-                return -EINVAL;
-            }
-            new_offset = cpio_fd->size + offset;
-            break;
-        default:
-            return -EINVAL;
-    }
-
-    if (new_offset < 0) {
-        return -EINVAL;
-    /* can't seek past the end of the cpio file */
-    } else if (new_offset > cpio_fd->size) {
-        return -EINVAL;
-    }
-
-    cpio_fd->current = new_offset;
-
-    return new_offset;
-}
-
 long sys_access(va_list ap) {
     const char *pathname = va_arg(ap, const char *);
     int mode = va_arg(ap, int);
