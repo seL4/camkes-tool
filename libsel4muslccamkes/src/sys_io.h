@@ -17,7 +17,6 @@
 #define STDERR_FD     2
 #define FIRST_USER_FD 3
 
-#define FILE_TYPE_CPIO    0
 #define FILE_TYPE_SOCKET  1 
 
 #define FD_TABLE_SIZE(x) (sizeof(muslcsys_fd_t) * (x))
