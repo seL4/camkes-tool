@@ -113,8 +113,7 @@ sys_mmap(va_list ap)
 static long
 sys_mremap_static(va_list ap)
 {
-    assert(!"not implemented");
-    return -ENOMEM;
+    return -ENOSYS;
 }
 
 long
@@ -130,6 +129,5 @@ sys_mremap(va_list ap)
 
 long sys_munmap(va_list ap)
 {
-	assert(!"sys_munmap not implemented");
-	return 0;
+	return -ENOSYS;
 }
