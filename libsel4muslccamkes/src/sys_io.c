@@ -33,7 +33,6 @@
 
 #include <sel4utils/util.h>
 
-#include "arch_stdio.h"
 #include "sys_io.h"
 
 /* We need to wrap this in the config to prevent linker errors */
@@ -176,6 +175,9 @@ get_fd_struct(int fd)
     assert(fd < num_fds && fd >= FIRST_USER_FD);
     return &fd_table[fd - FIRST_USER_FD];
 }
+
+/* This function is implemented in generated code. */
+extern void __arch_putchar(int c);
 
 static size_t
 sys_platform_write(void *data, size_t count)

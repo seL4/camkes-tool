@@ -104,6 +104,9 @@ long sel4_vsyscall(long sysnum, ...) {
     /* Call it */
     long ret = syscall_table[sysnum](al);
     va_end(al);
+    if (ret == -ENOSYS) {
+        debug_error(sysnum);
+    }
     return ret;
 }
 
