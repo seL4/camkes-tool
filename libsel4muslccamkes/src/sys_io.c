@@ -351,12 +351,6 @@ sys_prlimit64(va_list ap)
     return result;
 }
 
-static int
-safe_addition(int a, int b) {
-    return !(a >= 0 && b > INT_MAX - a) &&
-           !(a < 0 && b < INT_MAX - a);
-}
-
 int sock_fcntl(int sockfd, int cmd, int val) __attribute__((weak));
 long sys_fcntl64(va_list ap)
 {
