@@ -12,11 +12,9 @@
 #include <sel4/sel4.h>
 #include <stdarg.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <camkes/tls.h>
 #include <utils/util.h>
-
-/* Implemented in Musl C. */
-void abort(void);
 
 static void
 sel4_abort(void)

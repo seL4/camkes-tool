@@ -9,6 +9,7 @@
  */
 
 #include <assert.h>
+#include <errno.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -16,9 +17,6 @@
 #include <sys/select.h>
 
 #include "sys_io.h"
-
-/* CAmkES dataport for socket interface. */
-extern volatile char sock_data_data[PAGE_SIZE_4K] __attribute__((weak));
 
 static void fdset_to_sockset(int maxfd, fd_set *fds)
 {
@@ -138,7 +136,6 @@ long sys__newselect(va_list ap)
 		
 	} else {
 		assert(!"sys__newselect not implemented");
+        return -ENOSYS;
 	}
-	
-	return -1;
 }

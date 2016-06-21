@@ -19,9 +19,6 @@
 
 #include "sys_io.h"
 
-/* CAmkES dataport for socket interface. */
-extern volatile char sock_data_data[PAGE_SIZE_4K] __attribute__((weak));
-
 int sock_socket(int domain, int type, int protocol) __attribute__((weak));
 long sys_socket(va_list ap)
 {

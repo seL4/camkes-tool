@@ -32,4 +32,7 @@ int allocate_fd(void);
 
 muslcsys_fd_t *get_fd_struct(int fd);
 
+/* CAmkES dataport for socket interface. */
+extern volatile char sock_data_data[PAGE_SIZE_4K] __attribute__((weak));
+
 #endif

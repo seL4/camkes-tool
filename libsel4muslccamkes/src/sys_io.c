@@ -33,9 +33,6 @@
 
 #include "sys_io.h"
 
-/* CAmkES dataport for socket interface. */
-extern volatile char sock_data_data[PAGE_SIZE_4K] __attribute__((weak));
-
 /* file table, indexed by file descriptor */
 static muslcsys_fd_t *fd_table = NULL;
 /* stack of free file descriptors */
