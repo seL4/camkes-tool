@@ -8,6 +8,7 @@
  * @TAG(NICTA_BSD)
  */
 
+#include <autoconf.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdint.h>
