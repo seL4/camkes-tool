@@ -17,9 +17,6 @@
 
 #include "sys_io.h"
 
-/* CAmkES dataport for socket interface. */
-extern volatile char sock_data_data[PAGE_SIZE_4K] __attribute__((weak));
-
 static void fdset_to_sockset(int maxfd, fd_set *fds)
 {
 	muslcsys_fd_t *fdt;

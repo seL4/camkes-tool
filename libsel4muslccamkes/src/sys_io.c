@@ -40,9 +40,6 @@
 extern char _cpio_archive[];
 #endif
 
-/* CAmkES dataport for socket interface. */
-extern volatile char sock_data_data[PAGE_SIZE_4K] __attribute__((weak));
-
 typedef struct cpio_file_data {
     char *start;
     uint32_t size;
