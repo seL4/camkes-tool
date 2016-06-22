@@ -248,7 +248,7 @@ int /*? me.interface.name ?*/__run(void) {
                     .type = CE_MALFORMED_RPC_PAYLOAD,
                     .instance = "/*? instance ?*/",
                     .interface = "/*? interface ?*/",
-                    .description = "truncated message encountered while unmarshalling method index in /*? name ?*/",
+                    .description = "truncated message encountered while unmarshalling method index in /*? me.interface.name ?*/",
                     .length = /*? size ?*/,
                     .current_index = sizeof(* /*? call_ptr ?*/),
                 }), ({
@@ -307,7 +307,7 @@ int /*? me.interface.name ?*/__run(void) {
                                 .type = CE_SYSCALL_FAILED,
                                 .instance = "/*? instance ?*/",
                                 .interface = "/*? interface ?*/",
-                                .description = "failed to save reply cap in /*? name ?*/",
+                                .description = "failed to save reply cap in /*? m.name ?*/",
                                 .syscall = CamkesCNodeSaveCaller,
                                 .error = /*? result ?*/,
                             }), ({
@@ -322,7 +322,7 @@ int /*? me.interface.name ?*/__run(void) {
                                 .type = CE_ALLOCATION_FAILURE,
                                 .instance = "/*? instance ?*/",
                                 .interface = "/*? interface ?*/",
-                                .description = "failed to declare reply cap in /*? name ?*/",
+                                .description = "failed to declare reply cap in /*? m.name ?*/",
                                 .alloc_bytes = sizeof(seL4_CPtr),
                             }), ({
                                 /*? info ?*/ = seL4_Recv(/*? ep ?*/, & /*? me.interface.name ?*/_badge);
@@ -422,7 +422,7 @@ int /*? me.interface.name ?*/__run(void) {
                                     .type = CE_SYSCALL_FAILED,
                                     .instance = "/*? instance ?*/",
                                     .interface = "/*? interface ?*/",
-                                    .description = "failed to save reply cap in /*? name ?*/",
+                                    .description = "failed to save reply cap in /*? m.name ?*/",
                                     .syscall = CNodeSaveCaller,
                                     .error = /*? error ?*/,
                                 }), ({
@@ -483,7 +483,7 @@ int /*? me.interface.name ?*/__run(void) {
                         .type = CE_INVALID_METHOD_INDEX,
                         .instance = "/*? instance ?*/",
                         .interface = "/*? interface ?*/",
-                        .description = "invalid method index received in /*? name ?*/",
+                        .description = "invalid method index received in /*? me.interface.name ?*/",
                         .lower_bound = 0,
                         .upper_bound = /*? methods_len ?*/ - 1,
                         .invalid_index = * /*? call_ptr ?*/,
