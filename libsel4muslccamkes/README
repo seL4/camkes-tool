@@ -8,4 +8,5 @@
 # @TAG(NICTA_BSD)
 #
 
-Minimal muslc backend for CAmkES.
+This library is only retained to support legacy applications that expect to link against it. All
+its functionality has been previously migrated to libsel4camkes.

@@ -33,14 +33,6 @@ menu "CAmkES Options"
         This can allow you to write parameterised specs in the case of more
         complex systems.
 
-    config CAMKES_SYSLIB
-    string "Name of C stdlib syscall backing library"
-    default sel4muslccamkes
-    help
-        This option sets the name of the backing library which will be linked with camkes
-        components. This defaults to sel4muslcsys, which is a minimal syscall library for
-        muslc.
-
     config CAMKES_IMPORT_PATH
     string "Search path for components and interfaces"
     default ""

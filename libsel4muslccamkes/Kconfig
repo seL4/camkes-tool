@@ -9,8 +9,7 @@
 #
 
 config LIB_SEL4_MUSLC_CAMKES
-    bool "Minimal Musl C backend for CAmkES"
+    bool
     default y
-    depends on LIB_SEL4 && LIB_MUSL_C && LIB_SEL4_UTILS && LIB_SEL4_VSPACE && LIB_UTILS
     help
         Minimal Musl C backend for CAmkES.

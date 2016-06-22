@@ -8,15 +8,16 @@
 # @TAG(NICTA_BSD)
 #
 
+# This library contains no files and exists only to pacify legacy applications that expect to link
+# against it.
+
 # Targets
 TARGETS := libsel4muslccamkes.a
 
 # Source files required to build the target
-CFILES := $(patsubst $(SOURCE_DIR)/%,%,$(wildcard $(SOURCE_DIR)/src/*.c) $(wildcard $(SOURCE_DIR)/src/arch/${ARCH}/*.c))
+CFILES :=
 
 # Header files/directories this library provides
-HDRFILES := $(wildcard $(SOURCE_DIR)/include/*)
-
-NK_CFLAGS += -D_XOPEN_SOURCE=700
+HDRFILES :=
 
 include $(SEL4_COMMON)/common.mk

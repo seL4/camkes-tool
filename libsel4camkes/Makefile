@@ -23,4 +23,6 @@ ASMFILES += $(patsubst $(SOURCE_DIR)/%,%,$(wildcard ${SOURCE_DIR}/src/sel4_arch/
 HDRFILES := \
     $(wildcard ${SOURCE_DIR}/include/*)
 
+NK_CFLAGS += -D_XOPEN_SOURCE=700
+
 include $(SEL4_COMMON)/common.mk
