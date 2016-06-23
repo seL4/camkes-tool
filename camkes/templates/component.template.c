@@ -23,6 +23,7 @@
 #include <camkes/error.h>
 #include <camkes/fault.h>
 #include <camkes/io.h>
+#include <camkes/pid.h>
 #include <camkes/tls.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -31,6 +32,8 @@
 #include <strings.h>
 #include <sync/sem-bare.h>
 #include <sel4utils/mapping.h>
+#include <sys/types.h>
+#include <unistd.h>
 #include <utils/util.h>
 
 /*? macros.show_includes(me.type.includes) ?*/
@@ -908,3 +911,11 @@ void *dataport_unwrap_ptr(dataport_ptr_t p UNUSED) {
     /*- endfor -*/
     return ptr;
 }
+
+/*- for index, i in enumerate(composition.instances) -*/
+  /*- if id(i) == id(me) -*/
+    /* We consider the CapDL initialiser to have PID 1, so offset to skip over this. */
+    const pid_t camkes_pid = (pid_t)/*? index ?*/ + (pid_t)2;
+    /*- break -*/
+  /*- endif -*/
+/*- endfor -*/
