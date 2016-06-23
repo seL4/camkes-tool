@@ -55,6 +55,15 @@ sys_getpid(va_list ap UNUSED)
 }
 
 long
+sys_getppid(va_list ap UNUSED)
+{
+    /* We consider the CapDL initialiser to have PID 1 and to be the parent of all component
+     * instances.
+     */
+    return 1L;
+}
+
+long
 sys_tgkill(va_list ap UNUSED)
 {
     sel4_abort();

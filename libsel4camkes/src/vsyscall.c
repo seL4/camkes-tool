@@ -28,6 +28,7 @@ static long (*syscall_table[])(va_list) = {
     [__NR_rt_sigprocmask] = sys_rt_sigprocmask,
     [__NR_gettid] = sys_gettid,
     [__NR_getpid] = sys_getpid,
+    [__NR_getppid] = sys_getppid,
     [__NR_tgkill] = sys_tgkill,
     [__NR_exit_group] = sys_exit_group,
     [__NR_close] = sys_close,
