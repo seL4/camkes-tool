@@ -13,6 +13,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <camkes/pid.h>
 #include <camkes/tls.h>
 #include <utils/util.h>
 
@@ -50,7 +51,7 @@ sys_gettid(va_list ap UNUSED)
 long
 sys_getpid(va_list ap UNUSED)
 {
-    return 1234;
+    return (long)camkes_pid;
 }
 
 long
