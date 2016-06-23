@@ -121,3 +121,26 @@ long sys_uname(va_list ap) {
 
     return 0;
 }
+
+long sys_sethostname(va_list ap) {
+
+    const char *name = va_arg(ap, const char*);
+    size_t len = va_arg(ap, size_t);
+
+    /* Check name. */
+    if (name == NULL) {
+        return -EFAULT;
+    }
+
+    /* Check length. */
+    if (len > sizeof nodename - 1) {
+        return -EINVAL;
+    }
+
+    /* Set the hostname. This will now be the value returned by later calls to gethostname/uname.
+     */
+    strncpy(nodename, name, sizeof nodename);
+    nodename[sizeof nodename - 1] = '\0';
+
+    return 0;
+}

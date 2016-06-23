@@ -55,6 +55,9 @@ static long (*syscall_table[])(va_list) = {
 #endif
     [__NR_rt_sigaction] = sys_rt_sigaction,
     [__NR_uname] = sys_uname,
+#if defined(_BSD_SOURCE) || (defined(_XOPEN_SOURCE) && _XOPEN_SOURCE < 500)
+    [__NR_sethostname] = sys_sethostname,
+#endif
 #if !defined(ARCH_IA32)
     [__NR_socket] = sys_socket,
     [__NR_bind] = sys_bind,
