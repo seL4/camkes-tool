@@ -1,2 +1,6 @@
 # Ignore python bytecode
 **.pyc
+
+# Ignore generated files
+camkes/parser/parser.out
+camkes/parser/parsetab.py
