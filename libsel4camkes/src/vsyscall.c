@@ -54,6 +54,7 @@ static long (*syscall_table[])(va_list) = {
     [__NR_sigaction] = sys_sigaction,
 #endif
     [__NR_rt_sigaction] = sys_rt_sigaction,
+    [__NR_uname] = sys_uname,
 #if !defined(ARCH_IA32)
     [__NR_socket] = sys_socket,
     [__NR_bind] = sys_bind,
