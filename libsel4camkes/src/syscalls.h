@@ -44,6 +44,7 @@ long sys_sigaction(va_list ap);
 long sys_rt_sigaction(va_list ap);
 long sys_uname(va_list ap);
 long sys_sethostname(va_list ap);
+long sys_setdomainname(va_list ap);
 long sys_socket(va_list ap);
 long sys_bind(va_list ap);
 long sys_connect(va_list ap);

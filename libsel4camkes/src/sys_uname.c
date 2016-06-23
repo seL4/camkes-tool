@@ -144,3 +144,27 @@ long sys_sethostname(va_list ap) {
 
     return 0;
 }
+
+long sys_setdomainname(va_list ap) {
+
+    const char *name = va_arg(ap, const char*);
+    size_t len = va_arg(ap, size_t);
+
+    /* Check name. */
+    if (name == NULL) {
+        return -EFAULT;
+    }
+
+    /* Check length. */
+    if (len > sizeof domainname - 1) {
+        return -EINVAL;
+    }
+
+    /* Set the domain name. This will now be the value returned by later calls to
+     * getdomainname/uname.
+     */
+    strncpy(domainname, name, sizeof domainname);
+    domainname[sizeof domainname - 1] = '\0';
+
+    return 0;
+}

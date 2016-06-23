@@ -57,6 +57,7 @@ static long (*syscall_table[])(va_list) = {
     [__NR_uname] = sys_uname,
 #if defined(_BSD_SOURCE) || (defined(_XOPEN_SOURCE) && _XOPEN_SOURCE < 500)
     [__NR_sethostname] = sys_sethostname,
+    [__NR_setdomainname] = sys_setdomainname,
 #endif
 #if !defined(ARCH_IA32)
     [__NR_socket] = sys_socket,
