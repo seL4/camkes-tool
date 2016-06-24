@@ -8,13 +8,107 @@
  * @TAG(NICTA_BSD)
  */
 
+#define _BSD_SOURCE /* For MADV_* constants */
+
+#include <camkes/vma.h>
+#include <errno.h>
+#include <limits.h>
 #include <stdarg.h>
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <sys/mman.h>
 #include "syscalls.h"
+#include <unistd.h>
 #include <utils/util.h>
 
-long sys_madvise(va_list ap UNUSED) {
-    /* There is no dynamic memory mapping in CAmkES, so there are no relevant actions for the
-     * runtime to take based on madvise directives. Thus we silently ignore any such calls.
+/** Determine whether an address range is completely backed by mapped memory.
+ *
+ * @param addr Range start address
+ * @param len Range size in bytes
+ * @return true if the range is completely mapped
+ */
+static PURE bool covered(const void *addr, size_t len) {
+
+    /* The range wraps memory. */
+    if (UINTPTR_MAX - (uintptr_t)len < (uintptr_t)addr) {
+        return false;
+    }
+
+    /* Repeatedly scan the VMAs looking for one covering the starting address. When we find one,
+     * bump the starting address and reduce the length then loop, scanning for the new starting
+     * address. This is not particularly efficient, but has the advantage of being relatively
+     * simple.
      */
+    size_t i;
+    do {
+        for (i = 0; i < camkes_vmas_size; i++) {
+            if (camkes_vmas[i].start <= addr && camkes_vmas[i].end > addr) {
+                /* Found a VMA covering the current starting address. */
+                if (!camkes_vmas[i].read && !camkes_vmas[i].write && !camkes_vmas[i].execute) {
+                    /* This VMA represents *unmapped* memory. */
+                    return false;
+                }
+                if (camkes_vmas[i].end - addr > len) {
+                    /* This VMA covers the entire remaining range. */
+                    return true;
+                } else {
+                    /* This VMA only covers part of the remaining range. */
+                    len -= camkes_vmas[i].end - addr;
+                    addr = camkes_vmas[i].end;
+                }
+                break;
+            }
+        }
+    } while (i != camkes_vmas_size);
+
+    /* If we reach this point, then we did a sweep through the VMAs and failed to find one
+     * containing the current starting address.
+     */
+    return false;
+}
+
+/* There is no dynamic memory management in CAmkES, so `madvise` is no-op. As a nicety, we implement
+ * `madvise` to validate its inputs to give callers a more rational environment.
+ */
+long sys_madvise(va_list ap UNUSED) {
+
+    void *addr = va_arg(ap, void*);
+    size_t length = va_arg(ap, size_t);
+    int advice = va_arg(ap, int);
+
+    /* Page size of our platform, retrieved the first time we run this function. */
+    static long pagesize;
+    if (pagesize == 0) {
+        pagesize = sysconf(_SC_PAGESIZE);
+        if (pagesize <= 0) {
+            /* Could not get page size */
+            pagesize = 0;
+            return -EINVAL;
+        }
+    }
+
+    /* Check address is page-aligned. */
+    if ((uintptr_t)addr % (uintptr_t)pagesize != 0) {
+        return -EINVAL;
+    }
+
+    /* Check length is valid. */
+    if (length == 0) {
+        return -EINVAL;
+    }
+
+    /* Check advice is valid. */
+    if (advice != MADV_NORMAL && advice != MADV_SEQUENTIAL && advice != MADV_RANDOM &&
+        advice != MADV_WILLNEED && advice != MADV_DONTNEED) {
+        return -EINVAL;
+    }
+
+    /* Check the range being operated on is entirely mapped memory. */
+    if (!covered(addr, length)) {
+        return -ENOMEM;
+    }
+
+    /* Success. */
     return 0;
 }

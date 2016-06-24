@@ -17,14 +17,18 @@ SECTIONS {
     . = 0x100000;
 
     /* Code. */
+    PROVIDE_HIDDEN (__text_start = .);
     .text : ALIGN(4096) {
         *(.text*)
     }
+    PROVIDE_HIDDEN (__text_end = .);
 
     /* Read Only Data. */
+    PROVIDE_HIDDEN (__rodata_start = .);
     .rodata : ALIGN(4096) {
         *(.rodata*)
     }
+    PROVIDE_HIDDEN (__rodata_end = .);
 
     /*- if options.architecture in ('aarch32', 'arm_hyp') -*/
     PROVIDE_HIDDEN (__exidx_start = .);
@@ -33,14 +37,18 @@ SECTIONS {
     /*- endif -*/
 
     /* Data / BSS */
+    PROVIDE_HIDDEN (__data_start = .);
     .data : ALIGN(4096) {
         *(.data)
     }
+    PROVIDE_HIDDEN (__data_end = .);
 
+    PROVIDE_HIDDEN (__bss_start = .);
     .bss : {
         *(.bss)
         *(COMMON)
     }
+    PROVIDE_HIDDEN (__bss_end = .);
 
     guarded (NOLOAD) : ALIGN(4096) {
         *(guarded)
