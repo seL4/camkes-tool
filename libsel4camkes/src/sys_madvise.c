@@ -68,6 +68,19 @@ static PURE bool covered(const void *addr, size_t len) {
     return false;
 }
 
+static long page_size(void) {
+    /* Retrieve the page size the first time we run this function. */
+    static long pagesize;
+    if (pagesize == 0) {
+        pagesize = sysconf(_SC_PAGESIZE);
+        if (pagesize <= 0) {
+            /* Could not get page size */
+            pagesize = 0;
+        }
+    }
+    return pagesize;
+}
+
 /* There is no dynamic memory management in CAmkES, so `madvise` is no-op. As a nicety, we implement
  * `madvise` to validate its inputs to give callers a more rational environment.
  */
@@ -77,15 +90,11 @@ long sys_madvise(va_list ap UNUSED) {
     size_t length = va_arg(ap, size_t);
     int advice = va_arg(ap, int);
 
-    /* Page size of our platform, retrieved the first time we run this function. */
-    static long pagesize;
+    /* Page size of our platform. */
+    long pagesize = page_size();
     if (pagesize == 0) {
-        pagesize = sysconf(_SC_PAGESIZE);
-        if (pagesize <= 0) {
-            /* Could not get page size */
-            pagesize = 0;
-            return -EINVAL;
-        }
+        /* Could not get page size */
+        return -EINVAL;
     }
 
     /* Check address is page-aligned. */
