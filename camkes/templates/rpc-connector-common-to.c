@@ -212,7 +212,7 @@ int
     /*# Check any typedefs we have been given are not arrays. #*/
     /*- include 'call-array-typedef-check.c' -*/
 
-    /*- if not options.fcall_leave_reply_cap or len(me.instance.type.provides + me.instance.type.uses + me.instance.type.consumes + me.instance.type.mutexes + me.instance.type.semaphores) > 1 -*/
+    /*- if len(me.instance.type.provides + me.instance.type.uses + me.instance.type.consumes + me.instance.type.mutexes + me.instance.type.semaphores) > 1 -*/
         /* We're going to need a CNode cap in order to save our pending reply
          * caps in the future.
          */
@@ -317,26 +317,10 @@ int
                         continue;
                     }
 
-                    /*- if not options.fcall_leave_reply_cap -*/
+                    /*- if len(me.instance.type.provides + me.instance.type.uses + me.instance.type.consumes + me.instance.type.mutexes + me.instance.type.semaphores) > 1 -*/
                         /* We need to save the reply cap because the user's implementation may
                          * perform operations that overwrite or discard it.
                          */
-                        /*- set result = c_symbol() -*/
-                        /*? assert(cnode is defined and cnode > 0) ?*/
-                        /*? assert(reply_cap_slot is defined and reply_cap_slot > 0) ?*/
-                        int /*? result ?*/ UNUSED = camkes_cnode_save_caller(/*? cnode ?*/, /*? reply_cap_slot ?*/, CONFIG_WORD_SIZE);
-                        ERR_IF(/*? result ?*/ != 0, /*? error_handler ?*/, ((camkes_error_t){
-                                .type = CE_SYSCALL_FAILED,
-                                .instance = "/*? instance ?*/",
-                                .interface = "/*? interface ?*/",
-                                .description = "failed to save reply cap in /*? m.name ?*/",
-                                .syscall = CamkesCNodeSaveCaller,
-                                .error = /*? result ?*/,
-                            }), ({
-                                /*? info ?*/ = seL4_Recv(/*? ep ?*/, & /*? me.interface.name ?*/_badge);
-                                continue;
-                            }));
-                    /*- elif len(me.instance.type.provides + me.instance.type.uses + me.instance.type.consumes + me.instance.type.mutexes + me.instance.type.semaphores) > 1 -*/
                         /*- set result = c_symbol() -*/
                         /*? assert(reply_cap_slot is defined and reply_cap_slot > 0) ?*/
                         int /*? result ?*/ UNUSED = camkes_declare_reply_cap(/*? reply_cap_slot ?*/);
@@ -398,12 +382,12 @@ int
 
                         /* Swap the saved reply cap into the tcb's reply cap slot */
 
-                        /*- set swap_caller_result = c_symbol() -*/
-                        int /*? swap_caller_result ?*/ UNUSED = seL4_NoError;
 
-                        /*- if not options.fcall_leave_reply_cap -*/
-                            /*? swap_caller_result ?*/ = seL4_CNode_SwapCaller(/*? cnode ?*/, /*? reply_cap_slot ?*/, 32);
-                        /*- elif len(me.instance.type.provides + me.instance.type.uses + me.instance.type.consumes + me.instance.type.mutexes + me.instance.type.semaphores) > 1 -*/
+                        /*- if len(me.instance.type.provides + me.instance.type.uses + me.instance.type.consumes + me.instance.type.mutexes + me.instance.type.semaphores) > 1 -*/
+
+                            /*- set swap_caller_result = c_symbol() -*/
+                            int /*? swap_caller_result ?*/ UNUSED = seL4_NoError;
+
                             if (!(/*? tls ?*/->reply_cap_in_tcb)) {
                                 /* Reply cap isn't in our tcb - swap it in */
                                 /*? swap_caller_result ?*/ = seL4_CNode_SwapCaller(/*? cnode ?*/, /*? reply_cap_slot ?*/, 32);
@@ -442,19 +426,7 @@ int
                          *# This is done here so dynamically allocated memory
                          *# can be freed before a potential error.
                          #*/
-                        /*- if not options.fcall_leave_reply_cap -*/
-                            ERR_IF(/*? swap_caller_result ?*/ != 0, /*? error_handler ?*/, ((camkes_error_t){
-                                    .type = CE_SYSCALL_FAILED,
-                                    .instance = "/*? instance ?*/",
-                                    .interface = "/*? interface ?*/",
-                                    .description = "failed to swap reply cap in /*? m.name ?*/",
-                                    .syscall = CNodeSwapCaller,
-                                    .error = /*? swap_caller_result ?*/,
-                                }), ({
-                                    /*? info ?*/ = seL4_Recv(/*? ep ?*/, & /*? me.interface.name ?*/_badge);
-                                    continue;
-                                }));
-                        /*- elif len(me.instance.type.provides + me.instance.type.uses + me.instance.type.consumes + me.instance.type.mutexes + me.instance.type.semaphores) > 1 -*/
+                        /*- if len(me.instance.type.provides + me.instance.type.uses + me.instance.type.consumes + me.instance.type.mutexes + me.instance.type.semaphores) > 1 -*/
                             if (!(/*? tls ?*/->reply_cap_in_tcb)) {
                                 ERR_IF(/*? swap_caller_result ?*/ != 0, /*? error_handler ?*/, ((camkes_error_t){
                                     .type = CE_SYSCALL_FAILED,
@@ -490,17 +462,7 @@ int
                     );
 
                     /* Send the response */
-                    /*- if not options.fcall_leave_reply_cap -*/
-
-                        /*- if passive -*/
-                            /*# The reply cap was swapped into the tcb's reply cap slot #*/
-                            /*? info ?*/ = seL4_ReplyRecv(/*? ep ?*/, /*? info ?*/, & /*? me.interface.name ?*/_badge);
-                        /*- else -*/
-                            seL4_Send(/*? reply_cap_slot ?*/, /*? info ?*/);
-                            /*? info ?*/ = seL4_Recv(/*? ep ?*/, & /*? me.interface.name ?*/_badge);
-                        /*- endif -*/
-
-                    /*- elif len(me.instance.type.provides + me.instance.type.uses + me.instance.type.consumes + me.instance.type.mutexes + me.instance.type.semaphores) > 1 -*/
+                    /*- if len(me.instance.type.provides + me.instance.type.uses + me.instance.type.consumes + me.instance.type.mutexes + me.instance.type.semaphores) > 1 -*/
                         assert(/*? tls ?*/ != NULL);
                         if (/*? tls ?*/->reply_cap_in_tcb) {
                             /*? tls ?*/->reply_cap_in_tcb = false;

@@ -52,7 +52,6 @@ CAMKES_FLAGS += \
     $(foreach path, ${PWD}/tools/camkes/include/builtin ${CONFIG_CAMKES_IMPORT_PATH}, --import-path=${path}) \
     $(if ${TEMPLATES}, $(patsubst %,--templates "${SOURCE_DIR}/%",${TEMPLATES}),) \
     $(if ${CONFIG_CAMKES_OPTIMISATION_RPC_LOCK_ELISION},--frpc-lock-elision,--fno-rpc-lock-elision) \
-    $(if ${CONFIG_CAMKES_OPTIMISATION_CALL_LEAVE_REPLY_CAP},--fcall-leave-reply-cap,--fno-call-leave-reply-cap) \
     $(if ${CONFIG_CAMKES_OPTIMISATION_SPECIALISE_SYSCALL_STUBS},--fspecialise-syscall-stubs,--fno-specialise-syscall-stubs) \
     $(if ${CONFIG_CAMKES_PROVIDE_TCB_CAPS},--fprovide-tcb-caps,--fno-provide-tcb-caps) \
     $(if ${CONFIG_CAMKES_SUPPORT_INIT},--fsupport-init,--fno-support-init) \

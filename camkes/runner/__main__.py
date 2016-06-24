@@ -130,12 +130,6 @@ def parse_args(argv, out, err):
     parser.add_argument('--fno-rpc-lock-elision', action='store_false',
         dest='frpc_lock_elision', help='Disable lock elision optimisation in '
         'seL4RPC connector.')
-    parser.add_argument('--fcall-leave-reply-cap', action='store_true',
-        default=True, help='Enable operating on reply caps in place in '
-        'seL4Call connector.')
-    parser.add_argument('--fno-call-leave-reply-cap', action='store_false',
-        dest='fcall_leave_reply_cap', help='Disable operating on reply caps '
-        'in place in seL4Call connector.')
     parser.add_argument('--fspecialise-syscall-stubs', action='store_true',
         default=True, help='Generate inline syscall stubs to reduce overhead '
         'where possible.')

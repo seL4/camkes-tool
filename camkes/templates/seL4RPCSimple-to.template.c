@@ -52,7 +52,7 @@
 /*- set ep = alloc('ep', seL4_EndpointObject, read=True, write=True) -*/
 
 /*# We may need a slot to save reply caps in. #*/
-/*- if not options.fcall_leave_reply_cap or len(me.instance.type.provides + me.instance.type.uses + me.instance.type.consumes + me.instance.type.mutexes + me.instance.type.semaphores) > 1 -*/
+/*- if len(me.instance.type.provides + me.instance.type.uses + me.instance.type.consumes + me.instance.type.mutexes + me.instance.type.semaphores) > 1 -*/
     /*- set cnode = alloc_cap('cnode', my_cnode, write=True) -*/
     /*- set reply_cap_slot = alloc_cap('reply_cap_slot', None) -*/
 /*- endif -*/
@@ -230,7 +230,7 @@ static unsigned /*? me.interface.name ?*/_/*? m.name ?*/_internal(void) {
         /*- endfor -*/
     );
 
-    /*- if not options.fcall_leave_reply_cap or len(me.instance.type.provides + me.instance.type.uses + me.instance.type.consumes + me.instance.type.mutexes + me.instance.type.semaphores) > 1 -*/
+    /*- if len(me.instance.type.provides + me.instance.type.uses + me.instance.type.consumes + me.instance.type.mutexes + me.instance.type.semaphores) > 1 -*/
         /*- set result = c_symbol() -*/
 
         int /*? result ?*/ UNUSED = camkes_cnode_save_caller(/*? cnode ?*/, /*? reply_cap_slot ?*/, 32);
@@ -299,7 +299,7 @@ static seL4_MessageInfo_t /*? me.interface.name ?*/__run_internal(bool /*? first
                 /* Send the response */
                 /*? info ?*/ = seL4_MessageInfo_new(0, 0, 0, /*? length ?*/);
 
-                /*- if not options.fcall_leave_reply_cap or len(me.instance.type.provides + me.instance.type.uses + me.instance.type.consumes + me.instance.type.mutexes + me.instance.type.semaphores) > 1 -*/
+                /*- if len(me.instance.type.provides + me.instance.type.uses + me.instance.type.consumes + me.instance.type.mutexes + me.instance.type.semaphores) > 1 -*/
                     seL4_Send(/*? reply_cap_slot ?*/, /*? info ?*/);
                     /*? info ?*/ = seL4_Recv(/*? ep ?*/, NULL);
                 /*- else -*/

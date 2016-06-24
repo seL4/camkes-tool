@@ -195,7 +195,7 @@ int /*? me.interface.name ?*/__run(void) {
 /*- endif -*/
 ) {
 
-    /*- if options.fcall_leave_reply_cap and len(me.parent.from_ends) == 1 and len(me.parent.to_ends) == 1 and len(me.parent.to_end.instance.type.provides + me.parent.to_end.instance.type.uses + me.parent.to_end.instance.type.consumes + me.parent.to_end.instance.type.mutexes + me.parent.to_end.instance.type.semaphores) <= 1 and options.fspecialise_syscall_stubs and methods_len == 1 and m.return_type is none and len(m.parameters) == 0 -*/
+    /*- if len(me.parent.from_ends) == 1 and len(me.parent.to_ends) == 1 and len(me.parent.to_end.instance.type.provides + me.parent.to_end.instance.type.uses + me.parent.to_end.instance.type.consumes + me.parent.to_end.instance.type.mutexes + me.parent.to_end.instance.type.semaphores) <= 1 and options.fspecialise_syscall_stubs and methods_len == 1 and m.return_type is none and len(m.parameters) == 0 -*/
 #ifdef ARCH_ARM
 #ifndef __SWINUM
     #define __SWINUM(x) ((x) & 0x00ffffff)
