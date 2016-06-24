@@ -25,6 +25,7 @@
 #include <camkes/io.h>
 #include <camkes/pid.h>
 #include <camkes/tls.h>
+#include <camkes/vma.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -911,6 +912,230 @@ void *dataport_unwrap_ptr(dataport_ptr_t p UNUSED) {
     /*- endfor -*/
     return ptr;
 }
+
+/* These symbols are provided by the linker script. */
+extern const char __text_start[1];
+extern const char __text_end[1];
+extern const char __rodata_start[1];
+extern const char __rodata_end[1];
+extern const char __exidx_start[1];
+extern const char __exidx_end[1];
+extern const char __data_start[1];
+extern const char __data_end[1];
+extern const char __bss_start[1];
+extern const char __bss_end[1];
+
+/* See vma.h in libsel4camkes for a description of this array. */
+const struct camkes_vma camkes_vmas[] = {
+    {
+        .start = (void*)__text_start,
+        .end = (void*)__text_end,
+        .read = true,
+        .write = false,
+        .execute = true,
+        .cached = true,
+        .name = ".text",
+    },
+    {
+        .start = (void*)__rodata_start,
+        .end = (void*)__rodata_end,
+        .read = true,
+        .write = false,
+        .execute = false,
+        .cached = true,
+        .name = ".rodata",
+    },
+    /*- if options.architecture in ('aarch32', 'arm_hyp') -*/
+        /*# See the linker script for justification for this branch. #*/
+        {
+            .start = (void*)__exidx_start,
+            .end = (void*)__exidx_end,
+            .read = true,
+            .write = false,
+            .execute = false,
+            .cached = true,
+            .name = ".ARM.exidx",
+        },
+    /*- endif -*/
+    {
+        .start = (void*)__data_start,
+        .end = (void*)__data_end,
+        .read = true,
+        .write = true,
+        .execute = false,
+        .cached = true,
+        .name = ".data",
+    },
+    {
+        .start = (void*)__bss_start,
+        .end = (void*)__bss_end,
+        .read = true,
+        .write = true,
+        .execute = false,
+        .cached = true,
+        .name = ".bss",
+    },
+    /*- set p = Perspective(instance=me.name, control=True) -*/
+    {
+        .start = (void*)/*? p['stack_symbol'] ?*/,
+        .end = (void*)/*? p['stack_symbol'] ?*/ + PAGE_SIZE_4K,
+        .read = false,
+        .write = false,
+        .execute = false,
+        .cached = true,
+        .name = "guard page below control thread's stack",
+    },
+    {
+        .start = (void*)/*? p['stack_symbol'] ?*/ + PAGE_SIZE_4K,
+        .end = (void*)/*? p['stack_symbol'] ?*/ + sizeof(/*? p['stack_symbol'] ?*/) - PAGE_SIZE_4K,
+        .read = true,
+        .write = true,
+        .execute = false,
+        .cached = true,
+        .name = "control thread's stack",
+    },
+    {
+        .start = (void*)/*? p['stack_symbol'] ?*/ + sizeof(/*? p['stack_symbol'] ?*/) - PAGE_SIZE_4K,
+        .end = (void*)/*? p['stack_symbol'] ?*/ + sizeof(/*? p['stack_symbol'] ?*/),
+        .read = false,
+        .end = false,
+        .execute = false,
+        .cached = true,
+        .name = "guard page above control thread's stack",
+    },
+    {
+        .start = (void*)/*? p['ipc_buffer_symbol'] ?*/,
+        .end = (void*)/*? p['ipc_buffer_symbol'] ?*/ + PAGE_SIZE_4K,
+        .read = false,
+        .write = false,
+        .execute = false,
+        .cached = true,
+        .name = "guard page below control thread's TLS/IPC region",
+    },
+    {
+        .start = (void*)/*? p['ipc_buffer_symbol'] ?*/ + PAGE_SIZE_4K,
+        .end = (void*)/*? p['ipc_buffer_symbol'] ?*/ + PAGE_SIZE_4K + sizeof(camkes_tls_t),
+        .read = true,
+        .write = true,
+        .execute = false,
+        .cached = true,
+        .name = "control thread's TLS region",
+    },
+    {
+        .start = (void*)/*? p['ipc_buffer_symbol'] ?*/ + PAGE_SIZE_4K + sizeof(camkes_tls_t),
+        .end = (void*)/*? p['ipc_buffer_symbol'] ?*/ + sizeof(/*? p['ipc_buffer_symbol'] ?*/) - PAGE_SIZE_4K - sizeof(seL4_IPCBuffer),
+        .read = false,
+        .write = false,
+        .execute = false,
+        .cached = true,
+        .name = "control thread's TLS to IPC buffer interstice",
+    },
+    {
+        .start = (void*)/*? p['ipc_buffer_symbol'] ?*/ + sizeof(/*? p['ipc_buffer_symbol'] ?*/) - PAGE_SIZE_4K - sizeof(seL4_IPCBuffer),
+        .end = (void*)/*? p['ipc_buffer_symbol'] ?*/ + sizeof(/*? p['ipc_buffer_symbol'] ?*/) - PAGE_SIZE_4K,
+        .read = true,
+        .write = true,
+        .execute = false,
+        .cached = true,
+        .name = "control thread's IPC buffer",
+    },
+    {
+        .start = (void*)/*? p['ipc_buffer_symbol'] ?*/ + sizeof(/*? p['ipc_buffer_symbol'] ?*/) - PAGE_SIZE_4K,
+        .end = (void*)/*? p['ipc_buffer_symbol'] ?*/ + sizeof(/*? p['ipc_buffer_symbol'] ?*/),
+        .read = false,
+        .write = false,
+        .execute = false,
+        .cached = true,
+        .name = "guard page above control thread's TLS/IPC region",
+    },
+    /*- set p = Perspective() -*/
+    {
+        .start = (void*)/*? p['dma_pool_symbol'] ?*/,
+        .end = (void*)/*? p['dma_pool_symbol'] ?*/ + sizeof(/*? p['dma_pool_symbol'] ?*/),
+        .read = true,
+        .write = true,
+        .execute = false,
+        .cached = false,
+        .name = "DMA pool",
+    },
+    /*- for t in threads[1:] -*/
+        /*- set p = Perspective(instance=me.name, interface=t.interface.name, intra_index=t.intra_index) -*/
+        {
+            .start = (void*)/*? p['stack_symbol'] ?*/,
+            .end = (void*)/*? p['stack_symbol'] ?*/ + PAGE_SIZE_4K,
+            .read = false,
+            .write = false,
+            .execute = false,
+            .cached = true,
+            .name = "guard page below interface /*? t.interface.name ?*/ thread's stack",
+        },
+        {
+            .start = (void*)/*? p['stack_symbol'] ?*/ + PAGE_SIZE_4K,
+            .end = (void*)/*? p['stack_symbol'] ?*/ + sizeof(/*? p['stack_symbol'] ?*/) - PAGE_SIZE_4K,
+            .read = true,
+            .write = true,
+            .execute = false,
+            .cached = true,
+            .name = "interface /*? t.interface.name ?*/ thread's stack",
+        },
+        {
+            .start = (void*)/*? p['stack_symbol'] ?*/ + sizeof(/*? p['stack_symbol'] ?*/) - PAGE_SIZE_4K,
+            .end = (void*)/*? p['stack_symbol'] ?*/ + sizeof(/*? p['stack_symbol'] ?*/),
+            .read = false,
+            .end = false,
+            .execute = false,
+            .cached = true,
+            .name = "guard page above interface /*? t.interface.name ?*/ thread's stack",
+        },
+        {
+            .start = (void*)/*? p['ipc_buffer_symbol'] ?*/,
+            .end = (void*)/*? p['ipc_buffer_symbol'] ?*/ + PAGE_SIZE_4K,
+            .read = false,
+            .write = false,
+            .execute = false,
+            .cached = true,
+            .name = "guard page below interface /*? t.interface.name ?*/ thread's TLS/IPC region",
+        },
+        {
+            .start = (void*)/*? p['ipc_buffer_symbol'] ?*/ + PAGE_SIZE_4K,
+            .end = (void*)/*? p['ipc_buffer_symbol'] ?*/ + PAGE_SIZE_4K + sizeof(camkes_tls_t),
+            .read = true,
+            .write = true,
+            .execute = false,
+            .cached = true,
+            .name = "interface /*? t.interface.name ?*/ thread's TLS region",
+        },
+        {
+            .start = (void*)/*? p['ipc_buffer_symbol'] ?*/ + PAGE_SIZE_4K + sizeof(camkes_tls_t),
+            .end = (void*)/*? p['ipc_buffer_symbol'] ?*/ + sizeof(/*? p['ipc_buffer_symbol'] ?*/) - PAGE_SIZE_4K - sizeof(seL4_IPCBuffer),
+            .read = false,
+            .write = false,
+            .execute = false,
+            .cached = true,
+            .name = "interface /*? t.interface.name ?*/ thread's TLS to IPC buffer interstice",
+        },
+        {
+            .start = (void*)/*? p['ipc_buffer_symbol'] ?*/ + sizeof(/*? p['ipc_buffer_symbol'] ?*/) - PAGE_SIZE_4K - sizeof(seL4_IPCBuffer),
+            .end = (void*)/*? p['ipc_buffer_symbol'] ?*/ + sizeof(/*? p['ipc_buffer_symbol'] ?*/) - PAGE_SIZE_4K,
+            .read = true,
+            .write = true,
+            .execute = false,
+            .cached = true,
+            .name = "interface /*? t.interface.name ?*/ thread's IPC buffer",
+        },
+        {
+            .start = (void*)/*? p['ipc_buffer_symbol'] ?*/ + sizeof(/*? p['ipc_buffer_symbol'] ?*/) - PAGE_SIZE_4K,
+            .end = (void*)/*? p['ipc_buffer_symbol'] ?*/ + sizeof(/*? p['ipc_buffer_symbol'] ?*/),
+            .read = false,
+            .write = false,
+            .execute = false,
+            .cached = true,
+            .name = "guard page above interface /*? t.interface.name ?*/ thread's TLS/IPC region",
+        },
+    /*- endfor -*/
+};
+
+const size_t camkes_vmas_size = sizeof camkes_vmas / sizeof camkes_vmas[0];
 
 /*- for index, i in enumerate(composition.instances) -*/
   /*- if id(i) == id(me) -*/
