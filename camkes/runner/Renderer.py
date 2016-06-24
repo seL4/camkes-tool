@@ -12,7 +12,7 @@
 
 import Context
 from camkes.internal.mkdirp import mkdirp
-from camkes.internal.version import version
+from camkes.internal.version import version_hash
 from camkes.templates import TEMPLATES
 
 import jinja2, os
@@ -50,7 +50,7 @@ class Renderer(object):
         # runs.
 
         # Directory in which to store and fetch pre-compiled Jinja2 templates.
-        template_cache = os.path.join(options.cache_dir, version(),
+        template_cache = os.path.join(options.cache_dir, version_hash(),
             'precompiled-templates')
 
         loaders = []

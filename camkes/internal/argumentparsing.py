@@ -171,7 +171,7 @@ def parse_args(tool):
         help='Set code generation cache location.')
     add_arg('--version', action='version', version='%(prog)s %(version)s' % {
         'prog':'%(prog)s',
-        'version':version.version(),
+        'version':version.version_number(),
     })
     add_arg('--frpc-lock-elision', action='store_true', default=True,
         help='Enable lock elision optimisation in seL4RPC connector.')

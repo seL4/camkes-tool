@@ -27,7 +27,7 @@ from camkes.internal.cache import Cache
 from camkes.internal.FileSet import FileSet
 import camkes.internal.log as log
 import camkes.internal.constants as constants
-from camkes.internal.version import version
+from camkes.internal.version import version_hash
 from NameMangling import Perspective, RUNNER
 from Renderer import Renderer
 from Filters import CAPDL_FILTERS
@@ -122,7 +122,7 @@ def main():
         # if the source files representing the input spec are identical to some
         # previous execution.
         if options.cache in ('on', 'readonly'):
-            key = [version(), os.path.abspath(f.name), s,
+            key = [version_hash(), os.path.abspath(f.name), s,
                 cache_relevant_options(options), options.platform, options.item]
             value = cache.get(key)
             assert value is None or isinstance(value, FileSet), \
@@ -166,7 +166,7 @@ def main():
     # matches when the input is exactly the same and this one matches when the
     # AST is unchanged.
     if options.cache in ('on', 'readonly'):
-        key = [version(), ast, cache_relevant_options(options),
+        key = [version_hash(), ast, cache_relevant_options(options),
             options.platform, options.item]
         value = cache.get(key)
         if value is not None:
@@ -185,7 +185,7 @@ def main():
             # pre-parsed inputs to save having to derive the AST (parse the
             # input) in order to locate a cache entry in following passes.
             # This corresponds to the first cache check above.
-            key = [version(), os.path.abspath(options.file[0].name), s,
+            key = [version_hash(), os.path.abspath(options.file[0].name), s,
                 cache_relevant_options(options), options.platform,
                 item]
             specialised = fs.specialise(value)
@@ -195,7 +195,7 @@ def main():
             if item not in NEVER_AST_CACHE:
                 # Save an AST-keyed cache entry. This corresponds to the second
                 # cache check above.
-                cache[[version(), orig_ast, cache_relevant_options(options),
+                cache[[version_hash(), orig_ast, cache_relevant_options(options),
                     options.platform, item]] = value
     else:
         def save(item, value):

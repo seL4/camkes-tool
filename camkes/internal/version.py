@@ -8,17 +8,16 @@
 # @TAG(NICTA_BSD)
 #
 
-'''Versioning functionality. This computes a version identifier based on the
-current source code state. It was decided this was more reliable while the tool
-is under active development. Note that any extraneous files in your source
-directory that match the version filters will be accumulated in the version
-computation.'''
+# Versioning functionality
 
 from memoization import memoized
 import hashlib, os, re
 
 @memoized
-def version():
+def version_hash():
+    '''Computes a version identifier by hashing the current source code state.
+    Values returned by this function are suitable for using as keys to the
+    template cache.'''
     # Files to consider relevant. Each entry should be a pair of (path, filter)
     # where 'path' is relative to the directory of this file and 'filter' is a
     # regex describing which filenames to match under the given path.
@@ -48,3 +47,11 @@ def version():
             h = hashlib.sha1(f.read()).hexdigest() #pylint: disable=E1101
         hfinal.update('%s|' % h) #pylint: disable=E1101
     return hfinal.hexdigest()
+
+def version_number():
+    '''Returns the current version number by reading the VERSION file in
+    the top-level directory of this project.'''
+    my_path = os.path.dirname(os.path.abspath(__file__))
+    version_path = os.path.join(my_path, '../../VERSION')
+    with open(version_path, 'r') as f:
+        return f.read()
