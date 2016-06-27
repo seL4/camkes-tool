@@ -170,3 +170,67 @@ long sys_mincore(va_list ap) {
         return -ENOMEM;
     }
 }
+
+/** The core logic of the checks for mlock/munlock.
+ *
+ * Note that on CAmkES mlock* and munlock* are all no-ops. This means that the core logic (this
+ * function) is identical. It simply validates the inputs.
+ *
+ * @param addr Address of region start
+ * @param len Size of region in bytes
+ * @return 0 on success or an errno value.
+ */
+static long mlock_internal(const void *addr, size_t len) {
+
+    /* Check for overflow. */
+    if ((uintptr_t)addr + len < (uintptr_t)addr) {
+        return -EINVAL;
+    }
+
+    /* Check addr is page-aligned. */
+    long pagesize = page_size();
+    if (pagesize == 0) {
+        /* Could not get page size */
+        return -EINVAL;
+    }
+    if ((uintptr_t)addr % (uintptr_t)pagesize != 0) {
+        return -EINVAL;
+    }
+
+    if (covered(addr, len)) {
+        return 0;
+    } else {
+        return -ENOMEM;
+    }
+}
+
+long sys_mlock(va_list ap) {
+
+    const void *addr = va_arg(ap, const void*);
+    size_t len = va_arg(ap, size_t);
+
+    return mlock_internal(addr, len);
+}
+
+long sys_munlock(va_list ap) {
+
+    const void *addr = va_arg(ap, const void*);
+    size_t len = va_arg(ap, size_t);
+
+    return mlock_internal(addr, len);
+}
+
+long sys_mlockall(va_list ap) {
+
+    int flags = va_arg(ap, int);
+
+    if ((flags & ~(MCL_CURRENT|MCL_FUTURE)) != 0) {
+        return -EINVAL;
+    }
+
+    return 0;
+}
+
+long sys_munlockall(va_list ap UNUSED) {
+    return 0;
+}

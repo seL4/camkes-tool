@@ -42,6 +42,10 @@ static long (*syscall_table[])(va_list) = {
 #ifdef __NR_mmap2
     [__NR_mmap2] = sys_mmap2,
 #endif
+    [__NR_mlock] = sys_mlock,
+    [__NR_munlock] = sys_munlock,
+    [__NR_mlockall] = sys_mlockall,
+    [__NR_munlockall] = sys_munlockall,
     [__NR_madvise] = sys_madvise,
     [__NR_mremap] = sys_mremap,
     [__NR_mincore] = sys_mincore,
