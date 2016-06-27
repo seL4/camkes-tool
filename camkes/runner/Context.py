@@ -44,6 +44,7 @@ except ImportError:
 
 import camkes.ast as AST
 from camkes.internal.Counter import Counter
+from camkes.internal.version import version
 from camkes.templates import macros, TemplateError
 from .NameMangling import TEMPLATES, FILTERS, Perspective
 
@@ -210,6 +211,11 @@ def new_context(entity, assembly, obj_space, cap_space, shmem, **kwargs):
         # Expose an exception class templates can use to throw errors related
         # to invalid input specification.
         'TemplateError':TemplateError,
+
+        # Version information. Templates are unlikely to depend on this, but we
+        # emit it to give component instances a runtime-discoverable CAmkES
+        # version.
+        'camkes_version':version(),
     }.items()) + list(kwargs.items()))
 
 def _assert(condition, msg=None):
