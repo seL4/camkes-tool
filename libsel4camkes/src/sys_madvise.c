@@ -17,6 +17,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <string.h>
 #include <sys/mman.h>
 #include "syscalls.h"
 #include <unistd.h>
@@ -120,4 +121,52 @@ long sys_madvise(va_list ap UNUSED) {
 
     /* Success. */
     return 0;
+}
+
+long sys_mincore(va_list ap) {
+
+    void *addr = va_arg(ap, void*);
+    size_t length = va_arg(ap, size_t);
+    unsigned char *vec = va_arg(ap, unsigned char*);
+
+    /* Check addr is valid. */
+    long pagesize = page_size();
+    if (pagesize == 0) {
+        /* Could not get page size */
+        return -EINVAL;
+    }
+    if ((uintptr_t)addr % (uintptr_t)pagesize != 0) {
+        return -EINVAL;
+    }
+
+    /* Check length is valid. */
+    if (UINTPTR_MAX - (uintptr_t)length < (uintptr_t)addr) {
+        return -ENOMEM;
+    }
+
+    size_t pages = length / pagesize;
+    if (length % pagesize != 0) {
+        pages++;
+    }
+
+    /* Check vec is valid. */
+    if (vec == NULL || (uintptr_t)vec + pages * sizeof(unsigned char) < (uintptr_t)vec) {
+        return -EFAULT;
+    }
+
+    /* Now there are only two possibilities for the range [addr, addr + length):
+     *
+     *  1. It is entirely mapped memory; or
+     *  2. Some part of it is unmapped.
+     *
+     * In the first case, we know the entire region is paged in as there is no paging in CAmkES
+     * systems. The second case is a mincore error.
+     */
+
+    if (covered(addr, length)) {
+        memset(vec, 1, pages * sizeof(unsigned char));
+        return 0;
+    } else {
+        return -ENOMEM;
+    }
 }

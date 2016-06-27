@@ -44,6 +44,7 @@ static long (*syscall_table[])(va_list) = {
 #endif
     [__NR_madvise] = sys_madvise,
     [__NR_mremap] = sys_mremap,
+    [__NR_mincore] = sys_mincore,
     [__NR_pause] = sys_pause,
     [__NR_munmap] = sys_munmap,
     [__NR_clock_gettime] = sys_clock_gettime,
