@@ -37,5 +37,8 @@ long sys_set_thread_area(va_list ap UNUSED) {
 }
 
 long sys_set_tid_address(va_list ap UNUSED) {
-    return -ENOSYS;
+    /* We ignore the input argument (an address to replace the current value of `clear_child_tid`,
+     * but `set_tid_address` is documented as always succeeding, so we pretend we saved it.
+     */
+    return (long)camkes_get_tls()->thread_index;
 }
