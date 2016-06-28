@@ -45,7 +45,7 @@ sys_rt_sigprocmask(va_list ap UNUSED)
 long
 sys_gettid(va_list ap UNUSED)
 {
-    return 0;
+    return (long)camkes_get_tls()->thread_index;
 }
 
 long
