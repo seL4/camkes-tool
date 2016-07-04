@@ -18,7 +18,7 @@
 syn match CamkesCPP "^[ \t]*#.*$"
 syn keyword CamkesKeyword assembly composition from to configuration control
     \ procedure hardware maybe dma_pool has mutex semaphore group tcb_pool
-    \ ep_pool aep_pool template untyped_mmios trusted with thread threads
+    \ ep_pool notification_pool template untyped_mmios trusted with thread threads
     \ cnode_size_bits
 syn match CamkesUntypedPool "\<simple_untyped[0-9]\+_pool\>"
 syn match CamkesStackSize "\<[a-zA-Z0-9_]\+_stack_size\>"

@@ -308,7 +308,7 @@ static void /*? init ?*/(void) {
                 return;
             }));
     /*- endfor -*/
-    /*- set notification_pool = configuration[me.name].get('aep_pool', 0) -*/
+    /*- set notification_pool = configuration[me.name].get('notification_pool', 0) -*/
     /*- for i in six.moves.range(notification_pool) -*/
         /*- set notification = alloc('notification_pool_%d' % i, seL4_NotificationObject, read=True, write=True) -*/
         res = camkes_provide(seL4_NotificationObject, /*? notification ?*/, 0, seL4_CanRead|seL4_CanWrite);
