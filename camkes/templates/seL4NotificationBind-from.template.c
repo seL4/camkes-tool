@@ -12,11 +12,11 @@
 
 /*? macros.show_includes(me.instance.type.includes) ?*/
 
-/*- set aep = alloc('aep', seL4_NotificationObject, write=True) -*/
+/*- set notification = alloc('notification', seL4_NotificationObject, write=True) -*/
 /*- set badge = configuration[me.instance.name].get('%s_attributes' % me.interface.name) -*/
 /*- if badge is not none -*/
     /*- set badge = badge.strip('"') -*/
-    /*- do cap_space.cnode[aep].set_badge(int(badge, 0)) -*/
+    /*- do cap_space.cnode[notification].set_badge(int(badge, 0)) -*/
 /*- endif -*/
 
 int /*? me.interface.name ?*/__run(void) {
@@ -25,5 +25,5 @@ int /*? me.interface.name ?*/__run(void) {
 }
 
 void /*? me.interface.name ?*/_emit_underlying(void) {
-    seL4_Signal(/*? aep ?*/);
+    seL4_Signal(/*? notification ?*/);
 }

@@ -189,8 +189,8 @@ int camkes_io_port_out(void *cookie UNUSED, uint32_t port UNUSED,
 static sync_mutex_t /*? mutex ?*/;
 
 static int mutex_/*? m.name ?*/_init(void) {
-    /*- set aep = alloc(m.name, seL4_NotificationObject, read=True, write=True) -*/
-    return sync_mutex_init(&/*? mutex ?*/, /*? aep ?*/);
+    /*- set notification = alloc(m.name, seL4_NotificationObject, read=True, write=True) -*/
+    return sync_mutex_init(&/*? mutex ?*/, /*? notification ?*/);
 }
 
 int /*? m.name ?*/_lock(void) {
@@ -308,14 +308,14 @@ static void /*? init ?*/(void) {
                 return;
             }));
     /*- endfor -*/
-    /*- set aep_pool = configuration[me.name].get('aep_pool', 0) -*/
-    /*- for i in six.moves.range(aep_pool) -*/
-        /*- set aep = alloc('aep_pool_%d' % i, seL4_NotificationObject, read=True, write=True) -*/
-        res = camkes_provide(seL4_NotificationObject, /*? aep ?*/, 0, seL4_CanRead|seL4_CanWrite);
+    /*- set notification_pool = configuration[me.name].get('aep_pool', 0) -*/
+    /*- for i in six.moves.range(notification_pool) -*/
+        /*- set notification = alloc('notification_pool_%d' % i, seL4_NotificationObject, read=True, write=True) -*/
+        res = camkes_provide(seL4_NotificationObject, /*? notification ?*/, 0, seL4_CanRead|seL4_CanWrite);
         ERR_IF(res != 0, camkes_error, ((camkes_error_t){
                 .type = CE_ALLOCATION_FAILURE,
                 .instance = "/*? me.name ?*/",
-                .description = "failed to add AEP /*? aep + 1 ?*/ to cap allocation pool",
+                .description = "failed to add NOTIFICATION /*? notification + 1 ?*/ to cap allocation pool",
             }), ({
                 return;
             }));

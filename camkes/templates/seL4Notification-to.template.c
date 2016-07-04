@@ -9,8 +9,8 @@
  #*/
 
 /* The basic design of this connector is to wait for an incoming event on the
- * asynchronous endpoint, `aep`, and then forward any events to the secondary
- * asynchronous endpoint, `handoff`. We also preference any registered callback
+ * notification, `notification`, and then forward any events to the secondary
+ * notiifaciton, `handoff`. We also preference any registered callback
  * over this forwarding. The callback registration checks to see if there is a
  * pending event and, if so, invokes the callback immediately to short circuit
  * the process of registering it, deregistering it and then invoking it. Note
@@ -44,7 +44,7 @@
 
 /*- set id = me.parent.to_ends.index(me) -*/
 
-/*- set aep = alloc('aep_%d' % id, seL4_NotificationObject, read=True) -*/
+/*- set notification = alloc('notification_%d' % id, seL4_NotificationObject, read=True) -*/
 
 /*- set handoff = alloc('handoff_%d' % id, seL4_EndpointObject, read=True, write=True) -*/
 static volatile int handoff_value;
@@ -68,7 +68,7 @@ static void *callback_arg;
 
 int /*? me.interface.name ?*/__run(void) {
     while (true) {
-        seL4_Wait(/*? aep ?*/, NULL);
+        seL4_Wait(/*? notification ?*/, NULL);
 
         if (lock() != 0) {
             /* Failed to acquire the lock (`INT_MAX` threads in `register`?).

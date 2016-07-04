@@ -12,13 +12,13 @@
 
 /*? macros.show_includes(me.instance.type.includes) ?*/
 
-/*- set aeps = [] -*/
+/*- set notifications = [] -*/
 /*- for index in six.moves.range(len(me.parent.to_ends)) -*/
-  /*- do aeps.append(alloc('aep_%d' % index, seL4_NotificationObject, write=True)) -*/
+  /*- do notifications.append(alloc('notification_%d' % index, seL4_NotificationObject, write=True)) -*/
 /*- endfor -*/
 
 void /*? me.interface.name ?*/_emit_underlying(void) {
-    /*- for aep in aeps -*/
-    seL4_Signal(/*? aep ?*/);
+    /*- for notification in notifications -*/
+    seL4_Signal(/*? notification ?*/);
     /*- endfor -*/
 }

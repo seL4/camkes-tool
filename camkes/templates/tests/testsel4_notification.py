@@ -124,13 +124,13 @@ def munge(filename):
     stripped = reduce(lambda acc, x: re.sub(x[0], x[1], acc, flags=re.MULTILINE),
 
         # Turn template variable definitions into source variable definitions.
-        ((r'/\*-\s*set\s+(aep|handoff|lock)\s*=.*?-\*/',
+        ((r'/\*-\s*set\s+(notification|handoff|lock)\s*=.*?-\*/',
             r'static seL4_CPtr \g<1>;'),
         (r'/\*-\s*set\s+badge_magic\s*=.*?-\*/',
             r'static seL4_Word badge_magic;'),
 
         # Turn template variable reference into source variable references.
-        (r'/\*\?\s*(aep|handoff|lock|badge_magic)\s*\?\*/', r'\g<1>'),
+        (r'/\*\?\s*(notification|handoff|lock|badge_magic)\s*\?\*/', r'\g<1>'),
 
         # Remove comments.
         (r'/\*(.|\n)*?\*/', ''),

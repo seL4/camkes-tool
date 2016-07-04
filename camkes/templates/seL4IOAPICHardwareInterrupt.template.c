@@ -19,12 +19,12 @@
 
 /*- set attr = "%s_attributes" % me.parent.from_interface.name -*/
 /*- set irq= [] -*/
-/*- set aep_obj = alloc_obj('aep', seL4_NotificationObject) -*/
-/*- set aep = alloc_cap('aep', aep_obj, read=True) -*/
+/*- set notification_obj = alloc_obj('notification', seL4_NotificationObject) -*/
+/*- set notification = alloc_cap('notification', notification_obj, read=True) -*/
 /*- set _irq = configuration[me.parent.from_instance.name].get(attr) -*/
 /*- if _irq is not none -*/
     /*- set attr_irq, attr_level, attr_trig = _irq.strip('"').split(',') -*/
-    /*- set irq_handler = alloc('irq', seL4_IRQControl, number=int(attr_irq, 0), notification=my_cnode[aep]) -*/
+    /*- set irq_handler = alloc('irq', seL4_IRQControl, number=int(attr_irq, 0), notification=my_cnode[notification]) -*/
     /*- do irq.append((irq_handler, int(attr_level, 0), int(attr_trig, 0))) -*/
 /*- endif -*/
 /*- set lock = alloc('lock', seL4_NotificationObject, read=True, write=True) -*/
@@ -61,7 +61,7 @@ int /*? me.interface.name ?*/__run(void) {
     while (1) {
         int handled = 0;
 
-        seL4_Wait(/*? aep ?*/, NULL);
+        seL4_Wait(/*? notification ?*/, NULL);
 
         /* First preference: callbacks. */
         if (!handled) {

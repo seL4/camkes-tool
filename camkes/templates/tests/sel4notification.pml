@@ -26,18 +26,18 @@
 
 #define NULL 0
 
-/* The AEP underlying the connection itself (`aep` in the template). */
+/* The NOTIFICATION underlying the connection itself (`notification` in the template). */
 chan connection = [1] of {bool};
 
-/* Models of seL4 AEP functions. */
-inline AEP_WAIT(aep) {
-    aep ? 1;
+/* Models of seL4 NOTIFICATION functions. */
+inline NOTIFICATION_WAIT(notification) {
+    notification ? 1;
 }
-inline AEP_NOTIFY(aep) {
+inline NOTIFICATION_NOTIFY(notification) {
     atomic {
         if
-            :: aep ? [1] -> skip;
-            :: !(aep ? [1]) -> aep ! 1;
+            :: notification ? [1] -> skip;
+            :: !(notification ? [1]) -> notification ! 1;
         fi;
     }
 }
@@ -99,7 +99,7 @@ bool callback = NULL;
 active [1] proctype inf_run() {
     do
         ::
-            AEP_WAIT(connection);
+            NOTIFICATION_WAIT(connection);
             lock();
             bool cb = callback;
             callback = NULL;
@@ -208,7 +208,7 @@ progress:
 active [1] proctype inf_emit() {
     do
         ::
-            AEP_NOTIFY(connection);
+            NOTIFICATION_NOTIFY(connection);
 progress:
     od;
 }

@@ -131,15 +131,15 @@
     /*- set asidpool = alloc('asid_pool', seL4_ASID_Pool) -*/
 /*- endif -*/
 
-/*- set irqaep_object = alloc_obj('irq_aep_obj', seL4_NotificationObject) -*/
-/*- set irqaep = alloc_cap('irq_aep_obj', irqaep_object, read=True) -*/
+/*- set irq_notification_object = alloc_obj('irq_notification_obj', seL4_NotificationObject) -*/
+/*- set irq_notification = alloc_cap('irq_notification_obj', irq_notification_object, read=True) -*/
 /*- set irqs = [] -*/
 /*- set irq_list = configuration[me.name].get('irqs') -*/
 /*- if irq_list is not none -*/
     /*- set irq_list = irq_list.strip('"').split(',') -*/
     /*- for irq in irq_list -*/
         /*- set irq = int(irq, 0) -*/
-        /*- set irq_cap = alloc('irq_%d' % irq, seL4_IRQControl, number=irq, notification=my_cnode[irqaep]) -*/
+        /*- set irq_cap = alloc('irq_%d' % irq, seL4_IRQControl, number=irq, notification=my_cnode[irq_notification]) -*/
         /*- do irqs.append( (irq, irq_cap) ) -*/
     /*- endfor -*/
 /*- endif -*/
