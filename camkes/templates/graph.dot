@@ -22,7 +22,7 @@ digraph {
         /*- for t in c.to_ends -*/
             /*? c.name ?*/ -> /*? t.instance.name ?*/;
         /*- endfor -*/
-    /*- elif c.type.name == 'seL4Asynch' -*/
+    /*- elif c.type.name == 'seL4Notification' -*/
         /*? c.name ?*/ [shape=diamond];
         /*- for f in c.from_ends -*/
             /*? f.instance.name ?*/ -> /*? c.name ?*/;

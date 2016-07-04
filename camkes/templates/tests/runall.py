@@ -22,7 +22,7 @@ from lint import TestPyLintOnSource
 from lintsource import TestSourceLint
 from testbadidioms import TestBadIdioms
 from testcustomtemplates import TestCustomTemplates
-from testsel4_async import TestSel4Async
+from testsel4_notification import TestSel4Notification
 from testmacros import TestMacros
 
 if __name__ == '__main__':

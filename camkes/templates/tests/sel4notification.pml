@@ -9,17 +9,17 @@
  */
 
 /* The following SPIN model attempts to represent the semantics of the
- * seL4Asynch connector code and its relevant correctness properties. It is not
+ * seL4Notification connector code and its relevant correctness properties. It is not
  * intended to be exhaustive, but is intended to give some confidence of the
  * concurrency correctness of the connector's glue code. To execute:
  *
  *     # Verify safety
- *     spin -a sel4async.pml
+ *     spin -a sel4notification.pml
  *     gcc -o pan-safety -O3 -DREACH -DSAFETY pan.c
  *     ./pan-safety | tee /dev/stderr | grep -q 'errors: 0'
  *
  *     # Verify liveness
- *     spin -a sel4async.pml
+ *     spin -a sel4notification.pml
  *     gcc -o pan-liveness -O3 -DNP -DNOREDUCE pan.c
  *     ./pan-liveness -l -m100000 | tee /dev/stderr | grep -q 'errors: 0'
  */

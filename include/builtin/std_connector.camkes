@@ -45,19 +45,19 @@ import "camkes-hardware.idl4";
  * the asynchronous signal from the emitter. However it's harder to synchronize
  * the components.
  */
-connector seL4Asynch {
+connector seL4Notification {
     from Event with 0 threads;
     to Events;
 }
-connector seL4AsynchBind {
+connector seL4NotificationBind {
     from Events with 0 threads;
     to Event;
 }
-connector seL4AsynchQueue {
+connector seL4NotificationQueue {
     from Event with 0 threads;
     to Events;
 }
-connector seL4AsynchNative {
+connector seL4NotificationNative {
     from Event with 0 threads;
     to Event;
 }
@@ -67,7 +67,7 @@ connector seL4AsynchNative {
  *
  * This connector works exactly the same as the asynchronous event connector.
  * The consumer and emitter shouldn't notice any difference. But the internal
- * implementation is different. seL4Asynch uses the asynchronous
+ * implementation is different. seL4Notification uses the asynchronous
  * mechanism to send signal, whereas seL4RPCEvent uses the regular RPC
  * to send and imitate the event signal.
  */

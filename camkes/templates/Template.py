@@ -68,36 +68,36 @@ TEMPLATES = {
                 'source':'seL4SharedData-to.template.c',
             },
         },
-        Guard(lambda x: isinstance(x, Connection) and x.type.name == 'seL4Asynch'):{
+        Guard(lambda x: isinstance(x, Connection) and x.type.name == 'seL4Notification'):{
             'from':{
-                'source':'seL4Asynch-from.template.c',
+                'source':'seL4Notification-from.template.c',
             },
             'to':{
-                'source':'seL4Asynch-to.template.c',
+                'source':'seL4Notification-to.template.c',
             },
         },
-        Guard(lambda x: isinstance(x, Connection) and x.type.name == 'seL4AsynchBind'):{
+        Guard(lambda x: isinstance(x, Connection) and x.type.name == 'seL4NotificationBind'):{
             'from':{
-                'source':'seL4AsynchBind-from.template.c',
+                'source':'seL4NotificationBind-from.template.c',
             },
             'to':{
-                'source':'seL4AsynchBind-to.template.c',
+                'source':'seL4NotificationBind-to.template.c',
             },
         },
-        Guard(lambda x: isinstance(x, Connection) and x.type.name == 'seL4AsynchQueue'):{
+        Guard(lambda x: isinstance(x, Connection) and x.type.name == 'seL4NotificationQueue'):{
             'from':{
-                'source':'seL4AsynchQueue-from.template.c',
+                'source':'seL4NotificationQueue-from.template.c',
             },
             'to':{
-                'source':'seL4AsynchQueue-to.template.c',
+                'source':'seL4NotificationQueue-to.template.c',
             },
         },
-        Guard(lambda x: isinstance(x, Connection) and x.type.name == 'seL4AsynchNative'):{
+        Guard(lambda x: isinstance(x, Connection) and x.type.name == 'seL4NotificationNative'):{
             'from':{
-                'source':'seL4AsynchNative-from.template.c',
+                'source':'seL4NotificationNative-from.template.c',
             },
             'to':{
-                'source':'seL4AsynchNative-to.template.c',
+                'source':'seL4NotificationNative-to.template.c',
             },
         },
         Guard(lambda x: isinstance(x, Connection) and x.type.name == 'seL4HardwareMMIO'):{
@@ -143,12 +143,12 @@ TEMPLATES = {
         'theory':'arch-definitions.thy',
     },
     'autocorres':{ # AutoCorres-based C code proofs
-        Guard(lambda x: isinstance(x, Connection) and x.type.name == 'seL4AsynchNative'):{
+        Guard(lambda x: isinstance(x, Connection) and x.type.name == 'seL4NotificationNative'):{
             'to':{
-                'theory':'autocorres/AsynchNativeTo.template.thy',
+                'theory':'autocorres/NotificationNativeTo.template.thy',
             },
             'from':{
-                'theory':'autocorres/AsynchNativeFrom.template.thy',
+                'theory':'autocorres/NotificationNativeFrom.template.thy',
             },
         },
         Guard(lambda x: isinstance(x, Connection) and x.type.name == 'seL4SharedData'):{

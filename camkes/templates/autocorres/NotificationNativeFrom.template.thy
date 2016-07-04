@@ -27,11 +27,11 @@ begin
 
 declare [[allow_underscore_idents=true]]
 
-install_C_file "/*? thy ?*/_seL4AsynchNative_pruned.c_pp"
+install_C_file "/*? thy ?*/_seL4NotificationNative_pruned.c_pp"
 
-autocorres [ts_rules = nondet] "/*? thy ?*/_seL4AsynchNative_pruned.c_pp"
+autocorres [ts_rules = nondet] "/*? thy ?*/_seL4NotificationNative_pruned.c_pp"
 
-locale "/*? thy ?*/_seL4AsynchNative_glue" = "/*? thy ?*/_seL4AsynchNative_pruned"
+locale "/*? thy ?*/_seL4NotificationNative_glue" = "/*? thy ?*/_seL4NotificationNative_pruned"
 begin
 
 lemma /*? me.interface.name ?*/__run_nf: "\<lbrace>\<lambda>s. \<forall>r. P r s\<rbrace> /*? me.interface.name ?*/__run' \<lbrace>P\<rbrace>!"

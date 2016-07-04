@@ -457,7 +457,7 @@ lemma irqs_dom_distinct_eps:
     /*- do to_unfold.add('ArchSpec.%s_def' % c.name) -*/
     /*- if c.type.name == 'seL4RPC' -*/
       /*- do to_unfold.add('CapDLSpec.%s_ep_id_def' % c.name) -*/
-    /*- elif c.type.name == 'seL4Asynch' -*/
+    /*- elif c.type.name == 'seL4Notification' -*/
       /*- do to_unfold.add('CapDLSpec.%s_aep_id_def' % c.name) -*/
     /*- endif -*/
   /*- endfor -*/
@@ -690,7 +690,7 @@ lemma dom_eps:
 /*- for c in composition.connections -*/
   /*- if c.type.name == 'seL4RPC' -*/
     /*- do ids.add('%s_ep_id' % c.name) -*/
-  /*- elif c.type.name == 'seL4Asynch' -*/
+  /*- elif c.type.name == 'seL4Notification' -*/
     /*- do ids.add('%s_aep_id' % c.name) -*/
   /*- endif -*/
   /*- do to_unfold.add('ArchSpec.%s_def' % c.name) -*/
@@ -706,7 +706,7 @@ lemma ep_of_/*? c.name ?*/_ep:
   "map_of (map (\<lambda>x. (the (id_of (cdlo_name x)), cdlo_type x)) (ep_objs ArchSpec.assembly')) CapDLSpec./*? c.name ?*/_ep_id
      = Some CapDLSpec./*? c.name ?*/_ep"
 /*? '\n'.join(textwrap.wrap('  %ssimp add:ep_objs_def ArchSpec.assembly\'_def ArchSpec.composition\'_def ArchSpec.%s_def id_of CapDLSpec.%s_ep_def%s' % (open_proof, c.name, c.name, close_proof), width=100, subsequent_indent=' ' * len('  %ssimp add:' % open_proof))) ?*/
-  /*- elif c.type.name == 'seL4Asynch' -*/
+  /*- elif c.type.name == 'seL4Notification' -*/
 lemma ep_of_/*? c.name ?*/_aep:
   "map_of (map (\<lambda>x. (the (id_of (cdlo_name x)), cdlo_type x)) (ep_objs ArchSpec.assembly')) CapDLSpec./*? c.name ?*/_aep_id
      = Some CapDLSpec./*? c.name ?*/_aep"
@@ -888,7 +888,7 @@ lemma spec_generation_correct:
     /*- for auth in ('Receive', 'Reset', 'SyncSend') -*/
       /*- do edges.add(('\'\'%s\'\'' % c.to_end.instance.name, auth, '\'\'%s\'\'' % c.name)) -*/
     /*- endfor -*/
-  /*- elif c.type.name == 'seL4Asynch' -*/
+  /*- elif c.type.name == 'seL4Notification' -*/
     /*- for auth in ('AsyncSend', 'Reset') -*/
       /*- do edges.add(('\'\'%s\'\'' % c.from_end.instance.name, auth, '\'\'%s\'\'' % c.name)) -*/
     /*- endfor -*/

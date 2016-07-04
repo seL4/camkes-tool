@@ -27,11 +27,11 @@ begin
 
 declare [[allow_underscore_idents=true]]
 
-install_C_file "/*? thy ?*/_seL4AsynchNative_pruned.c_pp"
+install_C_file "/*? thy ?*/_seL4NotificationNative_pruned.c_pp"
 
-autocorres [ts_rules = nondet, no_heap_abs = seL4_SetMR] "/*? thy ?*/_seL4AsynchNative_pruned.c_pp"
+autocorres [ts_rules = nondet, no_heap_abs = seL4_SetMR] "/*? thy ?*/_seL4NotificationNative_pruned.c_pp"
 
-context "/*? thy ?*/_seL4AsynchNative_pruned" begin
+context "/*? thy ?*/_seL4NotificationNative_pruned" begin
 
 (* Introduce this definition here so we can refer to it in the locale extension below. *)
 definition
@@ -51,7 +51,7 @@ where
 
 end
 
-locale "/*? thy ?*/_seL4AsynchNative_glue" = "/*? thy ?*/_seL4AsynchNative_pruned" +
+locale "/*? thy ?*/_seL4NotificationNative_glue" = "/*? thy ?*/_seL4NotificationNative_pruned" +
   assumes seL4_SetMR_axiom: "exec_concrete lift_global_heap (seL4_SetMR' i val) = seL4_SetMR_lifted' i val"
 begin
 

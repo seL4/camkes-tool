@@ -12,7 +12,7 @@
 #
 
 '''
-This file contains unit test cases related to the seL4Asynch connector.
+This file contains unit test cases related to the seL4Notification connector.
 '''
 
 from __future__ import absolute_import, division, print_function, \
@@ -29,10 +29,10 @@ sys.path.append(os.path.join(os.path.dirname(ME), '../../..'))
 
 from camkes.internal.tests.utils import CAmkESTest
 
-class TestSel4Async(CAmkESTest):
+class TestSel4Notification(CAmkESTest):
     def test_locking_protocol(self):
         '''
-        The seL4Asynch connector uses a binary semaphore internally to protect
+        The seL4Notification connector uses a binary semaphore internally to protect
         accesses to callback registration. Any functions contained on the "to"
         side, if they acquire this semaphore, are expected to release it before
         exiting. In an early draft of the connector code, there was a single
@@ -43,7 +43,7 @@ class TestSel4Async(CAmkESTest):
         Note that the static analysis performed in this test case is highly
         simplified and specialised for this connector code. It makes many
         assumptions about code idioms and over approximations of the control
-        flow. If you are modifying the seL4Asynch connector code in any
+        flow. If you are modifying the seL4Notification connector code in any
         non-trivial way, do not expect to get by without having to modify this
         test case.
 
@@ -59,15 +59,15 @@ class TestSel4Async(CAmkESTest):
          - No support for // style comments;
          - Probably more
         '''
-        src = munge(os.path.join(MY_DIR, '../seL4Asynch-to.template.c'))
+        src = munge(os.path.join(MY_DIR, '../seL4Notification-to.template.c'))
         ast = parse(src)
         for node in ast.ext:
             # Test all contained functions.
             if isinstance(node, c_ast.FuncDef):
                 check_termination(src, node.decl.name, node.body.block_items)
 
-    def test_sel4async_safety(self):
-        pml = os.path.join(MY_DIR, 'sel4async.pml')
+    def test_sel4notification_safety(self):
+        pml = os.path.join(MY_DIR, 'sel4notification.pml')
 
         tmp = self.mkdtemp()
 
@@ -87,8 +87,8 @@ class TestSel4Async(CAmkESTest):
         if stdout.find('errors: 0') < 0:
             self.fail('pan-safety failed:\n%s' % stdout)
 
-    def test_sel4async_liveness(self):
-        pml = os.path.join(MY_DIR, 'sel4async.pml')
+    def test_sel4notification_liveness(self):
+        pml = os.path.join(MY_DIR, 'sel4notification.pml')
 
         tmp = self.mkdtemp()
 
@@ -109,7 +109,7 @@ class TestSel4Async(CAmkESTest):
         if stdout.find('errors: 0') < 0:
             self.fail('pan-liveness failed:\n%s' % stdout)
 
-# A brief prelude to the seL4Asynch-to.template.c source to give it some types
+# A brief prelude to the seL4Notification-to.template.c source to give it some types
 # it expects in the absence of the libsel4 headers.
 HEADER = '''
     typedef int seL4_CPtr;
@@ -118,7 +118,7 @@ HEADER = '''
 
 def munge(filename):
     '''
-    Tweak the seL4Asynch-to.template.c source to suppress some external
+    Tweak the seL4Notification-to.template.c source to suppress some external
     references and constructs pycparser can't handle.
     '''
     stripped = reduce(lambda acc, x: re.sub(x[0], x[1], acc, flags=re.MULTILINE),
