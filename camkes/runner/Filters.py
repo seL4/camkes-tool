@@ -136,8 +136,13 @@ def set_tcb_info(cspaces, obj_space, elfs, options, **_):
             tcb.init.append(index)
 
             if options.realtime:
-                sc = obj_space[perspective['sc']]
-                tcb['sc_slot'] = Cap(sc)
+                try:
+                    # For non-passive threads, associate the sc with the tcb
+                    sc = obj_space[perspective['sc']]
+                    tcb['sc_slot'] = Cap(sc)
+                except KeyError:
+                    # Thread is passive
+                    pass
 
 def make_indices(arch, vaddr, size):
     '''Construct a set of indices that could be used to traverse to the mapping
@@ -696,7 +701,14 @@ def sc_properties(ast, cspaces, obj_space, **_):
         for sc in (cap.referent for cap in cnode.slots.values()
                 if cap is not None and isinstance(cap.referent, SC)):
 
-            perspective = Perspective(group=group, sc=sc.name)
+            if sc.name.endswith("passive_init_sc"):
+                # SC is used for passive init.
+                # Set its properties based on its instance's timing settings.
+                perspective = Perspective(group=group, passive_init_sc=sc.name)
+            else:
+                # SC belongs to a thread (interface thread or instance main thread).
+                # Set properties according to the instance or interface settings.
+                perspective = Perspective(group=group, sc=sc.name)
 
             maybe_set_property_from_configuration(assembly, perspective, sc, 'period', 'period_attribute', 'period')
             maybe_set_property_from_configuration(assembly, perspective, sc, 'budget', 'budget_attribute', 'budget')
