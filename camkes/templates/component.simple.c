@@ -14,7 +14,7 @@
  * really not possible any other way. This template is also highly experimental and
  * unsupported / undocumented */
 
-/*- if configuration[me.name].get('simple') == 'true' -*/
+/*- if configuration[me.name].get('simple') -*/
 
 #include <autoconf.h>
 #include <assert.h>

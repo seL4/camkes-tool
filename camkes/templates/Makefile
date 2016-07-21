@@ -110,7 +110,7 @@ endif
 # Instance entry point generation.
 /*- for i in instances -*/
 /*? rule_gen('$(abspath ${BUILD_DIR})/src/%s/generated/camkes.c' % i.name, ' '.join(imported), '%s/source' % i.name, i.name) ?*/
-/*- if configuration[i.name].get('simple') == 'true' -*/
+/*- if configuration[i.name].get('simple') -*/
     /*? rule_gen('$(abspath ${BUILD_DIR})/src/%s/generated/camkes.simple.c' % i.name, ' '.join(imported), '%s/simple' % i.name, i.name) ?*/
 /*- endif -*/
 /*? rule_gen('$(abspath ${BUILD_DIR})/include/%s/generated/camkes.h' % i.name, ' '.join(imported), '%s/header' % i.name) ?*/
