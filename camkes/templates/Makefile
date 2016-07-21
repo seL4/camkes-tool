@@ -97,7 +97,7 @@ endif
 /*? rule_cp('$(abspath ${BUILD_DIR})/include/%s/static/%%' % i.name, '${SOURCE_DIR}/%') ?*/
 
 # This will be matched for global source and header files.
-/*? rule_cp('$(abspath ${BUILD_DIR})/src/%s/static/%%', '/%') ?*/
+/*? rule_cp('$(abspath ${BUILD_DIR})/src/%s/static/%%' % i.name, '/%') ?*/
 /*? rule_cp('$(abspath ${BUILD_DIR})/include/%s/static/%%' % i.name, '/%') ?*/
 
 /*- endfor -*/
