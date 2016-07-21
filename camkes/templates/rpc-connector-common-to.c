@@ -165,7 +165,7 @@
 
 static seL4_Word /*? me.interface.name ?*/_badge = 0;
 
-seL4_Word /*? me.interface.name ?*/_get_badge(void) {
+seL4_Word /*? me.interface.name ?*/_get_sender_id(void) {
     return /*? me.interface.name ?*/_badge;
 }
 
