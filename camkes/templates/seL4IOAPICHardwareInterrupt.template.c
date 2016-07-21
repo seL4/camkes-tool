@@ -17,6 +17,9 @@
 
 /*? macros.show_includes(me.instance.type.includes) ?*/
 
+/*- set instance = me.instance.name -*/
+/*- set interface = me.interface.name -*/
+
 /*- set attr = "%s_attributes" % me.parent.from_interface.name -*/
 /*- set irq= [] -*/
 /*- set notification_obj = alloc_obj('notification', seL4_NotificationObject) -*/
