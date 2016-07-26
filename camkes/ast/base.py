@@ -15,7 +15,7 @@ from __future__ import absolute_import, division, print_function, \
     unicode_literals
 from camkes.internal.seven import cmp, filter, map, zip
 
-from camkes.internal.strhash import strhash
+from camkes.internal.hash import camkes_hash
 from .exception import ASTError
 from .location import SourceLocation
 from .traversal import NullContext, TraversalAction, TraversalContext
@@ -139,24 +139,8 @@ class ASTObject(six.with_metaclass(abc.ABCMeta, object)):
         return 0
 
     def __hash__(self):
-        # The following algorithm is based on how Python's native hash function
-        # works (at time of writing. We need to deviate from the native
-        # functionality in order to be able to hash lists and deterministically
-        # hash strings.
-        def hash_extend(current, extra):
-            return (current ^ extra) * 1000003
-        h = 0x345678
-        for f, v in ((k, v) for k, v in self.__dict__.items()
-                if k not in self.no_hash):
-            h = hash_extend(h, strhash(f))
-            if isinstance(v, six.string_types):
-                h = hash_extend(h, strhash(v))
-            elif isinstance(v, (list, tuple)):
-                for i in v:
-                    h = hash_extend(h, hash(i))
-            else:
-                h = hash_extend(h, hash(v))
-        return h
+        return camkes_hash((k, v) for k, v in self.__dict__.items()
+                if k not in self.no_hash)
 
     # When comparing `ASTObject`s, we always want to invoke
     # `ASTObject.__cmp__`, but unfortunately we inherit rich comparison methods
