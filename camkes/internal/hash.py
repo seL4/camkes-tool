@@ -69,7 +69,11 @@ def hash_iterable(i):
 
 def hash_mapping(m):
     h = INITIAL_HASH_VALUE
-    for f, v in m.items():
-        h = hash_extend(h, strhash(f))
-        h = hash_extend(h, camkes_hash(v))
+
+    keys = m.keys()
+    keys.sort()
+
+    for k in keys:
+        h = hash_extend(h, strhash(k))
+        h = hash_extend(h, camkes_hash(m[k]))
     return h
