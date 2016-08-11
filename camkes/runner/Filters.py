@@ -136,13 +136,12 @@ def set_tcb_info(cspaces, obj_space, elfs, options, **_):
             tcb.init.append(index)
 
             if options.realtime:
-                try:
+                sc_name = perspective['sc']
+                if sc_name in obj_space:
                     # For non-passive threads, associate the sc with the tcb
-                    sc = obj_space[perspective['sc']]
+                    sc = obj_space[sc_name]
                     tcb['sc_slot'] = Cap(sc)
-                except KeyError:
-                    # Thread is passive
-                    pass
+
 
 def make_indices(arch, vaddr, size):
     '''Construct a set of indices that could be used to traverse to the mapping
