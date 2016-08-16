@@ -36,6 +36,7 @@ from teststage6 import TestStage6
 from teststage7 import TestStage7
 from teststage8 import TestStage8
 from teststage9 import TestStage9
+from teststage10 import TestStage10
 
 if __name__ == '__main__':
     unittest.main()

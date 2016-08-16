@@ -26,6 +26,7 @@ from .stage6 import Parse6
 from .stage7 import Parse7
 from .stage8 import Parse8
 from .stage9 import Parse9
+from .stage10 import Parse10
 import os
 
 class Parser(BaseParser):
@@ -73,10 +74,13 @@ class Parser(BaseParser):
         # Build the attribute resolver.
         s8 = Parse8(s7)
 
-        # Build the AST freezer.
+        # Build the N-1 connection combiner.
         s9 = Parse9(s8)
 
-        self.parser = s9
+        # Build the AST freezer.
+        s10 = Parse10(s9)
+
+        self.parser = s10
     
     def parse_file(self, filename):
         return self.parser.parse_file(filename)

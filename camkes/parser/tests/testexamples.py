@@ -39,8 +39,9 @@ from camkes.parser.stage6 import Parse6
 from camkes.parser.stage7 import Parse7
 from camkes.parser.stage8 import Parse8
 from camkes.parser.stage9 import Parse9
+from camkes.parser.stage10 import Parse10
 
-PARSERS = ('reader', 'cpp', 's1', 's2', 's3', 's4', 's5', 's6', 's7', 's8', 's9')
+PARSERS = ('reader', 'cpp', 's1', 's2', 's3', 's4', 's5', 's6', 's7', 's8', 's9', 's10')
 
 class TestExamples(CAmkESTest):
     def setUp(self):
@@ -56,6 +57,7 @@ class TestExamples(CAmkESTest):
         self.s7 = Parse7(self.s6)
         self.s8 = Parse8(self.s7)
         self.s9 = Parse9(self.s8)
+        self.s10 = Parse10(self.s9)
         assert all([hasattr(self, p) for p in PARSERS])
 
 # Locate all the test files in good/*.camkes and add each as a separate test
