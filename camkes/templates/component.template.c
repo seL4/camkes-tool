@@ -762,14 +762,14 @@ int USED main(int argc UNUSED, char *argv[]) {
 
                 /* Wake all the non-passive interface threads. */
                 /*- for t in threads[1:] -*/
-                    /*- if t not in passive_threads -*/
+                    /*- if not options.realtime or t not in passive_threads -*/
                         sync_sem_bare_post(/*? pre_init_ep ?*/, &/*? pre_init_lock ?*/);
                     /*- endif -*/
                 /*- endfor -*/
 
                 /* Wait for all the non-passive interface threads to run their inits. */
                 /*- for t in threads[1:] -*/
-                    /*- if t not in passive_threads -*/
+                    /*- if not options.realtime or t not in passive_threads -*/
                         sync_sem_bare_wait(/*? interface_init_ep ?*/, &/*? interface_init_lock ?*/);
                     /*- endif -*/
                 /*- endfor -*/
