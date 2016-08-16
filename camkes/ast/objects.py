@@ -392,6 +392,9 @@ class Instance(ASTObject):
     def label(self):
         return self.name
 
+    def __str__(self):
+        return self.name
+
 class Connection(ASTObject):
     child_fields = ('from_ends', 'to_ends', 'type')
 
@@ -906,6 +909,9 @@ class Interface(six.with_metaclass(abc.ABCMeta, ASTObject)):
 
     def __init__(self, location=None):
         super(Interface, self).__init__(location)
+
+    def __str__(self):
+        return self.name
 
 class Provides(Interface):
     child_fields = ('type',)
@@ -1610,6 +1616,9 @@ class ConnectionEnd(ASTObject):
 
     def label(self):
         return self.parent.label()
+
+    def __str__(self):
+        return "%s.%s" % (str(self.instance), str(self.interface))
 
 class Export(ASTObject):
     child_fields = ('source_instance', 'source_interface', 'destination')
