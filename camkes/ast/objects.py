@@ -469,10 +469,12 @@ class Connection(ASTObject):
                 self)
         if len(self.from_ends) > 1 and not self.type.from_multiple:
             raise ASTError('connection \'%s\' has multiple from ends '
-                'but its connector type only permits one' % self.name, self)
+                'but its connector type (%s) only permits one'
+                % (self.name, self.type.name), self)
         if len(self.to_ends) > 1 and not self.type.to_multiple:
             raise ASTError('connection \'%s\' has multiple to ends '
-                'but its connector type only permits one' % self.name, self)
+                'but its connector type (%s) only permits one'
+                % (self.name, self.type.name), self)
         types = set([e.interface.type for e in self.from_ends] +
             [e.interface.type for e in self.to_ends])
         if len(types) > 1:
