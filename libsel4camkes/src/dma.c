@@ -22,6 +22,7 @@
 #include <string.h>
 #include <camkes/dma.h>
 #include <utils/util.h>
+#include <sel4/sel4.h>
 
 /* NOT THREAD SAFE. The code could be made thread safe relatively easily by
  * operating atomically on the free list.
@@ -34,6 +35,7 @@ static void *head;
 
 /* This function will be supplied to us at initialisation of the DMA pool. */
 static uintptr_t (*to_paddr)(void *ptr);
+static seL4_CPtr (*to_cptr)(void *ptr);
 
 /* A node in the free list. Note that the free list is stored as a linked-list
  * of such nodes *within* the DMA pages themselves. This struct is deliberately
@@ -318,7 +320,7 @@ static void defrag(void) {
 }
 
 int camkes_dma_init(void *dma_pool, size_t dma_pool_sz, size_t page_size,
-        uintptr_t (*get_paddr)(void *ptr)) {
+        uintptr_t (*get_paddr)(void *ptr), seL4_CPtr (*get_cptr)(void *ptr)) {
     /* We should not have already initialised our bookkeeping. */
     assert(head == NULL);
 
@@ -349,6 +351,7 @@ int camkes_dma_init(void *dma_pool, size_t dma_pool_sz, size_t page_size,
     }
 
     to_paddr = get_paddr;
+    to_cptr = get_cptr;
 
     STATS(stats.heap_size = dma_pool_sz);
     STATS(stats.minimum_heap_size = dma_pool_sz);
@@ -423,6 +426,11 @@ int camkes_dma_init(void *dma_pool, size_t dma_pool_sz, size_t page_size,
 uintptr_t camkes_dma_get_paddr(void *ptr) {
     assert(to_paddr != NULL);
     return to_paddr(ptr);
+}
+
+seL4_CPtr camkes_dma_get_cptr(void *ptr) {
+    assert(to_cptr != NULL);
+    return to_cptr(ptr);
 }
 
 /* Allocate a DMA region. This is refactored out of camkes_dma_alloc simply so

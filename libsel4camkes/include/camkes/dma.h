@@ -15,6 +15,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <utils/util.h>
+#include <sel4/sel4.h>
 
 /* Initialise the DMA allocator. This function must be called before using any
  * of the functions below. Pass in the pool to allocate from, the size of this
@@ -23,7 +24,8 @@
  * itself to determine it automatically. Returns 0 on success.
  */
 int camkes_dma_init(void *dma_pool, size_t dma_pool_sz, size_t page_size,
-    uintptr_t (*get_paddr)(void *ptr)) NONNULL(1, 4) WARN_UNUSED_RESULT;
+    uintptr_t (*get_paddr)(void *ptr), seL4_CPtr (*get_cptr)(void *ptr))
+    NONNULL(1, 4) WARN_UNUSED_RESULT;
 
 /**
  * Allocate memory to be used for DMA.
@@ -51,6 +53,10 @@ void camkes_dma_free(void *ptr, size_t size);
  * but not one currently allocated to you by camkes_dma_alloc_page.
  */
 uintptr_t camkes_dma_get_paddr(void *ptr);
+
+/* Return the cap to a frame backing part of the DMA buffer. Returns seL4_CapNull
+ * if passed a pointer into memory that is not part of a DMA buffer. */
+seL4_CPtr camkes_dma_get_cptr(void *ptr);
 
 /* Initialise a DMA manager for use with libplatsupport. This manager will be
  * backed by the (generated) CAmkES DMA pool. Returns 0 on success.

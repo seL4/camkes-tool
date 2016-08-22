@@ -85,17 +85,25 @@ static char /*? p['dma_pool_symbol'] ?*/[/*? dma_pool ?*/]
     __attribute__((section("persistent")))
     ALIGN(/*? page_size[0] ?*/);
 
+/*- set dma_frames = [] -*/
+/*- set num_dma_frames = int(macros.ROUND_UP(dma_pool, page_size[0]) // page_size[0]) -*/
+
+/*- for i in six.moves.range(num_dma_frames) -*/
+    /*- set q = Perspective(dma_frame_index=i) -*/
+    /*- set frame = alloc(q['dma_frame_symbol'], seL4_FrameObject, size=page_size[0]) -*/
+    /*- do dma_frames.append(frame) -*/
+/*- endfor -*/
+
 /*- set get_paddr = c_symbol('get_paddr') -*/
 uintptr_t /*? get_paddr ?*/(void *ptr) {
     uintptr_t base UNUSED = (uintptr_t)ptr & ~MASK(ffs(/*? page_size[0] ?*/) - 1);
     uintptr_t offset UNUSED = (uintptr_t)ptr & MASK(ffs(/*? page_size[0] ?*/) - 1);
-    /*- for i in six.moves.range(int(macros.ROUND_UP(dma_pool, page_size[0]) // page_size[0])) -*/
+    /*- for i in six.moves.range(num_dma_frames) -*/
         /*- if not loop.first -*/
             else
         /*- endif -*/
         if (base == (uintptr_t)/*? p['dma_pool_symbol'] ?*/ + /*? i ?*/ * /*? page_size[0] ?*/) {
-            /*- set p = Perspective(dma_frame_index=i) -*/
-            /*- set frame = alloc(p['dma_frame_symbol'], seL4_FrameObject, size=page_size[0]) -*/
+            /*- set frame = dma_frames[i] -*/
             /*- set paddr_sym = c_symbol('paddr') -*/
             static uintptr_t /*? paddr_sym ?*/;
             if (/*? paddr_sym ?*/ == 0) {
@@ -115,6 +123,22 @@ uintptr_t /*? get_paddr ?*/(void *ptr) {
         }
     /*- endfor -*/
     return (uintptr_t)NULL;
+}
+
+/*- set get_cptr = c_symbol('get_cptr') -*/
+seL4_CPtr /*? get_cptr ?*/(void *ptr) {
+    uintptr_t base UNUSED = (uintptr_t)ptr & ~MASK(ffs(/*? page_size[0] ?*/) - 1);
+    uintptr_t offset UNUSED = (uintptr_t)ptr & MASK(ffs(/*? page_size[0] ?*/) - 1);
+    /*- for i in six.moves.range(num_dma_frames) -*/
+        /*- if not loop.first -*/
+            else
+        /*- endif -*/
+        if (base == (uintptr_t)/*? p['dma_pool_symbol'] ?*/ + /*? i ?*/ * /*? page_size[0] ?*/) {
+            /*- set frame = dma_frames[i] -*/
+            return /*? frame ?*/;
+        }
+    /*- endfor -*/
+    return seL4_CapNull;
 }
 
 /* MMIO related functionality for interaction with libplatsupport. */
@@ -254,7 +278,7 @@ static void /*? init ?*/(void) {
      * this point, so any error triggered below will certainly be fatal.
      */
     int res = camkes_dma_init(/*? p['dma_pool_symbol'] ?*/, /*? dma_pool ?*/,
-        /*? page_size[0] ?*/, /*? get_paddr ?*/);
+        /*? page_size[0] ?*/, /*? get_paddr ?*/, /*? get_cptr ?*/);
     ERR_IF(res != 0, camkes_error, ((camkes_error_t){
             .type = CE_ALLOCATION_FAILURE,
             .instance = "/*? me.name ?*/",
