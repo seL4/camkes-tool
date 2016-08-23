@@ -130,6 +130,14 @@ def lift_raw(term, filename=None, source=None, debug=False):
         # information to it.
         raise ParseError(e, location)
 
+def strip_quotes(s):
+    if isinstance(s, six.string_types):
+        assert s[0] == s[-1] == '"', 'unquoted string used where ' \
+            'quoted string expected (bug in stage 1 parser?)'
+        return s[1:-1]
+    else:
+        return s
+
 def _lift_array_parameter(location, scalar_parameter):
     return Parameter(scalar_parameter.name, scalar_parameter.direction,
         scalar_parameter.type, True, location)
@@ -387,7 +395,7 @@ def _lift_dataport_type(location, arg):
     return 'Buf(%d)' % int(arg)
 
 def _lift_dict(location, *args):
-    return {k: v for k, v in pairwise(args)}
+    return {strip_quotes(k): strip_quotes(v) for k, v in pairwise(args)}
 
 def _lift_emits(location, id, id2):
     return Emits(id, id2, location)
@@ -431,7 +439,7 @@ def _lift_instance_defn(location, component_ref, id):
     return Instance(component_ref, id, location)
 
 def _lift_list(location, *args):
-    return list(args)
+    return [strip_quotes(x) for x in args]
 
 def _lift_logical_not(location, op):
     return int(not op)
@@ -569,10 +577,7 @@ def _lift_semaphore(location, id):
     return Semaphore(id, location)
 
 def _lift_setting(location, id, id2, item):
-    if isinstance(item, six.string_types):
-        assert item[0] == item[-1] == '"', 'unquoted string used as setting ' \
-            'value (bug in stage 1 parser?)'
-        item = item[1:-1] # Strip quotes
+    item = strip_quotes(item)
     return Setting(id, id2, item, location)
 
 def _lift_signed_char(location, *_):
