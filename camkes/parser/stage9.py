@@ -31,8 +31,6 @@ from camkes.ast.objects import Connection, ConnectionEnd
 from .base import Transformer
 from .exception import ParseError
 
-import pdb
-
 # A collection of connections that groups connections based only
 # the interfaces in them. Can be used to consolidate multiple
 # connections to a single interface into a single N-1 connection
