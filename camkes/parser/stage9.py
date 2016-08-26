@@ -116,11 +116,9 @@ class ConnectionTracker:
 
     # track a connection
     def add(self, connection):
-        to_ends = set(connection.to_ends)
-        from_ends = set(connection.from_ends)
-        self._add_connection_ends(to_ends, from_ends,
+        self._add_connection_ends(set(connection.to_ends), set(connection.from_ends),
                 self.to_candidates, self.from_candidates, connection)
-        self._add_connection_ends(from_ends, to_ends,
+        self._add_connection_ends(set(connection.from_ends), set(connection.to_ends),
                 self.from_candidates, self.to_candidates, connection)
 
     def _consolidate_direction(self, direction, candidates):
