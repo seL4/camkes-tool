@@ -392,6 +392,16 @@ static uintptr_t make_frame_get_paddr(seL4_CPtr untyped) {
     return ret;
 }
 
+static void camkes_make_arch_simple(arch_simple_t *simple) {
+    simple->irq = &simple_camkes_get_irq;
+#ifdef CONFIG_IOMMU
+    simple->iospace = &simple_camkes_get_iospace;
+#endif
+/*- if options.architecture in ('ia32', 'x86_64') -*/
+    simple->IOPort_cap = &simple_camkes_get_IOPort_cap;
+/*- endif -*/
+}
+
 void camkes_make_simple(simple_t *simple) {
     if (!camkes_simple_init) {
         /*- if cnodesize is none -*/
@@ -415,9 +425,7 @@ void camkes_make_simple(simple_t *simple) {
     simple->frame_info = /*&simple_camkes_get_frame_info*/NULL;
     simple->frame_cap = &simple_camkes_get_frame_cap;
     simple->frame_mapping = /*&simple_camkes_get_frame_mapping*/NULL;
-    simple->irq = &simple_camkes_get_irq;
     simple->ASID_assign = &simple_camkes_set_ASID;
-    simple->IOPort_cap = &simple_camkes_get_IOPort_cap;
     simple->cap_count = &simple_camkes_cap_count;
     simple->nth_cap = &simple_camkes_nth_cap;
     simple->init_cap = &simple_camkes_init_cap;
@@ -426,10 +434,9 @@ void camkes_make_simple(simple_t *simple) {
     simple->nth_untyped = &simple_camkes_nth_untyped;
     simple->userimage_count = /*&simple_camkes_userimage_count*/NULL;
     simple->nth_userimage = /*&simple_camkes_nth_userimage*/NULL;
-#ifdef CONFIG_IOMMU
-    simple->iospace = &simple_camkes_get_iospace;
-#endif
     simple->print = &simple_camkes_print;
+
+    camkes_make_arch_simple(&simple->arch_simple);
 }
 
 /*- endif -*/
