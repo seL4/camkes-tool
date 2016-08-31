@@ -43,10 +43,6 @@ def freeze(ast_lifted):
     if len(assembly.composition.instances) == 0:
         raise ParseError('no instances declared in assembly', assembly.location)
 
-    if len(assembly.composition.connections) == 0:
-        raise ParseError('no connections declared in assembly',
-            assembly.location)
-
 class Parse10(Transformer):
     def precondition(self, ast_lifted, _):
         return precondition(ast_lifted)
