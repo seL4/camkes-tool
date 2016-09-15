@@ -414,21 +414,13 @@ void camkes_make_simple(simple_t *simple) {
     /* Assume we are called from init */
     simple_data.inittcb = camkes_get_tls()->tcb_cap;
     simple->data = &simple_data;
-#ifndef CONFIG_KERNEL_STABLE
     simple->arch_simple.data = &simple_data;
-#endif
     simple->frame_info = /*&simple_camkes_get_frame_info*/NULL;
     simple->frame_cap = &simple_camkes_get_frame_cap;
     simple->frame_mapping = /*&simple_camkes_get_frame_mapping*/NULL;
-#ifdef CONFIG_KERNEL_STABLE
-    simple->irq = &simple_camkes_get_irq;
-#else
     simple->arch_simple.irq = &simple_camkes_get_irq;
-#endif
     simple->ASID_assign = &simple_camkes_set_ASID;
-#ifdef CONFIG_KERNEL_STABLE
-    simple->IOPort_cap = &simple_camkes_get_IOPort_cap;
-#elif defined(CONFIG_ARCH_X86)
+#if defined(CONFIG_ARCH_X86)
     simple->arch_simple.IOPort_cap = &simple_camkes_get_IOPort_cap;
 #endif
     simple->cap_count = &simple_camkes_cap_count;
@@ -440,7 +432,7 @@ void camkes_make_simple(simple_t *simple) {
     simple->userimage_count = /*&simple_camkes_userimage_count*/NULL;
     simple->nth_userimage = /*&simple_camkes_nth_userimage*/NULL;
 #ifdef CONFIG_IOMMU
-    simple->iospace = &simple_camkes_get_iospace;
+    simple->arch_simple.iospace = &simple_camkes_get_iospace;
 #endif
     simple->print = &simple_camkes_print;
 }
