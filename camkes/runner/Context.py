@@ -102,9 +102,9 @@ def new_context(entity, assembly, obj_space, cap_space, shmem, **kwargs):
         # to locate the relevant ELF frame(s) to remap. Note that we assume
         # address spaces and CSpaces are 1-to-1.
         'register_shared_variable':None if cap_space is None else \
-            (lambda gname, lname, perm='RWX', paddr=None:
+            (lambda gname, lname, perm='RWX', paddr=None, frames=None:
                 register_shared_variable(shmem, gname, cap_space.cnode.name,
-                    lname, perm, paddr)),
+                    lname, perm, paddr, frames)),
 
         # A `self`-like reference to the current AST object. It would be nice
         # to actually call this `self` to lead to more pythonic templates, but
@@ -350,7 +350,7 @@ def alloc_cap(client, space, name, obj, **kwargs):
     return cap
 
 def register_shared_variable(shmem, global_name, local_context, local_name,
-        permissions='RWX', paddr=None):
+        permissions='RWX', paddr=None, frames=None):
     '''Track a variable that is intended to map to a cross-address-space shared
     variable.
      shmem - The dictionary to use for tracking
@@ -358,7 +358,7 @@ def register_shared_variable(shmem, global_name, local_context, local_name,
      local_context - The owner's CNode name
      local_name - The name of this variable in the owner's address space
     '''
-    shmem[global_name][local_context].append((local_name, permissions, paddr))
+    shmem[global_name][local_context].append((local_name, permissions, paddr, frames))
 
     # Return code to:
     #  1. page-align the shared variable;

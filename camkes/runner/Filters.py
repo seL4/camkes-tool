@@ -321,8 +321,20 @@ def collapse_shared_frames(ast, obj_space, elfs, shmem, options, **_):
 
     for window, mappings in shmem.items():
         frames = None
+
+        # If the shared variable has an associated set of backing frames
+        # allocated already (ie. allocated in a template), look it up
+        # before collapsing the shared variable.
+        for mapping in mappings.values():
+            for _, _, _, prealloc_frames in mapping:
+                if prealloc_frames is not None:
+                    assert frames is None, 'Multiple sides of shared memory with' \
+                            'preallocated frames for shared variable "%s"' % window
+
+                    frames = prealloc_frames
+
         for cnode, local_mappings in mappings.items():
-            for sym, permissions, paddr in local_mappings:
+            for sym, permissions, paddr, _ in local_mappings:
 
                 perspective = Perspective(cnode=cnode)
 
