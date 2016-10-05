@@ -190,10 +190,11 @@ static int simple_camkes_cap_count(void *data) {
     return /*? len(untyped_obj_list) + mmio_caps_len[0] + len(ioports) + len(iospaces) + len(untyped_mmio) + 3 ?*/;
 }
 
-static seL4_CPtr simple_camkes_nth_untyped(void *data, int n, uint32_t *size_bits, uint32_t *paddr) {
+static seL4_CPtr simple_camkes_nth_untyped(void *data, int n, size_t *size_bits, uintptr_t *paddr, bool *device) {
     camkes_simple_data_t *camkes = (camkes_simple_data_t *)data;
-    *size_bits = (uint32_t)camkes->untyped[n].size_bits;
-    *paddr = (uint32_t)camkes->untyped[n].paddr;
+    *size_bits = (size_t)camkes->untyped[n].size_bits;
+    *paddr = camkes->untyped[n].paddr;
+    *device = 0;
     return camkes->untyped[n].cptr;
 }
 
