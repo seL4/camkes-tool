@@ -25,7 +25,7 @@ from camkes.internal.seven import cmp, filter, map, zip
 
 from functools import partial
 import capdl, code, collections, copy, inspect, itertools, functools, numbers, \
-    orderedset, os, pdb, re, six, sys, textwrap
+    orderedset, os, pdb, re, six, sys, textwrap, math
 
 from capdl.Allocator import seL4_TCBObject, seL4_EndpointObject, \
     seL4_NotificationObject, seL4_CanRead, seL4_CanWrite, seL4_AllRights, \
@@ -156,6 +156,8 @@ def new_context(entity, assembly, obj_space, cap_space, shmem, **kwargs):
         'textwrap':textwrap,
         'copy':copy,
         'zip':zip,
+        'math':math,
+        'enumerate':enumerate,
 
         # Allocation pools. In general, do not touch these in templates, but
         # interact with them through the alloc* functions. They are only in the
