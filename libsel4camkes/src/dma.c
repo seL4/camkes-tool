@@ -583,6 +583,13 @@ void *camkes_dma_alloc(size_t size, int align) {
         size = sizeof(region_t);
     }
 
+    if (size % __alignof__(region_t) != 0) {
+        /* We need to ensure that 'size' is aligned to the bookkeeping
+         * struct, so that the remainder chunk of a region is aligned.
+         */
+        size = ROUND_UP(size, __alignof__(region_t));
+    }
+
     void *p = alloc(size, align);
 
     if (p == NULL && size > sizeof(region_t)) {
@@ -626,6 +633,13 @@ void camkes_dma_free(void *ptr, size_t size) {
      */
     if (size < sizeof(region_t)) {
         size = sizeof(region_t);
+    }
+
+    /* The 'size' of all allocated chunk should be aligned to the bookkeeping
+     * struct, so bump it to the actual size we have allocated.
+     */
+    if (size % __alignof__(region_t) != 0) {
+        size = ROUND_UP(size, __alignof__(region_t));
     }
 
     /* We should have never allocated memory that is insufficiently aligned to
