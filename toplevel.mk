@@ -42,15 +42,17 @@ include tools/common/project.mk
 capdl-loader-experimental: $(filter-out capdl-loader-experimental,$(apps)) ${STAGE_BASE}/parse-capDL/parse-capDL ${STAGE_BASE}/cpio-strip/cpio-strip
 export CAPDL_SPEC:=$(foreach v,$(filter-out capdl-loader-experimental,${apps}),${BUILD_BASE}/${v}/${v}.cdl)
 
+# The capdl translator is built in a custom environment to prevent compiler flags
+# intended for the target affecting the compilation of haskell packages intended
+# to run locally.
 export PATH:=${PATH}:${STAGE_BASE}/parse-capDL
 .PHONY: ${STAGE_BASE}/parse-capDL/parse-capDL
 ${STAGE_BASE}/parse-capDL/parse-capDL:
 	@echo "[$(notdir $@)] building..."
+	$(Q)env -i HOME=$(HOME) PATH=$(PATH) $(MAKE) --directory=tools/capDL sandbox
+	$(Q)env -i HOME=$(HOME) PATH=$(PATH) $(MAKE) --directory=tools/capDL
 	$(Q)mkdir -p "$(dir $@)"
-	$(Q)cp -pR tools/capDL/* $(dir $@)
-	$(Q)$(MAKE) --no-print-directory --directory=$(dir $@) 2>&1 \
-        | while read line; do echo " $$line"; done; \
-        exit $${PIPESTATUS[0]}
+	$(Q)cp -pR tools/capDL/$(notdir $@) $(dir $@)
 	@echo "[$(notdir $@)] done."
 
 export PATH:=${PATH}:${STAGE_BASE}/cpio-strip
