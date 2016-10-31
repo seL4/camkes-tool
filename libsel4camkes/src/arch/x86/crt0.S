@@ -34,7 +34,7 @@ _camkes_start:
 #endif
 
     movw    $IPCBUF_GDT_SELECTOR, %bx
-    movw    %bx, %gs
+    movw    %bx, %fs
 
     /* Save thread_id and entry_point so we can
      * put them into argv later */
