@@ -52,6 +52,7 @@ ${STAGE_BASE}/parse-capDL/parse-capDL:
 	@echo "[$(notdir $@)] building..."
 	$(Q)env -i HOME=$(HOME) PATH=$(PATH) $(MAKE) --directory=tools/capDL sandbox
 	$(Q)env -i HOME=$(HOME) PATH=$(PATH) $(MAKE) --directory=tools/capDL
+	$(Q)env -i HOME=$(HOME) PATH=$(PATH) $(MAKE) --directory=tools/capDL install
 	$(Q)mkdir -p "$(dir $@)"
 	$(Q)cp -pR tools/capDL/$(notdir $@) $(dir $@)
 	@echo "[$(notdir $@)] done."
