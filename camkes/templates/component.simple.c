@@ -176,19 +176,20 @@ typedef struct camkes_untyped {
     seL4_CPtr cptr;
     uintptr_t paddr;
     int size_bits;
+    int device;
 } camkes_untyped_t;
 typedef struct camkes_simple_data {
 /*- if cnodesize is none -*/
     int cnodesizebits;
 /*- endif -*/
-    camkes_untyped_t untyped[/*? len(untyped_obj_list) ?*/];
+    camkes_untyped_t untyped[/*? len(untyped_obj_list) + len(untyped_mmio) ?*/];
     seL4_CPtr inittcb;
 } camkes_simple_data_t;
 static camkes_simple_data_t simple_data;
 static bool camkes_simple_init = false;
 
 static int simple_camkes_untyped_count(void *data) {
-    return /*? len(untyped_obj_list) ?*/;
+    return /*? len(untyped_obj_list) + len(untyped_mmio) ?*/;
 }
 
 static int simple_camkes_cap_count(void *data) {
@@ -198,10 +199,14 @@ static int simple_camkes_cap_count(void *data) {
 
 static seL4_CPtr simple_camkes_nth_untyped(void *data, int n, size_t *size_bits, uintptr_t *paddr, bool *device) {
     camkes_simple_data_t *camkes = (camkes_simple_data_t *)data;
-    *size_bits = (size_t)camkes->untyped[n].size_bits;
-    *paddr = camkes->untyped[n].paddr;
+    if (size_bits) {
+        *size_bits = (size_t)camkes->untyped[n].size_bits;
+    }
+    if (paddr) {
+        *paddr = camkes->untyped[n].paddr;
+    }
     if (device) {
-        *device = 0;
+        *device = camkes->untyped[n].device;
     }
     return camkes->untyped[n].cptr;
 }
@@ -214,17 +219,6 @@ static seL4_Error simple_camkes_get_frame_cap(void *data, void *paddr, int size_
                 return seL4_CNode_Copy(path->root, path->capPtr, path->capDepth, /*? self_cnode ?*/, mmio_cap_lookup_/*? mmio_key ?*/[((uintptr_t)paddr - (uintptr_t)/*? paddr ?*/) >> /*? bits ?*/], CONFIG_WORD_SIZE, seL4_AllRights);
             }
         /*- endfor -*/
-    /*- endif -*/
-    /*- if len(untyped_mmio) > 0 -*/
-#ifdef CONFIG_KERNEL_STABLE
-        /*- for paddr, size_bits, cap in untyped_mmio -*/
-            if ((uintptr_t)paddr >= (uintptr_t)/*? paddr ?*/ && (uintptr_t)paddr + BIT(size_bits) <= (uintptr_t)/*? paddr ?*/ + (uintptr_t)/*? 2**size_bits ?*/) {
-                return seL4_Untyped_RetypeAtOffset(/*? cap ?*/, kobject_get_type(KOBJECT_FRAME, size_bits), (seL4_Word)(paddr - /*? paddr ?*/), size_bits, path->root, path->dest, path->destDepth, path->offset, 1);
-            }
-        /*- endfor -*/
-#else
-#error Untyped MMIO regions requested, but not running on experimental kernel
-#endif
     /*- endif -*/
     return seL4_FailedLookup;
 }
@@ -447,8 +441,11 @@ void camkes_make_simple(simple_t *simple) {
         /*# Find untyped physical addresses. We only care if the untyped is at least a page size #*/
         /*- for u in untyped_obj_list -*/
             /*- if u[1] >= 12 -*/
-                simple_data.untyped[/*? loop.index0 ?*/] = (camkes_untyped_t) {.cptr = /*? u[0] ?*/, .paddr = make_frame_get_paddr(/*? u[0] ?*/), .size_bits = /*? u[1] ?*/ };
+                simple_data.untyped[/*? loop.index0 ?*/] = (camkes_untyped_t) {.cptr = /*? u[0] ?*/, .paddr = make_frame_get_paddr(/*? u[0] ?*/), .size_bits = /*? u[1] ?*/, .device = false};
             /*- endif -*/
+        /*- endfor -*/
+        /*- for paddr, size_bits, cap in untyped_mmio -*/
+            simple_data.untyped[/*? loop.index0 + len(untyped_obj_list) ?*/] = (camkes_untyped_t){.cptr = /*? cap ?*/, .paddr = /*? paddr ?*/, .size_bits = /*? size_bits ?*/, .device = true};
         /*- endfor -*/
         camkes_simple_init = true;
     }
