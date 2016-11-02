@@ -126,6 +126,12 @@
     /*- endfor -*/
 /*- endif -*/
 
+/*# Allocate any SMMU caps #*/
+/*- for smmu in configuration[me.name].get('smmu',[]) -*/
+    /*- set smmu_cap = alloc('smmu_%d' % smmu, seL4_ARM_IOSpace, iospace=smmu) -*/
+    /*- do iospaces.append((smmu, smmu_cap)) -*/
+/*- endfor -*/
+
 /*# Allocate asid pool cap #*/
 /*- if configuration and configuration[me.name].get('asid_pool') -*/
     /*- set asidpool = alloc('asid_pool', seL4_ASID_Pool) -*/
@@ -329,6 +335,30 @@ static seL4_Error simple_camkes_get_iospace(void *data, uint16_t domainID, uint1
 }
 #endif
 
+#ifdef CONFIG_ARM_SMMU
+static seL4_Error simple_camkes_get_iospace_cap_count(void *data, int *count) {
+    if (count) {
+        *count = /*? len(iospaces) ?*/;
+    }
+    return seL4_NoError;
+}
+
+static seL4_CPtr simple_camkes_get_iospace_nth_cap(void *data, int n) {
+    /*- if len(iospaces) > 0 -*/
+        switch (n) {
+        /*- for smmu, cap in iospaces -*/
+            case /*? loop.index0 ?*/:
+                return /*? cap ?*/;
+        /*- endfor -*/
+        default:
+            return 0;
+        }
+    /*- else -*/
+        return 0;
+    /*- endif -*/
+}
+#endif
+
 static void simple_camkes_print(void *data) {
     printf("camkes is too cool to print out simple information\n");
 }
@@ -437,6 +467,10 @@ void camkes_make_simple(simple_t *simple) {
     simple->nth_untyped = &simple_camkes_nth_untyped;
     simple->userimage_count = /*&simple_camkes_userimage_count*/NULL;
     simple->nth_userimage = /*&simple_camkes_nth_userimage*/NULL;
+#ifdef CONFIG_ARM_SMMU
+    simple->arch_simple.iospace_cap_count = simple_camkes_get_iospace_cap_count;
+    simple->arch_simple.iospace_get_nth_cap = simple_camkes_get_iospace_nth_cap;
+#endif
     simple->print = &simple_camkes_print;
 
     camkes_make_arch_simple(&simple->arch_simple);

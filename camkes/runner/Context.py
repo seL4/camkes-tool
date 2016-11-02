@@ -31,6 +31,7 @@ from capdl.Allocator import seL4_TCBObject, seL4_EndpointObject, \
     seL4_NotificationObject, seL4_CanRead, seL4_CanWrite, seL4_AllRights, \
     seL4_ARM_SmallPageObject, seL4_FrameObject, seL4_IRQControl, \
     seL4_UntypedObject, seL4_IA32_IOPort, seL4_IA32_IOSpace, \
+    seL4_ARM_IOSpace, \
     seL4_ARM_SectionObject, seL4_ARM_SuperSectionObject, \
     seL4_SchedContextObject
 
@@ -66,6 +67,7 @@ def new_context(entity, assembly, obj_space, cap_space, shmem, **kwargs):
         'seL4_UntypedObject':seL4_UntypedObject,
         'seL4_IA32_IOPort':seL4_IA32_IOPort,
         'seL4_IA32_IOSpace':seL4_IA32_IOSpace,
+        'seL4_ARM_IOSpace':seL4_ARM_IOSpace,
         'seL4_SchedContextObject':seL4_SchedContextObject,
         'seL4_ASID_Pool':seL4_ASID_Pool,
 
