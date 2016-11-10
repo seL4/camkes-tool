@@ -1388,20 +1388,21 @@ The following functions are available at runtime:
 > In a component that consumes an event a function prefixed with the event's
   name is available that blocks until the event is received.
 
-### Mutexes and Semaphores
+### Synchronization Primitives
 
-CAmkES provides two primitives for intra-component mutual exclusion. Mutexes
-and semaphores are declared similarly as properties of a component definition:
+CAmkES provides three primitives for intra-component mutual exclusion and synchronization.
+Mutexes, semaphores, and binary semaphores are declared similarly to properties of a component definition:
 
 ```camkes
 component Foo {
   has mutex m;
   has semaphore s;
+  has binary_semaphore b;
 }
 ```
 
-By default semaphores have a count (initial value) of 1, but this can be
-adjusted using an attribute:
+By default semaphores have a count (initial value) of 1, and binary semaphores have an initial value
+of 0. This can be adjusted using an attribute:
 
 ```camkes
 assembly {
@@ -1411,13 +1412,14 @@ assembly {
   }
   configuration {
     f.s_value = 4;
+    f.b_value = 1; // must be either 0 or 1
     ...
   }
 }
 ```
 
 An application can lock or unlock a declared mutex and call post or wait on a
-declared semaphore. For example, for the above declarations, the following
+declared semaphore or binary semaphore. For example, for the above declarations, the following
 functions are available at runtime:
 
 ```c
@@ -1435,6 +1437,12 @@ int s_trywait(void);
 
 /* Post to semaphore s */
 int s_post(void);
+
+/* Wait on a binary semaphore b */
+int b_wait(void);
+
+/* Post to a binary semaphore b */
+int b_post(void);
 ```
 
 The CAmkES mutexes and semaphores have the behaviour you would expect from an
