@@ -26,7 +26,7 @@ from camkes.ast import Assembly, Attribute, AttributeReference, Component, \
     Composition, Configuration, Connection, ConnectionEnd, Connector, \
     Consumes, Dataport, Emits, Export, Group, Include, Instance, Interface, \
     LiftedAST, Method, Mutex, normalise_type, Parameter, Procedure, Provides, \
-    Reference, Semaphore, Setting, SourceLocation, Uses
+    Reference, Semaphore, BinarySemaphore, Setting, SourceLocation, Uses
 from .base import Parser
 from .exception import ParseError
 import numbers, plyplus, re, six
@@ -196,6 +196,7 @@ def _lift_component_decl(location, *args):
         dataports=component_defn.dataports,
         attributes=component_defn.attributes, mutexes=component_defn.mutexes,
         semaphores=component_defn.semaphores,
+        binary_semaphores=component_defn.binary_semaphores,
         composition=component_defn.composition,
         configuration=component_defn.configuration, location=location)
 
@@ -217,6 +218,7 @@ def _lift_component_defn(location, *args):
                      attributes=[x for x in args if isinstance(x, Attribute)],
                      mutexes=[x for x in args if isinstance(x, Mutex)],
                      semaphores=[x for x in args if isinstance(x, Semaphore)],
+                     binary_semaphores=[x for x in args if isinstance(x, BinarySemaphore)],
                      composition=composition, configuration=configuration,
                      location=location)
 
@@ -576,6 +578,9 @@ def _lift_scalar_parameter(location, *args):
 def _lift_semaphore(location, id):
     return Semaphore(id, location)
 
+def _lift_binary_semaphore(location, id):
+    return BinarySemaphore(id, location)
+
 def _lift_setting(location, id, id2, item):
     item = strip_quotes(item)
     return Setting(id, id2, item, location)
@@ -685,6 +690,7 @@ LIFT = {
     'reference':_lift_reference,
     'scalar_parameter':_lift_scalar_parameter,
     'semaphore':_lift_semaphore,
+    'binary_semaphore':_lift_binary_semaphore,
     'setting':_lift_setting,
     'signed_char':_lift_signed_char,
     'signed_int':_lift_signed_int,

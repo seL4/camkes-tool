@@ -22,7 +22,7 @@ from .objects import Assembly, Attribute, AttributeReference, Component, \
     Composition, Configuration, Connection, ConnectionEnd, Connector, \
     Consumes, Dataport, Emits, Export, Group, Include, Instance, Interface, \
     Method, Mutex, Parameter, Procedure, Provides, Reference, Semaphore, \
-    Setting, Uses
+    BinarySemaphore, Setting, Uses
 from .traversal import SimpleTraversalContext, TraversalAction, \
     TraversalContext
 from .type import normalise_type

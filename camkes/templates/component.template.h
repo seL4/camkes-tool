@@ -145,6 +145,11 @@ const char *get_instance_name(void);
     int /*? s.name ?*/_post(void) WARN_UNUSED_RESULT;
 /*- endfor -*/
 
+/*- for b in me.type.binary_semaphores -*/
+    int /*? b.name ?*/_wait(void) WARN_UNUSED_RESULT;
+    int /*? b.name ?*/_post(void) WARN_UNUSED_RESULT;
+/*- endfor -*/
+
 /* Entry point expected to be provided by the user. */
 int run(void);
 

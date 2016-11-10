@@ -62,6 +62,7 @@ ID: '[a-zA-Z_]\w*'
             PROVIDES: 'provides';
             REFIN: 'refin';
             SEMAPHORE: 'semaphore';
+            BINARY_SEMAPHORE: 'binary_semaphore';
             SIGNED: 'signed';
             STRUCT: 'struct';
             TEMPLATE: 'template';
@@ -92,7 +93,7 @@ attribute_decl: type id ';';
 
 component_decl: COMPONENT id? component_defn;
 component_defn: '\{' (attribute | consumes | control | dataport | emits |
-                      hardware | include | mutex | provides | semaphore |
+                      hardware | include | mutex | provides | semaphore | binary_semaphore |
                       uses)*
                     ((composition_sing configuration_sing?) | configuration_sing composition_sing)? '\}';
 component_ref: reference | component_defn;
@@ -107,6 +108,7 @@ hardware: HARDWARE ';';
 mutex: HAS MUTEX id ';';
 provides: PROVIDES reference id ';';
 semaphore: HAS SEMAPHORE id ';';
+binary_semaphore: HAS BINARY_SEMAPHORE id ';';
 uses: maybe? USES reference id ';';
 maybe: MAYBE;
 

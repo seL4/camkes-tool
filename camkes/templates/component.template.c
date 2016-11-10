@@ -16,6 +16,7 @@
 #include <sel4/sel4.h>
 #include <sync/mutex.h>
 #include <sync/sem.h>
+#include <sync/bin_sem.h>
 #include <sel4platsupport/platsupport.h>
 #include <camkes/allocator.h>
 #include <camkes/dataport.h>
@@ -254,6 +255,28 @@ int /*? s.name ?*/_post(void) {
 
 /*- endfor -*/
 
+/*- for b in me.type.binary_semaphores -*/
+
+/*- set binary_semaphore = c_symbol(b.name) -*/
+static sync_bin_sem_t /*? binary_semaphore ?*/;
+
+static int binary_semaphore_/*? b.name ?*/_init(void) {
+    /*- set notification = alloc(b.name, seL4_NotificationObject, read=True, write=True) -*/
+    /*- set initial = configuration[me.name].get('%s_value' % b.name, 0) -*/
+    /*? assert(initial in (0, 1), "Expected 0 or 1 as initial value for binary semaphore \"%s\". Got %d." % (b.name, initial)) ?*/
+    return sync_bin_sem_init(&/*? binary_semaphore ?*/, /*? notification ?*/, /*? initial ?*/);
+}
+
+int /*? b.name ?*/_wait(void) {
+    return sync_bin_sem_wait(&/*? binary_semaphore ?*/);
+}
+
+int /*? b.name ?*/_post(void) {
+    return sync_bin_sem_post(&/*? binary_semaphore ?*/);
+}
+
+/*- endfor -*/
+
 #ifndef CONFIG_CAMKES_DEFAULT_HEAP_SIZE
 #define CONFIG_CAMKES_DEFAULT_HEAP_SIZE 1048576
 #endif
@@ -302,6 +325,16 @@ static void /*? init ?*/(void) {
                 .type = CE_ALLOCATION_FAILURE,
                 .instance = "/*? me.name ?*/",
                 .description = "initialisation of semaphore \"/*? s.name ?*/\" failed",
+            }), ({
+                return;
+            }));
+    /*- endfor -*/
+    /*- for b in me.type.binary_semaphores -*/
+        res = binary_semaphore_/*? b.name ?*/_init();
+        ERR_IF(res != 0, camkes_error, ((camkes_error_t){
+                .type = CE_ALLOCATION_FAILURE,
+                .instance = "/*? me.name ?*/",
+                .description = "initialisation of binary semaphore \"/*? b.name ?*/\" failed",
             }), ({
                 return;
             }));

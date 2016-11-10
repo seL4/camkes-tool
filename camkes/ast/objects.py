@@ -656,12 +656,12 @@ class Setting(ASTObject):
 
 class Component(MapLike):
     child_fields = ('attributes', 'includes', 'provides', 'uses', 'emits',
-        'consumes', 'dataports', 'mutexes', 'semaphores', 'composition',
+        'consumes', 'dataports', 'mutexes', 'semaphores', 'binary_semaphores', 'composition',
         'configuration')
 
     def __init__(self, name=None, includes=None, control=False, hardware=False,
             provides=None, uses=None, emits=None, consumes=None, dataports=None,
-            attributes=None, mutexes=None, semaphores=None, composition=None,
+            attributes=None, mutexes=None, semaphores=None, binary_semaphores=None, composition=None,
             configuration=None, location=None):
         assert name is None or isinstance(name, six.string_types)
         assert includes is None or (isinstance(includes, (list, tuple)) and
@@ -684,6 +684,8 @@ class Component(MapLike):
             all(isinstance(x, Mutex) for x in mutexes))
         assert semaphores is None or (isinstance(semaphores, (list, tuple)) and
             all(isinstance(x, Semaphore) for x in semaphores))
+        assert binary_semaphores is None or (isinstance(binary_semaphores, (list, tuple)) and
+            all(isinstance(x, BinarySemaphore) for x in binary_semaphores))
         assert composition is None or isinstance(composition, Composition)
         assert configuration is None or isinstance(configuration,
             Configuration)
@@ -700,6 +702,7 @@ class Component(MapLike):
         self._attributes = list(attributes or [])
         self._mutexes = list(mutexes or [])
         self._semaphores = list(semaphores or [])
+        self._binary_semaphores = list(binary_semaphores or [])
         self._composition = composition
         self._configuration = configuration
         self.claim_children()
@@ -714,6 +717,7 @@ class Component(MapLike):
         [self.adopt(a) for a in self.attributes]
         [self.adopt(m) for m in self.mutexes]
         [self.adopt(s) for s in self.semaphores]
+        [self.adopt(b) for b in self.binary_semaphores]
         if self.composition is not None:
             self.adopt(self.composition)
         if self.configuration is not None:
@@ -857,6 +861,20 @@ class Component(MapLike):
             raise TypeError('you cannot change the semaphores of a frozen '
                 'component')
         self._semaphores = value
+
+    @property
+    def binary_semaphores(self):
+        return self._binary_semaphores
+    @binary_semaphores.setter
+    def binary_semaphores(self, value):
+        assert isinstance(value, (list, tuple)) and \
+            all(isinstance(x, BinarySemaphore) for x in value)
+        if self.frozen:
+            raise TypeError('you cannot change the binary_semaphores of a frozen '
+                'component')
+        self._binary_semaphores = value
+
+
 
     @property
     def composition(self):
@@ -1124,6 +1142,23 @@ class Semaphore(ASTObject):
         if self.frozen:
             raise TypeError('you cannot set the name of a frozen '
                 'semaphore')
+        self._name = value
+
+class BinarySemaphore(ASTObject):
+    def __init__(self, name, location=None):
+        assert isinstance(name, six.string_types)
+        super(BinarySemaphore, self).__init__(location)
+        self._name = name
+
+    @property
+    def name(self):
+        return self._name
+    @name.setter
+    def name(self, value):
+        assert isinstance(value, six.string_types)
+        if self.frozen:
+            raise TypeError('you cannot set the name of a frozen '
+                'binary_semaphore')
         self._name = value
 
 class Connector(ASTObject):
