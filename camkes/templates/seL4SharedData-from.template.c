@@ -28,7 +28,7 @@ struct {
 /*- endif -*/
 /*- do register_shared_variable('%s_data' % me.parent.name, 'from_%d_%s_data' % (index, me.interface.name), perm if perm is not none else 'RWX') -*/
 
-volatile /*? macros.dataport_type(me.interface.type) ?*/ * /*? me.interface.name ?*/ =
-    (volatile /*? macros.dataport_type(me.interface.type) ?*/ *) & from_/*? index ?*/_/*? me.interface.name ?*/_data;
+/*? macros.dataport_type(me.interface.type) ?*/ * /*? me.interface.name ?*/ =
+    (/*? macros.dataport_type(me.interface.type) ?*/ *) & from_/*? index ?*/_/*? me.interface.name ?*/_data;
 
 /*- include 'seL4SharedData-common.template.c' -*/

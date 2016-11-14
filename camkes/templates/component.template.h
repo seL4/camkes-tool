@@ -142,7 +142,7 @@ const char *get_instance_name(void);
 /*- endfor -*/
 
 /*- for d in me.type.dataports -*/
-    extern volatile /*? macros.dataport_type(d.type) ?*/ * /*? d.name ?*/
+    extern /*? macros.dataport_type(d.type) ?*/ * /*? d.name ?*/
     /*- if d.optional -*/
         WEAK
     /*- endif -*/;
