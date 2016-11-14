@@ -27,9 +27,12 @@
 	${Q}cat "$<" >>"$@"
 /*- endmacro -*/
 
-/*- macro rule_gen(target, dependencies, item, cfiles_append=None, platform='seL4') -*/
+/*- macro rule_gen(target, dependencies, item, cfiles_append=None, hfiles_append=None, platform='seL4') -*/
 /*- if cfiles_append is not none -*/
 /*? cfiles_append ?*/_CFILES += /*? target ?*/
+/*- endif -*/
+/*- if hfiles_append is not none -*/
+/*? hfiles_append ?*/_HFILES += /*? target ?*/
 /*- endif -*/
 /*? target ?*/: /*? dependencies ?*/
 	@echo " [GEN] $(notdir $@)"
@@ -120,9 +123,21 @@ endif
 /*- for c in connections -*/
   /*- for id, e in enumerate(c.from_ends) -*/
 /*? rule_gen('$(abspath ${BUILD_DIR})/src/%s/generated/%s_%s_%d.c' % (e.instance.name, e.interface.name, c.type.name, id), ' '.join(imported), '%s/from/source/%d' % (c.name, id), e.instance.name) ?*/
+
+    /*# Add a rule to generate the header if this connector has a header template #*/
+    /*- if lookup_template('%s/from/header' % c.name, c) is not none -*/
+/*? rule_gen('$(abspath ${BUILD_DIR})/include/%s/generated/%s_%s_%d.h' % (e.instance.name, e.interface.name, c.type.name, id), ' '.join(imported), '%s/from/header/%d' % (c.name, id), hfiles_append=e.instance.name) ?*/
+    /*- endif -*/
+
   /*- endfor -*/
   /*- for id, e in enumerate(c.to_ends) -*/
 /*? rule_gen('$(abspath ${BUILD_DIR})/src/%s/generated/%s_%s_%d.c' % (e.instance.name, e.interface.name, c.type.name, id), ' '.join(imported), '%s/to/source/%d' % (c.name, id), e.instance.name) ?*/
+
+    /*# Add a rule to generate the header if this connector has a header template #*/
+    /*- if lookup_template('%s/to/header' % c.name, c) is not none -*/
+/*? rule_gen('$(abspath ${BUILD_DIR})/include/%s/generated/%s_%s_%d.h' % (e.instance.name, e.interface.name, c.type.name, id), ' '.join(imported), '%s/to/header/%d' % (c.name, id), hfiles_append=e.instance.name) ?*/
+    /*- endif -*/
+
   /*- endfor -*/
 
 ifeq (${CONFIG_CAMKES_PRUNE_GENERATED},y)

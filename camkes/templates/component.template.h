@@ -23,6 +23,20 @@
     /*? macros.show_includes(i.type.includes) ?*/
 /*- endfor -*/
 
+/*# Include connector headers if connectors with headers are used to connect this instance #*/
+/*- for connection in me.parent.connections -*/
+    /*- for id, end in enumerate(connection.from_ends) -*/
+        /*- if end.instance == me and lookup_template("%s/from/header" % connection.type.name, connection) is not none -*/
+#include </*? "%s_%s_%d.h" % (end.interface.name, connection.type.name, id) ?*/>
+        /*- endif -*/
+    /*- endfor -*/
+    /*- for id, end in enumerate(connection.to_ends) -*/
+        /*- if end.instance == me and lookup_template("%s/to/header" % connection.type.name, connection) is not none -*/
+#include </*? "%s_%s_%d.h" % (end.interface.name, connection.type.name, id) ?*/>
+        /*- endif -*/
+    /*- endfor -*/
+/*- endfor -*/
+
 const char *get_instance_name(void);
 
 /* Attributes */
