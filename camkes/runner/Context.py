@@ -49,7 +49,7 @@ from camkes.internal.version import version
 from camkes.templates import macros, TemplateError
 from .NameMangling import TEMPLATES, FILTERS, Perspective
 
-def new_context(entity, assembly, obj_space, cap_space, shmem, **kwargs):
+def new_context(entity, assembly, obj_space, cap_space, shmem, templates, **kwargs):
     '''Create a new default context for rendering.'''
     return dict(list(__builtins__.items()) + list({
         # Kernel object allocator
@@ -220,6 +220,9 @@ def new_context(entity, assembly, obj_space, cap_space, shmem, **kwargs):
         # emit it to give component instances a runtime-discoverable CAmkES
         # version.
         'camkes_version':version(),
+
+        # Look up a template
+        'lookup_template':lambda path, entity: templates.lookup(path, entity),
     }.items()) + list(kwargs.items()))
 
 def _assert(condition, msg=None):

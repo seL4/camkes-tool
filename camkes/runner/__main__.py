@@ -342,7 +342,7 @@ def main(argv, out, err):
     templates = Templates(options.platform)
     [templates.add_root(t) for t in options.templates]
     try:
-        r = Renderer(templates.get_roots(), options)
+        r = Renderer(templates, options)
     except jinja2.exceptions.TemplateSyntaxError as e:
         die('template syntax error: %s' % e)
 

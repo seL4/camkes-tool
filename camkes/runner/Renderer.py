@@ -47,7 +47,7 @@ def get_leaves(d):
             yield v
 
 class Renderer(object):
-    def __init__(self, template_paths, options):
+    def __init__(self, templates, options):
 
         # PERF: This function is simply constructing a Jinja environment and
         # would be trivial, except that we optimise re-execution of template
@@ -55,6 +55,8 @@ class Renderer(object):
         # they are seen. This happens when the compilation cache is enabled and
         # should speed the execution of the template code itself in future
         # runs.
+
+        self.templates = templates
 
         # Directory in which to store and fetch pre-compiled Jinja2 templates.
         template_cache = os.path.join(options.cache_dir, version(),
@@ -67,7 +69,7 @@ class Renderer(object):
 
         # Source templates.
         loaders.extend(jinja2.FileSystemLoader(os.path.abspath(x)) for x in
-            template_paths)
+            templates.get_roots())
 
         self.env = jinja2.Environment(
             loader=jinja2.ChoiceLoader(loaders),
@@ -102,7 +104,7 @@ class Renderer(object):
     def render(self, me, assembly, template, obj_space, cap_space, shmem,
             **kwargs):
         context = new_context(me, assembly, obj_space, cap_space,
-            shmem, **kwargs)
+            shmem, self.templates, **kwargs)
 
         t = self.env.get_template(template)
         try:
