@@ -31,22 +31,4 @@ struct {
 volatile /*? macros.dataport_type(me.interface.type) ?*/ * /*? me.interface.name ?*/ =
     (volatile /*? macros.dataport_type(me.interface.type) ?*/ *) & from_/*? index ?*/_/*? me.interface.name ?*/_data;
 
-/*- set id = composition.connections.index(me.parent) -*/
-
-int /*? me.interface.name ?*/_wrap_ptr(dataport_ptr_t *p, void *ptr) {
-    if ((uintptr_t)ptr < (uintptr_t)/*? me.interface.name ?*/ ||
-            (uintptr_t)ptr >= (uintptr_t)/*? me.interface.name ?*/ + /*? macros.dataport_size(me.interface.type) ?*/) {
-        return -1;
-    }
-    p->id = /*? id ?*/;
-    p->offset = (off_t)((uintptr_t)ptr - (uintptr_t)/*? me.interface.name ?*/);
-    return 0;
-}
-
-void * /*? me.interface.name ?*/_unwrap_ptr(dataport_ptr_t *p) {
-    if (p->id == /*? id ?*/) {
-        return (void*)((uintptr_t)/*? me.interface.name ?*/ + (uintptr_t)p->offset);
-    } else {
-        return NULL;
-    }
-}
+/*- include 'seL4SharedData-common.template.c' -*/
