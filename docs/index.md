@@ -729,6 +729,7 @@ Let's define a struct that will be used as one of the dataports:
 
 typedef struct MyData {
   char data[10];
+  bool ready;
 } MyData_t;
 
 #endif
@@ -789,17 +790,26 @@ Now we'll create some basic code for each component to use the dataports:
 #include <stdio.h>
 #include <string.h>
 
+// index in d1 to use to signal pong
+#define D1_READY_IDX 20
+
 int run(void) {
   char *hello = "hello";
 
   printf("Ping: sending %s...\n", hello);
-  strcpy((void*)d1_data, hello);
+  strncpy((char*)d1, hello, D1_READY_IDX - 1);
+
+  d1_release(); // ensure the assignment below occurs after the strcpy above
+  ((*char)d1)[D1_READY_IDX] = 1;
 
   /* Wait for Pong to reply. We can assume d2_data is
    * zeroed on startup by seL4.
    */
-  while (!d2_data->data[0]);
-  printf("Ping: received %s.\n", d2_data->data);
+  while (!d2->ready) {
+    d2_acquire(); // ensure d2 is read from in each iteration
+  }
+
+  printf("Ping: received %s.\n", d2->data);
 
   return 0;
 }
@@ -813,27 +823,42 @@ int run(void) {
 #include <stdio.h>
 #include <string.h>
 
+// index in s1 to use to signal ping
+#define S1_READY_IDX 20
+
 int run(void) {
   char *world = "world";
 
   /* Wait for Ping to message us. We can assume s1_data is
    * zeroed on startup by seL4.
    */
-  while (!*(volatile char*)s1_data);
-  printf("Pong: received %s\n", (volatile char*)s1_data);
+  while (!((char*)s1)[S1_READY_IDX]) {
+    s1_acquire(); // ensure s1 is read from in each iteration
+  }
+
+  printf("Pong: received %s\n", (char*)s1);
 
   printf("Pong: sending %s...\n", world);
-  strcpy((void*)s2_data->data, world);
+  strcpy(s2->data, world);
+
+  s2_release(); // ensure the assignment below occurs after the strcpy above
+  s2->ready = true;
 
   return 0;
 }
 ```
 
-Note that components generally need to use volatile variables when referring to
-shared memory to prevent the compiler eliminating repeated reads and writes. A
-real system would have a more complete communication protocol between the two
-components, but for the purposes of this example spinning until a byte changes
-is good enough. We're ready to connect all these sources together with a
+Note the use of `*_acquire()` and `*_release()` functions. These are used to maintain
+coherency of shared memory between components. Call `*_acquire()` between multiple
+reads from a dataport, where the correct behaviour of the program depends on the
+contents of the dataport possibly changing between reads. Call `*_release()` between
+multiple writes to a dataport, where the correct behaviour of the program depends
+on writes preceding the `*_release()` in the program code being performed strictly
+before the writes following it.
+
+Typically, a real system would have a more complete communication protocol between
+the two components, but for the purposes of this example spinning until a byte
+changes is good enough. We're ready to connect all these sources together with a
 top-level ADL file:
 
 ```camkes
@@ -1260,6 +1285,24 @@ The following functions are available at runtime:
   passed over a procedure interface to be unwrapped by the receiving component.
   Unwrapping will fail if the underlying pointer is not into a dataport that is
   shared with the receiver. `dataport_unwrap_ptr` returns `NULL` on failure.
+
+**`void`&nbsp;_`dataport`_`_acquire(void)`**
+
+> An acquire memory fence. Any read from the dataport preceding this fence in
+  program order will take place before any read or write following this fence in
+  program order. In uniprocessor environments, this is always a compiler memory
+  fence. In multiprocessor environments, memory barrier instructions will be
+  emitted if necessary, depending on the affinities of component instances
+  connected by the dataport.
+
+**`void`&nbsp;_`dataport`_`_release(void)`**
+
+> A release memory fence. Any write to the dataport following this fence in
+  program order will take place after any read or write preceding this fence in
+  program order. In uniprocessor environments, this is always a compiler memory
+  fence. In multiprocessor environments, memory barrier instructions will be
+  emitted if necessary, depending on the affinities of component instances
+  connected by the dataport.
 
 **`void *camkes_dma_alloc(size_t size, int align)`** (`#include <camkes/dma.h>`)
 **`void camkes_dma_free(void *ptr, size_t size)`** (`#include <camkes/dma.h>`)
