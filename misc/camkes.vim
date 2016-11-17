@@ -23,6 +23,7 @@ syn keyword CamkesKeyword assembly composition from to configuration control
 syn match CamkesUntypedPool "\<simple_untyped[0-9]\+_pool\>"
 syn match CamkesStackSize "\<[a-zA-Z0-9_]\+_stack_size\>"
 syn match CamkesPriority "\<\(priority\|[a-zA-Z_][a-zA-Z0-9_]*_priority\|_priority\)\>"
+syn match CamkesAffinity "\<\(affinity\|[a-zA-Z_][a-zA-Z0-9_]*_affinity\|_affinity\)\>"
 syn match CamkesDataportAccess "\<[a-zA-Z_][a-zA-Z0-9_]*_access\>"
 syn keyword CamkesType component connection attribute connector Procedure Event
     \ Dataport Events Procedures Dataports export

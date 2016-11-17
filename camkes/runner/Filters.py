@@ -616,7 +616,7 @@ def guard_pages(obj_space, cspaces, elfs, options, **_):
                 obj_space.remove(frame)
                 update_frame_in_vaddr(arch, pd, post_guard, PAGE_SIZE, None)
 
-def tcb_default_priorities(obj_space, options, **_):
+def tcb_default_properties(obj_space, options, **_):
     '''Set up default thread priorities. Note this filter needs to operate
     *before* tcb_priorities.'''
 
@@ -625,6 +625,7 @@ def tcb_default_priorities(obj_space, options, **_):
         t.max_prio = options.default_max_priority
         t.crit = options.default_criticality
         t.max_crit = options.default_max_criticality
+        t.affinity = options.default_affinity
 
 def sc_default_properties(obj_space, options, **_):
     '''Set up default scheduling context properties. Note this filter needs to operate
@@ -657,14 +658,14 @@ def maybe_set_property_from_configuration(assembly, perspective, obj, field_name
     else:
         setattr(obj, field_name, value)
 
-def tcb_priorities(ast, cspaces, options, **_):
-    ''' Override a TCB's default priority if the user has specified this in an
+def tcb_properties(ast, cspaces, options, **_):
+    ''' Override a TCB's default property if the user has specified this in an
     attribute.'''
 
     assembly = ast.assembly
 
     if len(assembly.configuration.settings) == 0:
-        # We have nothing to do if no priorities were set.
+        # We have nothing to do if no properties were set.
         return
 
     # The pattern of the names of fault handler threads.
@@ -696,6 +697,7 @@ def tcb_priorities(ast, cspaces, options, **_):
             maybe_set_property_from_configuration(assembly, perspective, tcb, 'max_prio', 'max_priority_attribute', 'max_priority')
             maybe_set_property_from_configuration(assembly, perspective, tcb, 'crit', 'criticality_attribute', 'criticality')
             maybe_set_property_from_configuration(assembly, perspective, tcb, 'max_crit', 'max_criticality_attribute', 'max_criticality')
+            maybe_set_property_from_configuration(assembly, perspective, tcb, 'affinity', 'affinity_attribute', 'affinity')
 
 def sc_properties(ast, cspaces, obj_space, **_):
     ''' Override an SC's default properties if the user has specified this in an
@@ -765,8 +767,8 @@ CAPDL_FILTERS = [
     replace_dma_frames,
     guard_cnode_caps,
     guard_pages,
-    tcb_default_priorities,
-    tcb_priorities,
+    tcb_default_properties,
+    tcb_properties,
     tcb_domains,
     remove_tcb_caps,
     sc_default_properties,

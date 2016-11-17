@@ -20,6 +20,8 @@ color brightyellow "\<simple_untyped[0-9]+_pool\>"
 color brightyellow "\<[a-zA-Z0-9_]+_stack_size\>"
 # Priority
 color brightyellow "\<(priority|[a-zA-Z_][a-zA-Z0-9_]*_priority|_priority)\>"
+# Affinity
+color brightyellow "\<(affinity|[a-zA-Z_][a-zA-Z0-9_]*_affinity|_affinity)\>"
 # Camkes types
 color green "\<(component|connection|attribute|connector|Procedure|Event|Dataport|Events|Procedures|Dataports|export)\>"
 # C types

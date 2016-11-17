@@ -155,6 +155,8 @@ def parse_args(argv, out, err):
         help='Default component thread criticality.')
     parser.add_argument('--default-max-criticality', type=int, default=1,
         help='Default component thread maximum criticality.')
+    parser.add_argument('--default-affinity', type=int, default=0,
+        help='Default component thread affinity.')
     parser.add_argument('--default-period', type=int, default=10000,
         help='Default component thread scheduling context period.')
     parser.add_argument('--default-budget', type=int, default=10000,

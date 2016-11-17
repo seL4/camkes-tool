@@ -56,6 +56,7 @@ CAMKES_FLAGS += \
     $(if ${CONFIG_CAMKES_PROVIDE_TCB_CAPS},--fprovide-tcb-caps,--fno-provide-tcb-caps) \
     $(if ${CONFIG_CAMKES_SUPPORT_INIT},--fsupport-init,--fno-support-init) \
     --default-priority ${CONFIG_CAMKES_DEFAULT_PRIORITY} \
+    --default-affinity ${CONFIG_CAMKES_DEFAULT_AFFINITY} \
     $(if ${CONFIG_CAMKES_LARGE_FRAME_PROMOTION},--largeframe,) \
     $(if ${CONFIG_CAMKES_DMA_LARGE_FRAME_PROMOTION},--largeframe-dma,) \
     $(if ${CONFIG_CAMKES_PRUNE_GENERATED},--prune,) \

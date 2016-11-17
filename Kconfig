@@ -52,6 +52,20 @@ menu "CAmkES Options"
         attribute. Generally you want to set this as high as possible due to
         the suboptimal seL4 scheduler.
 
+    config CAMKES_DEFAULT_AFFINITY
+    int "Default thread affinity"
+    # Default to 0, because 0 is the index assigned to the BSP by seL4.
+    default 0
+    # This should ideally be MAX_NUM_NODES-1, but the "range" keyword takes a
+    # a symbol, and not an expression, and using an expression just generates
+    # a build warning.
+    # (https://www.kernel.org/doc/Documentation/kbuild/kconfig-language.txt)
+    range 0 MAX_NUM_NODES
+    help
+        Default affinity for component threads if this is not overridden via an
+        attribute. Think carefully when organizing your applications for
+        multiprocessor operation.
+
     choice
     prompt "Error handling"
     default CAMKES_ERROR_HANDLER_CONFIGURABLE

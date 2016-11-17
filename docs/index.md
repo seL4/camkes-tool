@@ -929,6 +929,12 @@ The following command line arguments are available.
   can be tuned via attributes, but otherwise threads inherit a global default.
   This parameter allows you to set the global default.
 
+**--default-affinity**
+
+> Threads and sched-contexts in a seL4 system are all configured with an initial
+  affinity. This can be tuned via attributes, but otherwise threads inherit a
+  global default, which is CPU index 0.
+
 **--elf**, **-E**
 
 > Pass an ELF file that is to contribute to the final CapDL specification of a
@@ -1909,6 +1915,51 @@ configuration {
 
 For more information about the specifics of the seL4 scheduler, please refer to
 the seL4 documentation.
+
+### Thread CPU affinity
+
+Each thread in a CAmkES system also has a processor affinity. This affinity will
+by default bind all threads to CPU index 0, bootstrap-processor. In a system
+where seL4 is built without multicore, setting this value above 0 is illegal.
+
+```camkes
+component Mycomponent {
+    /* ... */
+    uses Myinterface i;
+}
+
+assembly {
+    composition {
+        component Mycomponent c;
+    }
+    configuration {
+        /* Run all threads in "c" on CPU 1 */
+        c.affinity = 1;
+    }
+}
+```
+
+Alternatively:
+
+```camkes
+configuration {
+    /* Run only the control thread on CPU 1, but run the rest of the threads
+     * in this component on the "default" CPU (index 0).
+     */
+    c._affinity = 1;
+}
+```
+
+Or perhaps:
+
+```camkes
+configuration {
+    /* Run only the interface thread for "i" on CPU 1, but run the rest of the
+     * threads in this component on the "default" CPU (index 0).
+     */
+    c.i_affinity = 1;
+}
+```
 
 ### Thread Stacks
 
