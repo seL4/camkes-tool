@@ -106,7 +106,7 @@ ${STAGE_BASE}/pruner/prune:
 $(abspath ${BUILD_BASE})/thy/CapDLSpec.thy: capdl-loader-experimental-image parse-capDL
 	@echo "[GEN] $(notdir $@)"
 	${Q}mkdir -p $(dir $@)
-	${Q}parse-capDL --isabelle=$@ ${CAPDL_SPEC}
+	${Q}${STAGE_BASE}/parse-capDL/parse-capDL --isabelle=$@ ${CAPDL_SPEC}
 ifeq (${CONFIG_CAMKES_CAPDL_THY},y)
 all: $(abspath ${BUILD_BASE})/thy/CapDLSpec.thy
 endif
