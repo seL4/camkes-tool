@@ -415,7 +415,6 @@ static uintptr_t make_frame_get_paddr(seL4_CPtr untyped) {
             return (uintptr_t)NULL;
         }));
     seL4_CNode_Delete(/*? self_cnode ?*/, /*? holding_slot ?*/, CONFIG_WORD_SIZE);
-    seL4_CNode_Recycle(/*? self_cnode ?*/, untyped, CONFIG_WORD_SIZE);
     return ret;
 }
 
