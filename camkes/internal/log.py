@@ -32,11 +32,6 @@ def set_verbosity(verbosity):
     else:
         log.setLevel(logging.WARNING)
 
-def set_stream(stream):
-    while len(log.handlers) > 0:
-        log.removeHandler(log.handlers[0])
-    log.addHandler(logging.StreamHandler(stream))
-
 # Expose convenience functions for logging.
 def info(msg):      log.info(msg)
 def warning(msg):   log.warning(msg)
