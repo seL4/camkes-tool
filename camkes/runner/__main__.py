@@ -69,7 +69,8 @@ def safe_decode(s):
     return ''.join(r)
 
 def _die(options, s):
-    log.error(str(s))
+    for line in str(s).split('\n'):
+        log.error(line)
     tb = traceback.format_exc()
     log.debug('\n --- Python traceback ---\n%s ------------------------\n' %
         safe_decode(tb))
