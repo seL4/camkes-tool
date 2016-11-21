@@ -20,7 +20,7 @@ from camkes.internal.seven import cmp, filter, map, zip
 import logging, sys
 
 log = logging.getLogger('CAmkES')
-log.addHandler(logging.StreamHandler(sys.stderr))
+logging.basicConfig(stream=sys.stderr)
 
 def set_verbosity(verbosity):
     if verbosity == 0:
