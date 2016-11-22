@@ -168,6 +168,15 @@ of these terms are made explicit below.
   instance interfaces. That is, any connection declared inside a compound
   component.
 
+**Maybe**
+
+> Interfaces of components can be made optional using the `maybe` keyword. Optional
+  interfaces do not need to be connected to any other interfaces. C symbols associated
+  with optional interfaces (functions and dataport pointers) are declared as weak
+  symbols. If nothing is connected to an optional interface, its associated symbols
+  lack definitions. That is, functions and dataport pointers associated with unconnected
+  optional interfaces take the value `NULL` at runtime.
+
 **Method**
 
 > An item of a procedure. When targeting a conventional programming language,
