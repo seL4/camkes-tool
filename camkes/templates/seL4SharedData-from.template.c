@@ -23,7 +23,7 @@ struct {
 } from_/*? index ?*/_/*? me.interface.name ?*/_data
         __attribute__((section("shared_from_/*? index ?*/_/*? me.interface.name ?*/")));
 /*- set perm = configuration[me.instance.name].get('%s_access' % me.interface.name) -*/
-/*- if perm is not none and re.match('^R?W?X?$', perm) -*/
+/*- if perm is not none and not re.match('^R?W?X?$', perm) -*/
   /*? raise(TemplateError('invalid permissions attribute %s.%s_access' % (me.instance.name, me.interface.name), configuration)) ?*/
 /*- endif -*/
 /*- do register_shared_variable('%s_data' % me.parent.name, 'from_%d_%s_data' % (index, me.interface.name), perm if perm is not none else 'RWX') -*/
