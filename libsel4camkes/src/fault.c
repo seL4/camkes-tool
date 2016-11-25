@@ -95,7 +95,7 @@ void camkes_show_fault(seL4_MessageInfo_t info, seL4_CPtr thread_id,
     int label = seL4_MessageInfo_get_label(info);
     switch (label) {
 
-        case seL4_CapFault: {
+        case seL4_Fault_CapFault: {
             /* From section 5.2.1 of the seL4 manual. */
             uintptr_t pc = (uintptr_t)seL4_GetMR(0);
             seL4_CPtr slot = (seL4_CPtr)seL4_GetMR(1);
@@ -153,7 +153,7 @@ void camkes_show_fault(seL4_MessageInfo_t info, seL4_CPtr thread_id,
             break;
         }
 
-        case seL4_VMFault: {
+        case seL4_Fault_VMFault: {
             uintptr_t pc = seL4_GetMR(0);
             uintptr_t addr = seL4_GetMR(1);
             bool instruction_fault = seL4_GetMR(2) == 1;
@@ -173,11 +173,11 @@ void camkes_show_fault(seL4_MessageInfo_t info, seL4_CPtr thread_id,
             break;
         }
 
-        case seL4_UnknownSyscall:
+        case seL4_Fault_UnknownSyscall:
             show_unknown_syscall_fault(thread_id, name);
             break;
 
-        case seL4_UserException: {
+        case seL4_Fault_UserException: {
             uintptr_t pc = seL4_GetMR(0);
             uintptr_t sp = seL4_GetMR(1);
             uintptr_t flags = seL4_GetMR(2);
