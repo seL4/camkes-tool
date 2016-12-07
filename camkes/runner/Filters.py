@@ -222,9 +222,20 @@ def delete_small_frames(arch, obj_space, vspace_root, level_num, map_indices):
     while level >= level_num:
         for indices in map_indices:
             sub_indices = indices[0:level]
-            parent_indices = indices[0:-1]
-            (parent_cap, parent_object) = lookup_vspace_indices(vspace_root, parent_indices)
-            object = parent_object[sub_indices[-1]].referent
+            parent_indices = sub_indices[0:-1]
+            if len(parent_indices) == 0:
+                # parent is vspace root
+                parent_object = vspace_root
+            else:
+                (parent_cap, parent_object) = lookup_vspace_indices(vspace_root, parent_indices)
+
+            cap = parent_object[sub_indices[-1]]
+
+            if cap is None:
+                # it's possible that this table entry was removed in a previous iteration
+                continue
+
+            object = cap.referent
             if object is not None:
                 obj_space.remove(object)
                 parent_object[sub_indices[-1]] = None
