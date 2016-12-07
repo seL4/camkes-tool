@@ -17,7 +17,7 @@ from __future__ import absolute_import, division, print_function, \
 from camkes.internal.seven import cmp, filter, map, zip
 
 import os, re, six, subprocess
-from capdl import Cap, CNode, Frame, TCB, SC, page_sizes, lookup_architecture
+from capdl import seL4_FrameObject, Cap, CNode, Frame, TCB, SC, page_sizes, lookup_architecture
 from camkes.internal.memoization import memoize
 from .NameMangling import Perspective
 
@@ -390,14 +390,12 @@ def collapse_shared_frames(ast, obj_space, elfs, shmem, options, **_):
                         # Grab a copy of the frame for every entry we're going to end up making
                         new_frames = {}
                         for new_vaddr in six.moves.range(vaddr, vaddr + size, largest_frame_size):
-                            (cap, frame) = frame_for_vaddr(arch, pd, new_vaddr, PAGE_SIZE)
-                            new_frames[new_vaddr] = frame
+                            new_frames[new_vaddr] = obj_space.alloc(seL4_FrameObject, size=largest_frame_size)
                         # Iterate over every unique index in every object below this one
                         delete_small_frames(arch, obj_space, pd, level_num, map_indices)
                         # Now insert the new frames
                         for new_vaddr in six.moves.range(vaddr, vaddr + size, largest_frame_size):
                             frame = new_frames[new_vaddr]
-                            frame.size = largest_frame_size
                             cap = Cap(frame, read, write, execute)
                             if paddr is not None:
                                 frame.paddr = paddr + (new_vaddr - vaddr)
