@@ -140,6 +140,9 @@ static void grow_node(region_t *node, size_t by) {
 /* Check certain assumptions hold on the free list. This function is intended
  * to be a no-op when NDEBUG is defined.
  */
+#ifdef NDEBUG
+static void check_consistency(void) {}
+#else
 static void check_consistency(void) {
     if (head == NULL) {
         /* Empty free list. */
@@ -197,6 +200,7 @@ static void check_consistency(void) {
         }
     }
 }
+#endif
 
 #ifdef NDEBUG
     #define STATS(arg) do { } while (0)
