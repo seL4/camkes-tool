@@ -771,7 +771,7 @@ int USED main(int argc UNUSED, char *argv[]) {
     assert(argc == 2);
     assert(strcmp(argv[0], "camkes") == 0);
 
-    int thread_id = (int)(argv[1]);
+    int thread_id = (int)(uintptr_t)(argv[1]);
 
 #if defined(SEL4_DEBUG_KERNEL) && defined(CONFIG_CAMKES_PROVIDE_TCB_CAPS)
    /*- set thread_name = c_symbol() -*/
