@@ -40,8 +40,6 @@ void show_register_dump(seL4_CPtr tcb) {
     SHOW("      r13 = %p\n", (void*)regs.r13);
     SHOW("      r14 = %p\n", (void*)regs.r14);
     SHOW("      r15 = %p\n", (void*)regs.r15);
-    SHOW("       fs = %p\n", (void*)regs.fs);
-    SHOW("       gs = %p\n", (void*)regs.gs);
     SHOW("   rflags = %p\n", (void*)regs.rflags);
     SHOW(" tls_base = %p\n", (void*)regs.tls_base);
 }
