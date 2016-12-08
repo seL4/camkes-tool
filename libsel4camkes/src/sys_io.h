@@ -12,6 +12,7 @@
 #define __LIBSEL4MUSLCCAMKES_H__
 
 #include <utils/page.h>
+#include <camkes/dataport.h>
 
 #define STDOUT_FD     1
 #define STDERR_FD     2
@@ -33,6 +34,6 @@ int allocate_fd(void);
 muslcsys_fd_t *get_fd_struct(int fd);
 
 /* CAmkES dataport for socket interface. */
-extern volatile char sock_data_data[PAGE_SIZE_4K] __attribute__((weak));
+extern Buf* sock_data __attribute__((weak));
 
 #endif

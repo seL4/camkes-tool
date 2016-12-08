@@ -264,10 +264,10 @@ long sys_write(va_list ap)
     if (fd == STDOUT_FD || fd == STDERR_FD) {
         ret = sys_platform_write(buf, count);
     } else {
-        if (fdt->filetype == FILE_TYPE_SOCKET && sock_write && sock_data_data) {
+        if (fdt->filetype == FILE_TYPE_SOCKET && sock_write && sock_data) {
             sockfd = *(int*)fdt->data;
             size = count > PAGE_SIZE_4K ? PAGE_SIZE_4K : count;
-            memcpy((char*)sock_data_data, buf, size);
+            memcpy((char*)sock_data, buf, size);
             ret = sock_write(sockfd, size);
         } else {
             assert(!"Not implemented");
@@ -289,11 +289,11 @@ long sys_read(va_list ap)
 
     int ret, sockfd, size;
     muslcsys_fd_t *fdt = get_fd_struct(fd);
-    if (fdt->filetype == FILE_TYPE_SOCKET && sock_read && sock_data_data) {
+    if (fdt->filetype == FILE_TYPE_SOCKET && sock_read && sock_data) {
         sockfd = *(int*)fdt->data;
         size = count > PAGE_SIZE_4K ? PAGE_SIZE_4K : count;
         ret = sock_read(sockfd, size);
-        memcpy(buf, (char*)sock_data_data, ret);
+        memcpy(buf, (char*)sock_data, ret);
         return ret;
     }
 

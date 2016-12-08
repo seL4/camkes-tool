@@ -51,10 +51,10 @@ long sys_bind(va_list ap)
 	muslcsys_fd_t *fdt;
 	int sockfd;
 
-	if (sock_bind && sock_data_data) {
+	if (sock_bind && sock_data) {
 		fdt = get_fd_struct(fd);
 		sockfd = *(int*)fdt->data;
-		memcpy((char*)sock_data_data, addr, addrlen);
+		memcpy((char*)sock_data, addr, addrlen);
 		return sock_bind(sockfd, addrlen);
 	} else {
 		assert(!"sys_bind not implemented");
@@ -73,10 +73,10 @@ long sys_connect(va_list ap)
 	muslcsys_fd_t *fdt;
 	int sockfd;
 
-	if (sock_connect && sock_data_data) {
+	if (sock_connect && sock_data) {
 		fdt = get_fd_struct(fd);
 		sockfd = *(int*)fdt->data;
-		memcpy((char*)sock_data_data, addr, addrlen);
+		memcpy((char*)sock_data, addr, addrlen);
 		return sock_connect(sockfd, addrlen);
 	} else {
 		assert(!"sys_connect not implemented");
@@ -115,27 +115,27 @@ long sys_accept(va_list ap)
 	int sockfd;
 	int newsockfd;
 
-	if (sock_accept && sock_data_data) {
+	if (sock_accept && sock_data) {
 		fdt = get_fd_struct(fd);
 		sockfd = *(int*)fdt->data;
 
 		/* addr can be NULL, which means ignore the peer address. */
 		if (addr) {
-			memcpy((char*)sock_data_data, addr, sizeof(struct sockaddr));
-			memcpy((char*)sock_data_data + sizeof(struct sockaddr), addrlen, sizeof(socklen_t));
+			memcpy((char*)sock_data, addr, sizeof(struct sockaddr));
+			memcpy((char*)sock_data + sizeof(struct sockaddr), addrlen, sizeof(socklen_t));
 		}
 		
 		newsockfd = sock_accept(sockfd);
 
 		/* -1 is returned when the call fails. */
 		if (newsockfd == -1) {
-		    memcpy(&errno, (void*)sock_data_data, sizeof(errno));
+		    memcpy(&errno, (void*)sock_data, sizeof(errno));
 			return newsockfd;
 		}
 		
 		if (addr) {
-			memcpy(addr, (char*)sock_data_data, sizeof(struct sockaddr));
-			memcpy(addrlen, (char*)sock_data_data + sizeof(struct sockaddr), sizeof(socklen_t));
+			memcpy(addr, (char*)sock_data, sizeof(struct sockaddr));
+			memcpy(addrlen, (char*)sock_data + sizeof(struct sockaddr), sizeof(socklen_t));
 		}
 
 		/*
@@ -168,11 +168,11 @@ long sys_setsockopt(va_list ap)
 	muslcsys_fd_t *fdt;
 	int sockfd;
 
-	if (sock_setsockopt && sock_data_data) {
+	if (sock_setsockopt && sock_data) {
 		fdt = get_fd_struct(fd);
 		sockfd = *(int*)fdt->data;
 
-		memcpy((char*)sock_data_data, optval, optlen);
+		memcpy((char*)sock_data, optval, optlen);
 		return sock_setsockopt(sockfd, level, optname, optlen);
 	} else {
 		assert(!"sys_setsockopt not implemented");
