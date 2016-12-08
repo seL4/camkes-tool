@@ -16,6 +16,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <inttypes.h>
 
 /* This function is provided by generated code. */
 extern const char *get_instance_name(void);
@@ -36,7 +37,7 @@ static void show_fault_location(const camkes_memory_region_t *memory_map,
     /* Determine how many characters are needed to print a pointer
      * (n-bit compatibility).
      */
-    size_t ptr_bytes = snprintf(NULL, 0, "%x", UINTPTR_MAX);
+    int ptr_bytes = snprintf(NULL, 0, "%"PRIxPTR, UINTPTR_MAX);
     assert(ptr_bytes > 0 && "0-bit pointers; huh?");
 
     SHOW("  memory map:\n");
@@ -73,13 +74,13 @@ static void show_fault_location(const camkes_memory_region_t *memory_map,
             if (limit != UINTPTR_MAX) {
                 SHOW("    |   <undescribed>\n");
             }
-            SHOW("    +-- 0x%.*x --\n", ptr_bytes, current->end);
+            SHOW("    +-- 0x%.*"PRIxPTR" --\n", ptr_bytes, current->end);
         }
         SHOW("    |   %s\n", current->name);
         if (address >= current->start && address <= current->end) {
-            SHOW("    |   FAULT @ 0x%.*x\n", ptr_bytes, address);
+            SHOW("    |   FAULT @ 0x%.*"PRIxPTR"\n", ptr_bytes, address);
         }
-        SHOW("    +-- 0x%.*x --\n", ptr_bytes, current->start);
+        SHOW("    +-- 0x%.*"PRIxPTR" --\n", ptr_bytes, current->start);
         last_start = current->start;
         limit = current->end - 1;
         printed++;
@@ -107,7 +108,7 @@ void camkes_show_fault(seL4_MessageInfo_t info, seL4_CPtr thread_id,
 
                 case seL4_InvalidRoot:
                     SHOW("cap fault (invalid root) in %s phase from %s.%s (ID "
-                        "0x%x), pc = %p, slot = 0x%x\n", receive ? "receive" :
+                        "0x%"PRIxPTR"), pc = %p, slot = 0x%"PRIxPTR"\n", receive ? "receive" :
                         "send", get_instance_name(), safe_name, thread_id,
                         (void*)pc, slot);
                     break;
@@ -115,7 +116,7 @@ void camkes_show_fault(seL4_MessageInfo_t info, seL4_CPtr thread_id,
                 case seL4_MissingCapability: {
                     unsigned unresolved = seL4_GetMR(4);
                     SHOW("cap fault (missing capability with %u unresolved "
-                        "bits) from %s.%s (ID 0x%x), pc = %p, slot = 0x%x\n",
+                        "bits) from %s.%s (ID 0x%"PRIxPTR"), pc = %p, slot = 0x%"PRIxPTR"\n",
                         unresolved, get_instance_name(), safe_name, thread_id,
                         (void*)pc, slot);
                     break;
@@ -125,8 +126,8 @@ void camkes_show_fault(seL4_MessageInfo_t info, seL4_CPtr thread_id,
                     unsigned unresolved = seL4_GetMR(4);
                     unsigned resolved = seL4_GetMR(5);
                     SHOW("cap fault (depth mismatch with %u unresolved bits "
-                        "and %u resolved bits) from %s.%s (ID 0x%x), pc = %p, "
-                        "slot = 0x%x\n", unresolved, resolved, get_instance_name(),
+                        "and %u resolved bits) from %s.%s (ID 0x%"PRIxPTR"), pc = %p, "
+                        "slot = 0x%"PRIxPTR"\n", unresolved, resolved, get_instance_name(),
                         safe_name, thread_id, (void*)pc, slot);
                     break;
                 }
@@ -136,15 +137,15 @@ void camkes_show_fault(seL4_MessageInfo_t info, seL4_CPtr thread_id,
                     seL4_Word guard = seL4_GetMR(5);
                     unsigned guard_size = seL4_GetMR(6);
                     SHOW("cap fault (guard mismatch with %u unresolved bits "
-                        "and %u bit guard of 0x%x) from %s.%s (ID 0x%x), pc = "
-                        "%p, slot = 0x%x\n", unresolved, guard_size, guard,
+                        "and %u bit guard of 0x%"PRIxPTR") from %s.%s (ID 0x%"PRIxPTR"), pc = "
+                        "%p, slot = 0x%"PRIxPTR"\n", unresolved, guard_size, guard,
                         get_instance_name(), safe_name, thread_id, (void*)pc, slot);
                     break;
                 }
 
                 default:
                     SHOW("cap fault (unknown cause %d; API bug?) from %s.%s "
-                        "(ID 0x%x), pc = %p, slot = 0x%x\n", label,
+                        "(ID 0x%"PRIxPTR"), pc = %p, slot = 0x%"PRIxPTR"\n", label,
                         get_instance_name(), safe_name, thread_id, (void*)pc,
                         slot);
                     break;
@@ -158,8 +159,8 @@ void camkes_show_fault(seL4_MessageInfo_t info, seL4_CPtr thread_id,
             uintptr_t addr = seL4_GetMR(1);
             bool instruction_fault = seL4_GetMR(2) == 1;
             uintptr_t fsr = seL4_GetMR(3);
-            SHOW("%s fault from %s.%s (ID 0x%x) on address %p, pc = %p, fsr = "
-                "0x%x\n", instruction_fault ? "instruction" : "data",
+            SHOW("%s fault from %s.%s (ID 0x%"PRIxPTR") on address %p, pc = %p, fsr = "
+                "0x%"PRIxPTR"\n", instruction_fault ? "instruction" : "data",
                 get_instance_name(), safe_name, thread_id, (void*)addr,
                 (void*)pc, fsr);
             if (tcb_caps_available) {
@@ -184,7 +185,7 @@ void camkes_show_fault(seL4_MessageInfo_t info, seL4_CPtr thread_id,
             int exc_no = seL4_GetMR(3);
             int exc_code = seL4_GetMR(4);
 
-            SHOW("user exception (number %d, code %d) from %s.%s (ID 0x%x), "
+            SHOW("user exception (number %d, code %d) from %s.%s (ID 0x%"PRIxPTR"), "
                 "pc = %p, sp = %p, flags = %p\n", exc_no, exc_code,
                 get_instance_name(), safe_name, thread_id, (void*)pc, (void*)sp,
                 (void*)flags);
@@ -192,7 +193,7 @@ void camkes_show_fault(seL4_MessageInfo_t info, seL4_CPtr thread_id,
         }
 
         default:
-            SHOW("unknown message from %s.%s (ID 0x%x); misconfigured fault "
+            SHOW("unknown message from %s.%s (ID 0x%"PRIxPTR"); misconfigured fault "
                 "handler?\n", get_instance_name(), safe_name, thread_id);
     }
 }

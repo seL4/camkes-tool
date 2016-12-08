@@ -11,6 +11,7 @@
 #include <camkes/error.h>
 #include <stdio.h>
 #include <utils/util.h>
+#include <inttypes.h>
 
 /* The default error handler that is invoked if no other error handler is
  * registered.
@@ -25,7 +26,7 @@ static camkes_error_action_t default_error_handler(camkes_error_t *error) {
             break;
 
         case CE_INVALID_METHOD_INDEX:
-            fprintf(stderr, "Error: invalid method index of %llu\n",
+            fprintf(stderr, "Error: invalid method index of %"PRIu64"\n",
                 error->invalid_index);
             break;
 
