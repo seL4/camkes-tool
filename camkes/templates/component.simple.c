@@ -67,9 +67,8 @@
 /*- set mmio_regions = [] -*/
 /*- set mmio_region_list = configuration[me.name].get('mmios') -*/
 /*- if mmio_region_list is not none -*/
-    /*- set mmio_region_list = mmio_region_list.split(',') -*/
     /*- for mmio_region in mmio_region_list -*/
-        /*- set paddr, size, bits = mmio_region.strip('"').split(':') -*/
+        /*- set paddr, size, bits = mmio_region.split(':') -*/
         /*- do mmio_regions.append( (int(paddr, 0), int(size, 0),int(bits, 0)) ) -*/
     /*- endfor -*/
 /*- endif -*/
@@ -98,7 +97,6 @@
 /*- set untyped_mmio = [] -*/
 /*- set ut_mmio_list = configuration[me.name].get('untyped_mmios') -*/
 /*- if ut_mmio_list is not none -*/
-    /*- set ut_mmio_list = ut_mmio_list.strip('"').split(',') -*/
     /*- for ut_mmio in ut_mmio_list -*/
         /*- set paddr, size_bits = ut_mmio.split(':') -*/
         /*- set paddr = int(paddr, 0) -*/
@@ -142,9 +140,7 @@
 /*- set irqs = [] -*/
 /*- set irq_list = configuration[me.name].get('irqs') -*/
 /*- if irq_list is not none -*/
-    /*- set irq_list = irq_list.strip('"').split(',') -*/
     /*- for irq in irq_list -*/
-        /*- set irq = int(irq, 0) -*/
         /*- set irq_cap = alloc('irq_%d' % irq, seL4_IRQControl, number=irq, notification=my_cnode[irq_notification]) -*/
         /*- do irqs.append( (irq, irq_cap) ) -*/
     /*- endfor -*/
