@@ -11,10 +11,22 @@
 /* Linker script for CAmkES components. */
 ENTRY(_start)
 
+/*- if options.architecture in ('x86_64') -*/
+  /*- set align = '0x200000' -*/
+  /*- set start = align -*/
+/*- elif options.architecture in ('aarch32', 'arm_hyp') -*/
+  /*- set align = '0x100000' -*/
+  /*- set start = align -*/
+/*- elif options.architecture in ('ia32') -*/
+  /*- set align = '0x400000' -*/
+  /*- set start = '0x100000' -*/
+/*- endif -*/
+
 SECTIONS {
     /* __executable_start is required by libsel4platsupport. */
-    PROVIDE (__executable_start = 0x100000);
-    . = 0x100000;
+
+    PROVIDE (__executable_start = /*? start ?*/);
+    . = /*? start ?*/;
 
     /* Code. */
     PROVIDE_HIDDEN (__text_start = .);
@@ -81,13 +93,9 @@ SECTIONS {
       /*- if c.type.name == 'seL4HardwareMMIO' -*/
         /*- for index, e in enumerate(c.from_ends) -*/
           /*- if id(e.instance) == id(me) -*/
-            /*- if options.architecture in ('aarch32', 'arm_hyp') -*/
-              ignore_from_/*? index ?*/_/*? e.interface.name ?*/ (NOLOAD) : ALIGN(0x100000) { /*# ARM Section Size #*/
-            /*- else -*/
-              ignore_from_/*? index ?*/_/*? e.interface.name ?*/ (NOLOAD) : ALIGN(0x400000) { /*# IA32 4M Page Size #*/
-            /*- endif -*/
-                *(ignore_from_/*? index ?*/_/*? e.interface.name ?*/)
-              }
+            ignore_from_/*? index ?*/_/*? e.interface.name ?*/ (NOLOAD) : ALIGN(/*? align ?*/) {
+              *(ignore_from_/*? index ?*/_/*? e.interface.name ?*/)
+            }
           /*- endif -*/
         /*- endfor -*/
       /*- endif -*/
