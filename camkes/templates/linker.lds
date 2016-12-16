@@ -85,10 +85,6 @@ SECTIONS {
       /*- endif -*/
     /*- endfor -*/
 
-    persistent (NOLOAD) : ALIGN(0x1000) {
-        *(persistent)
-    }
-
     /*- for c in composition.connections -*/
       /*- if c.type.name == 'seL4HardwareMMIO' -*/
         /*- for index, e in enumerate(c.from_ends) -*/

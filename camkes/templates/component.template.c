@@ -83,7 +83,6 @@ const char *get_instance_name(void) {
 
 /*- set p = Perspective() -*/
 static char /*? p['dma_pool_symbol'] ?*/[/*? dma_pool ?*/]
-    __attribute__((section("persistent")))
     ALIGN(/*? page_size[0] ?*/);
 
 /*- set dma_frames = [] -*/
@@ -563,7 +562,6 @@ void USED _camkes_tls_init(int thread_id) {
             /* Various symbols that are provided by the linker script. */
             extern char __executable_start[1];
             extern char guarded[1] UNUSED;
-            extern char persistent[1] UNUSED;
             extern char _end[1] UNUSED;
 
             /* Thread name and address space map relevant for this fault. Note
@@ -598,8 +596,8 @@ void USED _camkes_tls_init(int thread_id) {
                        *# unclear to me, GAS rejects alignment constraints beyond 15-bit. CAmkES
                        *# contains a compiler wrapper and build system support for working around
                        *# this by detecting such an issue and calling Clang, which does not have
-                       *# this limitation. Unfortunately this prevents the section symbols,
-                       *# `guarded` and `persistent` from being visible at runtime. To cope with
+                       *# this limitation. Unfortunately this prevents the section symbol
+                       *# `guarded` from being visible at runtime. To cope with
                        *# this, we can mark them as weak and do runtime detection of their
                        *# existence. However, all my attempts to do this have resulted in the linker
                        *# segfaulting while trying to build the component. Instead of continuing
@@ -665,9 +663,6 @@ void USED _camkes_tls_init(int thread_id) {
                             .end = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/ +
                               sizeof(/*? p['ipc_buffer_symbol'] ?*/) - 1,
                             .name = "guard page" },
-                          { .start = persistent == _end ? 0 : (uintptr_t)persistent,
-                            .end = persistent == _end ? 0 : (uintptr_t)_end,
-                            .name = "data" },
                           { .start = 0, .end = 0, .name = NULL },
                       };
                     /*- endif -*/
@@ -740,9 +735,6 @@ void USED _camkes_tls_init(int thread_id) {
                                 .end = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/ +
                                   sizeof(/*? p['ipc_buffer_symbol'] ?*/) - 1,
                                 .name = "guard page" },
-                              { .start = persistent == _end ? 0 : (uintptr_t)persistent,
-                                .end = persistent == _end ? 0 : (uintptr_t)_end,
-                                .name = "data" },
                               { .start = 0, .end = 0, .name = NULL },
                           };
                         /*- endif -*/
