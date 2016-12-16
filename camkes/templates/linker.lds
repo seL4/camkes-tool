@@ -97,5 +97,25 @@ SECTIONS {
       /*- endif -*/
     /*- endfor -*/
 
+    /*- if options.architecture in ('aarch32', 'arm_hyp') -*/
+    /* The ARM GNU Assembler does not permit allignment constraints of more than
+     * 15 bits. To work around this limitation, objects which are multiples of
+     * page sizes that require page-size-alignment are placed in sections aligned
+     * to the size of a page. A section for 12-bit-aligned regular pages is
+     * included for consistency.
+     */
+        align_12bit (NOLOAD) : ALIGN(0x1000) {
+            *(align_12bit)
+        }
+        align_16bit (NOLOAD) : ALIGN(0x10000) {
+            *(align_16bit)
+        }
+        align_20bit (NOLOAD) : ALIGN(0x100000) {
+            *(align_20bit)
+        }
+        align_24bit (NOLOAD) : ALIGN(0x1000000) {
+            *(align_24bit)
+        }
+    /*- endif -*/
     _end = .;
 }

@@ -83,7 +83,16 @@ const char *get_instance_name(void) {
 
 /*- set p = Perspective() -*/
 static char /*? p['dma_pool_symbol'] ?*/[/*? dma_pool ?*/]
-    ALIGN(/*? page_size[0] ?*/);
+/*- if options.architecture in ('aarch32', 'arm_hyp') -*/
+    /*- set page_size_bits = int(math.log(page_size[0], 2)) -*/
+    /*- if page_size_bits not in [12, 16, 20, 24] -*/
+        /*? raise(TemplateError('invalid dma page size: 0x%x bytes' % int(math.pow(2, page_size_bits)))) ?*/
+    /*- endif -*/
+    SECTION("align_/*? page_size_bits ?*/bit")
+/*- else -*/
+    ALIGN(/*? page_size[0] ?*/)
+/*- endif -*/
+;
 
 /*- set dma_frames = [] -*/
 /*- set num_dma_frames = int(macros.ROUND_UP(dma_pool, page_size[0]) // page_size[0]) -*/
