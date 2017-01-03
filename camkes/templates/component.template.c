@@ -91,7 +91,7 @@ static char /*? p['dma_pool_symbol'] ?*/[/*? dma_pool ?*/]
 
 /*- for i in six.moves.range(num_dma_frames) -*/
     /*- set q = Perspective(dma_frame_index=i) -*/
-    /*- set frame = alloc(q['dma_frame_symbol'], seL4_FrameObject, size=page_size[0]) -*/
+    /*- set frame = alloc(q['dma_frame_symbol'], seL4_FrameObject, size=page_size[0], read=True, write=True) -*/
     /*- do dma_frames.append(frame) -*/
 /*- endfor -*/
 
