@@ -66,6 +66,8 @@
 /*- set badge = configuration[me.instance.name].get('%s_attributes' % me.interface.name) -*/
 /*- if isinstance(badge, six.integer_types) -*/
   /*- do cap_space.cnode[ep].set_badge(badge) -*/
+/*- elif isinstance(badge, six.string_types) and re.match('\\d+$', badge) is not none -*/
+  /*- do cap_space.cnode[ep].set_badge(int(badge)) -*/
 /*- else -*/
   /*- do cap_space.cnode[ep].set_badge(default_allocated_badges[me.parent.from_ends.index(me)]) -*/
 /*- endif -*/
