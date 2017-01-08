@@ -18,6 +18,7 @@ from camkes.internal.seven import cmp, filter, map, zip
 
 import os, re, six, subprocess
 from capdl import seL4_FrameObject, Cap, CNode, Frame, TCB, SC, page_sizes, lookup_architecture
+from capdl.util import IA32Arch, X64Arch
 from camkes.internal.memoization import memoize
 from .NameMangling import Perspective
 
@@ -240,6 +241,66 @@ def delete_small_frames(arch, obj_space, vspace_root, level_num, map_indices):
                 obj_space.remove(object)
                 parent_object[sub_indices[-1]] = None
         level = level - 1
+
+def make_indices_to_frame(arch, vspace_root, vaddr):
+    '''Given the root paging structure of a vspace, and a vaddr in that vspace,
+       constructs a list of indices to traverse the paging hierarchy from the root
+       to the frame containing the vaddr.'''
+    level = arch.vspace()
+    assert level.make_object == type(vspace_root), "vspace root must be top of page hierarchy"
+    indices = []
+    obj = vspace_root
+    cap = None
+
+    while not isinstance(obj, Frame):
+        index = level.child_index(vaddr)
+        level = level.child
+        cap = obj[index]
+        obj = cap.referent
+        indices.append(index)
+
+    return cap, indices, level
+
+def replace_frame_with_paging_structure(obj_space, vspace_root, frame_cap, indices, level):
+    '''Given the root paging structure of a vspace, a cap to a frame in that vspace,
+       a list of indices to traverse the paging hierarchy from the root to the that frame,
+       and the level of the paging hierarchy containing the frame, replaces the frame with
+       a paging structure of the same size, and populates it with appropriately sized frames.'''
+    paging_structure = obj_space.alloc(level.object)
+    child_size = [p.size for p in level.pages]
+    assert len(child_size) == 1, "Failed to find size of child frame"
+    child_size = child_size[0]
+
+    # populate the paging structure with new frames
+    for i in range(0, level.coverage // child_size):
+        new_frame = obj_space.alloc(seL4_FrameObject, size=child_size)
+        paging_structure[i] = Cap(new_frame, frame_cap.read, frame_cap.write, frame_cap.grant)
+
+    # find the parent paging structure
+    _, parent = lookup_vspace_indices(vspace_root, indices[0:-1])
+
+    # replace the entry in the parent
+    parent[indices[-1]] = Cap(paging_structure, frame_cap.read, frame_cap.write, frame_cap.grant)
+
+    # delete the old frame
+    obj_space.remove(frame_cap.referent)
+
+def replace_large_frames(obj_space, arch, vspace_root, start_vaddr, size):
+    '''Given the root paging structure of a vspace, and a virtual address range, replaces
+       all large frames (anything but 4k frames) in the range with 4k frames.'''
+    offset = 0
+    while offset < size:
+        vaddr = start_vaddr + offset
+        frame_cap, indices, level = make_indices_to_frame(arch, vspace_root, vaddr)
+
+        if frame_cap.referent.size == PAGE_SIZE:
+            # Found a normal frame - keep going.
+            offset += PAGE_SIZE
+        else:
+            # Found a large frame - replace it.
+            # Note that we don't increment the offset here, as we may
+            # have to replace the frame with even smaller frames.
+            replace_frame_with_paging_structure(obj_space, vspace_root, frame_cap, indices, level)
 
 def set_tcb_caps(ast, obj_space, cspaces, elfs, options, **_):
     arch = lookup_architecture(options.architecture)
@@ -507,6 +568,12 @@ def replace_dma_frames(ast, obj_space, elfs, options, **_):
             assert len(dma_frames) == 1
             dma_frame = dma_frames[0]
             return dma_frame
+
+        if isinstance(arch, IA32Arch) or isinstance(arch, X64Arch):
+            '''x86 architectures don't permit large frames in io page tables.
+            Thus here we make sure that there are no large frames in the
+            dma region.'''
+            replace_large_frames(obj_space, arch, pd, base, sz)
 
         for page_vaddr in six.moves.range(base, base + sz, page_size):
             cap = Cap(get_dma_frame(dma_frame_index), True, True, False)
