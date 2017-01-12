@@ -1800,7 +1800,11 @@ assembly {
 
 ##### Interrupts
 
-The interrupt number must be specified. The example below specifies that
+Depending on the platform different information needs to specified to
+connect a hardware interrupt source with a components interrupt handler.
+
+On ARM and if you are using the legacy x86 PIC controller then simply an
+interrupt number must be specified. The example below specifies that
 the event will be emitted when interrupt number 2 is received.
 
 ```camkes
@@ -1821,6 +1825,65 @@ assembly {
     ...
   }
 }
+```
+
+If using the newer I/O APIC controller on x86 then you need to describe
+the I/O APIC source and provide a destination vector. An I/O APIC source
+is described in terms of
+
+* Physical I/O APIC controller indexed starting at 0. Typically a system
+  only has one of these
+* Pin, ranging from 0 to 23, on the I/O APIC controller that the interrupt
+  will come in on
+* The trigger mode and polarity of the interrupt
+
+The destination vector is a number in the range of 0 to 107 and must be unique
+across all destination vectors defined in an assembly.
+
+Selecting between edge and level trigger modes is done by setting the
+`*_irq_ioapic_level` attribute where a value of `1` means level triggered and
+`0` means edge triggered. Similarly the active polarity is configured by
+the `*_irq_ioapic_polarity` attribute where a value of `1` means active
+low and `0` means active high.
+
+To change the previous example to connect an interrupt on I/O APIC 0, pin 2
+that is edge triggered with active high polarity you would change
+
+```camkes
+d.irq_irq_number = 2;
+```
+
+To become
+
+```camkes
+d.irq_irq_type = "ioapic";
+d.irq_irq_ioapic = 0;
+d.irq_irq_ioapic_pin = 2;
+d.irq_irq_ioapic_polarity = 0;
+d.irq_irq_ioapic_level = 0;
+d.irq_irq_vector = 42;
+```
+
+With the `vector` being arbitrarily chosen as `42`
+
+An interrupt that is edge triggered and active high can be more concisely
+declared as an ISA interrupt by
+
+```camkes
+d.irq_irq_type = "isa";
+d.irq_irq_ioapic = 0;
+d.irq_irq_ioapic_pin = 2;
+d.irq_irq_vector = 42;
+```
+
+Similarly if this interrupt were to be level triggered and active low it
+could be declared as a PCI interrupt by
+
+```camkes
+d.irq_irq_type = "pci";
+d.irq_irq_ioapic = 0;
+d.irq_irq_ioapic_pin = 2;
+d.irq_irq_vector = 42;
 ```
 
 ##### IO Ports
