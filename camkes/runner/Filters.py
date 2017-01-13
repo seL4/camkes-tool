@@ -285,17 +285,18 @@ def replace_frame_with_paging_structure(obj_space, vspace_root, frame_cap, indic
     # delete the old frame
     obj_space.remove(frame_cap.referent)
 
-def replace_large_frames(obj_space, arch, vspace_root, start_vaddr, size):
+def replace_large_frames(obj_space, arch, vspace_root, start_vaddr, size, page_size):
     '''Given the root paging structure of a vspace, and a virtual address range, replaces
-       all large frames (anything but 4k frames) in the range with 4k frames.'''
+       all frames with frames of the given (smaller) size, creating necessary intermediate
+       paging structures.'''
     offset = 0
     while offset < size:
         vaddr = start_vaddr + offset
         frame_cap, indices, level = make_indices_to_frame(arch, vspace_root, vaddr)
 
-        if frame_cap.referent.size == PAGE_SIZE:
-            # Found a normal frame - keep going.
-            offset += PAGE_SIZE
+        if frame_cap.referent.size <= page_size:
+            # Found frame of desired size - keep going.
+            offset += page_size
         else:
             # Found a large frame - replace it.
             # Note that we don't increment the offset here, as we may
@@ -569,11 +570,8 @@ def replace_dma_frames(ast, obj_space, elfs, options, **_):
             dma_frame = dma_frames[0]
             return dma_frame
 
-        if isinstance(arch, IA32Arch) or isinstance(arch, X64Arch):
-            '''x86 architectures don't permit large frames in io page tables.
-            Thus here we make sure that there are no large frames in the
-            dma region.'''
-            replace_large_frames(obj_space, arch, pd, base, sz)
+        # Ensure paging structures are in place to map in dma frames
+        replace_large_frames(obj_space, arch, pd, base, sz, page_size)
 
         for page_vaddr in six.moves.range(base, base + sz, page_size):
             cap = Cap(get_dma_frame(dma_frame_index), True, True, False)
