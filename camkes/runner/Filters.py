@@ -248,42 +248,82 @@ def make_indices_to_frame(arch, vspace_root, vaddr):
        to the frame containing the vaddr.'''
     level = arch.vspace()
     assert level.make_object == type(vspace_root), "vspace root must be top of page hierarchy"
-    indices = []
+    levels = []
     obj = vspace_root
     cap = None
 
     while not isinstance(obj, Frame):
         index = level.child_index(vaddr)
+
+        levels.append((level, index))
+
         level = level.child
         cap = obj[index]
         obj = cap.referent
-        indices.append(index)
 
-    return cap, indices, level
+    return cap, levels
 
-def replace_frame_with_paging_structure(obj_space, vspace_root, frame_cap, indices, level):
+def replace_frame_with_paging_structure(obj_space, vspace_root, frame_cap, bottom_level, indices):
     '''Given the root paging structure of a vspace, a cap to a frame in that vspace,
        a list of indices to traverse the paging hierarchy from the root to the that frame,
        and the level of the paging hierarchy containing the frame, replaces the frame with
        a paging structure of the same size, and populates it with appropriately sized frames.'''
-    paging_structure = obj_space.alloc(level.object)
-    child_size = [p.size for p in level.pages]
-    assert len(child_size) == 1, "Failed to find size of child frame"
-    child_size = child_size[0]
+
+    assert len(indices) >= 1, "Empty list of indices"
+
+    paging_structure = obj_space.alloc(bottom_level.object)
+    child_size = min(p.size for p in bottom_level.pages)
 
     # populate the paging structure with new frames
-    for i in range(0, level.coverage // child_size):
+    for i in range(0, bottom_level.coverage // child_size):
         new_frame = obj_space.alloc(seL4_FrameObject, size=child_size)
         paging_structure[i] = Cap(new_frame, frame_cap.read, frame_cap.write, frame_cap.grant)
 
     # find the parent paging structure
-    _, parent = lookup_vspace_indices(vspace_root, indices[0:-1])
+    if len(indices) == 1:
+        parent = vspace_root
+    else:
+        _, parent = lookup_vspace_indices(vspace_root, indices[0:-1])
 
     # replace the entry in the parent
     parent[indices[-1]] = Cap(paging_structure, frame_cap.read, frame_cap.write, frame_cap.grant)
 
     # delete the old frame
     obj_space.remove(frame_cap.referent)
+
+def replace_frame_with_small_frames(obj_space, vspace_root, frame_cap, bottom_level, indices):
+    '''Given the root paging structure of a vspace, a cap to a frame in that vspace,
+       a list of indices to traverse the paging hierarchy from the root to the that frame,
+       and the level of the paging hierarchy containing the frame, replaces the frame with
+       a collection of smaller frames, mapped into the same paging structure.'''
+
+    assert len(indices) >= 1, "Empty list of indices"
+
+    # look up the paging structure containing the frame that we'll be replacing
+    if len(indices) == 1:
+        paging_structure = vspace_root
+    else:
+        _, paging_structure = lookup_vspace_indices(vspace_root, indices[0:-1])
+
+    # index of the frame we're replacing in its paging structure
+    start_index = indices[-1]
+
+    assert paging_structure[start_index] == frame_cap, "Unexpected frame cap"
+
+    old_frame_size = frame_cap.referent.size
+    new_frame_size = min(p.size for p in bottom_level.pages)
+
+    assert old_frame_size % new_frame_size == 0, "Small frame size does not evenly divide larger frame size"
+
+    num_frames = old_frame_size // new_frame_size
+
+    # create new frames and map them in
+    for i in range(0, num_frames):
+        new_frame = obj_space.alloc(seL4_FrameObject, size=new_frame_size)
+        paging_structure[start_index + i] = Cap(new_frame, frame_cap.read, frame_cap.write, frame_cap.grant)
+
+    obj_space.remove(frame_cap.referent)
+
 
 def replace_large_frames(obj_space, arch, vspace_root, start_vaddr, size, page_size):
     '''Given the root paging structure of a vspace, and a virtual address range, replaces
@@ -292,7 +332,7 @@ def replace_large_frames(obj_space, arch, vspace_root, start_vaddr, size, page_s
     offset = 0
     while offset < size:
         vaddr = start_vaddr + offset
-        frame_cap, indices, level = make_indices_to_frame(arch, vspace_root, vaddr)
+        frame_cap, levels = make_indices_to_frame(arch, vspace_root, vaddr)
 
         if frame_cap.referent.size <= page_size:
             # Found frame of desired size - keep going.
@@ -301,7 +341,19 @@ def replace_large_frames(obj_space, arch, vspace_root, start_vaddr, size, page_s
             # Found a large frame - replace it.
             # Note that we don't increment the offset here, as we may
             # have to replace the frame with even smaller frames.
-            replace_frame_with_paging_structure(obj_space, vspace_root, frame_cap, indices, level)
+
+            # extract a list of indices from the list of (level, index) tuples
+            indices = [l[1] for l in levels]
+
+            (bottom_level, _) = levels[-1]
+            if bottom_level.child is not None and bottom_level.child.coverage == frame_cap.referent.size:
+                # This large frame can be replaced with a paging structure
+                # of the same coverage.
+                replace_frame_with_paging_structure(obj_space, vspace_root, frame_cap, bottom_level.child, indices)
+            else:
+                # This large frame can be replace by smaller frames in
+                # the same paging structure.
+                replace_frame_with_small_frames(obj_space, vspace_root, frame_cap, bottom_level, indices)
 
 def set_tcb_caps(ast, obj_space, cspaces, elfs, options, **_):
     arch = lookup_architecture(options.architecture)
