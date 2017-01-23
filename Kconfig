@@ -46,7 +46,7 @@ menu "CAmkES Options"
     # Default to one less than max prio to avoid interleaving our output with
     # the CapDL initialiser.
     default 254
-    range 1 255
+    range 0 255
     help
         Default priority for component threads if this is not overridden via an
         attribute. Generally you want to set this as high as possible due to
