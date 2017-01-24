@@ -92,25 +92,6 @@ class CLibrary(Package):
             return subprocess.call(['pkg-config', '--cflags', self.name],
                 stdout=f, stderr=f) == 0
 
-class HaskellModule(Package):
-    def __init__(self, name, description, import_target):
-        super(HaskellModule, self).__init__(name, description)
-        self.import_target = import_target
-
-    def exists(self):
-        # If only GHCI would exit with non-zero on error, the below shenanigans
-        # would not be necessary.
-        tmp = tempfile.mkdtemp()
-        try:
-            source = os.path.join(tmp, 'Main.hs')
-            with open(source, 'wt') as f:
-                f.write('import %s\nmain = return 0' % self.import_target)
-            with open(os.devnull, 'wt') as f:
-                return subprocess.call(['ghc', 'Main.hs'], cwd=tmp, stdout=f,
-                    stderr=f) == 0
-        finally:
-            shutil.rmtree(tmp)
-
 class Or(Package):
     def __init__(self, *packages):
         self.name = ' or '.join(p.name for p in packages)
@@ -168,16 +149,7 @@ DEPENDENCIES = {
             Binary('bash', 'shell'),
             Binary('make', 'GNU Make build tool'),
             Binary('cpio', 'CPIO file system tool')),
-    'CapDL translator':(Binary('ghc', 'Haskell compiler'),
-                        HaskellModule('parsec', 'Haskell parsing module', 'Text.ParserCombinators.Parsec'),
-                        HaskellModule('mtl', 'Haskell monad transformers module', 'Control.Monad.State'),
-                        HaskellModule('containers', 'Haskell containers module', 'Data.Set'),
-                        HaskellModule('MissingH', 'Haskell extras module', 'Data.String.Utils'),
-                        HaskellModule('split', 'Haskell split utilities', 'Data.List.Split'),
-                        HaskellModule('array', 'Haskell arrays module', 'Data.Array.IO'),
-                        HaskellModule('pretty', 'Haskell pretty printing module', 'Text.PrettyPrint'),
-                        HaskellModule('filepath', 'Haskell file paths module', 'System.FilePath.Posix'),
-                        Binary('cabal', 'Haskell package manager')),
+    'CapDL translator':(Binary('stack', 'Haskell version manager'),),
     'CAmkES accelerator':(Or(Binary('gcc', 'C compiler'),
                              Binary('clang', 'C compiler')),
                           CLibrary('sqlite3', 'SQLite library'),
