@@ -27,4 +27,4 @@ class TemplateError(CAmkESError):
                 entity.location.max_col)
         else:
             msg = self._format_message(content)
-        super(TemplateError, self).__init__(msg)
+        super(TemplateError, self).__init__(*msg)

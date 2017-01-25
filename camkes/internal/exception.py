@@ -80,4 +80,4 @@ class CAmkESError(Exception):
                 msg.append('\n')
 
         msg.append(message)
-        return ''.join(msg)
+        return ''.join(msg).split('\n')

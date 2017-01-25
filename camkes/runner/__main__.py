@@ -68,9 +68,14 @@ def safe_decode(s):
         r.append(c)
     return ''.join(r)
 
-def _die(options, s):
-    for line in str(s).split('\n'):
-        log.error(line)
+def _die(options, message):
+
+    if isinstance(message, collections.Iterable):
+        for line in message:
+            log.error(line)
+    else:
+        log.error(message)
+
     tb = traceback.format_exc()
     log.debug('\n --- Python traceback ---\n%s ------------------------\n' %
         safe_decode(tb))
@@ -502,7 +507,7 @@ def main(argv, out, err):
                         log.warning('Warning: no template for %s' % options.item)
                     done(g)
             except TemplateError as inst:
-                die('While rendering %s: %s' % (i.name, inst))
+                die(['While rendering %s: %s' % (i.name, line) for line in inst.args])
 
     # Instantiate the per-connection files.
     for c in assembly.composition.connections:
@@ -523,7 +528,7 @@ def main(argv, out, err):
                             cspaces[e.instance.address_space], shmem,
                             options=options, my_pd=pds[e.instance.address_space])
                     except TemplateError as inst:
-                        die('While rendering %s: %s' % (item, inst))
+                        die(['While rendering %s: %s' % (item, line) for line in inst.args])
                     except jinja2.exceptions.TemplateNotFound:
                         die('While rendering %s: missing template for %s' %
                             (item, c.type.name))
@@ -564,7 +569,7 @@ def main(argv, out, err):
                     save(options.item, g)
                     done(g)
                 except TemplateError as inst:
-                    die('While rendering %s: %s' % (options.item, inst))
+                    die(['While rendering %s: %s' % (options.item, line) for line in inst.args])
 
     # Perform any per component simple generation. This needs to happen last
     # as this template needs to run after all other capabilities have been
@@ -589,7 +594,7 @@ def main(argv, out, err):
                             log.warning('Warning: no template for %s' % options.item)
                         done(g)
                 except TemplateError as inst:
-                    die('While rendering %s: %s' % (i.name, inst))
+                    die(['While rendering %s: %s' % (i.name, line) for line in inst.args])
 
     # Derive a set of usable ELF objects from the filenames we were passed.
     elfs = {}
@@ -634,7 +639,7 @@ def main(argv, out, err):
             save(options.item, g)
             done(g)
     except TemplateError as inst:
-        die('While rendering %s: %s' % (options.item, inst))
+        die(['While rendering %s: %s' % (options.item, line) for line in inst.args])
 
     die('No valid element matching --item %s' % options.item)
 
