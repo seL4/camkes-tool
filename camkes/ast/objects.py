@@ -299,6 +299,7 @@ class Configuration(MapLike):
         super(Configuration, self).__init__(location)
         self._name = name
         self._settings = list(settings or [])
+        self.settings_dict = {}
         self.claim_children()
 
     @property
@@ -338,6 +339,12 @@ class Configuration(MapLike):
                 raise ASTError('duplicate setting for attribute '
                     '\'%s.%s\'' % (s.instance, s.attribute), s)
             self._mapping[s.instance][s.attribute] = s.value
+
+            if s.instance in self.settings_dict:
+                self.settings_dict[s.instance][s.attribute] = s
+            else:
+                self.settings_dict[s.instance] = {s.attribute: s}
+
         # Add any default values of attributes that were not set.
         if isinstance(self.parent, Assembly):
             for i in self.parent.composition.instances:
