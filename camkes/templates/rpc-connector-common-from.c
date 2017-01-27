@@ -39,9 +39,14 @@
  #*/
 /*- set used_badges = set() -*/
 /*- for e in me.parent.from_ends -*/
-  /*- set badge = configuration[e.instance.name].get('%s_attributes' % e.interface.name) -*/
+  /*- set badge_attribute = '%s_attributes' % e.interface.name -*/
+  /*- set badge = configuration[e.instance.name].get(badge_attribute) -*/
   /*- if isinstance(badge, six.integer_types) -*/
     /*- do used_badges.add(badge) -*/
+  /*- elif isinstance(badge, six.string_types) and re.match('\\d+$', badge) is not none -*/
+    /*- do used_badges.add(int(badge)) -*/
+  /*- elif badge is not none -*/
+    /*? raise(TemplateError('%s.%s must be either an integer or string encoding an integer' % (e.instance.name, badge_attribute), configuration.settings_dict[e.instance.name][badge_attribute])) ?*/
   /*- endif -*/
 /*- endfor -*/
 
@@ -63,13 +68,16 @@
 /*- endfor -*/
 
 /*# Now we're ready to determine the actual badge for this end. #*/
-/*- set badge = configuration[me.instance.name].get('%s_attributes' % me.interface.name) -*/
+/*- set badge_attribute = '%s_attributes' % me.interface.name -*/
+/*- set badge = configuration[me.instance.name].get(badge_attribute) -*/
 /*- if isinstance(badge, six.integer_types) -*/
   /*- do cap_space.cnode[ep].set_badge(badge) -*/
 /*- elif isinstance(badge, six.string_types) and re.match('\\d+$', badge) is not none -*/
   /*- do cap_space.cnode[ep].set_badge(int(badge)) -*/
-/*- else -*/
+/*- elif badge is none -*/
   /*- do cap_space.cnode[ep].set_badge(default_allocated_badges[me.parent.from_ends.index(me)]) -*/
+/*- else -*/
+  /*? raise(TemplateError('%s.%s must be either an integer or string encoding an integer' % (me.instance.name, badge_attribute), configuration.settings_dict[me.instance.name][badge_attribute])) ?*/
 /*- endif -*/
 
 /*- set BUFFER_BASE = c_symbol('BUFFER_BASE') -*/
