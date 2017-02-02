@@ -32,6 +32,10 @@ def _get_line(filename, lineno):
     return None
 
 class CAmkESError(Exception):
+
+    def __init__(self, lines):
+        super(CAmkESError, self).__init__(*lines)
+
     '''
     Generic basis for CAmkES errors.
     '''
