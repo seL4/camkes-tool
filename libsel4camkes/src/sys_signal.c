@@ -14,13 +14,13 @@
 #include <stdint.h>
 #include <utils/util.h>
 
-long sys_sigaction(va_list ap UNUSED)
+long camkes_sys_sigaction(va_list ap UNUSED)
 {
 	LOG_INFO("Warning: %s ignored.\n", __func__);
 	return 0;
 }
 
-long sys_rt_sigaction(va_list ap UNUSED)
+long camkes_sys_rt_sigaction(va_list ap UNUSED)
 {
 	LOG_INFO("Warning: %s ignored.\n", __func__);
 	return 0;

@@ -19,7 +19,6 @@
 #include <stdint.h>
 #include <string.h>
 #include <sys/mman.h>
-#include "syscalls.h"
 #include <unistd.h>
 #include <utils/util.h>
 
@@ -85,7 +84,7 @@ static long page_size(void) {
 /* There is no dynamic memory management in CAmkES, so `madvise` is no-op. As a nicety, we implement
  * `madvise` to validate its inputs to give callers a more rational environment.
  */
-long sys_madvise(va_list ap UNUSED) {
+long camkes_sys_madvise(va_list ap UNUSED) {
 
     void *addr = va_arg(ap, void*);
     size_t length = va_arg(ap, size_t);
@@ -123,7 +122,7 @@ long sys_madvise(va_list ap UNUSED) {
     return 0;
 }
 
-long sys_mincore(va_list ap) {
+long camkes_sys_mincore(va_list ap) {
 
     void *addr = va_arg(ap, void*);
     size_t length = va_arg(ap, size_t);
@@ -204,7 +203,7 @@ static long mlock_internal(const void *addr, size_t len) {
     }
 }
 
-long sys_mlock(va_list ap) {
+long camkes_sys_mlock(va_list ap) {
 
     const void *addr = va_arg(ap, const void*);
     size_t len = va_arg(ap, size_t);
@@ -212,7 +211,7 @@ long sys_mlock(va_list ap) {
     return mlock_internal(addr, len);
 }
 
-long sys_munlock(va_list ap) {
+long camkes_sys_munlock(va_list ap) {
 
     const void *addr = va_arg(ap, const void*);
     size_t len = va_arg(ap, size_t);
@@ -220,7 +219,7 @@ long sys_munlock(va_list ap) {
     return mlock_internal(addr, len);
 }
 
-long sys_mlockall(va_list ap) {
+long camkes_sys_mlockall(va_list ap) {
 
     int flags = va_arg(ap, int);
 
@@ -231,6 +230,6 @@ long sys_mlockall(va_list ap) {
     return 0;
 }
 
-long sys_munlockall(va_list ap UNUSED) {
+long camkes_sys_munlockall(va_list ap UNUSED) {
     return 0;
 }

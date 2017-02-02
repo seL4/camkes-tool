@@ -16,11 +16,12 @@
 #include <string.h>
 #include <errno.h>
 #include <sys/socket.h>
+#include <muslcsys/io.h>
 
 #include "sys_io.h"
 
 int sock_socket(int domain, int type, int protocol) __attribute__((weak));
-long sys_socket(va_list ap)
+long camkes_sys_socket(va_list ap)
 {
 	int domain = va_arg(ap, int);
 	int type = va_arg(ap, int);
@@ -43,7 +44,7 @@ long sys_socket(va_list ap)
 }
 
 int sock_bind(int sockfd, int addrlen) __attribute__((weak));
-long sys_bind(va_list ap)
+long camkes_sys_bind(va_list ap)
 {
 	int fd = va_arg(ap, int);
 	const struct sockaddr *addr = va_arg(ap, const struct sockaddr*);
@@ -64,7 +65,7 @@ long sys_bind(va_list ap)
 }
 
 int sock_connect(int sockfd, int addrlen) __attribute__((weak));
-long sys_connect(va_list ap)
+long camkes_sys_connect(va_list ap)
 {
 	int fd = va_arg(ap, int);
 	const struct sockaddr *addr = va_arg(ap, const struct sockaddr*);
@@ -86,7 +87,7 @@ long sys_connect(va_list ap)
 }
 
 int sock_listen(int sockfd, int backlog) __attribute__((weak));
-long sys_listen(va_list ap)
+long camkes_sys_listen(va_list ap)
 {
 	int fd = va_arg(ap, int);
 	int backlog = va_arg(ap, int);
@@ -105,7 +106,7 @@ long sys_listen(va_list ap)
 }
 
 int sock_accept(int sockfd) __attribute__((weak));
-long sys_accept(va_list ap)
+long camkes_sys_accept(va_list ap)
 {
 	int fd = va_arg(ap, int);
 	struct sockaddr *addr = va_arg(ap, struct sockaddr*);
@@ -157,7 +158,7 @@ long sys_accept(va_list ap)
 }
 
 int sock_setsockopt(int sockfd, int level, int optname, int optlen) __attribute__((weak));
-long sys_setsockopt(va_list ap)
+long camkes_sys_setsockopt(va_list ap)
 {
 	int fd = va_arg(ap, int);
 	int level = va_arg(ap, int);

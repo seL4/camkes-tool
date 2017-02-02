@@ -28,6 +28,7 @@
 #include <camkes/tls.h>
 #include <camkes/vma.h>
 #include <camkes/version.h>
+#include <camkes/syscalls.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -285,25 +286,37 @@ int /*? b.name ?*/_post(void) {
 
 /*- endfor -*/
 
-#ifndef CONFIG_CAMKES_DEFAULT_HEAP_SIZE
-#define CONFIG_CAMKES_DEFAULT_HEAP_SIZE 1048576
-#endif
-
+#ifdef CONFIG_CAMKES_DEFAULT_HEAP_SIZE
 /*- set heap_size = configuration[me.name].get('heap_size', 'CONFIG_CAMKES_DEFAULT_HEAP_SIZE') -*/
 
 /*- set heap = c_symbol() -*/
 static char /*? heap ?*/[/*? heap_size ?*/];
 extern char *morecore_area;
 extern size_t morecore_size;
+#else
+/*- if configuration[me.name].get('heap_size') is not none -*/
+    #error Set a custom heap_size for component '/*? me.name ?*/' but this has no effect if CONFIG_LIB_SEL4_MUSLC_SYS_MORECORE_BYTES is not set to 0
+/*- endif -*/
+#endif
+
+/* Install additional syscalls in an init constructor instead of in
+ * init so that there is a way for other applications to decide whether
+ * they want to provide their syscall implementation before or after
+ * the camkes ones */
+static void CONSTRUCTOR(CAMKES_SYSCALL_CONSTRUCTOR_PRIORITY) init_install_syscalls(void) {
+    camkes_install_syscalls();
+}
 
 /* General CAmkES platform initialisation. Expects to be run in a
  * single-threaded, exclusive context. On failure it does not return.
  */
 /*- set init = c_symbol() -*/
 static void /*? init ?*/(void) {
+#ifdef CONFIG_CAMKES_DEFAULT_HEAP_SIZE
     /* Assign the heap */
     morecore_area = /*? heap ?*/;
     morecore_size = /*? heap_size ?*/;
+#endif
 
     /* The user has actually had no opportunity to install any error handlers at
      * this point, so any error triggered below will certainly be fatal.

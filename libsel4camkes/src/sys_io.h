@@ -14,24 +14,7 @@
 #include <utils/page.h>
 #include <camkes/dataport.h>
 
-#define STDOUT_FD     1
-#define STDERR_FD     2
-#define FIRST_USER_FD 3
-
-#define FILE_TYPE_SOCKET  1 
-
-#define FD_TABLE_SIZE(x) (sizeof(muslcsys_fd_t) * (x))
-/* this implementation does not allow users to close STDOUT or STDERR, so they can't be freed */
-#define FREE_FD_TABLE_SIZE(x) (sizeof(int) * ((x) - FIRST_USER_FD))
-
-typedef struct muslcsys_fd {
-    int filetype;
-    void *data;
-} muslcsys_fd_t;
-
-int allocate_fd(void);
-
-muslcsys_fd_t *get_fd_struct(int fd);
+#define FILE_TYPE_SOCKET  1
 
 /* CAmkES dataport for socket interface. */
 extern Buf* sock_data __attribute__((weak));
