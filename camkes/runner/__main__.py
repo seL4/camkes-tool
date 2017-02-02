@@ -308,7 +308,7 @@ def main(argv, out, err):
     try:
         ast, read = parse_file(filename, options)
     except (ASTError, ParseError) as e:
-        die(str(e))
+        die(e.args)
 
     # Locate the assembly.
     assembly = ast.assembly
