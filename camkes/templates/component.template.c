@@ -465,7 +465,11 @@ static void /*? init ?*/(void) {
   /*- set fault_ep = alloc_obj('fault_ep', seL4_EndpointObject) -*/
 /*- endif -*/
 
-/* This function is called from crt0.S *prior* to `main`. */
+static int post_main(int thread_id);
+/* This function is called from crt0.S. If this is called for the control
+ * thread then we should return so that the C library can be initialized
+ * and we will come back executing in 'main'. For all other threads we should
+ * jump straight to post_main */
 void USED _camkes_tls_init(int thread_id) {
     switch (thread_id) {
         /*- set _tcb_control = alloc_obj('%d_0_control_%d_tcb' % (len(me.name), len('0_control')), seL4_TCBObject) -*/
@@ -532,6 +536,7 @@ void USED _camkes_tls_init(int thread_id) {
                 /*? macros.save_ipc_buffer_address(p['ipc_buffer_symbol']) ?*/
                 camkes_get_tls()->tcb_cap = /*? tcb ?*/;
                 camkes_get_tls()->thread_index = /*? index ?*/ + 2;
+                exit(post_main(thread_id));
                 break;
             }
         /*- endfor -*/
@@ -548,6 +553,7 @@ void USED _camkes_tls_init(int thread_id) {
                 /*? macros.save_ipc_buffer_address(p['ipc_buffer_symbol']) ?*/
                 camkes_get_tls()->tcb_cap = /*? tcb ?*/;
                 camkes_get_tls()->thread_index = /*? len(threads) ?*/ + 1;
+                exit(post_main(thread_id));
                 break;
             }
         /*- endif -*/
@@ -768,12 +774,7 @@ void USED _camkes_tls_init(int thread_id) {
     }
 /*- endif -*/
 
-int USED main(int argc UNUSED, char *argv[]) {
-    assert(argc == 2);
-    assert(strcmp(argv[0], "camkes") == 0);
-
-    int thread_id = (int)(uintptr_t)(argv[1]);
-
+static int post_main(int thread_id) {
 #if defined(SEL4_DEBUG_KERNEL) && defined(CONFIG_CAMKES_PROVIDE_TCB_CAPS)
    /*- set thread_name = c_symbol() -*/
    char /*? thread_name ?*/[seL4_MsgMaxLength * sizeof(seL4_Word)];
@@ -977,6 +978,14 @@ int USED main(int argc UNUSED, char *argv[]) {
             assert(!"Template generation failure");
             return -1;
     }
+}
+
+int USED main(int argc UNUSED, char *argv[]) {
+    assert(argc == 2);
+    assert(strcmp(argv[0], "camkes") == 0);
+
+    int thread_id = (int)(uintptr_t)(argv[1]);
+    return post_main(thread_id);
 }
 
 /*- for e in me.type.emits -*/
