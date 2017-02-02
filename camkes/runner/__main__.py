@@ -70,7 +70,7 @@ def safe_decode(s):
 
 def _die(options, message):
 
-    if isinstance(message, collections.Iterable):
+    if isinstance(message, (list, tuple)):
         for line in message:
             log.error(line)
     else:
