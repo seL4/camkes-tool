@@ -579,7 +579,6 @@ class InstanceWidget(QtWidgets.QGraphicsWidget, PropertyInterface):
         """
 
         assert isinstance(connection, Connection_Widget.ConnectionWidget)
-        # print "This is " + self.name + " and updating: " + str(connection.name)
 
         decrease_angle = None
 
@@ -787,18 +786,18 @@ class InstanceWidget(QtWidgets.QGraphicsWidget, PropertyInterface):
         string = " "
 
         for connection in self.connection_list:
-            string += connection.name + " "
+            string += "%s " % connection.name
 
-        print self.name + " contains: " + string
+        print "%s contains: %s" % (self.name, string)
 
         no_of_connections = len(self.dataport) + len(self.provides) + len(self.consumes) + len(self.uses) + \
                             len(self.emits)
-        print "\tNumber of connections is: " + str(no_of_connections)
-        print "\tdataport: " + str(len(self.dataport))
-        print "\tprovides: " + str(len(self.provides))
-        print "\tconsumes: " + str(len(self.consumes))
-        print "\tuses: " + str(len(self.uses))
-        print "\temits: " + str(len(self.emits))
+        print "\tNumber of connections is: %s" % str(no_of_connections)
+        print "\tdataport: %s" % str(len(self.dataport))
+        print "\tprovides: %s" % str(len(self.provides))
+        print "\tconsumes: %s" % str(len(self.consumes))
+        print "\tuses: %s" % str(len(self.uses))
+        print "\temits: %s" % str(len(self.emits))
 
     def mouseMoveEvent(self, mouse_event):
         """

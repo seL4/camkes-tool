@@ -102,32 +102,27 @@ class InstancePropertyWidget(QtWidgets.QGroupBox):
 
         for provide_dict in self.instance_widget.provides:
             grid_layout.addWidget(QtWidgets.QLabel("Procedure"), row, 0)
-            grid_layout.addWidget(QtWidgets.QLabel(provide_dict["Interface_type"] + \
-                    " : " + provide_dict["Name"]), row, 1)
+            grid_layout.addWidget(QtWidgets.QLabel("%s : %s" % (provide_dict["Interface_type"], provide_dict["Name"]) ), row, 1)
             row = row + 1
 
         for use_dict in self.instance_widget.uses:
             grid_layout.addWidget(QtWidgets.QLabel("Procedure"), row, 0)
-            grid_layout.addWidget(QtWidgets.QLabel(use_dict["Interface_type"] + \
-                    " : " + use_dict["Name"]), row, 1)
+            grid_layout.addWidget(QtWidgets.QLabel("%s : %s" % (use_dict["Interface_type"], use_dict["Name"]) ), row, 1)
             row = row + 1
 
         for emit_dict in self.instance_widget.emits:
             grid_layout.addWidget(QtWidgets.QLabel("Event"), row, 0)
-            grid_layout.addWidget(QtWidgets.QLabel(emit_dict["Interface_type"] + \
-                    " : " + emit_dict["Name"]), row, 1)
+            grid_layout.addWidget(QtWidgets.QLabel("%s : %s" % (emit_dict["Interface_type"], emit_dict["Name"]) ), row, 1)
             row = row + 1
 
         for consume_dict in self.instance_widget.consumes:
             grid_layout.addWidget(QtWidgets.QLabel("Event"), row, 0)
-            grid_layout.addWidget(QtWidgets.QLabel(consume_dict["Interface_type"] + \
-                    " : " + consume_dict["Name"]), row, 1)
+            grid_layout.addWidget(QtWidgets.QLabel("%s : %s" % (consume_dict["Interface_type"], consume_dict["Name"]) ), row, 1)
             row = row + 1
 
         for dataport_dict in self.instance_widget.dataport:
             grid_layout.addWidget(QtWidgets.QLabel("Dataport"), row, 0)
-            grid_layout.addWidget(QtWidgets.QLabel(dataport_dict["Interface_type"] + \
-                    " : " + dataport_dict["Name"]), row, 1)
+            grid_layout.addWidget(QtWidgets.QLabel("%s : %s" % (dataport_dict["Interface_type"], dataport_dict["Name"]) ), row, 1)
             row = row + 1
 
         self.setLayout(grid_layout)

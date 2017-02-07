@@ -151,7 +151,7 @@ class GraphController(QtWidgets.QMainWindow):
                 conv = Ansi2HTMLConverter(inline=True, dark_bg=False)
                 html = conv.convert(str(error), full=False)
                 html = html.replace('\n', '<br/>').replace('^','')
-                messageBox.setInformativeText('<p style="font-family: monospace;">' + html + '</p>')
+                messageBox.setInformativeText('<p style="font-family: monospace;"> %s </p>' % html)
                 messageBox.exec_()
             else:
                 # If no error, AST would have been successfully set. Change Window Title to name of file.

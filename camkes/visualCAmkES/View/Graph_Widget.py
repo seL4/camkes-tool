@@ -108,7 +108,7 @@ class GraphWidget(QtWidgets.QGraphicsView):
         self.sync_model()
 
         # Layout
-        if os.path.isfile(self.get_root_location() + ".visualCAmkES.layout"):
+        if os.path.isfile("%s.visualCAmkES.layout" % self.get_root_location()):
             # If layout exist, place nodes in original positions. New nodes are placed in middle
             self.layout_from_file()
         else:
@@ -415,7 +415,7 @@ class GraphWidget(QtWidgets.QGraphicsView):
         """
 
         # Attempt to open layout file.
-        with open(self.get_root_location() + ".visualCAmkES.layout", 'r') as layout_file:
+        with open("%s.visualCAmkES.layout" % self.get_root_location(), 'r') as layout_file:
             # Load dictionaries (json format) from file.
             json_input = json.load(layout_file)
 
@@ -464,7 +464,7 @@ class GraphWidget(QtWidgets.QGraphicsView):
 
             node_positions[widget.name] = attributes
 
-        file_location = self.get_root_location() + ".visualCAmkES.layout"
+        file_location =  "%s.visualCAmkES.layout" % self.get_root_location() 
 
         with open(file_location, 'w') as output:
             json.dump(node_positions, output, indent=4)
@@ -534,7 +534,7 @@ class GraphWidget(QtWidgets.QGraphicsView):
 
             if len(node_list) < 1:
                 # Name may be quoted due to special characters
-                quoted_name = '"' + instance_name + '"'
+                quoted_name = '"%s"' % instance_name
                 node_list = dot_data.get_node(quoted_name)
 
             assert len(node_list) == 1  # Should only be one node
@@ -764,11 +764,11 @@ class GraphWidget(QtWidgets.QGraphicsView):
             self.scene().render(painter, source=rect)
             painter.end()
 
-            image.save(image_location + ".png")
+            image.save("%s.png" % image_location)
 
         elif save_option_dialog.picture_type == save_option_dialog.SVG:
             generator = QtSvg.QSvgGenerator()
-            generator.setFileName(image_location + ".svg")
+            generator.setFileName("%s.svg" % image_location)
             generator.setSize(QtCore.QSize(rect.width(), rect.height()))
             # generator.setViewBox(rect)
             generator.setTitle(save_option_dialog.user_title)

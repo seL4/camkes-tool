@@ -45,7 +45,7 @@ class ConnectionPropertyWidget(QtWidgets.QGroupBox):
         # When this becomes editable
         # This will be not a label, but a drop down menu
         if self._from_interface_widget is None:
-            self._from_interface_widget = QtWidgets.QLabel(self.connection_widget.source_interface_name + " : " + self.connection_widget.source_connection_type)
+            self._from_interface_widget = QtWidgets.QLabel("%s : %s" % (self.connection_widget.source_interface_name, self.connection_widget.source_connection_type) )
         return self._from_interface_widget
 
     @property
@@ -59,7 +59,7 @@ class ConnectionPropertyWidget(QtWidgets.QGroupBox):
         # When this becomes editable
         # This will be not a label, but a drop down menu
         if self._to_interface_widget is None:
-            self._to_interface_widget = QtWidgets.QLabel(self.connection_widget.dest_interface_name + " : " + self.connection_widget.dest_connection_type)
+            self._to_interface_widget = QtWidgets.QLabel("%s : %s" % (self.connection_widget.dest_interface_name, self.connection_widget.dest_connection_type) )
         return self._to_interface_widget
 
     @property
