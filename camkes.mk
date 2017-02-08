@@ -43,6 +43,8 @@ export CONFIG_CAMKES_USE_OBJDUMP_ON \
 CONFIG_CAMKES_IMPORT_PATH:=$(patsubst %",%,$(patsubst "%,%,${CONFIG_CAMKES_IMPORT_PATH}))
 #")") Help syntax-highlighting editors.
 
+DATA_STRUCTURE_CACHE = ${BUILD_DIR}/data_structure_cache
+
 CAMKES_FLAGS += \
     $(if ${V},--debug,) \
     $(if ${CONFIG_CAMKES_CACHE},--cache,) \
@@ -63,6 +65,7 @@ CAMKES_FLAGS += \
     --architecture ${SEL4_ARCH} \
     $(if ${CONFIG_CAMKES_ALLOW_FORWARD_REFERENCES},--allow-forward-references,) \
     $(if ${CONFIG_CAMKES_FAULT_HANDLERS},--debug-fault-handlers,) \
+    --data-structure-cache-dir ${DATA_STRUCTURE_CACHE} \
 
 include ${SEL4_COMMON}/common.mk
 
@@ -134,6 +137,7 @@ include ${BUILD_DIR}/camkes-gen.mk
 
 ${BUILD_DIR}/camkes-gen.mk: ${SOURCE_DIR}/${ADL}
 	@echo " [GEN] $(notdir $@)"
+	rm -rf ${DATA_STRUCTURE_CACHE}
 	camkes.sh \
         ${CAMKES_FLAGS} \
         --file $< \

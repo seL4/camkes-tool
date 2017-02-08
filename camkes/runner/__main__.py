@@ -192,7 +192,10 @@ def parse_args(argv, out, err):
         help='promote frames backing DMA pools to large frames where possible')
     parser.add_argument('--realtime', action='store_true',
         help='Target realtime seL4.')
-
+    parser.add_argument('--data-structure-cache-dir', type=str,
+        help='Directory for storing pickled datastructures for re-use between multiple '
+             'invocations of the camkes tool in a single build. The user should delete '
+             'this directory between builds.')
 
     # Juggle the standard streams either side of parsing command-line arguments
     # because argparse provides no mechanism to control this.
