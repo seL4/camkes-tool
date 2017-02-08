@@ -616,11 +616,9 @@ def replace_dma_frames(ast, obj_space, elfs, options, **_):
             '''
             p = Perspective(instance=i.name, group=i.address_space,
                 dma_frame_index=index)
-            dma_frames = [x for x in obj_space.spec.objs if
-                x.name == p['dma_frame_symbol']]
-            assert len(dma_frames) == 1
-            dma_frame = dma_frames[0]
-            return dma_frame
+            name = p['dma_frame_symbol']
+            assert name in obj_space, "No such symbol in capdl spec %s" % name
+            return obj_space[name]
 
         # Ensure paging structures are in place to map in dma frames
         replace_large_frames(obj_space, arch, pd, base, sz, page_size)
