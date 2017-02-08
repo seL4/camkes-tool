@@ -466,6 +466,50 @@ def main(argv, out, err):
         def save(item, value):
             pass
 
+    def apply_capdl_filters():
+        # Derive a set of usable ELF objects from the filenames we were passed.
+        elfs = {}
+        for e in options.elf:
+            try:
+                name = os.path.basename(e)
+                if name in elfs:
+                    raise Exception('duplicate ELF files of name \'%s\' encountered' % name)
+                elf = ELF(e, name, options.architecture)
+                p = Perspective(phase=RUNNER, elf_name=name)
+                group = p['group']
+                # Avoid inferring a TCB as we've already created our own.
+                elf_spec = elf.get_spec(infer_tcb=False, infer_asid=False,
+                    pd=pds[group], use_large_frames=options.largeframe)
+                obj_space.merge(elf_spec, label=group)
+                elfs[name] = (e, elf)
+            except Exception as inst:
+                die('While opening \'%s\': %s' % (e, inst))
+
+        # It's only relevant to run these filters if the final target is CapDL.
+        # Note, this will no longer be true if we add any other templates that
+        # depend on a fully formed CapDL spec. Guarding this loop with an if
+        # is just an optimisation and the conditional can be removed if
+        # desired.
+        for f in CAPDL_FILTERS:
+            try:
+                # Pass everything as named arguments to allow filters to
+                # easily ignore what they don't want.
+                f(ast=ast, obj_space=obj_space, cspaces=cspaces, elfs=elfs,
+                    options=options, shmem=shmem)
+            except Exception as inst:
+                die('While forming CapDL spec: %s' % inst)
+
+    def instantiate_misc_template():
+        try:
+            template = templates.lookup(options.item)
+            if template:
+                g = r.render(assembly, assembly, template, obj_space, None,
+                    shmem, imported=read, options=options)
+                save(options.item, g)
+                done(g)
+        except TemplateError as inst:
+            die(['While rendering %s: %s' % (options.item, line) for line in inst.args])
+
     # We're now ready to instantiate the template the user requested, but there
     # are a few wrinkles in the process. Namely,
     #  1. Template instantiation needs to be done in a deterministic order. The
@@ -599,50 +643,13 @@ def main(argv, out, err):
                 except TemplateError as inst:
                     die(['While rendering %s: %s' % (i.name, line) for line in inst.args])
 
-    # Derive a set of usable ELF objects from the filenames we were passed.
-    elfs = {}
-    for e in options.elf:
-        try:
-            name = os.path.basename(e)
-            if name in elfs:
-                raise Exception('duplicate ELF files of name \'%s\' encountered' % name)
-            elf = ELF(e, name, options.architecture)
-            p = Perspective(phase=RUNNER, elf_name=name)
-            group = p['group']
-            # Avoid inferring a TCB as we've already created our own.
-            elf_spec = elf.get_spec(infer_tcb=False, infer_asid=False,
-                pd=pds[group], use_large_frames=options.largeframe)
-            obj_space.merge(elf_spec, label=group)
-            elfs[name] = (e, elf)
-        except Exception as inst:
-            die('While opening \'%s\': %s' % (e, inst))
 
     if options.item in ('capdl', 'label-mapping'):
-        # It's only relevant to run these filters if the final target is CapDL.
-        # Note, this will no longer be true if we add any other templates that
-        # depend on a fully formed CapDL spec. Guarding this loop with an if
-        # is just an optimisation and the conditional can be removed if
-        # desired.
-        for f in CAPDL_FILTERS:
-            try:
-                # Pass everything as named arguments to allow filters to
-                # easily ignore what they don't want.
-                f(ast=ast, obj_space=obj_space, cspaces=cspaces, elfs=elfs,
-                    options=options, shmem=shmem)
-            except Exception as inst:
-                die('While forming CapDL spec: %s' % inst)
+        apply_capdl_filters()
 
     # Instantiate any other, miscellaneous template. If we've reached this
     # point, we know the user did not request a code template.
-    try:
-        template = templates.lookup(options.item)
-        if template:
-            g = r.render(assembly, assembly, template, obj_space, None,
-                shmem, imported=read, options=options)
-            save(options.item, g)
-            done(g)
-    except TemplateError as inst:
-        die(['While rendering %s: %s' % (options.item, line) for line in inst.args])
+    instantiate_misc_template()
 
     die('No valid element matching --item %s' % options.item)
 
