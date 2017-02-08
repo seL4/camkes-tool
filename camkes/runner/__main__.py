@@ -43,8 +43,7 @@ from camkes.runner.Renderer import Renderer
 from camkes.runner.Filters import CAPDL_FILTERS
 
 import argparse, collections, functools, jinja2, locale, numbers, os, re, \
-    six, sqlite3, string, traceback
-
+    six, sqlite3, string, traceback, pickle, errno
 from capdl import seL4_CapTableObject, ObjectAllocator, CSpaceAllocator, \
     ELF, lookup_architecture
 
@@ -210,6 +209,36 @@ def parse_args(argv, out, err):
     return options
 
 
+def pickle_call(options, pickle_name, fn, *args, **kwargs):
+    cache_path = os.path.realpath(options.data_structure_cache_dir)
+    pickle_path = os.path.join(cache_path, pickle_name)
+
+    try:
+        if not os.path.isdir(cache_path):
+            os.makedirs(cache_path)
+
+        with open(pickle_path, 'rb') as pickle_file:
+            return pickle.load(pickle_file)
+
+    except IOError as e:
+        result = fn(*args, **kwargs)
+        if e.args[0] == errno.ENOENT:
+            # pickled file doesn't exist yet - create it
+            with open(pickle_path, 'wb') as pickle_file:
+                pickle.dump(result, pickle_file)
+
+        return result
+
+    except Exception:
+        # fall back to calling the function without pickling
+        return fn(*args, **kwargs)
+
+def parse_file_cached(filename, options):
+    if options.data_structure_cache_dir is None:
+        return parse_file(filename, options)
+
+    return pickle_call(options, 'ast.p', parse_file, filename, options)
+
 def main(argv, out, err):
 
     # We need a UTF-8 locale, so bail out if we don't have one. More
@@ -309,7 +338,7 @@ def main(argv, out, err):
     filename = os.path.abspath(options.file.name)
 
     try:
-        ast, read = parse_file(filename, options)
+        ast, read = parse_file_cached(filename, options)
     except (ASTError, ParseError) as e:
         die(e.args)
 
