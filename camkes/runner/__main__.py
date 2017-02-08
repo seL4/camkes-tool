@@ -38,6 +38,7 @@ from camkes.internal.cacheb import Cache as LevelBCache, \
     prime_ast_hash as level_b_prime
 import camkes.internal.log as log
 from camkes.internal.version import sources, version
+from camkes.internal.exception import CAmkESError
 from camkes.runner.NameMangling import Perspective, RUNNER
 from camkes.runner.Renderer import Renderer
 from camkes.runner.Filters import CAPDL_FILTERS
@@ -48,6 +49,8 @@ from capdl import seL4_CapTableObject, ObjectAllocator, CSpaceAllocator, \
     ELF, lookup_architecture
 
 from camkes.parser import parse_file, ParseError
+
+CAPDL_STATE_PICKLE = 'capdl_state.p'
 
 def safe_decode(s):
     '''
@@ -239,6 +242,12 @@ def parse_file_cached(filename, options):
 
     return pickle_call(options, 'ast.p', parse_file, filename, options)
 
+class ShmemFactory:
+    '''Factory supplied to the shared memory allocator's defaultdict.
+       A callable class is used instead of a lambda to simplify serializing.'''
+    def __call__(self):
+        return collections.defaultdict(list)
+
 def main(argv, out, err):
 
     # We need a UTF-8 locale, so bail out if we don't have one. More
@@ -375,7 +384,7 @@ def main(argv, out, err):
     cspaces = {}
     pds = {}
     conf = assembly.configuration
-    shmem = collections.defaultdict(lambda: collections.defaultdict(list))
+    shmem = collections.defaultdict(ShmemFactory())
 
     templates = Templates(options.platform)
     [templates.add_root(t) for t in options.templates]
@@ -539,6 +548,21 @@ def main(argv, out, err):
         except TemplateError as inst:
             die(['While rendering %s: %s' % (options.item, line) for line in inst.args])
 
+    if options.item in ('capdl', 'label-mapping'):
+        # It's possible that data structures required to instantiate the capdl spec
+        # were saved during a previous invocation of this script in the current build.
+        cache_path = os.path.realpath(options.data_structure_cache_dir)
+        pickle_path = os.path.join(cache_path, CAPDL_STATE_PICKLE)
+
+        with open(pickle_path, 'rb') as pickle_file:
+            # Found a cached version of the necessary data structures
+            obj_space, shmem, cspaces, pds = pickle.load(pickle_file)
+            apply_capdl_filters()
+            instantiate_misc_template()
+
+            # If a template wasn't instantiated, something went wrong, and we can't recover
+            raise CAmkESError("No template instantiated on capdl generation fastpath")
+
     # We're now ready to instantiate the template the user requested, but there
     # are a few wrinkles in the process. Namely,
     #  1. Template instantiation needs to be done in a deterministic order. The
@@ -672,6 +696,15 @@ def main(argv, out, err):
                 except TemplateError as inst:
                     die(['While rendering %s: %s' % (i.name, line) for line in inst.args])
 
+    if options.data_structure_cache_dir is not None:
+        # At this point the capdl database is in the state required for applying capdl
+        # filters and generating the capdl spec. In case the capdl spec isn't the current
+        # target, we pickle the database here, so when the capdl spec is built, these
+        # data structures don't need to be regenerated.
+        cache_path = os.path.realpath(options.data_structure_cache_dir)
+        pickle_path = os.path.join(cache_path, CAPDL_STATE_PICKLE)
+        with open(pickle_path, 'wb') as pickle_file:
+            pickle.dump((obj_space, shmem, cspaces, pds), pickle_file)
 
     if options.item in ('capdl', 'label-mapping'):
         apply_capdl_filters()
