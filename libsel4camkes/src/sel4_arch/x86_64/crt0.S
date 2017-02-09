@@ -29,12 +29,31 @@
 
 _camkes_start:
 
+    /* Our assumptions at this point:
+     * - the stack pointer is 16 byte aligend
+     * - the compiler assumes functions are called with a 16 byte aligned
+     *   stack pointer
+     *
+     * Thus when calling functions from this code we must ensure the stack
+     * pointer is 16 byte aligned. In practice, this means there should be
+     * an even number of pushq/popq instructions (which push/pop 8 bytes
+     * each) between the start of this function and each function call it
+     * makes.
+     */
+
+    /* Decrement the stack pointer by 8 bytes, so that the following
+     * push leaves the stack pointer 16 byte aligned. */
+    pushq $0
+
     /* Save thread ID for later */
     pushq %rdi
     /* Setup per thread tls (argument is already in rdi) */
     call _camkes_tls_init
     /* Restore thread ID */
     popq %rax
+
+    /* Maintain the 16 byte alignment of the stack pointer. */
+    popq %r8
 
     /* Null terminate auxiliary vector */
     pushq $0
