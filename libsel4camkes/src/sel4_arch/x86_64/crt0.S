@@ -47,7 +47,13 @@ _camkes_start:
 
     /* Save thread ID for later */
     pushq %rdi
-    /* Setup per thread tls (argument is already in rdi) */
+
+    /* Setup per thread tls (argument is already in rdi)
+     *
+     * For threads other than the component's control thread (ie.
+     * interface threads and fault handler threads), this does
+     * not return, but instead calls post_main directly.
+     */
     call _camkes_tls_init
     /* Restore thread ID */
     popq %rax
