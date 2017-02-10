@@ -29,38 +29,40 @@ SECTIONS {
     . = /*? start ?*/;
 
     /* Code. */
-    PROVIDE_HIDDEN (__text_start = .);
     .text : ALIGN(4096) {
+        PROVIDE_HIDDEN (__text_start = .);
         *(.text*)
+        PROVIDE_HIDDEN (__text_end = .);
     }
-    PROVIDE_HIDDEN (__text_end = .);
 
     /* Read Only Data. */
-    PROVIDE_HIDDEN (__rodata_start = .);
     .rodata : ALIGN(4096) {
+        PROVIDE_HIDDEN (__rodata_start = .);
         *(.rodata*)
+        PROVIDE_HIDDEN (__rodata_end = .);
     }
-    PROVIDE_HIDDEN (__rodata_end = .);
 
     /*- if options.architecture in ('aarch32', 'arm_hyp') -*/
-    PROVIDE_HIDDEN (__exidx_start = .);
-    .ARM.exidx   : { *(.ARM.exidx* .gnu.linkonce.armexidx.*) }
-    PROVIDE_HIDDEN (__exidx_end = .);
+    .ARM.exidx   : {
+        PROVIDE_HIDDEN (__exidx_start = .);
+        *(.ARM.exidx* .gnu.linkonce.armexidx.*)
+        PROVIDE_HIDDEN (__exidx_end = .);
+    }
     /*- endif -*/
 
     /* Data / BSS */
-    PROVIDE_HIDDEN (__data_start = .);
     .data : ALIGN(4096) {
+        PROVIDE_HIDDEN (__data_start = .);
         *(.data)
+        PROVIDE_HIDDEN (__data_end = .);
     }
-    PROVIDE_HIDDEN (__data_end = .);
 
-    PROVIDE_HIDDEN (__bss_start = .);
     .bss : {
+        PROVIDE_HIDDEN (__bss_start = .);
         *(.bss)
         *(COMMON)
+        PROVIDE_HIDDEN (__bss_end = .);
     }
-    PROVIDE_HIDDEN (__bss_end = .);
 
     .init_array : {
         PROVIDE_HIDDEN (__init_array_start = .);
