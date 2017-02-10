@@ -17,7 +17,7 @@
 #include <utils/util.h>
 
 int clk_get_time(void) __attribute__((weak));
-long sys_clock_gettime(va_list ap)
+long camkes_sys_clock_gettime(va_list ap)
 {
     clockid_t clk = va_arg(ap, clockid_t);
     struct timespec *ts = va_arg(ap, struct timespec*);

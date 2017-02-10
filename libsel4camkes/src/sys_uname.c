@@ -15,7 +15,6 @@
 #include <stddef.h>
 #include <string.h>
 #include <sys/utsname.h>
-#include "syscalls.h"
 #include <utils/util.h>
 
 /* Dummy pointer for use in sizeof calculations below. */
@@ -31,7 +30,7 @@ static char domainname[sizeof dummy->domainname];
 static char domainname[sizeof dummy->__domainname];
 #endif
 
-long sys_uname(va_list ap) {
+long camkes_sys_uname(va_list ap) {
 
     struct utsname *buf = va_arg(ap, struct utsname*);
 
@@ -122,7 +121,7 @@ long sys_uname(va_list ap) {
     return 0;
 }
 
-long sys_sethostname(va_list ap) {
+long camkes_sys_sethostname(va_list ap) {
 
     const char *name = va_arg(ap, const char*);
     size_t len = va_arg(ap, size_t);
@@ -145,7 +144,7 @@ long sys_sethostname(va_list ap) {
     return 0;
 }
 
-long sys_setdomainname(va_list ap) {
+long camkes_sys_setdomainname(va_list ap) {
 
     const char *name = va_arg(ap, const char*);
     size_t len = va_arg(ap, size_t);

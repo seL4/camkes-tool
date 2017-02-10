@@ -20,6 +20,7 @@ menu "CAmkES Options"
 
     config CAMKES_DEFAULT_HEAP_SIZE
     int "Component heap size"
+    depends on LIB_SEL4_MUSLC_SYS_MORECORE_BYTES = 0
     default 1048576
     range 0 1073741824 # <-- 2^30
     help

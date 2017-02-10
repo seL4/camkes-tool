@@ -16,7 +16,7 @@
 #include <errno.h>
 #include <autoconf.h>
 
-long sys_sched_yield(va_list ap UNUSED)
+long camkes_sys_sched_yield(va_list ap UNUSED)
 {
 #ifdef CONFIG_KERNEL_RT
     return -ENOSYS;

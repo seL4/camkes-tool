@@ -18,25 +18,7 @@
 #include <sel4utils/arch/util.h>
 #include <utils/util.h>
 
-long sys_set_thread_area(va_list ap UNUSED) {
-#if defined(CONFIG_ARCH_IA32) && defined(CONFIG_KERNEL_STABLE)
-    int error;
-    uintptr_t p = (uintptr_t)va_arg(ap, uintptr_t);
-    error = sel4utils_ia32_tcb_set_tls_base(camkes_get_tls()->tcb_cap, p);
-    if (error == seL4_NoError) {
-        return 0;
-    }
-#endif
-
-    /* As part of the initialisation of the C library we need to set the
-     * thread area (also known as the TLS base) for thread local storage.
-     * As we do not properly support TLS we just ignore this call. Will
-     * be fine provided we do not create multiple threads (through libc)
-     * or use TLS */
-    return 0;
-}
-
-long sys_set_tid_address(va_list ap UNUSED) {
+long camkes_sys_set_tid_address(va_list ap UNUSED) {
     /* We ignore the input argument (an address to replace the current value of `clear_child_tid`,
      * but `set_tid_address` is documented as always succeeding, so we pretend we saved it.
      */

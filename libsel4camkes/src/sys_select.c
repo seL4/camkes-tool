@@ -15,6 +15,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <sys/select.h>
+#include <muslcsys/io.h>
 
 #include "sys_io.h"
 
@@ -80,7 +81,7 @@ static int find_max_sockfd(int nfds)
 }
 
 int sock_select(int nfds) __attribute__((weak));
-long sys__newselect(va_list ap)
+long camkes_sys__newselect(va_list ap)
 {
 	int nfds = va_arg(ap, int);
 	fd_set *readfds = va_arg(ap, fd_set*);
