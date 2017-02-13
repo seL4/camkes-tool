@@ -57,13 +57,6 @@ SECTIONS {
         PROVIDE_HIDDEN (__data_end = .);
     }
 
-    .bss : {
-        PROVIDE_HIDDEN (__bss_start = .);
-        *(.bss)
-        *(COMMON)
-        PROVIDE_HIDDEN (__bss_end = .);
-    }
-
     .init_array : {
         PROVIDE_HIDDEN (__init_array_start = .);
         KEEP (*(SORT_BY_INIT_PRIORITY(.init_array.*) SORT_BY_INIT_PRIORITY(.ctors.*)))
@@ -76,6 +69,13 @@ SECTIONS {
         KEEP (*(SORT_BY_INIT_PRIORITY(.fini_array.*) SORT_BY_INIT_PRIORITY(.dtors.*)))
         KEEP (*(.fini_array EXCLUDE_FILE (*crtbegin.o *crtbegin?.o *crtend.o *crtend?.o ) .dtors))
         PROVIDE_HIDDEN (__fini_array_end = .);
+    }
+
+    .bss : {
+        PROVIDE_HIDDEN (__bss_start = .);
+        *(.bss)
+        *(COMMON)
+        PROVIDE_HIDDEN (__bss_end = .);
     }
 
     guarded (NOLOAD) : ALIGN(4096) {
