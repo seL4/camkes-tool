@@ -3571,7 +3571,7 @@ expected to call these functions.
   it is about to use (or discard) that capability. Note that this returns a
   potential error that was encountered when some intermediate code tried to
   protect the capability and it failed. The return value is essentially a
-  result from `camkes_cnode_save_caller`. This should _only_ be called when you
+  result from `seL4_CNode_SaveCaller`. This should _only_ be called when you
   know the reply cap you need is no longer in your TCB. That is, you should
   check the `reply_cap_in_tcb` member of the CAmkES TLS structure to determine
   if calling this function is necessary.

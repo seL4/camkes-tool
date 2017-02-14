@@ -59,6 +59,7 @@ static inline camkes_tls_t * UNUSED camkes_get_tls(void) {
     return (camkes_tls_t*)tls;
 }
 
+#ifndef CONFIG_KERNEL_RT
 /** Lazy reply cap save and restore functionality. **/
 
 /**
@@ -102,5 +103,6 @@ void camkes_protect_reply_cap(void);
  * to be invoked.
  */
 seL4_Error camkes_unprotect_reply_cap(void);
+#endif
 
 #endif

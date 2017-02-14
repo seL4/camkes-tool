@@ -33,7 +33,7 @@ from capdl.Allocator import seL4_TCBObject, seL4_EndpointObject, \
     seL4_UntypedObject, seL4_IA32_IOPort, seL4_IA32_IOSpace, \
     seL4_ARM_IOSpace, \
     seL4_ARM_SectionObject, seL4_ARM_SuperSectionObject, \
-    seL4_SchedContextObject
+    seL4_SchedContextObject, seL4_RTReplyObject
 
 # Depending on what kernel branch we are on, we may or may not have ASIDs.
 # There are separate python-capdl branches for this, but this import allows us
@@ -69,6 +69,7 @@ def new_context(entity, assembly, obj_space, cap_space, shmem, templates, **kwar
         'seL4_IA32_IOSpace':seL4_IA32_IOSpace,
         'seL4_ARM_IOSpace':seL4_ARM_IOSpace,
         'seL4_SchedContextObject':seL4_SchedContextObject,
+        'seL4_RTReplyObject':seL4_RTReplyObject,
         'seL4_ASID_Pool':seL4_ASID_Pool,
 
         # Cap allocator
@@ -196,6 +197,25 @@ def new_context(entity, assembly, obj_space, cap_space, shmem, templates, **kwar
         # Macros for common operations.
         'macros':macros,
 
+        # This function abstracts away the differences between the RT kernel's
+        # seL4_Recv and the master kernel's seL4_Recv. Namely, the RT kernel's
+        # seL4_Recv takes an extra reply object cap.
+        #
+        # seL4_Recv is distinct from seL4_Wait, in that a seL4_Recv() call
+        # expects to potentially get a reply cap from the sender.
+        'generate_seL4_Recv': generate_seL4_Recv,
+
+        # This function is similar to generate_seL4_Recv, in that it also
+        # abstracts away the differences between the RT and master kernels.
+        # This function specifically abstracts away the differences between
+        # seL4_SignalRecv (on master) and seL4_NBSendRecv (on RT).
+        'generate_seL4_SignalRecv': generate_seL4_SignalRecv,
+
+        # This function is similar to generate_seL4_Recv as well, but it
+        # abstracts away the differences between seL4_ReplyRecv between the
+        # RT and master branches.
+        'generate_seL4_ReplyRecv': generate_seL4_ReplyRecv,
+
         # Give template authors access to AST types just in case. Templates
         # should never be constructing objects of these types, but they may
         # need to do `isinstance` testing.
@@ -224,6 +244,27 @@ def new_context(entity, assembly, obj_space, cap_space, shmem, templates, **kwar
         # Look up a template
         'lookup_template':lambda path, entity: templates.lookup(path, entity),
     }.items()) + list(kwargs.items()))
+
+# For all three of these functions below, for the 'badge_var_name' variable,
+# be sure that you pass in an ampersand character prefixed to the argument if
+# your badge variable isn't a pointer.
+def generate_seL4_Recv(options, ep_cap, badge_var_name, reply_cap):
+    if options.realtime:
+        return 'seL4_Recv(%s, %s, %s)' % (ep_cap, badge_var_name, reply_cap)
+    else:
+        return 'seL4_Recv(%s, %s)' % (ep_cap, badge_var_name)
+
+def generate_seL4_SignalRecv(options, dest_ntfn_cap, dest_msginfo_var_name, src_ep_cap, badge_var_name, reply_cap):
+    if options.realtime:
+        return 'seL4_NBSendRecv(%s, %s, %s, %s, %s)' % (dest_ntfn_cap, dest_msginfo_var_name, src_ep_cap, badge_var_name, reply_cap)
+    else:
+        return 'seL4_SignalRecv(%s, %s, %s)' % (dest_ntfn_cap, ep_cap, badge_var_name)
+
+def generate_seL4_ReplyRecv(options, src_ep_cap, dest_msginfo_var_name, badge_var_name, reply_cap):
+    if options.realtime:
+        return 'seL4_ReplyRecv(%s, %s, %s, %s)' % (src_ep_cap, dest_msginfo_var_name, badge_var_name, reply_cap)
+    else:
+        return 'seL4_ReplyRecv(%s, %s, %s)' % (src_ep_cap, dest_msginfo_var_name, badge_var_name)
 
 def _assert(condition, msg=None):
     '''Hack to reify assert as a callable'''

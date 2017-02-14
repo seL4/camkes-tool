@@ -250,7 +250,9 @@ static int semaphore_/*? s.name ?*/_init(void) {
 }
 
 int /*? s.name ?*/_wait(void) {
+#ifndef CONFIG_KERNEL_RT
     camkes_protect_reply_cap();
+#endif
     return sync_sem_wait(&/*? semaphore ?*/);
 }
 
@@ -585,7 +587,8 @@ void USED _camkes_tls_init(int thread_id) {
 
             /* Wait for a fault from one of the component's threads. */
             /*- set fault_ep_cap = alloc_cap('fault_ep__fault_handler', fault_ep, read=True, write=True, grant=True) -*/
-            seL4_MessageInfo_t info = seL4_Recv(/*? fault_ep_cap ?*/, &badge);
+            /*- set fault_reply_cap = alloc('fault_reply__fault_handler', seL4_RTReplyObject) -*/
+            seL4_MessageInfo_t info = /*? generate_seL4_Recv(options, fault_ep_cap, '&badge', fault_reply_cap) ?*/;
 
             /* Various symbols that are provided by the linker script. */
             extern char __executable_start[1];
