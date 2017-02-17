@@ -26,7 +26,7 @@ class ASTModel:
     A static method that returns an LiftedAST object given a path to the camkes file
     '''
     @staticmethod
-    def get_ast(path_to_camkes_file):
+    def get_ast(path_to_camkes_file, import_paths=None):
         """
         Talks to the parser and gets an AST representation of the camkes ADL code
         :param path_to_camkes_file: Path to .camkes file
@@ -40,8 +40,15 @@ class ASTModel:
                                                            'when encountering an expression "import <foo>;".',
                                action='append', default=[])
 
-        parse_args = args.parse_args(["--import-path",
-                                os.path.join(os.path.dirname(os.path.abspath(__file__)),'../../../include/builtin')])
+        import_arguments = ["--import-path",
+                            os.path.join(os.path.dirname(os.path.abspath(__file__)),'../../../include/builtin')]
+
+        if import_paths is not None:
+            for a in import_paths:
+                import_arguments.extend(["--import-path",
+                                         a])
+
+        parse_args = args.parse_args(import_arguments)
 
         camkes_parser = Parser(parse_args)
         ast, _read = camkes_parser.parse_file(path_to_camkes_file)

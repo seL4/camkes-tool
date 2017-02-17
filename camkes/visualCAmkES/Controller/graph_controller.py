@@ -30,6 +30,9 @@ class GraphController(QtWidgets.QMainWindow):
 
     # --- PROPERTIES ---
 
+    # Hidden import path array
+    __import_paths = []
+
     # Default root_widget is a GraphWidget
     @property
     def root_widget(self):
@@ -56,7 +59,7 @@ class GraphController(QtWidgets.QMainWindow):
             self._open_action.setToolTip("Open a new CAmkES ADL file (Top Level only)")
             self._open_action.triggered.connect(self.open_new_file)
         return self._open_action
-
+    
     @property
     def quit_action(self):
         """
@@ -70,6 +73,19 @@ class GraphController(QtWidgets.QMainWindow):
             self._quit_action.setToolTip("Quit Application")
             self._quit_action.triggered.connect(self.quit)
         return self._quit_action
+
+    @property
+    def import_path_action(self):
+        """
+        :return: QAction for opening files
+        """
+        if self._import_path_action is None:
+            self._import_path_action = QtWidgets.QAction("Add Import Paths", self)
+            self._import_path_action.setShortcut(QtGui.QKeySequence.Italic)  # Gives us Ctrl+I (or Cmd+I)
+            self._import_path_action.setStatusTip("Open a new CAmkES ADL file (Top Level only)")
+            self._import_path_action.setToolTip("Open a new CAmkES ADL file (Top Level only)")
+            self._import_path_action.triggered.connect(self.add_import_path)
+        return self._import_path_action
 
     @property
     def property_dock_widget(self):
@@ -98,6 +114,7 @@ class GraphController(QtWidgets.QMainWindow):
         self._root_widget = None
         self._open_action = None
         self._quit_action = None
+        self._import_path_action = None
         self._property_dock = None
 
         self.setWindowTitle("CAmkES Visualisation Tool")
@@ -108,8 +125,11 @@ class GraphController(QtWidgets.QMainWindow):
         fileMenu.addAction(self.root_widget.export_action)
 
         fileMenu.addSeparator()
-
+ 
         fileMenu.addAction(self.quit_action)
+
+        editMenu = self.menuBar().addMenu("&Edit")
+        editMenu.addAction(self.import_path_action)
 
         viewMenu = self.menuBar().addMenu("&View")
         viewMenu.addAction(self.root_widget.show_components_action)
@@ -130,7 +150,7 @@ class GraphController(QtWidgets.QMainWindow):
 
     # --- FUNCTION CALLS ---
 
-    def open_ast(self, path_to_file):
+    def open_ast(self, path_to_file, import_paths=None):
         """
         Opens the given camkes file. Deals with the drawing. Shows an error if a CAmkES Error occurs
         :param path_to_file: The path to the camkes file. A string such as "/home/bob/camkes/app/kitty/kitty.camkes
@@ -143,13 +163,13 @@ class GraphController(QtWidgets.QMainWindow):
         if len(path_to_file) > 1:
             try:
                 # Set the AST of GraphWidget
-                self.root_widget.ast = ASTModel.get_ast(path_to_file)
+                self.root_widget.ast = ASTModel.get_ast(path_to_file, import_paths)
             except CAmkESError as error:
                 # If error occurred
 
                 # For terminal users:
                 print "Error occurred when opening the file... please refer to the following error"
-                print str(error)
+                print error
 
                 # Show Error as a message popup
                 messageBox = QtWidgets.QMessageBox()
@@ -188,7 +208,7 @@ class GraphController(QtWidgets.QMainWindow):
 
         new_file = QtWidgets.QFileDialog.getOpenFileName(caption="Open CAmkES ADL file",
                                                          filter="CAmkES ADL (*.camkes)")
-        self.open_ast(new_file[0])
+        self.open_ast(new_file[0], self.__import_paths)
 
     def quit(self):
         """
@@ -200,3 +220,19 @@ class GraphController(QtWidgets.QMainWindow):
             self.root_widget.save_layout_to_file()
 
         QtWidgets.QApplication.quit()
+
+    def add_import_path(self):
+        """
+        Prompts the user to insert one or many import paths, to be placed as an argument to the parser
+        when opening a top level camkes file
+        """
+
+        user_input = QtWidgets.QInputDialog.getText(None, "Add Import Paths.",
+                                                    "Add Import Paths. If you have many, separate with spaces.")
+
+        user_import_paths = user_input[0].split()
+        if user_import_paths.count != 0:
+            self.__import_paths.extend(user_import_paths)
+
+        print "Import Paths are: " + str(self.__import_paths)
+
