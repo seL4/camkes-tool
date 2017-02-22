@@ -251,9 +251,6 @@ def blank_database():
 
     conn = sqlite3.connect(tmp)
     with conn:
-        # Switch to WAL mode, which is more performant in the face of
-        # write contention.
-        conn.execute('pragma journal_mode=WAL;')
         conn.execute(CREATE_OUTPUT)
         conn.execute(CREATE_INPUT)
     conn.close()
