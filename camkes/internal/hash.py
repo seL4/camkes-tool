@@ -70,7 +70,7 @@ def hash_iterable(i):
 def hash_mapping(m):
     h = INITIAL_HASH_VALUE
 
-    keys = m.keys()
+    keys = list(m.keys())
     keys.sort()
 
     for k in keys:
