@@ -26,12 +26,30 @@
 
 _camkes_start:
 
+/* The capdl loader starts us with a 16 byte aligned stack.
+ * Before calling _camkes_tls_init (which doesn't go through _start),
+ * we must ensure the stack is again 16 byte aligned.
+ */
+
 #ifndef CONFIG_CAPDL_LOADER_CC_REGISTERS
     /* If we've been passed the arguments on the stack we need to shuffle them
      * into registers for now */
     popl    %ecx
 
+    /* This sub, combined with the popl above, causes the stack pointer
+     * to be offset by 8 from a 16 byte aligned value.
+     */
+    sub $12, %esp
+#else
+    /* As the stack pointer was initially 16 byte aligned, this add causes
+     * it to be offset by 8 from a 16 byte aligned value.
+     */
+    sub $8, %esp
 #endif
+
+    /* Regardless of the calling convention, at this point the stack
+     * pointer is offset by 8 bytes from a 16 byte aligned value.
+     */
 
     movw    $IPCBUF_GDT_SELECTOR, %ax
     movw    %ax, %fs
@@ -42,7 +60,19 @@ _camkes_start:
 
     /* Setup per thread tls */
     pushl %ecx
+
+    /* The two push instructions decreased the stack pointer by 8 in
+     * total. As the stack pointer was offset by 8 bytes from a 16
+     * byte aligned value prior to those instructions, at this point
+     * it is 16 byte aligned, so we can safely call the function.
+     */
     call _camkes_tls_init
+
+    /* If we get back here we no longer care about stack alignment.
+     * This is because the next function we call is _start, and on
+     * ia32, _start checks and corrects the stack pointer alignment.
+     */
+
     addl $4, %esp
 
     /* Restore */
