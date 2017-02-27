@@ -554,14 +554,15 @@ def main(argv, out, err):
         cache_path = os.path.realpath(options.data_structure_cache_dir)
         pickle_path = os.path.join(cache_path, CAPDL_STATE_PICKLE)
 
-        with open(pickle_path, 'rb') as pickle_file:
-            # Found a cached version of the necessary data structures
-            obj_space, shmem, cspaces, pds = pickle.load(pickle_file)
-            apply_capdl_filters()
-            instantiate_misc_template()
+        if os.path.isfile(pickle_path):
+            with open(pickle_path, 'rb') as pickle_file:
+                # Found a cached version of the necessary data structures
+                obj_space, shmem, cspaces, pds = pickle.load(pickle_file)
+                apply_capdl_filters()
+                instantiate_misc_template()
 
-            # If a template wasn't instantiated, something went wrong, and we can't recover
-            raise CAmkESError("No template instantiated on capdl generation fastpath")
+                # If a template wasn't instantiated, something went wrong, and we can't recover
+                raise CAmkESError("No template instantiated on capdl generation fastpath")
 
     # We're now ready to instantiate the template the user requested, but there
     # are a few wrinkles in the process. Namely,
