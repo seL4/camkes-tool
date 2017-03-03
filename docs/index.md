@@ -431,7 +431,7 @@ assembly {
   composition {
     component Hello h;
     component Client c;
-    connection seL4RPC conn(from c.iface, to h.inf);
+    connection seL4RPCCall conn(from c.iface, to h.inf);
   }
 }
 ```
@@ -441,7 +441,7 @@ Hello.camkes and Client.camkes are the files we created above, while
 std_connector.camkes is a built-in file that defines the standard CAmkES
 connector types. The body of the system description instantiates each component
 once, `h` of type `Hello` and `c` of type `Client`. The components' interfaces
-are connected via a connection, `conn`, of type `seL4RPC`.
+are connected via a connection, `conn`, of type `seL4RPCCall`.
 
 Now for the implementation of the components. Create a single source file for
 Hello as apps/helloworld/components/Hello/src/hello.c:
@@ -557,7 +557,7 @@ two components are actually in different address spaces. During compilation
 so-called glue code is generated to connect the two components via a seL4
 endpoint and transparently pass the function invocation and return over this
 channel. The communication itself is abstracted in the ADL description in
-apps/helloworld/helloworld.camkes. The connection type we used was seL4RPC, but
+apps/helloworld/helloworld.camkes. The connection type we used was seL4RPCCall, but
 it is possible to use another connection type here without modifying the code of
 the components themselves.
 
@@ -1220,7 +1220,7 @@ flow.
 > Locate and return a template. The **`path`** provided should be a full lookup
   path from the second-level of the lookup dictionary (i.e. not including the
   platform prefix). For example, a valid **`path`** might be
-  'seL4RPC.from.source'. If you provide an **`entity`** this is used as a guard
+  'seL4RPCCall.from.source'. If you provide an **`entity`** this is used as a guard
   on the lookup. The guards come into play when looking up connector templates.
   In this situation the connector type of the connection you pass in as
   **`entity`** will be used to determine if a given template matches your
@@ -2123,7 +2123,7 @@ assembly {
   composition {
     component Foo f;
     component Bar b;
-    connection seL4RPC c(from f.i, to b.o);
+    connection seL4RPCCall c(from f.i, to b.o);
     ...
   }
   configuration {
@@ -2193,7 +2193,7 @@ assembly {
 assembly {
   composition {
     component Bar b;
-    connection seL4RPC c(from f.a, to b.a);
+    connection seL4RPCCall c(from f.a, to b.a);
   }
   configuration {
     f.some_attribute = 0;
@@ -2208,7 +2208,7 @@ assembly {
   composition {
     component Foo f;
     component Bar b;
-    connection seL4RPC c(from f.a, to b.a);
+    connection seL4RPCCall c(from f.a, to b.a);
   }
   configuration {
     f.some_attribute = 0;
@@ -2253,7 +2253,7 @@ assembly {
   composition {
     component Foo f;
     component Bar b;
-    connection seL4RPC c(from b.a, to f.a);
+    connection seL4RPCCall c(from b.a, to f.a);
   }
 }
 ```
@@ -2292,7 +2292,7 @@ assembly {
   composition {
     component Bar b;
     component Foo_Impl f.fi;
-    connection seL4RPC c(from b.a, to f.fi.a_impl);
+    connection seL4RPCCall c(from b.a, to f.fi.a_impl);
   }
   configuration {
     f.fi.str = "Hello, World!";
@@ -2337,7 +2337,7 @@ assembly {
   composition {
     component Foo f;
     component Bar b;
-    connection seL4RPC c(from b.a, to f.a);
+    connection seL4RPCCall c(from b.a, to f.a);
   }
 }
 ```
@@ -2357,7 +2357,7 @@ assembly {
   composition {
     component Foo_Impl f.fi;
     component Bar_Impl b.bi;
-    connection seL4RPC c(from b.bi.a_usage, to f.fi.a_impl);
+    connection seL4RPCCall c(from b.bi.a_usage, to f.fi.a_impl);
   }
 }
 ```
@@ -2390,8 +2390,8 @@ assembly {
   composition {
     component Foo f;
     component Bar b;
-    connection seL4RPC c(from b.a, to f.a);
-    connection seL4RPC c(from b.b, to f.b);
+    connection seL4RPCCall c(from b.a, to f.a);
+    connection seL4RPCCall c(from b.b, to f.b);
   }
 }
 ```
@@ -2417,8 +2417,8 @@ assembly {
     component Foo f;
     component Bar b;
     component Foo_Impl f.fi;
-    connection seL4RPC c(from b.a, to f.fi.a_impl);
-    connection seL4RPC c(from b.b, to f.b);
+    connection seL4RPCCall c(from b.a, to f.fi.a_impl);
+    connection seL4RPCCall c(from b.b, to f.b);
   }
 }
 ```
@@ -2444,7 +2444,7 @@ component Foo_Impl {
   composition {
     component A_Piece1 a1;
     component A_Piece2 a2;
-    connection seL4RPC c(from a1.ap, to a2.ap);
+    connection seL4RPCCall c(from a1.ap, to a2.ap);
     export a2.a_impl -> a_impl;
   }
 }
@@ -2466,7 +2466,7 @@ assembly {
   composition {
     component Foo f;
     component Bar b;
-    connection seL4RPC c(from b.a, to f.a);
+    connection seL4RPCCall c(from b.a, to f.a);
   }
 }
 ```
@@ -2494,8 +2494,8 @@ assembly {
     component A_Piece1 f.fi.a1;
     component A_Piece2 f.fi.a2;
 
-    connection seL4RPC f.fi.c(from f.fi.a1.ap, to f.fi.a2.ap);
-    connection seL4RPC c(from b.a, to f.fi.a2.a_impl);
+    connection seL4RPCCall f.fi.c(from f.fi.a1.ap, to f.fi.a2.ap);
+    connection seL4RPCCall c(from b.a, to f.fi.a2.a_impl);
   }
 }
 ```
@@ -2687,7 +2687,7 @@ For example, to connect the above two instances:
 
 ```camkes
 ...
-connection seL4RPC conn(from my_group.foo.inf1,
+connection seL4RPCCall conn(from my_group.foo.inf1,
   to my_group.bar.inf2);
 ...
 ```
@@ -2912,7 +2912,7 @@ assembly {
     component Client client;
     component Math math;
 
-    connection seL4RPC c(from client.math, to math.m);
+    connection seL4RPCCall c(from client.math, to math.m);
   }
 }
 ```
