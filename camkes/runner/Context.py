@@ -49,7 +49,7 @@ from camkes.internal.version import version
 from camkes.templates import macros, TemplateError
 from .NameMangling import TEMPLATES, FILTERS, Perspective
 
-def new_context(entity, assembly, obj_space, cap_space, shmem, templates, **kwargs):
+def new_context(entity, assembly, obj_space, cap_space, shmem, kept_symbols, templates, **kwargs):
     '''Create a new default context for rendering.'''
     return dict(list(__builtins__.items()) + list({
         # Kernel object allocator
@@ -107,6 +107,14 @@ def new_context(entity, assembly, obj_space, cap_space, shmem, templates, **kwar
             (lambda gname, lname, perm='RWX', paddr=None, frames=None:
                 register_shared_variable(shmem, gname, cap_space.cnode.name,
                     lname, perm, paddr, frames)),
+
+        # Inform the linker that a C symbol should not be removed, even if
+        # it not used by any C code.
+        'keep_symbol':(lambda symbol: keep_symbol(kept_symbols, symbol, entity)),
+
+        # Returns an iterator over all the C symbols declared to be kept
+        # by a given component instance (specified by name).
+        'kept_symbols':(lambda name: iter(kept_symbols[name] if name in kept_symbols else ())),
 
         # A `self`-like reference to the current AST object. It would be nice
         # to actually call this `self` to lead to more pythonic templates, but
@@ -374,3 +382,12 @@ def register_shared_variable(shmem, global_name, local_context, local_name,
            '  "%(sym)s not page-sized. Template bug in its declaration? '       \
            'Suggested formulation: `char %(sym)s[ROUND_UP_UNSAFE(sizeof(...), ' \
            'PAGE_SIZE_4K)];`");' % {'sym':local_name}
+
+def keep_symbol(kept_symbols, symbol, entity):
+
+    name = entity.instance.name
+
+    if name not in kept_symbols:
+        kept_symbols[name] = set()
+
+    kept_symbols[name].add(symbol)

@@ -352,6 +352,7 @@ $(/*? i.name ?*/_CFILES:%.c=%.c_pp): ${/*? i.name ?*/_HFILES} ${/*? i.name ?*/_C
     -static -nostdlib \
     -u _camkes_start \
     -e _camkes_start \
+    /*- for symbol in kept_symbols(i.name) -*/ -u /*? symbol ?*/ /*- endfor -*/ \
     -Wl,--script=$(abspath ${BUILD_DIR})/ld//*? i.name ?*//generated/linker.lds
 
 /*? rule_gen('$(abspath ${BUILD_DIR})/ld/%s/generated/linker.lds' % i.name, ' '.join(imported), '%s/linker' % i.name) ?*/
