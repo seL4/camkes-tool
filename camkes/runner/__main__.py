@@ -549,7 +549,7 @@ def main(argv, out, err):
         except TemplateError as inst:
             die(['While rendering %s: %s' % (options.item, line) for line in inst.args])
 
-    if options.item in ('capdl', 'label-mapping'):
+    if options.item in ('capdl', 'label-mapping') and options.data_structure_cache_dir is not None:
         # It's possible that data structures required to instantiate the capdl spec
         # were saved during a previous invocation of this script in the current build.
         cache_path = os.path.realpath(options.data_structure_cache_dir)

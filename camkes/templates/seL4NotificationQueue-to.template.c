@@ -112,7 +112,9 @@ int /*? me.interface.name ?*/_poll(void) {
 }
 
 void /*? me.interface.name ?*/_wait(void) {
+#ifndef CONFIG_KERNEL_RT
     camkes_protect_reply_cap();
+#endif
     if (sync_sem_bare_wait(/*? handoff ?*/, &handoff_value) != 0) {
         ERR(/*? error_handler ?*/, ((camkes_error_t){
                 .type = CE_OVERFLOW,

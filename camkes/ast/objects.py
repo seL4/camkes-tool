@@ -1660,6 +1660,15 @@ class ConnectionEnd(ASTObject):
                 'frozen object')
         self._interface = value
 
+    # Shorthand that can replace the use of a very commonly repeated
+    # condition in the templates.
+    #
+    # This tests to see if the entity might block.
+    def might_block(self):
+        return len(self.instance.type.provides + self.instance.type.uses \
+            + self.instance.type.consumes \
+            + self.instance.type.mutexes + self.instance.type.semaphores) > 1
+
     def label(self):
         return self.parent.label()
 

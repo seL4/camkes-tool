@@ -250,7 +250,9 @@ int /*? me.interface.name ?*/__run(void) {
      *# access.
      #*/
     /*- if userspace_buffer_ep is not none -*/
-      camkes_protect_reply_cap();
+        /*- if not options.realtime -*/
+            camkes_protect_reply_cap();
+        /*- endif -*/
       sync_sem_bare_wait(/*? userspace_buffer_ep ?*/,
         &/*? userspace_buffer_sem_value ?*/);
     /*- endif -*/
@@ -276,7 +278,9 @@ int /*? me.interface.name ?*/__run(void) {
        * parameters to ensure we don't inadvertently overwrite any marshalled
        * data with this call.
        */
-      camkes_protect_reply_cap();
+        /*- if not options.realtime -*/
+            camkes_protect_reply_cap();
+        /*- endif -*/
     /*- endif -*/
 
     /* Marshal all the parameters */
