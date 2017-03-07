@@ -39,14 +39,16 @@ SECTIONS {
     /* Code. */
     .text : ALIGN(4096) {
         PROVIDE_HIDDEN (__text_start = .);
-        *(.text*)
+        *(.text)
+        *(.text.*)
         PROVIDE_HIDDEN (__text_end = .);
     }
 
     /* Read Only Data. */
     .rodata : ALIGN(4096) {
         PROVIDE_HIDDEN (__rodata_start = .);
-        *(.rodata*)
+        *(.rodata)
+        *(.rodata.*)
         PROVIDE_HIDDEN (__rodata_end = .);
     }
 
@@ -82,6 +84,7 @@ SECTIONS {
     .bss : {
         PROVIDE_HIDDEN (__bss_start = .);
         *(.bss)
+        *(.bss.*)
         *(COMMON)
         PROVIDE_HIDDEN (__bss_end = .);
     }
