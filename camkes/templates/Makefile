@@ -23,7 +23,7 @@
 /*? target ?*/: /*? dependencies ?*/
 	@echo " [CP] $(notdir $@)"
 	${Q}mkdir -p $(dir $@)
-	${Q}$(if $(or $(filter %.c,$<),$(filter %.h,$<),$(filter %.cpp,$<),$(filter %.hpp,$<)),echo "#line 1 \"$<\"" >$@,)
+	${Q}$(if $(or $(filter %.c,$<),$(filter %.h,$<),$(filter %.cpp,$<),$(filter %.hpp,$<),$(filter %.S,$<)),echo "#line 1 \"$<\"" >$@,)
 	${Q}cat "$<" >>"$@"
 /*- endmacro -*/
 
