@@ -448,7 +448,7 @@ int
                                     .instance = "/*? instance ?*/",
                                     .interface = "/*? interface ?*/",
                                     .description = "failed to save reply cap in /*? m.name ?*/",
-                                    .syscall = CamkesCNodeSaveCaller,
+                                    .syscall = CNodeSaveCaller,
                                     .error = /*? error ?*/,
                                 }), ({
                                     /*? info ?*/ = /*? generate_seL4_Recv(options,
