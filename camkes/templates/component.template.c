@@ -587,7 +587,9 @@ void USED _camkes_tls_init(int thread_id) {
 
             /* Wait for a fault from one of the component's threads. */
             /*- set fault_ep_cap = alloc_cap('fault_ep__fault_handler', fault_ep, read=True, write=True, grant=True) -*/
-            /*- set fault_reply_cap = alloc('fault_reply__fault_handler', seL4_RTReplyObject) -*/
+            /*- if options.realtime -*/
+                /*- set fault_reply_cap = alloc('fault_reply__fault_handler', seL4_RTReplyObject) -*/
+            /*- endif -*/
             seL4_MessageInfo_t info = /*? generate_seL4_Recv(options, fault_ep_cap, '&badge', fault_reply_cap) ?*/;
 
             /* Various symbols that are provided by the linker script. */
