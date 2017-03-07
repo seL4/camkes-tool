@@ -28,6 +28,14 @@ SECTIONS {
     PROVIDE (__executable_start = /*? start ?*/);
     . = /*? start ?*/;
 
+    .init : {
+        KEEP (*(SORT_NONE(.init)));
+    }
+
+    .fini : {
+        KEEP (*(SORT_NONE(.fini)));
+    }
+
     /* Code. */
     .text : ALIGN(4096) {
         PROVIDE_HIDDEN (__text_start = .);
