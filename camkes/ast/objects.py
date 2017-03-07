@@ -399,6 +399,10 @@ class Instance(ASTObject):
     def label(self):
         return self.name
 
+    @property
+    def instance(self):
+        return self
+
     def __str__(self):
         return self.name
 
