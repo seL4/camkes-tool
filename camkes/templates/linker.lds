@@ -32,16 +32,16 @@ SECTIONS {
         KEEP (*(SORT_NONE(.init)));
     }
 
-    .fini : {
-        KEEP (*(SORT_NONE(.fini)));
-    }
-
     /* Code. */
     .text : ALIGN(4096) {
         PROVIDE_HIDDEN (__text_start = .);
         *(.text)
         *(.text.*)
         PROVIDE_HIDDEN (__text_end = .);
+    }
+
+    .fini : {
+        KEEP (*(SORT_NONE(.fini)));
     }
 
     /* Read Only Data. */
