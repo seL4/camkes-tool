@@ -58,7 +58,7 @@ connector seL4NotificationQueue {
     to Events;
 }
 connector seL4NotificationNative {
-    from Event with 0 threads;
+    from Events with 0 threads;
     to Event;
 }
 
