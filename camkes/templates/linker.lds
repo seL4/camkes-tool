@@ -22,6 +22,7 @@ SECTIONS {
 
     /* Code. */
     .text : ALIGN(4096) {
+        KEEP(*(preserved_text));
         *(.text*)
     }
 

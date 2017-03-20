@@ -401,7 +401,7 @@ static void /*? init ?*/(void) {
 /*- endif -*/
 
 /*- set p = Perspective(instance=me.name) -*/
-void USED /*? p['tls_symbol'] ?*/(int thread_id) {
+void USED SECTION("preserved_text") /*? p['tls_symbol'] ?*/(int thread_id) {
     switch (thread_id) {
         /*- set tcb_control = alloc('tcb_0_control', seL4_TCBObject) -*/
         /*- if realtime -*/
@@ -431,7 +431,7 @@ void USED /*? p['tls_symbol'] ?*/(int thread_id) {
 }
 
 /*- set p = Perspective(instance=me.name) -*/
-int USED /*? p['entry_symbol'] ?*/(int thread_id) {
+int USED SECTION("preserved_text") /*? p['entry_symbol'] ?*/(int thread_id) {
 #if defined(SEL4_DEBUG_KERNEL) && defined(CONFIG_CAMKES_PROVIDE_TCB_CAPS)
     /*- set thread_name = c_symbol() -*/
     char /*? thread_name ?*/[seL4_MsgMaxLength * sizeof(seL4_Word)];
