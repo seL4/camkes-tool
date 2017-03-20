@@ -55,7 +55,7 @@ SECTIONS {
     }
 
     guarded (NOLOAD) : ALIGN(4096) {
-        *(guarded)
+        KEEP(*(guarded))
     }
 
     /*- for c in composition.connections -*/
