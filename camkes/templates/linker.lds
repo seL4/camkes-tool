@@ -16,9 +16,17 @@ SECTIONS {
     PROVIDE (__executable_start = 0x100000);
     . = 0x100000;
 
+    .init : {
+        KEEP (*(SORT_NONE(.init)));
+    }
+
     /* Code. */
     .text : ALIGN(4096) {
         *(.text*)
+    }
+
+    .fini : {
+        KEEP (*(SORT_NONE(.fini)));
     }
 
     /* Read Only Data. */
