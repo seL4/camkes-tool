@@ -24,9 +24,18 @@ from .base import ASTObject, MapLike
 from .ckeywords import C_KEYWORDS
 from .exception import ASTError
 from .location import SourceLocation
-from .types_compatible import types_compatible
 from camkes.internal.frozendict import frozendict
 import abc, collections, itertools, numbers, six
+
+def types_compatible(value, type):
+    assert isinstance(type, six.string_types)
+
+    return not (
+        (isinstance(value, six.integer_types) and type != 'int') or
+        (isinstance(value, float) and type not in ('double', 'float')) or
+        (isinstance(value, six.string_types) and type != 'string') or
+        (isinstance(value, list) and type != 'list') or
+        (isinstance(value, dict) and type != 'dict'))
 
 class Include(ASTObject):
     def __init__(self, source, relative=True, location=None):
