@@ -485,8 +485,7 @@ class TestStage1(CAmkESTest):
             self.fail('incorrect syntax accepted by stage 1 parser')
 
         except ParseError as e:
-
-            self.assertGreaterEqual(len(str(e).split('\n')), 2, 'only a '
+            self.assertGreaterEqual(len(e.args), 2, 'only a '
                 'single error triggered when multiple were expected')
 
             # If the line number narrowing algorithm has correctly taken the
