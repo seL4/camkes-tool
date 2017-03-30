@@ -230,12 +230,12 @@ int
         seL4_MessageInfo_t /*? info ?*/ = /*? generate_seL4_SignalRecv(options,
                                                                        init_ntfn,
                                                                        info, ep,
-                                                                       '&' + me.interface.name + '_badge',
+                                                                       '&%s_badge' % me.interface.name,
                                                                        reply_cap_slot) ?*/;
     /*- else -*/
        /* This interface has an active thread, just wait for an RPC */
         seL4_MessageInfo_t /*? info ?*/ = /*? generate_seL4_Recv(options, ep,
-                                                                 '&' + me.interface.name + '_badge',
+                                                                 '&%s_badge' % me.interface.name,
                                                                  reply_cap_slot) ?*/;
     /*- endif -*/
 
@@ -284,7 +284,7 @@ int
                     .current_index = sizeof(* /*? call_ptr ?*/),
                 }), ({
                     /*? info ?*/ = /*? generate_seL4_Recv(options, ep,
-                                                          '&' + me.interface.name + '_badge',
+                                                          '&%s_badge' % me.interface.name,
                                                           reply_cap_slot) ?*/;
                     continue;
                 }));
@@ -325,7 +325,7 @@ int
                     if (unlikely(/*? err ?*/ != 0)) {
                         /* Error in unmarshalling; return to event loop. */
                         /*? info ?*/ = /*? generate_seL4_Recv(options, ep,
-                                                              '&' + me.interface.name + '_badge',
+                                                              '&%s_badge' % me.interface.name,
                                                               reply_cap_slot) ?*/;
                         continue;
                     }
@@ -345,7 +345,7 @@ int
                                 .alloc_bytes = sizeof(seL4_CPtr),
                             }), ({
                                 /*? info ?*/ = /*? generate_seL4_Recv(options, ep,
-                                                                      '&' + me.interface.name + '_badge',
+                                                                      '&%s_badge' % me.interface.name,
                                                                       reply_cap_slot) ?*/;
                                 continue;
                             }));
@@ -418,7 +418,7 @@ int
                     if (unlikely(/*? length ?*/ == UINT_MAX)) {
                         /* Error occurred; return to event loop. */
                         /*? info ?*/ = /*? generate_seL4_Recv(options, ep,
-                                                              '&' + me.interface.name + '_badge',
+                                                              '&%s_badge' % me.interface.name,
                                                               reply_cap_slot) ?*/;
                         continue;
                     }
@@ -438,7 +438,7 @@ int
                             /*? tls ?*/->reply_cap_in_tcb = false;
                             /*? info ?*/ = /*? generate_seL4_ReplyRecv(options, ep,
                                                                        info,
-                                                                       '&' + me.interface.name + '_badge',
+                                                                       '&%s_badge' % me.interface.name,
                                                                        reply_cap_slot) ?*/;
                         } else {
                             /*- set error = c_symbol() -*/
@@ -453,20 +453,20 @@ int
                                 }), ({
                                     /*? info ?*/ = /*? generate_seL4_Recv(options,
                                                                           ep,
-                                                                          '&' + me.interface.name + '_badge',
+                                                                          '&%s_badge' % me.interface.name,
                                                                           reply_cap_slot) ?*/;
                                     continue;
                                 }));
 
                             seL4_Send(/*? reply_cap_slot ?*/, /*? info ?*/);
                             /*? info ?*/ = /*? generate_seL4_Recv(options, ep,
-                                                                  '&' + me.interface.name + '_badge',
+                                                                  '&%s_badge' % me.interface.name,
                                                                   reply_cap_slot) ?*/;
                         }
                     /*- elif options.realtime -*/
                         /*? info ?*/ = /*? generate_seL4_ReplyRecv(options, ep,
                                                                    info,
-                                                                   '&' + me.interface.name + '_badge',
+                                                                   '&%s_badge' % me.interface.name,
                                                                    reply_cap_slot) ?*/;
                     /*- else -*/
 
@@ -510,7 +510,7 @@ int
                         /*- endif -*/
                         /*? info ?*/ = /*? generate_seL4_ReplyRecv(options, ep,
                                                                    info,
-                                                                   '&' + me.interface.name + '_badge',
+                                                                   '&%s_badge' % me.interface.name,
                                                                    reply_cap_slot) ?*/;
                     /*- endif -*/
 
@@ -528,7 +528,7 @@ int
                         .invalid_index = * /*? call_ptr ?*/,
                     }), ({
                         /*? info ?*/ = /*? generate_seL4_Recv(options, ep,
-                                                              '&' + me.interface.name + '_badge',
+                                                              '&%s_badge' % me.interface.name,
                                                               reply_cap_slot) ?*/;
                         continue;
                     }));
