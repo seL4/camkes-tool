@@ -65,6 +65,7 @@ ID: '[a-zA-Z_]\w*'
             BINARY_SEMAPHORE: 'binary_semaphore';
             SIGNED: 'signed';
             STRUCT: 'struct';
+            STRING: 'string';
             TEMPLATE: 'template';
             THREAD: 'thread';
             THREADS: 'threads';
@@ -154,7 +155,7 @@ method_decl: (VOID | type) id '\(' (VOID | (parameter (',' parameter)* ','?)?) '
 array_parameter: scalar_parameter '\[' '\]';
 scalar_parameter: direction? type id;
 direction: IN | INOUT | OUT | REFIN;
-type: signed_int | unsigned_int | struct_type | char | signed_char | unsigned_char | ID;
+type: signed_int | unsigned_int | struct_type | char | signed_char | unsigned_char | STRING | ID;
 signed_int: (SIGNED? (INT | INTEGER)) | SIGNED;
 unsigned_int: UNSIGNED (INT | INTEGER)?;
 char: CHAR;
