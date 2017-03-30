@@ -266,7 +266,7 @@ def generate_seL4_SignalRecv(options, dest_ntfn_cap, dest_msginfo_var_name, src_
     if options.realtime:
         return 'seL4_NBSendRecv(%s, %s, %s, %s, %s)' % (dest_ntfn_cap, dest_msginfo_var_name, src_ep_cap, badge_var_name, reply_cap)
     else:
-        return 'seL4_SignalRecv(%s, %s, %s)' % (dest_ntfn_cap, ep_cap, badge_var_name)
+        return 'seL4_SignalRecv(%s, %s, %s)' % (dest_ntfn_cap, src_ep_cap, badge_var_name)
 
 def generate_seL4_ReplyRecv(options, src_ep_cap, dest_msginfo_var_name, badge_var_name, reply_cap):
     if options.realtime:
