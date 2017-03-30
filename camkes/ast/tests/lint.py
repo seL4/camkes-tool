@@ -28,7 +28,10 @@ class TestLint(CAmkESTest):
     pass
 
 def lint(self, path):
-    stdout, stderr = epylint.py_run('%s --errors-only' % path, return_std=True)
+    disabled = [
+        'E1101', # prevents usages getters defined with @property being treated as methods
+    ]
+    stdout, stderr = epylint.py_run('%s --errors-only --disable=%s' % (path, ",".join(disabled)), return_std=True)
     err = []
     for line in [x.strip() for x in stdout] + [x.strip() for x in stderr]:
         if line == 'No config file found, using default configuration':
