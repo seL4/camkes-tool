@@ -38,6 +38,9 @@ def camkes_hash(value):
     # As some types of expected values are intersecting, types are checked in
     # a specific order.
 
+    if value is None:
+        # This can return anything, as long as it's consistent across invocations.
+        return hash("None")
     if isinstance(value, six.string_types):
         # Strings are iterable, but are hashed differently
         # from other iterables.
