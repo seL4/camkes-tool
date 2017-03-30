@@ -32,28 +32,6 @@ class TestHashingAssumptions(CAmkESTest):
     this test case validates our assumptions.
     '''
 
-    @unittest.skipIf(not python_available(), 'Python executable not available')
-    def test_none(self):
-        '''
-        Test the hash of `None` is stable.
-        '''
-        hash_none = hash(None)
-
-        # Test it across different executions.
-        for i in six.moves.range(10):
-            output = subprocess.check_output(['python', '-c',
-                'print hash(None)'], universal_newlines=True)
-            h = int(output)
-            self.assertEqual(hash_none, h,
-                'hash of None varies across Python executions')
-
-        # Now ensure it stays the same with optimisations enabled.
-        output = subprocess.check_output(['python', '-O', '-c',
-            'print hash(None)'], universal_newlines=True)
-        h = int(output)
-        self.assertEqual(hash_none, h,
-            'hash of None varies with optimisations enabled')
-
     def test_int(self):
         '''
         Test the hash of an `int` is just its value, which we expect.
