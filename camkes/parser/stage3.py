@@ -138,9 +138,12 @@ def strip_quotes(s):
     else:
         return s
 
-def _lift_array_parameter(location, scalar_parameter):
+def _lift_method_array_parameter(location, scalar_parameter):
     return Parameter(scalar_parameter.name, scalar_parameter.direction,
         scalar_parameter.type, True, location)
+
+def _lift_attribute_array_parameter(location, scalar_parameter):
+    return Attribute(scalar_parameter.type, scalar_parameter.name, True, default= None, location=location)
 
 def _lift_assembly_decl(location, *args):
     if len(args) == 2:
@@ -161,15 +164,12 @@ def _lift_assembly_defn(location, *args):
     return Assembly(composition=composition, configuration=configuration,
         location=location)
 
-def _lift_attribute(location, type, id, default=None):
+def _lift_attribute(location, attribute_param, default=None):
     if isinstance(default, six.string_types):
         assert default[0] == default[-1] == '"', 'unquoted string used as ' \
             'attribute default value (bug in stage 1 parser?)'
         default = default[1:-1] # Strip quotes
-    return Attribute(type, id, default, location)
-
-def _lift_attribute_decl(location, type, id):
-    return Attribute(type, id, location=location)
+    return Attribute(attribute_param.type, attribute_param.name, attribute_param.array, default, location)
 
 def _lift_attribute_reference(location, *ids):
     return AttributeReference('.'.join(ids), location)
@@ -565,7 +565,7 @@ def _lift_provides(location, ref, id2):
 def _lift_reference(location, *ids):
     return Reference(list(ids), None, location)
 
-def _lift_scalar_parameter(location, *args):
+def _lift_method_scalar_parameter(location, *args):
     if len(args) == 2:
         # Default the direction to 'in' if not specified.
         direction = 'in'
@@ -574,6 +574,17 @@ def _lift_scalar_parameter(location, *args):
         assert len(args) == 3
         direction, type, id = args
     return Parameter(id, direction, type, location=location)
+
+def _lift_attribute_scalar_parameter(location, *args):
+    assert len(args) == 2
+    type, name = args
+    assert(isinstance(type, six.string_types))
+    if isinstance(type, six.string_types):
+        # do not allow `struct blah` in attributes
+        if type.startswith("struct "):
+            raise ParseError("type: \"%s\" is not a valid type" % type, location)
+    return Attribute(type, name, array=False, default= None, location=location)
+
 
 def _lift_semaphore(location, id):
     return Semaphore(id, location)
@@ -625,12 +636,12 @@ def _collapse(location, content):
 # objects.
 LIFT = {
     'angle_string':_collapse,
-    'array_parameter':_lift_array_parameter,
     'assembly_decl':_lift_assembly_decl,
     'assembly_defn':_lift_assembly_defn,
     'attribute':_lift_attribute,
-    'attribute_decl':_lift_attribute_decl,
+    'attribute_array_parameter':_lift_attribute_array_parameter,
     'attribute_reference':_lift_attribute_reference,
+    'attribute_scalar_parameter': _lift_attribute_scalar_parameter,
     'boolean_literal':_lift_boolean_literal,
     'bitwise_not':_lift_bitwise_not,
     'char':_lift_char,
@@ -668,7 +679,9 @@ LIFT = {
     'list':_lift_list,
     'logical_not':_lift_logical_not,
     'maybe':_collapse,
+    'method_array_parameter':_lift_method_array_parameter,
     'method_decl':_lift_method_decl,
+    'method_scalar_parameter':_lift_method_scalar_parameter,
     'multi_string':_lift_multi_string,
     'mutex':_lift_mutex,
     'number':_lift_number,
@@ -688,7 +701,6 @@ LIFT = {
     'provides':_lift_provides,
     'quoted_string':_collapse,
     'reference':_lift_reference,
-    'scalar_parameter':_lift_scalar_parameter,
     'semaphore':_lift_semaphore,
     'binary_semaphore':_lift_binary_semaphore,
     'setting':_lift_setting,

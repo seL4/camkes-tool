@@ -65,6 +65,33 @@ def show_type(t):
     else:
         return t
 
+def show_attribute_value(t, value):
+    """ Prints out an attributes value.
+        An attriubte can be an array (although this is provided to the template as a tuple type)
+    """
+    return_string = ""
+    is_array = False
+    if isinstance(value, (tuple, list)):
+        is_array = True
+        values = value
+        return_string += "{\n"
+    else:
+        values = (value,)
+
+    # runs for every element in the array, if a non array attribute then this just runs once.
+    for i, value in enumerate(values):
+        if isinstance(value, six.string_types): # For string literals
+            return_string +=  "\"%s\"" % value
+        else: # For all other literal types
+            return_string += "%s" % str(value)
+
+        # Add comma if element is part of an array
+        if i < (len(values)-1):
+            return_string += ",\n"
+    if is_array:
+        return_string += "}"
+    return return_string
+
 def show_includes(xs, prefix=''):
     s = ''
     for header in xs:

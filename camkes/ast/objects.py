@@ -30,16 +30,22 @@ import abc, collections, itertools, numbers, six
 def types_compatible(value, attribute):
     type = attribute.type;
     assert isinstance(type, six.string_types)
-    if (isinstance(value, six.integer_types) and type != 'int'):
-        return (False, "For \"%s\": required type is \"%s\", value is \"int\"" % (str(value), type))
-    if (isinstance(value, float) and type not in ('double', 'float')):
-        return (False, "For \"%s\": required type is \"%s\", value is \"float\"" % (str(value), type))
-    if (isinstance(value, six.string_types) and type != 'string'):
-        return (False, "For \"%s\": required type is \"%s\", value is \"string\"" % (str(value), type))
-    if (isinstance(value, list) and type != 'list'):
-        return (False, "For \"%s\": required type is \"%s\", value is \"list\"" % (str(value), type))
-    if ((isinstance(value, dict) and type != 'dict')):
-        return (False, "For \"%s\": required type is \"%s\", value is \"dict\"" % (str(value), type))
+    if attribute.array is True:
+        assert isinstance(value, (tuple, list))
+        values = value
+    else:
+        values = (value,)
+    for value in values:
+        if (isinstance(value, six.integer_types) and type != 'int'):
+            return (False, "For \"%s\": required type is \"%s\", value is \"int\"" % (str(value), type))
+        if (isinstance(value, float) and type not in ('double', 'float')):
+            return (False, "For \"%s\": required type is \"%s\", value is \"float\"" % (str(value), type))
+        if (isinstance(value, six.string_types) and type != 'string'):
+            return (False, "For \"%s\": required type is \"%s\", value is \"string\"" % (str(value), type))
+        if (isinstance(value, list) and type != 'list'):
+            return (False, "For \"%s\": required type is \"%s\", value is \"list\"" % (str(value), type))
+        if ((isinstance(value, dict) and type != 'dict')):
+            return (False, "For \"%s\": required type is \"%s\", value is \"dict\"" % (str(value), type))
 
     return (True, "")
 
@@ -1515,13 +1521,15 @@ class Method(ASTObject):
         super(Method, self).freeze()
 
 class Attribute(ASTObject):
-    def __init__(self, type, name, default=None, location=None):
+    def __init__(self, type, name, array=False, default=None, location=None):
         assert isinstance(type, six.string_types)
         assert isinstance(name, six.string_types)
+        assert isinstance(array, bool)
         super(Attribute, self).__init__(location)
         self._name = name
         self._type = type
         self._default = default
+        self._array = array
 
     @property
     def name(self):
@@ -1544,6 +1552,17 @@ class Attribute(ASTObject):
             raise TypeError('you cannot set the \'type\' field of a frozen '
                 'object')
         self._type = value
+
+    @property
+    def array(self):
+        return self._array
+    @array.setter
+    def array(self, value):
+        assert isinstance(value, bool)
+        if self.frozen:
+            raise TypeError('you cannot set the \'array\' field of a frozen '
+                'object')
+        self._array = value
 
     @property
     def default(self):

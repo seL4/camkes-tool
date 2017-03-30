@@ -466,12 +466,8 @@ static void /*? init ?*/(void) {
 /*- for a in me.type.attributes -*/
     /*- set value = myconf.get(a.name) -*/
     /*- if value is not none -*/
-        const /*? macros.show_type(a.type) ?*/ /*? a.name ?*/ =
-        /*- if isinstance(value, six.string_types) -*/
-            "/*? value ?*/"
-        /*- else -*/
-            /*? value ?*/
-        /*- endif -*/
+        const /*? macros.show_type(a.type) ?*/ /*? a.name ?*//*- if a.array -*/ [/*?len(value)?*/] /*- endif -*/ =
+        /*? macros.show_attribute_value(a, value) ?*/
         ;
     /*- endif -*/
 /*- endfor -*/

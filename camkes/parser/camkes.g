@@ -90,7 +90,7 @@ composition_sing: COMPOSITION reference ';'
 configuration_sing: CONFIGURATION reference ';'
                   | configuration_decl;
 
-attribute_decl: type id ';';
+@attribute_decl: attribute_parameter ';';
 
 component_decl: COMPONENT id? component_defn;
 component_defn: '\{' (attribute | consumes | control | dataport | emits |
@@ -99,7 +99,7 @@ component_defn: '\{' (attribute | consumes | control | dataport | emits |
                     ((composition_sing configuration_sing?) | configuration_sing composition_sing)? '\}';
 component_ref: reference | component_defn;
 
-attribute: ATTRIBUTE type id ('=' item)? ';';
+attribute: ATTRIBUTE attribute_parameter ('=' item)? ';';
 consumes: maybe? CONSUMES id id ';';
 control: CONTROL ';';
 dataport: maybe? DATAPORT dataport_type id ';';
@@ -150,11 +150,14 @@ import: IMPORT (multi_string | angle_string) ';';
 
 include: INCLUDE (multi_string | angle_string) ';';
 
-method_decl: (VOID | type) id '\(' (VOID | (parameter (',' parameter)* ','?)?) '\)' ';';
-@parameter: array_parameter | scalar_parameter;
-array_parameter: scalar_parameter '\[' '\]';
-scalar_parameter: direction? type id;
+method_decl: (VOID | type) id '\(' (VOID | (method_parameter (',' method_parameter)* ','?)?) '\)' ';';
+@method_parameter: method_array_parameter | method_scalar_parameter;
+method_array_parameter: method_scalar_parameter '\[\]';
+method_scalar_parameter: direction? type id;
 direction: IN | INOUT | OUT | REFIN;
+@attribute_parameter: attribute_array_parameter | attribute_scalar_parameter;
+attribute_array_parameter: attribute_scalar_parameter '\[\]';
+attribute_scalar_parameter: type id;
 type: signed_int | unsigned_int | struct_type | char | signed_char | unsigned_char | STRING | ID;
 signed_int: (SIGNED? (INT | INTEGER)) | SIGNED;
 unsigned_int: UNSIGNED (INT | INTEGER)?;
