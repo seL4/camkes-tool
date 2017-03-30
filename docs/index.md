@@ -66,7 +66,9 @@ of these terms are made explicit below.
   component/connector must describe the name of the attribute and its type. The
   value of the attribute itself is unspecified. It is assigned when the entity
   is instantiated, and this assignment is referred to as a _setting_. Attributes
-  are generally used to specialise or differentiate a component at runtime.
+  are generally used to specialise or differentiate a component at runtime.  
+  The types of attributes can be constructed as a collection or _struct_ of
+  any of the basic CAmkES types: int, unsigned int, char, unsigned char, string.
 
 **Component**
 
@@ -208,6 +210,11 @@ of these terms are made explicit below.
   the type of the attribute, because this has already been described by the
   attribute as specified in the component/connector description.
 
+**Struct**
+
+> A collection of named attribute fields that can be used as an attribute type
+  for a component _attribute_.
+
 **Type**
 
 > A procedure method's return type or parameter type. This information does not
@@ -229,6 +236,11 @@ of these terms are made explicit below.
 A concrete example:
 
 ```camkes
+struct cat {
+    int paws;
+    string name;
+}
+
 procedure thing {
   int func(in int x);
 }
@@ -238,6 +250,7 @@ component foo {
   uses thing t1;
   emits sig s1;
   dataport buffer b1;
+  attribute cat kitty;
 }
 
 component bar {
@@ -254,6 +267,9 @@ assembly {
     connection RPC c1(from f.t1, to b.t2);
     connection Notification c2(from f.s1, to b.s2);
     connection SharedData c3(from f.b1, to b.b2);
+  }
+  configuration {
+      f.kitty = {"name": "meows", "paws": 4};
   }
 }
 ```
@@ -276,6 +292,9 @@ assembly {
 * `f` and `b` are **instance**s
 * `RPC`, `Notification` and `SharedData` are **connector**s
 * `c1`, `c2` and `c3` are **connection**s
+* `cat` is a **struct**
+* `kitty` is an **attribute**
+* `f.kitty` is a **setting**
 
 ## Usage
 
@@ -898,6 +917,61 @@ Pong: received hello
 Pong: sending world...
 Ping: received world.
 ```
+#### An example of structs and arrays for collections
+
+A struct can be defined with the `struct` keyword.  The attributes that make
+up the struct are listed in a `type` `name` format (similar to C).
+
+Arrays are specified by appending the attribute name with a `[]`.  The size of
+an array is set at code generation time when the setting for the attribute is
+specified.  
+
+This is an example of a valid camkes specification.  The corresponding C file
+is shown after.  To find a size of an attribute array, the sizeof macro can be
+used as shown in the example.
+
+```camkes
+struct client_config {
+    string name;
+    int age;
+    int height;
+}
+struct cat {
+    int b[];
+    int c;
+}
+
+component Client {
+    control;
+    attribute client_config config;
+    attribute cat array_in_struct;
+}
+
+assembly {
+    composition {
+        component Client client;
+    }
+
+    configuration {
+        client.config = {"name": "Zed","age": 39, "height": 34+4};
+        client.array_in_struct = {"b": [3,4,5,6], "c": 4};
+    }
+}
+
+```
+
+```c
+#include <camkes.h>
+#include <stdio.h>
+
+int run(void)
+{
+    printf("struct: %s: height plus age is %d\n", config.name, config.age + config.height);
+    printf("array_in_struct: array length: %d, first element %d\n", sizeof(array_in_struct.b) / sizeof(array_in_struct.b[0]), array_in_struct.b[0]);
+    return 0;
+}
+```
+
 
 #### Tutorial Summary
 
@@ -1133,7 +1207,7 @@ parser, the object returned is of type, `LiftedAST`, which is defined in this
 module. `LiftedAST` and its children all inherit from a base type, `ASTObject`,
 that provides common functionality like traversal and comparison.
 
-One of the AST objects is a class, `Reference`. Objects of this class are used 
+One of the AST objects is a class, `Reference`. Objects of this class are used
 in the AST to represent symbols that refer to entities that are defined
 elsewhere. During parsing, references are removed from the AST as they are
 resolved to the entities to which they refer. In particular, if you are using
@@ -1584,7 +1658,7 @@ make menuconfig
 export PATH=${PATH}:$(pwd)/tools/camkes/tools
 ```
 
-3. Disable Ccache. Ccache pre-processes files to deliver to the compiler 
+3. Disable Ccache. Ccache pre-processes files to deliver to the compiler
    wrapper with a collection of GNU pre-defines. In most cases this does not
    cause problems, but you will most likely trigger warnings from Clang if it
    sees sources that were intended for GCC.
