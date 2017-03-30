@@ -27,15 +27,21 @@ from .location import SourceLocation
 from camkes.internal.frozendict import frozendict
 import abc, collections, itertools, numbers, six
 
-def types_compatible(value, type):
+def types_compatible(value, attribute):
+    type = attribute.type;
     assert isinstance(type, six.string_types)
+    if (isinstance(value, six.integer_types) and type != 'int'):
+        return (False, "For \"%s\": required type is \"%s\", value is \"int\"" % (str(value), type))
+    if (isinstance(value, float) and type not in ('double', 'float')):
+        return (False, "For \"%s\": required type is \"%s\", value is \"float\"" % (str(value), type))
+    if (isinstance(value, six.string_types) and type != 'string'):
+        return (False, "For \"%s\": required type is \"%s\", value is \"string\"" % (str(value), type))
+    if (isinstance(value, list) and type != 'list'):
+        return (False, "For \"%s\": required type is \"%s\", value is \"list\"" % (str(value), type))
+    if ((isinstance(value, dict) and type != 'dict')):
+        return (False, "For \"%s\": required type is \"%s\", value is \"dict\"" % (str(value), type))
 
-    return not (
-        (isinstance(value, six.integer_types) and type != 'int') or
-        (isinstance(value, float) and type not in ('double', 'float')) or
-        (isinstance(value, six.string_types) and type != 'string') or
-        (isinstance(value, list) and type != 'list') or
-        (isinstance(value, dict) and type != 'dict'))
+    return (True, "")
 
 class Include(ASTObject):
     def __init__(self, source, relative=True, location=None):
@@ -149,9 +155,10 @@ class Assembly(ASTObject):
                     break
             else:
                 continue
-            if not types_compatible(s.value, a.type):
-                raise ASTError('mistyped assignment of attribute of type %s' %
-                    a.type, s)
+            (result, error_str) = types_compatible(s.value, a)
+            if not result:
+                raise ASTError('mistyped assignment of attribute of type %s: %s' %
+                    (str(a.type), error_str), s)
 
     # Shortcuts for accessing grandchildren.
     @property
