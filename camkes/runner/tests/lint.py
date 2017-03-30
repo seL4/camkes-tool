@@ -22,6 +22,9 @@ ME = os.path.abspath(__file__)
 # Make CAmkES importable
 sys.path.append(os.path.join(os.path.dirname(ME), '../../..'))
 
+# Make capdl importable
+sys.path.append(os.path.join(os.path.dirname(ME), '../../../../python-capdl'))
+
 from camkes.internal.tests.utils import CAmkESTest
 
 class TestLint(CAmkESTest):
