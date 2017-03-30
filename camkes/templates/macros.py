@@ -18,9 +18,10 @@ from __future__ import absolute_import, division, print_function, \
 from camkes.internal.seven import cmp, filter, map, zip
 
 from camkes.ast import Composition, Instance, Parameter
+from camkes.templates import sizeof_probe
 from capdl import ASIDPool, CNode, Endpoint, Frame, IODevice, IOPageTable, \
     Notification, page_sizes, PageDirectory, PageTable, TCB, Untyped
-import collections, math, os, platform, re, six, subprocess
+import collections, math, os, platform, re, six
 
 def header_guard(filename):
     return '#ifndef %(guard)s\n' \
@@ -144,47 +145,19 @@ def sizeof(arch, t):
     size = _sizes.get(t)
     if size is None:
         # We don't know the size of this type, so we'll ask the C compiler.
-
         toolprefix = os.environ.get('TOOLPREFIX', '')
-        compiler = '%sg++' % toolprefix
+        compiler = '%sgcc' % toolprefix
 
-        cxxflags = ['-x', 'c++', '-', '-o', os.devnull]
-
+        extra_flags = []
         # Account for the fact that we may be cross-compiling using our native
         # compiler.
         if arch == 'ia32' and platform.machine() == 'x86_64':
-            cxxflags.append('-m32')
+            extra_flags.append('-m32')
         elif arch == 'x86_64' and platform.machine() == 'i386':
-            cxxflags.append('-m64')
+            extra_flags.append('-m64')
 
-        # Construct a new environment with a locale that forces the compiler
-        # not to show us things like smart quotes in error messages.
-        env = dict(list(os.environ.items()) + [('LANG', 'en_US')])
-
-        # Run the compiler with a fragment of C++ to trick it into compile-time
-        # evaluating the size of the type.
-        try:
-            p = subprocess.Popen([compiler] + cxxflags, stdin=subprocess.PIPE,
-                stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env,
-                universal_newlines=True)
-            _, stderr = p.communicate('template<int>struct X;X<sizeof(%s)>x;' %
-                t)
-        except OSError:
-            # Compiler not found.
-            raise NotImplementedError
-        assert p.returncode != 0, '%s compiled an incomplete C++ fragment ' \
-            '(broken toolchain?)' % compiler
-
-        # Regex the compiler's error to get the size of the type.
-        match = re.match(r'<stdin>:\d+:\d+: error: aggregate '
-            r'\'X<(?P<size>\d+)> x\' has incomplete type and cannot be '
-            r'defined$', stderr.strip())
-        if match is None:
-            # Something went wrong and we didn't get the error message we were
-            # expecting.
-            raise NotImplementedError
-
-        size = int(match.group('size'))
+        # Determine the size by invoking the c compiler
+        size = sizeof_probe.probe_sizeof(t, compiler, extra_flags)
 
         # Cache the result for next time.
         _sizes[t] = size
