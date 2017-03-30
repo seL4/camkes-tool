@@ -29,24 +29,38 @@ import abc, collections, itertools, numbers, six
 
 def types_compatible(value, attribute):
     type = attribute.type;
-    assert isinstance(type, six.string_types)
+    assert isinstance(type, (six.string_types, Struct))
     if attribute.array is True:
         assert isinstance(value, (tuple, list))
         values = value
     else:
         values = (value,)
     for value in values:
-        if (isinstance(value, six.integer_types) and type != 'int'):
-            return (False, "For \"%s\": required type is \"%s\", value is \"int\"" % (str(value), type))
-        if (isinstance(value, float) and type not in ('double', 'float')):
-            return (False, "For \"%s\": required type is \"%s\", value is \"float\"" % (str(value), type))
-        if (isinstance(value, six.string_types) and type != 'string'):
-            return (False, "For \"%s\": required type is \"%s\", value is \"string\"" % (str(value), type))
-        if (isinstance(value, list) and type != 'list'):
-            return (False, "For \"%s\": required type is \"%s\", value is \"list\"" % (str(value), type))
-        if ((isinstance(value, dict) and type != 'dict')):
-            return (False, "For \"%s\": required type is \"%s\", value is \"dict\"" % (str(value), type))
+        if isinstance(type, six.string_types):
+            if (isinstance(value, six.integer_types) and type != 'int'):
+                return (False, "For \"%s\": required type is \"%s\", value is \"int\"" % (str(value), type))
+            if (isinstance(value, float) and type not in ('double', 'float')):
+                return (False, "For \"%s\": required type is \"%s\", value is \"float\"" % (str(value), type))
+            if (isinstance(value, six.string_types) and type != 'string'):
+                return (False, "For \"%s\": required type is \"%s\", value is \"string\"" % (str(value), type))
+            if (isinstance(value, list) and type != 'list'):
+                return (False, "For \"%s\": required type is \"%s\", value is \"list\"" % (str(value), type))
+            if ((isinstance(value, dict) and type != 'dict')):
+                return (False, "For \"%s\": required type is \"%s\", value is \"dict\"" % (str(value), type))
 
+        elif isinstance(type, Struct):
+            attr_names = {x.name for x in type.attributes}
+            missing_attrs = list(attr_names - set(value.keys()))
+            extra_attrs = list(set(value.keys())- attr_names)
+            if len(missing_attrs) != 0:
+                return (False, "Attributes: \"%s\" are missing from assignment." % missing_attrs)
+            if len(extra_attrs) != 0:
+                return (False, "Attributes: \"%s\" do not exist in \"%s\" definition." %(extra_attrs, type.name))
+
+            for x in type.attributes:
+                (compat, error_str) = types_compatible(value[x.name], x)
+                if not compat:
+                    return (False, error_str)
     return (True, "")
 
 class Include(ASTObject):
@@ -686,6 +700,53 @@ class Setting(ASTObject):
         elif isinstance(self.value, dict):
             self.value = frozendict(self.value)
         super(Setting, self).freeze()
+
+class Struct(ASTObject):
+    child_fields = ('attributes',)
+    anon_struct_count = 0
+    def __init__(self, name=None, attributes=None, location=None):
+        assert name is None or isinstance(name, six.string_types)
+        assert attributes is None or (isinstance(attributes, (list, tuple)) and
+            all(isinstance(x, Attribute) for x in attributes))
+        super(Struct, self).__init__(location)
+
+        if name is None:
+            # Generate a struct name as none was provided.
+            name = "camkes_anon_struct_%d" % Struct.anon_struct_count
+            Struct.anon_struct_count = Struct.anon_struct_count + 1
+        self._name = name
+        self._attributes = list(attributes or [])
+
+    def __str__(self):
+        return self.name
+
+    @property
+    def name(self):
+        return self._name
+    @name.setter
+    def name(self, value):
+        assert value is None or isinstance(value, six.string_types)
+        if self.frozen:
+            raise TypeError('you cannot change the name of a frozen struct')
+        self._name = value
+
+    @property
+    def attributes(self):
+        return self._attributes
+    @attributes.setter
+    def attributes(self, value):
+        assert isinstance(value, (list, tuple)) and \
+            all(isinstance(x, Attribute) for x in value)
+        if self.frozen:
+            raise TypeError('you cannot change the attributes of a frozen '
+                'struct')
+        self._attributes = value
+
+    def freeze(self):
+        if self.frozen:
+            return
+        self.attributes = tuple(self.attributes)
+        super(Struct, self).freeze()
 
 class Component(MapLike):
     child_fields = ('attributes', 'includes', 'provides', 'uses', 'emits',
@@ -1522,7 +1583,7 @@ class Method(ASTObject):
 
 class Attribute(ASTObject):
     def __init__(self, type, name, array=False, default=None, location=None):
-        assert isinstance(type, six.string_types)
+        assert isinstance(type, (six.string_types, Reference, Struct))
         assert isinstance(name, six.string_types)
         assert isinstance(array, bool)
         super(Attribute, self).__init__(location)
@@ -1530,6 +1591,8 @@ class Attribute(ASTObject):
         self._type = type
         self._default = default
         self._array = array
+        if isinstance(type, (Reference, Struct)):
+            self.child_fields = ('type',)
 
     @property
     def name(self):
@@ -1547,11 +1610,15 @@ class Attribute(ASTObject):
         return self._type
     @type.setter
     def type(self, value):
-        assert isinstance(value, six.string_types)
+        assert isinstance(value, (six.string_types, Reference, Struct))
         if self.frozen:
             raise TypeError('you cannot set the \'type\' field of a frozen '
                 'object')
         self._type = value
+        if isinstance(value, (Reference, Struct)):
+            self.child_fields = ('type',)
+        else:
+            self.child_fields = ()
 
     @property
     def array(self):

@@ -26,7 +26,7 @@ from camkes.ast import Assembly, Attribute, AttributeReference, Component, \
     Composition, Configuration, Connection, ConnectionEnd, Connector, \
     Consumes, Dataport, Emits, Export, Group, Include, Instance, Interface, \
     LiftedAST, Method, Mutex, normalise_type, Parameter, Procedure, Provides, \
-    Reference, Semaphore, BinarySemaphore, Setting, SourceLocation, Uses
+    Reference, Semaphore, BinarySemaphore, Setting, SourceLocation, Uses, Struct
 from .base import Parser
 from .exception import ParseError
 import numbers, plyplus, re, six
@@ -184,6 +184,20 @@ def _lift_bitwise_not(location, op):
 
 def _lift_char(location, *_):
     return 'char'
+
+def _lift_struct_decl(location, id, struct_defn):
+    return Struct(id, attributes=struct_defn.attributes, location=location)
+
+def _lift_struct_defn(location, *args):
+    assert len(args) > 0
+    return Struct(attributes=args, location=location)
+
+def _lift_struct_ref(location, arg):
+    if isinstance(arg, Struct):
+        return arg
+    assert isinstance(arg, Reference)
+    return Reference(arg.name, Struct, location)
+
 
 def _lift_component_decl(location, *args):
     if len(args) == 1:
@@ -449,6 +463,10 @@ def _lift_logical_not(location, op):
 def _lift_method_decl(location, *args):
     if len(args) >= 2 and isinstance(args[1], six.string_types):
         return_type, args = args[0], args[1:]
+        if isinstance(return_type, Reference):
+            if len(return_type.name) != 1:
+                raise ParseError("type: \"%s\" is not a valid type" % return_type.name, location)
+            return_type = normalise_type(return_type.name[0]) # dont want references
     else:
         return_type = None # void
     id = args[0]
@@ -573,12 +591,16 @@ def _lift_method_scalar_parameter(location, *args):
     else:
         assert len(args) == 3
         direction, type, id = args
+    if isinstance(type, Reference):
+        if len(type.name) != 1:
+            raise ParseError("type: \"%s\" is not a valid type" % type.name, location)
+        type = normalise_type(type.name[0])
     return Parameter(id, direction, type, location=location)
 
 def _lift_attribute_scalar_parameter(location, *args):
     assert len(args) == 2
     type, name = args
-    assert(isinstance(type, six.string_types))
+    assert(isinstance(type, (six.string_types, Reference, Struct)))
     if isinstance(type, six.string_types):
         # do not allow `struct blah` in attributes
         if type.startswith("struct "):
@@ -609,7 +631,10 @@ def _lift_to(location, *_):
     return 'to'
 
 def _lift_type(location, type_name):
-    return normalise_type(type_name)
+    if isinstance(type_name, Reference):
+        return type_name
+    else:
+        return normalise_type(type_name)
 
 def _lift_unary_minus(location, op):
     return -op
@@ -707,6 +732,9 @@ LIFT = {
     'signed_char':_lift_signed_char,
     'signed_int':_lift_signed_int,
     'struct_type':_lift_struct_type,
+    'struct_defn':_lift_struct_defn,
+    'struct_decl':_lift_struct_decl,
+    'struct_ref':_lift_struct_ref,
     'to':_lift_to,
     'type':_lift_type,
     'unary_minus':_lift_unary_minus,

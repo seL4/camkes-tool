@@ -41,6 +41,7 @@ const char *get_instance_name(void);
 
 /* Attributes */
 /*- set myconf = configuration[me.name] -*/
+/*? macros.print_type_definitions(me.type.attributes, myconf) ?*/
 /*- for a in me.type.attributes -*/
     /*- set value = myconf.get(a.name) -*/
     extern const /*? macros.show_type(a.type) ?*/ /*? a.name ?*/ /*- if a.array -*/ [/*?len(value)?*/] /*- endif -*/;

@@ -17,7 +17,7 @@ from __future__ import absolute_import, division, print_function, \
     unicode_literals
 from camkes.internal.seven import cmp, filter, map, zip
 
-from camkes.ast import Composition, Instance, Parameter
+from camkes.ast import Composition, Instance, Parameter, Struct
 from camkes.templates import sizeof_probe
 from capdl import ASIDPool, CNode, Endpoint, Frame, IODevice, IOPageTable, \
     Notification, page_sizes, PageDirectory, PageTable, TCB, Untyped
@@ -55,19 +55,54 @@ def save_ipc_buffer_address(sym):
            '#endif\n' % sym
 
 def show_type(t):
-    assert isinstance(t, six.string_types)
-    if t == 'string':
-        return 'char *'
-    elif t == 'character':
-        return 'char'
-    elif t == 'boolean':
-        return 'bool'
+    assert isinstance(t, (six.string_types, Struct))
+    if isinstance(t, six.string_types):
+        if t == 'string':
+            return 'char *'
+        elif t == 'character':
+            return 'char'
+        elif t == 'boolean':
+            return 'bool'
+        else:
+            return t
     else:
-        return t
+        return "struct " + t.name
+
+
+def print_struct_definition(struct, sub_value):
+    return_string = "struct %s {\n" % struct.name
+    for i in struct.attributes:
+        return_string += "%s %s%s;\n" % (show_type(i.type), i.name, "[%d]" % len(sub_value.get(i.name)) if i.array else "")
+    return return_string + "};\n"
+
+def recurse_structs(attribute, values):
+    struct = attribute.type
+    structs = []
+    for sub_attribute in struct.attributes:
+        if isinstance(sub_attribute.type, Struct):
+            structs.extend(recurse_structs(sub_attribute, values.get(sub_attribute.name)))
+    structs.append((struct, values))
+    return structs
+
+def print_type_definitions(attributes, values):
+    return_string = ""
+    structs = []
+    for attribute in attributes:
+        if isinstance(attribute.type, Struct):
+            structs.extend(recurse_structs(attribute, values.get(attribute.name)))
+
+    already_drawn = dict()
+    for (struct, sub_value) in structs:
+        if struct.name not in already_drawn:
+            return_string += str(print_struct_definition(struct, sub_value))
+            already_drawn[struct.name] = 1
+
+    return return_string
 
 def show_attribute_value(t, value):
     """ Prints out an attributes value.
         An attriubte can be an array (although this is provided to the template as a tuple type)
+        An attribute can also be a camkes structure which is a dictionary of attributes (keys) with corresponding values
     """
     return_string = ""
     is_array = False
@@ -82,6 +117,12 @@ def show_attribute_value(t, value):
     for i, value in enumerate(values):
         if isinstance(value, six.string_types): # For string literals
             return_string +=  "\"%s\"" % value
+        elif isinstance(t.type, Struct): # For struct attributes (This recursively calls this function)
+            return_string += "{\n"
+            for attribute in t.type.attributes:
+                return_string += "." + str(attribute.name) #+ ("[]" if attribute.array else "")
+                return_string += " = " + str(show_attribute_value(attribute, value[attribute.name])) + ",\n"
+            return_string += "}"
         else: # For all other literal types
             return_string += "%s" % str(value)
 

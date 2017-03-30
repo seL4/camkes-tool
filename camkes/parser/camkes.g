@@ -14,7 +14,7 @@
 
 start: (assembly_decl | component_decl | composition_decl |
         configuration_decl | connector_decl | import |
-        procedure_decl | /* Allow empty statements: */ ';')*;
+        procedure_decl | struct_decl | /* Allow empty statements: */ ';')*;
 
 ID: '[a-zA-Z_]\w*'
         /* Everything that's a keyword ends up matching ID, so we need to
@@ -99,6 +99,9 @@ component_defn: '\{' (attribute | consumes | control | dataport | emits |
                     ((composition_sing configuration_sing?) | configuration_sing composition_sing)? '\}';
 component_ref: reference | component_defn;
 
+struct_decl: STRUCT id struct_defn;
+struct_defn: '\{' (attribute_decl)* '\}';
+struct_ref: reference | struct_defn;
 attribute: ATTRIBUTE attribute_parameter ('=' item)? ';';
 consumes: maybe? CONSUMES id id ';';
 control: CONTROL ';';
@@ -158,7 +161,7 @@ direction: IN | INOUT | OUT | REFIN;
 @attribute_parameter: attribute_array_parameter | attribute_scalar_parameter;
 attribute_array_parameter: attribute_scalar_parameter '\[\]';
 attribute_scalar_parameter: type id;
-type: signed_int | unsigned_int | struct_type | char | signed_char | unsigned_char | STRING | ID;
+type: signed_int | unsigned_int | struct_type | char | signed_char | unsigned_char | STRING | struct_ref | ID;
 signed_int: (SIGNED? (INT | INTEGER)) | SIGNED;
 unsigned_int: UNSIGNED (INT | INTEGER)?;
 char: CHAR;
