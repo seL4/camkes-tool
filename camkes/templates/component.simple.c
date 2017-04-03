@@ -39,7 +39,7 @@
     /*- if r is not none -*/
         /*- set bits = int(r.group(1)) -*/
         /*- for i in six.moves.range(value) -*/
-            /*- if not 4 <= bits <= 28 -*/
+            /*- if not macros.min_untyped_size(options.architecture) <= bits <= macros.max_untyped_size(options.architecture) -*/
                 /*? raise(TemplateError('illegal untyped size')) ?*/
             /*- endif -*/
             /*- set untyped = alloc('simple_untyped_%d_pool_%d' % (bits, i), seL4_UntypedObject, size_bits=bits, read=True, write=True) -*/

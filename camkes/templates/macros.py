@@ -23,6 +23,8 @@ from capdl import ASIDPool, CNode, Endpoint, Frame, IODevice, IOPageTable, \
     Notification, page_sizes, PageDirectory, PageTable, TCB, Untyped
 import collections, math, os, platform, re, six
 
+from camkes.templates.arch_helpers import min_untyped_size, max_untyped_size
+
 def header_guard(filename):
     return '#ifndef %(guard)s\n' \
            '#define %(guard)s\n' % {

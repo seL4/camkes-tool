@@ -24,4 +24,4 @@ from __future__ import absolute_import, division, print_function, \
 
 from .exception import TemplateError
 from .Template import Templates, PLATFORMS, TEMPLATES
-from . import macros, sizeof_probe
+from . import macros, sizeof_probe, arch_helpers
