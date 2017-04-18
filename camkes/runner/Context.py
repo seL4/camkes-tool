@@ -49,7 +49,7 @@ from camkes.internal.version import version
 from camkes.templates import macros, TemplateError
 from .NameMangling import TEMPLATES, FILTERS, Perspective
 
-def new_context(entity, assembly, obj_space, cap_space, shmem, kept_symbols, templates, **kwargs):
+def new_context(entity, assembly, obj_space, cap_space, shmem, kept_symbols, fill_frames, templates, **kwargs):
     '''Create a new default context for rendering.'''
     return dict(list(__builtins__.items()) + list({
         # Kernel object allocator
@@ -108,6 +108,15 @@ def new_context(entity, assembly, obj_space, cap_space, shmem, kept_symbols, tem
             (lambda gname, lname, perm='RWX', paddr=None, frames=None:
                 register_shared_variable(shmem, gname, cap_space.cnode.name,
                     lname, perm, paddr, frames)),
+
+        # Function for templates to inform us that they would like certain
+        # 'fill' information to get placed into the provided symbol. Provided
+        # symbol should be page size and aligned. The 'fill' parameter is
+        # an arbitrary string that will be set as the 'fill' parameter on the
+        # capDL frame object. The meaning of fill is completely dependent
+        # on the underlying loader
+        'register_fill_frame':(lambda symbol, fill:
+            register_fill_frame(fill_frames, symbol, fill, entity)),
 
         # Inform the linker that a C symbol should not be removed, even if
         # it not used by any C code.
@@ -432,3 +441,15 @@ def keep_symbol(kept_symbols, symbol, entity):
         kept_symbols[name] = set()
 
     kept_symbols[name].add(symbol)
+
+def register_fill_frame(fill_frames, symbol, fill, entity):
+
+    name = entity.instance.name
+
+    if name not in fill_frames:
+        fill_frames[name]=set()
+
+    fill_frames[name].add((symbol, fill))
+    return 'static_assert(sizeof(%(sym)s) == PAGE_SIZE_4K,\n'           \
+           ' "%(sym)s not page sized. Templage bug in its declaration?");'  \
+           % {'sym':symbol}

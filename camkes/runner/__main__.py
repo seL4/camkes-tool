@@ -386,6 +386,7 @@ def main(argv, out, err):
     conf = assembly.configuration
     shmem = collections.defaultdict(ShmemFactory())
     kept_symbols = {}
+    fill_frames = {}
 
     templates = Templates(options.platform)
     [templates.add_root(t) for t in options.templates]
@@ -534,7 +535,7 @@ def main(argv, out, err):
                 # Pass everything as named arguments to allow filters to
                 # easily ignore what they don't want.
                 f(ast=ast, obj_space=obj_space, cspaces=cspaces, elfs=elfs,
-                    options=options, shmem=shmem)
+                    options=options, shmem=shmem, fill_frames=fill_frames)
             except Exception as inst:
                 die('While forming CapDL spec: %s' % inst)
 
@@ -543,7 +544,7 @@ def main(argv, out, err):
             template = templates.lookup(options.item)
             if template:
                 g = r.render(assembly, assembly, template, obj_space, None,
-                    shmem, kept_symbols, imported=read, options=options)
+                    shmem, kept_symbols, fill_frames, imported=read, options=options)
                 save(options.item, g)
                 done(g)
         except TemplateError as inst:
@@ -558,7 +559,7 @@ def main(argv, out, err):
         if os.path.isfile(pickle_path):
             with open(pickle_path, 'rb') as pickle_file:
                 # Found a cached version of the necessary data structures
-                obj_space, shmem, cspaces, pds, kept_symbols = pickle.load(pickle_file)
+                obj_space, shmem, cspaces, pds, kept_symbols, fill_frames = pickle.load(pickle_file)
                 apply_capdl_filters()
                 instantiate_misc_template()
 
@@ -602,7 +603,7 @@ def main(argv, out, err):
                 g = ''
                 if template:
                     g = r.render(i, assembly, template, obj_space, cspaces[i.address_space],
-                        shmem, kept_symbols, options=options, my_pd=pds[i.address_space])
+                        shmem, kept_symbols, fill_frames, options=options, my_pd=pds[i.address_space])
                 save(t, g)
                 if options.item == t:
                     if not template:
@@ -627,7 +628,7 @@ def main(argv, out, err):
                     g = ''
                     try:
                         g = r.render(e, assembly, template, obj_space,
-                            cspaces[e.instance.address_space], shmem, kept_symbols,
+                            cspaces[e.instance.address_space], shmem, kept_symbols, fill_frames,
                             options=options, my_pd=pds[e.instance.address_space])
                     except TemplateError as inst:
                         die(['While rendering %s: %s' % (item, line) for line in inst.args])
@@ -666,7 +667,7 @@ def main(argv, out, err):
             for e in t[1]:
                 try:
                     g = r.render(e, assembly, template, obj_space,
-                        cspaces[e.instance.address_space], shmem, kept_symbols,
+                        cspaces[e.instance.address_space], shmem, kept_symbols, fill_frames,
                         options=options, my_pd=pds[e.instance.address_space])
                     save(options.item, g)
                     done(g)
@@ -689,7 +690,7 @@ def main(argv, out, err):
                     g = ''
                     if template:
                         g = r.render(i, assembly, template, obj_space, cspaces[i.address_space],
-                            shmem, kept_symbols, options=options, my_pd=pds[i.address_space])
+                            shmem, kept_symbols, fill_frames, options=options, my_pd=pds[i.address_space])
                     save(t, g)
                     if options.item == t:
                         if not template:
@@ -706,7 +707,7 @@ def main(argv, out, err):
         cache_path = os.path.realpath(options.data_structure_cache_dir)
         pickle_path = os.path.join(cache_path, CAPDL_STATE_PICKLE)
         with open(pickle_path, 'wb') as pickle_file:
-            pickle.dump((obj_space, shmem, cspaces, pds, kept_symbols), pickle_file)
+            pickle.dump((obj_space, shmem, cspaces, pds, kept_symbols, fill_frames), pickle_file)
 
     if options.item in ('capdl', 'label-mapping'):
         apply_capdl_filters()
