@@ -40,6 +40,17 @@
     /*- do register_fill_frame("arch_info_word", 'bootinfo_arch_info_word 0') -*/
 /*- endif -*/
 
+/*- set extrabi_list = [] -*/
+/*- for value in configuration[me.name].get('simple_extra_bootinfo',[]) -*/
+    /*- set name = value.strip('"') -*/
+    /*- set symbol = 'extra_bootinfo_frame_%d' % loop.index0 -*/
+    struct {
+        char content[PAGE_SIZE_4K];
+    } /*? symbol ?*/ ALIGN(PAGE_SIZE_4K);
+    /*- do register_fill_frame(symbol, 'bootinfo 0 %s' % name) -*/
+    /*- do extrabi_list.append((name, symbol)) -*/
+/*- endfor -*/
+
 /*# Find any untyped pools #*/
 /*- set untyped_obj_list = [] -*/
 /*- for attribute, value in configuration[me.name].items() -*/
@@ -432,6 +443,21 @@ static void camkes_make_arch_simple(arch_simple_t *simple) {
 /*- endif -*/
 }
 
+static ssize_t camkes_get_extended_bootinfo(void *data, seL4_Word type, void *dest, ssize_t max_len) {
+    seL4_BootInfoHeader *mapping = NULL;
+    /*- for (name, symbol) in extrabi_list -*/
+    if (type == /*? name ?*/) {
+        mapping = (seL4_BootInfoHeader*)&/*? symbol ?*/.content[0];
+    }
+    /*- endfor -*/
+    if (mapping && mapping->len != -1) {
+        ssize_t len = MIN(mapping->len, max_len);
+        memcpy(dest, mapping, len);
+        return len;
+    }
+    return -1;
+}
+
 static seL4_Word camkes_simple_arch_info(void *data) {
     seL4_Word word = 0;
     /*- if configuration[me.name].get('simple_arch_info_word') -*/
@@ -475,6 +501,7 @@ void camkes_make_simple(simple_t *simple) {
     simple->nth_untyped = &simple_camkes_nth_untyped;
     simple->userimage_count = /*&simple_camkes_userimage_count*/NULL;
     simple->nth_userimage = /*&simple_camkes_nth_userimage*/NULL;
+    simple->extended_bootinfo = &camkes_get_extended_bootinfo;
     simple->arch_info = &camkes_simple_arch_info;
 #ifdef CONFIG_ARM_SMMU
     simple->arch_simple.iospace_cap_count = simple_camkes_get_iospace_cap_count;
