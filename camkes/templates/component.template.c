@@ -793,7 +793,7 @@ void USED _camkes_tls_init(int thread_id) {
 /*- endif -*/
 
 static int post_main(int thread_id) {
-#if defined(SEL4_DEBUG_KERNEL) && defined(CONFIG_CAMKES_PROVIDE_TCB_CAPS)
+#if defined(CONFIG_DEBUG_BUILD) && defined(CONFIG_CAMKES_PROVIDE_TCB_CAPS)
    /*- set thread_name = c_symbol() -*/
    char /*? thread_name ?*/[seL4_MsgMaxLength * sizeof(seL4_Word)];
    snprintf(/*? thread_name ?*/, sizeof(/*? thread_name ?*/), "%s(%d)",
