@@ -32,6 +32,14 @@
 /*- set self_cnode = alloc_cap('cnode', my_cnode, write=true) -*/
 /*- set self_pd = alloc_cap('my_pd_cap', my_pd, write=true) -*/
 
+/*- if configuration[me.name].get('simple_arch_info_word') -*/
+    struct {
+        char content[PAGE_SIZE_4K];
+    } arch_info_word ALIGN(PAGE_SIZE_4K);
+
+    /*- do register_fill_frame("arch_info_word", 'bootinfo_arch_info_word 0') -*/
+/*- endif -*/
+
 /*# Find any untyped pools #*/
 /*- set untyped_obj_list = [] -*/
 /*- for attribute, value in configuration[me.name].items() -*/
@@ -424,6 +432,14 @@ static void camkes_make_arch_simple(arch_simple_t *simple) {
 /*- endif -*/
 }
 
+static seL4_Word camkes_simple_arch_info(void *data) {
+    seL4_Word word = 0;
+    /*- if configuration[me.name].get('simple_arch_info_word') -*/
+        memcpy(&word, &arch_info_word.content[0], sizeof(word));
+    /*- endif -*/
+    return word;
+}
+
 void camkes_make_simple(simple_t *simple) {
     if (!camkes_simple_init) {
         /*- if cnodesize is none -*/
@@ -459,6 +475,7 @@ void camkes_make_simple(simple_t *simple) {
     simple->nth_untyped = &simple_camkes_nth_untyped;
     simple->userimage_count = /*&simple_camkes_userimage_count*/NULL;
     simple->nth_userimage = /*&simple_camkes_nth_userimage*/NULL;
+    simple->arch_info = &camkes_simple_arch_info;
 #ifdef CONFIG_ARM_SMMU
     simple->arch_simple.iospace_cap_count = simple_camkes_get_iospace_cap_count;
     simple->arch_simple.iospace_get_nth_cap = simple_camkes_get_iospace_nth_cap;
