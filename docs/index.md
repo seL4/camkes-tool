@@ -1,4 +1,4 @@
-% CAmkES Manual
+# CAmkES Manual
 
 <!--
      Copyright 2014, NICTA
