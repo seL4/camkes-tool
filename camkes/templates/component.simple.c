@@ -199,6 +199,7 @@ typedef struct camkes_simple_data {
 /*- endif -*/
     camkes_untyped_t untyped[/*? len(untyped_obj_list) + len(untyped_mmio) ?*/];
     seL4_CPtr inittcb;
+    seL4_CPtr initsc;
 } camkes_simple_data_t;
 static camkes_simple_data_t simple_data;
 static bool camkes_simple_init = false;
@@ -291,6 +292,10 @@ static seL4_CPtr simple_camkes_init_cap(void *data, seL4_CPtr cap) {
         return /*? self_pd ?*/;
     case seL4_CapInitThreadTCB:
         return camkes->inittcb;
+    /*- if options.realtime -*/
+    case seL4_CapInitThreadSC:
+        return camkes->initsc;
+    /*- endif -*/
     default:
         assert(!"Unsupported init_cap requested");
     }
@@ -488,6 +493,7 @@ void camkes_make_simple(simple_t *simple) {
     }
     /* Assume we are called from init */
     simple_data.inittcb = camkes_get_tls()->tcb_cap;
+    simple_data.initsc = camkes_get_tls()->sc_cap;
     simple->data = &simple_data;
     simple->frame_info = /*&simple_camkes_get_frame_info*/NULL;
     simple->frame_cap = &simple_camkes_get_frame_cap;

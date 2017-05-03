@@ -516,6 +516,9 @@ void USED _camkes_tls_init(int thread_id) {
         case /*? tcb_control ?*/ : /* Control thread */
             /*- set p = Perspective(instance=me.name, control=True) -*/
             /*? macros.save_ipc_buffer_address(p['ipc_buffer_symbol']) ?*/
+            /*- if options.realtime -*/
+            camkes_get_tls()->sc_cap = /*? sc_control ?*/;
+            /*- endif -*/
             camkes_get_tls()->tcb_cap = /*? tcb_control ?*/;
             camkes_get_tls()->thread_index = 1;
             break;
