@@ -33,7 +33,7 @@ from capdl.Allocator import seL4_TCBObject, seL4_EndpointObject, \
     seL4_UntypedObject, seL4_IA32_IOPort, seL4_IA32_IOSpace, \
     seL4_ARM_IOSpace, \
     seL4_ARM_SectionObject, seL4_ARM_SuperSectionObject, \
-    seL4_SchedContextObject, seL4_RTReplyObject
+    seL4_SchedContextObject, seL4_SchedControl, seL4_RTReplyObject
 
 # Depending on what kernel branch we are on, we may or may not have ASIDs.
 # There are separate python-capdl branches for this, but this import allows us
@@ -69,6 +69,7 @@ def new_context(entity, assembly, obj_space, cap_space, shmem, kept_symbols, fil
         'seL4_IA32_IOSpace':seL4_IA32_IOSpace,
         'seL4_ARM_IOSpace':seL4_ARM_IOSpace,
         'seL4_SchedContextObject':seL4_SchedContextObject,
+        'seL4_SchedControl':seL4_SchedControl,
         'seL4_RTReplyObject':seL4_RTReplyObject,
         'seL4_ASID_Pool':seL4_ASID_Pool,
 

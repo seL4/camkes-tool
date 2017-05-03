@@ -32,6 +32,9 @@
 /*- set self_cnode = alloc_cap('cnode', my_cnode, write=true) -*/
 /*- set self_pd = alloc_cap('my_pd_cap', my_pd, write=true) -*/
 
+/*- if 'sched_ctrl' in configuration[me.name].keys() -*/
+    /*- set sched_control = alloc('sched_control', type=seL4_SchedControl, core=configuration[me.name].get('sched_ctrl')) -*/
+/*- endif -*/
 /*- if configuration[me.name].get('simple_arch_info_word') -*/
     struct {
         char content[PAGE_SIZE_4K];
@@ -471,6 +474,15 @@ static seL4_Word camkes_simple_arch_info(void *data) {
     return word;
 }
 
+static seL4_CPtr camkes_simple_sched_ctrl(void *data, seL4_Word core) {
+    /*- if 'sched_ctrl' in configuration[me.name].keys() -*/
+    if (core == /*? configuration[me.name].get('sched_ctrl') ?*/) {
+        return /*? sched_control ?*/;
+    }
+    /*- endif -*/
+    return seL4_CapNull;
+}
+
 void camkes_make_simple(simple_t *simple) {
     if (!camkes_simple_init) {
         /*- if cnodesize is none -*/
@@ -509,6 +521,7 @@ void camkes_make_simple(simple_t *simple) {
     simple->nth_userimage = /*&simple_camkes_nth_userimage*/NULL;
     simple->extended_bootinfo = &camkes_get_extended_bootinfo;
     simple->arch_info = &camkes_simple_arch_info;
+    simple->sched_ctrl = &camkes_simple_sched_ctrl;
 #ifdef CONFIG_ARM_SMMU
     simple->arch_simple.iospace_cap_count = simple_camkes_get_iospace_cap_count;
     simple->arch_simple.iospace_get_nth_cap = simple_camkes_get_iospace_nth_cap;
