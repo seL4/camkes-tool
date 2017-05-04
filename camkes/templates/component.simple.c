@@ -474,7 +474,7 @@ static seL4_Word camkes_simple_arch_info(void *data) {
     return word;
 }
 
-static seL4_CPtr camkes_simple_sched_ctrl(void *data, seL4_Word core) {
+static UNUSED seL4_CPtr camkes_simple_sched_ctrl(void *data, seL4_Word core) {
     /*- if 'sched_ctrl' in configuration[me.name].keys() -*/
     if (core == /*? configuration[me.name].get('sched_ctrl') ?*/) {
         return /*? sched_control ?*/;
@@ -521,7 +521,9 @@ void camkes_make_simple(simple_t *simple) {
     simple->nth_userimage = /*&simple_camkes_nth_userimage*/NULL;
     simple->extended_bootinfo = &camkes_get_extended_bootinfo;
     simple->arch_info = &camkes_simple_arch_info;
+#ifdef CONFIG_KERNEL_RT
     simple->sched_ctrl = &camkes_simple_sched_ctrl;
+#endif
 #ifdef CONFIG_ARM_SMMU
     simple->arch_simple.iospace_cap_count = simple_camkes_get_iospace_cap_count;
     simple->arch_simple.iospace_get_nth_cap = simple_camkes_get_iospace_nth_cap;
