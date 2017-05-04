@@ -54,7 +54,7 @@ void __arch_putchar(int c) {
         /*? putchar ?*/(c);
         return;
     }
-#ifdef SEL4_DEBUG_KERNEL
+#ifdef CONFIG_PRINTING
     seL4_DebugPutChar(c);
 #endif
 }
