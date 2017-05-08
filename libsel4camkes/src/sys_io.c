@@ -42,6 +42,8 @@ int sock_close(int fd) __attribute__((weak));
 static long
 camkes_sys_close(va_list ap)
 {
+    va_list copy;
+    va_copy(copy, ap);
     int fd = va_arg(ap, int);
     if (sock_close && valid_fd(fd)) {
         muslcsys_fd_t *fds =  get_fd_struct(fd);
@@ -49,7 +51,9 @@ camkes_sys_close(va_list ap)
             sock_close(*(int*)fds->data);
         }
     }
-    return original_sys_close(ap);
+    long ret = original_sys_close(copy);
+    va_end(copy);
+    return ret;
 }
 
 int sock_write(int sockfd, int count) __attribute__((weak));
@@ -74,6 +78,8 @@ static long camkes_sys_write(va_list ap)
 int sock_read(int sockfd, int count) __attribute__((weak));
 static long camkes_sys_read(va_list ap)
 {
+    va_list copy;
+    va_copy(copy, ap);
     int fd = va_arg(ap, int);
     void *buf = va_arg(ap, void*);
     size_t count = va_arg(ap, size_t);
@@ -87,7 +93,9 @@ static long camkes_sys_read(va_list ap)
             return ret;
         }
     }
-    return original_sys_read(ap);
+    long ret = original_sys_read(copy);
+    va_end(copy);
+    return ret;
 }
 
 int sock_fcntl(int sockfd, int cmd, int val) __attribute__((weak));
