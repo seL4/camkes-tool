@@ -69,22 +69,23 @@ def show_type(t):
         return "struct " + t.name
 
 
-def print_struct_definition(struct, sub_value):
-    return_string = "struct %s {\n" % struct.name
-    for i in struct.attributes:
-        return_string += "%s %s%s;\n" % (show_type(i.type), i.name, "[%d]" % len(sub_value.get(i.name)) if i.array else "")
-    return return_string + "};\n"
-
-def recurse_structs(attribute, values):
-    struct = attribute.type
-    structs = []
-    for sub_attribute in struct.attributes:
-        if isinstance(sub_attribute.type, Struct):
-            structs.extend(recurse_structs(sub_attribute, values.get(sub_attribute.name)))
-    structs.append((struct, values))
-    return structs
 
 def print_type_definitions(attributes, values):
+    def print_struct_definition(struct, sub_value):
+        return_string = "struct %s {\n" % struct.name
+        for i in struct.attributes:
+            return_string += "%s %s%s;\n" % (show_type(i.type), i.name, "[%d]" % len(sub_value.get(i.name)) if i.array else "")
+        return return_string + "};\n"
+
+    def recurse_structs(attribute, values):
+        struct = attribute.type
+        structs = []
+        for sub_attribute in struct.attributes:
+            if isinstance(sub_attribute.type, Struct):
+                structs.extend(recurse_structs(sub_attribute, values.get(sub_attribute.name)))
+        structs.append((struct, values))
+        return structs
+
     return_string = ""
     structs = []
     for attribute in attributes:
