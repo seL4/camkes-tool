@@ -670,7 +670,7 @@ echo is providing is described in apps/simple/interfaces/Simple.idl4.
 If you want to run this example on IA32, the commands are similar:
 
 ```bash
-make x86_simple_defconfig
+make ia32_simple_defconfig
 make silentoldconfig
 make clean
 make
