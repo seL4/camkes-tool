@@ -966,13 +966,13 @@ static void handler(void) {
   printf("Callback fired!\n");
   if (!fired) {
     fired = 1;
-    s_reg_callback(&handler);
+    s_reg_callback(&handler, NULL);
   }
 }
 
 int run(void) {
   printf("Registering callback...\n");
-  s_reg_callback(&handler);
+  s_reg_callback(&handler, NULL);
 
   printf("Polling...\n");
   if (s_poll()) {
