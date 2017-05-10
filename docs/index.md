@@ -1197,7 +1197,7 @@ include ${SOURCE_DIR}/../../tools/camkes/camkes.mk
 ```
 
 Add the now familiar entry for this application in the top level Kconfig and we
-can now compile the application:
+can now compile the application (don't forget to add a line with source for hellodataport to top-level KConfig):
 
 ```bash
 make menuconfig
