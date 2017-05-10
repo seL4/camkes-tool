@@ -14,6 +14,7 @@
 
 #define __ASM__
 #include <sel4/arch/constants.h>
+#include <sel4/sel4_arch/constants.h>
 
 #include <autoconf.h>
 
