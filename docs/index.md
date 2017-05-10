@@ -670,7 +670,7 @@ echo is providing is described in apps/simple/interfaces/Simple.idl4.
 If you want to run this example on IA32, the commands are similar:
 
 ```bash
-make x86_simple_defconfig
+make ia32_simple_defconfig
 make silentoldconfig
 make clean
 make
@@ -966,13 +966,13 @@ static void handler(void) {
   printf("Callback fired!\n");
   if (!fired) {
     fired = 1;
-    s_reg_callback(&handler);
+    s_reg_callback(&handler, NULL);
   }
 }
 
 int run(void) {
   printf("Registering callback...\n");
-  s_reg_callback(&handler);
+  s_reg_callback(&handler, NULL);
 
   printf("Polling...\n");
   if (s_poll()) {
@@ -1197,7 +1197,7 @@ include ${SOURCE_DIR}/../../tools/camkes/camkes.mk
 ```
 
 Add the now familiar entry for this application in the top level Kconfig and we
-can now compile the application:
+can now compile the application (don't forget to add a line with source for hellodataport to top-level KConfig):
 
 ```bash
 make menuconfig
