@@ -34,6 +34,12 @@
 
 /*? macros.show_includes(me.type.includes) ?*/
 
+/*- if configuration[me.name].get('debug') == '"True"' -*/
+#ifdef CONFIG_CAMKES_GDB
+extern void breakpoint(void);
+#endif
+/*- endif -*/
+
 /*- set putchar = c_symbol() -*/
 static void (* /*? putchar ?*/)(int c);
 
@@ -525,6 +531,13 @@ int USED /*? p['entry_symbol'] ?*/(int thread_id) {
                         }));
                 /*- endif -*/
             /*- endfor -*/
+
+#ifdef CONFIG_CAMKES_GDB
+                   /*- if configuration[me.name].get('debug') == '"True"' -*/
+                        breakpoint();
+                   /*- endif -*/
+#endif
+
             /*- if me.type.control -*/
                 return run();
             /*- else -*/

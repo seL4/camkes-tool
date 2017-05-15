@@ -254,6 +254,27 @@ menu "CAmkES Options"
 
     menu "Debugging"
 
+        menuconfig CAMKES_GDB
+        depends on ARCH_ARM
+        bool "Build GDB Server Glue Code"
+        default n
+        help
+            This option calls the debug tool to create GDB interfaces for every selected instance.
+
+        config GDB_ETHERNET
+        bool "Build GDB Server using TCP Connections"
+        depends on CAMKES_GDB && !GDB_SERIAL
+        default y
+        help
+            Builds the GDB Server using TCP as the method of communication between the remote host and the target.
+
+        config GDB_SERIAL
+        bool "Build GDB Server using Serial communications"
+        depends on CAMKES_GDB
+        default n
+        help
+            Builds the GDB Server using UART as the method of communication between the remote host and the target.
+
         config CAMKES_DEBUG_MALLOC
         bool "Enable allocation debugging"
         default n

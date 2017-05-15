@@ -39,8 +39,32 @@ export MAKEFLAGS += $(foreach p, ${CAMKES_IMPORT_PATH}, --include-dir=${p})
 
 include tools/common/project.mk
 
-capdl-loader-experimental: $(filter-out capdl-loader-experimental,$(apps)) parse-capDL ${STAGE_BASE}/cpio-strip/cpio-strip
+capdl-loader-experimental: camkes-debug $(filter-out capdl-loader-experimental,$(apps)) parse-capDL ${STAGE_BASE}/cpio-strip/cpio-strip
 export CAPDL_SPEC:=$(foreach v,$(filter-out capdl-loader-experimental,${apps}),${BUILD_BASE}/${v}/${v}.cdl)
+
+DEBUG_APP:=$(filter-out capdl-loader-experimental,${apps})
+DEBUG_MAKEFILE:=$(APPS_ROOT)/$(DEBUG_APP)/Makefile
+export SOURCE_DIR=$(APPS_ROOT)/$(DEBUG_APP)
+DEBUG_FILE = $(APPS_ROOT)/$(DEBUG_APP)/
+
+camkes-debug:
+ifeq (${CONFIG_CAMKES_GDB},y)
+	@echo "[DEBUG]"
+	@echo " [GEN] $(DEBUG_FILE)"
+	@if [ -e $(DEBUG_MAKEFILE).bk ]; \
+	then ./tools/debug/debug.py -c $(DEBUG_APP).camkes; fi
+	./tools/debug/debug.py $(DEBUG_APP).camkes
+	@echo "[DEBUG] done."
+else
+	@echo "[DEBUG] Option Not Selected"
+	@if [ -e $(DEBUG_MAKEFILE).bk ]; \
+	then ./tools/debug/debug.py -c $(DEBUG_APP).camkes; fi
+endif
+
+camkes-debug-clean:
+	@echo "[CLEAN] CAmkES GDB"
+	@if [ -e $(DEBUG_MAKEFILE).bk ]; then echo " [DEBUG] $(DEBUG_FILE)"; \
+	./tools/debug/debug.py -c $(DEBUG_APP).camkes; fi
 
 # The capdl translator is built in a custom environment to prevent compiler flags
 # intended for the target affecting the compilation of haskell packages intended
