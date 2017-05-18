@@ -592,9 +592,9 @@ void USED _camkes_tls_init(int thread_id) {
             seL4_MessageInfo_t info = /*? generate_seL4_Recv(options, fault_ep_cap, '&badge', fault_reply_cap) ?*/;
 
             /* Various symbols that are provided by the linker script. */
-            extern char __executable_start[1];
-            extern char guarded[1] UNUSED;
-            extern char _end[1] UNUSED;
+            extern const char __executable_start[1];
+            extern const char guarded[1] UNUSED;
+            extern const char _end[1] UNUSED;
 
             /* Thread name and address space map relevant for this fault. Note
              * that we describe a simplified version of the component's address
@@ -1064,23 +1064,19 @@ void *dataport_unwrap_ptr(dataport_ptr_t p UNUSED) {
     return ptr;
 }
 
-/* These symbols are provided by the linker script. */
-extern const char __text_start[1];
-extern const char __text_end[1];
-extern const char __rodata_start[1];
-extern const char __rodata_end[1];
-extern const char __exidx_start[1];
-extern const char __exidx_end[1];
-extern const char __data_start[1];
-extern const char __data_end[1];
-extern const char __bss_start[1];
-extern const char __bss_end[1];
+/* These symbols are provided by the default linker script. */
+extern const char __executable_start[1]; /* Start of text section */
+extern const char __etext[1]; /* End of text section, start of rodata section */
+extern const char __preinit_array_start[1]; /* End of rodata section, start of data section */
+extern const char _edata[1]; /* End of data section */
+extern const char __bss_start[1]; /* Start of bss section */
+extern const char _end[1]; /* End of bss section */
 
 /* See vma.h in libsel4camkes for a description of this array. */
 const struct camkes_vma camkes_vmas[] = {
     {
-        .start = (void*)__text_start,
-        .end = (void*)__text_end,
+        .start = (void*)__executable_start,
+        .end = (void*)__etext,
         .read = true,
         .write = false,
         .execute = true,
@@ -1088,29 +1084,17 @@ const struct camkes_vma camkes_vmas[] = {
         .name = ".text",
     },
     {
-        .start = (void*)__rodata_start,
-        .end = (void*)__rodata_end,
+        .start = (void*)__etext,
+        .end = (void*)__preinit_array_start,
         .read = true,
         .write = false,
         .execute = false,
         .cached = true,
         .name = ".rodata",
     },
-    /*- if options.architecture in ('aarch32', 'arm_hyp') -*/
-        /*# See the linker script for justification for this branch. #*/
-        {
-            .start = (void*)__exidx_start,
-            .end = (void*)__exidx_end,
-            .read = true,
-            .write = false,
-            .execute = false,
-            .cached = true,
-            .name = ".ARM.exidx",
-        },
-    /*- endif -*/
     {
-        .start = (void*)__data_start,
-        .end = (void*)__data_end,
+        .start = (void*)__preinit_array_start,
+        .end = (void*)_edata,
         .read = true,
         .write = true,
         .execute = false,
@@ -1119,7 +1103,7 @@ const struct camkes_vma camkes_vmas[] = {
     },
     {
         .start = (void*)__bss_start,
-        .end = (void*)__bss_end,
+        .end = (void*)_end,
         .read = true,
         .write = true,
         .execute = false,

@@ -9,64 +9,31 @@
  #*/
 
 /* Linker script for CAmkES components. */
-ENTRY(_start)
 
 /*- if options.architecture in ('x86_64') -*/
   /*- set align = '0x200000' -*/
-  /*- set start = align -*/
 /*- elif options.architecture in ('aarch32', 'arm_hyp') -*/
   /*- set align = '0x100000' -*/
-  /*- set start = align -*/
 /*- elif options.architecture in ('ia32') -*/
   /*- set align = '0x400000' -*/
-  /*- set start = '0x100000' -*/
 /*- endif -*/
 
+/*- set instances = composition.instances -*/
+/*- set grouped = [False] -*/
+
+
+/*# For single address space components we need to collect constructors
+ *# and destructors early in order to prevent them from being called
+ *# multiple times by each component.
+ #*/
+/*- for inst in instances if not me.type.hardware -*/
+  /*- if id(me) != id(inst) and inst.address_space == me.address_space -*/
+    /*- do grouped.__setitem__(0, True) -*/
+  /*- endif -*/
+/*- endfor -*/
+/*- if grouped[0] -*/
+
 SECTIONS {
-    /* __executable_start is required by libsel4platsupport. */
-
-    PROVIDE (__executable_start = /*? start ?*/);
-    . = /*? start ?*/;
-
-    .init : {
-        KEEP (*(SORT_NONE(.init)));
-    }
-
-    /* Code. */
-    .text : ALIGN(4096) {
-        PROVIDE_HIDDEN (__text_start = .);
-        *(.text)
-        *(.text.*)
-        PROVIDE_HIDDEN (__text_end = .);
-    }
-
-    .fini : {
-        KEEP (*(SORT_NONE(.fini)));
-    }
-
-    /* Read Only Data. */
-    .rodata : ALIGN(4096) {
-        PROVIDE_HIDDEN (__rodata_start = .);
-        *(.rodata)
-        *(.rodata.*)
-        PROVIDE_HIDDEN (__rodata_end = .);
-    }
-
-    /*- if options.architecture in ('aarch32', 'arm_hyp') -*/
-    .ARM.exidx   : {
-        PROVIDE_HIDDEN (__exidx_start = .);
-        *(.ARM.exidx* .gnu.linkonce.armexidx.*)
-        PROVIDE_HIDDEN (__exidx_end = .);
-    }
-    /*- endif -*/
-
-    /* Data / BSS */
-    .data : ALIGN(4096) {
-        PROVIDE_HIDDEN (__data_start = .);
-        *(.data)
-        PROVIDE_HIDDEN (__data_end = .);
-    }
-
     .init_array : {
         PROVIDE_HIDDEN (__init_array_start = .);
         KEEP (*(SORT_BY_INIT_PRIORITY(.init_array.*) SORT_BY_INIT_PRIORITY(.ctors.*)))
@@ -81,13 +48,12 @@ SECTIONS {
         PROVIDE_HIDDEN (__fini_array_end = .);
     }
 
-    .bss : {
-        PROVIDE_HIDDEN (__bss_start = .);
-        *(.bss)
-        *(.bss.*)
-        *(COMMON)
-        PROVIDE_HIDDEN (__bss_end = .);
-    }
+}
+INSERT AFTER .preinit_array
+/*- endif -*/
+
+
+SECTIONS {
 
     guarded (NOLOAD) : ALIGN(4096) {
         *(guarded)
@@ -143,5 +109,5 @@ SECTIONS {
 
         /*- endfor -*/
     /*- endif -*/
-    _end = .;
 }
+INSERT AFTER .bss;
