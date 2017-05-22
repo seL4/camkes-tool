@@ -81,6 +81,8 @@ class Renderer(object):
             comment_start_string=START_COMMENT,
             comment_end_string=END_COMMENT,
             auto_reload=False,
+            trim_blocks=True,
+            lstrip_blocks=True,
             undefined=jinja2.StrictUndefined)
 
         if options.cache and not os.path.exists(template_cache):
