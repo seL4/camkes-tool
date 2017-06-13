@@ -11,15 +11,10 @@
 # CAmkES
 
 This repository contains the code generator and templating system that form the
-core of the [CAmkES component platform](https://wiki.sel4.systems/CAmkES/). This
-branch, "next," has a from-scratch re-implementation of the architecture
-description parser and addresses several shortcomings of the "master" branch.
-This branch is intended to supersede "master" in the future.
+core of the [CAmkES component platform](https://wiki.sel4.systems/CAmkES/).
 
 For more information about CAmkES functionality, see the
 [documentation](docs/index.md).
-
-For more information on CAmkES "next", see its [wiki page](https://wiki.sel4.systems/CAmkESNext).
 
 ## Dependencies
 
