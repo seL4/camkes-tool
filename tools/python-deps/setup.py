@@ -30,6 +30,7 @@ DEPS = [
     'plyplus',
     'pyelftools',
     'sel4-deps',
+    'pycparser',
 ]
 
 setup(
