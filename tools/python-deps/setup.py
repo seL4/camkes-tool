@@ -35,7 +35,7 @@ DEPS = [
 
 setup(
     name='camkes-deps',
-    version='0.1.0',
+    version='0.2.0',
     description='Metapackage for downloading build dependencies for CAmkES',
     url='https://wiki.sel4.systems/CAmkES',
     licence='BSD2',
