@@ -1,6 +1,6 @@
 # VisualCAmkES
 
-For detailed information how to install and use visualCAmkES, read the internal wiki page: http://wiki.inside.nicta.com.au/display/RGPSST/Visualisation+of+CAmkES
+For detailed information how to install and use visualCAmkES, read the wiki page: https://wiki.sel4.systems/VisualCAmkES
 
 ## Installing dependenices
 On top of the dependenices required for camkes-tool, visualCAmkES requires are few other installations such as Qt and Graphviz.
