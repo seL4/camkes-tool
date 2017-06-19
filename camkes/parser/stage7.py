@@ -251,22 +251,7 @@ class Parse7(Transformer):
                 e.interface = p.interface
             assembly.composition.connections.append(c)
 
-        # Replace the settings, resolving setting references as we go.
-        assembly.configuration.settings = []
-        for s in settings:
-            if isinstance(s.value, AttributeReference):
-                instance_name, attribute_name = s.value.reference.rsplit('.', 1)
-                referents = [x for x in settings
-                    if x.instance == instance_name and
-                       x.attribute == attribute_name]
-                if len(referents) == 0:
-                    raise ParseError('setting refers to an attribute that '
-                        'is unset', s.location)
-                elif len(referents) > 1:
-                    raise ParseError('setting refers to an attribute that '
-                        'is set multiple times', s.location)
-                s.value = referents[0].value
-            assembly.configuration.settings.append(s)
-
+        # Replace the settings.
+        assembly.configuration.settings = settings
         assembly.claim_children()
         return ast_lifted, read

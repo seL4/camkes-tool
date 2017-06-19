@@ -23,7 +23,7 @@ from __future__ import absolute_import, division, print_function, \
     unicode_literals
 from camkes.internal.seven import cmp, filter, map, zip
 
-from camkes.ast import Attribute
+from camkes.ast import AttributeReference
 from .base import Transformer
 from .exception import ParseError
 import collections
@@ -36,63 +36,91 @@ def postcondition(ast_lifted):
     '''
     All settings are resolved.
     '''
-    return all(not isinstance(x.value, Attribute) for x in
+    return all(not isinstance(x.value, AttributeReference) for x in
         ast_lifted.assembly.configuration.settings)
 
 def resolve(ast_lifted):
     '''
-    Resolve all attribute references to concrete values.
+    Recursively resolve all setting references to concrete values.
 
     There's not a lot of type safety in this resolution process because the
-    attributes themselves inherently aren't strongly typed. We try and do what
-    we can by detecting the source and destination type when the attribute(s)
-    are declared and ensuring they match.
+    attributes themselves inherently aren't strongly typed. We rely on the type
+    checking done when freeze is called on an assembly.
     '''
     to_resolve = []
-    values = collections.defaultdict(dict)
 
     assembly = ast_lifted.assembly
-
+    new_settings = []
     for s in assembly.configuration.settings:
-        if isinstance(s.value, Attribute):
+        if isinstance(s.value, AttributeReference):
             to_resolve.append(s)
         else:
-            values[s.instance][s.attribute] = s.value
+            new_settings.append(s)
 
-    for r in to_resolve:
-        # Find the prefix of the instance of this attribute. The idea here is
-        # that we have two settings:
-        #   foo.bar.baz = 2;
-        #   foo.bar.moo.cow <- baz;
-        # We know that the prefix of the reference's instance is the instance
-        # of the referent. In the above, the prefix of `foo.bar.moo.cow` is
-        # `foo.bar`, that matches the instance of the first setting, `foo.bar`.
-        assert '.' in r.instance, 'illegal attribute reference'
-        name = '.'.join(r.instance.split('.')[:-1])
+    def sub_resolve(setting, depth):
+        '''
+        Recursive function for resolving setting references.  If a setting
+        is a reference to another setting we try and resolve the next one (depth first).  If there
+        is a circular reference we error out.  If any setting doesn't have
+        a setting to resolve to, but has a default attribute value we use that.
+        If there is no default and no setting then we 'forget' the alias so that we
+        can fall back to defaults that other attributes have.  An attribute that doesn't
+        get a setting or a default will not generate a symbol in the generated template.
+        Thus if the attribute requires a setting the code compiler should generate an error later.
+        '''
 
-        attribute = r.value.name
+        if setting.value.reference in depth:
+            errstring = ""
+            for value in depth:
+                errstring += value + "<-"
+            raise ParseError('Loop detected in attribute references: %s<-...'
+                    % (errstring+setting.value.reference), setting.location)
+        # TODO Refactor AttributeReference to handle namespacing better than a
+        # string containing '.' characters.
+        instance_name, attribute_name = setting.value.reference.rsplit('.', 1)
+        referents = [x for x in assembly.configuration.settings
+            if x.instance == instance_name and
+                x.attribute == attribute_name]
+        if len(referents) == 0:
+            # No existing settings for the attribute that our current attribute
+            # refers to.  Check if it has a default value and use that.
+            attribute = assembly.get_attribute(instance_name, attribute_name)
+            if attribute is not None and attribute.default is not None:
+                setting.value = attribute.default
+                return True
 
-        # Do some type checking if we can. This is only possible if the
-        # reference and referent attribute have been declared with a type.
-        source_type = r.value.type
-        try:
-            destination_type = [a for a in
-                [x for x in
-                    assembly.composition.instances
-                    if x.name == s.instance][0].type.attributes
-                if a.name == s.attribute][0].type
-            if destination_type != source_type:
-                raise ParseError('mismatched types in attribute reference',
-                    r.location)
-        except IndexError:
-            pass
+            # If we didn't find a default, then try and use our own default if we have one
+            attribute = assembly.get_attribute(setting.instance, setting.attribute)
+            if attribute is not None and attribute.default is not None:
+                setting.value = attribute.default
+                return True
 
-        # Resolve the reference.
-        try:
-            r.value = values[name][attribute]
-        except KeyError:
-            raise ParseError('reference to attribute %s which is unset' %
-                r.value.name, r.location)
+            setting.value = None
+            return False
+
+        elif len(referents) > 1:
+            raise ParseError('setting refers to an attribute that '
+                'is set multiple times', setting.location)
+
+        if isinstance(referents[0].value, AttributeReference):
+            if not sub_resolve(referents[0], depth +  [setting.value.reference]):
+                setting.value = None
+                return False
+
+        setting.value = referents[0].value
+        return True
+
+    # Iterate through each setting we need to resolve
+    for setting in to_resolve:
+        if isinstance(setting.value, AttributeReference):
+            if sub_resolve(setting, []):
+                new_settings.append(setting)
+        elif setting.value != None:
+            # Already resolved
+            new_settings.append(setting)
+
+    assembly.configuration.settings = new_settings
+    assembly.claim_children()
 
 class Parse8(Transformer):
     def precondition(self, ast_lifted, _):

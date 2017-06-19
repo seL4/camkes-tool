@@ -182,6 +182,20 @@ class Assembly(ASTObject):
                 raise ASTError('mistyped assignment of attribute of type %s: %s' %
                     (str(a.type), error_str), s)
 
+    def get_attribute(self, instance_name, attribute_name):
+        '''
+        Get an attribute from an instance from an assembly
+        '''
+        instance_gen = (x for x in self.instances if x.name == instance_name)
+        try:
+            instance = instance_gen.next()
+            attribute_gen = (x for x in instance.type.attributes
+                            if x.name == attribute_name)
+            return attribute_gen.next()
+        except StopIteration:
+            # couldn't find attribute
+            return None
+
     # Shortcuts for accessing grandchildren.
     @property
     def instances(self):
