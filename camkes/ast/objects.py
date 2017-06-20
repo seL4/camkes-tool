@@ -557,12 +557,12 @@ class Connection(ASTObject):
                     name = '%s.%s' % (f.instance.name, f.interface.name)
                 raise ASTError('connection \'%s\' has an end %s that cannot be '
                     'used as \'from\'' % (self.name, name), self)
-            if self.type.from_hardware and not f.instance.type.hardware:
+            if self.type.from_hardware and not f.get_end_type().hardware:
                 raise ASTError('connection \'%s\' has a type \'%s\' that is '
                     'intended for connecting from hardware devices, but end '
                     '%s.%s refers to a software component' % (self.name,
                     self.type.name, f.instance.name, f.interface.name), f)
-            if not self.type.from_hardware and f.instance.type.hardware:
+            if not self.type.from_hardware and f.get_end_type().hardware:
                 raise ASTError('connection \'%s\' has a type \'%s\' that is '
                     'intended for connecting from software components, but '
                     'end %s.%s refers to a hardware device' % (self.name,
@@ -595,12 +595,12 @@ class Connection(ASTObject):
                     name = '%s.%s' % (t.instance.name, t.interface.name)
                 raise ASTError('connection \'%s\' has an end %s that cannot be '
                     'used as \'to\'' % (self.name, name), self)
-            if self.type.to_hardware and not t.instance.type.hardware:
+            if self.type.to_hardware and not t.get_end_type().hardware:
                 raise ASTError('connection \'%s\' has a type \'%s\' that is '
                     'intended for connecting to hardware devices, but end '
                     '%s.%s refers to a software component' % (self.name,
                     self.type.name, t.instance.name, t.interface.name), t)
-            if not self.type.to_hardware and t.instance.type.hardware:
+            if not self.type.to_hardware and t.get_end_type().hardware:
                 raise ASTError('connection \'%s\' has a type \'%s\' that is '
                     'intended for connecting to software components, but end '
                     '%s.%s refers to a hardware device' % (self.name,
@@ -1789,6 +1789,22 @@ class ConnectionEnd(ASTObject):
 
     def label(self):
         return self.parent.label()
+
+    def get_end_type(self):
+        '''
+        If the instance is none but the composition that this connection
+        is in is inside a component, then the type of that end is the top
+        component.
+        '''
+        if self.instance is not None:
+            return self.instance.type
+        # self.parent is a connection
+        # self.parent.parent is a composition
+        # self.parent.parent.parent is either an assembly or Component
+        # The parser shouldn't get to this point if the parent.parent.parent
+        # isn't a Component
+        assert isinstance(self.parent.parent.parent, Component)
+        return self.parent.parent.parent
 
     def __str__(self):
         return "%s.%s" % (str(self.instance), str(self.interface))
