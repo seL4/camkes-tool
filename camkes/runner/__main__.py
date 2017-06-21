@@ -684,8 +684,7 @@ def main(argv, out, err):
         if i.type.hardware:
             continue
         assert i.address_space in cspaces
-        if conf and conf.settings and [x for x in conf.settings if
-                x.instance == i.name and x.attribute == 'simple' and x.value]:
+        if conf[i.name].get('simple'):
             for t in ('%s/simple' % i.name,):
                 try:
                     template = templates.lookup(t, i)
