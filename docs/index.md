@@ -71,6 +71,10 @@ of these terms are made explicit below.
   are generally used to specialise or differentiate a component at runtime.  
   The types of attributes can be constructed as a collection or _struct_ of
   any of the basic CAmkES types: int, unsigned int, char, unsigned char, string.
+  It is possible to give an attribute a default value when it is declared.  If
+  there are no settings for an attribute, the default setting will be used.  If
+  an attribute is aliased to a different attribute that also has a default,
+  then the different attribute's default will override the original default.
 
 **Component**
 
