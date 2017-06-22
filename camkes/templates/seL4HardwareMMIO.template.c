@@ -19,17 +19,20 @@
 
 /*- set index = me.parent.from_ends.index(me) -*/
 
+/*- set dataport_symbol_name = "from_%d_%s_data" % (index, me.interface.name) -*/
 #define MMIO_ALIGN (1 << 12)
 struct {
     char content[ROUND_UP_UNSAFE(/*? macros.dataport_size(me.interface.type) ?*/,
         PAGE_SIZE_4K)];
-} from_/*? index ?*/_/*? me.interface.name ?*/_data
+} /*? dataport_symbol_name ?*/
         ALIGN(MMIO_ALIGN)
         __attribute__((section("ignore_from_/*? index ?*/_/*? me.interface.name ?*/")))
         VISIBLE;
 
+/*- do keep_symbol(dataport_symbol_name) -*/
+
 volatile /*? macros.dataport_type(me.interface.type) ?*/ * /*? me.interface.name ?*/ =
-    (volatile /*? macros.dataport_type(me.interface.type) ?*/ *) & from_/*? index ?*/_/*? me.interface.name ?*/_data;
+    (volatile /*? macros.dataport_type(me.interface.type) ?*/ *) & /*? dataport_symbol_name ?*/;
 
 /*- set id = composition.connections.index(me.parent) -*/
 
