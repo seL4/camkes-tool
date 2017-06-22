@@ -485,6 +485,7 @@ static int post_main(int thread_id);
  * jump straight to post_main */
 void USED _camkes_tls_init(int thread_id) {
     switch (thread_id) {
+        /*- set thread_names = dict() -*/
         /*- set _tcb_control = alloc_obj('%d_0_control_%d_tcb' % (len(me.name), len('0_control')), seL4_TCBObject) -*/
         /*- set tcb_control = alloc_cap('%d_0_control_%d_tcb' % (len(me.name), len('0_control')), _tcb_control) -*/
 
@@ -511,6 +512,7 @@ void USED _camkes_tls_init(int thread_id) {
           /*- do my_cnode[fault_ep_cap].set_badge(tcb_control) -*/
           /*- do setattr(_tcb_control, 'fault_ep_slot', fault_ep_cap) -*/
         /*- endif -*/
+        /*- do thread_names.__setitem__(tcb_control, "control") -*/
         case /*? tcb_control ?*/ : /* Control thread */
             /*- set p = Perspective(instance=me.name, control=True) -*/
             /*? macros.save_ipc_buffer_address(p['ipc_buffer_symbol']) ?*/
@@ -528,6 +530,7 @@ void USED _camkes_tls_init(int thread_id) {
 
             /*- set _tcb = alloc_obj('%s_tcb' % prefix, seL4_TCBObject) -*/
             /*- set tcb = alloc_cap('%s_tcb' % prefix, _tcb) -*/
+            /*- do thread_names.__setitem__(tcb, t.interface.name) -*/
 
             /*- set p = Perspective(instance=me.name, interface=t.interface.name, intra_index=t.intra_index) -*/
 
@@ -559,7 +562,7 @@ void USED _camkes_tls_init(int thread_id) {
 
         /*- if options.debug_fault_handlers -*/
             /*- set tcb = alloc('%d_0_fault_handler_%d_0000_tcb' % (len(me.name), len('0_fault_handler')), seL4_TCBObject) -*/
-
+            /*- do thread_names.__setitem__(tcb, "fault_handler") -*/
             /*- if options.realtime -*/
                 /*- set sc = alloc('%d_0_fault_handler_%d_0000_sc' % (len(me.name), len('0_fault_handler')), seL4_SchedContextObject) -*/
             /*- endif -*/
@@ -793,12 +796,21 @@ void USED _camkes_tls_init(int thread_id) {
     }
 /*- endif -*/
 
+const char * get_thread_name(int thread_id) {
+    switch (thread_id) {
+        /*- for (id, name) in thread_names.items() -*/
+        case /*? id ?*/: return "/*?name?*/";
+        /*- endfor -*/
+    }
+    return "(unknown)";
+}
+
 static int post_main(int thread_id) {
 #if defined(CONFIG_DEBUG_BUILD) && defined(CONFIG_CAMKES_PROVIDE_TCB_CAPS)
    /*- set thread_name = c_symbol() -*/
    char /*? thread_name ?*/[seL4_MsgMaxLength * sizeof(seL4_Word)];
-   snprintf(/*? thread_name ?*/, sizeof(/*? thread_name ?*/), "%s(%d)",
-       get_instance_name(), thread_id);
+   snprintf(/*? thread_name ?*/, sizeof(/*? thread_name ?*/), "%s:%s",
+       get_instance_name(), get_thread_name(thread_id));
    /*? thread_name ?*/[sizeof(/*? thread_name ?*/) - 1] = '\0';
    seL4_DebugNameThread(camkes_get_tls()->tcb_cap, /*? thread_name ?*/);
 #endif
