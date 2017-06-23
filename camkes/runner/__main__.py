@@ -173,6 +173,8 @@ def parse_args(argv, out, err):
         help='Default component thread scheduling context budget.')
     parser.add_argument('--default-data', type=int, default=0,
         help='Default component thread scheduling context data.')
+    parser.add_argument('--default-size_bits', type=int, default=8,
+        help='Default scheduling context size bits.')
     parser.add_argument('--prune', action='store_true',
         help='Minimise the number of functions in generated C files.')
     parser.add_argument('--largeframe', action='store_true',

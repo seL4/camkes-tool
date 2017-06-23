@@ -799,6 +799,7 @@ def sc_default_properties(obj_space, options, **_):
         s.period = options.default_period
         s.budget = options.default_budget
         s.data = options.default_data
+        s.size_bits = options.default_size_bits
 
 def maybe_set_property_from_configuration(assembly, perspective, obj, field_name, attribute_name, general_attribute):
     '''Sets a field "field_name" of an object "obj" to the value of a configuration
@@ -890,6 +891,7 @@ def sc_properties(ast, cspaces, obj_space, **_):
             maybe_set_property_from_configuration(assembly, perspective, sc, 'period', 'period_attribute', 'period')
             maybe_set_property_from_configuration(assembly, perspective, sc, 'budget', 'budget_attribute', 'budget')
             maybe_set_property_from_configuration(assembly, perspective, sc, 'data', 'data_attribute', 'data')
+            maybe_set_property_from_configuration(assembly, perspective, sc, 'size_bits', 'size_bits_attribute', 'size_bits')
 
 def tcb_domains(ast, cspaces, **_):
     '''Set the domain of a TCB if the user has specified this in an

@@ -375,6 +375,10 @@ DERIVATIONS = {
         FromControlDeriver('_data', 'data_attribute'),
         ForwardDeriver('%(interface)s_data', 'data_attribute'),
         BackwardDeriver(r'^([^_].*)_data$', 'data_attribute', 'interface'),
+        ControlDeriver(r'^_sc_size_bits$', 'size_bits_attribute'),
+        FromControlDeriver('_sc_size_bits', 'size_bits_attribute'),
+        ForwardDeriver('%(interface)s_sc_size_bits', 'size_bits_attribute'),
+        BackwardDeriver(r'^([^_].*)_sc_size_bits$', 'size_bits_attribute', 'interface'),
     ],
 }
 
