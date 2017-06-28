@@ -97,6 +97,13 @@ endif
     $(/*? i.type.name ?*/_ASMFILES:%=$(abspath ${BUILD_DIR})/src//*? i.name ?*//static/%)
 /*? i.name ?*/_HFILES += \
     $(/*? i.type.name ?*/_HFILES:%=$(abspath ${BUILD_DIR})/include//*? i.name ?*//static/%)
+/*- if configuration[i.name].get('rump_config') -*/
+/*? i.name ?*/_rumpbin += $(/*? i.type.name ?*/_rumpbin)
+/*? i.name ?*/_CC := $(BASEFILE_CC)
+/*- endif -*/
+ifeq (${/*? i.name ?*/_CC}, )
+/*? i.name ?*/_CC := ${CC}
+endif
 
 # This will be matched for local source and header files.
 /*? rule_cp('$(abspath ${BUILD_DIR})/src/%s/static/%%' % i.name, '${SOURCE_DIR}/%') ?*/
@@ -118,6 +125,9 @@ endif
 /*? rule_gen('$(abspath ${BUILD_DIR})/src/%s/generated/camkes.c' % i.name, ' '.join(imported), '%s/source' % i.name, i.name) ?*/
 /*- if configuration[i.name].get('simple') -*/
     /*? rule_gen('$(abspath ${BUILD_DIR})/src/%s/generated/camkes.simple.c' % i.name, ' '.join(imported), '%s/simple' % i.name, i.name) ?*/
+/*- endif -*/
+/*- if configuration[i.name].get('rump_config') -*/
+    /*? rule_gen('$(abspath ${BUILD_DIR})/src/%s/generated/camkes.rumprun.c' % i.name, ' '.join(imported), '%s/rumprun' % i.name, i.name) ?*/
 /*- endif -*/
 /*? rule_gen('$(abspath ${BUILD_DIR})/include/%s/generated/camkes.h' % i.name, ' '.join(imported), '%s/header' % i.name) ?*/
 /*- endfor -*/
@@ -376,14 +386,31 @@ $(/*? i.name ?*/_CFILES:%.c=%.c_pp): ${/*? i.name ?*/_HFILES} ${/*? i.name ?*/_C
 CRTOBJFILES ?= $(SEL4_LIBDIR)/crt1.o $(SEL4_LIBDIR)/crti.o $(shell $(CC) $(CFLAGS) $(CPPFLAGS)  -print-file-name=crtbegin.o)
 FINOBJFILES ?= $(shell $(CC) $(CFLAGS) $(CPPFLAGS) -print-file-name=crtend.o) $(SEL4_LIBDIR)/crtn.o
 
+/*- set rump_config = configuration[i.name].get('rump_config') -*/
+/*- if rump_config -*/
+/*? i.name ?*/_instance_LDFLAGS += $(BASEFILE_LD_FLAGS) $(STARTGROUP) $(RUMPRUN_SEL4LIBS:%=-l%) $(ENDGROUP)
+
+define /*? i.name ?*/_buildrump
+	$(BASEFILE_OBJCOPY) /*? macros.format_list_of_strings("-G %s*", rump_config.get('interfaces_to_expose'), ' ') ?*/ $@
+	mkdir -p $(@D)/rumprun/$(@F)_
+	cp $@ $(@D)/rumprun/$(@F)_/rumprun.o
+	RUMPRUN_BASEDIR=$(@D)/rumprun/$(@F)_ $(RUMPRUN_BAKE) /*? rump_config.get('rumprunbake_config') ?*/ $@ $(/*? i.name ?*/_rumpbin)
+endef
+/*- endif -*/
+
+
 /*? i.name ?*/.instance.bin: $(/*? i.name ?*/_CFILES:%.c=%.o) \
                              $(/*? i.name ?*/_CXXFILES:%.cxx=%.o) \
                              $(/*? i.name ?*/_ASMFILES:%.S=%.o) \
                              $(/*? i.name ?*/_OFILES) \
+                             /*- if rump_config -*/ $(/*? i.name ?*/_rumpbin) /*- endif -*/ \
+                             /*- if rump_config -*/ $(INTERMEDIATE_BASEFILE) /*- endif -*/ \
                              $(/*? i.name ?*/_instance_LIBS:%=lib%.a) \
                              $(abspath ${BUILD_DIR})/ld//*? i.name ?*//generated/linker.lds
 	@echo " [LD] $(notdir $@)"
-	${Q}${CC} $(CRTOBJFILES) $(filter %.o,$^) $(FINOBJFILES) ${/*? i.name ?*/_instance_LDFLAGS} -o $@
+	${Q}${/*? i.name ?*/_CC} $(CRTOBJFILES) $(filter %.o,$^) $(FINOBJFILES) ${/*? i.name ?*/_instance_LDFLAGS} -o $@
+	$(/*? i.name ?*/_buildrump)
+
 /*- set p = Perspective(group=i.address_space) -*/
 /*? p['elf_name'] ?*/: /*? i.name ?*/.instance-copy.bin
 /*# The actual recipe for the above target is generated below. Remember, groups

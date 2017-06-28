@@ -148,6 +148,9 @@ def show_includes(xs, prefix=''):
             s += '#include <%s>\n' % header.source
     return s
 
+def format_list_of_strings(string, list, seperator):
+    return seperator.join(string % elem for elem in list)
+
 def threads(composition, instance):
     '''
     Compute the threads for a given instance.

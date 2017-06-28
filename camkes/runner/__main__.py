@@ -678,16 +678,17 @@ def main(argv, out, err):
                 except TemplateError as inst:
                     die(['While rendering %s: %s' % (options.item, line) for line in inst.args])
 
-    # Perform any per component simple generation. This needs to happen last
-    # as this template needs to run after all other capabilities have been
+    # Perform any per component special generation. This needs to happen last
+    # as these template needs to run after all other capabilities have been
     # allocated
     for i in assembly.composition.instances:
         # Don't generate any code for hardware components.
         if i.type.hardware:
             continue
         assert i.address_space in cspaces
-        if conf[i.name].get('simple'):
-            for t in ('%s/simple' % i.name,):
+        SPECIAL_TEMPLATES = [('simple', 'simple'), ('rump_config', 'rumprun')]
+        for special in [bl for bl in SPECIAL_TEMPLATES if conf[i.name].get(bl[0])]:
+            for t in ('%s/%s' % (i.name, special[1]),):
                 try:
                     template = templates.lookup(t, i)
                     g = ''
