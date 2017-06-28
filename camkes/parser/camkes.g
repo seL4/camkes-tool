@@ -157,11 +157,11 @@ include: INCLUDE (multi_string | angle_string) ';';
 
 method_decl: (VOID | type) id '\(' (VOID | (method_parameter (',' method_parameter)* ','?)?) '\)' ';';
 @method_parameter: method_array_parameter | method_scalar_parameter;
-method_array_parameter: method_scalar_parameter '\[\]';
+method_array_parameter: method_scalar_parameter '\[' '\]';
 method_scalar_parameter: direction? type id;
 direction: IN | INOUT | OUT | REFIN;
 @attribute_parameter: attribute_array_parameter | attribute_scalar_parameter;
-attribute_array_parameter: attribute_scalar_parameter '\[\]';
+attribute_array_parameter: attribute_scalar_parameter '\[' '\]';
 attribute_scalar_parameter: type id;
 type: signed_int | unsigned_int | struct_type | char | signed_char | unsigned_char | STRING | struct_ref | ID;
 signed_int: (SIGNED? (INT | INTEGER)) | SIGNED;
