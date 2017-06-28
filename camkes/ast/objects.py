@@ -53,9 +53,19 @@ def types_compatible(value, attribute):
         elif isinstance(type, Struct):
             attr_names = {x.name for x in type.attributes}
             missing_attrs = list(attr_names - set(value.keys()))
-            extra_attrs = list(set(value.keys())- attr_names)
             if len(missing_attrs) != 0:
-                return (False, "Attributes: \"%s\" are missing from assignment." % missing_attrs)
+                new_missing = []
+                for attr in missing_attrs:
+                    # Use default attribute if value not present in setting array
+                    attribute = next(a for a in type.attributes if a.name == attr)
+                    if attribute.default is not None:
+                        value[attr] = attribute.default
+                    else:
+                        new_missing.append(attr)
+                if len(new_missing) != 0:
+                    return (False, "Attributes: \"%s\" are missing from assignment." % new_missing)
+
+            extra_attrs = list(set(value.keys())- attr_names)
             if len(extra_attrs) != 0:
                 return (False, "Attributes: \"%s\" do not exist in \"%s\" definition." %(extra_attrs, type.name))
 
@@ -165,7 +175,6 @@ class Assembly(ASTObject):
     def freeze(self):
         if self.frozen:
             return
-        super(Assembly, self).freeze()
         for s in self.configuration.settings:
             for i in self.composition.instances:
                 if i.name == s.instance:
@@ -181,6 +190,7 @@ class Assembly(ASTObject):
             if not result:
                 raise ASTError('mistyped assignment of attribute of type %s: %s' %
                     (str(a.type), error_str), s)
+        super(Assembly, self).freeze()
 
     def get_attribute(self, instance_name, attribute_name):
         '''

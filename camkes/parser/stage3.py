@@ -665,7 +665,7 @@ LIFT = {
     'angle_string':_collapse,
     'assembly_decl':_lift_assembly_decl,
     'assembly_defn':_lift_assembly_defn,
-    'attribute':_lift_attribute,
+    'attribute_decl':_lift_attribute,
     'attribute_array_parameter':_lift_attribute_array_parameter,
     'attribute_reference':_lift_attribute_reference,
     'attribute_scalar_parameter': _lift_attribute_scalar_parameter,

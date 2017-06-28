@@ -92,7 +92,7 @@ composition_sing: COMPOSITION reference ';'
 configuration_sing: CONFIGURATION reference ';'
                   | configuration_decl;
 
-@attribute_decl: attribute_parameter ';';
+attribute_decl: attribute_parameter ('=' item)? ;
 
 component_decl: COMPONENT id? component_defn;
 component_defn: '\{' (attribute | consumes | control | dataport | emits |
@@ -102,9 +102,9 @@ component_defn: '\{' (attribute | consumes | control | dataport | emits |
 component_ref: reference | component_defn;
 
 struct_decl: STRUCT id struct_defn;
-struct_defn: '\{' (attribute_decl)* '\}';
+struct_defn: '\{' (attribute_decl ';')* '\}';
 struct_ref: reference | struct_defn;
-attribute: ATTRIBUTE attribute_parameter ('=' item)? ';';
+@attribute: ATTRIBUTE attribute_decl ';';
 consumes: maybe? CONSUMES id id ';';
 control: CONTROL ';';
 dataport: maybe? DATAPORT dataport_type id ';';
