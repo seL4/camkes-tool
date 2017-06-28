@@ -25,6 +25,7 @@
 /*? target ?*/: /*? dependencies ?*/
 	@echo " [CP] $(notdir $@)"
 	${Q}mkdir -p $(dir $@)
+	${Q}rm -f $@
 	${Q}$(if $(or $(filter %.c,$<),$(filter %.h,$<),$(filter %.cpp,$<),$(filter %.hpp,$<),$(filter %.S,$<)),echo "#line 1 \"$<\"" >$@,)
 	${Q}cat "$<" >>"$@"
 /*- endmacro -*/
