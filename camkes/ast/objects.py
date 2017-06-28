@@ -188,10 +188,10 @@ class Assembly(ASTObject):
         '''
         instance_gen = (x for x in self.instances if x.name == instance_name)
         try:
-            instance = instance_gen.next()
+            instance = next(instance_gen)
             attribute_gen = (x for x in instance.type.attributes
                             if x.name == attribute_name)
-            return attribute_gen.next()
+            return next(attribute_gen)
         except StopIteration:
             # couldn't find attribute
             return None
