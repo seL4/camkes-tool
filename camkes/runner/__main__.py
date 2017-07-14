@@ -215,7 +215,6 @@ def parse_args(argv, out, err):
 
     return options
 
-
 def pickle_call(options, pickle_name, fn, *args, **kwargs):
     cache_path = os.path.realpath(options.data_structure_cache_dir)
     pickle_path = os.path.join(cache_path, pickle_name)

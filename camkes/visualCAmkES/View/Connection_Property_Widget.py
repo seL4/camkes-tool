@@ -11,19 +11,17 @@
 #
 # @TAG(DATA61_BSD)
 
-
 from PyQt5 import QtWidgets
 
 from Interface.Property import PropertyInterface
 import Connection_Widget
 from Instance_Widget import InstanceWidget
 
-
 class ConnectionPropertyWidget(QtWidgets.QGroupBox):
     """
     ConnectionPropertyWidget - shows the properties of a connection.
     """
-   
+
     # Connection Widget that this widget represent
     @property
     def connection_widget(self):
@@ -50,7 +48,7 @@ class ConnectionPropertyWidget(QtWidgets.QGroupBox):
         if self._type_widget is None:
             self._type_widget = QtWidgets.QLabel(self.connection_widget.connection_type)
         return self._type_widget
-    
+
     @property
     def from_interface_widget(self):
         # When this becomes editable
@@ -64,7 +62,7 @@ class ConnectionPropertyWidget(QtWidgets.QGroupBox):
         if self._from_instance_widget is None:
             self._from_instance_widget = QtWidgets.QLabel(self.connection_widget.source_instance_widget.name)
         return self._from_instance_widget
-    
+
     @property
     def to_interface_widget(self):
         # When this becomes editable
@@ -78,7 +76,7 @@ class ConnectionPropertyWidget(QtWidgets.QGroupBox):
         if self._to_instance_widget is None:
             self._to_instance_widget = QtWidgets.QLabel(self.connection_widget.dest_instance_widget.name)
         return self._to_instance_widget
-    
+
     # --- INITIALISATION ---
 
     def __init__(self, connection_widget):
@@ -91,7 +89,7 @@ class ConnectionPropertyWidget(QtWidgets.QGroupBox):
         self._to_instance_widget = None
 
         self.connection_widget = connection_widget
-        
+
         super(ConnectionPropertyWidget, self).__init__()
 
         grid_layout = QtWidgets.QGridLayout()
@@ -100,7 +98,7 @@ class ConnectionPropertyWidget(QtWidgets.QGroupBox):
         # Name
         grid_layout.addWidget(QtWidgets.QLabel("Name: "), 0, 0)
         grid_layout.addWidget(self.name_widget, 0, 1)
-        
+
         # Type
         grid_layout.addWidget(QtWidgets.QLabel("Type: "), 1, 0)
         grid_layout.addWidget(self.type_widget, 1, 1)
@@ -115,10 +113,10 @@ class ConnectionPropertyWidget(QtWidgets.QGroupBox):
 
         grid_layout.addWidget(QtWidgets.QLabel("Interface: "), 4, 0)
         grid_layout.addWidget(self.from_interface_widget, 4, 1)
-        
+
         grid_layout.addWidget(QtWidgets.QLabel("Instance: "), 5, 0)
         grid_layout.addWidget(self.from_instance_widget, 5, 1)
-        
+
         # Separator
         separator = QtWidgets.QFrame()
         separator.setFrameStyle(QtWidgets.QFrame.HLine | QtWidgets.QFrame.Plain)
@@ -129,9 +127,8 @@ class ConnectionPropertyWidget(QtWidgets.QGroupBox):
 
         grid_layout.addWidget(QtWidgets.QLabel("Interface: "), 8, 0)
         grid_layout.addWidget(self.to_interface_widget, 8, 1)
-        
+
         grid_layout.addWidget(QtWidgets.QLabel("Instance: "), 9, 0)
         grid_layout.addWidget(self.to_instance_widget, 9, 1)
 
         self.setLayout(grid_layout)
-

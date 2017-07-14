@@ -11,13 +11,11 @@
 #
 # @TAG(DATA61_BSD)
 
-
 from PyQt5 import QtWidgets
 
 import Instance_Widget
 from Interface.Property import PropertyInterface
 import Connection_Widget
-
 
 class InstancePropertyWidget(QtWidgets.QGroupBox):
     """
@@ -106,7 +104,6 @@ class InstancePropertyWidget(QtWidgets.QGroupBox):
         grid_layout.addWidget(separator, row, 0, 1, -1)
         row = row + 1
 
-
         # List all connection
         grid_layout.addWidget(QtWidgets.QLabel("Connections"), row, 0, 1, -1)
         row = row + 1
@@ -137,4 +134,3 @@ class InstancePropertyWidget(QtWidgets.QGroupBox):
             row = row + 1
 
         self.setLayout(grid_layout)
-

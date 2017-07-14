@@ -180,6 +180,5 @@ class TestStage9(CAmkESTest):
             }
             ''')
 
-
 if __name__ == '__main__':
     unittest.main()

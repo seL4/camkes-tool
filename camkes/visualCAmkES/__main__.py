@@ -11,7 +11,6 @@
 #
 # @TAG(DATA61_BSD)
 
-
 import sys, os
 
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../'))
@@ -44,6 +43,5 @@ def main(argv, out, err):
 
     app.exec_()
 
-    
 if __name__ == '__main__':
     sys.exit(main(sys.argv, sys.stdout, sys.stderr))

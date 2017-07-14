@@ -11,12 +11,10 @@
 #
 # @TAG(DATA61_BSD)
 
-
 import argparse,os
 
 from camkes.parser.parser import Parser
 import camkes.ast
-
 
 class ASTModel:
 

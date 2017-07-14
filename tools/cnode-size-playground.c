@@ -12,7 +12,7 @@
 
 /* Framework for running experiments related to CNode size calculations.
  *
- * Rather than having a universal, hard coded size for CNodes, CAmkES infers 
+ * Rather than having a universal, hard coded size for CNodes, CAmkES infers
  * the size of a CNode after doing cap allocation by calculating the minimum
  * size it can be while still fitting its contained caps. This calculation
  * needs to exist in two different places: in Python for the CAmkES

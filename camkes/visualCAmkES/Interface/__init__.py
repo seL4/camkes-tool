@@ -9,7 +9,6 @@
 #
 # @TAG(DATA61_BSD)
 
-
 # The Interface python module
 
-# The purpose of this module is to collect all the interfaces. 
+# The purpose of this module is to collect all the interfaces.

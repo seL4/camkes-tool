@@ -11,11 +11,9 @@
 # @TAG(DATA61_BSD)
 #
 
-
 # Wrapper script for calling the CAmkES code generator. You should use this as
 # an entry point in preference to calling Python files directly because it
 # checks the dependencies for you.
-
 
 # If the user has the CAmkES accelerator enabled, first try to see if it can
 # retrieve the requested output from the level A cache. Note that the

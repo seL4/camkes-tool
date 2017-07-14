@@ -73,7 +73,6 @@ class CPP(Parser):
             with codecs.open(deps, 'r', 'utf-8') as f:
                 read = set(parse_makefile_rule(f))
         return processed, read
-        
 
 class Reader(Parser):
     '''

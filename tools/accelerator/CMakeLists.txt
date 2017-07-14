@@ -31,7 +31,6 @@ if (CMAKE_BUILD_TYPE MATCHES Debug)
   set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DDEBUG")
 endif (CMAKE_BUILD_TYPE MATCHES Debug)
 
-
 # The accelerator itself.
 
 add_executable (camkes-accelerator accelerator.c
@@ -58,7 +57,6 @@ add_custom_command(
     DEPENDS mkversion.py)
 
 target_link_libraries (camkes-accelerator ${CRYPTO} ${OPENSSL} ${SQLITE})
-
 
 # Accelerator unit tests.
 

@@ -68,7 +68,7 @@ of these terms are made explicit below.
   component/connector must describe the name of the attribute and its type. The
   value of the attribute itself is unspecified. It is assigned when the entity
   is instantiated, and this assignment is referred to as a _setting_. Attributes
-  are generally used to specialise or differentiate a component at runtime.  
+  are generally used to specialise or differentiate a component at runtime.
   The types of attributes can be constructed as a collection or _struct_ of
   any of the basic CAmkES types: int, unsigned int, char, unsigned char, string.
   It is possible to give an attribute a default value when it is declared.  If
@@ -930,7 +930,7 @@ up the struct are listed in a `type` `name` format (similar to C).
 
 Arrays are specified by appending the attribute name with a `[]`.  The size of
 an array is set at code generation time when the setting for the attribute is
-specified.  
+specified.
 
 This is an example of a valid camkes specification.  The corresponding C file
 is shown after.  To find a size of an attribute array, the sizeof macro can be
@@ -977,7 +977,6 @@ int run(void)
     return 0;
 }
 ```
-
 
 #### Tutorial Summary
 

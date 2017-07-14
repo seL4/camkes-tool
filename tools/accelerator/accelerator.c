@@ -438,7 +438,7 @@ static char *find_entry(char *cache_dir, char *args, char *cwd, FILE *deps) {
     char args_hexdigest[SHA256_DIGEST_LENGTH * 2 + 1];
     assert(args != NULL);
     hash_string(args, args_hexdigest);
-    
+
     char cwd_hexdigest[SHA256_DIGEST_LENGTH * 2 + 1];
     assert(cwd != NULL);
     hash_string(cwd, cwd_hexdigest);

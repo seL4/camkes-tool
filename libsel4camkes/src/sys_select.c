@@ -29,7 +29,7 @@ static void fdset_to_sockset(int maxfd, fd_set *fds)
 	if (maxfd <= FIRST_USER_FD || !fds) {
 		return;
 	}
-	
+
 	for (int i = FIRST_USER_FD; i < maxfd; i++) {
 		fdt = get_fd_struct(i);
 		if (fdt->filetype == FILE_TYPE_SOCKET) {
@@ -50,7 +50,7 @@ static void sockset_to_fdset(int maxfd, fd_set *fds)
 	if (maxfd <= FIRST_USER_FD || !fds) {
 		return;
 	}
-	
+
 	for (int i = FIRST_USER_FD; i < maxfd; i++) {
 		fdt = get_fd_struct(i);
 		if (fdt->filetype == FILE_TYPE_SOCKET) {
@@ -100,7 +100,7 @@ long camkes_sys__newselect(va_list ap)
 		if (readfds) {
 			memcpy((char*)sock_data, readfds, sizeof(fd_set));
 		}
-		
+
 		if (writefds) {
 			memcpy((char*)sock_data + sizeof(fd_set), writefds, sizeof(fd_set));
 		}
@@ -118,25 +118,25 @@ long camkes_sys__newselect(va_list ap)
 		if (readfds) {
 			memcpy(readfds, (char*)sock_data, sizeof(fd_set));
 		}
-		
+
 		if (writefds) {
 			memcpy(writefds, (char*)sock_data + sizeof(fd_set), sizeof(fd_set));
 		}
-		
+
 		if (exceptfds) {
 			memcpy(exceptfds, (char*)sock_data + sizeof(fd_set) * 2, sizeof(fd_set));
 		}
-		
+
 		if (timeout) {
 			memcpy(timeout, (char*)sock_data + sizeof(fd_set) * 3, sizeof(struct timeval));
 		}
-		
+
 		sockset_to_fdset(nfds, readfds);
 		sockset_to_fdset(nfds, writefds);
 		sockset_to_fdset(nfds, exceptfds);
 
 		return retval;
-		
+
 	} else {
 		assert(!"sys__newselect not implemented");
         return -ENOSYS;

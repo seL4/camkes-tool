@@ -95,8 +95,6 @@ connector seL4RPCCall {
     to Procedure;
 }
 
-
-
 /**
  * Direct Call connector
  *

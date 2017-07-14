@@ -994,8 +994,6 @@ class Component(MapLike):
                 'component')
         self._binary_semaphores = value
 
-
-
     @property
     def composition(self):
         return self._composition

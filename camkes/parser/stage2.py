@@ -96,7 +96,7 @@ class Parse2(Parser):
                 read |= r
                 assert more_ast_raw.head == 'start', 'unexpected raw AST structure'
                 more_ast_augmented = [(more_source, target, t) for t in more_ast_raw.tail]
-                    
+
                 queue.extendleft(reversed(more_ast_augmented))
 
             else:

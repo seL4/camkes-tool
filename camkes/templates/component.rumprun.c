@@ -32,7 +32,6 @@ void /*? eth_irq_config ?*/_handle(void) {
 }
 /*- endif -*/
 
-
 int run(void) {
 
     if (rump_config.rump_net == 1) {
@@ -41,7 +40,6 @@ int run(void) {
         sprintf(cmdline, "{,,\"cmdline\": \"%s\",,},,", rump_config.cmdline);
     }
     camkes_make_simple(&camkes_simple);
-
 
     custom_simple.cmdline = cmdline;
     custom_simple.priority = rump_priority;
@@ -66,7 +64,7 @@ int run(void) {
     custom_simple.pci_config_config.pci_config_write32 = /*? pci_config_interface ?*/_write32;
     custom_simple.ethernet_intr_config.eth_irq_acknowledge = /*? eth_irq_config ?*/_acknowledge;
 /*- endif -*/
-  
+
     /* Start rumprun instance */
     init_rumprun(&custom_simple);
 

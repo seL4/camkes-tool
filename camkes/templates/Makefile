@@ -398,7 +398,6 @@ define /*? i.name ?*/_buildrump
 endef
 /*- endif -*/
 
-
 /*? i.name ?*/.instance.bin: $(/*? i.name ?*/_CFILES:%.c=%.o) \
                              $(/*? i.name ?*/_CXXFILES:%.cxx=%.o) \
                              $(/*? i.name ?*/_ASMFILES:%.S=%.o) \

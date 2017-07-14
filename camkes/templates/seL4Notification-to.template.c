@@ -17,7 +17,7 @@
  * pending event and, if so, invokes the callback immediately to short circuit
  * the process of registering it, deregistering it and then invoking it. Note
  * that we only operate on the callback slot while holding an internal lock.
- * 
+ *
  * This design is intended to avoid race conditions when operating on a single
  * endpoint in multiple modes. The intent is to also avoid reaching a state
  * where there is both a registered callback and a pending notification on the

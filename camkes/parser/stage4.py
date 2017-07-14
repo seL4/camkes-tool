@@ -211,4 +211,3 @@ def check_acyclic(obj, path=None):
 
     for c in (x for x in obj.children if x is not None):
         check_acyclic(c, path + [obj])
-

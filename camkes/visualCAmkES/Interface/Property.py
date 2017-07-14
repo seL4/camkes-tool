@@ -11,7 +11,6 @@
 #
 # @TAG(DATA61_BSD)
 
-
 # Can be better done with https://www.python.org/dev/peps/pep-3119/
 
 class PropertyInterface(object):

@@ -70,8 +70,6 @@ def show_type(t):
     else:
         return "struct " + t.name
 
-
-
 def print_type_definitions(attributes, values):
     def print_struct_definition(struct, sub_value):
         return_string = "struct %s {\n" % struct.name

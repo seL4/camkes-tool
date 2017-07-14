@@ -38,7 +38,7 @@ class TestObjects(CAmkESTest):
         objects through the `globals` dictionary in order to ensure we notice
         new AST object classes, even if developers forget to tell us about
         them.
-        
+
         This test may seem to be checking something obvious, but it is very
         easy to write `child_fields = ('hello')` and think you defined a tuple
         when you really just defined a string.

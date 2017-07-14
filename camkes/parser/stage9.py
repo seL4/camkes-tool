@@ -139,7 +139,6 @@ class ConnectionTracker:
 
                 yield (self.connections[end], new_connection)
 
-
     # yields tuples of the form  (conns_to_remove, conn_to_add) where conns_to_remove
     # is a set of connections to remove from the ast, and
     # conn_to_add is a single connection to replace them with

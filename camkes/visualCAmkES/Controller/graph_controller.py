@@ -11,7 +11,6 @@
 #
 # @TAG(DATA61_BSD)
 
-
 import six
 
 from PyQt5 import QtWidgets, QtGui, QtCore
@@ -26,7 +25,6 @@ from camkes.internal.exception import CAmkESError
 from Model.AST_Model import ASTModel
 
 from View.Graph_Widget import GraphWidget
-
 
 class GraphController(QtWidgets.QMainWindow):
 
@@ -58,7 +56,7 @@ class GraphController(QtWidgets.QMainWindow):
             self._open_action.setToolTip("Open a new CAmkES ADL file (Top Level only)")
             self._open_action.triggered.connect(self.open_new_file)
         return self._open_action
-    
+
     @property
     def quit_action(self):
         """
@@ -110,12 +108,11 @@ class GraphController(QtWidgets.QMainWindow):
         fileMenu.addAction(self.root_widget.export_action)
 
         fileMenu.addSeparator()
- 
+
         fileMenu.addAction(self.quit_action)
 
         viewMenu = self.menuBar().addMenu("&View")
         viewMenu.addAction(self.root_widget.show_components_action)
-
 
         # Get a ASTObject from given camkes file
         if path_to_camkes is not None:
@@ -203,4 +200,3 @@ class GraphController(QtWidgets.QMainWindow):
             self.root_widget.save_layout_to_file()
 
         QtWidgets.QApplication.quit()
-

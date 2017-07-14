@@ -200,7 +200,6 @@ def _lift_struct_ref(location, arg):
     assert isinstance(arg, Reference)
     return Reference(arg.name, Struct, location)
 
-
 def _lift_component_decl(location, *args):
     if len(args) == 1:
         return args[0]
@@ -608,7 +607,6 @@ def _lift_attribute_scalar_parameter(location, *args):
         if type.startswith("struct "):
             raise ParseError("type: \"%s\" is not a valid type" % type, location)
     return Attribute(type, name, array=False, default= None, location=location)
-
 
 def _lift_semaphore(location, id):
     return Semaphore(id, location)

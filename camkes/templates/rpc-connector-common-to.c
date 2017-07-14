@@ -194,7 +194,6 @@ seL4_Word /*? me.interface.name ?*/_get_sender_id(void) {
 
 /*- include 'array-typedef-check.c' -*/
 
-
 /*- set p = Perspective(instance=me.instance.name, interface=me.interface.name) -*/
 /*- set passive = options.realtime and configuration[me.instance.name].get(p['passive_attribute'], False) -*/
 
@@ -383,7 +382,6 @@ int
                             /*- if not loop.last -*/,/*- endif -*/
                         /*- endfor -*/
                     );
-
 
                     /*- set tls = c_symbol() -*/
                     camkes_tls_t * /*? tls ?*/ UNUSED = camkes_get_tls();

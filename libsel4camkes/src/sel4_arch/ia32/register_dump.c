@@ -29,7 +29,7 @@ void show_register_dump(seL4_CPtr tcb) {
     SHOW("      eip = %p\n", (void*)regs.eip);
     SHOW("      esp = %p\n", (void*)regs.esp);
     SHOW("      eax = %p\n", (void*)regs.eax);
-    SHOW("      ebx = %p\n", (void*)regs.ebx); 
+    SHOW("      ebx = %p\n", (void*)regs.ebx);
     SHOW("      ecx = %p\n", (void*)regs.ecx);
     SHOW("      edx = %p\n", (void*)regs.edx);
     SHOW("      esi = %p\n", (void*)regs.esi);

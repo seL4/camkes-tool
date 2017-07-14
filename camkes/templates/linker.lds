@@ -23,7 +23,6 @@
 /*- set instances = composition.instances -*/
 /*- set grouped = [False] -*/
 
-
 /*# For single address space components we need to collect constructors
  *# and destructors early in order to prevent them from being called
  *# multiple times by each component.
@@ -53,7 +52,6 @@ SECTIONS {
 }
 INSERT AFTER .preinit_array
 /*- endif -*/
-
 
 SECTIONS {
 

@@ -11,7 +11,6 @@
 #
 # @TAG(DATA61_BSD)
 
-
 import sys, os
 
 from PyQt5 import QtWidgets

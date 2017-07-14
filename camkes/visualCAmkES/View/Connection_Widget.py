@@ -11,7 +11,6 @@
 #
 # @TAG(DATA61_BSD)
 
-
 import math, six
 
 from PyQt5 import QtGui, QtWidgets, QtCore
@@ -19,7 +18,6 @@ from PyQt5 import QtGui, QtWidgets, QtCore
 from Interface.Property import PropertyInterface
 from Instance_Widget import InstanceWidget
 from Connection_Property_Widget import ConnectionPropertyWidget
-
 
 class ConnectionWidget(QtWidgets.QGraphicsItem, PropertyInterface):
     """
@@ -210,7 +208,7 @@ class ConnectionWidget(QtWidgets.QGraphicsItem, PropertyInterface):
 
     def paint(self, q_painter, style_option, widget=None):
         """
-        Deals with the drawing of the connection when asked to paint. 
+        Deals with the drawing of the connection when asked to paint.
         Realies on self.path to be set
         :param q_painter: QPainter to paint on
         :param style_option: styling options - unused atm
@@ -285,7 +283,7 @@ class ConnectionWidget(QtWidgets.QGraphicsItem, PropertyInterface):
             destination_control_point = self.get_control_point(self.dest_pos, self.source_pos, self.dest_angle)
 
             # Find final points for both source and destionation
-            if source_control_point != destination_control_point: 
+            if source_control_point != destination_control_point:
                 # It doesn't make sense to compare points as < or >, because its a bit ambigious.
                 # If we consider * to be source points, and X to be destination point, the following
                 # will not occur due to the get_control_point algorithm.
@@ -330,7 +328,7 @@ class ConnectionWidget(QtWidgets.QGraphicsItem, PropertyInterface):
 
     def draw_connector_type(self, source_point, dest_point):
         """
-        Draws the icon between two points. 
+        Draws the icon between two points.
         Expected to be subclassed for different connector types.
         :param source_point: QPointF - the starting point
         :param dest_point: QPointF - the ending point
@@ -352,7 +350,7 @@ class ConnectionWidget(QtWidgets.QGraphicsItem, PropertyInterface):
         """
         assert isinstance(mouse_event, QtWidgets.QGraphicsSceneMouseEvent)
         super(ConnectionWidget, self).mousePressEvent(mouse_event)
-        
+
     # --- HELPER FUNCTIONS ---
 
     @staticmethod
@@ -377,7 +375,7 @@ class ConnectionWidget(QtWidgets.QGraphicsItem, PropertyInterface):
     @staticmethod
     def get_control_point(source_pos, dest_pos, angle):
         """
-        Get the middle point of the cubic beizer curve. 
+        Get the middle point of the cubic beizer curve.
         To get the source control point - pass in source point as source_pos and destination point as dest_pos
         To get the dest control porint - pass in destination point as source_pos and source point as source_pos
         :param source_pos: QPointF - source point
@@ -410,14 +408,13 @@ class ConnectionWidget(QtWidgets.QGraphicsItem, PropertyInterface):
 
     def delete(self):
         """
-        Before removing the connection, make sure to call this function. 
+        Before removing the connection, make sure to call this function.
         :return:
         """
 
         # TODO: Delete connection from source & destination
         self.source_instance_widget.remove_connection(self)
         self.dest_instance_widget.remove_connection(self)
-
 
 class DataportWidget(ConnectionWidget):
     """
@@ -452,7 +449,6 @@ class DataportWidget(ConnectionWidget):
         self.path.lineTo(bottom_right)
         self.path.lineTo(bottom_left)
         self.path.lineTo(top_left)
-
 
 class ProcedureWidget(ConnectionWidget):
     """
@@ -511,7 +507,6 @@ class ProcedureWidget(ConnectionWidget):
 
         self.path.moveTo(end_point)
         self.path.lineTo(dest_point)
-
 
 class EventWidget(ConnectionWidget):
     """

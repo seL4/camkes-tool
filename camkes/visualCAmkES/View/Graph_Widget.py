@@ -11,7 +11,6 @@
 #
 # @TAG(DATA61_BSD)
 
-
 import json, os, math
 
 from PyQt5 import QtWidgets, QtGui, QtCore, QtSvg
@@ -27,7 +26,6 @@ from Connection_Widget import ConnectionWidget, DataportWidget, ProcedureWidget,
 from Instance_Widget import InstanceWidget
 from Save_Option_Dialog import SaveOptionDialog
 from Interface.Property import PropertyInterface
-
 
 class GraphWidget(QtWidgets.QGraphicsView):
     """
@@ -475,7 +473,7 @@ class GraphWidget(QtWidgets.QGraphicsView):
 
             node_positions[widget.name] = attributes
 
-        file_location =  "%s.visualCAmkES.layout" % self.get_root_location() 
+        file_location =  "%s.visualCAmkES.layout" % self.get_root_location()
 
         with open(file_location, 'w') as output:
             json.dump(node_positions, output, indent=4)

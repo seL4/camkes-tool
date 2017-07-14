@@ -41,7 +41,7 @@ long camkes_sys_socket(va_list ap)
 	} else {
 		assert(!"sys_socket not implemented");
 	}
-	
+
 	return 0;
 }
 
@@ -62,7 +62,7 @@ long camkes_sys_bind(va_list ap)
 	} else {
 		assert(!"sys_bind not implemented");
 	}
-	
+
 	return -1;
 }
 
@@ -103,7 +103,7 @@ long camkes_sys_listen(va_list ap)
 	} else {
 		assert(!"sys_listen not implemented");
 	}
-	
+
 	return -1;
 }
 
@@ -127,7 +127,7 @@ long camkes_sys_accept(va_list ap)
 			memcpy((char*)sock_data, addr, sizeof(struct sockaddr));
 			memcpy((char*)sock_data + sizeof(struct sockaddr), addrlen, sizeof(socklen_t));
 		}
-		
+
 		newsockfd = sock_accept(sockfd);
 
 		/* -1 is returned when the call fails. */
@@ -135,7 +135,7 @@ long camkes_sys_accept(va_list ap)
 		    memcpy(&errno, (void*)sock_data, sizeof(errno));
 			return newsockfd;
 		}
-		
+
 		if (addr) {
 			memcpy(addr, (char*)sock_data, sizeof(struct sockaddr));
 			memcpy(addrlen, (char*)sock_data + sizeof(struct sockaddr), sizeof(socklen_t));
@@ -155,7 +155,7 @@ long camkes_sys_accept(va_list ap)
 	} else {
 		assert(!"sys_accept not implemented");
 	}
-	
+
 	return -1;
 }
 
@@ -180,7 +180,6 @@ long camkes_sys_setsockopt(va_list ap)
 	} else {
 		assert(!"sys_setsockopt not implemented");
 	}
-	
+
 	return -1;
 }
-

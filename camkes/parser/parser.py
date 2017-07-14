@@ -83,7 +83,7 @@ class Parser(BaseParser):
         s10 = Parse10(s9)
 
         self.parser = s10
-    
+
     def parse_file(self, filename):
         return self.parser.parse_file(filename)
 

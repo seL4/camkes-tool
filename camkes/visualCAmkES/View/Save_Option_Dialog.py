@@ -11,9 +11,7 @@
 #
 # @TAG(DATA61_BSD)
 
-
 from PyQt5 import QtWidgets, QtGui, QtCore
-
 
 class SaveOptionDialog(QtWidgets.QDialog):
 

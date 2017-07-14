@@ -145,7 +145,6 @@ def set_tcb_info(cspaces, obj_space, elfs, options, **_):
                     sc = obj_space[sc_name]
                     tcb['sc_slot'] = Cap(sc)
 
-
 def make_indices(arch, vaddr, size):
     '''Construct a set of indices that could be used to traverse to the mapping
        at the given vaddr for some concrete set of vspace objects. The size
@@ -325,7 +324,6 @@ def replace_frame_with_small_frames(obj_space, vspace_root, frame_cap, bottom_le
         paging_structure[start_index + i] = Cap(new_frame, frame_cap.read, frame_cap.write, frame_cap.grant)
 
     obj_space.remove(frame_cap.referent)
-
 
 def replace_large_frames(obj_space, arch, vspace_root, start_vaddr, size, page_size):
     '''Given the root paging structure of a vspace, and a virtual address range, replaces

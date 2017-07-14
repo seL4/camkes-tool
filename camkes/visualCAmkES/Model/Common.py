@@ -11,7 +11,6 @@
 #
 # @TAG(DATA61_BSD)
 
-
 import re
 
 Event="Event"
@@ -36,7 +35,7 @@ def extract_numbers(list_of_tuples_string_numbers):
     """
 
     str_nums_list = string_floats.findall(list_of_tuples_string_numbers)
-    
+
     new_list = list()
     i = 0
     while i < len(str_nums_list):

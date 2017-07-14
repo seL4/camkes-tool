@@ -225,7 +225,7 @@ component Reverse {
     uses StringProcessor o;
 }
 component Append {
-    
+
     provides StringProcessor i;
     uses StringProcessor o;
 
@@ -236,12 +236,12 @@ component SubPipeline {
     uses StringProcessor o;
 
     composition {
-        
+
         component UpperCase uc;
         component Reverse r;
 
         connection seL4RPC internal(from uc.o, to r.i);
- 
+
         export r.o -> o;
         export uc.i -> i;
     }
@@ -253,12 +253,12 @@ component Pipeline {
     provides StringProcessor extra;
 
     composition {
- 
+
         component SubPipeline sp;
         component Append a;
 
         connection seL4RPC internal1(from a.o, to sp.i);
- 
+
         export sp.o -> o;
         export a.i -> i;
     }

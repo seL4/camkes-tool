@@ -11,7 +11,6 @@
 #
 # @TAG(DATA61_BSD)
 
-
 import six
 import math
 
@@ -23,7 +22,6 @@ from Interface.Property import PropertyInterface
 from Instance_Property_Widget import InstancePropertyWidget
 
 # TODO: Delete itself from all connections when __del__ ed
-
 
 class InstanceWidget(QtWidgets.QGraphicsWidget, PropertyInterface):
     """
@@ -47,7 +45,7 @@ class InstanceWidget(QtWidgets.QGraphicsWidget, PropertyInterface):
         self._velocity = value
 
     # --- Information about Instance ---
-    
+
     @property
     def name(self):
         if self._name is None:
@@ -603,7 +601,6 @@ class InstanceWidget(QtWidgets.QGraphicsWidget, PropertyInterface):
             if connection.source_angle:
                 decrease_angle = connection.source_angle >= 0
 
-
         # --- Find position based on straight line distance between this and other widget ---
 
         # -- Vector between other and this --
@@ -771,7 +768,6 @@ class InstanceWidget(QtWidgets.QGraphicsWidget, PropertyInterface):
 
         return angle
 
-
     # --- EVENTS ---
     def itemChange(self, change, value):
         """
@@ -781,7 +777,7 @@ class InstanceWidget(QtWidgets.QGraphicsWidget, PropertyInterface):
         :return:
         """
 
-        if change == QtWidgets.QGraphicsWidget.ItemPositionHasChanged: 
+        if change == QtWidgets.QGraphicsWidget.ItemPositionHasChanged:
             self.update_connections()
 
         return super(InstanceWidget, self).itemChange(change, value)
@@ -819,7 +815,7 @@ class InstanceWidget(QtWidgets.QGraphicsWidget, PropertyInterface):
 
         self.widget_moved.emit()
         super(InstanceWidget, self).mouseMoveEvent(mouse_event)
-    
+
     def contextMenuEvent(self, event):
         """
         Shows a context menu for this instance, asking to either show or hide the component.
@@ -829,11 +825,11 @@ class InstanceWidget(QtWidgets.QGraphicsWidget, PropertyInterface):
         """
 
         assert isinstance(event, QtWidgets.QGraphicsSceneContextMenuEvent)
-       
+
         # Get menu widget from proxy widget
         menu = self.context_menu.widget()
         assert isinstance(menu, QtWidgets.QMenu)
-        
+
         # If current hidden, action is "Show" otherwise "Hide"
         menu.clear()
         if self.hidden:
@@ -842,7 +838,7 @@ class InstanceWidget(QtWidgets.QGraphicsWidget, PropertyInterface):
         else:
             hideComponentAction = menu.addAction("Hide component")
             hideComponentAction.triggered.connect(self.hide_component)
-        
+
         # Set the current position [of proxy widget] to mouse click position
         self.context_menu.setPos(event.scenePos())
         menu.exec_()
