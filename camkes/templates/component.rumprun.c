@@ -21,7 +21,6 @@ void camkes_make_simple(simple_t *simple);
 
 static simple_t camkes_simple;
 static custom_simple_t custom_simple;
-static char cmdline[200];
 
 /*- set rump_config = configuration[me.name].get('rump_config') -*/
 /*- set eth_irq_config = rump_config.get('eth_irq_interface') -*/
@@ -32,16 +31,20 @@ void /*? eth_irq_config ?*/_handle(void) {
 }
 /*- endif -*/
 
+const char format_string[] = "{,,%s\"cmdline\": \"%s\",,},,";
+const char network_format_string[] = "\"net\" :  {,,\"if\":\"wm0\",, \"type\":\"inet\",,\"method\":\"dhcp\",,},,";
 int run(void) {
-
+    char * network_string = "";
     if (rump_config.rump_net == 1) {
-        sprintf(cmdline, "{,,\"net\" :  {,,\"if\":\"wm0\",, \"type\":\"inet\",,\"method\":\"dhcp\",,},,\"cmdline\": \"%s\",,},,", rump_config.cmdline);
-    } else {
-        sprintf(cmdline, "{,,\"cmdline\": \"%s\",,},,", rump_config.cmdline);
+        network_string = network_format_string;
     }
+    int cmdline_len = strlen(format_string) + strlen(network_string) + strlen(rump_config.cmdline) + 1;
+    custom_simple.cmdline = malloc(cmdline_len);
+    ZF_LOGF_IF(custom_simple.cmdline == NULL, "Failed to allocate cmdline memory of size: %d", cmdline_len);
+    snprintf(custom_simple.cmdline, cmdline_len, format_string, network_string, rump_config.cmdline);
+
     camkes_make_simple(&camkes_simple);
 
-    custom_simple.cmdline = cmdline;
     custom_simple.priority = rump_priority;
     custom_simple.rumprun_memory_size = /*? rump_config.get('rumprun_memory_size') ?*/;
     custom_simple.simple = &camkes_simple;
