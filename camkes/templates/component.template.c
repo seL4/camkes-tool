@@ -507,10 +507,17 @@ void USED _camkes_tls_init(int thread_id) {
         /*- endif -*/
 
         /*- if options.debug_fault_handlers -*/
-          /*? assert(fault_ep is defined and fault_ep is not none) ?*/
-          /*- set fault_ep_cap = alloc_cap('fault_ep_0_control', fault_ep, read=True, write=True, grant=True) -*/
-          /*- do my_cnode[fault_ep_cap].set_badge(tcb_control) -*/
-          /*- do setattr(_tcb_control, 'fault_ep_slot', fault_ep_cap) -*/
+            /*? assert(fault_ep is defined and fault_ep is not none) ?*/
+            /*- if not options.realtime -*/
+                /*- set fault_ep_cap = alloc_cap('fault_ep_0_control', fault_ep, read=True, write=True, grant=True) -*/
+                /*- do my_cnode[fault_ep_cap].set_badge(tcb_control) -*/
+                /*- do setattr(_tcb_control, 'fault_ep_slot', fault_ep_cap) -*/
+            /*- endif -*/
+
+            /*- if options.realtime -*/
+                /*- do _tcb_control.set_fault_ep_slot(fault_ep=fault_ep.name, badge=tcb_control) -*/
+            /*- endif -*/
+
         /*- endif -*/
         /*- do thread_names.__setitem__(tcb_control, "control") -*/
         case /*? tcb_control ?*/ : /* Control thread */
@@ -546,10 +553,16 @@ void USED _camkes_tls_init(int thread_id) {
             /*- endif -*/
 
             /*- if options.debug_fault_handlers -*/
-              /*? assert(fault_ep is defined and fault_ep is not none) ?*/
-              /*- set fault_ep_cap = alloc_cap('fault_ep_%s_%04d' % (t.interface.name, t.intra_index), fault_ep, read=True, write=True, grant=True) -*/
-              /*- do my_cnode[fault_ep_cap].set_badge(tcb) -*/
-              /*- do setattr(_tcb, 'fault_ep_slot', fault_ep_cap) -*/
+                /*? assert(fault_ep is defined and fault_ep is not none) ?*/
+                /*- if not options.realtime -*/
+                    /*- set fault_ep_cap = alloc_cap('fault_ep_%s_%04d' % (t.interface.name, t.intra_index), fault_ep, read=True, write=True, grant=True) -*/
+                    /*- do my_cnode[fault_ep_cap].set_badge(tcb) -*/
+                    /*- do setattr(_tcb, 'fault_ep_slot', fault_ep_cap) -*/
+                /*- endif -*/
+                /*- if options.realtime -*/
+                    /*- do _tcb.set_fault_ep_slot(fault_ep=fault_ep.name, badge=tcb) -*/
+                /*- endif -*/
+
             /*- endif -*/
             case /*? tcb ?*/ : { /* Interface /*? t.interface.name ?*/ */
                 /*? macros.save_ipc_buffer_address(p['ipc_buffer_symbol']) ?*/
