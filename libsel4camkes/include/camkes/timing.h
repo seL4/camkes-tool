@@ -13,8 +13,10 @@
 #ifndef _LIBSEL4CAMKES_TIMING_H_
 #define _LIBSEL4CAMKES_TIMING_H_
 
-#include <assert.h>
 #include <autoconf.h>
+#ifdef CONFIG_CAMKES_CONNECTOR_TIMING
+
+#include <assert.h>
 #include <sel4bench/sel4bench.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -22,7 +24,6 @@
 #include <string.h>
 #include <utils/util.h>
 
-#ifdef CONFIG_CAMKES_CONNECTOR_TIMING
 
 /* This size is arbitrary. */
 #define TIMING_ENTRIES 4096
