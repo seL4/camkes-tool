@@ -9,7 +9,6 @@
  *
  * @TAG(DATA61_BSD)
  */
-
 assembly {
     composition {
     }

@@ -1,0 +1,9 @@
+.gitignore
+.git/**
+VERSION
+.licenseignore
+**LICENSE_BSD2.txt
+**/.gitignore
+*.png
+*.sql
+

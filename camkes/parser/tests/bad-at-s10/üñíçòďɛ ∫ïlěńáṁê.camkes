@@ -9,6 +9,5 @@
  *
  * @TAG(DATA61_BSD)
  */
-
 component foo {}
 assembly {composition {}}

@@ -9,7 +9,6 @@
  *
  * @TAG(DATA61_BSD)
  */
-
 connector Conn {
     from Procedure;
     to Procedure;

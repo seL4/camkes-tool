@@ -9,7 +9,6 @@
  *
  * @TAG(DATA61_BSD)
  */
-
 procedure P {
     void method(in int volatile);
 }
