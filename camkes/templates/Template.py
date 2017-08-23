@@ -35,6 +35,7 @@ TEMPLATES = {
             'header':'component.template.h',
             'simple':'component.simple.c',
             'rumprun':'component.rumprun.c',
+            'debug':'component.debug.c',
             'linker':'linker.lds',
         },
         Guard(lambda x: isinstance(x, Connection) and x.type.name == 'seL4RPC'):{

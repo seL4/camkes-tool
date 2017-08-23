@@ -1,0 +1,54 @@
+/*
+ * Copyright 2017, Data61
+ * Commonwealth Scientific and Industrial Research Organisation (CSIRO)
+ * ABN 41 687 119 230.
+ *
+ * This software may be distributed and modified according to the terms of
+ * the BSD 2-Clause license. Note that NO WARRANTY is provided.
+ * See "LICENSE_BSD2.txt" for details.
+ *
+ * @TAG(DATA61_BSD)
+ */
+
+connector seL4GDB {
+  from Procedure template "seL4GDB-from.template.c" ;
+  to Procedure template "seL4GDB-to.template.c" ;
+}
+connector seL4GDBMem {
+  from Procedure template "seL4GDBMem-from.template.c" ;
+  to Procedure template "seL4GDBMem-to.template.c" ;
+}
+
+
+procedure GDB_delegate {
+    include <camkes/gdb/delegate_types.h>;
+    int read_memory(in seL4_Word addr, in seL4_Word length, out delegate_mem_range_t data);
+    int write_memory(in seL4_Word addr, in seL4_Word length, in delegate_mem_range_t data);
+    void read_registers(in seL4_Word tcb_cap, out seL4_UserContext registers);
+    void read_register(in seL4_Word tcb_cap, out seL4_Word reg, in seL4_Word reg_num);
+    int write_registers(in seL4_Word tcb_cap, in seL4_UserContext registers, in int len);
+    int write_register(in seL4_Word tcb_cap, in seL4_Word data, in seL4_Word reg_num);
+    int insert_break(in seL4_Word tcb_cap, in seL4_Word type, in seL4_Word addr, in seL4_Word size, in seL4_Word rw);
+    int remove_break(in seL4_Word tcb_cap, in seL4_Word type, in seL4_Word addr, in seL4_Word size, in seL4_Word rw);
+    int resume(in seL4_Word tcb_cap);
+    int step(in seL4_Word tcb_cap);
+};
+
+procedure CAmkES_Debug { 
+  void debug(inout int num); 
+} 
+
+component debug_server { 
+  provides CAmkES_Debug client_fault; 
+  uses IOPort serial_port; 
+  uses GDB_delegate delegate; 
+  consumes IRQ3 serial_irq; 
+  has binary_semaphore b;
+  has mutex serial;
+
+} 
+component debug_serial { 
+  hardware; 
+  provides IOPort serial; 
+  emits IRQ3 serial_irq; 
+}

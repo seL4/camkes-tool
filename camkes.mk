@@ -51,6 +51,7 @@ CAMKES_FLAGS += \
     $(if ${V},--debug,) \
     $(if ${CONFIG_CAMKES_CACHE},--cache,) \
     $(if ${CONFIG_CAMKES_CPP},--cpp,) \
+    $(if ${CONFIG_CAMKES_CPP},--cpp-flag=-I${STAGE_DIR}/include,) \
     $(if ${CONFIG_KERNEL_RT},--realtime,) \
     --cpp-flag=-I${KERNEL_ROOT_PATH}/../include/generated \
     $(foreach path, ${PWD}/tools/camkes/include/builtin ${CONFIG_CAMKES_IMPORT_PATH}, --import-path=${path}) \

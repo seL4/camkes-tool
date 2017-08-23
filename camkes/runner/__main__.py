@@ -685,7 +685,7 @@ def main(argv, out, err):
         if i.type.hardware:
             continue
         assert i.address_space in cspaces
-        SPECIAL_TEMPLATES = [('simple', 'simple'), ('rump_config', 'rumprun')]
+        SPECIAL_TEMPLATES = [('debug', 'debug'), ('simple', 'simple'), ('rump_config', 'rumprun')]
         for special in [bl for bl in SPECIAL_TEMPLATES if conf[i.name].get(bl[0])]:
             for t in ('%s/%s' % (i.name, special[1]),):
                 try:
