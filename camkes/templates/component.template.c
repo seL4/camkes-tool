@@ -960,10 +960,12 @@ static int post_main(int thread_id) {
             /*- endif -*/
 
             /*- if me.type.control -*/
-                return run();
-            /*- else -*/
-                return 0;
+                run();
             /*- endif -*/
+                if (on_exit) {
+                    on_exit();
+                }
+                return 0;
 
         /*# Interface threads #*/
         /*- for t in threads[1:] -*/

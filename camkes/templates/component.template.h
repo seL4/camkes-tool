@@ -177,6 +177,8 @@ int run(void);
 /* Optional init functions provided by the user. */
 void pre_init(void) WEAK;
 void post_init(void) WEAK;
+void on_exit(void) WEAK;
+
 /*- for i in all_interfaces -*/
     void /*? i.name ?*/__init(void) WEAK;
 
