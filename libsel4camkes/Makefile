@@ -15,9 +15,9 @@ TARGETS := libsel4camkes.a
 
 # Source files required to build the target
 CFILES := $(patsubst $(SOURCE_DIR)/%,%,$(wildcard ${SOURCE_DIR}/src/*.c)) \
-          $(patsubst $(SOURCE_DIR)/%,%,$(wildcard ${SOURCE_DIR}/src/gdb_server/*.c)) \
           $(patsubst $(SOURCE_DIR)/%,%,$(wildcard ${SOURCE_DIR}/src/arch/${ARCH}/*.c)) \
           $(patsubst $(SOURCE_DIR)/%,%,$(wildcard ${SOURCE_DIR}/src/sel4_arch/${SEL4_ARCH}/*.c)) \
+          $(patsubst $(SOURCE_DIR)/%,%,$(wildcard ${SOURCE_DIR}/src/sel4_arch/${SEL4_ARCH}/gdb_server/*.c))
 
 ASMFILES := $(patsubst $(SOURCE_DIR)/%,%,$(wildcard ${SOURCE_DIR}/src/arch/$(ARCH)/*.S))
 ASMFILES += $(patsubst $(SOURCE_DIR)/%,%,$(wildcard ${SOURCE_DIR}/src/sel4_arch/$(SEL4_ARCH)/*.S))
