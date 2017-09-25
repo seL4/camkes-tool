@@ -116,6 +116,7 @@ static int get_breakpoint_format(gdb_BreakpointType type,
     int err = 0;
     ZF_LOGD("Breakpoint type %d", type);
     switch (type) {
+#ifdef CONFIG_HARDWARE_DEBUG_API
         case gdb_HardwareBreakpoint:
             *break_type = seL4_InstructionBreakpoint;
             *rw = seL4_BreakOnRead;
@@ -136,6 +137,7 @@ static int get_breakpoint_format(gdb_BreakpointType type,
             *rw = seL4_BreakOnReadWrite;
             err = 0;
             break;
+#endif /* CONFIG_HARDWARE_DEBUG_API */
         default:
             // Unknown type
             err = 1;
