@@ -10,6 +10,8 @@
  * @TAG(DATA61_BSD)
  */
 
+import "camkes-hardware.idl4";
+
 connector seL4GDB {
   from Procedure template "seL4GDB-from.template.c" ;
   to Procedure template "seL4GDB-to.template.c" ;

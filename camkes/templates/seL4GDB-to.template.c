@@ -25,7 +25,7 @@
 #include <camkes/gdb/gdb.h>
 
 /*? macros.show_includes(me.instance.type.includes) ?*/
-/*? macros.show_includes(me.interface.type.includes, '../static/components/' + me.instance.type.name + '/') ?*/
+/*? macros.show_includes(me.interface.type.includes, '../static/components/%s/' % me.instance.type.name) ?*/
 
 /*- set methods_len = len(me.interface.type.methods) -*/
 /*- set instance = me.instance.name -*/

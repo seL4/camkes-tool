@@ -11,7 +11,7 @@
  #*/
 
 /*? macros.show_includes(me.instance.type.includes) ?*/
-/*? macros.show_includes(me.interface.type.includes, '../static/components/' + me.instance.type.name + '/') ?*/
+/*? macros.show_includes(me.interface.type.includes, '../static/components/%s/' % me.instance.type.name) ?*/
 
 /*- set thread_caps = [] -*/
 /*- set mem_ep = alloc("mem_fault", seL4_EndpointObject, read=True, write=True, grant=True) -*/
