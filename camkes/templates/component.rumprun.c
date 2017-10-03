@@ -51,7 +51,7 @@ int run(void) {
     custom_simple.camkes = true;
     custom_simple.timer_config.timer = TIMER_INTERFACE;
 /*- set timer_config_interface = rump_config.get('timer_interface') -*/
-    custom_simple.timer_config.interface.timer_cap = /*? timer_config_interface ?*/_notification();
+    custom_simple.timer_config.timer_ntfn = /*? timer_config_interface ?*/_notification();
     custom_simple.timer_config.interface.oneshot_relative = /*? timer_config_interface ?*/_oneshot_relative;
     custom_simple.timer_config.interface.tsc_freq = /*? timer_config_interface ?*/_tsc_frequency();
 
