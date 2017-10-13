@@ -30,7 +30,7 @@
 
 #define TIMING_DEFS(pref, pts...) \
     static int libsel4camkes_timing_buffer_iteration = -1; \
-    static sel4bench_counter_t libsel4camkes_timing_buffer[TIMING_ENTRIES]; \
+    static ccnt_t libsel4camkes_timing_buffer[TIMING_ENTRIES]; \
     static char *libsel4camkes_timing_points[] = { \
         pts \
     }; \
@@ -50,7 +50,7 @@
     } \
     void pref##_timing_reset(void) { \
         libsel4camkes_timing_buffer_iteration = -1; \
-        memset(libsel4camkes_timing_buffer, 0, sizeof(sel4bench_counter_t) * TIMING_ENTRIES); \
+        memset(libsel4camkes_timing_buffer, 0, sizeof(ccnt_t) * TIMING_ENTRIES); \
     }
 
 #define TIMESTAMP(point) \
