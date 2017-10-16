@@ -139,6 +139,7 @@ TEMPLATES = {
             },
         },
         'Makefile':'Makefile',
+        'camkes-gen.cmake':'camkes-gen.cmake',
         'capdl':'capdl-spec.cdl',
         'label-mapping':'label-mapping.thy',
     },

@@ -562,7 +562,7 @@ def main(argv, out, err):
 
             # Save entries in both caches.
             cachea.save(new_args, cwd, value, inputs)
-            if item != 'Makefile':
+            if item != 'Makefile' and item != 'camkes-gen.cmake':
                 # We avoid caching the generated Makefile because it is not
                 # safe. The inputs to generation of the Makefile are not only
                 # the AST, but also the file names (`inputs`). If we cache it in
