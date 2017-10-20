@@ -69,10 +69,11 @@ target_link_libraries (camkes-accelerator ${CRYPTO} ${OPENSSL} ${SQLITE})
 
 # Accelerator unit tests.
 
-add_executable (camkes-accelerator-unittests unittests.c
+add_executable (camkes-accelerator-unittests EXCLUDE_FROM_ALL unittests.c
     ${CMAKE_CURRENT_BINARY_DIR}/include/select_inputs.h
     ${CMAKE_CURRENT_BINARY_DIR}/include/select_output.h
-    ${CMAKE_CURRENT_BINARY_DIR}/include/version.h)
+    ${CMAKE_CURRENT_BINARY_DIR}/include/version.h
+    )
 
 target_link_libraries (camkes-accelerator-unittests ${CRYPTO} ${CUNIT} ${OPENSSL} ${SQLITE})
 
