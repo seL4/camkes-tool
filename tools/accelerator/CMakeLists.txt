@@ -53,8 +53,17 @@ add_custom_command(
 
 add_custom_command(
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/include/version.h
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/version.h.d
+    # Build a valid dependency file from the print-deps script, this is a little awkward
+    COMMAND echo "include/version.h: " > "${CMAKE_CURRENT_BINARY_DIR}/version.h.d"
+    COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/print-deps.py" >> "${CMAKE_CURRENT_BINARY_DIR}/version.h.d"
+    COMMAND sed -i "s/$$/\\/" "${CMAKE_CURRENT_BINARY_DIR}/version.h.d"
+    COMMAND
     COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/mkversion.py" >"${CMAKE_CURRENT_BINARY_DIR}/include/version.h"
-    DEPENDS mkversion.py)
+    DEPENDS mkversion.py
+    DEPENDS print-deps.py
+    DEPFILE ${CMAKE_CURRENT_BINARY_DIR}/version.h.d
+    )
 
 target_link_libraries (camkes-accelerator ${CRYPTO} ${OPENSSL} ${SQLITE})
 
