@@ -78,3 +78,8 @@ target_link_libraries (camkes-accelerator-unittests ${CRYPTO} ${CUNIT} ${OPENSSL
 
 enable_testing ()
 add_test (unittests ${CMAKE_CURRENT_BINARY_DIR}/camkes-accelerator-unittests)
+
+# Rules to install the accelerator executable
+install(TARGETS camkes-accelerator
+    RUNTIME DESTINATION bin
+)
