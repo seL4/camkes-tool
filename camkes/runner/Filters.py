@@ -451,7 +451,7 @@ def collapse_shared_frames(ast, obj_space, elfs, shmem, options, **_):
         # allocated already (ie. allocated in a template), look it up
         # before collapsing the shared variable.
         for mapping in mappings.values():
-            for _, _, _, prealloc_frames in mapping:
+            for _, _, _, prealloc_frames, _ in mapping:
                 if prealloc_frames is not None:
                     assert frames is None, 'Multiple sides of shared memory with' \
                             'preallocated frames for shared variable "%s"' % window
@@ -459,7 +459,7 @@ def collapse_shared_frames(ast, obj_space, elfs, shmem, options, **_):
                     frames = prealloc_frames
 
         for cnode, local_mappings in mappings.items():
-            for sym, permissions, paddr, _ in local_mappings:
+            for sym, permissions, paddr, _, cached_hw in local_mappings:
 
                 perspective = Perspective(cnode=cnode)
 
@@ -524,7 +524,7 @@ def collapse_shared_frames(ast, obj_space, elfs, shmem, options, **_):
                             cap = Cap(frame, read, write, execute)
                             if paddr is not None:
                                 frame.paddr = paddr + (new_vaddr - vaddr)
-                                cap.set_cached(False)
+                                cap.set_cached(cached_hw)
                             update_frame_in_vaddr(arch, pd, new_vaddr, largest_frame_size, cap)
                             frames.append(frame)
 
@@ -539,8 +539,7 @@ def collapse_shared_frames(ast, obj_space, elfs, shmem, options, **_):
                             cap.grant = execute
                             if paddr is not None:
                                 frame.paddr = paddr + offset * PAGE_SIZE
-                                cap.set_cached(False)
-
+                                cap.set_cached(cached_hw)
                             frames.append(frame)
 
                 else:
@@ -556,7 +555,7 @@ def collapse_shared_frames(ast, obj_space, elfs, shmem, options, **_):
                     for frame in frames:
                         cap = Cap(frame, read, write, execute)
                         if paddr is not None:
-                            cap.set_cached(False)
+                            cap.set_cached(cached_hw)
                         update_frame_in_vaddr(arch, pd, vaddr + offset, largest_frame_size, cap)
                         offset = offset + frame.size
 
