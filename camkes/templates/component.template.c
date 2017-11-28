@@ -41,6 +41,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <utils/util.h>
+#include <arch_stdio.h>
 
 /*? macros.show_includes(me.type.includes) ?*/
 
@@ -51,7 +52,8 @@ void set_putchar(void (*putchar)(int c)) {
     /*? putchar ?*/ = putchar;
 }
 
-void __arch_putchar(int c) {
+static
+void __camkes_putchar(int c) {
     if (/*? putchar ?*/ != NULL) {
         /*? putchar ?*/(c);
         return;
@@ -59,6 +61,16 @@ void __arch_putchar(int c) {
 #ifdef CONFIG_PRINTING
     seL4_DebugPutChar(c);
 #endif
+}
+
+static size_t
+write_buf(void *data, size_t count)
+{
+    char* buf = data;
+    for (int i = 0; i < count; i++) {
+        __camkes_putchar(buf[i]);
+    }
+    return count;
 }
 
 const char *get_instance_name(void) {
@@ -484,6 +496,11 @@ static int post_main(int thread_id);
  * and we will come back executing in 'main'. For all other threads we should
  * jump straight to post_main */
 void USED _camkes_tls_init(int thread_id) {
+    static bool write_buf_registered = false;
+    if (!write_buf_registered) {
+        sel4muslcsys_register_stdio_write_fn(write_buf);
+        write_buf_registered = true;
+    }
     switch (thread_id) {
         /*- set thread_names = dict() -*/
         /*- set _tcb_control = alloc_obj('%d_0_control_%d_tcb' % (len(me.name), len('0_control')), seL4_TCBObject) -*/
