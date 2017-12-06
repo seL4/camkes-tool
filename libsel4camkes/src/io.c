@@ -138,9 +138,18 @@ int camkes_io_port_ops(ps_io_port_ops_t *ops) {
     return 0;
 }
 
+int
+camkes_ps_malloc_ops(ps_malloc_ops_t *ops)
+{
+    assert(ops != NULL);
+
+    return ps_new_stdlib_malloc_ops(ops);
+}
+
 int camkes_io_ops(ps_io_ops_t *ops) {
     assert(ops != NULL);
     return camkes_io_mapper(&ops->io_mapper) ||
            camkes_io_port_ops(&ops->io_port_ops) ||
-           camkes_dma_manager(&ops->dma_manager);
+           camkes_dma_manager(&ops->dma_manager) ||
+           camkes_ps_malloc_ops(&ops->malloc_ops);
 }

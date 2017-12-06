@@ -30,4 +30,9 @@ int camkes_io_port_ops(ps_io_port_ops_t *ops);
  */
 int camkes_io_ops(ps_io_ops_t *ops);
 
+/* Initialise a malloc operations object for use with libplatsupport. Returns 0
+ * on success.
+ */
+int camkes_ps_malloc_ops(ps_malloc_ops_t *ops);
+
 #endif
