@@ -27,7 +27,7 @@ static custom_simple_t custom_simple;
 /*- set eth_irq_number = rump_config.get('eth_irq_number') -*/
 /*- if eth_irq_config != "" -*/
 void /*? eth_irq_config ?*/_handle(void) {
-    rump_irq_handle(BIT(/*? eth_irq_number ?*/));
+    rump_irq_handle(BIT(/*? eth_irq_number ?*/), 0);
 }
 /*- endif -*/
 
