@@ -442,8 +442,6 @@ def collapse_shared_frames(ast, obj_space, elfs, shmem, options, **_):
     arch = lookup_architecture(options.architecture)
     assembly = ast.assembly
 
-    large_frame_size = None
-
     for window, mappings in shmem.items():
         frames = None
 
