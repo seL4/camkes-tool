@@ -444,6 +444,7 @@ def collapse_shared_frames(ast, obj_space, elfs, shmem, options, **_):
 
     for window, mappings in shmem.items():
         frames = None
+        exact_frames = False
 
         # If the shared variable has an associated set of backing frames
         # allocated already (ie. allocated in a template), look it up
@@ -455,6 +456,7 @@ def collapse_shared_frames(ast, obj_space, elfs, shmem, options, **_):
                             'preallocated frames for shared variable "%s"' % window
 
                     frames = prealloc_frames
+                    exact_frames = True
 
         for cnode, local_mappings in mappings.items():
             for sym, permissions, paddr, _, cached_hw in local_mappings:
@@ -547,14 +549,29 @@ def collapse_shared_frames(ast, obj_space, elfs, shmem, options, **_):
                     assert size == sum(f.size for f in frames), 'mismatched ' \
                         'sizes of shared region \'%s\' (template bug?)' % window
 
-                    # Delete all the underlying frames / objects for this range
-                    delete_small_frames(arch, obj_space, pd, level_num, map_indices)
+                    if not exact_frames:
+                        # We do not need to preserve the exact same frames / frame sizings, so
+                        # we can delete the entire region ready to put in our new frames
+                        # Delete all the underlying frames / objects for this range
+                        delete_small_frames(arch, obj_space, pd, level_num, map_indices)
                     offset = 0
                     for frame in frames:
                         cap = Cap(frame, read, write, execute)
                         if paddr is not None:
                             cap.set_cached(cached_hw)
-                        update_frame_in_vaddr(arch, pd, vaddr + offset, largest_frame_size, cap)
+                        if exact_frames:
+                            # If we need to preserve the exact frames then we need to clear
+                            # the range for each frame individually, up to the required level
+                            # for that frame. This is to allow for 'weird' shared memory regions
+                            # that have preallocated frames with different sized frames in
+                            # the one region.
+                            frame_map_indices = [make_indices(arch, v, PAGE_SIZE)
+                                for v in six.moves.range(vaddr + offset, vaddr + offset + frame.size, PAGE_SIZE)]
+                            _, frame_level_num = find_optimal_frame_size(arch, 0, frame.size)
+                            delete_small_frames(arch, obj_space, pd, frame_level_num, frame_map_indices)
+                        # Now, with exact_frames or not, we know that the slot for this frame is
+                        # free and we can re-insert the correct frame
+                        update_frame_in_vaddr(arch, pd, vaddr + offset, frame.size, cap)
                         offset = offset + frame.size
 
 def describe_fill_frames(ast, obj_space, elfs, fill_frames, options, **_):
