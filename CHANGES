@@ -4,6 +4,10 @@ For more information see the release notes at https://wiki.sel4.systems/CAmkESRe
 
 This file should be word wrapped to 120 characters
 
+upcoming release
+
+= Changes =
+
 ---
 camkes-3.2.0 2018-01-17
 Using seL4 version 8.0.0
