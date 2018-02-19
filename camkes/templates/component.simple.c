@@ -37,13 +37,6 @@
 /*- if 'sched_ctrl' in configuration[me.name].keys() -*/
     /*- set sched_control = alloc('sched_control', type=seL4_SchedControl, core=configuration[me.name].get('sched_ctrl')) -*/
 /*- endif -*/
-/*- if configuration[me.name].get('simple_arch_info_word') -*/
-    struct {
-        char content[PAGE_SIZE_4K];
-    } arch_info_word ALIGN(PAGE_SIZE_4K);
-
-    /*- do register_fill_frame("arch_info_word", 'bootinfo_arch_info_word 0') -*/
-/*- endif -*/
 
 /*- set extrabi_list = [] -*/
 /*- for value in configuration[me.name].get('simple_extra_bootinfo',[]) -*/
@@ -468,14 +461,6 @@ static ssize_t camkes_get_extended_bootinfo(void *data, seL4_Word type, void *de
     return -1;
 }
 
-static seL4_Word camkes_simple_arch_info(void *data) {
-    seL4_Word word = 0;
-    /*- if configuration[me.name].get('simple_arch_info_word') -*/
-        memcpy(&word, &arch_info_word.content[0], sizeof(word));
-    /*- endif -*/
-    return word;
-}
-
 static UNUSED seL4_CPtr camkes_simple_sched_ctrl(void *data, seL4_Word core) {
     /*- if 'sched_ctrl' in configuration[me.name].keys() -*/
     if (core == /*? configuration[me.name].get('sched_ctrl') ?*/) {
@@ -522,7 +507,6 @@ void camkes_make_simple(simple_t *simple) {
     simple->userimage_count = /*&simple_camkes_userimage_count*/NULL;
     simple->nth_userimage = /*&simple_camkes_nth_userimage*/NULL;
     simple->extended_bootinfo = &camkes_get_extended_bootinfo;
-    simple->arch_info = &camkes_simple_arch_info;
 #ifdef CONFIG_KERNEL_RT
     simple->sched_ctrl = &camkes_simple_sched_ctrl;
 #endif
