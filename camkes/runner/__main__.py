@@ -54,6 +54,14 @@ from camkes.parser import parse_file, ParseError
 
 CAPDL_STATE_PICKLE = 'capdl_state.p'
 
+class ParserOptions():
+    def __init__(self, cpp, cpp_flag, import_path, verbosity, allow_forward_references):
+        self.cpp = cpp
+        self.cpp_flag = cpp_flag
+        self.import_path = import_path
+        self.verbosity = verbosity
+        self.allow_forward_references = allow_forward_references
+
 def safe_decode(s):
     '''
     Safely extract a string that may contain invalid character encodings.
@@ -215,8 +223,8 @@ def parse_args(argv, out, err):
 
     return options
 
-def pickle_call(options, pickle_name, fn, *args, **kwargs):
-    cache_path = os.path.realpath(options.data_structure_cache_dir)
+def pickle_call(data_structure_cache_dir, pickle_name, fn, *args, **kwargs):
+    cache_path = os.path.realpath(data_structure_cache_dir)
     pickle_path = os.path.join(cache_path, pickle_name)
 
     try:
@@ -239,11 +247,11 @@ def pickle_call(options, pickle_name, fn, *args, **kwargs):
         # fall back to calling the function without pickling
         return fn(*args, **kwargs)
 
-def parse_file_cached(filename, options):
-    if options.data_structure_cache_dir is None:
-        return parse_file(filename, options)
+def parse_file_cached(filename, data_structure_cache_dir, parser_options):
+    if data_structure_cache_dir is None:
+        return parse_file(filename, kwargs)
 
-    return pickle_call(options, 'ast.p', parse_file, filename, options)
+    return pickle_call(data_structure_cache_dir, 'ast.p', parse_file, filename, parser_options)
 
 class ShmemFactory:
     '''Factory supplied to the shared memory allocator's defaultdict.
@@ -350,7 +358,9 @@ def main(argv, out, err):
     filename = os.path.abspath(options.file.name)
 
     try:
-        ast, read = parse_file_cached(filename, options)
+        # Build the parser options
+        parse_options = ParserOptions(options.cpp, options.cpp_flag, options.import_path, options.verbosity, options.allow_forward_references)
+        ast, read = parse_file_cached(filename, options.data_structure_cache_dir, parse_options)
     except (ASTError, ParseError) as e:
         die(e.args)
 
