@@ -49,7 +49,7 @@ def get_leaves(d):
             yield v
 
 class Renderer(object):
-    def __init__(self, templates, options):
+    def __init__(self, templates, cache, cache_dir):
 
         # PERF: This function is simply constructing a Jinja environment and
         # would be trivial, except that we optimise re-execution of template
@@ -61,11 +61,11 @@ class Renderer(object):
         self.templates = templates
 
         # Directory in which to store and fetch pre-compiled Jinja2 templates.
-        template_cache = os.path.join(options.cache_dir, version(),
+        template_cache = os.path.join(cache_dir, version(),
             'precompiled-templates')
 
         loaders = []
-        if options.cache and os.path.exists(template_cache):
+        if cache and os.path.exists(template_cache):
             # Pre-compiled templates.
             loaders.append(jinja2.ModuleLoader(template_cache))
 
@@ -85,7 +85,7 @@ class Renderer(object):
             auto_reload=False,
             undefined=jinja2.StrictUndefined)
 
-        if options.cache and not os.path.exists(template_cache):
+        if cache and not os.path.exists(template_cache):
             # The pre-compiled template cache is enabled but does not exist.
             # We build it here for next time.
 
