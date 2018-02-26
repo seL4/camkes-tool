@@ -83,6 +83,23 @@ class FilterOptions():
         self.debug_fault_handlers = debug_fault_handlers
         self.fprovide_tcb_caps = fprovide_tcb_caps
 
+class RenderOptions():
+    def __init__(self, file, verbosity, outfile, frpc_lock_elision, fspecialise_syscall_stubs,
+            fprovide_tcb_caps, fsupport_init, largeframe, largeframe_dma, architecture,
+            debug_fault_handlers, realtime):
+        self.file = file
+        self.verbosity = verbosity
+        self.outfile = outfile
+        self.frpc_lock_elision = frpc_lock_elision
+        self.fspecialise_syscall_stubs = fspecialise_syscall_stubs
+        self.fprovide_tcb_caps = fprovide_tcb_caps
+        self.fsupport_init = fsupport_init
+        self.largeframe = largeframe
+        self.largeframe_dma = largeframe_dma
+        self.architecture = architecture
+        self.debug_fault_handlers = debug_fault_handlers
+        self.realtime = realtime
+
 def safe_decode(s):
     '''
     Safely extract a string that may contain invalid character encodings.
@@ -578,12 +595,17 @@ def main(argv, out, err):
             except Exception as inst:
                 die('While forming CapDL spec: %s' % inst)
 
+    renderoptions = RenderOptions(options.file, options.verbosity, options.outfile, options.frpc_lock_elision,
+        options.fspecialise_syscall_stubs, options.fprovide_tcb_caps, options.fsupport_init,
+        options.largeframe, options.largeframe_dma, options.architecture, options.debug_fault_handlers,
+        options.realtime)
+
     def instantiate_misc_template():
         try:
             template = templates.lookup(options.item)
             if template:
                 g = r.render(assembly, assembly, template, obj_space, None,
-                    shmem, kept_symbols, fill_frames, imported=read, options=options)
+                    shmem, kept_symbols, fill_frames, imported=read, options=renderoptions)
                 save(options.item, g)
                 done(g)
         except TemplateError as inst:
@@ -642,7 +664,7 @@ def main(argv, out, err):
                 g = ''
                 if template:
                     g = r.render(i, assembly, template, obj_space, cspaces[i.address_space],
-                        shmem, kept_symbols, fill_frames, options=options, my_pd=pds[i.address_space])
+                        shmem, kept_symbols, fill_frames, options=renderoptions, my_pd=pds[i.address_space])
                 save(t, g)
                 if options.item == t:
                     if not template:
@@ -668,7 +690,7 @@ def main(argv, out, err):
                     try:
                         g = r.render(e, assembly, template, obj_space,
                             cspaces[e.instance.address_space], shmem, kept_symbols, fill_frames,
-                            options=options, my_pd=pds[e.instance.address_space])
+                            options=renderoptions, my_pd=pds[e.instance.address_space])
                     except TemplateError as inst:
                         die(['While rendering %s: %s' % (item, line) for line in inst.args])
                     except jinja2.exceptions.TemplateNotFound:
@@ -707,7 +729,7 @@ def main(argv, out, err):
                 try:
                     g = r.render(e, assembly, template, obj_space,
                         cspaces[e.instance.address_space], shmem, kept_symbols, fill_frames,
-                        options=options, my_pd=pds[e.instance.address_space])
+                        options=renderoptions, my_pd=pds[e.instance.address_space])
                     save(options.item, g)
                     done(g)
                 except TemplateError as inst:
@@ -729,7 +751,7 @@ def main(argv, out, err):
                     g = ''
                     if template:
                         g = r.render(i, assembly, template, obj_space, cspaces[i.address_space],
-                            shmem, kept_symbols, fill_frames, options=options, my_pd=pds[i.address_space])
+                            shmem, kept_symbols, fill_frames, options=renderoptions, my_pd=pds[i.address_space])
                     save(t, g)
                     if options.item == t:
                         if not template:
