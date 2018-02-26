@@ -62,6 +62,27 @@ class ParserOptions():
         self.verbosity = verbosity
         self.allow_forward_references = allow_forward_references
 
+class FilterOptions():
+    def __init__(self, architecture, realtime, largeframe, largeframe_dma, default_priority,
+            default_max_priority, default_criticality, default_max_criticality, default_affinity,
+            default_period, default_budget, default_data, default_size_bits, debug_fault_handlers,
+            fprovide_tcb_caps):
+        self.architecture = architecture
+        self.realtime = realtime
+        self.largeframe = largeframe
+        self.largeframe_dma = largeframe_dma
+        self.default_priority = default_priority
+        self.default_max_priority = default_max_priority
+        self.default_criticality = default_criticality
+        self.default_max_criticality = default_max_criticality
+        self.default_affinity = default_affinity
+        self.default_period = default_period
+        self.default_budget = default_budget
+        self.default_data = default_data
+        self.default_size_bits = default_size_bits
+        self.debug_fault_handlers = debug_fault_handlers
+        self.fprovide_tcb_caps = fprovide_tcb_caps
+
 def safe_decode(s):
     '''
     Safely extract a string that may contain invalid character encodings.
@@ -543,12 +564,17 @@ def main(argv, out, err):
         # depend on a fully formed CapDL spec. Guarding this loop with an if
         # is just an optimisation and the conditional can be removed if
         # desired.
+        filteroptions = FilterOptions(options.architecture, options.realtime, options.largeframe,
+            options.largeframe_dma, options.default_priority, options.default_max_priority,
+            options.default_criticality, options.default_max_criticality, options.default_affinity,
+            options.default_period, options.default_budget, options.default_data, options.default_size_bits,
+            options.debug_fault_handlers, options.fprovide_tcb_caps)
         for f in CAPDL_FILTERS:
             try:
                 # Pass everything as named arguments to allow filters to
                 # easily ignore what they don't want.
                 f(ast=ast, obj_space=obj_space, cspaces=cspaces, elfs=elfs,
-                    options=options, shmem=shmem, fill_frames=fill_frames)
+                    options=filteroptions, shmem=shmem, fill_frames=fill_frames)
             except Exception as inst:
                 die('While forming CapDL spec: %s' % inst)
 
