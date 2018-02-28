@@ -50,7 +50,7 @@ struct {
     {__NR_sethostname, camkes_sys_sethostname},
     {__NR_setdomainname, camkes_sys_setdomainname},
 #endif
-#if !defined(ARCH_IA32)
+#if !defined(CONFIG_ARCH_IA32)
     {__NR_socket, camkes_sys_socket},
     {__NR_bind, camkes_sys_bind},
     {__NR_connect, camkes_sys_connect},

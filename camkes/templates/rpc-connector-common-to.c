@@ -471,7 +471,7 @@ int
                     /*- else -*/
 
                         /*- if not options.realtime and len(me.parent.from_ends) == 1 and len(me.parent.to_ends) == 1 and options.fspecialise_syscall_stubs and methods_len == 1 and m.return_type is none and len(m.parameters) == 0 -*/
-#ifdef ARCH_ARM
+#ifdef CONFIG_ARCH_ARM
 #ifndef __SWINUM
     #define __SWINUM(x) ((x) & 0x00ffffff)
 #endif
