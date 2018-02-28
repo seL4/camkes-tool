@@ -50,7 +50,7 @@ SECTIONS {
     }
 
 }
-INSERT AFTER .preinit_array
+INSERT AFTER .tbss
 /*- endif -*/
 
 SECTIONS {
