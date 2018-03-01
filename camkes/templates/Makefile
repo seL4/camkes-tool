@@ -56,7 +56,7 @@
 ${TARGETS}: /*? ' '.join(imported) ?*/
 
 # This Makefile itself needs to be rebuilt if the source CAmkES descriptions change.
-/*? options.outfile.name ?*/: /*? ' '.join(imported) ?*/
+${BUILD_DIR}/camkes-gen.mk: /*? ' '.join(imported) ?*/
 
 /*- set instances = composition.instances -*/
 /*- set connections = composition.connections -*/
