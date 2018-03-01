@@ -10,6 +10,9 @@
  *# @TAG(DATA61_BSD)
  #*/
 
+# It is not longer permissible to request the 'outfile.name' from inside a template, 
+# however as this template is currently untested and broken it is not clear how to
+# fix this. If you are trying to make this template work, I am sorry
 theory "/*? os.path.splitext(os.path.basename(options.outfile.name))[0] ?*/" imports
   "~~/../l4v/camkes/adl-spec/Types_CAMKES"
   "~~/../l4v/camkes/adl-spec/Library_CAMKES"

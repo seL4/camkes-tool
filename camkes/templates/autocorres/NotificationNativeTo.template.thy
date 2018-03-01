@@ -14,6 +14,9 @@
   /*? raise(TemplateError('connections without a single to end are not supported', me.parent)) ?*/
 /*- endif -*/
 
+# It is not longer permissible to request the 'outfile.name' from inside a template, 
+# however as this template is currently untested and broken it is not clear how to
+# fix this. If you are trying to make this template work, I am sorry
 /*- set thy = os.path.splitext(os.path.basename(options.outfile.name))[0] -*/
 header {* Event Receive *}
 (*<*)
