@@ -161,11 +161,11 @@ def parse_args(argv, out, err):
     parser.add_argument('--debug', '-D', help='Extra verbose output.',
         dest='verbosity', action='store_const', const=3)
     parser.add_argument('--outfile', '-O', help='Output to the given file.',
-        type=argparse.FileType('w'), required=True)
+        type=argparse.FileType('w'), required=True, action='append', default=[])
     parser.add_argument('--elf', '-E', help='ELF files to contribute to a '
         'CapDL specification.', action='append', default=[])
     parser.add_argument('--item', '-T', help='AST entity to produce code for.',
-        required=True)
+        required=True, action='append', default=[])
     parser.add_argument('--platform', '-p', help='Platform to produce code '
         'for. Pass \'help\' to see valid platforms.', default='seL4',
         choices=PLATFORMS)
@@ -311,6 +311,16 @@ def main(argv, out, err):
 
     options = parse_args(argv, out, err)
 
+    # Ensure we were supplied equal items and outfiles
+    if len(options.outfile) != len(options.item):
+        err.write('Different number of items and outfiles. Required one outfile location '
+            'per item requested.\n')
+        return -1
+
+    if len(options.outfile) != 1:
+        err.write('Only one outfile supported at the moment.\n')
+        return -1
+
     # Save us having to pass debugging everywhere.
     die = functools.partial(_die, options)
 
@@ -386,11 +396,13 @@ def main(argv, out, err):
     # some previously observed execution.
     if cachea is not None:
         assert 'args' in locals()
+        assert len(options.outfile) == 1, 'level A cache only supported when requestiong ' \
+            'single items'
         output = cachea.load(args, cwd)
         if output is not None:
             log.debug('Retrieved %(platform)s/%(item)s from level A cache' %
                 options.__dict__)
-            done(output, options.outfile)
+            done(output, options.outfile[0])
 
     filename = os.path.abspath(options.file.name)
 
@@ -479,11 +491,13 @@ def main(argv, out, err):
     if cacheb is not None:
         ast_hash = level_b_prime(ast)
         assert 'args' in locals()
+        assert len(options.item) == 1, 'level B cache only supported when requesting ' \
+            'single items'
         output = cacheb.load(ast_hash, args, set(options.elf) | extra_templates)
         if output is not None:
             log.debug('Retrieved %(platform)s/%(item)s from level B cache' %
                 options.__dict__)
-            done(output, options.outfile)
+            done(output, options.outfile[0])
 
     # Add custom templates.
     read |= extra_templates
@@ -504,6 +518,10 @@ def main(argv, out, err):
 
         assert cachea is not None, 'level A cache not available, though the ' \
             'cache is enabled (bug in runner?)'
+        # The logic of this cache currently only works when a single item is requested
+        # on the command line
+        assert len(options.item) == 1, 'level A cache only supported when requesting ' \
+            'single items'
 
         # Calculate the input files to the level A cache.
         inputs = level_a_prime(read)
@@ -601,16 +619,16 @@ def main(argv, out, err):
 
     def instantiate_misc_template():
         try:
-            template = templates.lookup(options.item)
+            template = templates.lookup(options.item[0])
             if template:
                 g = r.render(assembly, assembly, template, obj_space, None,
                     shmem, kept_symbols, fill_frames, imported=read, options=renderoptions)
-                save(options.item, g)
-                done(g, options.outfile)
+                save(options.item[0], g)
+                done(g, options.outfile[0])
         except TemplateError as inst:
-            die(['While rendering %s: %s' % (options.item, line) for line in inst.args])
+            die(['While rendering %s: %s' % (options.item[0], line) for line in inst.args])
 
-    if options.item in ('capdl', 'label-mapping') and options.data_structure_cache_dir is not None:
+    if options.item[0] in ('capdl', 'label-mapping') and options.data_structure_cache_dir is not None:
         # It's possible that data structures required to instantiate the capdl spec
         # were saved during a previous invocation of this script in the current build.
         cache_path = os.path.realpath(options.data_structure_cache_dir)
@@ -665,10 +683,10 @@ def main(argv, out, err):
                     g = r.render(i, assembly, template, obj_space, cspaces[i.address_space],
                         shmem, kept_symbols, fill_frames, options=renderoptions, my_pd=pds[i.address_space])
                 save(t, g)
-                if options.item == t:
+                if options.item[0] == t:
                     if not template:
-                        log.warning('Warning: no template for %s' % options.item)
-                    done(g, options.outfile)
+                        log.warning('Warning: no template for %s' % options.item[0])
+                    done(g, options.outfile[0])
             except TemplateError as inst:
                 die(['While rendering %s: %s' % (i.name, line) for line in inst.args])
 
@@ -696,10 +714,10 @@ def main(argv, out, err):
                         die('While rendering %s: missing template for %s' %
                             (item, c.type.name))
                     save(item, g)
-                    if options.item == item:
+                    if options.item[0] == item:
                         if not template:
-                            log.warning('Warning: no template for %s' % options.item)
-                        done(g, options.outfile)
+                            log.warning('Warning: no template for %s' % options.item[0])
+                        done(g, options.outfile[0])
 
         # The following block handles instantiations of per-connection
         # templates that are neither a 'source' or a 'header', as handled
@@ -715,24 +733,24 @@ def main(argv, out, err):
         for t in (('%s/from/' % c.name, c.from_ends),
                   ('%s/to/' % c.name, c.to_ends)):
 
-            if not options.item.startswith(t[0]):
+            if not options.item[0].startswith(t[0]):
                 # This is not the item we're looking for.
                 continue
 
             # If we've reached here then this is the exact item we're after.
-            template = templates.lookup(options.item, c)
+            template = templates.lookup(options.item[0], c)
             if template is None:
-                die('no registered template for %s' % options.item)
+                die('no registered template for %s' % options.item[0])
 
             for e in t[1]:
                 try:
                     g = r.render(e, assembly, template, obj_space,
                         cspaces[e.instance.address_space], shmem, kept_symbols, fill_frames,
                         options=renderoptions, my_pd=pds[e.instance.address_space])
-                    save(options.item, g)
-                    done(g, options.outfile)
+                    save(options.item[0], g)
+                    done(g, options.outfile[0])
                 except TemplateError as inst:
-                    die(['While rendering %s: %s' % (options.item, line) for line in inst.args])
+                    die(['While rendering %s: %s' % (options.item[0], line) for line in inst.args])
 
     # Perform any per component special generation. This needs to happen last
     # as these template needs to run after all other capabilities have been
@@ -752,10 +770,10 @@ def main(argv, out, err):
                         g = r.render(i, assembly, template, obj_space, cspaces[i.address_space],
                             shmem, kept_symbols, fill_frames, options=renderoptions, my_pd=pds[i.address_space])
                     save(t, g)
-                    if options.item == t:
+                    if options.item[0] == t:
                         if not template:
-                            log.warning('Warning: no template for %s' % options.item)
-                        done(g, options.outfile)
+                            log.warning('Warning: no template for %s' % options.item[0])
+                        done(g, options.outfile[0])
                 except TemplateError as inst:
                     die(['While rendering %s: %s' % (i.name, line) for line in inst.args])
 
@@ -769,14 +787,14 @@ def main(argv, out, err):
         with open(pickle_path, 'wb') as pickle_file:
             pickle.dump((obj_space, shmem, cspaces, pds, kept_symbols, fill_frames), pickle_file)
 
-    if options.item in ('capdl', 'label-mapping'):
+    if options.item[0] in ('capdl', 'label-mapping'):
         apply_capdl_filters()
 
     # Instantiate any other, miscellaneous template. If we've reached this
     # point, we know the user did not request a code template.
     instantiate_misc_template()
 
-    die('No valid element matching --item %s' % options.item)
+    die('No valid element matching --item %s' % options.item[0])
 
 if __name__ == '__main__':
     sys.exit(main(sys.argv, sys.stdout, sys.stderr))
