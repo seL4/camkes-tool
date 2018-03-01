@@ -28,7 +28,7 @@
 /*- endfor -*/
 
 /*# Include connector headers if connectors with headers are used to connect this instance #*/
-/*- for connection in me.parent.connections -*/
+/*- for connection in composition.connections -*/
     /*- for id, end in enumerate(connection.from_ends) -*/
         /*- if end.instance == me and lookup_template("%s/from/header" % connection.type.name, connection) is not none -*/
 #include </*? "%s_%s_%d.h" % (end.interface.name, connection.type.name, id) ?*/>
