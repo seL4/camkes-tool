@@ -10,7 +10,8 @@
  * @TAG(DATA61_BSD)
  */
 
-/*? macros.header_guard(re.sub('\\W', '_', options.outfile.name)) ?*/
+#pragma once
+
 #include <camkes/dataport.h>
 #include <camkes/error.h>
 #include <stdint.h>
@@ -196,5 +197,3 @@ void set_putchar(void (*putchar)(int c));
   camkes_error_handler_t /*? i.name ?*/_register_error_handler(
     camkes_error_handler_t handler);
 /*- endfor -*/
-
-#endif
