@@ -317,8 +317,12 @@ def main(argv, out, err):
             'per item requested.\n')
         return -1
 
-    if len(options.outfile) != 1:
-        err.write('Only one outfile supported at the moment.\n')
+    # No duplicates in items or outfiles
+    if len(set(options.item)) != len(options.item):
+        err.write('Duplicate items requested through --item.\n')
+        return -1
+    if len(set(options.outfile)) != len(options.outfile):
+        err.write('Duplicate outfiles requrested through --outfile.\n')
         return -1
 
     # Save us having to pass debugging everywhere.
@@ -327,6 +331,10 @@ def main(argv, out, err):
     log.set_verbosity(options.verbosity)
 
     cwd = os.getcwd()
+
+    # Build a list of item/outfile pairs that we have yet to match and process
+    all_items = set(zip(options.item, options.outfile))
+    done_items = set([])
 
     # Construct the compilation caches if requested.
     cachea = None
@@ -389,7 +397,10 @@ def main(argv, out, err):
                     log.debug('failed to flush level B cache: %s' % str(e))
                 else:
                     raise
-        sys.exit(ret)
+
+        done_items.add((item, file))
+        if len(all_items - done_items) == 0:
+            sys.exit(ret)
 
     # Try to find this output in the level A cache if possible. This check will
     # 'hit' if the source files representing the input spec are identical to
@@ -618,17 +629,19 @@ def main(argv, out, err):
         options.realtime)
 
     def instantiate_misc_template():
-        try:
-            template = templates.lookup(options.item[0])
-            if template:
-                g = r.render(assembly, assembly, template, obj_space, None,
-                    shmem, kept_symbols, fill_frames, imported=read, options=renderoptions)
-                save(options.item[0], g)
-        except TemplateError as inst:
-            die(['While rendering %s: %s' % (options.item[0], line) for line in inst.args])
+        for (item, outfile) in (all_items - done_items):
+            try:
+                template = templates.lookup(item)
+                if template:
+                    g = r.render(assembly, assembly, template, obj_space, None,
+                        shmem, kept_symbols, fill_frames, imported=read, options=renderoptions)
+                    save(item, g)
+                    done(g, outfile, item)
+            except TemplateError as inst:
+                die(['While rendering %s: %s' % (item, line) for line in inst.args])
 
-    if options.item[0] in ('capdl', 'label-mapping') and options.data_structure_cache_dir is not None:
-                done(g, options.outfile[0], options.item[0])
+    if options.item[0] in ('capdl', 'label-mapping') and options.data_structure_cache_dir is not None \
+            and len(options.outfile) == 1:
         # It's possible that data structures required to instantiate the capdl spec
         # were saved during a previous invocation of this script in the current build.
         cache_path = os.path.realpath(options.data_structure_cache_dir)
@@ -683,10 +696,12 @@ def main(argv, out, err):
                     g = r.render(i, assembly, template, obj_space, cspaces[i.address_space],
                         shmem, kept_symbols, fill_frames, options=renderoptions, my_pd=pds[i.address_space])
                 save(t, g)
-                if options.item[0] == t:
-                    if not template:
-                        log.warning('Warning: no template for %s' % options.item[0])
-                    done(g, options.outfile[0], options.item[0])
+                for (item, outfile) in (all_items - done_items):
+                    if item == t:
+                        if not template:
+                            log.warning('Warning: no template for %s' % item)
+                        done(g, outfile, item)
+                        break
             except TemplateError as inst:
                 die(['While rendering %s: %s' % (i.name, line) for line in inst.args])
 
@@ -714,10 +729,12 @@ def main(argv, out, err):
                         die('While rendering %s: missing template for %s' %
                             (item, c.type.name))
                     save(item, g)
-                    if options.item[0] == item:
-                        if not template:
-                            log.warning('Warning: no template for %s' % options.item[0])
-                        done(g, options.outfile[0], options.item[0])
+                    for (t, outfile) in (all_items - done_items):
+                        if t == item:
+                            if not template:
+                                log.warning('Warning: no template for %s' % item)
+                            done(g, outfile, item)
+                            break
 
         # The following block handles instantiations of per-connection
         # templates that are neither a 'source' or a 'header', as handled
@@ -730,27 +747,28 @@ def main(argv, out, err):
         # where the per-component templates, the per-connection template loop
         # above, and this loop could all be done in a single unified control
         # flow.
-        for t in (('%s/from/' % c.name, c.from_ends),
-                  ('%s/to/' % c.name, c.to_ends)):
+        for (item, outfile) in (all_items - done_items):
+            for t in (('%s/from/' % c.name, c.from_ends),
+                    ('%s/to/' % c.name, c.to_ends)):
 
-            if not options.item[0].startswith(t[0]):
-                # This is not the item we're looking for.
-                continue
+                if not item.startswith(t[0]):
+                    # This is not the item we're looking for.
+                    continue
 
-            # If we've reached here then this is the exact item we're after.
-            template = templates.lookup(options.item[0], c)
-            if template is None:
-                die('no registered template for %s' % options.item[0])
+                # If we've reached here then this is the exact item we're after.
+                template = templates.lookup(item, c)
+                if template is None:
+                    die('no registered template for %s' % item)
 
-            for e in t[1]:
-                try:
-                    g = r.render(e, assembly, template, obj_space,
-                        cspaces[e.instance.address_space], shmem, kept_symbols, fill_frames,
-                        options=renderoptions, my_pd=pds[e.instance.address_space])
-                    save(options.item[0], g)
-                    done(g, options.outfile[0], options.item[0])
-                except TemplateError as inst:
-                    die(['While rendering %s: %s' % (options.item[0], line) for line in inst.args])
+                for e in t[1]:
+                    try:
+                        g = r.render(e, assembly, template, obj_space,
+                            cspaces[e.instance.address_space], shmem, kept_symbols, fill_frames,
+                            options=renderoptions, my_pd=pds[e.instance.address_space])
+                        save(item, g)
+                        done(g, outfile, item)
+                    except TemplateError as inst:
+                        die(['While rendering %s: %s' % (item, line) for line in inst.args])
 
     # Perform any per component special generation. This needs to happen last
     # as these template needs to run after all other capabilities have been
@@ -770,10 +788,11 @@ def main(argv, out, err):
                         g = r.render(i, assembly, template, obj_space, cspaces[i.address_space],
                             shmem, kept_symbols, fill_frames, options=renderoptions, my_pd=pds[i.address_space])
                     save(t, g)
-                    if options.item[0] == t:
-                        if not template:
-                            log.warning('Warning: no template for %s' % options.item[0])
-                        done(g, options.outfile[0], options.item[0])
+                    for (item, outfile) in (all_items - done_items):
+                        if item == t:
+                            if not template:
+                                log.warning('Warning: no template for %s' % item)
+                            done(g, outfile, item)
                 except TemplateError as inst:
                     die(['While rendering %s: %s' % (i.name, line) for line in inst.args])
 
@@ -787,14 +806,21 @@ def main(argv, out, err):
         with open(pickle_path, 'wb') as pickle_file:
             pickle.dump((obj_space, shmem, cspaces, pds, kept_symbols, fill_frames), pickle_file)
 
-    if options.item[0] in ('capdl', 'label-mapping'):
-        apply_capdl_filters()
+    for (item, outfile) in (all_items - done_items):
+        if item in ('capdl', 'label-mapping'):
+            apply_capdl_filters()
 
     # Instantiate any other, miscellaneous template. If we've reached this
     # point, we know the user did not request a code template.
     instantiate_misc_template()
 
-    die('No valid element matching --item %s' % options.item[0])
+    # Check if there are any remaining items
+    not_done = all_items - done_items
+    if len(not_done) > 0:
+        for (item, outfile) in not_done:
+            err.write('No valid element matching --item %s.\n' % item)
+        return -1
+    return 0
 
 if __name__ == '__main__':
     sys.exit(main(sys.argv, sys.stdout, sys.stderr))
