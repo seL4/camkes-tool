@@ -355,7 +355,7 @@ def main(argv, out, err):
         cachea = LevelACache(os.path.join(options.cache_dir, version(), 'cachea'))
         cacheb = LevelBCache(os.path.join(options.cache_dir, version(), 'cacheb'))
 
-    def done(s, file):
+    def done(s, file, item):
         ret = 0
         if s:
             file.write(s)
@@ -402,7 +402,7 @@ def main(argv, out, err):
         if output is not None:
             log.debug('Retrieved %(platform)s/%(item)s from level A cache' %
                 options.__dict__)
-            done(output, options.outfile[0])
+            done(output, options.outfile[0], options.item[0])
 
     filename = os.path.abspath(options.file.name)
 
@@ -497,7 +497,7 @@ def main(argv, out, err):
         if output is not None:
             log.debug('Retrieved %(platform)s/%(item)s from level B cache' %
                 options.__dict__)
-            done(output, options.outfile[0])
+            done(output, options.outfile[0], options.item[0])
 
     # Add custom templates.
     read |= extra_templates
@@ -624,11 +624,11 @@ def main(argv, out, err):
                 g = r.render(assembly, assembly, template, obj_space, None,
                     shmem, kept_symbols, fill_frames, imported=read, options=renderoptions)
                 save(options.item[0], g)
-                done(g, options.outfile[0])
         except TemplateError as inst:
             die(['While rendering %s: %s' % (options.item[0], line) for line in inst.args])
 
     if options.item[0] in ('capdl', 'label-mapping') and options.data_structure_cache_dir is not None:
+                done(g, options.outfile[0], options.item[0])
         # It's possible that data structures required to instantiate the capdl spec
         # were saved during a previous invocation of this script in the current build.
         cache_path = os.path.realpath(options.data_structure_cache_dir)
@@ -686,7 +686,7 @@ def main(argv, out, err):
                 if options.item[0] == t:
                     if not template:
                         log.warning('Warning: no template for %s' % options.item[0])
-                    done(g, options.outfile[0])
+                    done(g, options.outfile[0], options.item[0])
             except TemplateError as inst:
                 die(['While rendering %s: %s' % (i.name, line) for line in inst.args])
 
@@ -717,7 +717,7 @@ def main(argv, out, err):
                     if options.item[0] == item:
                         if not template:
                             log.warning('Warning: no template for %s' % options.item[0])
-                        done(g, options.outfile[0])
+                        done(g, options.outfile[0], options.item[0])
 
         # The following block handles instantiations of per-connection
         # templates that are neither a 'source' or a 'header', as handled
@@ -748,7 +748,7 @@ def main(argv, out, err):
                         cspaces[e.instance.address_space], shmem, kept_symbols, fill_frames,
                         options=renderoptions, my_pd=pds[e.instance.address_space])
                     save(options.item[0], g)
-                    done(g, options.outfile[0])
+                    done(g, options.outfile[0], options.item[0])
                 except TemplateError as inst:
                     die(['While rendering %s: %s' % (options.item[0], line) for line in inst.args])
 
@@ -773,7 +773,7 @@ def main(argv, out, err):
                     if options.item[0] == t:
                         if not template:
                             log.warning('Warning: no template for %s' % options.item[0])
-                        done(g, options.outfile[0])
+                        done(g, options.outfile[0], options.item[0])
                 except TemplateError as inst:
                     die(['While rendering %s: %s' % (i.name, line) for line in inst.args])
 
