@@ -286,7 +286,7 @@ def pickle_call(data_structure_cache_dir, pickle_name, fn, *args, **kwargs):
 
 def parse_file_cached(filename, data_structure_cache_dir, parser_options):
     if data_structure_cache_dir is None:
-        return parse_file(filename, kwargs)
+        return parse_file(filename, parser_options)
 
     return pickle_call(data_structure_cache_dir, 'ast.p', parse_file, filename, parser_options)
 
