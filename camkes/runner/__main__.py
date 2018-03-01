@@ -345,11 +345,11 @@ def main(argv, out, err):
         cachea = LevelACache(os.path.join(options.cache_dir, version(), 'cachea'))
         cacheb = LevelBCache(os.path.join(options.cache_dir, version(), 'cacheb'))
 
-    def done(s):
+    def done(s, file):
         ret = 0
         if s:
-            options.outfile.write(s)
-            options.outfile.close()
+            file.write(s)
+            file.close()
         if cachea is not None:
             try:
                 cachea.flush()
@@ -390,7 +390,7 @@ def main(argv, out, err):
         if output is not None:
             log.debug('Retrieved %(platform)s/%(item)s from level A cache' %
                 options.__dict__)
-            done(output)
+            done(output, options.outfile)
 
     filename = os.path.abspath(options.file.name)
 
@@ -483,7 +483,7 @@ def main(argv, out, err):
         if output is not None:
             log.debug('Retrieved %(platform)s/%(item)s from level B cache' %
                 options.__dict__)
-            done(output)
+            done(output, options.outfile)
 
     # Add custom templates.
     read |= extra_templates
@@ -606,7 +606,7 @@ def main(argv, out, err):
                 g = r.render(assembly, assembly, template, obj_space, None,
                     shmem, kept_symbols, fill_frames, imported=read, options=renderoptions)
                 save(options.item, g)
-                done(g)
+                done(g, options.outfile)
         except TemplateError as inst:
             die(['While rendering %s: %s' % (options.item, line) for line in inst.args])
 
@@ -668,7 +668,7 @@ def main(argv, out, err):
                 if options.item == t:
                     if not template:
                         log.warning('Warning: no template for %s' % options.item)
-                    done(g)
+                    done(g, options.outfile)
             except TemplateError as inst:
                 die(['While rendering %s: %s' % (i.name, line) for line in inst.args])
 
@@ -699,7 +699,7 @@ def main(argv, out, err):
                     if options.item == item:
                         if not template:
                             log.warning('Warning: no template for %s' % options.item)
-                        done(g)
+                        done(g, options.outfile)
 
         # The following block handles instantiations of per-connection
         # templates that are neither a 'source' or a 'header', as handled
@@ -730,7 +730,7 @@ def main(argv, out, err):
                         cspaces[e.instance.address_space], shmem, kept_symbols, fill_frames,
                         options=renderoptions, my_pd=pds[e.instance.address_space])
                     save(options.item, g)
-                    done(g)
+                    done(g, options.outfile)
                 except TemplateError as inst:
                     die(['While rendering %s: %s' % (options.item, line) for line in inst.args])
 
@@ -755,7 +755,7 @@ def main(argv, out, err):
                     if options.item == t:
                         if not template:
                             log.warning('Warning: no template for %s' % options.item)
-                        done(g)
+                        done(g, options.outfile)
                 except TemplateError as inst:
                     die(['While rendering %s: %s' % (i.name, line) for line in inst.args])
 
