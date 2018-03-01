@@ -84,12 +84,11 @@ class FilterOptions():
         self.fprovide_tcb_caps = fprovide_tcb_caps
 
 class RenderOptions():
-    def __init__(self, file, verbosity, outfile, frpc_lock_elision, fspecialise_syscall_stubs,
+    def __init__(self, file, verbosity, frpc_lock_elision, fspecialise_syscall_stubs,
             fprovide_tcb_caps, fsupport_init, largeframe, largeframe_dma, architecture,
             debug_fault_handlers, realtime):
         self.file = file
         self.verbosity = verbosity
-        self.outfile = outfile
         self.frpc_lock_elision = frpc_lock_elision
         self.fspecialise_syscall_stubs = fspecialise_syscall_stubs
         self.fprovide_tcb_caps = fprovide_tcb_caps
@@ -595,7 +594,7 @@ def main(argv, out, err):
             except Exception as inst:
                 die('While forming CapDL spec: %s' % inst)
 
-    renderoptions = RenderOptions(options.file, options.verbosity, options.outfile, options.frpc_lock_elision,
+    renderoptions = RenderOptions(options.file, options.verbosity, options.frpc_lock_elision,
         options.fspecialise_syscall_stubs, options.fprovide_tcb_caps, options.fsupport_init,
         options.largeframe, options.largeframe_dma, options.architecture, options.debug_fault_handlers,
         options.realtime)
