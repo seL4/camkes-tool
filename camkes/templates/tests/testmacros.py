@@ -133,7 +133,8 @@ class TestMacros(CAmkESTest):
         EXCEPTIONS = set(['capdl_sorter', 'to_isabelle_set'])
 
         unused = macros - used - EXCEPTIONS
-
+        if len(unused) > 0:
+            [print("Unused macro: %s" % u) for u in unused]
         self.assertLen(unused, 0)
 
 if __name__ == '__main__':
