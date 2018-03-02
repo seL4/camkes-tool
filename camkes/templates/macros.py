@@ -27,12 +27,6 @@ import collections, math, os, platform, re, six
 
 from camkes.templates.arch_helpers import min_untyped_size, max_untyped_size
 
-def header_guard(filename):
-    return '#ifndef %(guard)s\n' \
-           '#define %(guard)s\n' % {
-               'guard':'_CAMKES_%s_' % filename.upper(),
-           }
-
 def thread_stack(sym, size='CONFIG_CAMKES_DEFAULT_STACK_SIZE'):
     return 'char %s[ROUND_UP_UNSAFE(%s, ' \
                 'PAGE_SIZE_4K) + PAGE_SIZE_4K * 2]\n' \
