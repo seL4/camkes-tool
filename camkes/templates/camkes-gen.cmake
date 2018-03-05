@@ -52,53 +52,92 @@ add_custom_target(camkes_gen_target DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/camkes-
   #*/
 /*- set groups = set(map(lambda('x: x.address_space'), filter(lambda('x: not x.type.hardware'), instances))) -*/
 
-# Helper function for generating files from camkes
-function(CAmkESGen output item)
-    cmake_parse_arguments(PARSE_ARGV 2 CAMKES_GEN "SOURCE;C_STYLE;THY_STYLE" "" "DEPENDS")
+# We build up a list of all the generated items that we want to construct a single
+# camkes invocation
+set(item_list "")
+set(outfile_list "")
+set(reflow_commands "")
+
+macro(ParentListAppend list)
+    set(local_list_value "${${list}}")
+    list(APPEND local_list_value ${ARGN})
+    set(${list} "${local_list_value}" PARENT_SCOPE)
+endmacro(ParentListAppend list)
+
+# Helper function for declaring a generated file
+function(CAmkESAddGen output item)
+    cmake_parse_arguments(PARSE_ARGV 2 CAMKES_GEN "SOURCE;C_STYLE;THY_STYLE" "" "")
     if (NOT "${CAMKES_GEN_UNPARSED_ARGUMENTS}" STREQUAL "")
-        message(FATAL_ERROR "Unknown arguments to CAmkESGen")
+        message(FATAL_ERROR "Unknown arguments to CAmkESGen: ${CAMKES_GEN_UNPARSED_ARGUMENTS}")
     endif()
     # generate command
     get_filename_component(out_dir "${output}" DIRECTORY)
     # Reflow generated files if requested
     if (CAMKES_GEN_C_STYLE AND (NOT ("${CAMKES_C_FMT_INVOCATION}" STREQUAL "")))
-        set(reflow_command "sh;-c; ${CAMKES_C_FMT_INVOCATION} ${output} | ${CAMKES_SPONGE_INVOCATION} ${output}")
+        ParentListAppend(reflow_commands sh -c
+            "${CAMKES_C_FMT_INVOCATION} ${output} | ${CAMKES_SPONGE_INVOCATION} ${output}" "$<SEMICOLON>")
     elseif(CAMKES_GEN_THY_STYLE)
-        set(reflow_command "sh;-c; ${TPP_TOOL} ${output} | ${CAMKES_SPONGE_INVOCATION} ${output}")
-    else()
-        set(reflow_command "")
+        ParentListAppend(reflow_commands sh -c
+            "${TPP_TOOL} ${output} | ${CAMKES_SPONGE_INVOCATION} ${output}" "$<SEMICOLON>")
     endif()
+    # Append the item and outfile
+    ParentListAppend(item_list "${item}")
+    ParentListAppend(outfile_list "${output}")
+    # Add to the sources list if it's a source file
+    if (CAMKES_GEN_SOURCE)
+        ParentListAppend(gen_sources "${output}")
+    endif()
+    # Always add to the list of generated files
+    ParentListAppend(gen_files "${output}")
+endfunction(CAmkESAddGen)
+
+function(CAmkESOutputGenCommand)
+    if ("${item_list}" STREQUAL "")
+        return()
+    endif()
+    set(reflow "${reflow_commands}")
+    # If the reflow command was empty then we would output 'COMMAND ""' below, which
+    # seems to be an error as it causes the cmake generation stage to occasionally segfault
+    if ("${reflow}" STREQUAL "")
+        set(reflow "true")
+    endif()
+    list(LENGTH outfile_list outfile_list_count)
     add_custom_command(
-        OUTPUT ${output}
-        COMMAND mkdir -p "${out_dir}"
+        OUTPUT ${outfile_list}
         COMMAND
             ${CMAKE_COMMAND} -E env ${CAMKES_TOOL_ENVIRONMENT} "${CAMKES_TOOL}"
                 --file "${CAMKES_ADL_SOURCE}"
-                --item ${item}
-                --outfile "${output}"
+                "--item;$<JOIN:${item_list},;--item;>"
+                "--outfile;$<JOIN:${outfile_list},;--outfile;>"
                 ${CAMKES_FLAGS}
-        COMMAND ${reflow_command}
+        COMMAND "${reflow}"
         DEPENDS
             ${CAMKES_ADL_SOURCE}
             /*? ' '.join(imported) ?*/
             # This pulls in miscelaneous dependencies such as the camkes-accelerator
             # which is used by the camkes tool
             ${CAMKES_TOOL_DEPENDENCIES}
-            # Any extra dependencies
-            ${CAMKES_GEN_DEPENDS}
         VERBATIM
+        COMMAND_EXPAND_LISTS
+        COMMENT "Performing CAmkES generation for ${outfile_list_count} files"
     )
-    # Add to the sources list if it's a source file
-    if (CAMKES_GEN_SOURCE)
-        set(local_sources "${gen_sources}")
-        list(APPEND local_sources "${output}")
-        set(gen_sources "${local_sources}" PARENT_SCOPE)
+    set(reflow_commands "" PARENT_SCOPE)
+    set(item_list "" PARENT_SCOPE)
+    set(outfile_list "" PARENT_SCOPE)
+endfunction(CAmkESOutputGenCommand)
+
+# We use a macro to control generating single or multiple outfiles from the CAmKES runner
+# in order for the functions this calls to effectively run in the parent scope (as they
+# need to modify global variables)
+macro(CAmkESGen output item)
+    CAmkESAddGen("${output}" "${item}" ${ARGN})
+    # Neither the caches nor the accelerator understand multiple outfiles
+    # if neither are in use then we can defer the gen command until later,
+    # otherwise we process it right now
+    if (CAmkESCompilationCache OR CAmkESAccelerator)
+        CAmkESOutputGenCommand()
     endif()
-    # Always add to the list of generated files
-    set(local_gen "${gen_files}")
-    list(APPEND local_gen "${output}")
-    set(gen_files "${local_gen}" PARENT_SCOPE)
-endfunction(CAmkESGen)
+endmacro(CAmkESGen)
 
 # A target for each binary that we need to build
 /*- for i in instances if not i.type.hardware -*/
@@ -337,6 +376,9 @@ set(CMAKE_INSTANCE_GROUP_LINK_EXECUTABLE "<CMAKE_C_COMPILER> <FLAGS> <CMAKE_C_LI
     add_custom_target(/*? p['elf_name'] ?*/_group_target DEPENDS "${target}")
 /*- endfor -*/
 
+# Generate our targets up to this point
+CAmkESOutputGenCommand()
+
 set(capdl_elf_depends "")
 set(capdl_elf_targets "")
 /*- for g in groups -*/
@@ -397,3 +439,8 @@ BuildCapDLApplication(
     OUTPUT "capdl-loader"
 )
 DeclareRootserver("capdl-loader")
+
+# Ensure we generated all the files we intended to, this is just sanity checking
+if (NOT ("${item_list}" STREQUAL ""))
+    message(FATAL_ERROR "Items added through CAmkESGen not generated")
+endif()
