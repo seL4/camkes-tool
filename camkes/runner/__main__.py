@@ -729,8 +729,8 @@ def main(argv, out, err):
                         die('While rendering %s: missing template for %s' %
                             (item, c.type.name))
                     save(item, g)
-                    for (t, outfile) in (all_items - done_items):
-                        if t == item:
+                    for (target, outfile) in (all_items - done_items):
+                        if target == item:
                             if not template:
                                 log.warning('Warning: no template for %s' % item)
                             done(g, outfile, item)
