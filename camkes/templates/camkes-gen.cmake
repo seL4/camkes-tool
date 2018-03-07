@@ -65,7 +65,7 @@ macro(ParentListAppend list)
 endmacro(ParentListAppend list)
 
 # Helper function for declaring a generated file
-function(CAmkESAddGen output item)
+function(CAmkESGen output item)
     cmake_parse_arguments(PARSE_ARGV 2 CAMKES_GEN "SOURCE;C_STYLE;THY_STYLE" "" "")
     if (NOT "${CAMKES_GEN_UNPARSED_ARGUMENTS}" STREQUAL "")
         message(FATAL_ERROR "Unknown arguments to CAmkESGen: ${CAMKES_GEN_UNPARSED_ARGUMENTS}")
@@ -89,7 +89,7 @@ function(CAmkESAddGen output item)
     endif()
     # Always add to the list of generated files
     ParentListAppend(gen_files "${output}")
-endfunction(CAmkESAddGen)
+endfunction(CAmkESGen)
 
 function(CAmkESOutputGenCommand)
     if ("${item_list}" STREQUAL "")
@@ -125,13 +125,6 @@ function(CAmkESOutputGenCommand)
     set(item_list "" PARENT_SCOPE)
     set(outfile_list "" PARENT_SCOPE)
 endfunction(CAmkESOutputGenCommand)
-
-# We use a macro to control generating single or multiple outfiles from the CAmKES runner
-# in order for the functions this calls to effectively run in the parent scope (as they
-# need to modify global variables)
-macro(CAmkESGen output item)
-    CAmkESAddGen("${output}" "${item}" ${ARGN})
-endmacro(CAmkESGen)
 
 # A target for each binary that we need to build
 /*- for i in instances if not i.type.hardware -*/
