@@ -97,6 +97,18 @@ config_choice(CAmkESTLSModel CAMKES_TLS_MODEL
     "per-thread;CAmkESTLSPerThreadGlobal;CAMKES_TLS_PTG"
 )
 
+config_string(CAmkESDefaultPriority CAMKES_DEFAULT_PRIORITY
+    "Default priority for component threads if this is not overridden via an
+    attribute. Generally you want to set this as high as possible due to
+    the suboptimal seL4 scheduler."
+    # Default to one less than max prio to avoid interleaving with the CapDL intialiser
+    DEFAULT 254
+    UNQUOTE
+)
+if ((${CAmkESDefaultPriority} LESS 0) OR (${CAmkESDefaultPriority} GREATER 255))
+    message(FATAL_ERROR "CAmkESDefaultPriority must be [0, 255]")
+endif()
+
 add_config_library(camkes_config "${configure_string}")
 
 # These options are not declared with the config_* system because they only need to exist
@@ -112,16 +124,6 @@ set(CAmkESImportPath "" CACHE STRING
     directory. This option is a space delimited list of absolute paths to directories
     to be searched for components or interfaces included with angle brackets."
 )
-
-set(CAmkESDefaultPriority 254 CACHE STRING
-    # Default to one less than max prio ti avoid interleaving our without with the CapDL intialiser
-    "Default priority for component threads if this is not overridden via an
-    attribute. Generally you want to set this as high as possible due to
-    the suboptimal seL4 scheduler."
-)
-if ((${CAmkESDefaultPriority} LESS 0) OR (${CAmkESDefaultPriority} GREATER 255))
-    message(FATAL_ERROR "CAmkESDefaultPriority must be [0, 255]")
-endif()
 
 set(CAmkESDefaultAffinity 0 CACHE STRING
     # Default to 0 as this is the index assigned to the BSP (Boot Strap Processor) by seL4
