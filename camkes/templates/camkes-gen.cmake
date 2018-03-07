@@ -131,12 +131,6 @@ endfunction(CAmkESOutputGenCommand)
 # need to modify global variables)
 macro(CAmkESGen output item)
     CAmkESAddGen("${output}" "${item}" ${ARGN})
-    # Neither the caches nor the accelerator understand multiple outfiles
-    # if neither are in use then we can defer the gen command until later,
-    # otherwise we process it right now
-    if (CAmkESCompilationCache OR CAmkESAccelerator)
-        CAmkESOutputGenCommand()
-    endif()
 endmacro(CAmkESGen)
 
 # A target for each binary that we need to build

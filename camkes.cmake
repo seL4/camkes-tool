@@ -168,21 +168,6 @@ set(CAmkESObjdumpMethod "auto" CACHE STRING
 )
 set_property(CACHE CAmkESObjdumpMethod PROPERTY STRINGS "auto;on;off")
 
-set(CAmkESCompilationCache ON CACHE BOOL
-    "Enable caching of successful code generation. With this option
-    selected, CAmkES will save the output of code generation and will
-    first try to satisfy new code generation requests from this cached
-    information."
-)
-
-set(CAmkESAccelerator ON CACHE BOOL
-    "CAmkES comes with an optimised tool that can serve cached results
-    from previous builds. Enabling this allows repeated builds to be
-    completed without the overhead of running CAmkES itself or the
-    Python interpreter. This option selects this tool for code
-    generation before running CAmkES itself."
-)
-
 set(CAmkESRPCLockElision ON CACHE BOOL
     "Detect when it is safe to exclude locking operations in the seL4RPC connector and
     automatically do so. This is an optimisation that can improve the performance of
@@ -353,25 +338,6 @@ RequireFile(CAMKES_TOOL camkes.sh PATHS "${CMAKE_CURRENT_LIST_DIR}")
 get_filename_component(CAMKES_TOOL_DIR "${CAMKES_TOOL}" DIRECTORY)
 set(CAMKES_TOOL_BUILTIN_DIR "${CAMKES_TOOL_DIR}/include/builtin")
 
-# If requested install the camkes-accelerator into our local build directory and add
-# it to the path
-if (CAmkESAccelerator)
-    # Need to give the camkes accelerator a path to the python-capdl-tool as camkes hashes
-    # the contents of this if it is on the path in order to determine the current camkes 'version'
-    # If this is not on the path then the accelerator build now, and the camkes invoked later,
-    # will hash different files and hence disagree on the version
-    ExternalProject_Add(external_camkes_accelerator
-        SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/tools/camkes/tools/accelerator"
-        CMAKE_CACHE_ARGS "-DCMAKE_INSTALL_PREFIX:STRING=${CMAKE_CURRENT_BINARY_DIR}/accelerator"
-        BUILD_COMMAND ${CMAKE_COMMAND} -E env "PYTHONPATH=$ENV{PYTHONPATH}:${PYTHON_CAPDL_PATH}" cmake --build .
-        # I do not understand why cmake cannot work out when to rebuild this itself, especially given
-        # that the target is also a cmake project, but given that the rebuild is quick we shall just
-        # do it all the time
-        BUILD_ALWAYS ON
-    )
-    set(ENV{PATH} "$ENV{PATH}:${CMAKE_CURRENT_BINARY_DIR}/accelerator/bin")
-endif()
-
 # Require the parse-capDL tool
 ExternalProject_Add(parse_capdl_tool
     SOURCE_DIR "${CAPDL_TOOL_SOURCE_PATH}"
@@ -488,12 +454,8 @@ function(GenerateCAmkESRootserver)
     set(CAMKES_TOOL_DEPENDENCIES "")
     # Build the environment expected by camkes, as well as the camkes.sh wrapper script
     list(APPEND CAMKES_TOOL_ENVIRONMENT "PYTHONPATH=$ENV{PYTHONPATH}:${PYTHON_CAPDL_PATH}")
-    if (CAmkESAccelerator)
-        list(APPEND CAMKES_TOOL_DEPENDENCIES "external_camkes_accelerator")
-    endif()
     # List of 'if condition' 'definition to add' for building the environment exports
     camkes_append_env_if(
-        CAmkESAccelerator CONFIG_CAMKES_ACCELERATOR
         "${CAmkESObjdumpMethod} STREQUAL on" CONFIG_CAMKES_USE_OBJDUMP_ON
         "${CAmkESObjdumpMethod} STREQUAL auto" CONFIG_CAMKES_USE_OBJDUMP_AUTO
         "${CAmkESPythonOptimisation} STREQUAL -O" CONFIG_CAMKES_PYTHON_OPTIMISE_BASIC
@@ -518,13 +480,11 @@ function(GenerateCAmkESRootserver)
         --architecture ${KernelSel4Arch}
         --default-priority ${CAmkESDefaultPriority}
         --default-affinity ${CAmkESDefaultAffinity}
-        "--data-structure-cache-dir=${CMAKE_CURRENT_BINARY_DIR}/camkes_pickle"
     )
     # Build extra flags from the configuration
     # Each of these arguments is a CONDITION FLAG_IF_CONDITION_TRUE [FLAG_IF_CONDITION_FALSE]
     camkes_append_flags(
         "CAmkESVerbose;--debug"
-        "CAmkESCompilationCache;--cache"
         "KernelIsMCS;--realtime"
         "CAmkESRPCLockElision;--frpc-lock-elision;--fno-rpc-lock-elision"
         "CAmkESSpecialiseSyscallStubs;--fspecialise-syscall-stubs;--fno-specialise-syscall-stubs"
