@@ -126,6 +126,15 @@ function(CAmkESOutputGenCommand)
     set(outfile_list "" PARENT_SCOPE)
 endfunction(CAmkESOutputGenCommand)
 
+# helper for appending lists of generator expressions
+function(AppendGenerator output new_list_value)
+    # determine if there is anything in the original list OR the new list, and use that to deteremine
+    # whether or not to put a semicolon between the two
+    set(prop "${${output}}")
+    set(new_list "${prop}$<$<OR:$<BOOL:${prop}>,$<BOOL:${new_list_value}>>:$<SEMICOLON>>${new_list_value}")
+    set(${output} "${new_list}" PARENT_SCOPE)
+endfunction(AppendGenerator)
+
 # A target for each binary that we need to build
 /*- for i in instances if not i.type.hardware -*/
     # Variable for collecting generated files
