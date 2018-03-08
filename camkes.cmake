@@ -571,6 +571,15 @@ function(DeclareCAmkESComponent name)
     AppendCAmkESComponentTarget(CAmkESComponent_${name} ${ARGN})
 endfunction(DeclareCAmkESComponent)
 
+# Extend a particular instantiation of a CAmkES component with additional information. This takes
+# similar arguments to DeclareCAmkESComponent and all of the declared includes, flags etc also
+# apply to the sources from DeclareCAmkESComponent. The includes provided here will be passed
+# prior to the original includes allowing for overriding. This can be called multiple times for the
+# same instance to repeatedly extend it. Similar flags will be placed after.
+function(ExtendCAmkESComponentInstance component_name instance_name)
+    AppendCAmkESComponentTarget(CAmkESComponent_${component_name}_instance_${instance_name} ${ARGN})
+endfunction(ExtendCAmkESComponentInstance)
+
 # Helper function for adding additional import paths. Largely it exists to allow list
 # files to give relative paths and have them automatically expanded to absolute paths
 # We add the import paths to a property, instead of a target, since we need to use

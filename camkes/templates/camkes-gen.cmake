@@ -140,13 +140,23 @@ endfunction(AppendGenerator)
     # Variable for collecting generated files
     set(gen_files "")
     set(gen_sources "")
+    # If no instance target exists declare it to simplify the logic of the generator expressions
+    set (instance_target "CAmkESComponent_/*? i.type.name ?*/_instance_/*? i.name ?*/")
+    if (NOT (TARGET ${instance_target}))
+        add_custom_target(${instance_target})
+    endif()
     # Retrieve the static sources for the component
     set(static_sources "$<TARGET_PROPERTY:CAmkESComponent_/*? i.type.name ?*/,COMPONENT_SOURCES>")
+    AppendGenerator(static_sources "$<TARGET_PROPERTY:${instance_target},COMPONENT_SOURCES>")
     set(extra_c_flags "$<TARGET_PROPERTY:CAmkESComponent_/*? i.type.name ?*/,COMPONENT_C_FLAGS>")
+    AppendGenerator(extra_c_flags "$<TARGET_PROPERTY:${instance_target},COMPONENT_C_FLAGS>")
     set(extra_ld_flags "$<TARGET_PROPERTY:CAmkESComponent_/*? i.type.name ?*/,COMPONENT_LD_FLAGS>")
+    AppendGenerator(extra_ld_flags "$<TARGET_PROPERTY:${instance_target},COMPONENT_LD_FLAGS>")
     set(extra_libs "$<TARGET_PROPERTY:CAmkESComponent_/*? i.type.name ?*/,COMPONENT_LIBS>")
-    # Retrieve the static headers for the component
-    set(includes "$<TARGET_PROPERTY:CAmkESComponent_/*? i.type.name ?*/,COMPONENT_INCLUDES>")
+    AppendGenerator(extra_libs "$<TARGET_PROPERTY:${instance_target},COMPONENT_LIBS>")
+    # Retrieve the static headers for the component. Ensure instance headers are placed first
+    set(includes "$<TARGET_PROPERTY:${instance_target},COMPONENT_INCLUDES>")
+    AppendGenerator(includes "$<TARGET_PROPERTY:CAmkESComponent_/*? i.type.name ?*/,COMPONENT_INCLUDES>")
     # Generate camkes header
     set(generated_dir "${CMAKE_CURRENT_BINARY_DIR}//*? i.name ?*/")
     CAmkESGen("${generated_dir}/include/camkes.h" "/*? i.name ?*//header" C_STYLE)
