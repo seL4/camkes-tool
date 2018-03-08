@@ -12,7 +12,7 @@
 
 # Build system for the CAmkES accelerator.
 
-cmake_minimum_required (VERSION 2.6)
+cmake_minimum_required (VERSION 3.7.2)
 project (camkes-accelerator C)
 
 find_program(xxd xxd)
