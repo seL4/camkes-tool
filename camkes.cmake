@@ -538,7 +538,7 @@ endfunction(GenerateCAmkESRootserver)
 
 
 # This is called by CAmkES components to declare information needed for the camkes-gen.cmake to
-# actually build them
+# actually build them. Can be called multiple times to append additional information.
 function(DeclareCAmkESComponent name)
     cmake_parse_arguments(PARSE_ARGV 1 CAMKES_COMPONENT
         "" # Option arguments
@@ -546,7 +546,9 @@ function(DeclareCAmkESComponent name)
         "SOURCES;INCLUDES;C_FLAGS;LD_FLAGS;LIBS" # Multiple aguments
     )
     # Declare a target that we will set properties on
-    add_custom_target(CAmkESComponent_${name})
+    if (NOT (TARGET CAmkESComponent_${name}))
+        add_custom_target(CAmkESComponent_${name})
+    endif()
     # Get absolute paths for the includes and sources
     set(includes "")
     set(sources "")
@@ -558,11 +560,11 @@ function(DeclareCAmkESComponent name)
         get_absolute_source_or_binary(file "${file}")
         list(APPEND sources "${file}")
     endforeach()
-    set_property(TARGET CAmkESComponent_${name} PROPERTY COMPONENT_INCLUDES "${includes}")
-    set_property(TARGET CAmkESComponent_${name} PROPERTY COMPONENT_SOURCES "${sources}")
-    set_property(TARGET CAmkESComponent_${name} PROPERTY COMPONENT_C_FLAGS "${CAMKES_COMPONENT_C_FLAGS}")
-    set_property(TARGET CAmkESComponent_${name} PROPERTY COMPONENT_LD_FLAGS "${CAMKES_COMPONENT_LD_FLAGS}")
-    set_property(TARGET CAmkESComponent_${name} PROPERTY COMPONENT_LIBS "${CAMKES_COMPONENT_LIBS}")
+    set_property(TARGET CAmkESComponent_${name} APPEND PROPERTY COMPONENT_INCLUDES "${includes}")
+    set_property(TARGET CAmkESComponent_${name} APPEND PROPERTY COMPONENT_SOURCES "${sources}")
+    set_property(TARGET CAmkESComponent_${name} APPEND PROPERTY COMPONENT_C_FLAGS "${CAMKES_COMPONENT_C_FLAGS}")
+    set_property(TARGET CAmkESComponent_${name} APPEND PROPERTY COMPONENT_LD_FLAGS "${CAMKES_COMPONENT_LD_FLAGS}")
+    set_property(TARGET CAmkESComponent_${name} APPEND PROPERTY COMPONENT_LIBS "${CAMKES_COMPONENT_LIBS}")
 endfunction(DeclareCAmkESComponent)
 
 # Helper function for adding additional import paths. Largely it exists to allow list
