@@ -327,9 +327,13 @@ set(CAmkESVerbose OFF CACHE BOOL
     can result in a lot of output, but is useful for debugging CAmkES problems"
 )
 
-# Save the path to to python-capdl whilst we know it
-set(PYTHON_CAPDL_PATH "${CMAKE_CURRENT_SOURCE_DIR}/projects/capdl/python-capdl-tool")
-set(CAPDL_TOOL_SOURCE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/projects/capdl/capDL-tool")
+# Save the path to to python-capdl whilst we know it (unless it was already specified)
+if (NOT PYTHON_CAPDL_PATH)
+    set(PYTHON_CAPDL_PATH "${CMAKE_CURRENT_SOURCE_DIR}/projects/capdl/python-capdl-tool")
+endif()
+if (NOT CAPDL_TOOL_SOURCE_PATH)
+    set(CAPDL_TOOL_SOURCE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/projects/capdl/capDL-tool")
+endif()
 
 # Save the location of the camkes tool wrapper script
 RequireFile(CAMKES_TOOL camkes.sh PATHS "${CMAKE_CURRENT_LIST_DIR}")
