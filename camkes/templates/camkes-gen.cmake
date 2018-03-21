@@ -57,6 +57,7 @@ add_custom_target(camkes_gen_target DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/camkes-
 set(item_list "")
 set(outfile_list "")
 set(reflow_commands "")
+set(deps_list "")
 
 macro(ParentListAppend list)
     set(local_list_value "${${list}}")
@@ -66,7 +67,7 @@ endmacro(ParentListAppend list)
 
 # Helper function for declaring a generated file
 function(CAmkESGen output item)
-    cmake_parse_arguments(PARSE_ARGV 2 CAMKES_GEN "SOURCE;C_STYLE;THY_STYLE" "" "")
+    cmake_parse_arguments(PARSE_ARGV 2 CAMKES_GEN "SOURCE;C_STYLE;THY_STYLE" "" "DEPENDS")
     if (NOT "${CAMKES_GEN_UNPARSED_ARGUMENTS}" STREQUAL "")
         message(FATAL_ERROR "Unknown arguments to CAmkESGen: ${CAMKES_GEN_UNPARSED_ARGUMENTS}")
     endif()
@@ -83,6 +84,7 @@ function(CAmkESGen output item)
     # Append the item and outfile
     ParentListAppend(item_list "${item}")
     ParentListAppend(outfile_list "${output}")
+    ParentListAppend(deps_list "${CAMKES_GEN_DEPENDS}")
     # Add to the sources list if it's a source file
     if (CAMKES_GEN_SOURCE)
         ParentListAppend(gen_sources "${output}")
@@ -117,12 +119,15 @@ function(CAmkESOutputGenCommand)
             # This pulls in miscelaneous dependencies such as the camkes-accelerator
             # which is used by the camkes tool
             ${CAMKES_TOOL_DEPENDENCIES}
+            # Any additional dependencies from the files
+            ${deps_list}
         VERBATIM
         COMMAND_EXPAND_LISTS
         COMMENT "Performing CAmkES generation for ${outfile_list_count} files"
     )
     set(reflow_commands "" PARENT_SCOPE)
     set(item_list "" PARENT_SCOPE)
+    set(deps_list "" PARENT_SCOPE)
     set(outfile_list "" PARENT_SCOPE)
 endfunction(CAmkESOutputGenCommand)
 
