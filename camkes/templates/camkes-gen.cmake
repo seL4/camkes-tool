@@ -58,6 +58,7 @@ set(item_list "")
 set(outfile_list "")
 set(reflow_commands "")
 set(deps_list "")
+set(elfs_list "")
 
 macro(ParentListAppend list)
     set(local_list_value "${${list}}")
@@ -67,7 +68,7 @@ endmacro(ParentListAppend list)
 
 # Helper function for declaring a generated file
 function(CAmkESGen output item)
-    cmake_parse_arguments(PARSE_ARGV 2 CAMKES_GEN "SOURCE;C_STYLE;THY_STYLE" "" "DEPENDS")
+    cmake_parse_arguments(PARSE_ARGV 2 CAMKES_GEN "SOURCE;C_STYLE;THY_STYLE" "" "DEPENDS;ELFS")
     if (NOT "${CAMKES_GEN_UNPARSED_ARGUMENTS}" STREQUAL "")
         message(FATAL_ERROR "Unknown arguments to CAmkESGen: ${CAMKES_GEN_UNPARSED_ARGUMENTS}")
     endif()
@@ -85,6 +86,8 @@ function(CAmkESGen output item)
     ParentListAppend(item_list "${item}")
     ParentListAppend(outfile_list "${output}")
     ParentListAppend(deps_list "${CAMKES_GEN_DEPENDS}")
+    ParentListAppend(elfs_list "${CAMKES_GEN_ELFS}")
+    ParentListAppend(deps_list "${CAMKES_GEN_ELFS}")
     # Add to the sources list if it's a source file
     if (CAMKES_GEN_SOURCE)
         ParentListAppend(gen_sources "${output}")
@@ -111,6 +114,7 @@ function(CAmkESOutputGenCommand)
                 --file "${CAMKES_ADL_SOURCE}"
                 "--item;$<JOIN:${item_list},;--item;>"
                 "--outfile;$<JOIN:${outfile_list},;--outfile;>"
+                "$<$<BOOL:${elfs_list}>:--elf$<SEMICOLON>>$<JOIN:${elfs_list},$<SEMICOLON>--elf$<SEMICOLON>>"
                 ${CAMKES_FLAGS}
         COMMAND "${reflow}"
         DEPENDS
@@ -129,6 +133,7 @@ function(CAmkESOutputGenCommand)
     set(item_list "" PARENT_SCOPE)
     set(deps_list "" PARENT_SCOPE)
     set(outfile_list "" PARENT_SCOPE)
+    set(elfs_list "" PARENT_SCOPE)
 endfunction(CAmkESOutputGenCommand)
 
 # helper for appending lists of generator expressions
