@@ -399,33 +399,14 @@ set(capdl_elf_depends "")
 set(capdl_elf_targets "")
 /*- for g in groups -*/
     /*- set p = Perspective(group=g) -*/
-    list(APPEND capdl_elf_depends "${CMAKE_CURRENT_BINARY_DIR}//*? p['elf_name'] ?*/")
+    list(APPEND capdl_elfs "${CMAKE_CURRENT_BINARY_DIR}//*? p['elf_name'] ?*/")
     list(APPEND capdl_elf_targets "/*? p['elf_name'] ?*/_group_target")
 /*- endfor -*/
 # CapDL generation. Aside from depending upon the CAmkES specifications themselves, it
 # depends upon the copied instance binaries
 # First define the capDL spec generation from CAmkES
-add_custom_command(
-    OUTPUT "${CAMKES_CDL_TARGET}"
-    COMMAND
-        ${CMAKE_COMMAND} -E env ${CAMKES_TOOL_ENVIRONMENT} "${CAMKES_TOOL}"
-            /*- for g in groups -*/
-                /*- set p = Perspective(group=g) -*/
-                --elf ${CMAKE_CURRENT_BINARY_DIR}//*? p['elf_name'] ?*/
-            /*- endfor -*/
-            --file "${CAMKES_ADL_SOURCE}"
-            --item capdl
-            --outfile "${CAMKES_CDL_TARGET}"
-            ${CAMKES_FLAGS}
-    DEPENDS
-        /*? ' '.join(imported) ?*/
-        ${CAMKES_ADL_SOURCE}
-        ${capdl_elf_depends}
-        ${capdl_elf_targets}
-        # This pulls in miscelaneous dependencies such as the camkes-accelerator
-        # which is used by the camkes tool
-        ${CAMKES_TOOL_DEPENDENCIES}
-)
+CAmkESGen("${CAMKES_CDL_TARGET}" capdl DEPENDS "${capdl_elf_targets}" ELFS "${capdl_elfs}")
+CAmkESOutputGenCommand()
 add_custom_target(camkes_capdl_target DEPENDS "${CAMKES_CDL_TARGET}")
 
 # Invoke the parse-capDL tool to turn the CDL spec into a C spec
