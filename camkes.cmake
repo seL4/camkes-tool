@@ -516,6 +516,7 @@ function(GenerateCAmkESRootserver)
     foreach(template IN LISTS templates)
         list(APPEND CAMKES_FLAGS --templates "${template}")
     endforeach()
+    set(gen_outfile "${CMAKE_CURRENT_BINARY_DIR}/camkes-gen.cmake")
     execute_process(
         # First delete the data structure cache directory as this is a new build
         COMMAND
@@ -524,7 +525,7 @@ function(GenerateCAmkESRootserver)
             ${CMAKE_COMMAND} -E env ${CAMKES_TOOL_ENVIRONMENT} "${CAMKES_TOOL}"
                 --file "${CAMKES_ADL_SOURCE}"
                 --item camkes-gen.cmake
-                --outfile "${CMAKE_CURRENT_BINARY_DIR}/camkes-gen.cmake"
+                --outfile "${gen_outfile}"
                 ${CAMKES_FLAGS}
         RESULT_VARIABLE camkes_gen_error
         OUTPUT_VARIABLE camkes_output
@@ -537,7 +538,7 @@ function(GenerateCAmkESRootserver)
     # generation phase. This just allows us to do some debugging and detect cases where options
     # are changed *after* this point that would have affected the execute_process
     set_property(GLOBAL PROPERTY CAMKES_GEN_DONE TRUE)
-    include(${CMAKE_CURRENT_BINARY_DIR}/camkes-gen.cmake)
+    include("${gen_outfile}")
 endfunction(GenerateCAmkESRootserver)
 
 # Internal helper function for setting camkes component properties
