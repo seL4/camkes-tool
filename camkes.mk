@@ -68,7 +68,7 @@ CAMKES_FLAGS += \
     --architecture ${SEL4_ARCH} \
     $(if ${CONFIG_CAMKES_ALLOW_FORWARD_REFERENCES},--allow-forward-references,) \
     $(if ${CONFIG_CAMKES_FAULT_HANDLERS},--debug-fault-handlers,) \
-    --data-structure-cache-dir=${BUILD_DIR} \
+    --data-structure-cache-dir=${DATA_STRUCTURE_CACHE} \
 
 include ${SEL4_COMMON}/common.mk
 
