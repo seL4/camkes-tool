@@ -548,21 +548,25 @@ function(GenerateCAmkESRootserver)
                 --makefile-dependencies "${deps_file}"
                 ${CAMKES_FLAGS}
     )
-    execute_process(
-        # First delete the data structure cache directory as this is a new build
-        COMMAND
-            ${CMAKE_COMMAND} -E remove_directory "${CMAKE_CURRENT_BINARY_DIRECTOR}/camkes_pickle"
-        COMMAND ${camkes_invocation}
-        RESULT_VARIABLE camkes_gen_error
-        OUTPUT_VARIABLE camkes_output
-        ERROR_VARIABLE camkes_output
-    )
-    if (camkes_gen_error)
-        message(FATAL_ERROR "Failed to generate camkes-gen.cmake: ${camkes_output}")
+    # We need to determine if we actually need to regenerate. We start by assuming that we do
+    set(regen TRUE)
+    if (regen)
+        execute_process(
+            # First delete the data structure cache directory as this is a new build
+            COMMAND
+                ${CMAKE_COMMAND} -E remove_directory "${CMAKE_CURRENT_BINARY_DIRECTOR}/camkes_pickle"
+            COMMAND ${camkes_invocation}
+            RESULT_VARIABLE camkes_gen_error
+            OUTPUT_VARIABLE camkes_output
+            ERROR_VARIABLE camkes_output
+        )
+        if (camkes_gen_error)
+            message(FATAL_ERROR "Failed to generate camkes-gen.cmake: ${camkes_output}")
+        endif()
+        # Add dependencies
+        MakefileDepsToList("${deps_file}" deps)
+        set_property(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${deps}")
     endif()
-    # Add dependencies
-    MakefileDepsToList("${deps_file}" deps)
-    set_property(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${deps}")
     # We set a property to indicate that we have done execute_process (which happens during the
     # generation phase. This just allows us to do some debugging and detect cases where options
     # are changed *after* this point that would have affected the execute_process
