@@ -29,21 +29,6 @@ set(CAMKES_CORE_LIBS "sel4;muslc;sel4camkes;sel4sync;utils;sel4vka;sel4utils;sel
 # signatures, so disable warnings for this.
 set(CAMKES_C_FLAGS "-Wno-main")
 
-# We need to regenerate this file if any of the CAmkES descriptions change. To do this
-# we define a custom command, who's output is this file, that does nothing and depends
-# upon all our input files. This will cause ninja to believe that if any of those files
-# change, then this generated file is out of date, and thus it needs to rerun cmake.
-# The rerunning of cmake is what will then actually generate a new version of this file
-#
-# This is very much a convenience helper though and it is always more reliable to
-# explicitly invoke 'cmake' manually instead of relying on this rule to cause ninja to rerun
-add_custom_command(
-    OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/camkes-gen.cmake"
-    COMMAND touch "${CMAKE_CURRENT_BINARY_DIR}/camkes-gen.cmake"
-    DEPENDS /*? ' '.join(imported) ?*/
-)
-add_custom_target(camkes_gen_target DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/camkes-gen.cmake")
-
 /*- set instances = composition.instances -*/
 /*- set connections = composition.connections -*/
 

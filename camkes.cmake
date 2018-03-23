@@ -558,6 +558,9 @@ function(GenerateCAmkESRootserver)
     if (camkes_gen_error)
         message(FATAL_ERROR "Failed to generate camkes-gen.cmake: ${camkes_output}")
     endif()
+    # Add dependencies
+    MakefileDepsToList("${deps_file}" deps)
+    set_property(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${deps}")
     # We set a property to indicate that we have done execute_process (which happens during the
     # generation phase. This just allows us to do some debugging and detect cases where options
     # are changed *after* this point that would have affected the execute_process
