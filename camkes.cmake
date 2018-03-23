@@ -540,17 +540,19 @@ function(GenerateCAmkESRootserver)
     file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/camkes_gen")
     set(deps_file "${CMAKE_CURRENT_BINARY_DIR}/camkes_gen/deps")
     set(gen_outfile "${CMAKE_CURRENT_BINARY_DIR}/camkes-gen.cmake")
-    execute_process(
-        # First delete the data structure cache directory as this is a new build
-        COMMAND
-            ${CMAKE_COMMAND} -E remove_directory "${CMAKE_CURRENT_BINARY_DIRECTOR}/camkes_pickle"
-        COMMAND
+    set(camkes_invocation
             ${CMAKE_COMMAND} -E env ${CAMKES_TOOL_ENVIRONMENT} "${CAMKES_TOOL}"
                 --file "${CAMKES_ADL_SOURCE}"
                 --item camkes-gen.cmake
                 --outfile "${gen_outfile}"
                 --makefile-dependencies "${deps_file}"
                 ${CAMKES_FLAGS}
+    )
+    execute_process(
+        # First delete the data structure cache directory as this is a new build
+        COMMAND
+            ${CMAKE_COMMAND} -E remove_directory "${CMAKE_CURRENT_BINARY_DIRECTOR}/camkes_pickle"
+        COMMAND ${camkes_invocation}
         RESULT_VARIABLE camkes_gen_error
         OUTPUT_VARIABLE camkes_output
         ERROR_VARIABLE camkes_output
