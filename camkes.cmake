@@ -539,6 +539,7 @@ function(GenerateCAmkESRootserver)
     # Need to ensure our camkes_gen folder exists as camkes will not create the directory
     file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/camkes_gen")
     set(deps_file "${CMAKE_CURRENT_BINARY_DIR}/camkes_gen/deps")
+    set(invoc_file "${CMAKE_CURRENT_BINARY_DIR}/camkes_gen/last_invocation")
     set(gen_outfile "${CMAKE_CURRENT_BINARY_DIR}/camkes-gen.cmake")
     set(camkes_invocation
             ${CMAKE_COMMAND} -E env ${CAMKES_TOOL_ENVIRONMENT} "${CAMKES_TOOL}"
@@ -550,7 +551,22 @@ function(GenerateCAmkESRootserver)
     )
     # We need to determine if we actually need to regenerate. We start by assuming that we do
     set(regen TRUE)
+    if((EXISTS "${invoc_file}") AND (EXISTS "${deps_file}") AND (EXISTS "${gen_outfile}"))
+        file(READ "${invoc_file}" old_contents)
+        if ("${old_contents}" STREQUAL "${camkes_invocation}")
+            MakefileDepsToList("${deps_file}" deps)
+            # At this point assume we do not need to regenerate, unless we found a newer file
+            set(regen FALSE)
+            foreach(dep IN LISTS deps)
+                if("${dep}" IS_NEWER_THAN "${gen_outfile}")
+                    set(regen TRUE)
+                    break()
+                endif()
+            endforeach()
+        endif()
+    endif()
     if (regen)
+        message(STATUS "camkes-gen.cmake is out of date. Regenerating...")
         execute_process(
             # First delete the data structure cache directory as this is a new build
             COMMAND
@@ -560,6 +576,7 @@ function(GenerateCAmkESRootserver)
             OUTPUT_VARIABLE camkes_output
             ERROR_VARIABLE camkes_output
         )
+        file(WRITE "${invoc_file}" "${camkes_invocation}")
         if (camkes_gen_error)
             message(FATAL_ERROR "Failed to generate camkes-gen.cmake: ${camkes_output}")
         endif()
