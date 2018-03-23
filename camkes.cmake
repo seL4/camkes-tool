@@ -516,6 +516,9 @@ function(GenerateCAmkESRootserver)
     foreach(template IN LISTS templates)
         list(APPEND CAMKES_FLAGS --templates "${template}")
     endforeach()
+    # Need to ensure our camkes_gen folder exists as camkes will not create the directory
+    file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/camkes_gen")
+    set(deps_file "${CMAKE_CURRENT_BINARY_DIR}/camkes_gen/deps")
     set(gen_outfile "${CMAKE_CURRENT_BINARY_DIR}/camkes-gen.cmake")
     execute_process(
         # First delete the data structure cache directory as this is a new build
@@ -526,6 +529,7 @@ function(GenerateCAmkESRootserver)
                 --file "${CAMKES_ADL_SOURCE}"
                 --item camkes-gen.cmake
                 --outfile "${gen_outfile}"
+                --makefile-dependencies "${deps_file}"
                 ${CAMKES_FLAGS}
         RESULT_VARIABLE camkes_gen_error
         OUTPUT_VARIABLE camkes_output
