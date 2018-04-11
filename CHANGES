@@ -4,9 +4,22 @@ For more information see the release notes at https://wiki.sel4.systems/CAmkESRe
 
 This file should be word wrapped to 120 characters
 
-upcoming release
+---
+Upcoming release
 
-= Changes =
+## Changes
+* Hardware dataport with large frame sizes issue has been fixed
+* Bug fix: Enumerating connections for hierarchical components with custom connection types is now done correctly
+* Bug fix: Data structure caching is now correctly invalidated between builds
+* Initial CMake implementation for CAmkES.  See the CAmkES test apps for examples.
+
+## Upgrade notes
+* No special upgrade requirements.
+
+## Known issues
+* Hierarchical components that export dataport connectors create compilation errors as the templates cannot accurately
+  tell that the connector of the parent component is exported from the child and no code should be generated.  A
+  temporary workaround involves making the dataport connection explicitly available to the parent component.
 
 ---
 camkes-3.2.0 2018-01-17
