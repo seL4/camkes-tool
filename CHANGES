@@ -8,6 +8,14 @@ This file should be word wrapped to 120 characters
 Upcoming release
 
 ## Changes
+
+
+## Upgrade Notes
+---
+camkes-3.3.0 2018-04-11
+Using seL4 version 9.0.0
+
+## Changes
 * Hardware dataport with large frame sizes issue has been fixed
 * Bug fix: Enumerating connections for hierarchical components with custom connection types is now done correctly
 * Bug fix: Data structure caching is now correctly invalidated between builds
