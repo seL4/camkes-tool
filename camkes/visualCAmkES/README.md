@@ -11,7 +11,7 @@
 -->
 # VisualCAmkES
 
-For detailed information how to install and use visualCAmkES, read the wiki page: https://wiki.sel4.systems/VisualCAmkES
+For detailed information how to install and use visualCAmkES, read the wiki page: https://docs.sel4.systems/VisualCAmkES/
 
 ## Installing dependenices
 On top of the dependenices required for camkes-tool, visualCAmkES requires are few other installations such as Qt and Graphviz.

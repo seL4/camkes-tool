@@ -38,7 +38,7 @@ setup(
     name='camkes-deps',
     version='0.2.0',
     description='Metapackage for downloading build dependencies for CAmkES',
-    url='https://wiki.sel4.systems/CAmkES',
+    url='https://docs.sel4.systems/CAmkES/',
     licence='BSD2',
     author='TrustworthySystems',
     author_email='Stephen.Sherratt@data61.csiro.au',

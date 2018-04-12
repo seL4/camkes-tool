@@ -1,6 +1,6 @@
 Revision history for CAmkES
 
-For more information see the release notes at https://wiki.sel4.systems/CAmkESReleaseNotes
+For more information see the release notes at https://docs.sel4.systems/camkes_release/
 
 This file should be word wrapped to 120 characters
 
@@ -68,4 +68,4 @@ issue is fixed.
 which is the same as the old behaviour.
 
 ---
-For previous releases see https://wiki.sel4.systems/CAmkESReleaseNotes
+For previous releases see https://docs.sel4.systems/camkes_release/
