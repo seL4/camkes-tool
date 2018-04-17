@@ -12,6 +12,14 @@ Upcoming release
 
 ## Upgrade Notes
 ---
+camkes-3.4.0 2018-04-18
+Using seL4 version 9.0.1
+
+## Changes
+
+
+## Upgrade Notes
+---
 camkes-3.3.0 2018-04-11
 Using seL4 version 9.0.0
 
