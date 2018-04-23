@@ -74,8 +74,7 @@
         /*- set start, end = ioport.split(':') -*/
         /*- set start = int(start, 0) -*/
         /*- set end = int(end, 0) -*/
-        /*- set ioport_cap = alloc("ioport%d_%d" % (start, end), seL4_IA32_IOPort) -*/
-        /*- do cap_space.cnode[ioport_cap].set_ports(list(six.moves.range(start, end +1))) -*/
+        /*- set ioport_cap = alloc("ioport%d_%d" % (start, end), seL4_IA32_IOPort, start_port=start, end_port=end + 1) -*/
         /*- do ioports.append( (ioport_cap, start, end) ) -*/
     /*- endfor -*/
 /*- endif -*/

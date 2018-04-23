@@ -27,8 +27,7 @@
     /*- set start = int(start, 0) -*/
     /*- set end = int(end, 0) -*/
     /*- do port_range.extend([start, end]) -*/
-    /*- do ioport.append(alloc('ioport', seL4_IA32_IOPort)) -*/
-    /*- do cap_space.cnode[ioport[0]].set_ports(list(six.moves.range(start, end + 1))) -*/
+    /*- do ioport.append(alloc('ioport', seL4_IA32_IOPort, start_port=start, end_port=end + 1)) -*/
     int /*? me.interface.name ?*/_in_range(unsigned port) {
         return port >= /*? start ?*/ && port <= /*? end ?*/;
     }
