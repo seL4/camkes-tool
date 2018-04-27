@@ -68,10 +68,11 @@ ${BUILD_DIR}/camkes-gen.mk: /*? ' '.join(imported) ?*/
 
 # Generate the policy label mapping if the user requested it.
 ifeq (${CONFIG_CAMKES_LABEL_MAPPING},y)
-LABEL_MAPPING=$(dir $(firstword ${TARGETS}))/CapDLLabels.thy
+LABEL_MAPPING=$(abspath ${BUILD_DIR})/thy/CapDLLabels.thy
 ${TARGETS}: ${LABEL_MAPPING}
 ${LABEL_MAPPING}: /*? ' '.join(imported) ?*/ /*- for g in groups -*/ /*- set p = Perspective(group=g) -*/ ${SEL4_BINDIR}//*? p['elf_name'] ?*/ /*- endfor -*/
 	@echo " [GEN] $(notdir $@)"
+	$(Q)mkdir -p $(dir $@)
 	$(Q)camkes.sh \
         ${CAMKES_FLAGS} \
         /*- for g in groups -*/ \

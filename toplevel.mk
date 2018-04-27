@@ -105,12 +105,12 @@ ${STAGE_BASE}/pruner/prune:
 # CapDL Isabelle representation. We falsely depend on the CapDL initialiser's
 # image because the CapDL spec, that we *do* depend on, is not available as a
 # target at the project level.
-$(abspath ${BUILD_BASE})/thy/CapDLSpec.thy: capdl-loader-experimental-image parse-capDL
+$(abspath ${BUILD_BASE})/$(filter-out capdl-loader-experimental,${apps})/thy/CapDLSpec.thy: capdl-loader-experimental-image ${STAGE_BASE}/parse-capDL/parse-capDL
 	@echo "[GEN] $(notdir $@)"
 	${Q}mkdir -p $(dir $@)
 	${Q}${STAGE_BASE}/parse-capDL/parse-capDL --isabelle=$@ ${CAPDL_SPEC}
 ifeq (${CONFIG_CAMKES_CAPDL_THY},y)
-all: $(abspath ${BUILD_BASE})/thy/CapDLSpec.thy
+all: $(abspath ${BUILD_BASE})/$(filter-out capdl-loader-experimental,${apps})/thy/CapDLSpec.thy
 endif
 
 ifeq (${CONFIG_CAMKES_ACCELERATOR},y)
