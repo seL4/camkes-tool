@@ -33,7 +33,7 @@ begin
     /*-- elif type == 'string' --*/
         string
     /*-- else --*/
-        /*? raise(TemplateError('unsupported')) ?*/
+        /*? raise(TemplateError('unsupported native type: %s' % type)) ?*/
     /*-- endif --*/
 /*-- endmacro -*/
 
@@ -49,7 +49,7 @@ begin
     /*-- elif type == 'string' --*/
         String
     /*-- else --*/
-        /*? raise(TemplateError('unsupported')) ?*/
+        /*? raise(TemplateError('unsupported wrapped type: %s' % type)) ?*/
     /*-- endif --*/
 /*-- endmacro -*/
 
