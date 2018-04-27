@@ -46,7 +46,7 @@ from camkes.runner.Renderer import Renderer
 from camkes.runner.Filters import CAPDL_FILTERS
 
 import argparse, collections, functools, jinja2, locale, numbers, os, re, \
-    six, sqlite3, string, traceback, pickle, errno
+    six, sqlite3, string, sys, traceback, pickle, errno
 from capdl import seL4_CapTableObject, ObjectAllocator, CSpaceAllocator, \
     ELF, lookup_architecture
 
@@ -295,6 +295,12 @@ class ShmemFactory:
        A callable class is used instead of a lambda to simplify serializing.'''
     def __call__(self):
         return collections.defaultdict(list)
+
+def rendering_error(item, exn):
+    '''Helper to format an error message for template rendering errors.'''
+    tb = safe_decode(traceback.format_tb(sys.exc_info()[2]))
+    return (['While rendering %s: %s' % (item, line) for line in exn.args] +
+            ''.join(tb).splitlines())
 
 def main(argv, out, err):
 
@@ -638,7 +644,7 @@ def main(argv, out, err):
                     save(item, g)
                     done(g, outfile, item)
             except TemplateError as inst:
-                die(['While rendering %s: %s' % (item, line) for line in inst.args])
+                die(rendering_error(item, inst))
 
     if options.item[0] in ('capdl', 'label-mapping') and options.data_structure_cache_dir is not None \
             and len(options.outfile) == 1:
@@ -703,7 +709,7 @@ def main(argv, out, err):
                         done(g, outfile, item)
                         break
             except TemplateError as inst:
-                die(['While rendering %s: %s' % (i.name, line) for line in inst.args])
+                die(rendering_error(i.name, inst))
 
     # Instantiate the per-connection files.
     for c in assembly.composition.connections:
@@ -724,7 +730,7 @@ def main(argv, out, err):
                             cspaces[e.instance.address_space], shmem, kept_symbols, fill_frames,
                             options=renderoptions, my_pd=pds[e.instance.address_space])
                     except TemplateError as inst:
-                        die(['While rendering %s: %s' % (item, line) for line in inst.args])
+                        die(rendering_error(item, inst))
                     except jinja2.exceptions.TemplateNotFound:
                         die('While rendering %s: missing template for %s' %
                             (item, c.type.name))
@@ -768,7 +774,7 @@ def main(argv, out, err):
                         save(item, g)
                         done(g, outfile, item)
                     except TemplateError as inst:
-                        die(['While rendering %s: %s' % (item, line) for line in inst.args])
+                        die(rendering_error(item, inst))
 
     # Perform any per component special generation. This needs to happen last
     # as these template needs to run after all other capabilities have been
@@ -794,7 +800,7 @@ def main(argv, out, err):
                                 log.warning('Warning: no template for %s' % item)
                             done(g, outfile, item)
                 except TemplateError as inst:
-                    die(['While rendering %s: %s' % (i.name, line) for line in inst.args])
+                    die(rendering_error(i.name, inst))
 
     if options.data_structure_cache_dir is not None:
         # At this point the capdl database is in the state required for applying capdl
