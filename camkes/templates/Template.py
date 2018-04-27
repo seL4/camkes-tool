@@ -141,13 +141,12 @@ TEMPLATES = {
         'Makefile':'Makefile',
         'camkes-gen.cmake':'camkes-gen.cmake',
         'capdl':'capdl-spec.cdl',
+        # Message passing Isabelle formalism
+        'cimp-base':'cimp-base.thy',
+        # Isabelle ADL formalism
+        'arch-spec':'arch-definitions.thy',
+        # CapDL generator correspondence proofs
         'label-mapping':'label-mapping.thy',
-    },
-    'CIMP':{ # Message passing Isabelle formalism
-        'base':'cimp-base.thy',
-    },
-    'architecture-semantics':{ # Isabelle ADL formalism
-        'theory':'arch-definitions.thy',
     },
     'autocorres':{ # AutoCorres-based C code proofs
         Guard(lambda x: isinstance(x, Connection) and x.type.name == 'seL4NotificationNative'):{

@@ -323,14 +323,14 @@ endif
 
 # Architectural formalisation.
 /*- set arch_thy = '$(abspath ${BUILD_DIR})/thy/ArchSpec.thy' -*/
-/*? rule_gen(arch_thy, ' '.join(imported), 'theory', platform='architecture-semantics') ?*/
+/*? rule_gen(arch_thy, ' '.join(imported), 'arch-spec', platform='seL4') ?*/
 ifeq (${CONFIG_CAMKES_ARCH_THY},y)
 ${TARGETS}: /*? arch_thy ?*/
 endif
 
 # Behavioural formalisation.
 /*- set thy = '$(abspath ${BUILD_DIR})/thy/CimpBase.thy' -*/
-/*? rule_gen(thy, ' '.join(imported), 'base', platform='CIMP') ?*/
+/*? rule_gen(thy, ' '.join(imported), 'cimp-base', platform='seL4') ?*/
 ifeq (${CONFIG_CAMKES_CIMP_THY},y)
 ${TARGETS}: /*? thy ?*/
 endif
