@@ -610,11 +610,6 @@ def main(argv, out, err):
             except Exception as inst:
                 die('While opening \'%s\': %s' % (e, inst))
 
-        # It's only relevant to run these filters if the final target is CapDL.
-        # Note, this will no longer be true if we add any other templates that
-        # depend on a fully formed CapDL spec. Guarding this loop with an if
-        # is just an optimisation and the conditional can be removed if
-        # desired.
         filteroptions = FilterOptions(options.architecture, options.realtime, options.largeframe,
             options.largeframe_dma, options.default_priority, options.default_max_priority,
             options.default_criticality, options.default_max_criticality, options.default_affinity,
