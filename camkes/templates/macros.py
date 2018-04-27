@@ -22,7 +22,8 @@ from camkes.internal.seven import cmp, filter, map, zip
 from camkes.ast import Composition, Instance, Parameter, Struct
 from camkes.templates import sizeof_probe
 from capdl import ASIDPool, CNode, Endpoint, Frame, IODevice, IOPageTable, \
-    Notification, page_sizes, PageDirectory, PageTable, TCB, Untyped
+    Notification, page_sizes, PageDirectory, PageTable, TCB, Untyped, \
+    calculate_cnode_size
 import collections, math, os, platform, re, six
 
 from camkes.templates.arch_helpers import min_untyped_size, max_untyped_size
@@ -256,7 +257,7 @@ def capdl_sorter(arch, a, b):
             return 2 ** obj.size_bits
         elif isinstance(obj, CNode):
             if obj.size_bits == 'auto':
-                raise NotImplementedError
+                return calculate_cnode_size(obj)
             return 16 * 2 ** obj.size_bits
         elif isinstance(obj, Endpoint):
             return 16
@@ -269,27 +270,34 @@ def capdl_sorter(arch, a, b):
         elif isinstance(obj, IODevice):
             return 1
         elif isinstance(obj, TCB):
-            if arch in ('arm', 'arm_hyp'):
+            if arch in ('aarch32', 'arm_hyp'):
                 return 512
             elif arch == 'ia32':
                 return 2 ** 10
+            raise NotImplementedError('size_of TCB for arch: %s' % arch)
         elif isinstance(obj, PageDirectory):
-            if arch in ('arm', 'arm_hyp'):
+            if arch in ('aarch32', 'arm_hyp'):
                 return 16 * 2 ** 10
             elif arch == 'ia32':
                 return 4 * 2 ** 10
+            raise NotImplementedError('size_of PageDirectory for arch: %s' % arch)
         elif isinstance(obj, PageTable):
-            if arch == 'arm':
+            if arch == 'aarch32':
                 return 2 ** 10
             elif arch == 'arm_hyp':
                 return 2 * 2 ** 10
             elif arch == 'ia32':
                 return 4 * 2 ** 10
-        raise NotImplementedError
+            raise NotImplementedError('size_of PageTable for arch: %s' % arch)
+        raise NotImplementedError('size_of for type: %s' % type(obj))
 
-    a_size = size_of(a)
-    b_size = size_of(b)
+    def get_paddr(obj):
+        '''Also clagged from CapDL translator. If obj has a paddr, place it after
+           other objs and sort by paddr.'''
+        if (isinstance(obj, Frame) or isinstance(obj, Untyped)) and obj.paddr is not None:
+            return obj.paddr
+        else:
+            return 1
 
-    if a_size != b_size:
-        return (a_size < b_size) - (a_size > b_size)
-    return (a.name > b.name) - (a.name < b.name)
+    a_key, b_key = (get_paddr(a), -size_of(a), a.name), (get_paddr(b), -size_of(b), b.name)
+    return (a_key > b_key) - (a_key < b_key)
