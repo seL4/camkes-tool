@@ -911,9 +911,20 @@ def tcb_domains(ast, cspaces, **_):
 
     assembly = ast.assembly
 
-    if assembly.configuration is None or \
-            len(assembly.configuration.settings) == 0:
-        # We have nothing to do if no domains were set.
+    # HACK: For capDL verification, the generator model assumes that
+    # each component is assigned to the domains 1, 2, …. We're not sure
+    # why it does that, but for now, we replicate that here.
+    # See issue VER-945.
+    domain_model_ids = None
+    if os.environ.get('CONFIG_CAMKES_LABEL_MAPPING', '') == 'y':
+        domain_model_ids = dict(
+            (comp.name, dom) for dom, comp in
+            enumerate(assembly.composition.instances, 1))
+
+    if (domain_model_ids is None and
+          (assembly.configuration is None or
+           len(assembly.configuration.settings) == 0)):
+        # Nothing to do.
         return
 
     for group, space in cspaces.items():
@@ -927,6 +938,12 @@ def tcb_domains(ast, cspaces, **_):
             dom_attribute = perspective['domain_attribute']
             name = perspective['instance']
             dom = assembly.configuration[name].get(dom_attribute)
+
+            # Auto-assign domains if we're doing the capDL verification.
+            if dom is None and domain_model_ids is not None:
+                if perspective['instance'] in domain_model_ids:
+                    dom = domain_model_ids[perspective['instance']]
+
             if dom is not None:
                 tcb.domain = dom
 
