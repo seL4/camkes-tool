@@ -122,7 +122,7 @@ endif
 	@echo " [RS] /*? i.type.name ?*/_rust"
 	# cd $(SOURCE_DIR)/components//*? i.type.name ?*/ && RUST_TARGET_PATH=${STAGE_DIR}/common/ RUST_BACKTRACE=1 \
 	cd $(/*? i.type.name ?*/_RUST) && RUST_TARGET_PATH=${STAGE_DIR}/common/ RUST_BACKTRACE=1 \
-	CARGO_HOME="${PWD}" RUSTFLAGS="--sysroot=${PWD}/rust" cargo build --lib $(RUST_CARGO_FLAGS) --manifest-path $(/*? i.type.name ?*/_RUST)/Cargo.toml --target=$(RUST_CUSTOM_TARGET)
+	CARGO_HOME="${PWD}" RUSTFLAGS="--sysroot=${PWD}/sysroot" cargo build --lib $(RUST_CARGO_FLAGS) --manifest-path $(/*? i.type.name ?*/_RUST)/Cargo.toml --target=$(RUST_CUSTOM_TARGET)
 	echo cp $(/*? i.type.name ?*/_RUST)/target/${RUST_CUSTOM_TARGET}/${RUST_RELEASE_MODE}/$(/*? i.type.name ?*/_RUST:%=lib%.a) $(/*? i.type.name ?*/_RUST:%=%.a)
 	$(Q) cp $(/*? i.type.name ?*/_RUST)/target/${RUST_CUSTOM_TARGET}/${RUST_RELEASE_MODE}/lib*.a $(/*? i.type.name ?*/_RUST:%=%.a)
 
