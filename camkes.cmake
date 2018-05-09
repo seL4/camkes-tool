@@ -626,6 +626,10 @@ function(DeclareCAmkESComponent name)
     AppendCAmkESComponentTarget(CAmkESComponent_${name} ${ARGN})
 endfunction(DeclareCAmkESComponent)
 
+# Declare built-in components that are constructed from templates and have no source files
+DeclareCAmkESComponent(debug_server)
+DeclareCAmkESComponent(debug_serial)
+
 # Extend a particular instantiation of a CAmkES component with additional information. This takes
 # similar arguments to DeclareCAmkESComponent and all of the declared includes, flags etc also
 # apply to the sources from DeclareCAmkESComponent. The includes provided here will be passed
