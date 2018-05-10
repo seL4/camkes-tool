@@ -41,6 +41,10 @@ export CONFIG_CAMKES_USE_OBJDUMP_ON \
     CONFIG_CAMKES_PYTHON_INTERPRETER_COVERAGE \
     CONFIG_CAMKES_ACCELERATOR \
 
+# HACK: See the note in seL4RPC-from-template.c for why this variable needs to
+# be available in the environment.
+export CONFIG_CAMKES_LABEL_MAPPING
+
 # Strip the quotes from the string CONFIG_CAMKES_IMPORT_PATH.
 CONFIG_CAMKES_IMPORT_PATH:=$(patsubst %",%,$(patsubst "%,%,${CONFIG_CAMKES_IMPORT_PATH}))
 #")") Help syntax-highlighting editors.

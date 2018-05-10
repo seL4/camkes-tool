@@ -27,7 +27,24 @@
 /*? macros.show_includes(me.instance.type.includes) ?*/
 /*? macros.show_includes(me.interface.type.includes) ?*/
 
-/*- set ep = alloc('ep', seL4_EndpointObject, read=True, write=True) -*/
+/*# HACK: The CapDL verification is based on a future, proposed version of
+ *# seL4, wherein only Write is required on an endpoint to send to it. This
+ *# allows a more principled information flow analysis. The obvious question is,
+ *# why not use seL4RPCCall, a connector which already does not require Read on
+ *# the sender's side? The answer is that this connector requires Grant, which,
+ *# in the access control model puts sender and receiver in the same domain
+ *# which is the exact opposite of what we want.
+ *#
+ *# To get around this mess, we detect if the user is targeting the CapDL
+ *# verification and, if so, do not provide Read on this capability. Note that
+ *# the resulting system will not run correctly.
+ #*/
+/*- if os.environ.get('CONFIG_CAMKES_LABEL_MAPPING', '') == 'y' -*/
+  /*- set read = False -*/
+/*- else -*/
+  /*- set read = True -*/
+/*- endif -*/
+/*- set ep = alloc('ep', seL4_EndpointObject, read=read, write=True) -*/
 
 /*- set BUFFER_BASE = c_symbol('BUFFER_BASE') -*/
 #define /*? BUFFER_BASE ?*/ ((void*)&seL4_GetIPCBuffer()->msg[0])
