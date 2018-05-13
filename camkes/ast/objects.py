@@ -27,6 +27,7 @@ from .ckeywords import C_KEYWORDS
 from .exception import ASTError
 from .location import SourceLocation
 from camkes.internal.frozendict import frozendict
+from camkes.internal.isinstancefallback import isinstance_fallback
 import abc, collections, itertools, numbers, six
 import logging
 from types import LambdaType
@@ -114,34 +115,13 @@ def ast_property(name, types):
         return cls
     return prop_class_decorator
 
+@ast_property("source", six.string_types)
+@ast_property("relative", bool)
 class Include(ASTObject):
     def __init__(self, source, relative=True, location=None):
-        assert isinstance(source, six.string_types)
-        assert isinstance(relative, bool)
         super(Include, self).__init__(location)
-        self._source = source
-        self._relative = relative
-
-    @property
-    def source(self):
-        return self._source
-    @source.setter
-    def source(self, value):
-        assert isinstance(value, six.string_types)
-        if self.frozen:
-            raise TypeError('you cannot change the source of a frozen include')
-        self._source = value
-
-    @property
-    def relative(self):
-        return self._relative
-    @relative.setter
-    def relative(self, value):
-        assert isinstance(value, bool)
-        if self.frozen:
-            raise TypeError('you cannot change the relative value of a frozen '
-                'include')
-        self._relative = value
+        self.source = source
+        self.relative = relative
 
 class Reference(ASTObject):
     '''This class encapsulates references to other entities that have been
@@ -158,54 +138,22 @@ class Reference(ASTObject):
     def freeze(self):
         raise ASTError('reference remaining in frozen AST tree', self)
 
+@ast_property("name", six.string_types)
+@ast_property("composition", lambda x: isinstance(x, Reference) or isinstance_fallback(x, "Composition"))
+@ast_property("configuration", lambda x: isinstance(x, Reference) or isinstance_fallback(x, "Configuration"))
 class Assembly(ASTObject):
     child_fields = ('composition', 'configuration')
 
     def __init__(self, name=None, composition=None, configuration=None, location=None):
-        assert name is None or isinstance(name, six.string_types)
-        assert composition is None or isinstance(composition, (Composition,
-            Reference))
-        assert configuration is None or isinstance(configuration,
-            (Configuration, Reference))
         super(Assembly, self).__init__(location)
-        self._name = name
-        self._composition = composition
+        if name is not None:
+            self.name = name
+        if composition is not None:
+            self.composition = composition
         if configuration is None:
             configuration = Configuration()
-        self._configuration = configuration
+        self.configuration = configuration
         self.claim_children()
-
-    @property
-    def name(self):
-        return self._name
-    @name.setter
-    def name(self, value):
-        assert value is None or isinstance(value, six.string_types)
-        if self.frozen:
-            raise TypeError('you cannot change the name of a frozen assembly')
-        self._name = value
-
-    @property
-    def composition(self):
-        return self._composition
-    @composition.setter
-    def composition(self, value):
-        assert isinstance(value, (Composition, Reference))
-        if self.frozen:
-            raise TypeError('you cannot change the composition of a frozen '
-                'assembly')
-        self._composition = value
-
-    @property
-    def configuration(self):
-        return self._configuration
-    @configuration.setter
-    def configuration(self, value):
-        assert isinstance(value, (Configuration, Reference))
-        if self.frozen:
-            raise TypeError('you cannot change the configuration of a frozen '
-                'assembly')
-        self._configuration = value
 
     def claim_children(self):
         self.adopt(self.composition)
@@ -256,6 +204,15 @@ class Assembly(ASTObject):
     def settings(self):
         return self.configuration.settings
 
+@ast_property("name", six.string_types)
+@ast_property("instances", lambda i: isinstance(i, (list, tuple)) and
+            all(isinstance(x, (Reference)) or isinstance_fallback(x, "Instance") for x in i))
+@ast_property("connections", lambda c: isinstance(c, (list, tuple)) and
+            all(isinstance(x, (Reference)) or isinstance_fallback(x, "Connection") for x in c))
+@ast_property("groups", lambda g: isinstance(g, (list, tuple)) and
+            all(isinstance(x, (Reference)) or isinstance_fallback(x, "Group") for x in g))
+@ast_property("exports", lambda e: isinstance(e, (list, tuple)) and
+            all(isinstance(x, (Reference)) or isinstance_fallback(x, "Export") for x in e))
 class Composition(MapLike):
     # Note that the ordering of these child fields is important as members of
     # `connections` and `exports` may reference members of `instances` and/or
@@ -265,82 +222,15 @@ class Composition(MapLike):
 
     def __init__(self, name=None, instances=None, connections=None,
             groups=None, exports=None, location=None):
-        assert name is None or isinstance(name, six.string_types)
-        assert instances is None or (isinstance(instances, (list, tuple)) and
-            all(isinstance(x, (Instance, Reference)) for x in instances))
-        assert connections is None or (isinstance(connections, (list, tuple))
-            and all(isinstance(x, (Connection, Reference)) for x in
-            connections))
-        assert groups is None or (isinstance(groups, (list, tuple)) and
-            all(isinstance(x, (Group, Reference)) for x in groups))
-        assert exports is None or (isinstance(exports, (list, tuple)) and
-            all(isinstance(x, (Export, Reference)) for x in exports))
         super(Composition, self).__init__(location)
-        self._name = name
-        self._instances = list(instances or [])
-        self._connections = list(connections or [])
-        self._groups = list(groups or [])
-        self._exports = list(exports or [])
+        if name:
+            self.name = name
+        self.instances = list(instances or [])
+        self.connections = list(connections or [])
+        self.groups = list(groups or [])
+        self.exports = list(exports or [])
         self.claim_children()
 
-    @property
-    def name(self):
-        return self._name
-    @name.setter
-    def name(self, value):
-        assert value is None or isinstance(value, six.string_types)
-        if self.frozen:
-            raise TypeError('you cannot change the name of a frozen '
-                'composition')
-        self._name = value
-
-    @property
-    def instances(self):
-        return self._instances
-    @instances.setter
-    def instances(self, value):
-        assert isinstance(value, (list, tuple)) and \
-            all(isinstance(x, (Instance, Reference)) for x in value)
-        if self.frozen:
-            raise TypeError('you cannot change the instances of a frozen '
-                'composition')
-        self._instances = value
-
-    @property
-    def connections(self):
-        return self._connections
-    @connections.setter
-    def connections(self, value):
-        assert isinstance(value, (list, tuple)) and \
-            all(isinstance(x, (Connection, Reference)) for x in value)
-        if self.frozen:
-            raise TypeError('you cannot change the connections of a frozen '
-                'composition')
-        self._connections = value
-
-    @property
-    def groups(self):
-        return self._groups
-    @groups.setter
-    def groups(self, value):
-        assert isinstance(value, (list, tuple)) and \
-            all(isinstance(x, (Group, Reference)) for x in value)
-        if self.frozen:
-            raise TypeError('you cannot change the groups of a frozen '
-                'composition')
-        self._groups = value
-
-    @property
-    def exports(self):
-        return self._exports
-    @exports.setter
-    def exports(self, value):
-        assert isinstance(value, (list, tuple)) and \
-            all(isinstance(x, (Export, Reference)) for x in value)
-        if self.frozen:
-            raise TypeError('you cannot change the exports of a frozen '
-                'composition')
-        self._exports = value
 
     def claim_children(self):
         [self.adopt(i) for i in self.instances]
@@ -391,39 +281,18 @@ class Composition(MapLike):
         self.exports = tuple(self.exports)
         super(Composition, self).freeze()
 
+@ast_property("name", six.string_types)
+@ast_property("settings", (list, tuple))
 class Configuration(MapLike):
     child_fields = ('settings',)
 
     def __init__(self, name=None, settings=None, location=None):
-        assert name is None or isinstance(name, six.string_types)
-        assert settings is None or isinstance(settings, (list, tuple))
         super(Configuration, self).__init__(location)
-        self._name = name
-        self._settings = list(settings or [])
+        if name:
+            self.name = name
+        self.settings = list(settings or [])
         self.settings_dict = {}
         self.claim_children()
-
-    @property
-    def name(self):
-        return self._name
-    @name.setter
-    def name(self, value):
-        assert value is None or isinstance(value, six.string_types)
-        if self.frozen:
-            raise TypeError('you cannot change the name of a frozen '
-                'configuration')
-        self._name = value
-
-    @property
-    def settings(self):
-        return self._settings
-    @settings.setter
-    def settings(self, value):
-        assert isinstance(value, (list, tuple))
-        if self.frozen:
-            raise TypeError('you cannot change the settings of a frozen '
-                'configuration')
-        self._settings = value
 
     def claim_children(self):
         [self.adopt(s) for s in self.settings]
@@ -455,47 +324,17 @@ class Configuration(MapLike):
                             a.default is not None:
                         self._mapping[i.name][a.name] = a.default
 
+@ast_property("type", lambda x: isinstance(x, (Reference)) or isinstance_fallback(x, "Component"))
+@ast_property("name", six.string_types)
+@ast_property("address_space", six.string_types)
 class Instance(ASTObject):
     child_fields = ('type',)
 
     def __init__(self, type, name, location=None):
-        assert isinstance(type, (Component, Reference))
-        assert isinstance(name, six.string_types)
         super(Instance, self).__init__(location)
-        self._type = type
-        self._name = name
-        self._address_space = name
-
-    @property
-    def type(self):
-        return self._type
-    @type.setter
-    def type(self, value):
-        assert isinstance(value, (Component, Reference))
-        if self.frozen:
-            raise TypeError('you cannot change the type of a frozen instance')
-        self._type = value
-
-    @property
-    def name(self):
-        return self._name
-    @name.setter
-    def name(self, value):
-        assert isinstance(value, six.string_types)
-        if self.frozen:
-            raise TypeError('you cannot change the name of a frozen instance')
-        self._name = value
-
-    @property
-    def address_space(self):
-        return self._address_space
-    @address_space.setter
-    def address_space(self, value):
-        assert isinstance(value, six.string_types)
-        if self.frozen:
-            raise TypeError('you cannot change the address space of a frozen '
-                'instance')
-        self._address_space = value
+        self.type = type
+        self.name = name
+        self.address_space = name
 
     def label(self):
         return self.name
@@ -507,64 +346,20 @@ class Instance(ASTObject):
     def __str__(self):
         return self.name
 
+@ast_property("type", lambda x: isinstance(x, (Reference)) or isinstance_fallback(x, "Connector"))
+@ast_property("name", six.string_types)
+@ast_property("from_ends", (list, tuple))
+@ast_property("to_ends", (list, tuple))
 class Connection(ASTObject):
     child_fields = ('from_ends', 'to_ends', 'type')
 
     def __init__(self, connection_type, name, from_ends, to_ends, location=None):
-        assert isinstance(connection_type, (Connector, Reference))
-        assert isinstance(name, six.string_types)
-        assert from_ends is None or isinstance(from_ends, (list, tuple))
-        assert to_ends is None or isinstance(to_ends, (list, tuple))
         super(Connection, self).__init__(location)
-        self._type = connection_type
-        self._name = name
-        self._from_ends = from_ends
-        self._to_ends = to_ends
+        self.type = connection_type
+        self.name = name
+        self.from_ends = from_ends
+        self.to_ends = to_ends
         self.claim_children()
-
-    @property
-    def type(self):
-        return self._type
-    @type.setter
-    def type(self, value):
-        assert isinstance(value, (Connector, Reference))
-        if self.frozen:
-            raise TypeError('you cannot change the type of a frozen '
-                'connection')
-        self._type = value
-
-    @property
-    def name(self):
-        return self._name
-    @name.setter
-    def name(self, value):
-        assert isinstance(value, six.string_types)
-        if self.frozen:
-            raise TypeError('you cannot change the name of a frozen '
-                'connection')
-        self._name = value
-
-    @property
-    def from_ends(self):
-        return self._from_ends
-    @from_ends.setter
-    def from_ends(self, value):
-        assert isinstance(value, (list, tuple))
-        if self.frozen:
-            raise TypeError('you cannot change the from ends of a frozen '
-                'connection')
-        self._from_ends = value
-
-    @property
-    def to_ends(self):
-        return self._to_ends
-    @to_ends.setter
-    def to_ends(self, value):
-        assert isinstance(value, (list, tuple))
-        if self.frozen:
-            raise TypeError('you cannot change the to ends of a frozen '
-                'connection')
-        self._to_ends = value
 
     def claim_children(self):
         [self.adopt(e) for e in self.from_ends]
@@ -702,50 +497,25 @@ class Connection(ASTObject):
     def label(self):
         return self.name
 
+@ast_property("instance", six.string_types)
+@ast_property("attribute", six.string_types)
+@ast_property("value",  lambda x: isinstance(x, (numbers.Number, list, tuple, frozendict, dict, six.string_types)) or isinstance_fallback(x, "AttributeReference")
+          or isinstance_fallback(x, "QueryObject"))
 class Setting(ASTObject):
     def __init__(self, instance, attribute, value, location=None):
-        assert isinstance(instance, six.string_types)
-        assert isinstance(attribute, six.string_types)
-        assert isinstance(value, (numbers.Number, list, dict,
-                                  AttributeReference, Reference, QueryObject) + six.string_types)
         super(Setting, self).__init__(location)
-        self._instance = instance
-        self._attribute = attribute
-        self._value = value
+        self.instance = instance
+        self.attribute = attribute
+        self.value = value
         if isinstance(value, Reference):
             self.child_fields = ('value',)
 
-    @property
-    def instance(self):
-        return self._instance
-    @instance.setter
-    def instance(self, value):
-        assert isinstance(value, six.string_types)
-        if self.frozen:
-            raise TypeError('you cannot change the instance of a frozen '
-                'setting')
-        self._instance = value
-
-    @property
-    def attribute(self):
-        return self._attribute
-    @attribute.setter
-    def attribute(self, value):
-        assert isinstance(value, six.string_types)
-        if self.frozen:
-            raise TypeError('you cannot change the attribute name of a frozen '
-                'setting')
-        self._attribute = value
-
+    # This property is wrapped by the ast_property decorator which adds on type checking and the frozen check
     @property
     def value(self):
         return self._value
     @value.setter
     def value(self, value):
-        assert isinstance(value, (numbers.Number, list, dict,
-            AttributeReference, tuple, frozendict) + six.string_types)
-        if self.frozen:
-            raise TypeError('you cannot change the value of a frozen setting')
         self._value = value
         if isinstance(value, (Attribute, Reference)):
             self.child_fields = ('value',)
@@ -767,46 +537,24 @@ class Setting(ASTObject):
             self.value = frozendict(self.value)
         super(Setting, self).freeze()
 
+@ast_property("name", six.string_types)
+@ast_property("attributes", lambda a: isinstance(a, (list, tuple)) and
+            all(isinstance_fallback(x, "Attribute") for x in a))
 class Struct(ASTObject):
     child_fields = ('attributes',)
     anon_struct_count = 0
     def __init__(self, name=None, attributes=None, location=None):
-        assert name is None or isinstance(name, six.string_types)
-        assert attributes is None or (isinstance(attributes, (list, tuple)) and
-            all(isinstance(x, Attribute) for x in attributes))
         super(Struct, self).__init__(location)
 
         if name is None:
             # Generate a struct name as none was provided.
             name = "camkes_anon_struct_%d" % Struct.anon_struct_count
             Struct.anon_struct_count = Struct.anon_struct_count + 1
-        self._name = name
-        self._attributes = list(attributes or [])
+        self.name = name
+        self.attributes = list(attributes or [])
 
     def __str__(self):
         return self.name
-
-    @property
-    def name(self):
-        return self._name
-    @name.setter
-    def name(self, value):
-        assert value is None or isinstance(value, six.string_types)
-        if self.frozen:
-            raise TypeError('you cannot change the name of a frozen struct')
-        self._name = value
-
-    @property
-    def attributes(self):
-        return self._attributes
-    @attributes.setter
-    def attributes(self, value):
-        assert isinstance(value, (list, tuple)) and \
-            all(isinstance(x, Attribute) for x in value)
-        if self.frozen:
-            raise TypeError('you cannot change the attributes of a frozen '
-                'struct')
-        self._attributes = value
 
     def freeze(self):
         if self.frozen:
@@ -814,6 +562,31 @@ class Struct(ASTObject):
         self.attributes = tuple(self.attributes)
         super(Struct, self).freeze()
 
+@ast_property("name", six.string_types)
+@ast_property("control", bool)
+@ast_property("hardware", bool)
+@ast_property("includes", lambda i: isinstance(i, (list, tuple)) and
+            all(isinstance_fallback(x, "Include") for x in i))
+@ast_property("provides", lambda p: isinstance(p, (list, tuple)) and
+            all(isinstance_fallback(x, "Provides") for x in p))
+@ast_property("uses", lambda u: isinstance(u, (list, tuple)) and
+            all(isinstance_fallback(x, "Uses") for x in u))
+@ast_property("emits", lambda e: isinstance(e, (list, tuple)) and
+            all(isinstance_fallback(x, "Emits") for x in e))
+@ast_property("consumes", lambda c: isinstance(c, (list, tuple)) and
+            all(isinstance_fallback(x, "Consumes") for x in c))
+@ast_property("dataports", lambda d: isinstance(d, (list, tuple)) and
+            all(isinstance_fallback(x, "Dataport") for x in d))
+@ast_property("attributes", lambda a: isinstance(a, (list, tuple)) and
+            all(isinstance_fallback(x, "Attribute") for x in a))
+@ast_property("mutexes", lambda m: isinstance(m, (list, tuple)) and
+            all(isinstance_fallback(x, "Mutex") for x in m))
+@ast_property("semaphores", lambda s: isinstance(s, (list, tuple)) and
+            all(isinstance_fallback(x, "Semaphore") for x in s))
+@ast_property("binary_semaphores", lambda b: isinstance(b, (list, tuple)) and
+            all(isinstance_fallback(x, "BinarySemaphore") for x in b))
+@ast_property("composition", Composition)
+@ast_property("configuration", Configuration)
 class Component(MapLike):
     child_fields = ('attributes', 'includes', 'provides', 'uses', 'emits',
         'consumes', 'dataports', 'mutexes', 'semaphores', 'binary_semaphores', 'composition',
@@ -823,48 +596,31 @@ class Component(MapLike):
             provides=None, uses=None, emits=None, consumes=None, dataports=None,
             attributes=None, mutexes=None, semaphores=None, binary_semaphores=None, composition=None,
             configuration=None, location=None):
-        assert name is None or isinstance(name, six.string_types)
-        assert includes is None or (isinstance(includes, (list, tuple)) and
-            all(isinstance(x, Include) for x in includes))
-        assert isinstance(control, bool)
-        assert isinstance(hardware, bool)
-        assert provides is None or (isinstance(provides, (list, tuple)) and
-            all(isinstance(x, Provides) for x in provides))
-        assert uses is None or (isinstance(uses, (list, tuple)) and
-            all(isinstance(x, Uses) for x in uses))
-        assert emits is None or (isinstance(emits, (list, tuple)) and
-            all(isinstance(x, Emits) for x in emits))
-        assert consumes is None or (isinstance(consumes, (list, tuple)) and
-            all(isinstance(x, Consumes) for x in consumes))
-        assert dataports is None or (isinstance(dataports, (list, tuple)) and
-            all(isinstance(x, Dataport) for x in dataports))
-        assert attributes is None or (isinstance(attributes, (list, tuple)) and
-            all(isinstance(x, Attribute) for x in attributes))
-        assert mutexes is None or (isinstance(mutexes, (list, tuple)) and
-            all(isinstance(x, Mutex) for x in mutexes))
-        assert semaphores is None or (isinstance(semaphores, (list, tuple)) and
-            all(isinstance(x, Semaphore) for x in semaphores))
-        assert binary_semaphores is None or (isinstance(binary_semaphores, (list, tuple)) and
-            all(isinstance(x, BinarySemaphore) for x in binary_semaphores))
-        assert composition is None or isinstance(composition, Composition)
-        assert configuration is None or isinstance(configuration,
-            Configuration)
         super(Component, self).__init__(location)
-        self._name = name
-        self._includes = list(includes or [])
-        self._control = control
-        self._hardware = hardware
-        self._provides = list(provides or [])
-        self._uses = list(uses or [])
-        self._emits = list(emits or [])
-        self._consumes = list(consumes or [])
-        self._dataports = list(dataports or [])
-        self._attributes = list(attributes or [])
-        self._mutexes = list(mutexes or [])
-        self._semaphores = list(semaphores or [])
-        self._binary_semaphores = list(binary_semaphores or [])
-        self._composition = composition
-        self._configuration = configuration
+        if name:
+            self.name = name
+        else:
+            self._name = None
+        self.includes = list(includes or [])
+        self.control = control
+        self.hardware = hardware
+        self.provides = list(provides or [])
+        self.uses = list(uses or [])
+        self.emits = list(emits or [])
+        self.consumes = list(consumes or [])
+        self.dataports = list(dataports or [])
+        self.attributes = list(attributes or [])
+        self.mutexes = list(mutexes or [])
+        self.semaphores = list(semaphores or [])
+        self.binary_semaphores = list(binary_semaphores or [])
+        if composition is not None:
+            self.composition = composition
+        else:
+            self._composition = None
+        if configuration is not None:
+            self.configuration = configuration
+        else:
+            self._configuration = None
         self.claim_children()
 
     def claim_children(self):
@@ -882,179 +638,6 @@ class Component(MapLike):
             self.adopt(self.composition)
         if self.configuration is not None:
             self.adopt(self.configuration)
-
-    @property
-    def name(self):
-        return self._name
-    @name.setter
-    def name(self, value):
-        assert value is None or isinstance(value, six.string_types)
-        if self.frozen:
-            raise TypeError('you cannot change the name of a frozen component')
-        self._name = value
-
-    @property
-    def includes(self):
-        return self._includes
-    @includes.setter
-    def includes(self, value):
-        assert isinstance(value, (list, tuple)) and \
-            all(isinstance(x, Include) for x in value)
-        if self.frozen:
-            raise TypeError('you cannot change the includes of a frozen '
-                'component')
-        self._includes = value
-
-    @property
-    def control(self):
-        return self._control
-    @control.setter
-    def control(self, value):
-        assert isinstance(value, bool)
-        if self.frozen:
-            raise TypeError('you cannot change the control value of a frozen '
-                'component')
-        self._control = value
-
-    @property
-    def hardware(self):
-        return self._hardware
-    @hardware.setter
-    def hardware(self, value):
-        assert isinstance(value, bool)
-        if self.frozen:
-            raise TypeError('you cannot change the hardware value of a frozen '
-                'component')
-        self._hardware = value
-
-    @property
-    def provides(self):
-        return self._provides
-    @provides.setter
-    def provides(self, value):
-        assert isinstance(value, (list, tuple)) and \
-            all(isinstance(x, Provides) for x in value)
-        if self.frozen:
-            raise TypeError('you cannot change the provides of a frozen '
-                'component')
-        self._provides = value
-
-    @property
-    def uses(self):
-        return self._uses
-    @uses.setter
-    def uses(self, value):
-        assert isinstance(value, (list, tuple)) and \
-            all(isinstance(x, Uses) for x in value)
-        if self.frozen:
-            raise TypeError('you cannot change the uses of a frozen component')
-        self._uses = value
-
-    @property
-    def emits(self):
-        return self._emits
-    @emits.setter
-    def emits(self, value):
-        assert isinstance(value, (list, tuple)) and \
-            all(isinstance(x, Emits) for x in value)
-        if self.frozen:
-            raise TypeError('you cannot change the emits of a frozen '
-                'component')
-        self._emits = value
-
-    @property
-    def consumes(self):
-        return self._consumes
-    @consumes.setter
-    def consumes(self, value):
-        assert isinstance(value, (list, tuple)) and \
-            all(isinstance(x, Consumes) for x in value)
-        if self.frozen:
-            raise TypeError('you cannot change the consumes of a frozen '
-                'component')
-        self._consumes = value
-
-    @property
-    def dataports(self):
-        return self._dataports
-    @dataports.setter
-    def dataports(self, value):
-        assert isinstance(value, (list, tuple)) and \
-            all(isinstance(x, Dataport) for x in value)
-        if self.frozen:
-            raise TypeError('you cannot change the dataports of a frozen '
-                'component')
-        self._dataports = value
-
-    @property
-    def attributes(self):
-        return self._attributes
-    @attributes.setter
-    def attributes(self, value):
-        assert isinstance(value, (list, tuple)) and \
-            all(isinstance(x, Attribute) for x in value)
-        if self.frozen:
-            raise TypeError('you cannot change the attributes of a frozen '
-                'component')
-        self._attributes = value
-
-    @property
-    def mutexes(self):
-        return self._mutexes
-    @mutexes.setter
-    def mutexes(self, value):
-        assert isinstance(value, (list, tuple)) and \
-            all(isinstance(x, Mutex) for x in value)
-        if self.frozen:
-            raise TypeError('you cannot change the mutexes of a frozen '
-                'component')
-        self._mutexes = value
-
-    @property
-    def semaphores(self):
-        return self._semaphores
-    @semaphores.setter
-    def semaphores(self, value):
-        assert isinstance(value, (list, tuple)) and \
-            all(isinstance(x, Semaphore) for x in value)
-        if self.frozen:
-            raise TypeError('you cannot change the semaphores of a frozen '
-                'component')
-        self._semaphores = value
-
-    @property
-    def binary_semaphores(self):
-        return self._binary_semaphores
-    @binary_semaphores.setter
-    def binary_semaphores(self, value):
-        assert isinstance(value, (list, tuple)) and \
-            all(isinstance(x, BinarySemaphore) for x in value)
-        if self.frozen:
-            raise TypeError('you cannot change the binary_semaphores of a frozen '
-                'component')
-        self._binary_semaphores = value
-
-    @property
-    def composition(self):
-        return self._composition
-    @composition.setter
-    def composition(self, value):
-        assert value is None or isinstance(value, Composition)
-        if self.frozen:
-            raise TypeError('you cannot change the composition of a frozen '
-                'component')
-        self._composition = value
-
-    @property
-    def configuration(self):
-        return self._configuration
-    @configuration.setter
-    def configuration(self, value):
-        assert value is None or isinstance(value, Configuration)
-        if self.frozen:
-            raise TypeError('you cannot change the configuration of a frozen '
-                'component')
-        self._configuration = value
 
     def freeze(self):
         if self.frozen:
@@ -1089,256 +672,93 @@ class Interface(six.with_metaclass(abc.ABCMeta, ASTObject)):
     def __str__(self):
         return self.name
 
+@ast_property("name", six.string_types)
+@ast_property("type", lambda x: isinstance(x, (Reference)) or isinstance_fallback(x, "Procedure"))
 class Provides(Interface):
     child_fields = ('type',)
 
     def __init__(self, type, name, location=None):
-        assert isinstance(type, (Procedure, Reference))
-        assert isinstance(name, six.string_types)
         super(Provides, self).__init__(location)
-        self._type = type
-        self._name = name
+        self.type = type
+        self.name = name
 
-    @property
-    def type(self):
-        return self._type
-    @type.setter
-    def type(self, value):
-        assert isinstance(value, (Procedure, Reference))
-        if self.frozen:
-            raise TypeError('you cannot change the type of a frozen provides')
-        self._type = value
-
-    @property
-    def name(self):
-        return self._name
-    @name.setter
-    def name(self, value):
-        assert isinstance(value, six.string_types)
-        if self.frozen:
-            raise TypeError('you cannot change the name of a frozen provides')
-        self._name = value
-
+@ast_property("type", lambda x: isinstance(x, (Reference)) or isinstance_fallback(x, "Procedure"))
+@ast_property("name", six.string_types)
+@ast_property("optional", bool)
 class Uses(Interface):
     child_fields = ('type',)
 
     def __init__(self, type, name, optional=False, location=None):
-        assert isinstance(type, (Procedure, Reference))
-        assert isinstance(name, six.string_types)
-        assert isinstance(optional, bool)
         super(Uses, self).__init__(location)
-        self._type = type
-        self._name = name
-        self._optional = optional
+        self.type = type
+        self.name = name
+        self.optional = optional
 
-    @property
-    def type(self):
-        return self._type
-    @type.setter
-    def type(self, value):
-        assert isinstance(value, (Procedure, Reference))
-        if self.frozen:
-            raise TypeError('you cannot set the type of a frozen uses')
-        self._type = value
-
-    @property
-    def name(self):
-        return self._name
-    @name.setter
-    def name(self, value):
-        assert isinstance(value, six.string_types)
-        if self.frozen:
-            raise TypeError('you cannot set the name of a frozen uses')
-        self._name = value
-
-    @property
-    def optional(self):
-        return self._optional
-    @optional.setter
-    def optional(self, value):
-        assert isinstance(value, bool)
-        if self.frozen:
-            raise TypeError('you cannot set optional of a frozen uses')
-        self._optional = value
-
+@ast_property("type", six.string_types)
+@ast_property("name", six.string_types)
 class Emits(Interface):
     def __init__(self, type, name, location=None):
-        assert isinstance(type, six.string_types)
-        assert isinstance(name, six.string_types)
         super(Emits, self).__init__(location)
-        self._type = type
-        self._name = name
+        self.type = type
+        self.name = name
 
-    @property
-    def type(self):
-        return self._type
-    @type.setter
-    def type(self, value):
-        assert isinstance(value, six.string_types)
-        if self.frozen:
-            raise TypeError('you cannot set the type of a frozen emits')
-        self._type = value
-
-    @property
-    def name(self):
-        return self._name
-    @name.setter
-    def name(self, value):
-        assert isinstance(value, six.string_types)
-        if self.frozen:
-            raise TypeError('you cannot set the name of a frozen emits')
-        self._name = value
-
+@ast_property("type", six.string_types)
+@ast_property("name", six.string_types)
+@ast_property("optional", bool)
 class Consumes(Interface):
     def __init__(self, type, name, optional=False, location=None):
-        assert isinstance(type, six.string_types)
-        assert isinstance(name, six.string_types)
-        assert isinstance(optional, bool)
         super(Consumes, self).__init__(location)
-        self._type = type
-        self._name = name
-        self._optional = optional
+        self.type = type
+        self.name = name
+        self.optional = optional
 
-    @property
-    def type(self):
-        return self._type
-    @type.setter
-    def type(self, value):
-        assert isinstance(value, six.string_types)
-        if self.frozen:
-            raise TypeError('you cannot set the type of a frozen consumes')
-        self._type = value
-
-    @property
-    def name(self):
-        return self._name
-    @name.setter
-    def name(self, value):
-        assert isinstance(value, six.string_types)
-        if self.frozen:
-            raise TypeError('you cannot set the name of a frozen consumes')
-        self._name = value
-
-    @property
-    def optional(self):
-        return self._optional
-    @optional.setter
-    def optional(self, value):
-        assert isinstance(value, bool)
-        if self.frozen:
-            raise TypeError('you cannot set optional of a frozen consumes')
-        self._optional = value
-
+@ast_property("type", six.string_types)
+@ast_property("name", six.string_types)
+@ast_property("optional", bool)
 class Dataport(Interface):
     def __init__(self, type, name, optional=False, location=None):
-        assert isinstance(type, six.string_types)
-        assert isinstance(name, six.string_types)
-        assert isinstance(optional, bool)
         super(Dataport, self).__init__(location)
-        self._type = type
-        self._name = name
-        self._optional = optional
+        self.type = type
+        self.name = name
+        self.optional = optional
 
-    @property
-    def type(self):
-        return self._type
-    @type.setter
-    def type(self, value):
-        assert isinstance(value, six.string_types)
-        if self.frozen:
-            raise TypeError('you cannot set the type of a frozen dataport')
-        self._type = value
-
-    @property
-    def name(self):
-        return self._name
-    @name.setter
-    def name(self, value):
-        assert isinstance(value, six.string_types)
-        if self.frozen:
-            raise TypeError('you cannot set the name of a frozen dataport')
-        self._name = value
-
-    @property
-    def optional(self):
-        return self._optional
-    @optional.setter
-    def optional(self, value):
-        assert isinstance(value, bool)
-        if self.frozen:
-            raise TypeError('you cannot set optional of a frozen dataport')
-        self._optional = value
-
+@ast_property("name", six.string_types)
 class Mutex(ASTObject):
     def __init__(self, name, location=None):
-        assert isinstance(name, six.string_types)
         super(Mutex, self).__init__(location)
-        self._name = name
+        self.name = name
 
-    @property
-    def name(self):
-        return self._name
-    @name.setter
-    def name(self, value):
-        assert isinstance(value, six.string_types)
-        if self.frozen:
-            raise TypeError('you cannot set the name of a frozen mutex')
-        self._name = value
-
+@ast_property("name", six.string_types)
 class Semaphore(ASTObject):
     def __init__(self, name, location=None):
-        assert isinstance(name, six.string_types)
         super(Semaphore, self).__init__(location)
-        self._name = name
+        self.name = name
 
-    @property
-    def name(self):
-        return self._name
-    @name.setter
-    def name(self, value):
-        assert isinstance(value, six.string_types)
-        if self.frozen:
-            raise TypeError('you cannot set the name of a frozen '
-                'semaphore')
-        self._name = value
-
+@ast_property("name", six.string_types)
 class BinarySemaphore(ASTObject):
     def __init__(self, name, location=None):
-        assert isinstance(name, six.string_types)
         super(BinarySemaphore, self).__init__(location)
-        self._name = name
+        self.name = name
 
-    @property
-    def name(self):
-        return self._name
-    @name.setter
-    def name(self, value):
-        assert isinstance(value, six.string_types)
-        if self.frozen:
-            raise TypeError('you cannot set the name of a frozen '
-                'binary_semaphore')
-        self._name = value
-
+@ast_property("name", lambda x: x is None or isinstance(x, six.string_types))
+@ast_property("from_type", lambda x: isinstance(x, six.string_types) and
+            x in ('Dataport', 'Event', 'Procedure') )
+@ast_property("to_type", lambda x: isinstance(x, six.string_types) and
+            x in ('Dataport', 'Event', 'Procedure'))
+@ast_property("from_multiple", bool)
+@ast_property("to_multiple", bool)
+@ast_property("from_template", lambda x: x is None or isinstance(x, six.string_types))
+@ast_property("to_template", lambda x: x is None or isinstance(x, six.string_types))
+@ast_property("from_threads", lambda x: isinstance(x, six.integer_types) and x >= 0)
+@ast_property("to_threads", lambda x: isinstance(x, six.integer_types) and x >= 0)
+@ast_property("from_hardware", bool)
+@ast_property("to_hardware", bool)
+@ast_property("attributes", lambda x: isinstance(x, (list, tuple)) and
+            all(isinstance_fallback(y, "Attribute") for y in value))
 class Connector(ASTObject):
     def __init__(self, name=None, from_type=None, to_type=None,
             from_template=None, to_template=None, from_threads=1, to_threads=1,
             from_hardware=False, to_hardware=False, attributes=None, location=None):
-        assert from_type is None or (isinstance(from_type, six.string_types) and \
-            from_type in ('Event', 'Procedure', 'Dataport', 'Events',
-            'Procedures', 'Dataports'))
-        assert to_type is None or (isinstance(to_type, six.string_types) and \
-            to_type in ('Event', 'Procedure', 'Dataport', 'Events',
-            'Procedures', 'Dataports'))
-        assert name is None or isinstance(name, six.string_types)
-        assert from_template is None or isinstance(from_template,
-            six.string_types)
-        assert to_template is None or isinstance(to_template, six.string_types)
-        assert isinstance(from_threads, six.integer_types) and from_threads >= 0
-        assert isinstance(to_threads, six.integer_types) and to_threads >= 0
-        assert isinstance(from_hardware, bool)
-        assert isinstance(to_hardware, bool)
-        assert attributes is None or (isinstance(attributes, (list, tuple)) and
-            all(isinstance(x, Attribute) for x in attributes))
         super(Connector, self).__init__(location)
         TRANSLATION = {
             'Event':'Event',
@@ -1348,17 +768,23 @@ class Connector(ASTObject):
             'Dataport':'Dataport',
             'Dataports':'Dataport',
         }
-        self._name = name
-        self._from_type = TRANSLATION.get(from_type)
-        self._to_type = TRANSLATION.get(to_type)
-        self._from_multiple = from_type in ('Events', 'Procedures', 'Dataports')
-        self._to_multiple = to_type in ('Events', 'Procedures', 'Dataports')
-        self._from_template = from_template
-        self._to_template = to_template
-        self._from_threads = from_threads
-        self._to_threads = to_threads
-        self._from_hardware = from_hardware
-        self._to_hardware = to_hardware
+        self.name = name
+        if from_type:
+            self.from_type = TRANSLATION.get(from_type)
+        else:
+            self._from_type = None
+        if to_type:
+            self.to_type = TRANSLATION.get(to_type)
+        else:
+            self._to_type = None
+        self.from_multiple = from_type in ('Events', 'Procedures', 'Dataports')
+        self.to_multiple = to_type in ('Events', 'Procedures', 'Dataports')
+        self.from_template = from_template
+        self.to_template = to_template
+        self.from_threads = from_threads
+        self.to_threads = to_threads
+        self.from_hardware = from_hardware
+        self.to_hardware = to_hardware
         self._attributes = attributes
 
     def get_attribute(self, attribute_name):
@@ -1367,286 +793,57 @@ class Connector(ASTObject):
                 return attrib
         return None
 
-    @property
-    def name(self):
-        return self._name
-    @name.setter
-    def name(self, value):
-        assert value is None or isinstance(value, six.string_types)
-        if self.frozen:
-            raise TypeError('you cannot set the name of a frozen connector')
-        self._name = value
-
-    @property
-    def from_type(self):
-        return self._from_type
-    @from_type.setter
-    def from_type(self, value):
-        assert isinstance(value, six.string_types) and \
-            value in ('Dataport', 'Event', 'Procedure')
-        if self.frozen:
-            raise TypeError('you cannot set the from type of a frozen '
-                'connector')
-        self._from_type = value
-
-    @property
-    def to_type(self):
-        return self._to_type
-    @to_type.setter
-    def to_type(self, value):
-        assert isinstance(value, six.string_types) and \
-            value in ('Dataport', 'Event', 'Procedure')
-        if self.frozen:
-            raise TypeError('you cannot set the to type of a frozen connector')
-        self._to_type = value
-
-    @property
-    def from_multiple(self):
-        return self._from_multiple
-    @from_multiple.setter
-    def from_multiple(self, value):
-        assert isinstance(value, bool)
-        if self.frozen:
-            raise TypeError('you cannot set from multiple of a frozen '
-                'connector')
-        self._from_multiple = value
-
-    @property
-    def to_multiple(self):
-        return self._to_multiple
-    @to_multiple.setter
-    def to_multiple(self, value):
-        assert isinstance(value, bool)
-        if self.frozen:
-            raise TypeError('you cannot set to multiple of a frozen connector')
-        self._to_multiple = value
-
-    @property
-    def from_template(self):
-        return self._from_template
-    @from_template.setter
-    def from_template(self, value):
-        assert value is None or isinstance(value, six.string_types)
-        if self.frozen:
-            raise TypeError('you cannot set from template of a frozen '
-                'connector')
-        self._from_template = value
-
-    @property
-    def to_template(self):
-        return self._to_template
-    @to_template.setter
-    def to_template(self, value):
-        assert value is None or isinstance(value, six.string_types)
-        if self.frozen:
-            raise TypeError('you cannot set to template of a frozen connector')
-        self._to_template = value
-
-    @property
-    def from_threads(self):
-        return self._from_threads
-    @from_threads.setter
-    def from_threads(self, value):
-        assert isinstance(value, six.integer_types) and value >= 0
-        if self.frozen:
-            raise TypeError('you cannot set from threads of a frozen '
-                'connector')
-        self._from_threads = value
-
-    @property
-    def to_threads(self):
-        return self._to_threads
-    @to_threads.setter
-    def to_threads(self, value):
-        assert isinstance(value, six.integer_types) and value >= 0
-        if self.frozen:
-            raise TypeError('you cannot set to threads of a frozen connector')
-        self._to_threads = value
-
-    @property
-    def from_hardware(self):
-        return self._from_hardware
-    @from_hardware.setter
-    def from_hardware(self, value):
-        assert isinstance(value, bool)
-        if self.frozen:
-            raise TypeError('you cannot set from hardware of a frozen '
-                'connector')
-        self._from_hardware = value
-
-    @property
-    def to_hardware(self):
-        return self._to_hardware
-    @to_hardware.setter
-    def to_hardware(self, value):
-        assert isinstance(value, bool)
-        if self.frozen:
-            raise TypeError('you cannot set to hardware of a frozen connector')
-        self._to_hardware = value
-
-    @property
-    def attributes(self):
-        return self._attributes
-    @attributes.setter
-    def attributes(self, value):
-        assert isinstance(value, (list, tuple)) and \
-            all(isinstance(x, Attribute) for x in value)
-        if self.frozen:
-            raise TypeError('you cannot change the attributes of a frozen '
-                'connector')
-        self._attributes = value
-
+@ast_property("name", lambda x: x is None or isinstance(x, six.string_types))
+@ast_property("instances", lambda i: isinstance(i, (list, tuple)) and
+            all(isinstance(x, Instance) for x in i))
 class Group(MapLike):
     child_fields = ('instances',)
 
     def __init__(self, name=None, instances=None, location=None):
-        assert name is None or isinstance(name, six.string_types)
-        assert instances is None or (isinstance(instances, (list, tuple)) and
-            all(isinstance(x, Instance) for x in instances))
         super(Group, self).__init__(location)
-        self._name = name
-        self._instances = list(instances or [])
+        self.name = name
+        self.instances = list(instances or [])
         self.claim_children()
-
-    @property
-    def name(self):
-        return self._name
-    @name.setter
-    def name(self, value):
-        assert value is None or isinstance(value, six.string_types)
-        if self.frozen:
-            raise TypeError('you cannot set the name of a frozen group')
-        self._name = value
-
-    @property
-    def instances(self):
-        return self._instances
-    @instances.setter
-    def instances(self, value):
-        assert isinstance(value, (list, tuple)) and \
-            all(isinstance(x, Instance) for x in value)
-        if self.frozen:
-            raise TypeError('you cannot set the instances of a frozen group')
-        self._instances = value
 
     def claim_children(self):
         [self.adopt(i) for i in self.instances]
 
+@ast_property("name", lambda x: x is None or (isinstance(x, six.string_types)))
+@ast_property("includes", lambda i: isinstance(i, (list, tuple)) and
+            all(isinstance(x, Include) for x in i))
+@ast_property("methods", lambda m: isinstance(m, (list, tuple)) and
+            all(isinstance(x, Method) for x in m))
+@ast_property("attributes", lambda a: isinstance(a, (list, tuple)) and
+            all(isinstance(x, Attribute) for x in a))
 class Procedure(MapLike):
     child_fields = ('includes', 'methods', 'attributes')
 
     def __init__(self, name=None, includes=None, methods=None, attributes=None, location=None):
-        assert name is None or isinstance(name, six.string_types)
-        assert includes is None or (isinstance(includes, (list, tuple)) and
-            all(isinstance(x, Include) for x in includes))
-        assert methods is None or (isinstance(methods, (list, tuple)) and
-            all(isinstance(x, Method) for x in methods))
-        assert attributes is None or (isinstance(attributes, (list, tuple)) and
-            all(isinstance(x, Attribute) for x in attributes))
         super(Procedure, self).__init__(location)
-        self._name = name
-        self._includes = list(includes or [])
-        self._methods = list(methods or [])
-        self._attributes = list(attributes or [])
+        self.name = name
+        self.includes = list(includes or [])
+        self.methods = list(methods or [])
+        self.attributes = list(attributes or [])
         self.claim_children()
-
-    @property
-    def name(self):
-        return self._name
-    @name.setter
-    def name(self, value):
-        assert value is None or isinstance(value, six.string_types)
-        if self.frozen:
-            raise TypeError('you cannot set the name of a frozen procedure')
-        self._name = value
-
-    @property
-    def includes(self):
-        return self._includes
-    @includes.setter
-    def includes(self, value):
-        assert isinstance(value, (list, tuple)) and \
-            all(isinstance(x, Include) for x in value)
-        if self.frozen:
-            raise TypeError('you cannot set the includes of a frozen '
-                'procedure')
-        self._includes = value
-
-    @property
-    def methods(self):
-        return self._methods
-    @methods.setter
-    def methods(self, value):
-        assert isinstance(value, (list, tuple)) and \
-            all(isinstance(x, Method) for x in value)
-        if self.frozen:
-            raise TypeError('you cannot set the methods of a frozen procedure')
-        self._methods = value
-
-    @property
-    def attributes(self):
-        return self._attributes
-    @attributes.setter
-    def attributes(self, value):
-        assert isinstance(value, (list, tuple)) and \
-            all(isinstance(x, Attribute) for x in value)
-        if self.frozen:
-            raise TypeError('you cannot set the attributes of a frozen '
-                'procedure')
-        self._attributes = value
 
     def claim_children(self):
         [self.adopt(i) for i in self.includes]
         [self.adopt(m) for m in self.methods]
         [self.adopt(a) for a in self.attributes]
 
+@ast_property("name", six.string_types)
+@ast_property("return_type", lambda x: x is None or isinstance(x, six.string_types))
+@ast_property("parameters", lambda p: isinstance(p, (list, tuple)) and
+            all(isinstance(x, Parameter) for x in p))
 class Method(ASTObject):
     child_fields = ('parameters',)
 
     def __init__(self, name, return_type, parameters, location=None):
-        assert isinstance(name, six.string_types)
-        assert return_type is None or isinstance(return_type, six.string_types)
-        assert isinstance(parameters, (list, tuple)) and \
-            all(isinstance(x, Parameter) for x in parameters)
         super(Method, self).__init__(location)
-        self._name = name
-        self._return_type = return_type
-        self._parameters = list(parameters)
+        self.name = name
+        self.return_type = return_type
+        self.parameters = list(parameters)
         self.claim_children()
-
-    @property
-    def name(self):
-        return self._name
-    @name.setter
-    def name(self, value):
-        assert isinstance(value, six.string_types)
-        if self.frozen:
-            raise TypeError('you cannot set the \'name\' field of a frozen '
-                'object')
-        self._name = value
-
-    @property
-    def return_type(self):
-        return self._return_type
-    @return_type.setter
-    def return_type(self, value):
-        assert value is None or isinstance(value, six.string_types)
-        if self.frozen:
-            raise TypeError('you cannot set the \'return_type\' field of a '
-                'frozen object')
-        self._return_type = value
-
-    @property
-    def parameters(self):
-        return self._parameters
-    @parameters.setter
-    def parameters(self, value):
-        assert isinstance(value, (list, tuple)) and \
-            all(isinstance(x, Parameter) for x in value)
-        if self.frozen:
-            raise TypeError('you cannot set the \'parameters\' field of a '
-                'frozen object')
-        self._parameters = value
 
     def claim_children(self):
         [self.adopt(p) for p in self.parameters]
@@ -1666,67 +863,32 @@ class Method(ASTObject):
         self.parameters = tuple(self.parameters)
         super(Method, self).freeze()
 
+@ast_property("type", (six.string_types, Reference, Struct))
+@ast_property("name", six.string_types)
+@ast_property("array", bool)
+@ast_property("default", lambda x: x is None or isinstance(x, (numbers.Number, list, dict, six.string_types)))
 class Attribute(ASTObject):
     def __init__(self, type, name, array=False, default=None, location=None):
-        assert isinstance(type, (six.string_types, Reference, Struct))
-        assert isinstance(name, six.string_types)
-        assert isinstance(array, bool)
         super(Attribute, self).__init__(location)
-        self._name = name
-        self._type = type
-        self._default = default
-        self._array = array
+        self.name = name
+        self.type = type
+        self.default = default
+        self.array = array
         if isinstance(type, (Reference, Struct)):
             self.child_fields = ('type',)
 
-    @property
-    def name(self):
-        return self._name
-    @name.setter
-    def name(self, value):
-        assert isinstance(value, six.string_types)
-        if self.frozen:
-            raise TypeError('you cannot set the \'name\' field of a frozen '
-                'object')
-        self._name = value
-
+    # Type checking and frozen checks are done by ast_property delegate
     @property
     def type(self):
         return self._type
     @type.setter
     def type(self, value):
-        assert isinstance(value, (six.string_types, Reference, Struct))
-        if self.frozen:
-            raise TypeError('you cannot set the \'type\' field of a frozen '
-                'object')
         self._type = value
         if isinstance(value, (Reference, Struct)):
             self.child_fields = ('type',)
         else:
             self.child_fields = ()
 
-    @property
-    def array(self):
-        return self._array
-    @array.setter
-    def array(self, value):
-        assert isinstance(value, bool)
-        if self.frozen:
-            raise TypeError('you cannot set the \'array\' field of a frozen '
-                'object')
-        self._array = value
-
-    @property
-    def default(self):
-        return self._default
-    @default.setter
-    def default(self, value):
-        assert value is None or isinstance(value, (numbers.Number, list, dict)
-            + six.string_types)
-        if self.frozen:
-            raise TypeError('you cannot set the \'default\' field of a frozen '
-                'object')
-        self._default = value
 
     def freeze(self):
         if self.frozen:
@@ -1736,63 +898,17 @@ class Attribute(ASTObject):
                 self.name, self)
         super(Attribute, self).freeze()
 
+@ast_property("name", six.string_types)
+@ast_property("direction", lambda x: isinstance(x, six.string_types) and x in ('in', 'inout', 'out', 'refin'))
+@ast_property("type", six.string_types)
+@ast_property("array", bool)
 class Parameter(ASTObject):
     def __init__(self, name, direction, type, array=False, location=None):
-        assert isinstance(name, six.string_types)
-        assert isinstance(direction, six.string_types) and \
-            direction in ('in', 'inout', 'out', 'refin')
-        assert isinstance(type, six.string_types)
-        assert isinstance(array, bool)
         super(Parameter, self).__init__(location)
-        self._name = name
-        self._direction = direction
-        self._type = type
-        self._array = array
-
-    @property
-    def name(self):
-        return self._name
-    @name.setter
-    def name(self, value):
-        assert isinstance(value, six.string_types)
-        if self.frozen:
-            raise TypeError('you cannot set the \'name\' field of a frozen '
-                'object')
-        self._name = value
-
-    @property
-    def direction(self):
-        return self._direction
-    @direction.setter
-    def direction(self, value):
-        assert isinstance(value, six.string_types) and \
-            value in ('in', 'inout', 'out', 'refin')
-        if self.frozen:
-            raise TypeError('you cannot set the \'direction\' field of a '
-                'frozen object')
-        self._direction = value
-
-    @property
-    def type(self):
-        return self._type
-    @type.setter
-    def type(self, value):
-        assert isinstance(value, six.string_types)
-        if self.frozen:
-            raise TypeError('you cannot set the \'type\' field of a frozen '
-                'object')
-        self._type = value
-
-    @property
-    def array(self):
-        return self._array
-    @array.setter
-    def array(self, value):
-        assert isinstance(value, bool)
-        if self.frozen:
-            raise TypeError('you cannot set the \'array\' field of a frozen '
-                'object')
-        self._array = value
+        self.name = name
+        self.direction = direction
+        self.type = type
+        self.array = array
 
     def freeze(self):
         if self.frozen:
@@ -1802,50 +918,17 @@ class Parameter(ASTObject):
                 self.name, self)
         super(Parameter, self).freeze()
 
+@ast_property("end", lambda x: isinstance(x, six.string_types) and x in ('from', 'to'))
+@ast_property("instance", lambda x: x is None or isinstance(x, (Instance, Reference)))
+@ast_property("interface", (Interface, Reference))
 class ConnectionEnd(ASTObject):
     child_fields = ('instance', 'interface')
 
     def __init__(self, end, instance, interface, location=None):
-        assert isinstance(end, six.string_types) and end in ('from', 'to')
-        assert instance is None or isinstance(instance, (Instance, Reference))
-        assert isinstance(interface, (Interface, Reference))
         super(ConnectionEnd, self).__init__(location)
-        self._end = end
-        self._instance = instance
-        self._interface = interface
-
-    @property
-    def end(self):
-        return self._end
-    @end.setter
-    def end(self, value):
-        assert isinstance(value, six.string_types) and value in ('from', 'to')
-        if self.frozen:
-            raise TypeError('you cannot set the \'end\' field of a frozen '
-                'object')
-        self._end = value
-
-    @property
-    def instance(self):
-        return self._instance
-    @instance.setter
-    def instance(self, value):
-        assert value is None or isinstance(value, (Instance, Reference))
-        if self.frozen:
-            raise TypeError('you cannot set the \'instance\' field of a '
-                'frozen object')
-        self._instance = value
-
-    @property
-    def interface(self):
-        return self._interface
-    @interface.setter
-    def interface(self, value):
-        assert isinstance(value, (Interface, Reference))
-        if self.frozen:
-            raise TypeError('you cannot set the \'interface\' field of a '
-                'frozen object')
-        self._interface = value
+        self.end = end
+        self.instance = instance
+        self.interface = interface
 
     # Shorthand that can replace the use of a very commonly repeated
     # condition in the templates.
@@ -1878,85 +961,38 @@ class ConnectionEnd(ASTObject):
     def __str__(self):
         return "%s.%s" % (str(self.instance), str(self.interface))
 
+@ast_property("source_instance", (Instance, Reference))
+@ast_property("source_interface", (Interface, Reference))
+@ast_property("destination", (Interface, Reference))
 class Export(ASTObject):
     child_fields = ('source_instance', 'source_interface', 'destination')
 
     def __init__(self, source_instance, source_interface, destination,
             location=None):
-        assert isinstance(source_instance, (Instance, Reference))
-        assert isinstance(source_interface, (Interface, Reference))
-        assert isinstance(destination, (Interface, Reference))
         super(Export, self).__init__(location)
-        self._source_instance = source_instance
-        self._source_interface = source_interface
-        self._destination = destination
+        self.source_instance = source_instance
+        self.source_interface = source_interface
+        self.destination = destination
 
-    @property
-    def source_instance(self):
-        return self._source_instance
-    @source_instance.setter
-    def source_instance(self, value):
-        assert isinstance(value, (Instance, Reference))
-        if self.frozen:
-            raise TypeError('you cannot set the \'source_instance\' field of '
-                'a frozen object')
-        self._source_instance = value
-
-    @property
-    def source_interface(self):
-        return self._source_interface
-    @source_interface.setter
-    def source_interface(self, value):
-        assert isinstance(value, (Interface, Reference))
-        if self.frozen:
-            raise TypeError('you cannot set the \'source_interface\' field of '
-                'a frozen object')
-        self._source_interface = value
-
-    @property
-    def destination(self):
-        return self._destination
-    @destination.setter
-    def destination(self, value):
-        assert isinstance(value, (Interface, Reference))
-        if self.frozen:
-            raise TypeError('you cannot set the \'destination\' field of a '
-                'frozen object')
-        self._destination = value
-
+@ast_property("reference", six.string_types)
+@ast_property("dict_lookup", lambda x: x is None or isinstance_fallback(x, "DictLookup"))
 class AttributeReference(ASTObject):
     def __init__(self, reference, dict_lookup, location=None):
-        assert isinstance(reference, six.string_types)
         super(AttributeReference, self).__init__(location)
-        self._reference = reference
-        self._dict_lookup = dict_lookup
+        self.reference = reference
+        self.dict_lookup = dict_lookup
 
-    @property
-    def reference(self):
-        return self._reference
-    @reference.setter
-    def reference(self, value):
-        assert isinstance(value, six.string_types)
-        if self.frozen:
-            raise TypeError('you cannot set the \'reference\' field of a '
-                'frozen object')
-        self._reference = value
-
-    @property
-    def dict_lookup(self):
-        return self._dict_lookup
-
-
+@ast_property("lookup", six.string_types)
 class DictLookup(ASTObject):
     def __init__(self, lookup, location):
         super(DictLookup, self).__init__(location)
         self.lookup = lookup
 
-
+@ast_property("query_name", six.string_types)
+@ast_property("query_args", dict)
+@ast_property("dict_lookup", lambda x: x is None or isinstance(x, DictLookup))
 class QueryObject(ASTObject):
     def __init__(self, query_name, query_args, dict_lookup, location):
-        assert isinstance(query_name, six.string_types)
-        assert isinstance(query_args, dict)
         super(QueryObject, self).__init__(location)
         self.type = query_name # the name of the query
         self.args = query_args # the arguments passed to the query
