@@ -29,6 +29,7 @@ from .location import SourceLocation
 from camkes.internal.frozendict import frozendict
 import abc, collections, itertools, numbers, six
 import logging
+from types import LambdaType
 
 def types_compatible(value, attribute):
     type = attribute.type;
@@ -75,6 +76,43 @@ def types_compatible(value, attribute):
                 if not compat:
                     return (False, error_str)
     return (True, "")
+
+def ast_property(name, types):
+    '''Creates custom getter and setter functions for an AST property.
+       Typechecks and raises exception if frozen
+    '''
+    assert isinstance(name, six.string_types)
+    def prop_class_decorator(cls):
+        prop_name = "_%s" % name
+        (fget, fset, fdel) = (None, None, None)
+        old_prop = getattr(cls, name, None)
+        if old_prop is not None:
+            (fget, fset, fdel) = (old_prop.fget, old_prop.fset, old_prop.fdel)
+
+        def get_prop(self):
+            if fget:
+                # Call a getter function if it already exists.
+                return fget(self)
+            return getattr(self, prop_name)
+
+        def set_prop(self, value):
+            if isinstance(types, LambdaType):
+                assert types(value)
+            else:
+                assert isinstance(value, types)
+            if self.frozen:
+                raise TypeError('Tried to change {0} on object {1} to value {2} but object is frozen' %
+                          (name, self.__class__.__name__, value))
+            if fset:
+                # Call the setter if it already exists.
+                fset(self, value)
+                return
+            setattr(self, prop_name, value)
+
+        prop = property(get_prop, set_prop, fdel)
+        setattr(cls, name, prop)
+        return cls
+    return prop_class_decorator
 
 class Include(ASTObject):
     def __init__(self, source, relative=True, location=None):
