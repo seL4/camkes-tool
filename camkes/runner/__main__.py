@@ -64,7 +64,7 @@ class ParserOptions():
 
 class FilterOptions():
     def __init__(self, architecture, realtime, largeframe, largeframe_dma, default_priority,
-            default_max_priority, default_criticality, default_max_criticality, default_affinity,
+            default_max_priority, default_affinity,
             default_period, default_budget, default_data, default_size_bits, debug_fault_handlers,
             fprovide_tcb_caps):
         self.architecture = architecture
@@ -73,8 +73,6 @@ class FilterOptions():
         self.largeframe_dma = largeframe_dma
         self.default_priority = default_priority
         self.default_max_priority = default_max_priority
-        self.default_criticality = default_criticality
-        self.default_max_criticality = default_max_criticality
         self.default_affinity = default_affinity
         self.default_period = default_period
         self.default_budget = default_budget
@@ -206,10 +204,6 @@ def parse_args(argv, out, err):
         help='Default component thread priority.')
     parser.add_argument('--default-max-priority', type=int, default=254,
         help='Default component thread maximum priority.')
-    parser.add_argument('--default-criticality', type=int, default=1,
-        help='Default component thread criticality.')
-    parser.add_argument('--default-max-criticality', type=int, default=1,
-        help='Default component thread maximum criticality.')
     parser.add_argument('--default-affinity', type=int, default=0,
         help='Default component thread affinity.')
     parser.add_argument('--default-period', type=int, default=10000,
@@ -612,8 +606,8 @@ def main(argv, out, err):
 
         filteroptions = FilterOptions(options.architecture, options.realtime, options.largeframe,
             options.largeframe_dma, options.default_priority, options.default_max_priority,
-            options.default_criticality, options.default_max_criticality, options.default_affinity,
-            options.default_period, options.default_budget, options.default_data, options.default_size_bits,
+            options.default_affinity, options.default_period, options.default_budget,
+            options.default_data, options.default_size_bits,
             options.debug_fault_handlers, options.fprovide_tcb_caps)
         for f in CAPDL_FILTERS:
             try:
