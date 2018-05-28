@@ -7,10 +7,18 @@ This file should be word wrapped to 120 characters
 ---
 Upcoming release
 
-## Changes
+This release is the last release with official support for Kbuild based projects.
+This release and future releases use CMake as the build system for building applications.
 
+## Changes
+* Remove `crit` and `max_crit` fields from TCB CapDL Object
+  These fields were previously added to support an earlier version of seL4-mcs that gave threads criticality fields.
+  This feature was removed from seL4-mcs. This also means that the arguments to camkes-tool, `--default-criticality`
+  and `--default-max-criticality`, have also been removed.
 
 ## Upgrade Notes
+* Calls to `camkes.sh` that used the above arugments will need to be updated.
+
 ---
 camkes-3.4.0 2018-04-18
 Using seL4 version 9.0.1
