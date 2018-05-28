@@ -7,6 +7,14 @@ This file should be word wrapped to 120 characters
 ---
 Upcoming release
 
+## Changes
+
+
+## Upgrade Notes
+---
+camkes-3.5.0 2018-05-28
+Using seL4 version 10.0.0
+  
 This release is the last release with official support for Kbuild based projects.
 This release and future releases use CMake as the build system for building applications.
 
