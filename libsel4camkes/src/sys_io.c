@@ -39,6 +39,7 @@
 
 static muslcsys_syscall_t original_sys_close = NULL;
 static muslcsys_syscall_t original_sys_read = NULL;
+static muslcsys_syscall_t original_sys_write = NULL;
 
 int sock_close(int fd) __attribute__((weak));
 static long
@@ -66,6 +67,8 @@ camkes_sys_close(va_list ap)
 int sock_write(int sockfd, int count) __attribute__((weak));
 static long camkes_sys_write(va_list ap)
 {
+    va_list copy;
+    va_copy(copy, ap);
     int fd = va_arg(ap, int);
     void *buf = va_arg(ap, void*);
     size_t count = va_arg(ap, size_t);
@@ -79,7 +82,14 @@ static long camkes_sys_write(va_list ap)
             return sock_write(sockfd, size);
         }
     }
-    return -ENOSYS;
+    long ret;
+    if (original_sys_write) {
+        ret = original_sys_write(copy);
+    } else {
+        ret = -ENOSYS;
+    }
+    va_end(copy);
+    return ret;
 }
 
 int sock_read(int sockfd, int count) __attribute__((weak));
@@ -134,7 +144,7 @@ void camkes_install_io_syscalls()
     assert(original_sys_close);
     original_sys_read = muslcsys_install_syscall(__NR_read, camkes_sys_read);
     assert(original_sys_read);
-    muslcsys_install_syscall(__NR_write, camkes_sys_write);
+    original_sys_write = muslcsys_install_syscall(__NR_write, camkes_sys_write);
 #ifdef __NR_fcntl64
     muslcsys_install_syscall(__NR_fcntl64, camkes_sys_fcntl64);
 #endif
