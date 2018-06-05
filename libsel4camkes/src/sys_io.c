@@ -53,7 +53,12 @@ camkes_sys_close(va_list ap)
             sock_close(*(int*)fds->data);
         }
     }
-    long ret = original_sys_close(copy);
+    long ret;
+    if (original_sys_close) {
+        ret = original_sys_close(copy);
+    } else {
+        ret = -ENOSYS;
+    }
     va_end(copy);
     return ret;
 }
@@ -95,7 +100,12 @@ static long camkes_sys_read(va_list ap)
             return ret;
         }
     }
-    long ret = original_sys_read(copy);
+    long ret;
+    if (original_sys_read) {
+        ret = original_sys_read(copy);
+    } else {
+        ret = -ENOSYS;
+    }
     va_end(copy);
     return ret;
 }
