@@ -86,7 +86,18 @@ static long camkes_sys_write(va_list ap)
     if (original_sys_write) {
         ret = original_sys_write(copy);
     } else {
-        ret = -ENOSYS;
+        // redirect to writev as a last resort
+        struct iovec io;
+        io.iov_base = buf;
+        io.iov_len = count;
+        ret = writev(fd, &io, 1);
+        // as the syscall implementation we expect to return the error directly and have
+        // our caller set errno or not. writev, however, is documented as putting its error
+        // code in errno. So if writev returns an error we need to get the error out of errno
+        // and return it up, so that it can ultimately get put back into errno
+        if (ret == -1) {
+            ret = errno;
+        }
     }
     va_end(copy);
     return ret;
