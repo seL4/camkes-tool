@@ -405,7 +405,7 @@ static void /*? init ?*/(void) {
     /*- set notification_pool = configuration[me.name].get('notification_pool', 0) -*/
     /*- for i in six.moves.range(notification_pool) -*/
         /*- set notification = alloc('notification_pool_%d' % i, seL4_NotificationObject, read=True, write=True) -*/
-        res = camkes_provide(seL4_NotificationObject, /*? notification ?*/, 0, seL4_CanRead|seL4_CanWrite);
+        res = camkes_provide(seL4_NotificationObject, /*? notification ?*/, 0, seL4_CanRead.words[0]|seL4_CanWrite.words[0]);
         ERR_IF(res != 0, camkes_error, ((camkes_error_t){
                 .type = CE_ALLOCATION_FAILURE,
                 .instance = "/*? me.name ?*/",
