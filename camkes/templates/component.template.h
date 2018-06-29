@@ -175,6 +175,12 @@ const char *get_instance_name(void);
     int /*? b.name ?*/_post(void) WARN_UNUSED_RESULT;
 /*- endfor -*/
 
+/* functions for synchronizing the interface threads during init, intended to be called
+ * from different environments init functions. These are CAmkES internal functions and should
+ * be moved once there is a more appropriate header */
+int pre_init_interface_sync();
+int post_init_interface_sync();
+
 /* Entry point expected to be provided by the user. */
 int run(void);
 

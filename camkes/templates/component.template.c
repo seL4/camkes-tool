@@ -835,6 +835,126 @@ const char * get_thread_name(int thread_id) {
     return "(unknown)";
 }
 
+/*- if options.fsupport_init -*/
+    /*# Locks for synchronising init ops. These are used by
+        pre_init_interface_sync, post_init_interface_sync and post_main
+      #*/
+    /*- set pre_init_ep = alloc('pre_init_ep', seL4_EndpointObject, read=True, write=True) -*/
+    /*- set pre_init_lock = c_symbol('pre_init_lock') -*/
+    static volatile int UNUSED /*? pre_init_lock ?*/ = 0;
+    /*- set interface_init_ep = alloc('interface_init_ep', seL4_EndpointObject, read=True, write=True) -*/
+    /*- set interface_init_lock = c_symbol('interface_init_lock') -*/
+    static volatile int UNUSED /*? interface_init_lock ?*/ = 0;
+    /*- set post_init_ep = alloc('post_init_ep', seL4_EndpointObject, read=True, write=True) -*/
+    /*- set post_init_lock = c_symbol('post_init_lock') -*/
+    static volatile int UNUSED /*? post_init_lock ?*/ = 0;
+/*- endif -*/
+
+int pre_init_interface_sync() {
+    /*- if options.fsupport_init -*/
+        /*- set result = c_symbol() -*/
+        int /*? result ?*/ UNUSED;
+
+        /* Wake all the non-passive interface threads. */
+        /*- for t in threads[1:] -*/
+            /*- if not options.realtime or t not in passive_threads -*/
+                sync_sem_bare_post(/*? pre_init_ep ?*/, &/*? pre_init_lock ?*/);
+            /*- endif -*/
+        /*- endfor -*/
+
+        /* Wait for all the non-passive interface threads to run their inits. */
+        /*- for t in threads[1:] -*/
+            /*- if not options.realtime or t not in passive_threads -*/
+                sync_sem_bare_wait(/*? interface_init_ep ?*/, &/*? interface_init_lock ?*/);
+            /*- endif -*/
+        /*- endfor -*/
+
+        /*- if options.realtime -*/
+            /* Wake each passive thread one at a time and allow it to run its init. */
+            /*- for prefix, tcb in passive_tcbs.items() -*/
+                /*? result ?*/ = seL4_SchedContext_Bind(/*? sc_passive_init ?*/, /*? tcb ?*/);
+                ERR_IF(/*? result ?*/ != 0, camkes_error, ((camkes_error_t){
+                        .type = CE_SYSCALL_FAILED,
+                        .instance = "/*? me.name ?*/",
+                        .description = "failed to bind initialisation scheduling context for thread \"/*? prefix ?*/_tcb\"",
+                        .syscall = SchedContextBind,
+                        .error = /*? result ?*/,
+                    }), ({
+                        return -1;
+                    }));
+
+                /*# Wake thread #*/
+                sync_sem_bare_post(/*? pre_init_ep ?*/, &/*? pre_init_lock ?*/);
+
+                /*# Wait for thread to run its init #*/
+                sync_sem_bare_wait(/*? interface_init_ep ?*/, &/*? interface_init_lock ?*/);
+
+                /*? result ?*/ = seL4_SchedContext_Unbind(/*? sc_passive_init ?*/);
+                ERR_IF(/*? result ?*/ != 0, camkes_error, ((camkes_error_t){
+                        .type = CE_SYSCALL_FAILED,
+                        .instance = "/*? me.name ?*/",
+                        .description = "failed to unbind initialisation scheduling context for thread \"/*? prefix ?*/_tcb\"",
+                        .syscall = SchedContextUnbind,
+                        .error = /*? result ?*/,
+                    }), ({
+                        return -1;
+                    }));
+            /*- endfor -*/
+        /*- endif -*/
+    /*- endif -*/
+}
+
+int post_init_interface_sync() {
+    /*- if options.fsupport_init -*/
+        /*- set result = c_symbol() -*/
+        int /*? result ?*/ UNUSED;
+
+        /* Wake all the interface threads, including passive threads.
+         * Passive threads will receive the IPC despite not having scheduling contexts
+         * at this point. Next time they are given scheduling contexts they will be
+         * unblocked. */
+        /*- for _ in threads[1:] -*/
+            sync_sem_bare_post(/*? post_init_ep ?*/, &/*? post_init_lock ?*/);
+        /*- endfor -*/
+    /*- endif -*/
+
+    /*- if options.realtime -*/
+        /* Tempororily bind a scheduling context to each passive thread
+         * and allow it to start waiting on an endpoint. Threads will
+         * indicate that they are ready to have their sc unbound when
+         * they send on the init notification. */
+        /*- for prefix, tcb in passive_tcbs.items() -*/
+
+            /*# Bind the initialision scheduling context to the tcb. #*/
+            /*? result ?*/ = seL4_SchedContext_Bind(/*? sc_passive_init ?*/, /*? tcb ?*/);
+            ERR_IF(/*? result ?*/ != 0, camkes_error, ((camkes_error_t){
+                    .type = CE_SYSCALL_FAILED,
+                    .instance = "/*? me.name ?*/",
+                    .description = "failed to bind initialisation scheduling context for thread \"/*? prefix ?*/_tcb\"",
+                    .syscall = SchedContextBind,
+                    .error = /*? result ?*/,
+                }), ({
+                    return -1;
+                }));
+
+            /*# Wait until the passive interface is finished initialising. #*/
+            seL4_Wait(/*? ntfn_passive_init ?*/, NULL);
+
+            /*# Unbind the sc from the tcb. #*/
+            /*? result ?*/ = seL4_SchedContext_Unbind(/*? sc_passive_init ?*/);
+            ERR_IF(/*? result ?*/ != 0, camkes_error, ((camkes_error_t){
+                    .type = CE_SYSCALL_FAILED,
+                    .instance = "/*? me.name ?*/",
+                    .description = "failed to unbind initialisation scheduling context for thread \"/*? prefix ?*/_tcb\"",
+                    .syscall = SchedContextUnbind,
+                    .error = /*? result ?*/,
+                }), ({
+                    return -1;
+                }));
+        /*- endfor -*/
+    /*- endif -*/
+}
+
 static int post_main(int thread_id) {
 #if defined(CONFIG_DEBUG_BUILD) && defined(CONFIG_CAMKES_PROVIDE_TCB_CAPS)
    /*- set thread_name = c_symbol() -*/
@@ -844,19 +964,6 @@ static int post_main(int thread_id) {
    /*? thread_name ?*/[sizeof(/*? thread_name ?*/) - 1] = '\0';
    seL4_DebugNameThread(camkes_get_tls()->tcb_cap, /*? thread_name ?*/);
 #endif
-
-    /*- if options.fsupport_init -*/
-        /*# Locks for synchronising init ops. #*/
-        /*- set pre_init_ep = alloc('pre_init_ep', seL4_EndpointObject, read=True, write=True) -*/
-        /*- set pre_init_lock = c_symbol('pre_init_lock') -*/
-        static volatile int UNUSED /*? pre_init_lock ?*/ = 0;
-        /*- set interface_init_ep = alloc('interface_init_ep', seL4_EndpointObject, read=True, write=True) -*/
-        /*- set interface_init_lock = c_symbol('interface_init_lock') -*/
-        static volatile int UNUSED /*? interface_init_lock ?*/ = 0;
-        /*- set post_init_ep = alloc('post_init_ep', seL4_EndpointObject, read=True, write=True) -*/
-        /*- set post_init_lock = c_symbol('post_init_lock') -*/
-        static volatile int UNUSED /*? post_init_lock ?*/ = 0;
-    /*- endif -*/
 
     switch (thread_id) {
 
@@ -873,108 +980,36 @@ static int post_main(int thread_id) {
             /*? init ?*/();
 
             /*- set result = c_symbol() -*/
-            int /*? result ?*/ UNUSED;
+            int /*? result ?*/;
 
             /*- if options.fsupport_init -*/
                 if (pre_init) {
                     pre_init();
                 }
 
-                /* Wake all the non-passive interface threads. */
-                /*- for t in threads[1:] -*/
-                    /*- if not options.realtime or t not in passive_threads -*/
-                        sync_sem_bare_post(/*? pre_init_ep ?*/, &/*? pre_init_lock ?*/);
-                    /*- endif -*/
-                /*- endfor -*/
+            /*- endif -*/
 
-                /* Wait for all the non-passive interface threads to run their inits. */
-                /*- for t in threads[1:] -*/
-                    /*- if not options.realtime or t not in passive_threads -*/
-                        sync_sem_bare_wait(/*? interface_init_ep ?*/, &/*? interface_init_lock ?*/);
-                    /*- endif -*/
-                /*- endfor -*/
+            /* we call pre_init_interface_sync in all circumstances, even if we do not support
+             * init, as the implementation already has an internal guard for init support and
+             * so the function will just do nothing without init support. Always calling it
+             * provides a bit more flexibility in the future, and is consistent with the
+             * post_init version which *does* do something even if we do not support init
+             */
+            /*? result ?*/ = pre_init_interface_sync();
+            if (/*? result ?*/) {
+                return /*? result ?*/;
+            }
 
-                /*- if options.realtime -*/
-                    /* Wake each passive thread one at a time and allow it to run its init. */
-                    /*- for prefix, tcb in passive_tcbs.items() -*/
-                        /*? result ?*/ = seL4_SchedContext_Bind(/*? sc_passive_init ?*/, /*? tcb ?*/);
-                        ERR_IF(/*? result ?*/ != 0, camkes_error, ((camkes_error_t){
-                                .type = CE_SYSCALL_FAILED,
-                                .instance = "/*? me.name ?*/",
-                                .description = "failed to bind initialisation scheduling context for thread \"/*? prefix ?*/_tcb\"",
-                                .syscall = SchedContextBind,
-                                .error = /*? result ?*/,
-                            }), ({
-                                return -1;
-                            }));
-
-                        /*# Wake thread #*/
-                        sync_sem_bare_post(/*? pre_init_ep ?*/, &/*? pre_init_lock ?*/);
-
-                        /*# Wait for thread to run its init #*/
-                        sync_sem_bare_wait(/*? interface_init_ep ?*/, &/*? interface_init_lock ?*/);
-
-                        /*? result ?*/ = seL4_SchedContext_Unbind(/*? sc_passive_init ?*/);
-                        ERR_IF(/*? result ?*/ != 0, camkes_error, ((camkes_error_t){
-                                .type = CE_SYSCALL_FAILED,
-                                .instance = "/*? me.name ?*/",
-                                .description = "failed to unbind initialisation scheduling context for thread \"/*? prefix ?*/_tcb\"",
-                                .syscall = SchedContextUnbind,
-                                .error = /*? result ?*/,
-                            }), ({
-                                return -1;
-                            }));
-                    /*- endfor -*/
-                /*- endif -*/
-
+            /*- if options.fsupport_init -*/
                 if (post_init) {
                     post_init();
                 }
-
-                /* Wake all the interface threads, including passive threads.
-                 * Passive threads will receive the IPC despite not having scheduling contexts
-                 * at this point. Next time they are given scheduling contexts they will be
-                 * unblocked. */
-                /*- for _ in threads[1:] -*/
-                    sync_sem_bare_post(/*? post_init_ep ?*/, &/*? post_init_lock ?*/);
-                /*- endfor -*/
             /*- endif -*/
 
-            /*- if options.realtime -*/
-                /* Tempororily bind a scheduling context to each passive thread
-                 * and allow it to start waiting on an endpoint. Threads will
-                 * indicate that they are ready to have their sc unbound when
-                 * they send on the init notification. */
-                /*- for prefix, tcb in passive_tcbs.items() -*/
-
-                    /*# Bind the initialision scheduling context to the tcb. #*/
-                    /*? result ?*/ = seL4_SchedContext_Bind(/*? sc_passive_init ?*/, /*? tcb ?*/);
-                    ERR_IF(/*? result ?*/ != 0, camkes_error, ((camkes_error_t){
-                            .type = CE_SYSCALL_FAILED,
-                            .instance = "/*? me.name ?*/",
-                            .description = "failed to bind initialisation scheduling context for thread \"/*? prefix ?*/_tcb\"",
-                            .syscall = SchedContextBind,
-                            .error = /*? result ?*/,
-                        }), ({
-                            return -1;
-                        }));
-
-                    /*# Wait until the passive interface is finished initialising. #*/
-                    seL4_Wait(/*? ntfn_passive_init ?*/, NULL);
-
-                    /*# Unbind the sc from the tcb. #*/
-                    /*? result ?*/ = seL4_SchedContext_Unbind(/*? sc_passive_init ?*/);
-                    ERR_IF(/*? result ?*/ != 0, camkes_error, ((camkes_error_t){
-                            .type = CE_SYSCALL_FAILED,
-                            .instance = "/*? me.name ?*/",
-                            .description = "failed to unbind initialisation scheduling context for thread \"/*? prefix ?*/_tcb\"",
-                            .syscall = SchedContextUnbind,
-                            .error = /*? result ?*/,
-                        }), ({
-                            return -1;
-                        }));
-                /*- endfor -*/
-            /*- endif -*/
+            /*? result ?*/ = post_init_interface_sync();
+            if (/*? result ?*/) {
+                return /*? result ?*/;
+            }
 
             /*- if me.type.control -*/
                 return run();
