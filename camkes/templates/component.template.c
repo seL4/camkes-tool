@@ -955,6 +955,45 @@ int post_init_interface_sync() {
     /*- endif -*/
 }
 
+int component_control_main() {
+    /*- set result = c_symbol() -*/
+    int /*? result ?*/;
+
+    /*- if options.fsupport_init -*/
+        if (pre_init) {
+            pre_init();
+        }
+    /*- endif -*/
+
+    /* we call pre_init_interface_sync in all circumstances, even if we do not support
+     * init, as the implementation already has an internal guard for init support and
+     * so the function will just do nothing without init support. Always calling it
+     * provides a bit more flexibility in the future, and is consistent with the
+     * post_init version which *does* do something even if we do not support init
+     */
+    /*? result ?*/ = pre_init_interface_sync();
+    if (/*? result ?*/) {
+        return /*? result ?*/;
+    }
+
+    /*- if options.fsupport_init -*/
+        if (post_init) {
+            post_init();
+        }
+    /*- endif -*/
+
+    /*? result ?*/ = post_init_interface_sync();
+    if (/*? result ?*/) {
+        return /*? result ?*/;
+    }
+
+    /*- if me.type.control -*/
+        return run();
+    /*- else -*/
+        return 0;
+    /*- endif -*/
+}
+
 static int post_main(int thread_id) {
 #if defined(CONFIG_DEBUG_BUILD) && defined(CONFIG_CAMKES_PROVIDE_TCB_CAPS)
    /*- set thread_name = c_symbol() -*/
@@ -978,44 +1017,7 @@ static int post_main(int thread_id) {
         /*- set tcb_control = alloc('%d_0_control_%d_tcb' % (len(me.name), len('0_control')), seL4_TCBObject) -*/
         case /*? tcb_control ?*/ : /* Control thread */
             /*? init ?*/();
-
-            /*- set result = c_symbol() -*/
-            int /*? result ?*/;
-
-            /*- if options.fsupport_init -*/
-                if (pre_init) {
-                    pre_init();
-                }
-
-            /*- endif -*/
-
-            /* we call pre_init_interface_sync in all circumstances, even if we do not support
-             * init, as the implementation already has an internal guard for init support and
-             * so the function will just do nothing without init support. Always calling it
-             * provides a bit more flexibility in the future, and is consistent with the
-             * post_init version which *does* do something even if we do not support init
-             */
-            /*? result ?*/ = pre_init_interface_sync();
-            if (/*? result ?*/) {
-                return /*? result ?*/;
-            }
-
-            /*- if options.fsupport_init -*/
-                if (post_init) {
-                    post_init();
-                }
-            /*- endif -*/
-
-            /*? result ?*/ = post_init_interface_sync();
-            if (/*? result ?*/) {
-                return /*? result ?*/;
-            }
-
-            /*- if me.type.control -*/
-                return run();
-            /*- else -*/
-                return 0;
-            /*- endif -*/
+            return component_control_main();
 
         /*# Interface threads #*/
         /*- for t in threads[1:] -*/
