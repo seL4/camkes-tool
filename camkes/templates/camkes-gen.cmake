@@ -185,6 +185,10 @@ endfunction(GeneratorValueOrDefault)
     /*- endif -*/
     /*- if configuration[i.name].get('environment', 'c').lower() == 'c' -*/
         CAmkESGen("${generated_dir}/camkes.environment.c" /*? i.name ?*//c_environment_source SOURCE C_STYLE)
+    /*- elif configuration[i.name].get('environment').lower() == 'cakeml' -*/
+        set(cakeml_sources "$<TARGET_PROPERTY:CAmkESComponent_/*? i.type.name ?*/,COMPONENT_CAKEML_SOURCES>")
+        CAmkESGen("${generated_dir}/camkesStartScript.sml" /*? i.name ?*//cakeml_start_source SOURCE SOURCES_VAR cakeml_sources)
+        CAmkESGen("${generated_dir}/camkesEndScript.sml" /*? i.name ?*//cakeml_end_source SOURCE SOURCES_VAR cakeml_sources)
     /*- else -*/
         /*? raise(TemplateError('Unknown environment')) ?*/
     /*- endif -*/
@@ -222,7 +226,27 @@ endfunction(GeneratorValueOrDefault)
     add_executable(${target} EXCLUDE_FROM_ALL
         ${static_sources}
         ${gen_sources}
+
     )
+    # Build any CakeML library
+    if (NOT ("${cakeml_sources}" STREQUAL ""))
+        # Pull heap/stack size from component expression OR instances expression OR default to an arbitrary 50
+        # The order here is important as we want the instance property to be able to override the component property
+        GeneratorValueOrDefault(heap 50 $<TARGET_PROPERTY:CAmkESComponent_/*? i.type.name ?*/,COMPONENT_CAKEML_HEAP_SIZE>)
+        GeneratorValueOrDefault(heap "${heap}" $<TARGET_PROPERTY:${instance_target},COMPONENT_CAKEML_HEAP_SIZE>)
+        GeneratorValueOrDefault(stack 50 $<TARGET_PROPERTY:CAmkESComponent_/*? i.type.name ?*/,COMPONENT_CAKEML_STACK_SIZE>)
+        GeneratorValueOrDefault(stack "${stack}" $<TARGET_PROPERTY:${instance_target},COMPONENT_CAKEML_STACK_SIZE>)
+        DeclareCakeMLLib(camkescakeml_contents
+            SOURCES "${cakeml_sources}"
+            TRANSLATION_THEORY "camkesEnd"
+            HEAP_SIZE "${heap}"
+            STACK_SIZE "${stack}"
+            RUNTIME_ENTRY "component_control_main"
+            CAKEML_ENTRY "camkes_entry"
+            DEPENDS "${gen_target}"
+        )
+        target_link_libraries(${target} camkescakeml camkescakeml_contents)
+    endif()
     target_include_directories(${target} PRIVATE ${includes} "${generated_dir}/include")
     # Depend upon core camkes libraries
     target_link_libraries(${target} ${CAMKES_CORE_LIBS})

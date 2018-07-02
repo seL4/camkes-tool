@@ -595,8 +595,8 @@ endfunction(GenerateCAmkESRootserver)
 function(AppendCAmkESComponentTarget target_name)
     cmake_parse_arguments(PARSE_ARGV 1 CAMKES_COMPONENT
         "" # Option arguments
-        "" # Single arguments
-        "SOURCES;INCLUDES;C_FLAGS;LD_FLAGS;LIBS" # Multiple aguments
+        "CAKEML_HEAP_SIZE;CAKEML_STACK_SIZE" # Single arguments
+        "SOURCES;CAKEML_SOURCES;INCLUDES;C_FLAGS;LD_FLAGS;LIBS" # Multiple aguments
     )
     # Declare a target that we will set properties on
     if (NOT (TARGET "${target_name}"))
@@ -605,6 +605,7 @@ function(AppendCAmkESComponentTarget target_name)
     # Get absolute paths for the includes and sources
     set(includes "")
     set(sources "")
+    set(cakeml_sources "")
     foreach(inc IN LISTS CAMKES_COMPONENT_INCLUDES)
         get_absolute_source_or_binary(inc "${inc}")
         list(APPEND includes "${inc}")
@@ -613,11 +614,23 @@ function(AppendCAmkESComponentTarget target_name)
         get_absolute_source_or_binary(file "${file}")
         list(APPEND sources "${file}")
     endforeach()
+    foreach(file IN LISTS CAMKES_COMPONENT_CAKEML_SOURCES)
+        get_absolute_source_or_binary(file "${file}")
+        list(APPEND cakeml_sources "${file}")
+    endforeach()
     set_property(TARGET "${target_name}" APPEND PROPERTY COMPONENT_INCLUDES "${includes}")
     set_property(TARGET "${target_name}" APPEND PROPERTY COMPONENT_SOURCES "${sources}")
+    set_property(TARGET "${target_name}" APPEND PROPERTY COMPONENT_CAKEML_SOURCES "${cakeml_sources}")
     set_property(TARGET "${target_name}" APPEND PROPERTY COMPONENT_C_FLAGS "${CAMKES_COMPONENT_C_FLAGS}")
     set_property(TARGET "${target_name}" APPEND PROPERTY COMPONENT_LD_FLAGS "${CAMKES_COMPONENT_LD_FLAGS}")
     set_property(TARGET "${target_name}" APPEND PROPERTY COMPONENT_LIBS "${CAMKES_COMPONENT_LIBS}")
+    # Overwrite any previous CakeML heap or stack size
+    if (CAMKES_COMPONENT_CAKEML_HEAP_SIZE)
+        set_property(TARGET "${target_name}" PROPERTY COMPONENT_CAKEML_HEAP_SIZE "${CAMKES_COMPONENT_CAKEML_HEAP_SIZE}")
+    endif()
+    if (CAMKES_COMPONENT_CAKEML_STACK_SIZE)
+        set_property(TARGET "${target_name}" PROPERTY COMPONENT_CAKEML_STACK_SIZE "${CAMKES_COMPONENT_CAKEML_STACK_SIZE}")
+    endif()
 endfunction(AppendCAmkESComponentTarget)
 
 # This is called by CAmkES components to declare information needed for the camkes-gen.cmake to
