@@ -683,6 +683,7 @@ def main(argv, out, err):
             pds[i.address_space] = pd
 
         for t in ('%s/source' % i.name, '%s/header' % i.name,
+                '%s/c_environment_source' % i.name,
                 '%s/linker' % i.name):
             try:
                 template = templates.lookup(t, i)

@@ -31,7 +31,8 @@ TEMPLATES = {
     'seL4':{
         # Type
         Guard(lambda x: isinstance(x, Instance)):{
-            'source':'component.template.c',
+            'source':'component.common.c',
+            'c_environment_source':'component.environment.c',
             'header':'component.template.h',
             'simple':'component.simple.c',
             'rumprun':'component.rumprun.c',

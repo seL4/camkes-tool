@@ -166,6 +166,11 @@ endfunction(AppendGenerator)
     /*- if configuration[i.name].get('rump_config') -*/
         CAmkESGen("${generated_dir}/camkes.rumprun.c" /*? i.name ?*//rumprun SOURCE C_STYLE)
     /*- endif -*/
+    /*- if configuration[i.name].get('environment', 'c').lower() == 'c' -*/
+        CAmkESGen("${generated_dir}/camkes.environment.c" /*? i.name ?*//c_environment_source SOURCE C_STYLE)
+    /*- else -*/
+        /*? raise(TemplateError('Unknown environment')) ?*/
+    /*- endif -*/
     # Generate connectors for this instance
     /*- for c in connections -*/
         /*- for id, e in enumerate(c.from_ends) -*/

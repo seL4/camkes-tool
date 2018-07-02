@@ -10,6 +10,11 @@
  *# @TAG(DATA61_BSD)
  #*/
 
+/*# This template exists as backwards compatiblity for the Make based build system that is not
+  # going to be updated to support different environments. As such this template continues
+  # building the C environment with the common environment into a single file.
+  # This wrapping template can be removed once the Make based build system is removed #*/
+
 /*# Include the common generated C code we need for every component. This is a workaround
     for not having additional template targets for the component yet #*/
 /*- include 'component.common.c' -*/
