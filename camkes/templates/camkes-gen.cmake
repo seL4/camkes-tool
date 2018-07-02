@@ -53,7 +53,7 @@ endmacro(ParentListAppend list)
 
 # Helper function for declaring a generated file
 function(CAmkESGen output item)
-    cmake_parse_arguments(PARSE_ARGV 2 CAMKES_GEN "SOURCE;C_STYLE;THY_STYLE" "" "DEPENDS;ELFS")
+    cmake_parse_arguments(PARSE_ARGV 2 CAMKES_GEN "SOURCE;C_STYLE;THY_STYLE" "SOURCES_VAR" "DEPENDS;ELFS")
     if (NOT "${CAMKES_GEN_UNPARSED_ARGUMENTS}" STREQUAL "")
         message(FATAL_ERROR "Unknown arguments to CAmkESGen: ${CAMKES_GEN_UNPARSED_ARGUMENTS}")
     endif()
@@ -75,7 +75,11 @@ function(CAmkESGen output item)
     ParentListAppend(deps_list "${CAMKES_GEN_ELFS}")
     # Add to the sources list if it's a source file
     if (CAMKES_GEN_SOURCE)
-        ParentListAppend(gen_sources "${output}")
+        if (CAMKES_GEN_SOURCES_VAR)
+            ParentListAppend("${CAMKES_GEN_SOURCES_VAR}" "${output}")
+        else ()
+            ParentListAppend(gen_sources "${output}")
+        endif()
     endif()
     # Always add to the list of generated files
     ParentListAppend(gen_files "${output}")
