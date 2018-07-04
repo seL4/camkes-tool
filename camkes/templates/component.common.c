@@ -902,6 +902,7 @@ int pre_init_interface_sync() {
             /*- endfor -*/
         /*- endif -*/
     /*- endif -*/
+    return 0;
 }
 
 int post_init_interface_sync() {
@@ -953,6 +954,7 @@ int post_init_interface_sync() {
                 }));
         /*- endfor -*/
     /*- endif -*/
+    return 0;
 }
 
 static int post_main(int thread_id) {
