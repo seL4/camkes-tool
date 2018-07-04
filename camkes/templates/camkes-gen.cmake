@@ -130,6 +130,19 @@ function(AppendGenerator output new_list_value)
     set(${output} "${new_list}" PARENT_SCOPE)
 endfunction(AppendGenerator)
 
+# Helper for constructing a generator expression that evalutes to the provided value if it exists,
+# or to a default value.
+# if maybe_value is the empty string
+#  evaluate to the contents of default
+# else
+#  evaluate to the contents of maybe_value
+# Both 'default' and 'maybe_value' can themselves be generator expressions, allow for chaining usages of
+# this together to build nested ORs.
+function(GeneratorValueOrDefault output default maybe_value)
+    set(new_output "$<IF:$<STREQUAL:${maybe_value},>,${default},${maybe_value}>")
+    set(${output} "${new_output}" PARENT_SCOPE)
+endfunction(GeneratorValueOrDefault)
+
 # A target for each binary that we need to build
 /*- for i in instances if not i.type.hardware -*/
     # Variable for collecting generated files
