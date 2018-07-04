@@ -10,9 +10,8 @@
  *# @TAG(DATA61_BSD)
  #*/
 
-/* include generated camkes component header. This currenlty has the prototypes
- * for the init functions */
 #include <camkes.h>
+#include <camkes/init.h>
 
 int component_control_main() {
     /*- set result = c_symbol() -*/

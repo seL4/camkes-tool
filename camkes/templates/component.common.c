@@ -26,6 +26,7 @@
 #include <camkes/error.h>
 #include <camkes/fault.h>
 #include <camkes/io.h>
+#include <camkes/init.h>
 #include <camkes/pid.h>
 #include <camkes/tls.h>
 #include <camkes/vma.h>
