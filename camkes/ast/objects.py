@@ -557,7 +557,7 @@ class Connection(ASTObject):
         if len(types) > 1 and (not interface_checking_attrib or not interface_checking_attrib.default):
             raise ASTError('multiple conflicting types for the '
                 'interfaces of connection \'%s\': %s' % (self.name,
-                ', '.join(types)), self)
+                ', '.join([t.name for t in types])), self)
         for f in self.from_ends:
             if not isinstance(f.interface, Emits) and not \
                     isinstance(f.interface, Uses) and not \
