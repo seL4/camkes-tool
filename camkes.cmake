@@ -578,6 +578,7 @@ function(GenerateCAmkESRootserver)
         )
         file(WRITE "${invoc_file}" "${camkes_invocation}")
         if (camkes_gen_error)
+            file(REMOVE ${gen_outfile})
             message(FATAL_ERROR "Failed to generate camkes-gen.cmake: ${camkes_output}")
         endif()
         # Add dependencies
