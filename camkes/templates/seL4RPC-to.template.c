@@ -11,6 +11,7 @@
  */
 
 /*- import 'helpers/error.c' as error with context -*/
+/*- import 'helpers/array_check.c' as array_check with context -*/
 
 #include <assert.h>
 #include <limits.h>
@@ -179,11 +180,11 @@
   /*? raise(TemplateError('too many methods in interface %s' % me.interface.name)) ?*/
 /*- endif -*/
 
-/*- include 'array-typedef-check.c' -*/
+/*? array_check.make_array_typedef_check_symbols(me.interface.type) ?*/
 
 int /*? me.interface.name ?*/__run(void) {
     /*# Check any typedefs we have been given are not arrays. #*/
-    /*- include 'call-array-typedef-check.c' -*/
+    /*? array_check.perform_array_typedef_check(me.interface.type) ?*/
 
     while (1) {
         /*- set info = c_symbol('info') -*/

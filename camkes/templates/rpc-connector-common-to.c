@@ -11,6 +11,7 @@
  */
 
 /*- import 'helpers/error.c' as error with context -*/
+/*- import 'helpers/array_check.c' as array_check with context -*/
 
 /*# C fragment that represents the base of the buffer used for storing IPC messages #*/
 /*? assert(isinstance(base, six.string_types)) ?*/
@@ -194,7 +195,7 @@ seL4_Word /*? me.interface.name ?*/_get_sender_id(void) {
   /*? raise(TemplateError('too many methods in interface %s' % me.interface.name)) ?*/
 /*- endif -*/
 
-/*- include 'array-typedef-check.c' -*/
+/*? array_check.make_array_typedef_check_symbols(me.interface.type) ?*/
 
 /*- set p = Perspective(instance=me.instance.name, interface=me.interface.name) -*/
 /*- set passive = options.realtime and configuration[me.instance.name].get(p['passive_attribute'], False) -*/
@@ -212,7 +213,7 @@ int
 {
 
     /*# Check any typedefs we have been given are not arrays. #*/
-    /*- include 'call-array-typedef-check.c' -*/
+    /*? array_check.perform_array_typedef_check(me.interface.type) ?*/
 
     /*- if options.realtime -*/
             /*- set reply_cap_slot = alloc('reply_cap_slot', seL4_RTReplyObject) -*/

@@ -11,6 +11,7 @@
  */
 
 /*- import 'helpers/error.c' as error with context -*/
+/*- import 'helpers/array_check.c' as array_check with context -*/
 
 /*# C fragment that represents the base of the buffer used for storing IPC messages #*/
 /*? assert(isinstance(base, six.string_types)) ?*/
@@ -111,7 +112,7 @@
   /*- set userspace_buffer_ep = None -*/
 /*- endif -*/
 
-/*- include 'array-typedef-check.c' -*/
+/*? array_check.make_array_typedef_check_symbols(me.interface.type) ?*/
 
 int /*? me.interface.name ?*/__run(void) {
     /* This function is never actually executed, but we still emit it for the
@@ -120,7 +121,7 @@ int /*? me.interface.name ?*/__run(void) {
     UNREACHABLE();
 
     /*# Check any typedefs we have been given are not arrays. #*/
-    /*- include 'call-array-typedef-check.c' -*/
+    /*? array_check.perform_array_typedef_check(me.interface.type) ?*/
     return 0;
 }
 

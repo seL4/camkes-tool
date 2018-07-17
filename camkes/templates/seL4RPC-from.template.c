@@ -11,6 +11,7 @@
  */
 
 /*- import 'helpers/error.c' as error with context -*/
+/*- import 'helpers/array_check.c' as array_check with context -*/
 
 #include <sel4/sel4.h>
 #include <assert.h>
@@ -69,7 +70,7 @@
 
 TIMING_DEFS(/*? me.interface.name ?*/, "glue code entry", "lock acquired", "marshalling done", "communication done", "lock released", "unmarshalling done")
 
-/*- include 'array-typedef-check.c' -*/
+/*? array_check.make_array_typedef_check_symbols(me.interface.type) ?*/
 
 int /*? me.interface.name ?*/__run(void) {
     /* This function is never actually executed, but we still emit it for the
@@ -78,7 +79,7 @@ int /*? me.interface.name ?*/__run(void) {
     UNREACHABLE();
 
     /*# Check any typedefs we have been given are not arrays. #*/
-    /*- include 'call-array-typedef-check.c' -*/
+    /*? array_check.perform_array_typedef_check(me.interface.type) ?*/
     return 0;
 }
 

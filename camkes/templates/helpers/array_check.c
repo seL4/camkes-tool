@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Data61
+ * Copyright 2018, Data61
  * Commonwealth Scientific and Industrial Research Organisation (CSIRO)
  * ABN 41 687 119 230.
  *
@@ -9,6 +9,8 @@
  *
  * @TAG(DATA61_BSD)
  */
+
+/*- from 'helpers/util.c' import for_all_method_types with context -*/
 
 /*# For RPC interfaces, the user can eschew the built-in CAmkES types and
  *# provide their own C typedef for a parameter. Unfortunately when you typedef
@@ -74,16 +76,20 @@
   }
 /*- endmacro -*/
 
-/*- set checked_types = set() -*/
-/*- for m in me.interface.type.methods -*/
-  /*- if m.return_type is not none and m.return_type not in checked_types -*/
-    /*? array_typedef_check(me.interface.type.name, m.name, 'return', macros.show_type(m.return_type)) ?*/
-    /*- do checked_types.add(m.return_type) -*/
-  /*- endif -*/
-  /*- for p in m.parameters -*/
-    /*- if p.type not in checked_types -*/
-      /*? array_typedef_check(me.interface.type.name, m.name, p.name, macros.show_type(p.type)) ?*/
-      /*- do checked_types.add(p.type) -*/
-    /*- endif -*/
-  /*- endfor -*/
-/*- endfor -*/
+/*- macro call_array_typedef_check(interface, method, parameter, type) -*/
+  /*- set tmp = c_symbol() -*/
+  static /*? type ?*/ /*? tmp ?*/;
+  /*? interface ?*/_/*? method ?*/_/*? parameter ?*/_array_typedef_check(/*? tmp ?*/);
+/*- endmacro -*/
+
+/*- macro make_array_typedef_check_symbols(interface_type) -*/
+    /*- call(method, parameter, type) for_all_method_types(interface_type.methods) -*/
+        /*? array_typedef_check(interface_type.name, method, parameter, type) ?*/
+    /*- endcall -*/
+/*- endmacro -*/
+
+/*- macro perform_array_typedef_check(interface_type) -*/
+    /*- call(method, parameter, type) for_all_method_types(interface_type.methods) -*/
+        /*? call_array_typedef_check(interface_type.name, method, parameter, type) ?*/
+    /*- endcall -*/
+/*- endmacro -*/
