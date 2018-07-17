@@ -10,6 +10,8 @@
  * @TAG(DATA61_BSD)
  */
 
+/*- from 'helpers/tls.c' import make_tls_symbols -*/
+
 #include <assert.h>
 #include <camkes/tls.h>
 #include <stddef.h>
@@ -62,16 +64,9 @@
 /*- set threads = [1] + list(map(lambda('x: x + 2'), range(len(me.instance.type.provides + me.instance.type.uses + me.instance.type.emits + me.instance.type.consumes + me.instance.type.dataports)))) -*/
 /*- for m in me.interface.type.methods -*/
     /*- for p in m.parameters -*/
-        /*- set type = macros.show_type(p.type) -*/
-        /*- set name = '%s_%s' % (m.name, p.name) -*/
-        /*- set array = p.array -*/
-        /*- include "thread_local.c" -*/
-
+        /*? make_tls_symbols(macros.show_type(p.type), '%s_%s' % (m.name, p.name), threads, p.array) ?*/
         /*- if p.array -*/
-            /*- set type = 'size_t' -*/
-            /*- set name = '%s_%s_sz' % (m.name, p.name) -*/
-            /*- set array = False -*/
-            /*- include "thread_local.c" -*/
+            /*? make_tls_symbols('size_t', '%s_%s_sz' % (m.name, p.name), threads, False) ?*/
         /*- endif -*/
     /*- endfor -*/
 

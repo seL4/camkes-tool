@@ -10,6 +10,8 @@
  * @TAG(DATA61_BSD)
  */
 
+/*- from 'helpers/tls.c' import make_tls_symbols -*/
+
 /*# We expect the following variables to be defined when this fragment is
  *# included.
  #*/
@@ -23,20 +25,15 @@
 /*? assert(isinstance(methods_len, six.integer_types)) ?*/          /*# Total number of methods in this interface #*/
 /*? assert(isinstance(input_parameters, (list, tuple))) ?*/    /*# All input parameters to this method #*/
 /*? assert(isinstance(error_handler, six.string_types)) ?*/ /*# Handler to invoke on error #*/
+/*? assert(isinstance(threads, list)) ?*/ /*# List of threads in the interface #*/
 
 /*- set name_backup = name -*/
 /*- for p in input_parameters -*/
   /*- if p.direction == 'in' -*/
     /*- if p.array -*/
-      /*- set array = False -*/
-      /*- set type = 'size_t' -*/
-      /*- set name = '%s_%s_sz_from' % (name_backup, p.name) -*/
-      /*- include 'thread_local.c' -*/
+      /*? make_tls_symbols('size_t', '%s_%s_sz_from' % (name_backup, p.name), threads, False) ?*/
     /*- elif p.type != 'string' -*/
-      /*- set array = False -*/
-      /*- set type = macros.show_type(p.type) -*/
-      /*- set name = '%s_%s_from' % (name_backup, p.name) -*/
-      /*- include 'thread_local.c' -*/
+      /*? make_tls_symbols(macros.show_type(p.type), '%s_%s_from' % (name_backup, p.name), threads, False) ?*/
     /*- endif -*/
   /*- endif -*/
 /*- endfor -*/

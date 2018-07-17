@@ -12,6 +12,7 @@
 
 /*- import 'helpers/error.c' as error with context -*/
 /*- import 'helpers/array_check.c' as array_check with context -*/
+/*- from 'helpers/tls.c' import make_tls_symbols -*/
 
 /*# C fragment that represents the base of the buffer used for storing IPC messages #*/
 /*? assert(isinstance(base, six.string_types)) ?*/
@@ -121,44 +122,23 @@
 
 /*- if m.return_type is not none -*/
   /*- if m.return_type == 'string' -*/
-    /*- set array = False -*/
-    /*- set name = '%s_ret_to' % m.name -*/
-    /*- set type = 'char*' -*/
-    /*- include 'thread_local.c' -*/
+    /*? make_tls_symbols('char*', '%s_ret_to' % m.name, threads, False) ?*/
   /*- else -*/
-    /*- set array = False -*/
-    /*- set name = '%s_ret_to' % m.name -*/
-    /*- set type = macros.show_type(m.return_type) -*/
-    /*- include 'thread_local.c' -*/
+    /*? make_tls_symbols(macros.show_type(m.return_type), '%s_ret_to' % m.name, threads, False) ?*/
   /*- endif -*/
 /*- endif -*/
 /*- for p in m.parameters -*/
   /*- if p.array -*/
-    /*- set array = False -*/
-    /*- set name = '%s_%s_sz_to' % (m.name, p.name) -*/
-    /*- set type = 'size_t' -*/
-    /*- include 'thread_local.c' -*/
+    /*? make_tls_symbols('size_t', '%s_%s_sz_to' % (m.name, p.name), threads, False) ?*/
     /*- if p.type == 'string' -*/
-      /*- set array = False -*/
-      /*- set name = '%s_%s_to' % (m.name, p.name) -*/
-      /*- set type = 'char**' -*/
-      /*- include 'thread_local.c' -*/
+      /*? make_tls_symbols('char**', '%s_%s_to' % (m.name, p.name), threads, False) ?*/
     /*- else -*/
-      /*- set array = False -*/
-      /*- set name = '%s_%s_to' % (m.name, p.name) -*/
-      /*- set type = '%s*' % macros.show_type(p.type) -*/
-      /*- include 'thread_local.c' -*/
+      /*? make_tls_symbols('%s*' % macros.show_type(p.type), '%s_%s_to' % (m.name, p.name), threads, False) ?*/
     /*- endif -*/
   /*- elif p.type == 'string' -*/
-    /*- set array = False -*/
-    /*- set name = '%s_%s_to' % (m.name, p.name) -*/
-    /*- set type = 'char*' -*/
-    /*- include 'thread_local.c' -*/
+    /*? make_tls_symbols('char*', '%s_%s_to' % (m.name, p.name), threads, False) ?*/
   /*- else -*/
-    /*- set array = False -*/
-    /*- set name = '%s_%s_to' % (m.name, p.name) -*/
-    /*- set type = macros.show_type(p.type) -*/
-    /*- include 'thread_local.c' -*/
+    /*? make_tls_symbols(macros.show_type(p.type), '%s_%s_to' % (m.name, p.name), threads, False) ?*/
   /*- endif -*/
 /*- endfor -*/
 
@@ -174,26 +154,20 @@ seL4_Word /*? me.interface.name ?*/_get_sender_id(void) {
 }
 
 /*- set call_tls_var = c_symbol('call_tls_var_to') -*/
-/*- set array = False -*/
-/*- set name = call_tls_var -*/
 /*- if methods_len <= 1 -*/
   /*- set type = 'unsigned int' -*/
-  /*- include 'thread_local.c' -*/
 /*- elif methods_len <= 2 ** 8 -*/
   /*- set type = 'uint8_t' -*/
-  /*- include 'thread_local.c' -*/
 /*- elif methods_len <= 2 ** 16 -*/
   /*- set type = 'uint16_t' -*/
-  /*- include 'thread_local.c' -*/
 /*- elif methods_len <= 2 ** 32 -*/
   /*- set type = 'uint32_t' -*/
-  /*- include 'thread_local.c' -*/
 /*- elif methods_len <= 2 ** 64 -*/
   /*- set type = 'uint64_t' -*/
-  /*- include 'thread_local.c' -*/
 /*- else -*/
   /*? raise(TemplateError('too many methods in interface %s' % me.interface.name)) ?*/
 /*- endif -*/
+/*? make_tls_symbols(type, call_tls_var, threads, False) ?*/
 
 /*? array_check.make_array_typedef_check_symbols(me.interface.type) ?*/
 

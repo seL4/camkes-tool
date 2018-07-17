@@ -12,6 +12,7 @@
 
 /*- import 'helpers/error.c' as error with context -*/
 /*- import 'helpers/array_check.c' as array_check with context -*/
+/*- from 'helpers/tls.c' import make_tls_symbols -*/
 
 /*# C fragment that represents the base of the buffer used for storing IPC messages #*/
 /*? assert(isinstance(base, six.string_types)) ?*/
@@ -146,15 +147,10 @@ int /*? me.interface.name ?*/__run(void) {
   /*# We will need to take the address of a value representing this return
    *# value at some point. Construct a TLS variable.
    #*/
-  /*- set name = ret_tls_var -*/
   /*- if m.return_type == 'string' -*/
-    /*- set array = False -*/
-    /*- set type = 'char*' -*/
-    /*- include 'thread_local.c' -*/
+    /*? make_tls_symbols('char*', ret_tls_var, threads, False) ?*/
   /*- else -*/
-    /*- set array = False -*/
-    /*- set type = macros.show_type(m.return_type) -*/
-    /*- include 'thread_local.c' -*/
+    /*? make_tls_symbols(macros.show_type(m.return_type), ret_tls_var, threads, False) ?*/
   /*- endif -*/
 /*- endif -*/
 
