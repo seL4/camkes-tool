@@ -10,6 +10,8 @@
  * @TAG(DATA61_BSD)
  */
 
+/*- import 'helpers/error.c' as error with context -*/
+
 #include <camkes/error.h>
 #include <sel4/sel4.h>
 #include <sync/sem-bare.h>
@@ -18,9 +20,8 @@
 /*? macros.show_includes(me.instance.type.includes) ?*/
 
 /* Interface-specific error handling. */
-/*- set interface = me.interface.name -*/
 /*- set error_handler = '%s_error_handler' % me.interface.name -*/
-/*- include 'error-handler.c' -*/
+/*? error.make_error_handler(interface, error_handler) ?*/
 
 /*- set my_index = me.parent.from_ends.index(me) -*/
 

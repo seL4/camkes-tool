@@ -10,6 +10,8 @@
  * @TAG(DATA61_BSD)
  */
 
+/*- import 'helpers/error.c' as error with context -*/
+
 /*# C fragment that represents the base of the buffer used for storing IPC messages #*/
 /*? assert(isinstance(base, six.string_types)) ?*/
 /*? assert(isinstance(buffer_size, six.string_types)) ?*/
@@ -43,7 +45,7 @@
 
 /* Interface-specific error handling */
 /*- set error_handler = '%s_error_handler' % me.interface.name -*/
-/*- include 'error-handler.c' -*/
+/*? error.make_error_handler(interface, error_handler) ?*/
 
 /*- for m in me.interface.type.methods -*/
     extern

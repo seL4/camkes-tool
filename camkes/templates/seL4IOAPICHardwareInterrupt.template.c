@@ -10,6 +10,8 @@
  * @TAG(DATA61_BSD)
  */
 
+/*- import 'helpers/error.c' as error with context -*/
+
 #include <assert.h>
 #include <camkes/error.h>
 #include <sel4/sel4.h>
@@ -36,7 +38,7 @@
 
 /* Interface-specific error handling */
 /*- set error_handler = '%s_error_handler' % me.interface.name -*/
-/*- include 'error-handler.c' -*/
+/*? error.make_error_handler(interface, error_handler) ?*/
 
 #define MAX_CALLBACKS 10
 

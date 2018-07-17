@@ -10,6 +10,8 @@
  * @TAG(DATA61_BSD)
  */
 
+/*- import 'helpers/error.c' as error with context -*/
+
 /* The basic design of this connector is to wait for an incoming event on the
  * notification, `notification`, and then forward any events to the secondary
  * notiifaciton, `handoff`. We also preference any registered callback
@@ -40,9 +42,8 @@
 /*? macros.show_includes(me.instance.type.includes) ?*/
 
 /* Interface-specific error handling. */
-/*- set interface = me.interface.name -*/
 /*- set error_handler = '%s_error_handler' % me.interface.name -*/
-/*- include 'error-handler.c' -*/
+/*? error.make_error_handler(me.interface.name, error_handler) ?*/
 
 /*- set id = me.parent.to_ends.index(me) -*/
 

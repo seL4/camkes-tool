@@ -10,6 +10,8 @@
  * @TAG(DATA61_BSD)
  */
 
+/*- import 'helpers/error.c' as error with context -*/
+
 #include <sel4/sel4.h>
 #include <assert.h>
 #include <limits.h>
@@ -56,7 +58,7 @@
 
 /* Interface-specific error handling */
 /*- set error_handler = '%s_error_handler' % me.interface.name -*/
-/*- include 'error-handler.c' -*/
+/*? error.make_error_handler(interface, error_handler) ?*/
 
 /*- if not options.frpc_lock_elision or 1 + len(me.instance.type.provides) + len(me.instance.type.consumes) > 1 -*/
     /*# See below for an explanation of this conditional. #*/

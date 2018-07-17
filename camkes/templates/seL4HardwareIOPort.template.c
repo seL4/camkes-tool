@@ -10,6 +10,8 @@
  * @TAG(DATA61_BSD)
  */
 
+/*- import 'helpers/error.c' as error with context -*/
+
 #include <assert.h>
 #include <camkes/error.h>
 #include <stddef.h>
@@ -34,9 +36,8 @@
 /*- endif -*/
 
 /* Interface-specific error handling */
-/*- set interface = me.interface.name -*/
 /*- set error_handler = '%s_error_handler' % me.parent.to_interface.name -*/
-/*- include 'error-handler.c' -*/
+/*? error.make_error_handler(me.interface.name, error_handler) ?*/
 
 uint8_t /*? me.interface.name ?*/_in8(uint16_t port)
 {
