@@ -12,6 +12,7 @@
 
 /*- import 'helpers/error.c' as error with context -*/
 /*- import 'helpers/array_check.c' as array_check with context -*/
+/*- import 'helpers/marshal.c' as marshal with context -*/
 /*- from 'helpers/tls.c' import make_tls_symbols -*/
 
 #include <sel4/sel4.h>
@@ -103,12 +104,7 @@ int /*? me.interface.name ?*/__run(void) {
     #define _TIMESTAMP(x) /* nothing */
 /*- endif -*/
 
-/*- set name = m.name -*/
-/*- set function = '%s_marshal_inputs' % m.name -*/
-/*- set buffer = BUFFER_BASE -*/
-/*- set size = 'seL4_MsgMaxLength * sizeof(seL4_Word)' -*/
-/*- set method_index = i -*/
-/*- include 'marshal-inputs.c' -*/
+/*? marshal.make_marshal_input_symbols(instance, interface, m.name, '%s_marshal_inputs' % m.name, BUFFER_BASE, 'seL4_MsgMaxLength * sizeof(seL4_Word)', i, methods_len, input_parameters, error_handler, threads) ?*/
 
 /*- set name = m.name -*/
 /*- set function = '%s_unmarshal_outputs' % m.name -*/
@@ -215,9 +211,8 @@ int /*? me.interface.name ?*/__run(void) {
       /*- endif -*/
     /*- endif -*/
 
-    /*- set function = '%s_marshal_inputs' % m.name -*/
     /*- set length = c_symbol('length') -*/
-    unsigned /*? length ?*/ = /*- include 'call-marshal-inputs.c' -*/;
+    unsigned /*? length ?*/ = /*? marshal.call_marshal_input('%s_marshal_inputs' % m.name, input_parameters) ?*/;
     if (unlikely(/*? length ?*/ == UINT_MAX)) {
         /* Error in marshalling; bail out. */
         /*- if m.return_type is not none -*/

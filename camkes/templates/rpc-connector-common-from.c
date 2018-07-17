@@ -13,6 +13,7 @@
 /*- import 'helpers/error.c' as error with context -*/
 /*- import 'helpers/array_check.c' as array_check with context -*/
 /*- from 'helpers/tls.c' import make_tls_symbols -*/
+/*- import 'helpers/marshal.c' as marshal with context -*/
 
 /*# C fragment that represents the base of the buffer used for storing IPC messages #*/
 /*? assert(isinstance(base, six.string_types)) ?*/
@@ -128,14 +129,13 @@ int /*? me.interface.name ?*/__run(void) {
 
 /*- for i, m in enumerate(me.interface.type.methods) -*/
 
+/*- set input_parameters = list(filter(lambda('x: x.direction in [\'refin\', \'in\', \'inout\']'), m.parameters)) -*/
+/*? marshal.make_marshal_input_symbols(instance, interface, m.name, '%s_marshal_inputs' % m.name, base, buffer_size, i, methods_len, input_parameters, error_handler, threads) ?*/
+
 /*- set name = m.name -*/
-/*- set function = '%s_marshal_inputs' % m.name -*/
 /*- set buffer = base -*/
 /*- set size = buffer_size -*/
 /*- set method_index = i -*/
-/*- set input_parameters = list(filter(lambda('x: x.direction in [\'refin\', \'in\', \'inout\']'), m.parameters)) -*/
-/*- include 'marshal-inputs.c' -*/
-
 /*- set function = '%s_unmarshal_outputs' % m.name -*/
 /*- set output_parameters = list(filter(lambda('x: x.direction in [\'out\', \'inout\']'), m.parameters)) -*/
 /*- set return_type = m.return_type -*/
@@ -285,9 +285,8 @@ int /*? me.interface.name ?*/__run(void) {
     /*- endif -*/
 
     /* Marshal all the parameters */
-    /*- set function = '%s_marshal_inputs' % m.name -*/
     /*- set length = c_symbol('length') -*/
-    unsigned /*? length ?*/ = /*- include 'call-marshal-inputs.c' -*/;
+    unsigned /*? length ?*/ = /*? marshal.call_marshal_input('%s_marshal_inputs' % m.name, input_parameters) ?*/;
     if (unlikely(/*? length ?*/ == UINT_MAX)) {
         /* Error in marshalling; bail out. */
         /*- if m.return_type is not none -*/
