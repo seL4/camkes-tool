@@ -223,7 +223,7 @@ int /*? me.interface.name ?*/__run(void) {
                 .type = CE_MALFORMED_RPC_PAYLOAD,
                 .instance = "/*? instance ?*/",
                 .interface = "/*? interface ?*/",
-                .description = "truncated message encountered while unmarshalling method index in /*? name ?*/",
+                .description = "truncated message encountered while unmarshalling method index in /*? call_tls_var ?*/",
                 .length = /*? size ?*/,
                 .current_index = sizeof(* /*? call_ptr ?*/),
               }), ({
@@ -346,7 +346,7 @@ int /*? me.interface.name ?*/__run(void) {
                         .type = CE_INVALID_METHOD_INDEX,
                         .instance = "/*? instance ?*/",
                         .interface = "/*? interface ?*/",
-                        .description = "invalid method index received in /*? name ?*/",
+                        .description = "invalid method index received in /*? call_tls_var ?*/",
                         .lower_bound = 0,
                         .upper_bound = /*? methods_len ?*/ - 1,
                         .invalid_index = * /*? call_ptr ?*/,
