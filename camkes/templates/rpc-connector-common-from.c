@@ -132,15 +132,8 @@ int /*? me.interface.name ?*/__run(void) {
 /*- set input_parameters = list(filter(lambda('x: x.direction in [\'refin\', \'in\', \'inout\']'), m.parameters)) -*/
 /*? marshal.make_marshal_input_symbols(instance, interface, m.name, '%s_marshal_inputs' % m.name, base, buffer_size, i, methods_len, input_parameters, error_handler, threads) ?*/
 
-/*- set name = m.name -*/
-/*- set buffer = base -*/
-/*- set size = buffer_size -*/
-/*- set method_index = i -*/
-/*- set function = '%s_unmarshal_outputs' % m.name -*/
 /*- set output_parameters = list(filter(lambda('x: x.direction in [\'out\', \'inout\']'), m.parameters)) -*/
-/*- set return_type = m.return_type -*/
-/*- set allow_trailing_data = userspace_ipc -*/
-/*- include 'unmarshal-outputs.c' -*/
+/*? marshal.make_unmarshal_output_symbols(instance, interface, m.name, '%s_unmarshal_outputs' % m.name, base, buffer_size, i, output_parameters, m.return_type, error_handler, userspace_ipc) ?*/
 
 /*- set ret_tls_var = c_symbol('ret_tls_var_from') -*/
 /*- if m.return_type is not none -*/
