@@ -103,36 +103,10 @@
     /*- set name = name_backup -*/
 
     /*- for p in input_parameters -*/
+        /*? assert(p.direction in ['in', 'refin', 'inout']) ?*/
         /*- set offset = c_symbol('offset') -*/
         static unsigned /*? function ?*/_/*? p.name ?*/(unsigned /*? offset ?*/,
-        /*- if p.direction == 'in' -*/
-            /*- if p.array -*/
-                size_t /*? p.name ?*/_sz,
-                /*- if p.type == 'string' -*/
-                    char ** /*? p.name ?*/
-                /*- else -*/
-                    const /*? macros.show_type(p.type) ?*/ * /*? p.name ?*/
-                /*- endif -*/
-            /*- elif p.type == 'string' -*/
-                const char * /*? p.name ?*/
-            /*- else -*/
-                /*? macros.show_type(p.type) ?*/ /*? p.name ?*/
-            /*- endif -*/
-        /*- else -*/
-            /*? assert(p.direction in ['refin', 'inout']) ?*/
-            /*- if p.array -*/
-                const size_t * /*? p.name ?*/_sz,
-                /*- if p.type == 'string' -*/
-                    char *** /*? p.name ?*/
-                /*- else -*/
-                    /*? macros.show_type(p.type) ?*/ ** /*? p.name ?*/
-                /*- endif -*/
-            /*- elif p.type == 'string' -*/
-                char ** /*? p.name ?*/
-            /*- else -*/
-                const /*? macros.show_type(p.type) ?*/ * /*? p.name ?*/
-            /*- endif -*/
-        /*- endif -*/
+            /*? show_input_parameter(p) ?*/
         ) {
 
         /*- set base = c_symbol('buffer_base') -*/
