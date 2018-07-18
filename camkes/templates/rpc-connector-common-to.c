@@ -121,22 +121,12 @@
 /*- include 'marshal-outputs.c' -*/
 
 /*- if m.return_type is not none -*/
-  /*- if m.return_type == 'string' -*/
-    /*? make_tls_symbols('char*', '%s_ret_to' % m.name, threads, False) ?*/
-  /*- else -*/
-    /*? make_tls_symbols(macros.show_type(m.return_type), '%s_ret_to' % m.name, threads, False) ?*/
-  /*- endif -*/
+  /*? make_tls_symbols(macros.show_type(m.return_type), '%s_ret_to' % m.name, threads, False) ?*/
 /*- endif -*/
 /*- for p in m.parameters -*/
   /*- if p.array -*/
     /*? make_tls_symbols('size_t', '%s_%s_sz_to' % (m.name, p.name), threads, False) ?*/
-    /*- if p.type == 'string' -*/
-      /*? make_tls_symbols('char**', '%s_%s_to' % (m.name, p.name), threads, False) ?*/
-    /*- else -*/
-      /*? make_tls_symbols('%s*' % macros.show_type(p.type), '%s_%s_to' % (m.name, p.name), threads, False) ?*/
-    /*- endif -*/
-  /*- elif p.type == 'string' -*/
-    /*? make_tls_symbols('char*', '%s_%s_to' % (m.name, p.name), threads, False) ?*/
+    /*? make_tls_symbols('%s*' % macros.show_type(p.type), '%s_%s_to' % (m.name, p.name), threads, False) ?*/
   /*- else -*/
     /*? make_tls_symbols(macros.show_type(p.type), '%s_%s_to' % (m.name, p.name), threads, False) ?*/
   /*- endif -*/

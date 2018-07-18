@@ -147,11 +147,7 @@ int /*? me.interface.name ?*/__run(void) {
   /*# We will need to take the address of a value representing this return
    *# value at some point. Construct a TLS variable.
    #*/
-  /*- if m.return_type == 'string' -*/
-    /*? make_tls_symbols('char*', ret_tls_var, threads, False) ?*/
-  /*- else -*/
-    /*? make_tls_symbols(macros.show_type(m.return_type), ret_tls_var, threads, False) ?*/
-  /*- endif -*/
+  /*? make_tls_symbols(macros.show_type(m.return_type), ret_tls_var, threads, False) ?*/
 /*- endif -*/
 
 /*- if m.return_type is not none -*/
@@ -261,13 +257,8 @@ int /*? me.interface.name ?*/__run(void) {
     /*- set ret_val = c_symbol('return') -*/
     /*- set ret_ptr = c_symbol('return_ptr') -*/
     /*- if m.return_type is not none -*/
-      /*- if m.return_type == 'string' -*/
-        char * /*? ret_val ?*/ UNUSED;
-        char ** /*? ret_ptr ?*/ = TLS_PTR(/*? ret_tls_var ?*/, /*? ret_val ?*/);
-      /*- else -*/
-        /*? macros.show_type(m.return_type) ?*/ /*? ret_val ?*/ UNUSED;
-        /*? macros.show_type(m.return_type) ?*/ * /*? ret_ptr ?*/ = TLS_PTR(/*? ret_tls_var ?*/, /*? ret_val ?*/);
-      /*- endif -*/
+      /*? macros.show_type(m.return_type) ?*/ /*? ret_val ?*/ UNUSED;
+      /*? macros.show_type(m.return_type) ?*/ * /*? ret_ptr ?*/ = TLS_PTR(/*? ret_tls_var ?*/, /*? ret_val ?*/);
     /*- endif -*/
 
     /*- if userspace_buffer_ep is none -*/

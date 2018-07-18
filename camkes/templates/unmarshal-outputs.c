@@ -31,11 +31,7 @@
   /*- set size = c_symbol('size') -*/
   /*- set ret = c_symbol('return') -*/
   static unsigned /*? function ?*/_/*? ret_fn ?*/(unsigned /*? size ?*/, unsigned /*? offset ?*/,
-    /*- if return_type == 'string' -*/
-      char **
-    /*- else -*/
-      /*? macros.show_type(return_type) ?*/ *
-    /*- endif -*/
+    /*? macros.show_type(return_type) ?*/ *
     /*? ret ?*/
   ) {
 
@@ -91,13 +87,7 @@
   static unsigned /*? function ?*/_/*? p.name ?*/(unsigned /*? size ?*/, unsigned /*? offset ?*/,
     /*- if p.array -*/
       size_t * /*? p.name ?*/_sz,
-      /*- if p.type == 'string' -*/
-        char *** /*? p.name ?*/
-      /*- else -*/
-        /*? macros.show_type(p.type) ?*/ ** /*? p.name ?*/
-      /*- endif -*/
-    /*- elif p.type == 'string' -*/
-      char ** /*? p.name ?*/
+      /*? macros.show_type(p.type) ?*/ ** /*? p.name ?*/
     /*- else -*/
       /*? macros.show_type(p.type) ?*/ * /*? p.name ?*/
     /*- endif -*/
@@ -259,11 +249,7 @@ unsigned /*? size ?*/
 /*- endif -*/
 /*- set ret = c_symbol('return') -*/
 /*- if return_type is not none -*/
-  /*- if return_type == 'string' -*/
-    char **
-  /*- else -*/
-    /*? macros.show_type(return_type) ?*/ *
-  /*- endif -*/
+  /*? macros.show_type(return_type) ?*/ *
   /*? ret ?*/
   /*- if len(output_parameters) > 0 -*/
     ,
@@ -272,13 +258,7 @@ unsigned /*? size ?*/
 /*- for p in output_parameters -*/
   /*- if p.array -*/
     size_t * /*? p.name ?*/_sz,
-    /*- if p.type == 'string' -*/
-      char *** /*? p.name ?*/
-    /*- else -*/
-      /*? macros.show_type(p.type) ?*/ ** /*? p.name ?*/
-    /*- endif -*/
-  /*- elif p.type == 'string' -*/
-    char ** /*? p.name ?*/
+    /*? macros.show_type(p.type) ?*/ ** /*? p.name ?*/
   /*- else -*/
     /*? macros.show_type(p.type) ?*/ * /*? p.name ?*/
   /*- endif -*/
