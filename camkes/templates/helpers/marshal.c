@@ -12,6 +12,57 @@
 
 /*- from 'helpers/tls.c' import make_tls_symbols -*/
 
+/*- macro show_input_parameter(p) -*/
+    /*- if p.direction == 'in' -*/
+        /*- if p.array -*/
+            size_t /*? p.name ?*/_sz,
+            /*- if p.type == 'string' -*/
+                char **
+            /*- else -*/
+                const /*? macros.show_type(p.type) ?*/ *
+            /*- endif -*/
+        /*- elif p.type == 'string' -*/
+            const char *
+        /*- else -*/
+            /*? macros.show_type(p.type) ?*/
+        /*- endif -*/
+        /*? p.name ?*/
+    /*- else -*/
+        /*- if p.array -*/
+            /*- if p.direction == 'refin' -*/
+                const
+            /*- endif -*/
+            size_t * /*? p.name ?*/_sz,
+            /*- if p.type == 'string' -*/
+                char ***
+            /*- else -*/
+                /*? macros.show_type(p.type) ?*/ **
+            /*- endif -*/
+        /*- elif p.type == 'string' -*/
+            char **
+        /*- else -*/
+            /*- if p.direction == 'refin' -*/
+                const
+            /*- endif -*/
+            /*? macros.show_type(p.type) ?*/ *
+        /*- endif -*/
+        /*? p.name ?*/
+    /*- endif -*/
+/*- endmacro -*/
+
+/*- macro show_input_parameter_list(parameters, valid_directions) -*/
+    /*- for p in parameters -*/
+        /*? assert(p.direction in valid_directions) ?*/
+        /*? show_input_parameter(p) ?*/
+        /*- if not loop.last -*/
+            ,
+        /*- endif -*/
+    /*- endfor -*/
+    /*- if len(parameters) == 0 -*/
+        void
+    /*- endif -*/
+/*- endmacro -*/
+
 /*# Generates code for marshalling input parameters to an RPC invocation
   #     instance: Name of this component instance
   #     interface: Name of this interface
@@ -223,42 +274,7 @@
     /*- endif -*/
 
     static unsigned /*? function ?*/(
-    /*- for p in input_parameters -*/
-        /*- if p.direction == 'in' -*/
-            /*- if p.array -*/
-                size_t /*? p.name ?*/_sz,
-                /*- if p.type == 'string' -*/
-                    char ** /*? p.name ?*/
-                /*- else -*/
-                    const /*? macros.show_type(p.type) ?*/ * /*? p.name ?*/
-                /*- endif -*/
-            /*- elif p.type == 'string' -*/
-                const char * /*? p.name ?*/
-            /*- else -*/
-                /*? macros.show_type(p.type) ?*/ /*? p.name ?*/
-            /*- endif -*/
-        /*- else -*/
-            /*? assert(p.direction in ['refin', 'inout']) ?*/
-            /*- if p.array -*/
-                const size_t * /*? p.name ?*/_sz,
-                /*- if p.type == 'string' -*/
-                    char *** /*? p.name ?*/
-                /*- else -*/
-                    /*? macros.show_type(p.type) ?*/ ** /*? p.name ?*/
-                /*- endif -*/
-            /*- elif p.type == 'string' -*/
-                char ** /*? p.name ?*/
-            /*- else -*/
-                const /*? macros.show_type(p.type) ?*/ * /*? p.name ?*/
-            /*- endif -*/
-        /*- endif -*/
-        /*- if not loop.last -*/
-        ,
-        /*- endif -*/
-    /*- endfor -*/
-    /*- if len(input_parameters) == 0 -*/
-        void
-    /*- endif -*/
+    /*? show_input_parameter_list(input_parameters, ['in', 'refin', 'inout']) ?*/
     ) {
 
         /*- set length = c_symbol('length') -*/

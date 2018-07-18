@@ -156,50 +156,7 @@ int /*? me.interface.name ?*/__run(void) {
     void
 /*- endif -*/
 /*? me.interface.name ?*/_/*? m.name ?*/(
-/*- for p in m.parameters -*/
-  /*- if p.direction == 'in' -*/
-    /*- if p.array -*/
-      size_t /*? p.name ?*/_sz,
-      /*- if p.type == 'string' -*/
-        char **
-      /*- else -*/
-        const /*? macros.show_type(p.type) ?*/ *
-      /*- endif -*/
-    /*- elif p.type == 'string' -*/
-      const char *
-    /*- else -*/
-      /*? macros.show_type(p.type) ?*/
-    /*- endif -*/
-    /*? p.name ?*/
-  /*- else -*/
-    /*? assert(p.direction in ['refin', 'out', 'inout']) ?*/
-    /*- if p.array -*/
-      /*- if p.direction == 'refin' -*/
-        const
-      /*- endif -*/
-      size_t * /*? p.name ?*/_sz,
-      /*- if p.type == 'string' -*/
-        char ***
-      /*- else -*/
-        /*? macros.show_type(p.type) ?*/ **
-      /*- endif -*/
-    /*- elif p.type == 'string' -*/
-      char **
-    /*- else -*/
-      /*- if p.direction == 'refin' -*/
-        const
-      /*- endif -*/
-      /*? macros.show_type(p.type) ?*/ *
-    /*- endif -*/
-    /*? p.name ?*/
-  /*- endif -*/
-  /*- if not loop.last -*/
-    ,
-  /*- endif -*/
-/*- endfor -*/
-/*- if len(m.parameters) == 0 -*/
-  void
-/*- endif -*/
+/*? marshal.show_input_parameter_list(m.parameters, ['in', 'refin', 'out', 'inout']) ?*/
 ) {
 
     /*- if len(me.parent.from_ends) == 1 and len(me.parent.to_ends) == 1 and len(me.parent.to_end.instance.type.provides + me.parent.to_end.instance.type.uses + me.parent.to_end.instance.type.consumes + me.parent.to_end.instance.type.mutexes + me.parent.to_end.instance.type.semaphores) <= 1 and options.fspecialise_syscall_stubs and methods_len == 1 and m.return_type is none and len(m.parameters) == 0 -*/
