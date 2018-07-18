@@ -15,13 +15,7 @@
 /*- import 'helpers/marshal.c' as marshal with context -*/
 /*- from 'helpers/tls.c' import make_tls_symbols -*/
 
-/*# C fragment that represents the base of the buffer used for storing IPC messages #*/
-/*? assert(isinstance(base, six.string_types)) ?*/
-/*? assert(isinstance(buffer_size, six.string_types)) ?*/
-/*# Whether 'base' is a separate memory region instead of the thread's IPC buffer #*/
-/*? assert(isinstance(userspace_ipc, bool)) ?*/
-/*# Whether or not we trust our partner #*/
-/*? assert(isinstance(trust_partner, bool)) ?*/
+/*? assert(isinstance(connector, namespace)) ?*/
 
 #include <autoconf.h>
 #include <assert.h>
@@ -37,9 +31,6 @@
 
 /*? macros.show_includes(me.instance.type.includes) ?*/
 /*? macros.show_includes(me.interface.type.includes) ?*/
-
-/*- set BUFFER_BASE = c_symbol('BUFFER_BASE') -*/
-#define /*? BUFFER_BASE ?*/ /*? base ?*/
 
 /*- set methods_len = len(me.interface.type.methods) -*/
 /*- set instance = me.instance.name -*/
@@ -65,10 +56,10 @@
     );
 
 /*- set input_parameters = list(filter(lambda('x: x.direction in [\'refin\', \'in\', \'inout\']'), m.parameters)) -*/
-/*? marshal.make_unmarshal_input_symbols(instance, interface, m.name, '%s_unmarshal_inputs' % m.name, base, methods_len, input_parameters, error_handler, userspace_ipc) ?*/
+/*? marshal.make_unmarshal_input_symbols(instance, interface, m.name, '%s_unmarshal_inputs' % m.name, connector.recv_buffer, methods_len, input_parameters, error_handler, connector.recv_buffer_size_fixed) ?*/
 
 /*- set output_parameters = list(filter(lambda('x: x.direction in [\'out\', \'inout\']'), m.parameters)) -*/
-/*? marshal.make_marshal_output_symbols(instance, interface, m.name, '%s_marshal_outputs' % m.name, base, buffer_size, output_parameters, m.return_type, error_handler) ?*/
+/*? marshal.make_marshal_output_symbols(instance, interface, m.name, '%s_marshal_outputs' % m.name, connector.send_buffer, connector.send_buffer_size, output_parameters, m.return_type, error_handler) ?*/
 
 /*- if m.return_type is not none -*/
   /*? make_tls_symbols(macros.show_type(m.return_type), '%s_ret_to' % m.name, threads, False) ?*/
@@ -83,15 +74,6 @@
 /*- endfor -*/
 
 /*- endfor -*/
-
-/*- set ep_obj = alloc_obj('ep', seL4_EndpointObject) -*/
-/*- set ep = alloc_cap('ep', ep_obj, read=True, write=True) -*/
-
-static seL4_Word /*? me.interface.name ?*/_badge = 0;
-
-seL4_Word /*? me.interface.name ?*/_get_sender_id(void) {
-    return /*? me.interface.name ?*/_badge;
-}
 
 /*- set call_tls_var = c_symbol('call_tls_var_to') -*/
 /*- set type = macros.type_to_fit_integer(methods_len) -*/
@@ -117,47 +99,15 @@ int
     /*# Check any typedefs we have been given are not arrays. #*/
     /*? array_check.perform_array_typedef_check(me.interface.type) ?*/
 
-    /*- if options.realtime -*/
-            /*- set reply_cap_slot = alloc('reply_cap_slot', seL4_RTReplyObject) -*/
-    /*- else -*/
-        /*- if me.might_block() -*/
-            /* We're going to need a CNode cap in order to save our pending reply
-             * caps in the future.
-             */
-            /*- set cnode = alloc_cap('cnode', my_cnode, write=True) -*/
-            /*- set reply_cap_slot = alloc_cap('reply_cap_slot', None) -*/
-            camkes_get_tls()->cnode_cap = /*? cnode ?*/;
-        /*- endif -*/
-    /*- endif -*/
-
-    /*- set info = c_symbol('info') -*/
+    /*- set size = c_symbol('size') -*/
+    unsigned /*? size ?*/ UNUSED;
     /*- if passive -*/
-        /* This interface has a passive thread, must let the control thread know before waiting */
-        seL4_MessageInfo_t /*? info ?*/ = /*? generate_seL4_SignalRecv(options,
-                                                                       init_ntfn,
-                                                                       info, ep,
-                                                                       '&%s_badge' % me.interface.name,
-                                                                       reply_cap_slot) ?*/;
+        /*? recv_first_rpc(connector, size, me.might_block(), notify_cptr = init_ntfn) ?*/
     /*- else -*/
-       /* This interface has an active thread, just wait for an RPC */
-        seL4_MessageInfo_t /*? info ?*/ = /*? generate_seL4_Recv(options, ep,
-                                                                 '&%s_badge' % me.interface.name,
-                                                                 reply_cap_slot) ?*/;
+        /*? recv_first_rpc(connector, size, me.might_block()) ?*/
     /*- endif -*/
 
     while (1) {
-
-        /*- set buffer = c_symbol('buffer') -*/
-        void * /*? buffer ?*/ UNUSED = (void*)/*? BUFFER_BASE ?*/;
-
-        /*- set size = c_symbol('size') -*/
-        unsigned /*? size ?*/ UNUSED =
-        /*- if userspace_ipc -*/
-            /*? buffer_size ?*/;
-        /*- else -*/
-            seL4_MessageInfo_get_length(/*? info ?*/) * sizeof(seL4_Word);
-            assert(/*? size ?*/ <= seL4_MsgMaxLength * sizeof(seL4_Word));
-        /*- endif -*/
 
         /*- set call = c_symbol('call') -*/
         /*- set call_ptr = c_symbol('call_ptr') -*/
@@ -179,13 +129,12 @@ int
                     .length = /*? size ?*/,
                     .current_index = sizeof(* /*? call_ptr ?*/),
                 }), ({
-                    /*? info ?*/ = /*? generate_seL4_Recv(options, ep,
-                                                          '&%s_badge' % me.interface.name,
-                                                          reply_cap_slot) ?*/;
+                    /*? complete_recv(connector) ?*/
+                    /*? begin_recv(connector, size, me.might_block()) ?*/
                     continue;
                 }));
 
-            memcpy(/*? call_ptr ?*/, /*? buffer ?*/, sizeof(* /*? call_ptr ?*/));
+            memcpy(/*? call_ptr ?*/, /*? connector.recv_buffer ?*/, sizeof(* /*? call_ptr ?*/));
         /*- endif -*/
 
         switch (* /*? call_ptr ?*/) {
@@ -219,32 +168,10 @@ int
                     int /*? err ?*/ = /*? marshal.call_unmarshal_input('%s_unmarshal_inputs' % m.name, size, input_parameters) ?*/;
                     if (unlikely(/*? err ?*/ != 0)) {
                         /* Error in unmarshalling; return to event loop. */
-                        /*? info ?*/ = /*? generate_seL4_Recv(options, ep,
-                                                              '&%s_badge' % me.interface.name,
-                                                              reply_cap_slot) ?*/;
+                        /*? complete_recv(connector) ?*/
+                        /*? begin_recv(connector, size, me.might_block()) ?*/
                         continue;
                     }
-
-                    /*- if not options.realtime and me.might_block() -*/
-                        /* We need to save the reply cap because the user's implementation may
-                         * perform operations that overwrite or discard it.
-                         */
-                        /*- set result = c_symbol() -*/
-                        /*? assert(reply_cap_slot is defined and reply_cap_slot > 0) ?*/
-                        int /*? result ?*/ UNUSED = camkes_declare_reply_cap(/*? reply_cap_slot ?*/);
-                        ERR_IF(/*? result ?*/ != 0, /*? error_handler ?*/, ((camkes_error_t){
-                                .type = CE_ALLOCATION_FAILURE,
-                                .instance = "/*? instance ?*/",
-                                .interface = "/*? interface ?*/",
-                                .description = "failed to declare reply cap in /*? m.name ?*/",
-                                .alloc_bytes = sizeof(seL4_CPtr),
-                            }), ({
-                                /*? info ?*/ = /*? generate_seL4_Recv(options, ep,
-                                                                      '&%s_badge' % me.interface.name,
-                                                                      reply_cap_slot) ?*/;
-                                continue;
-                            }));
-                    /*- endif -*/
 
                     /* Call the implementation */
                     /*- set ret = c_symbol('ret') -*/
@@ -277,8 +204,8 @@ int
                         /*- endfor -*/
                     );
 
-                    /*- set tls = c_symbol() -*/
-                    camkes_tls_t * /*? tls ?*/ UNUSED = camkes_get_tls();
+                    /*? complete_recv(connector) ?*/
+                    /*? begin_reply(connector) ?*/
 
                     /* Marshal the response */
                     /*- set output_parameters = list(filter(lambda('x: x.direction in [\'out\', \'inout\']'), m.parameters)) -*/
@@ -308,103 +235,12 @@ int
                      * leaking memory on errors.
                      */
                     if (unlikely(/*? length ?*/ == UINT_MAX)) {
-                        /* Error occurred; return to event loop. */
-                        /*? info ?*/ = /*? generate_seL4_Recv(options, ep,
-                                                              '&%s_badge' % me.interface.name,
-                                                              reply_cap_slot) ?*/;
+                        /*? complete_reply(connector) ?*/
+                        /*? begin_recv(connector, size, me.might_block()) ?*/
                         continue;
                     }
 
-                    /*? info ?*/ = seL4_MessageInfo_new(0, 0, 0, /* length */
-                        /*- if userspace_ipc -*/
-                            0
-                        /*- else -*/
-                            ROUND_UP_UNSAFE(/*? length ?*/, sizeof(seL4_Word)) / sizeof(seL4_Word)
-                        /*- endif -*/
-                    );
-
-                    /* Send the response */
-                    /*- if not options.realtime and me.might_block() -*/
-                        assert(/*? tls ?*/ != NULL);
-                        if (/*? tls ?*/->reply_cap_in_tcb) {
-                            /*? tls ?*/->reply_cap_in_tcb = false;
-                            /*? info ?*/ = /*? generate_seL4_ReplyRecv(options, ep,
-                                                                       info,
-                                                                       '&%s_badge' % me.interface.name,
-                                                                       reply_cap_slot) ?*/;
-                        } else {
-                            /*- set error = c_symbol() -*/
-                            seL4_Error /*? error ?*/ UNUSED = camkes_unprotect_reply_cap();
-                            ERR_IF(/*? error ?*/ != seL4_NoError, /*? error_handler ?*/, ((camkes_error_t){
-                                    .type = CE_SYSCALL_FAILED,
-                                    .instance = "/*? instance ?*/",
-                                    .interface = "/*? interface ?*/",
-                                    .description = "failed to save reply cap in /*? m.name ?*/",
-                                    .syscall = CNodeSaveCaller,
-                                    .error = /*? error ?*/,
-                                }), ({
-                                    /*? info ?*/ = /*? generate_seL4_Recv(options,
-                                                                          ep,
-                                                                          '&%s_badge' % me.interface.name,
-                                                                          reply_cap_slot) ?*/;
-                                    continue;
-                                }));
-
-                            seL4_Send(/*? reply_cap_slot ?*/, /*? info ?*/);
-                            /*? info ?*/ = /*? generate_seL4_Recv(options, ep,
-                                                                  '&%s_badge' % me.interface.name,
-                                                                  reply_cap_slot) ?*/;
-                        }
-                    /*- elif options.realtime -*/
-                        /*? info ?*/ = /*? generate_seL4_ReplyRecv(options, ep,
-                                                                   info,
-                                                                   '&%s_badge' % me.interface.name,
-                                                                   reply_cap_slot) ?*/;
-                    /*- else -*/
-
-                        /*- if not options.realtime and len(me.parent.from_ends) == 1 and len(me.parent.to_ends) == 1 and options.fspecialise_syscall_stubs and methods_len == 1 and m.return_type is none and len(m.parameters) == 0 -*/
-#ifdef CONFIG_ARCH_ARM
-#ifndef __SWINUM
-    #define __SWINUM(x) ((x) & 0x00ffffff)
-#endif
-                            /* We don't need to send or receive any information, so
-                             * we can call ReplyRecv with a custom syscall stub
-                             * that reduces the overhead of the call. To explain
-                             * where this deviates from the standard ReplyRecv
-                             * stub:
-                             *  - No asm clobbers because we're not receiving any
-                             *    arguments in the message;
-                             *  - The MessageInfo as an input only because we know
-                             *    the return (a new Call) will be 0 as well; and
-                             *  - Setup r7 and r1 first because they are preserved
-                             *    across the syscall and this helps the compiler
-                             *    make a tighter loop if necessary.
-                             */
-                            /*- set scno = c_symbol() -*/
-                            register seL4_Word /*? scno ?*/ asm("r7") = seL4_SysReplyRecv;
-                            /*- set info2 = c_symbol() -*/
-                            register seL4_MessageInfo_t /*? info2 ?*/ asm("r1") = seL4_MessageInfo_new(0, 0, 0, 0);
-                            /*- set src = c_symbol() -*/
-                            register seL4_Word /*? src ?*/ asm("r0") = /*? ep ?*/;
-                            asm volatile("swi %[swinum]"
-                                /*- if trust_partner -*/
-                                    :"+r"(/*? src ?*/)
-                                    :[swinum]"i"(__SWINUM(seL4_SysReplyRecv)), "r"(/*? scno ?*/), "r"(/*? info2 ?*/)
-                                /*- else -*/
-                                    :"+r"(/*? src ?*/), "+r"(/*? info2 ?*/)
-                                    :[swinum]"i"(__SWINUM(seL4_SysReplyRecv)), "r"(/*? scno ?*/)
-                                    :"r2", "r3", "r4", "r5", "memory"
-                                /*- endif -*/
-                            );
-                            /*? info ?*/ = /*? info2 ?*/; /*# Most probably, not necessary. #*/
-                            break;
-#endif
-                        /*- endif -*/
-                        /*? info ?*/ = /*? generate_seL4_ReplyRecv(options, ep,
-                                                                   info,
-                                                                   '&%s_badge' % me.interface.name,
-                                                                   reply_cap_slot) ?*/;
-                    /*- endif -*/
+                    /*? reply_recv(connector, length, size, me.might_block()) ?*/
 
                     break;
                 }
@@ -419,9 +255,8 @@ int
                         .upper_bound = /*? methods_len ?*/ - 1,
                         .invalid_index = * /*? call_ptr ?*/,
                     }), ({
-                        /*? info ?*/ = /*? generate_seL4_Recv(options, ep,
-                                                              '&%s_badge' % me.interface.name,
-                                                              reply_cap_slot) ?*/;
+                        /*? complete_recv(connector) ?*/
+                        /*? begin_recv(connector, size, me.might_block()) ?*/
                         continue;
                     }));
             }

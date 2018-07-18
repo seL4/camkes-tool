@@ -10,6 +10,8 @@
  * @TAG(DATA61_BSD)
  */
 
+/*- from 'rpc-connector.c' import establish_recv_rpc, recv_first_rpc, complete_recv, begin_recv, begin_reply, complete_reply, reply_recv with context -*/
+
 #include <camkes/dataport.h>
 
 /*? macros.show_includes(me.instance.type.includes) ?*/
@@ -26,11 +28,11 @@
 /*- endfor -*/
 /*- set trust_partner = _trust_partner[0] -*/
 
+/*- set connector = namespace() -*/
+
 /*- set buffer = configuration[me.parent.name].get('buffer') -*/
 /*- if buffer is none -*/
-  /*- set base = '((void*)&seL4_GetIPCBuffer()->msg[0])' -*/
-  /*- set userspace_ipc = False -*/
-  /*- set buffer_size = '(seL4_MsgMaxLength * sizeof(seL4_Word))' -*/
+  /*? establish_recv_rpc(connector, trust_partner, me.interface.name) ?*/
 /*- else -*/
   /*- if not isinstance(buffer, six.string_types) -*/
     /*? raise(TemplateError('invalid non-string setting for userspace buffer to back RPC connection', me.parent)) ?*/
@@ -48,10 +50,8 @@
   /*- if not isinstance(c[0].to_end.interface, camkes.ast.Dataport) -*/
     /*? raise(TemplateError('invalid use of non-dataport to back RPC connection', me.parent)) ?*/
   /*- endif -*/
-  /*- set base = '((void*)%s)' % c[0].to_end.interface.name -*/
   extern /*? macros.dataport_type(c[0].to_end.interface.type) ?*/ * /*? c[0].to_end.interface.name ?*/;
-  /*- set userspace_ipc = True -*/
-  /*- set buffer_size = macros.dataport_size(c[0].to_end.interface.type) -*/
+  /*? establish_recv_rpc(connector, trust_partner, me.interface.name, buffer=('((void*)%s)' % c[0].to_end.interface.name, macros.dataport_size(c[0].to_end.interface.type))) ?*/
 /*- endif -*/
 
 /*- include 'rpc-connector-common-to.c' -*/
