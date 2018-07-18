@@ -263,10 +263,8 @@ int /*? me.interface.name ?*/__run(void) {
     /*- endif -*/
 
     /* Unmarshal the response */
-    /*- set function = '%s_unmarshal_outputs' % m.name -*/
-    /*- set return_type = m.return_type -*/
     /*- set err = c_symbol('error') -*/
-    int /*? err ?*/ = /*- include 'call-unmarshal-outputs.c' -*/;
+    int /*? err ?*/ = /*? marshal.call_unmarshal_output('%s_unmarshal_outputs' % m.name, size, output_parameters, m.return_type, ret_ptr) ?*/;
     if (unlikely(/*? err ?*/ != 0)) {
         /* Error in unmarshalling; bail out. */
         /*- if m.return_type is not none -*/
