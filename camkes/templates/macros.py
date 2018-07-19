@@ -65,6 +65,19 @@ def show_type(t):
     else:
         return "struct " + t.name
 
+def type_to_fit_integer(value):
+    assert isinstance(value, six.integer_types)
+    if value <= 2 ** 8:
+        return 'uint8_t'
+    elif value <= 2 ** 16:
+        return 'uint16_t'
+    elif value <= 2 ** 32:
+        return 'uint32_t'
+    elif value <= 2 ** 64:
+        return 'uint64_t'
+    else:
+        raise TemplateError('No type to fit value %s' % value)
+
 def print_type_definitions(attributes, values):
     def print_struct_definition(struct, sub_value):
         return_string = "struct %s {\n" % struct.name
