@@ -192,7 +192,7 @@ def main():
             if SET_MATCH.match(content) is None:
                 raise SyntaxError('%s:%d: seemingly incorrect expression '
                     '\'%s\' in set statement' % (sys.argv[1], t.line, content))
-        elif token in ['import', 'include']:
+        elif token in ['import', 'include', 'from']:
             # Ignore; allowable anywhere.
             pass
         else:
