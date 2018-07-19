@@ -117,7 +117,7 @@ def main():
     SET_MATCH = re.compile(r'.*?\S\s*=\s*\S')
 
     for token, content in t:
-        if token in ['if', 'for', 'macro']:
+        if token in ['if', 'for', 'macro', 'call']:
             stack.append(token)
         elif token == 'endif':
             if len(stack) == 0:
@@ -169,6 +169,17 @@ def main():
                     (sys.argv[1], t.line, context))
             if content != '':
                 raise SyntaxError('%s:%d: trailing content \'%s\' in an endmacro '
+                    'statement' % (sys.argv[1], t.line, content))
+        elif token == 'endcall':
+            if len(stack) == 0:
+                raise SyntaxError('%s:%d: endcall while not inside a block' %
+                    (sys.argv[1], t.line))
+            context = stack.pop()
+            if context != 'call':
+                raise SyntaxError('%s:%d: endcall while inside a %s block' %
+                    (sys.argv[1], t.line, context))
+            if content != '':
+                raise SyntaxError('%s:%d: trailing content \'%s\' in an endcall '
                     'statement' % (sys.argv[1], t.line, content))
         elif token == 'break':
             if 'for' not in stack:
