@@ -129,19 +129,7 @@
 /*- set ep = alloc('ep', seL4_EndpointObject, read=True, write=True) -*/
 
 /*- set call_tls_var = c_symbol('call_tls_var_to') -*/
-/*- if methods_len <= 1 -*/
-  /*- set type = 'unsigned int' -*/
-/*- elif methods_len <= 2 ** 8 -*/
-  /*- set type = 'uint8_t' -*/
-/*- elif methods_len <= 2 ** 16 -*/
-  /*- set type = 'uint16_t' -*/
-/*- elif methods_len <= 2 ** 32 -*/
-  /*- set type = 'uint32_t' -*/
-/*- elif methods_len <= 2 ** 64 -*/
-  /*- set type = 'uint64_t' -*/
-/*- else -*/
-  /*? raise(TemplateError('too many methods in interface %s' % me.interface.name)) ?*/
-/*- endif -*/
+/*- set type = macros.type_to_fit_integer(methods_len) -*/
 /*? make_tls_symbols(type, call_tls_var, threads, False) ?*/
 
 /*? array_check.make_array_typedef_check_symbols(me.interface.type) ?*/
@@ -167,20 +155,10 @@ int /*? me.interface.name ?*/__run(void) {
           unsigned /*? call ?*/ UNUSED;
           unsigned * /*? call_ptr ?*/ = TLS_PTR(/*? call_tls_var ?*/, /*? call ?*/);
           * /*? call_ptr ?*/ = 0;
-        /*- elif methods_len <= 2 ** 8 -*/
-          uint8_t /*? call ?*/ UNUSED;
-          uint8_t * /*? call_ptr ?*/ = TLS_PTR(/*? call_tls_var ?*/, /*? call ?*/);
-        /*- elif methods_len <= 2 ** 16 -*/
-          uint16_t /*? call ?*/ UNUSED;
-          uint16_t * /*? call_ptr ?*/ = TLS_PTR(/*? call_tls_var ?*/, /*? call ?*/);
-        /*- elif methods_len <= 2 ** 32 -*/
-          uint32_t /*? call ?*/ UNUSED;
-          uint32_t * /*? call_ptr ?*/ = TLS_PTR(/*? call_tls_var ?*/, /*? call ?*/);
-        /*- elif methods_len <= 2 ** 64 -*/
-          uint64_t /*? call ?*/ UNUSED;
-          uint64_t * /*? call_ptr ?*/ = TLS_PTR(/*? call_tls_var ?*/, /*? call ?*/);
         /*- else -*/
-          /*? raise(TemplateError('too many methods in interface %s' % me.interface.name)) ?*/
+          /*- set type = macros.type_to_fit_integer(methods_len) -*/
+          /*? type ?*/ /*? call ?*/ UNUSED;
+          /*? type ?*/ * /*? call_ptr ?*/ = TLS_PTR(/*? call_tls_var ?*/, /*? call ?*/);
         /*- endif -*/
         /*- if methods_len > 1 -*/
           ERR_IF(sizeof(* /*? call_ptr ?*/) > /*? size ?*/, /*? error_handler ?*/, ((camkes_error_t){

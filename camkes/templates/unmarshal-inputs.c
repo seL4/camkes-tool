@@ -207,19 +207,7 @@ unsigned /*? size ?*/
 
   /*- if methods_len > 1 -*/
     /* Step over the method index. */
-    /*? length ?*/ += sizeof(
-    /*- if methods_len <= 2 ** 8 -*/
-      uint8_t
-    /*- elif methods_len <= 2 ** 16 -*/
-      uint16_t
-    /*- elif methods_len <= 2 ** 32 -*/
-      uint32_t
-    /*- elif methods_len <= 2 ** 64 -*/
-      uint64_t
-    /*- else -*/
-      /*? raise(TemplateError('too many methods in interface %s' % name)) ?*/
-    /*- endif -*/
-    );
+    /*? length ?*/ += sizeof(/*? macros.type_to_fit_integer(methods_len) ?*/);
   /*- endif -*/
 
   /* Unmarshal input parameters. */
