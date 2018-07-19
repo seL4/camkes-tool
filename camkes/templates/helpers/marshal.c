@@ -221,7 +221,7 @@
         /*- if methods_len > 1 -*/
             /* Marshal the method index. */
             /*- set target = 'sizeof(%s)' % call -*/
-            /*? err_if_buffer_length_exceeded(instance, interface, size, offset, target, p.name, name, error_handler) ?*/
+            /*? err_if_buffer_length_exceeded(instance, interface, size, length, target, name, name, error_handler) ?*/
             memcpy(/*? base ?*/, & /*? call ?*/, /*? target ?*/);
             /*? length ?*/ += /*? target ?*/;
         /*- endif -*/
