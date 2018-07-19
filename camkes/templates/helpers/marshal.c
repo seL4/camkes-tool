@@ -63,6 +63,24 @@
     /*- endif -*/
 /*- endmacro -*/
 
+/*- macro show_output_parameter(p) -*/
+    /*- if p.array -*/
+        size_t * /*? p.name ?*/_sz,
+        /*? macros.show_type(p.type) ?*/ ** /*? p.name ?*/
+    /*- else -*/
+        /*? macros.show_type(p.type) ?*/ * /*? p.name ?*/
+    /*- endif -*/
+/*- endmacro -*/
+
+/*- macro show_output_parameter_list(parameters) -*/
+    /*- for p in parameters -*/
+        /*? show_output_parameter(p) ?*/
+        /*- if not loop.last -*/
+            ,
+        /*- endif -*/
+    /*- endfor -*/
+/*- endmacro -*/
+
 /*- macro err_if_buffer_length_exceeded(instance, interface, size, cur_offset, desired, target_name, parent_name, error_handler) -*/
     ERR_IF(/*? desired ?*/ > /*? size ?*/ - /*? cur_offset ?*/, /*? error_handler ?*/, ((camkes_error_t){
         .type = CE_BUFFER_LENGTH_EXCEEDED,
@@ -358,12 +376,7 @@
         /*- set size = c_symbol('size') -*/
         /*- set offset = c_symbol('offset') -*/
         static unsigned /*? function ?*/_/*? p.name ?*/(unsigned /*? size ?*/, unsigned /*? offset ?*/,
-        /*- if p.array -*/
-            size_t * /*? p.name ?*/_sz,
-            /*? macros.show_type(p.type) ?*/ ** /*? p.name ?*/
-        /*- else -*/
-            /*? macros.show_type(p.type) ?*/ * /*? p.name ?*/
-        /*- endif -*/
+        /*? show_output_parameter(p) ?*/
         ) {
 
             /*- set base = c_symbol('buffer_base') -*/
@@ -528,17 +541,8 @@
             ,
         /*- endif -*/
     /*- endif -*/
-    /*- for p in output_parameters -*/
-        /*- if p.array -*/
-            size_t * /*? p.name ?*/_sz,
-            /*? macros.show_type(p.type) ?*/ ** /*? p.name ?*/
-        /*- else -*/
-            /*? macros.show_type(p.type) ?*/ * /*? p.name ?*/
-        /*- endif -*/
-        /*- if not loop.last -*/
-            ,
-        /*- endif -*/
-    /*- endfor -*/
+
+    /*? show_output_parameter_list(output_parameters) ?*/
     ) {
 
         /*- set length = c_symbol('length') -*/
