@@ -70,7 +70,7 @@ class HighTokeniser(Tokeniser):
     '''
     def __init__(self, filename):
         super(HighTokeniser, self).__init__(filename)
-        self.regex = re.compile(r'(?:(\n)|/\*-[-\+]?[\s]*([\S]+)\s(.*?)\s*[-\+]?-\*/)',
+        self.regex = re.compile(r'(?:(\n)|/\*-[-\+]?[\s]*([^\s(]+)(?:\([^)]*\))?\s(.*?)\s*[-\+]?-\*/)',
             flags=re.MULTILINE)
 
 def main():
