@@ -227,6 +227,11 @@ endfunction(GeneratorValueOrDefault)
         ${gen_sources}
 
     )
+    # If COMPONENT_LINKER_LANGUAGE is set on the component target, set the LINKER_LANGUAGE of the executable
+    get_property(link_language TARGET CAmkESComponent_/*? i.type.name ?*/ PROPERTY COMPONENT_LINKER_LANGUAGE)
+    if (NOT "${link_language}" STREQUAL "")
+        set_property(TARGET ${target} PROPERTY LINKER_LANGUAGE ${link_language})
+    endif()
     # Build any CakeML library
     if (NOT ("${cakeml_sources}" STREQUAL ""))
         # Pull heap/stack size from component expression OR instances expression OR default to an arbitrary 50

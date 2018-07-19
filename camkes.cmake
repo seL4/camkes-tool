@@ -596,7 +596,7 @@ endfunction(GenerateCAmkESRootserver)
 function(AppendCAmkESComponentTarget target_name)
     cmake_parse_arguments(PARSE_ARGV 1 CAMKES_COMPONENT
         "" # Option arguments
-        "CAKEML_HEAP_SIZE;CAKEML_STACK_SIZE" # Single arguments
+        "CAKEML_HEAP_SIZE;CAKEML_STACK_SIZE;LINKER_LANGUAGE" # Single arguments
         "SOURCES;CAKEML_SOURCES;INCLUDES;C_FLAGS;LD_FLAGS;LIBS" # Multiple aguments
     )
     # Declare a target that we will set properties on
@@ -631,6 +631,9 @@ function(AppendCAmkESComponentTarget target_name)
     endif()
     if (CAMKES_COMPONENT_CAKEML_STACK_SIZE)
         set_property(TARGET "${target_name}" PROPERTY COMPONENT_CAKEML_STACK_SIZE "${CAMKES_COMPONENT_CAKEML_STACK_SIZE}")
+    endif()
+    if (CAMKES_COMPONENT_LINKER_LANGUAGE)
+        set_property(TARGET "${target_name}" APPEND PROPERTY COMPONENT_LINKER_LANGUAGE "${CAMKES_COMPONENT_LINKER_LANGUAGE}")
     endif()
 endfunction(AppendCAmkESComponentTarget)
 
