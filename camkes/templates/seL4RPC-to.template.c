@@ -12,6 +12,7 @@
 
 /*- import 'helpers/error.c' as error with context -*/
 /*- import 'helpers/array_check.c' as array_check with context -*/
+/*- import 'helpers/marshal.c' as marshal with context -*/
 /*- from 'helpers/tls.c' import make_tls_symbols -*/
 
 #include <assert.h>
@@ -102,10 +103,8 @@
     /*- endif -*/
     );
 
-/*- set name = m.name -*/
-/*- set function = '%s_unmarshal_inputs' % m.name -*/
 /*- set input_parameters = list(filter(lambda('x: x.direction in [\'refin\', \'in\', \'inout\']'), m.parameters)) -*/
-/*- include 'unmarshal-inputs.c' -*/
+/*? marshal.make_unmarshal_input_symbols(instance, interface, m.name, '%s_unmarshal_inputs' % m.name, buffer, methods_len, input_parameters, error_handler, allow_trailing_data) ?*/
 
 /*- set function = '%s_marshal_outputs' % m.name -*/
 /*- set output_parameters = list(filter(lambda('x: x.direction in [\'out\', \'inout\']'), m.parameters)) -*/

@@ -12,6 +12,7 @@
 
 /*- import 'helpers/error.c' as error with context -*/
 /*- import 'helpers/array_check.c' as array_check with context -*/
+/*- import 'helpers/marshal.c' as marshal with context -*/
 /*- from 'helpers/tls.c' import make_tls_symbols -*/
 
 /*# C fragment that represents the base of the buffer used for storing IPC messages #*/
@@ -107,17 +108,15 @@
       /*- endif -*/
     );
 
-/*- set name = m.name -*/
-/*- set function = '%s_unmarshal_inputs' % m.name -*/
-/*- set buffer = base -*/
-/*- set size = buffer_size -*/
 /*- set input_parameters = list(filter(lambda('x: x.direction in [\'refin\', \'in\', \'inout\']'), m.parameters)) -*/
-/*- set allow_trailing_data = userspace_ipc -*/
-/*- include 'unmarshal-inputs.c' -*/
+/*? marshal.make_unmarshal_input_symbols(instance, interface, m.name, '%s_unmarshal_inputs' % m.name, base, methods_len, input_parameters, error_handler, userspace_ipc) ?*/
 
 /*- set function = '%s_marshal_outputs' % m.name -*/
 /*- set output_parameters = list(filter(lambda('x: x.direction in [\'out\', \'inout\']'), m.parameters)) -*/
 /*- set return_type = m.return_type -*/
+/*- set buffer = base -*/
+/*- set size = buffer_size -*/
+/*- set name = m.name -*/
 /*- include 'marshal-outputs.c' -*/
 
 /*- if m.return_type is not none -*/
