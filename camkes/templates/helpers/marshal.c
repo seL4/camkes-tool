@@ -166,7 +166,7 @@
             /*- if p.type == 'string' -*/
                 /*- set lcount = c_symbol() -*/
                 for (int /*? lcount ?*/ = 0; /*? lcount ?*/ < * /*? ptr_sz ?*/; /*? lcount ?*/ ++) {
-                  /*- set strlen = c_symbol('strlen') -*/
+                    /*- set strlen = c_symbol('strlen') -*/
                     size_t /*? strlen ?*/ = strnlen(/*? ptr_arr ?*/[/*? lcount ?*/], /*? size ?*/ - /*? offset ?*/);
                     ERR_IF(/*? strlen ?*/ >= /*? size ?*/ - /*? offset ?*/, /*? error_handler ?*/, ((camkes_error_t){
                         .type = CE_BUFFER_LENGTH_EXCEEDED,
@@ -196,38 +196,38 @@
                 memcpy(/*? base ?*/ + /*? offset ?*/, /*? ptr_arr ?*/, sizeof(/*? ptr_arr ?*/[0]) * (* /*? ptr_sz ?*/));
                 /*? offset ?*/ += sizeof(/*? ptr_arr ?*/[0]) * (* /*? ptr_sz ?*/);
             /*- endif -*/
-            /*- elif p.type == 'string' -*/
-                /*- set strlen = c_symbol('strlen') -*/
-                size_t /*? strlen ?*/ = strnlen(/*? ptr_str ?*/, /*? size ?*/ - /*? offset ?*/);
-                ERR_IF(/*? strlen ?*/ >= /*? size ?*/ - /*? offset ?*/, /*? error_handler ?*/, ((camkes_error_t){
-                    .type = CE_BUFFER_LENGTH_EXCEEDED,
-                    .instance = "/*? instance ?*/",
-                    .interface = "/*? interface ?*/",
-                    .description = "buffer exceeded while marshalling /*? p.name ?*/ in /*? name ?*/",
-                    .current_length = /*? offset ?*/,
-                    .target_length = /*? offset ?*/ + /*? strlen ?*/ + 1,
-                    }), ({
-                        return UINT_MAX;
+        /*- elif p.type == 'string' -*/
+            /*- set strlen = c_symbol('strlen') -*/
+            size_t /*? strlen ?*/ = strnlen(/*? ptr_str ?*/, /*? size ?*/ - /*? offset ?*/);
+            ERR_IF(/*? strlen ?*/ >= /*? size ?*/ - /*? offset ?*/, /*? error_handler ?*/, ((camkes_error_t){
+                .type = CE_BUFFER_LENGTH_EXCEEDED,
+                .instance = "/*? instance ?*/",
+                .interface = "/*? interface ?*/",
+                .description = "buffer exceeded while marshalling /*? p.name ?*/ in /*? name ?*/",
+                .current_length = /*? offset ?*/,
+                .target_length = /*? offset ?*/ + /*? strlen ?*/ + 1,
+                }), ({
+                    return UINT_MAX;
+            }));
+            /* If we didn't trigger an error, we now know this strcpy is safe. */
+            (void)strcpy(/*? base ?*/ + /*? offset ?*/, /*? ptr_str ?*/);
+            /*? offset ?*/ += /*? strlen ?*/ + 1;
+        /*- else -*/
+            ERR_IF(/*? offset ?*/ + sizeof(* /*? ptr ?*/) > /*? size ?*/, /*? error_handler ?*/, ((camkes_error_t){
+                .type = CE_BUFFER_LENGTH_EXCEEDED,
+                .instance = "/*? instance ?*/",
+                .interface = "/*? interface ?*/",
+                .description = "buffer exceeded while marshalling /*? p.name ?*/ in /*? name ?*/",
+                .current_length = /*? offset ?*/,
+                .target_length = /*? offset ?*/ + sizeof(* /*? ptr ?*/),
+                }), ({
+                    return UINT_MAX;
                 }));
-                /* If we didn't trigger an error, we now know this strcpy is safe. */
-                (void)strcpy(/*? base ?*/ + /*? offset ?*/, /*? ptr_str ?*/);
-                /*? offset ?*/ += /*? strlen ?*/ + 1;
-            /*- else -*/
-                ERR_IF(/*? offset ?*/ + sizeof(* /*? ptr ?*/) > /*? size ?*/, /*? error_handler ?*/, ((camkes_error_t){
-                    .type = CE_BUFFER_LENGTH_EXCEEDED,
-                    .instance = "/*? instance ?*/",
-                    .interface = "/*? interface ?*/",
-                    .description = "buffer exceeded while marshalling /*? p.name ?*/ in /*? name ?*/",
-                    .current_length = /*? offset ?*/,
-                    .target_length = /*? offset ?*/ + sizeof(* /*? ptr ?*/),
-                    }), ({
-                        return UINT_MAX;
-                }));
-                memcpy(/*? base ?*/ + /*? offset ?*/, /*? ptr ?*/, sizeof(* /*? ptr ?*/));
-                /*? offset ?*/ += sizeof(* /*? ptr ?*/);
-            /*- endif -*/
-            return /*? offset ?*/;
-        }
+            memcpy(/*? base ?*/ + /*? offset ?*/, /*? ptr ?*/, sizeof(* /*? ptr ?*/));
+            /*? offset ?*/ += sizeof(* /*? ptr ?*/);
+        /*- endif -*/
+        return /*? offset ?*/;
+    }
     /*- endfor -*/
 
     /*- if methods_len > 1 -*/
