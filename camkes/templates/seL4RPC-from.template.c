@@ -106,7 +106,7 @@ int /*? me.interface.name ?*/__run(void) {
 
 /*? marshal.make_marshal_input_symbols(instance, interface, m.name, '%s_marshal_inputs' % m.name, BUFFER_BASE, 'seL4_MsgMaxLength * sizeof(seL4_Word)', i, methods_len, input_parameters, error_handler, threads) ?*/
 
-/*? marshal.make_unmarshal_output_symbols(instance, interface, m.name, '%s_unmarshal_outputs' % m.name, BUFFER_BASE, 'seL4_MsgMaxLength * sizeof(seL4_Word)', i, output_parameters, m.return_type, error_handler, allow_trailing_data) ?*/
+/*? marshal.make_unmarshal_output_symbols(instance, interface, m.name, '%s_unmarshal_outputs' % m.name, BUFFER_BASE, i, output_parameters, m.return_type, error_handler, allow_trailing_data) ?*/
 
 /*- set ret_tls_var = c_symbol('ret_tls_var_from') -*/
 /*- if m.return_type is not none -*/

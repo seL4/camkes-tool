@@ -294,7 +294,6 @@
   #     name: Name of this method
   #     function: Name of function to create
   #     buffer: Buffer symbol (or expression) to marshal into
-  #     size: Length of the buffer; possibly not generation-time constant
   #     method_index: Index of this method in the containing interface
   #     output_parameters: All output parameters to this method
   #     return_type: Return type of this interface
@@ -302,14 +301,13 @@
   #     allow_trailing_data: Whether to ignore checks for remaining bytes after a message
   #*/
 /*# Whether to ignore checks for remaining bytes after a message #*/
-/*- macro make_unmarshal_output_symbols(instance, interface, name, function, buffer, size, method_index, output_parameters, return_type, error_handler, allow_trailing_data) -*/
+/*- macro make_unmarshal_output_symbols(instance, interface, name, function, buffer, method_index, output_parameters, return_type, error_handler, allow_trailing_data) -*/
     /*# Validate our argument types #*/
     /*? assert(isinstance(instance, six.string_types)) ?*/
     /*? assert(isinstance(interface, six.string_types)) ?*/
     /*? assert(isinstance(name, six.string_types)) ?*/
     /*? assert(isinstance(function, six.string_types)) ?*/
     /*? assert(isinstance(buffer, six.string_types)) ?*/
-    /*? assert(isinstance(size, six.string_types)) ?*/
     /*? assert(isinstance(method_index, six.integer_types)) ?*/
     /*? assert(isinstance(output_parameters, (list, tuple))) ?*/
     /*? assert(return_type is none or isinstance(return_type, six.string_types)) ?*/

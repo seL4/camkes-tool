@@ -133,7 +133,7 @@ int /*? me.interface.name ?*/__run(void) {
 /*? marshal.make_marshal_input_symbols(instance, interface, m.name, '%s_marshal_inputs' % m.name, base, buffer_size, i, methods_len, input_parameters, error_handler, threads) ?*/
 
 /*- set output_parameters = list(filter(lambda('x: x.direction in [\'out\', \'inout\']'), m.parameters)) -*/
-/*? marshal.make_unmarshal_output_symbols(instance, interface, m.name, '%s_unmarshal_outputs' % m.name, base, buffer_size, i, output_parameters, m.return_type, error_handler, userspace_ipc) ?*/
+/*? marshal.make_unmarshal_output_symbols(instance, interface, m.name, '%s_unmarshal_outputs' % m.name, base, i, output_parameters, m.return_type, error_handler, userspace_ipc) ?*/
 
 /*- set ret_tls_var = c_symbol('ret_tls_var_from') -*/
 /*- if m.return_type is not none -*/
