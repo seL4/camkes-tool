@@ -76,7 +76,7 @@ def type_to_fit_integer(value):
     elif value <= 2 ** 64:
         return 'uint64_t'
     else:
-        raise TemplateError('No type to fit value %s' % value)
+        raise Exception('No type to fit value %s' % value)
 
 def print_type_definitions(attributes, values):
     def print_struct_definition(struct, sub_value):
