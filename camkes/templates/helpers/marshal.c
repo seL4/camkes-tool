@@ -58,9 +58,6 @@
             ,
         /*- endif -*/
     /*- endfor -*/
-    /*- if len(parameters) == 0 -*/
-        void
-    /*- endif -*/
 /*- endmacro -*/
 
 /*- macro show_output_parameter(p) -*/
@@ -228,6 +225,9 @@
 
     static unsigned /*? function ?*/(
     /*? show_input_parameter_list(input_parameters, ['in', 'refin', 'inout']) ?*/
+    /*- if len(input_parameters) == 0 -*/
+        void
+    /*- endif -*/
     ) {
 
         /*- set length = c_symbol('length') -*/
