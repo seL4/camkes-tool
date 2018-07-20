@@ -325,11 +325,9 @@ int
                     camkes_tls_t * /*? tls ?*/ UNUSED = camkes_get_tls();
 
                     /* Marshal the response */
-                    /*- set function = '%s_marshal_outputs' % m.name -*/
                     /*- set output_parameters = list(filter(lambda('x: x.direction in [\'out\', \'inout\']'), m.parameters)) -*/
-                    /*- set return_type = m.return_type -*/
                     /*- set length = c_symbol('length') -*/
-                    unsigned /*? length ?*/ = /*- include 'call-marshal-outputs.c' -*/;
+                    unsigned /*? length ?*/ = /*? marshal.call_marshal_output('%s_marshal_outputs' % m.name, output_parameters, m.return_type, ret_ptr) ?*/;
 
                     /*# We no longer need anything we previously malloced #*/
                     /*- if m.return_type == 'string' -*/

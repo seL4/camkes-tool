@@ -1084,3 +1084,35 @@
         return /*? length ?*/;
     }
 /*- endmacro -*/
+
+/*# Emits a call to the C symbol that will unmarshal output parameters
+  # function: Name of function to invoke
+  # output_parameters: All output parameters to this method
+  # return_type: Return type of this interface
+  # ret_ptr: Pointer for the return value
+  #*/
+/*- macro call_marshal_output(function, output_parameters, return_type, ret_ptr) -*/
+    /*# Validate our arguments are the correct type #*/
+    /*? assert(isinstance(function, six.string_types)) ?*/
+    /*? assert(isinstance(output_parameters, (list, tuple))) ?*/
+    /*? assert(return_type is none or isinstance(return_type, six.string_types)) ?*/
+
+    /*? function ?*/(
+    /*- if return_type is not none -*/
+        /*? assert(isinstance(ret_ptr, six.string_types)) ?*/
+        /*? ret_ptr ?*/
+        /*- if len(output_parameters) > 0 -*/
+            ,
+        /*- endif -*/
+    /*- endif -*/
+    /*- for p in output_parameters -*/
+        /*- if p.array -*/
+            /*? p.name ?*/_sz_ptr,
+        /*- endif -*/
+        /*? p.name ?*/_ptr
+        /*- if not loop.last -*/
+            ,
+        /*- endif -*/
+    /*- endfor -*/
+    )
+/*- endmacro -*/
