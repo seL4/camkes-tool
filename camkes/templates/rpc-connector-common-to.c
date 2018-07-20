@@ -53,56 +53,12 @@
 /*- for m in me.interface.type.methods -*/
     extern
     /*- if m.return_type is not none -*/
-        /*- if m.return_type == 'string' -*/
-            char *
-        /*- else -*/
-            /*? macros.show_type(m.return_type) ?*/
-        /*- endif -*/
+        /*? macros.show_type(m.return_type) ?*/
     /*- else -*/
         void
     /*- endif -*/
     /*? me.interface.name ?*/_/*? m.name ?*/(
-      /*- for p in m.parameters -*/
-        /*- if p.direction == 'in' -*/
-          /*- if p.array -*/
-            size_t /*? p.name ?*/_sz,
-            /*- if p.type == 'string' -*/
-              char **
-            /*- else -*/
-              const /*? macros.show_type(p.type) ?*/ *
-            /*- endif -*/
-          /*- elif p.type == 'string' -*/
-            const char *
-          /*- else -*/
-            /*? macros.show_type(p.type) ?*/
-          /*- endif -*/
-          /*? p.name ?*/
-        /*- else -*/
-          /*? assert(p.direction in ['refin', 'out', 'inout']) ?*/
-          /*- if p.array -*/
-            /*- if p.direction == 'refin' -*/
-              const
-            /*- endif -*/
-            size_t * /*? p.name ?*/_sz,
-            /*- if p.type == 'string' -*/
-              char ***
-            /*- else -*/
-              /*? macros.show_type(p.type) ?*/ **
-            /*- endif -*/
-          /*- elif p.type == 'string' -*/
-            char **
-          /*- else -*/
-            /*- if p.direction == 'refin' -*/
-              const
-            /*- endif -*/
-            /*? macros.show_type(p.type) ?*/ *
-          /*- endif -*/
-          /*? p.name ?*/
-        /*- endif -*/
-        /*- if not loop.last -*/
-          ,
-        /*- endif -*/
-      /*- endfor -*/
+      /*? marshal.show_input_parameter_list(m.parameters, ['in', 'refin', 'out', 'inout']) ?*/
       /*- if len(m.parameters) == 0 -*/
         void
       /*- endif -*/
