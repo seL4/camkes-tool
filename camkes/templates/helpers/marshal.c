@@ -183,7 +183,7 @@
                 /*- set target = 'sizeof(%s[0]) * (* %s)' % (ptr_arr, ptr_sz) -*/
                 /*? err_if_buffer_length_exceeded(instance, interface, size, offset, target, p.name, name, error_handler) ?*/
                 memcpy(/*? base ?*/ + /*? offset ?*/, /*? ptr_arr ?*/, /*? target ?*/);
-                /*? offset ?*/ += /*? target ?*/
+                /*? offset ?*/ += /*? target ?*/;
             /*- endif -*/
         /*- elif p.type == 'string' -*/
             /*- set strlen = c_symbol('strlen') -*/
