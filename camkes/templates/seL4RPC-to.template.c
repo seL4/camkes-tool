@@ -106,10 +106,8 @@
 /*- set input_parameters = list(filter(lambda('x: x.direction in [\'refin\', \'in\', \'inout\']'), m.parameters)) -*/
 /*? marshal.make_unmarshal_input_symbols(instance, interface, m.name, '%s_unmarshal_inputs' % m.name, buffer, methods_len, input_parameters, error_handler, allow_trailing_data) ?*/
 
-/*- set function = '%s_marshal_outputs' % m.name -*/
 /*- set output_parameters = list(filter(lambda('x: x.direction in [\'out\', \'inout\']'), m.parameters)) -*/
-/*- set return_type = m.return_type -*/
-/*- include 'marshal-outputs.c' -*/
+/*? marshal.make_marshal_output_symbols(instance, interface, m.name, '%s_marshal_outputs' % m.name, buffer, size, output_parameters, m.return_type, error_handler) ?*/
 
 /*- if m.return_type is not none -*/
   /*? make_tls_symbols(macros.show_type(m.return_type), '%s_ret_to' % m.name, threads, False) ?*/

@@ -926,3 +926,161 @@
     /*- endfor -*/
     )
 /*- endmacro -*/
+
+/*# Generates code for marshalling out parameters to an RPC invocation
+  #     instance: Name of this component instance
+  #     interface: Name of this interface
+  #     name: Name of this method
+  #     function: Name of function to create
+  #     buffer: Buffer symbol (or expression) to marshal into
+  #     size: Length of the buffer; possibly not generation-time constant
+  #     output_parameters: All output parameters to this method
+  #     return_type: Return type of this interface
+  #     error_handler: Handler to invoke on error
+  #*/
+/*- macro make_marshal_output_symbols(instance, interface, name, function, buffer, size, output_parameters, return_type, error_handler) -*/
+    /*# Validate our arguments are the correct type #*/
+    /*? assert(isinstance(instance, six.string_types)) ?*/
+    /*? assert(isinstance(interface, six.string_types)) ?*/
+    /*? assert(isinstance(name, six.string_types)) ?*/
+    /*? assert(isinstance(function, six.string_types)) ?*/
+    /*? assert(isinstance(buffer, six.string_types)) ?*/
+    /*? assert(isinstance(size, six.string_types)) ?*/
+    /*? assert(isinstance(output_parameters, (list, tuple))) ?*/
+    /*? assert(return_type is none or isinstance(return_type, six.string_types)) ?*/
+    /*? assert(isinstance(error_handler, six.string_types)) ?*/
+
+    /*- set ret_fn = c_symbol('ret_fn') -*/
+    /*- if return_type is not none -*/
+        /*- set offset = c_symbol('offset') -*/
+        /*- set ret = c_symbol('return') -*/
+        static unsigned /*? function ?*/_/*? ret_fn ?*/(unsigned /*? offset ?*/,
+        /*- if return_type == 'string' -*/
+            char ** /*? ret ?*/
+        /*- else -*/
+            const /*? macros.show_type(return_type) ?*/ * /*? ret ?*/
+        /*- endif -*/
+        ) {
+
+            /*- set base = c_symbol('buffer_base') -*/
+            void * /*? base ?*/ UNUSED = (void*)(/*? buffer ?*/);
+
+            /* Marshal the return value. */
+            /*- if return_type == 'string' -*/
+                /*- set strlen = c_symbol('strlen') -*/
+                size_t /*? strlen ?*/ = strnlen(* /*? ret ?*/, /*? size ?*/ - /*? offset ?*/);
+                /*- set nulllen = '%s + 1' % strlen -*/
+                /*? err_if_buffer_length_exceeded(instance, interface, size, offset, nulllen, name, name, error_handler) ?*/
+                /* If we didn't trigger an error, we now know this strcpy is safe. */
+                (void)strcpy(/*? base ?*/ + /*? offset ?*/, (* /*? ret ?*/));
+                /*? offset ?*/ += /*? nulllen ?*/;
+            /*- else -*/
+                /*- set target = 'sizeof(* %s)' % ret -*/
+                /*? err_if_buffer_length_exceeded(instance, interface, size, offset, target, name, name, error_handler) ?*/
+                memcpy(/*? base ?*/ + /*? offset ?*/, /*? ret ?*/, /*? target ?*/);
+                /*? offset ?*/ += /*? target ?*/;
+            /*- endif -*/
+
+            return /*? offset ?*/;
+        }
+    /*- endif -*/
+    /*- for p in output_parameters -*/
+        /*- set offset = c_symbol('offset') -*/
+        static unsigned /*? function ?*/_/*? p.name ?*/(unsigned /*? offset ?*/,
+        /*? show_input_parameter(p) ?*/
+        ) {
+
+            /*- set base = c_symbol('buffer_base') -*/
+            void * /*? base ?*/ UNUSED = (void*)(/*? buffer ?*/);
+
+            /*- if p.array -*/
+                /*- set target = 'sizeof(* %s_sz)' % p.name -*/
+                /*? err_if_buffer_length_exceeded(instance, interface, size, offset, target, p.name, name, error_handler) ?*/
+                memcpy(/*? base ?*/ + /*? offset ?*/, /*? p.name ?*/_sz, /*? target ?*/);
+                /*? offset ?*/ += /*? target ?*/;
+                /*- if p.type == 'string' -*/
+                    /*- set lcount = c_symbol() -*/
+                    for (int /*? lcount ?*/ = 0; /*? lcount ?*/ < * /*? p.name ?*/_sz; /*? lcount ?*/ ++) {
+                        /*- set strlen = c_symbol('strlen') -*/
+                        size_t /*? strlen ?*/ = strnlen((* /*? p.name ?*/)[/*? lcount ?*/], /*? size ?*/ - /*? offset ?*/);
+                        /*- set nulllen = '%s + 1' % strlen -*/
+                        /*? err_if_buffer_length_exceeded(instance, interface, size, offset, nulllen, p.name, name, error_handler) ?*/
+                        /* If we didn't trigger an error, we now know this strcpy is safe. */
+                        (void)strcpy(/*? base ?*/ + /*? offset ?*/, (* /*? p.name ?*/)[/*? lcount ?*/]);
+                        /*? offset ?*/ += /*? nulllen ?*/;
+                    }
+                /*- else -*/
+                    /*- set target = 'sizeof((* %s)[0]) * (* %s_sz)' % (p.name, p.name) -*/
+                    /*? err_if_buffer_length_exceeded(instance, interface, size, offset, target, p.name, name, error_handler) ?*/
+                    memcpy(/*? base ?*/ + /*? offset ?*/, * /*? p.name ?*/, /*? target ?*/);
+                    /*? offset ?*/ += /*? target ?*/;
+                /*- endif -*/
+            /*- elif p.type == 'string' -*/
+                /*- set strlen = c_symbol('strlen') -*/
+                size_t /*? strlen ?*/ = strnlen(* /*? p.name ?*/, /*? size ?*/ - /*? offset ?*/);
+                /*- set nulllen = '%s + 1' % strlen -*/
+                /*? err_if_buffer_length_exceeded(instance, interface, size, offset, nulllen, p.name, name, error_handler) ?*/
+                /* If we didn't trigger an error, we now know this strcpy is safe. */
+                (void)strcpy(/*? base ?*/ + /*? offset ?*/, * /*? p.name ?*/);
+                /*? offset ?*/ += /*? nulllen ?*/;
+            /*- else -*/
+                /*- set target = 'sizeof(* %s)' % p.name -*/
+                /*? err_if_buffer_length_exceeded(instance, interface, size, offset, target, p.name, name, error_handler) ?*/
+                memcpy(/*? base ?*/ + /*? offset ?*/, /*? p.name ?*/, /*? target ?*/);
+                /*? offset ?*/ += /*? target ?*/;
+            /*- endif -*/
+
+            return /*? offset ?*/;
+        }
+    /*- endfor -*/
+
+    static unsigned /*? function ?*/(
+    /*- set ret = c_symbol('return') -*/
+    /*- if return_type is not none -*/
+        /*- if return_type == 'string' -*/
+            char ** /*? ret ?*/
+        /*- else -*/
+            const /*? macros.show_type(return_type) ?*/ * /*? ret ?*/
+        /*- endif -*/
+        /*- if len(output_parameters) > 0 -*/
+            ,
+        /*- endif -*/
+    /*- endif -*/
+    /*? show_input_parameter_list(output_parameters, ['out', 'inout']) ?*/
+    /*- if return_type is none and len(output_parameters) == 0 -*/
+        void
+    /*- endif -*/
+    ) {
+
+        /*- set length = c_symbol('length') -*/
+        unsigned /*? length ?*/ = 0;
+
+        /*- if return_type is not none -*/
+            /*? length ?*/ = /*? function ?*/_/*? ret_fn ?*/(/*? length ?*/,
+            /*? ret ?*/
+            );
+            if (unlikely(/*? length ?*/ == UINT_MAX)) {
+                return UINT_MAX;
+            }
+        /*- endif -*/
+
+        /* Marshal output parameters. */
+        /*- for p in output_parameters -*/
+            /*? assert(isinstance(p.type, six.string_types)) ?*/
+            /*? length ?*/ = /*? function ?*/_/*? p.name ?*/(/*? length ?*/,
+            /*- if p.array -*/
+                /*? p.name ?*/_sz,
+            /*- endif -*/
+            /*? p.name ?*/
+            );
+            if (unlikely(/*? length ?*/ == UINT_MAX)) {
+                return UINT_MAX;
+            }
+        /*- endfor -*/
+
+        assert(/*? length ?*/ <= /*? size ?*/ &&
+            "uncaught buffer overflow while marshalling outputs for /*? name ?*/");
+
+        return /*? length ?*/;
+    }
+/*- endmacro -*/
