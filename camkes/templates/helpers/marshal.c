@@ -174,7 +174,7 @@
                     /*- set strlen = c_symbol('strlen') -*/
                     size_t /*? strlen ?*/ = strnlen(/*? ptr_arr ?*/[/*? lcount ?*/], /*? size ?*/ - /*? offset ?*/);
                     /*- set nulllen = '%s + 1' % strlen -*/
-                    /*? err_if_buffer_length_exceeded(instance, interface, size, offset, nullen, p.name, name, error_handler) ?*/
+                    /*? err_if_buffer_length_exceeded(instance, interface, size, offset, nulllen, p.name, name, error_handler) ?*/
                     /* If we didn't trigger an error, we now know this strcpy is safe. */
                     (void)strcpy(/*? base ?*/ + /*? offset ?*/, /*? ptr_arr ?*/[/*? lcount ?*/]);
                     /*? offset ?*/ += /*? nulllen ?*/;
