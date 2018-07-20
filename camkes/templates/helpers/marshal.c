@@ -898,3 +898,31 @@
         return 0;
     }
 /*- endmacro -*/
+
+/*# Emits a call to the C symbol that will unmarshal output parameters
+  # function: Name of function to invoke
+  # size: Name of a variable storing the byte length of the message
+  # input_parameters: All input parameters to this method
+  #*/
+/*- macro call_unmarshal_input(function, size, input_parameters) -*/
+    /*# Validate our arguments are the expected type #*/
+    /*? assert(isinstance(function, six.string_types)) ?*/
+    /*? assert(isinstance(size, six.string_types)) ?*/
+    /*? assert(isinstance(input_parameters, (list, tuple))) ?*/
+
+    /*? function ?*/(
+    /*? size ?*/
+    /*- if len(input_parameters) > 0 -*/
+        ,
+    /*- endif -*/
+    /*- for p in input_parameters -*/
+        /*- if p.array -*/
+            /*? p.name ?*/_sz_ptr,
+        /*- endif -*/
+        /*? p.name ?*/_ptr
+        /*- if not loop.last -*/
+            ,
+        /*- endif -*/
+    /*- endfor -*/
+    )
+/*- endmacro -*/

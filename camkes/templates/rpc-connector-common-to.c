@@ -263,10 +263,9 @@ int
                     /*- endfor -*/
 
                     /* Unmarshal parameters */
-                    /*- set function = '%s_unmarshal_inputs' % m.name -*/
                     /*- set input_parameters = list(filter(lambda('x: x.direction in [\'refin\', \'in\', \'inout\']'), m.parameters)) -*/
                     /*- set err = c_symbol('error') -*/
-                    int /*? err ?*/ = /*- include 'call-unmarshal-inputs.c' -*/;
+                    int /*? err ?*/ = /*? marshal.call_unmarshal_input('%s_unmarshal_inputs' % m.name, size, input_parameters) ?*/;
                     if (unlikely(/*? err ?*/ != 0)) {
                         /* Error in unmarshalling; return to event loop. */
                         /*? info ?*/ = /*? generate_seL4_Recv(options, ep,
