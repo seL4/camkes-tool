@@ -33,53 +33,38 @@
 
 /*# *** Internal helpers *** #*/
 
-/*- macro _badge_ep(ep) -*/
+/*- macro _allocate_badges(namespace) -*/
     /*# Find any badges that have been explicitly assigned for this connection. That
      *# is, any badge identifiers that are not valid for us to assign automatically
      *# to other ends.
       #*/
-    /*- set used_badges = set() -*/
+    /*- set namespace.badges = [] -*/
     /*- for e in me.parent.from_ends -*/
         /*- set badge_attribute = '%s_attributes' % e.interface.name -*/
         /*- set badge = configuration[e.instance.name].get(badge_attribute) -*/
         /*- if isinstance(badge, six.integer_types) -*/
-            /*- do used_badges.add(badge) -*/
+            /*- do namespace.badges.append(badge) -*/
         /*- elif isinstance(badge, six.string_types) and re.match('\\d+$', badge) is not none -*/
-            /*- do used_badges.add(int(badge)) -*/
+            /*- do namespace.badges.append(int(badge)) -*/
         /*- elif badge is not none -*/
             /*? raise(TemplateError('%s.%s must be either an integer or string encoding an integer' % (e.instance.name, badge_attribute), configuration.settings_dict[e.instance.name][badge_attribute])) ?*/
+        /*- else -*/
+            /*- do namespace.badges.append(none) -*/
         /*- endif -*/
     /*- endfor -*/
 
-    /*# Work out what badge each 'from' end of this connection would be given if no
-     *# badges were specified with attributes. Note that we need to dodge any
-     *# explicitly assigned badges.
-      #*/
-    /*- set default_allocated_badges = [] -*/
-    /*- set next = [0] -*/
+    /*# Now fill in any missing badges, skipping any already assigned badge values #*/
+    /*- set next = [1] -*/
     /*- for _ in me.parent.from_ends -*/
-        /*- for _ in used_badges -*/
-            /*- if next[0] in used_badges -*/
-                /*- do next.__setitem__(0, next[0] + 1) -*/
-            /*- endif -*/
-        /*- endfor -*/
-        /*? assert(next[0] not in used_badges) ?*/
-        /*- do default_allocated_badges.append(next[0]) -*/
-        /*- do next.__setitem__(0, next[0] + 1) -*/
+        /*- if namespace.badges[loop.index0] is none -*/
+            /*- for _ in namespace.badges -*/
+                /*- if next[0] in namespace.badges -*/
+                    /*- do next.__setitem__(0, next[0] + 1) -*/
+                /*- endif -*/
+            /*- endfor -*/
+            /*- do namespace.badges.__setitem__(loop.index0, next[0]) -*/
+        /*- endif -*/
     /*- endfor -*/
-
-    /*# Now we're ready to determine the actual badge for this end. #*/
-    /*- set badge_attribute = '%s_attributes' % me.interface.name -*/
-    /*- set badge = configuration[me.instance.name].get(badge_attribute) -*/
-    /*- if isinstance(badge, six.integer_types) -*/
-        /*- do cap_space.cnode[ep].set_badge(badge) -*/
-    /*- elif isinstance(badge, six.string_types) and re.match('\\d+$', badge) is not none -*/
-        /*- do cap_space.cnode[ep].set_badge(int(badge)) -*/
-    /*- elif badge is none -*/
-        /*- do cap_space.cnode[ep].set_badge(default_allocated_badges[me.parent.from_ends.index(me)]) -*/
-    /*- else -*/
-        /*? raise(TemplateError('%s.%s must be either an integer or string encoding an integer' % (me.instance.name, badge_attribute), configuration.settings_dict[me.instance.name][badge_attribute])) ?*/
-    /*- endif -*/
 /*- endmacro -*/
 
 /*- macro _establish_buffer(namespace, buffer, recv) -*/
@@ -158,6 +143,7 @@
   #  recv_buffer: Buffer to unmarsh outputs from
   #  recv_buffer_size: Size of the recv buffer
   #  recv_buffer_size_fixed: If fixed a received message has an 'unknown' size as the entire buffer is always transfered
+  #  badges: List of the badge assigned to each incoming edge of the connector
   #*/
 /*- macro establish_from_rpc(namespace, trust, buffer=none) -*/
     /*# Establish the buffer for message contents #*/
@@ -168,8 +154,9 @@
     /*- set ep_obj = alloc_obj('ep', seL4_EndpointObject) -*/
     /*- set ep = alloc_cap('ep_%s' % me.interface.name, ep_obj, write=True, grant=True) -*/
 
+    /*? _allocate_badges(namespace) ?*/
     /*# Badge our capability #*/
-    /*? _badge_ep(ep) ?*/
+    /*- do cap_space.cnode[ep].set_badge(namespace.badges[me.parent.from_ends.index(me)]) -*/
 
     /*# Store the EP for later messaging #*/
     /*- set namespace.ep = ep -*/
@@ -186,6 +173,8 @@
     /*# Ensure the endpoint is allocated #*/
     /*- set ep_obj = alloc_obj('ep', seL4_EndpointObject) -*/
     /*- set namespace.ep = alloc_cap('ep_%s' % me.interface.name, ep_obj, read=True, write=True) -*/
+
+    /*? _allocate_badges(namespace) ?*/
 
     /*? _make_get_sender_id_symbol(namespace, interface_name) ?*/
 
