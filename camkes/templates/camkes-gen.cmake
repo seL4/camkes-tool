@@ -151,6 +151,7 @@ endfunction(GeneratorValueOrDefault)
     # Variable for collecting generated files
     set(gen_files "")
     set(gen_sources "")
+    set(cakeml_sources "")
     # If no instance target exists declare it to simplify the logic of the generator expressions
     set (instance_target "CAmkESComponent_/*? i.type.name ?*/_instance_/*? i.name ?*/")
     if (NOT (TARGET ${instance_target}))
