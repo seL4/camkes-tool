@@ -24,10 +24,6 @@ include("${CMAKE_CURRENT_LIST_DIR}/projects/seL4_tools/cmake-tool/base.cmake")
 # Now define our CAmkES extensions
 include("${CMAKE_CURRENT_LIST_DIR}/tools/camkes/camkes.cmake")
 
-# Define CapDL pieces. These do *not* get included when we define the rest of the projects
-# as we want to include them here as they define additional variables and helpers we need
-add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/projects/capdl/capdl-loader-app")
-
 # Include all the other projects
 add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/tools/camkes/libsel4camkes")
 add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/tools/camkes/libcamkescakeml")
