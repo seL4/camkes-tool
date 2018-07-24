@@ -31,7 +31,10 @@ TEMPLATES = {
     'seL4':{
         # Type
         Guard(lambda x: isinstance(x, Instance)):{
-            'source':'component.template.c',
+            'source':'component.common.c',
+            'c_environment_source':'component.environment.c',
+            'cakeml_start_source':'component.environment.start.cakeml',
+            'cakeml_end_source':'component.environment.end.cakeml',
             'header':'component.template.h',
             'simple':'component.simple.c',
             'rumprun':'component.rumprun.c',
@@ -141,13 +144,12 @@ TEMPLATES = {
         'Makefile':'Makefile',
         'camkes-gen.cmake':'camkes-gen.cmake',
         'capdl':'capdl-spec.cdl',
+        # Message passing Isabelle formalism
+        'cimp-base':'cimp-base.thy',
+        # Isabelle ADL formalism
+        'arch-spec':'arch-definitions.thy',
+        # CapDL generator correspondence proofs
         'label-mapping':'label-mapping.thy',
-    },
-    'CIMP':{ # Message passing Isabelle formalism
-        'base':'cimp-base.thy',
-    },
-    'architecture-semantics':{ # Isabelle ADL formalism
-        'theory':'arch-definitions.thy',
     },
     'autocorres':{ # AutoCorres-based C code proofs
         Guard(lambda x: isinstance(x, Connection) and x.type.name == 'seL4NotificationNative'):{

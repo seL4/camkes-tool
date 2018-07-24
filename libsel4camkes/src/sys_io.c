@@ -39,6 +39,7 @@
 
 static muslcsys_syscall_t original_sys_close = NULL;
 static muslcsys_syscall_t original_sys_read = NULL;
+static muslcsys_syscall_t original_sys_write = NULL;
 
 int sock_close(int fd) __attribute__((weak));
 static long
@@ -53,7 +54,12 @@ camkes_sys_close(va_list ap)
             sock_close(*(int*)fds->data);
         }
     }
-    long ret = original_sys_close(copy);
+    long ret;
+    if (original_sys_close) {
+        ret = original_sys_close(copy);
+    } else {
+        ret = -ENOSYS;
+    }
     va_end(copy);
     return ret;
 }
@@ -61,6 +67,8 @@ camkes_sys_close(va_list ap)
 int sock_write(int sockfd, int count) __attribute__((weak));
 static long camkes_sys_write(va_list ap)
 {
+    va_list copy;
+    va_copy(copy, ap);
     int fd = va_arg(ap, int);
     void *buf = va_arg(ap, void*);
     size_t count = va_arg(ap, size_t);
@@ -74,7 +82,25 @@ static long camkes_sys_write(va_list ap)
             return sock_write(sockfd, size);
         }
     }
-    return -ENOSYS;
+    long ret;
+    if (original_sys_write) {
+        ret = original_sys_write(copy);
+    } else {
+        // redirect to writev as a last resort
+        struct iovec io;
+        io.iov_base = buf;
+        io.iov_len = count;
+        ret = writev(fd, &io, 1);
+        // as the syscall implementation we expect to return the error directly and have
+        // our caller set errno or not. writev, however, is documented as putting its error
+        // code in errno. So if writev returns an error we need to get the error out of errno
+        // and return it up, so that it can ultimately get put back into errno
+        if (ret == -1) {
+            ret = errno;
+        }
+    }
+    va_end(copy);
+    return ret;
 }
 
 int sock_read(int sockfd, int count) __attribute__((weak));
@@ -95,7 +121,12 @@ static long camkes_sys_read(va_list ap)
             return ret;
         }
     }
-    long ret = original_sys_read(copy);
+    long ret;
+    if (original_sys_read) {
+        ret = original_sys_read(copy);
+    } else {
+        ret = -ENOSYS;
+    }
     va_end(copy);
     return ret;
 }
@@ -124,7 +155,7 @@ void camkes_install_io_syscalls()
     assert(original_sys_close);
     original_sys_read = muslcsys_install_syscall(__NR_read, camkes_sys_read);
     assert(original_sys_read);
-    muslcsys_install_syscall(__NR_write, camkes_sys_write);
+    original_sys_write = muslcsys_install_syscall(__NR_write, camkes_sys_write);
 #ifdef __NR_fcntl64
     muslcsys_install_syscall(__NR_fcntl64, camkes_sys_fcntl64);
 #endif

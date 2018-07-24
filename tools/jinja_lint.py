@@ -70,7 +70,7 @@ class HighTokeniser(Tokeniser):
     '''
     def __init__(self, filename):
         super(HighTokeniser, self).__init__(filename)
-        self.regex = re.compile(r'(?:(\n)|/\*-[-\+]?[\s]*([\S]+)\s(.*?)\s*[-\+]?-\*/)',
+        self.regex = re.compile(r'(?:(\n)|/\*-[-\+]?[\s]*([^\s(]+)(?:\([^)]*\))?\s(.*?)\s*[-\+]?-\*/)',
             flags=re.MULTILINE)
 
 def main():
@@ -117,7 +117,7 @@ def main():
     SET_MATCH = re.compile(r'.*?\S\s*=\s*\S')
 
     for token, content in t:
-        if token in ['if', 'for', 'macro']:
+        if token in ['if', 'for', 'macro', 'call']:
             stack.append(token)
         elif token == 'endif':
             if len(stack) == 0:
@@ -170,6 +170,17 @@ def main():
             if content != '':
                 raise SyntaxError('%s:%d: trailing content \'%s\' in an endmacro '
                     'statement' % (sys.argv[1], t.line, content))
+        elif token == 'endcall':
+            if len(stack) == 0:
+                raise SyntaxError('%s:%d: endcall while not inside a block' %
+                    (sys.argv[1], t.line))
+            context = stack.pop()
+            if context != 'call':
+                raise SyntaxError('%s:%d: endcall while inside a %s block' %
+                    (sys.argv[1], t.line, context))
+            if content != '':
+                raise SyntaxError('%s:%d: trailing content \'%s\' in an endcall '
+                    'statement' % (sys.argv[1], t.line, content))
         elif token == 'break':
             if 'for' not in stack:
                 raise SyntaxError('%s:%d: break while not inside a for block' %
@@ -192,7 +203,7 @@ def main():
             if SET_MATCH.match(content) is None:
                 raise SyntaxError('%s:%d: seemingly incorrect expression '
                     '\'%s\' in set statement' % (sys.argv[1], t.line, content))
-        elif token in ['import', 'include']:
+        elif token in ['import', 'include', 'from']:
             # Ignore; allowable anywhere.
             pass
         else:

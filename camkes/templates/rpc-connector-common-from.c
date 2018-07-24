@@ -10,6 +10,11 @@
  * @TAG(DATA61_BSD)
  */
 
+/*- import 'helpers/error.c' as error with context -*/
+/*- import 'helpers/array_check.c' as array_check with context -*/
+/*- from 'helpers/tls.c' import make_tls_symbols -*/
+/*- import 'helpers/marshal.c' as marshal with context -*/
+
 /*# C fragment that represents the base of the buffer used for storing IPC messages #*/
 /*? assert(isinstance(base, six.string_types)) ?*/
 /*? assert(isinstance(buffer_size, six.string_types)) ?*/
@@ -92,7 +97,7 @@
 
 /* Interface-specific error handling */
 /*- set error_handler = '%s_error_handler' % me.interface.name -*/
-/*- include 'error-handler.c' -*/
+/*? error.make_error_handler(interface, error_handler) ?*/
 
 /*# Conservative calculation of the numbers of threads in this component. #*/
 /*- set thread_count = (1 if me.instance.type.control else 0) + len(me.instance.type.provides) + len(me.instance.type.uses) + len(me.instance.type.emits) + len(me.instance.type.consumes) -*/
@@ -109,7 +114,7 @@
   /*- set userspace_buffer_ep = None -*/
 /*- endif -*/
 
-/*- include 'array-typedef-check.c' -*/
+/*? array_check.make_array_typedef_check_symbols(me.interface.type) ?*/
 
 int /*? me.interface.name ?*/__run(void) {
     /* This function is never actually executed, but we still emit it for the
@@ -118,41 +123,24 @@ int /*? me.interface.name ?*/__run(void) {
     UNREACHABLE();
 
     /*# Check any typedefs we have been given are not arrays. #*/
-    /*- include 'call-array-typedef-check.c' -*/
+    /*? array_check.perform_array_typedef_check(me.interface.type) ?*/
     return 0;
 }
 
 /*- for i, m in enumerate(me.interface.type.methods) -*/
 
-/*- set name = m.name -*/
-/*- set function = '%s_marshal_inputs' % m.name -*/
-/*- set buffer = base -*/
-/*- set size = buffer_size -*/
-/*- set method_index = i -*/
 /*- set input_parameters = list(filter(lambda('x: x.direction in [\'refin\', \'in\', \'inout\']'), m.parameters)) -*/
-/*- include 'marshal-inputs.c' -*/
+/*? marshal.make_marshal_input_symbols(instance, interface, m.name, '%s_marshal_inputs' % m.name, base, buffer_size, i, methods_len, input_parameters, error_handler, threads) ?*/
 
-/*- set function = '%s_unmarshal_outputs' % m.name -*/
 /*- set output_parameters = list(filter(lambda('x: x.direction in [\'out\', \'inout\']'), m.parameters)) -*/
-/*- set return_type = m.return_type -*/
-/*- set allow_trailing_data = userspace_ipc -*/
-/*- include 'unmarshal-outputs.c' -*/
+/*? marshal.make_unmarshal_output_symbols(instance, interface, m.name, '%s_unmarshal_outputs' % m.name, base, i, output_parameters, m.return_type, error_handler, userspace_ipc) ?*/
 
 /*- set ret_tls_var = c_symbol('ret_tls_var_from') -*/
 /*- if m.return_type is not none -*/
   /*# We will need to take the address of a value representing this return
    *# value at some point. Construct a TLS variable.
    #*/
-  /*- set name = ret_tls_var -*/
-  /*- if m.return_type == 'string' -*/
-    /*- set array = False -*/
-    /*- set type = 'char*' -*/
-    /*- include 'thread_local.c' -*/
-  /*- else -*/
-    /*- set array = False -*/
-    /*- set type = macros.show_type(m.return_type) -*/
-    /*- include 'thread_local.c' -*/
-  /*- endif -*/
+  /*? make_tls_symbols(macros.show_type(m.return_type), ret_tls_var, threads, False) ?*/
 /*- endif -*/
 
 /*- if m.return_type is not none -*/
@@ -161,50 +149,7 @@ int /*? me.interface.name ?*/__run(void) {
     void
 /*- endif -*/
 /*? me.interface.name ?*/_/*? m.name ?*/(
-/*- for p in m.parameters -*/
-  /*- if p.direction == 'in' -*/
-    /*- if p.array -*/
-      size_t /*? p.name ?*/_sz,
-      /*- if p.type == 'string' -*/
-        char **
-      /*- else -*/
-        const /*? macros.show_type(p.type) ?*/ *
-      /*- endif -*/
-    /*- elif p.type == 'string' -*/
-      const char *
-    /*- else -*/
-      /*? macros.show_type(p.type) ?*/
-    /*- endif -*/
-    /*? p.name ?*/
-  /*- else -*/
-    /*? assert(p.direction in ['refin', 'out', 'inout']) ?*/
-    /*- if p.array -*/
-      /*- if p.direction == 'refin' -*/
-        const
-      /*- endif -*/
-      size_t * /*? p.name ?*/_sz,
-      /*- if p.type == 'string' -*/
-        char ***
-      /*- else -*/
-        /*? macros.show_type(p.type) ?*/ **
-      /*- endif -*/
-    /*- elif p.type == 'string' -*/
-      char **
-    /*- else -*/
-      /*- if p.direction == 'refin' -*/
-        const
-      /*- endif -*/
-      /*? macros.show_type(p.type) ?*/ *
-    /*- endif -*/
-    /*? p.name ?*/
-  /*- endif -*/
-  /*- if not loop.last -*/
-    ,
-  /*- endif -*/
-/*- endfor -*/
-/*- if len(m.parameters) == 0 -*/
-  void
-/*- endif -*/
+/*? marshal.show_input_parameter_list(m.parameters, ['in', 'refin', 'out', 'inout']) ?*/
 ) {
 
     /*- if len(me.parent.from_ends) == 1 and len(me.parent.to_ends) == 1 and len(me.parent.to_end.instance.type.provides + me.parent.to_end.instance.type.uses + me.parent.to_end.instance.type.consumes + me.parent.to_end.instance.type.mutexes + me.parent.to_end.instance.type.semaphores) <= 1 and options.fspecialise_syscall_stubs and methods_len == 1 and m.return_type is none and len(m.parameters) == 0 -*/
@@ -262,13 +207,8 @@ int /*? me.interface.name ?*/__run(void) {
     /*- set ret_val = c_symbol('return') -*/
     /*- set ret_ptr = c_symbol('return_ptr') -*/
     /*- if m.return_type is not none -*/
-      /*- if m.return_type == 'string' -*/
-        char * /*? ret_val ?*/ UNUSED;
-        char ** /*? ret_ptr ?*/ = TLS_PTR(/*? ret_tls_var ?*/, /*? ret_val ?*/);
-      /*- else -*/
-        /*? macros.show_type(m.return_type) ?*/ /*? ret_val ?*/ UNUSED;
-        /*? macros.show_type(m.return_type) ?*/ * /*? ret_ptr ?*/ = TLS_PTR(/*? ret_tls_var ?*/, /*? ret_val ?*/);
-      /*- endif -*/
+      /*? macros.show_type(m.return_type) ?*/ /*? ret_val ?*/ UNUSED;
+      /*? macros.show_type(m.return_type) ?*/ * /*? ret_ptr ?*/ = TLS_PTR(/*? ret_tls_var ?*/, /*? ret_val ?*/);
     /*- endif -*/
 
     /*- if userspace_buffer_ep is none -*/
@@ -286,9 +226,8 @@ int /*? me.interface.name ?*/__run(void) {
     /*- endif -*/
 
     /* Marshal all the parameters */
-    /*- set function = '%s_marshal_inputs' % m.name -*/
     /*- set length = c_symbol('length') -*/
-    unsigned /*? length ?*/ = /*- include 'call-marshal-inputs.c' -*/;
+    unsigned /*? length ?*/ = /*? marshal.call_marshal_input('%s_marshal_inputs' % m.name, input_parameters) ?*/;
     if (unlikely(/*? length ?*/ == UINT_MAX)) {
         /* Error in marshalling; bail out. */
         /*- if m.return_type is not none -*/
@@ -324,10 +263,8 @@ int /*? me.interface.name ?*/__run(void) {
     /*- endif -*/
 
     /* Unmarshal the response */
-    /*- set function = '%s_unmarshal_outputs' % m.name -*/
-    /*- set return_type = m.return_type -*/
     /*- set err = c_symbol('error') -*/
-    int /*? err ?*/ = /*- include 'call-unmarshal-outputs.c' -*/;
+    int /*? err ?*/ = /*? marshal.call_unmarshal_output('%s_unmarshal_outputs' % m.name, size, output_parameters, m.return_type, ret_ptr) ?*/;
     if (unlikely(/*? err ?*/ != 0)) {
         /* Error in unmarshalling; bail out. */
         /*- if m.return_type is not none -*/

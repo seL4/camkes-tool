@@ -138,7 +138,8 @@ setting: id '\.' id (('=' item) | ('<-' attribute_reference)) ';';
 attribute_reference: id ('\.' id)*;
 
 connector_decl: CONNECTOR id? connector_defn;
-connector_defn: '\{' FROM hardware_bare? connector_end_type connector_properties ';' TO hardware_bare? connector_end_type connector_properties ';' '\}';
+connector_defn: '\{' FROM hardware_bare? connector_end_type connector_properties ';' TO hardware_bare? connector_end_type connector_properties ';'
+                     (attribute)* '\}';
 hardware_bare: HARDWARE;
 connector_ref: reference | connector_defn;
 connector_end_type: DATAPORT_TYPE | EVENT_TYPE | PROCEDURE_TYPE

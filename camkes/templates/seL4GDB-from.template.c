@@ -17,7 +17,7 @@
 /*- set fault_obj = alloc_obj("ep_fault", seL4_EndpointObject, read=True, write=True, grant=True) -*/
  
 /*- for cap in cap_space.cnode: -*/
-    /*- if isinstance(cap_space.cnode[cap].referent, capdl.Object.TCB): -*/
+    /*- if isinstance(cap_space.cnode[cap].referent, capdl.TCB): -*/
         /*- set cap_name = cap_space.cnode[cap].referent.name-*/
         /*- do thread_caps.append((cap, cap_name)) -*/
     /*- endif -*/

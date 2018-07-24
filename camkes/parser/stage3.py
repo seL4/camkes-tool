@@ -313,7 +313,8 @@ def _lift_connector_decl(location, *args):
     return Connector(id, from_type, to_type, connector_defn.from_template,
         connector_defn.to_template, connector_defn.from_threads,
         connector_defn.to_threads, connector_defn.from_hardware,
-        connector_defn.to_hardware, location=location)
+        connector_defn.to_hardware, connector_defn.attributes,
+        location=location)
 
 def _lift_connector_defn(location, *args):
 
@@ -324,6 +325,7 @@ def _lift_connector_defn(location, *args):
     to_threads = 1
     from_hardware = False
     to_hardware = False
+    attributes = []
 
     def thread_count(value):
         '''
@@ -364,16 +366,24 @@ def _lift_connector_defn(location, *args):
     while len(args) > 0:
         if isinstance(args[0], numbers.Number):
             to_threads, args= thread_count(args[0]), args[1:]
-        else:
+        elif isinstance(args[0], six.string_types):
             assert args[0].startswith('"'), 'unexpected child of ' \
                 'connector definition (bug in grammar?)'
             to_template, args = args[0][1:-1], args[1:]
+        else:
+            break
+
+    while len(args) > 0:
+        assert isinstance(args[0], Attribute), 'unexpected child of ' \
+        'connector definition (bug in grammar?)'
+        attrib, args = args[0], args[1:]
+        attributes.append(attrib)
 
     return Connector(from_type=from_type, to_type=to_type,
         from_template=from_template, to_template=to_template,
         from_threads=from_threads, to_threads=to_threads,
         from_hardware=from_hardware, to_hardware=to_hardware,
-        location=location)
+        attributes=attributes, location=location)
 
 def _lift_connector_ref(location, arg):
     if isinstance(arg, Connector):

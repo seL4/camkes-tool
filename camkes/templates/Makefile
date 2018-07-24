@@ -68,10 +68,11 @@ ${BUILD_DIR}/camkes-gen.mk: /*? ' '.join(imported) ?*/
 
 # Generate the policy label mapping if the user requested it.
 ifeq (${CONFIG_CAMKES_LABEL_MAPPING},y)
-LABEL_MAPPING=$(dir $(firstword ${TARGETS}))/CapDLLabels.thy
+LABEL_MAPPING=$(abspath ${BUILD_DIR})/thy/CapDLLabels.thy
 ${TARGETS}: ${LABEL_MAPPING}
 ${LABEL_MAPPING}: /*? ' '.join(imported) ?*/ /*- for g in groups -*/ /*- set p = Perspective(group=g) -*/ ${SEL4_BINDIR}//*? p['elf_name'] ?*/ /*- endfor -*/
 	@echo " [GEN] $(notdir $@)"
+	$(Q)mkdir -p $(dir $@)
 	$(Q)camkes.sh \
         ${CAMKES_FLAGS} \
         /*- for g in groups -*/ \
@@ -336,14 +337,14 @@ endif
 
 # Architectural formalisation.
 /*- set arch_thy = '$(abspath ${BUILD_DIR})/thy/ArchSpec.thy' -*/
-/*? rule_gen(arch_thy, ' '.join(imported), 'theory', platform='architecture-semantics') ?*/
+/*? rule_gen(arch_thy, ' '.join(imported), 'arch-spec', platform='seL4') ?*/
 ifeq (${CONFIG_CAMKES_ARCH_THY},y)
 ${TARGETS}: /*? arch_thy ?*/
 endif
 
 # Behavioural formalisation.
 /*- set thy = '$(abspath ${BUILD_DIR})/thy/CimpBase.thy' -*/
-/*? rule_gen(thy, ' '.join(imported), 'base', platform='CIMP') ?*/
+/*? rule_gen(thy, ' '.join(imported), 'cimp-base', platform='seL4') ?*/
 ifeq (${CONFIG_CAMKES_CIMP_THY},y)
 ${TARGETS}: /*? thy ?*/
 endif

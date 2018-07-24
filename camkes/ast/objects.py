@@ -553,10 +553,11 @@ class Connection(ASTObject):
                 % (self.name, self.type.name), self)
         types = set([e.interface.type for e in self.from_ends] +
             [e.interface.type for e in self.to_ends])
-        if len(types) > 1:
+        interface_checking_attrib = self.type.get_attribute("disable_interface_type_checking")
+        if len(types) > 1 and (not interface_checking_attrib or not interface_checking_attrib.default):
             raise ASTError('multiple conflicting types for the '
                 'interfaces of connection \'%s\': %s' % (self.name,
-                ', '.join(types)), self)
+                ', '.join([(t.name if hasattr(t,'name') else type(t).__name__) for t in types])), self)
         for f in self.from_ends:
             if not isinstance(f.interface, Emits) and not \
                     isinstance(f.interface, Uses) and not \
@@ -1282,7 +1283,7 @@ class BinarySemaphore(ASTObject):
 class Connector(ASTObject):
     def __init__(self, name=None, from_type=None, to_type=None,
             from_template=None, to_template=None, from_threads=1, to_threads=1,
-            from_hardware=False, to_hardware=False, location=None):
+            from_hardware=False, to_hardware=False, attributes=None, location=None):
         assert from_type is None or (isinstance(from_type, six.string_types) and \
             from_type in ('Event', 'Procedure', 'Dataport', 'Events',
             'Procedures', 'Dataports'))
@@ -1297,6 +1298,8 @@ class Connector(ASTObject):
         assert isinstance(to_threads, six.integer_types) and to_threads >= 0
         assert isinstance(from_hardware, bool)
         assert isinstance(to_hardware, bool)
+        assert attributes is None or (isinstance(attributes, (list, tuple)) and
+            all(isinstance(x, Attribute) for x in attributes))
         super(Connector, self).__init__(location)
         TRANSLATION = {
             'Event':'Event',
@@ -1317,6 +1320,13 @@ class Connector(ASTObject):
         self._to_threads = to_threads
         self._from_hardware = from_hardware
         self._to_hardware = to_hardware
+        self._attributes = attributes
+
+    def get_attribute(self, attribute_name):
+        for attrib in self.attributes:
+            if attrib.name == attribute_name:
+                return attrib
+        return None
 
     @property
     def name(self):
@@ -1434,6 +1444,18 @@ class Connector(ASTObject):
         if self.frozen:
             raise TypeError('you cannot set to hardware of a frozen connector')
         self._to_hardware = value
+
+    @property
+    def attributes(self):
+        return self._attributes
+    @attributes.setter
+    def attributes(self, value):
+        assert isinstance(value, (list, tuple)) and \
+            all(isinstance(x, Attribute) for x in value)
+        if self.frozen:
+            raise TypeError('you cannot change the attributes of a frozen '
+                'connector')
+        self._attributes = value
 
 class Group(MapLike):
     child_fields = ('instances',)

@@ -10,6 +10,8 @@
  * @TAG(DATA61_BSD)
  */
 
+/*- import 'helpers/error.c' as error with context -*/
+
 #include <camkes/error.h>
 #include <camkes/tls.h>
 #include <limits.h>
@@ -23,9 +25,8 @@
 /*? macros.show_includes(me.instance.type.includes) ?*/
 
 /* Interface-specific error handling. */
-/*- set interface = me.interface.name -*/
 /*- set error_handler = '%s_error_handler' % me.interface.name -*/
-/*- include 'error-handler.c' -*/
+/*? error.make_error_handler(me.interface.name, error_handler) ?*/
 
 /*- set id = me.parent.to_ends.index(me) -*/
 

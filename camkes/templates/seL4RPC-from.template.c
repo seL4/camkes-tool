@@ -10,6 +10,11 @@
  * @TAG(DATA61_BSD)
  */
 
+/*- import 'helpers/error.c' as error with context -*/
+/*- import 'helpers/array_check.c' as array_check with context -*/
+/*- import 'helpers/marshal.c' as marshal with context -*/
+/*- from 'helpers/tls.c' import make_tls_symbols -*/
+
 #include <sel4/sel4.h>
 #include <assert.h>
 #include <limits.h>
@@ -27,7 +32,24 @@
 /*? macros.show_includes(me.instance.type.includes) ?*/
 /*? macros.show_includes(me.interface.type.includes) ?*/
 
-/*- set ep = alloc('ep', seL4_EndpointObject, read=True, write=True) -*/
+/*# HACK: The CapDL verification is based on a future, proposed version of
+ *# seL4, wherein only Write is required on an endpoint to send to it. This
+ *# allows a more principled information flow analysis. The obvious question is,
+ *# why not use seL4RPCCall, a connector which already does not require Read on
+ *# the sender's side? The answer is that this connector requires Grant, which,
+ *# in the access control model puts sender and receiver in the same domain
+ *# which is the exact opposite of what we want.
+ *#
+ *# To get around this mess, we detect if the user is targeting the CapDL
+ *# verification and, if so, do not provide Read on this capability. Note that
+ *# the resulting system will not run correctly.
+ #*/
+/*- if os.environ.get('CONFIG_CAMKES_LABEL_MAPPING', '') == 'y' -*/
+  /*- set read = False -*/
+/*- else -*/
+  /*- set read = True -*/
+/*- endif -*/
+/*- set ep = alloc('ep', seL4_EndpointObject, read=read, write=True) -*/
 
 /*- set BUFFER_BASE = c_symbol('BUFFER_BASE') -*/
 #define /*? BUFFER_BASE ?*/ ((void*)&seL4_GetIPCBuffer()->msg[0])
@@ -39,7 +61,7 @@
 
 /* Interface-specific error handling */
 /*- set error_handler = '%s_error_handler' % me.interface.name -*/
-/*- include 'error-handler.c' -*/
+/*? error.make_error_handler(interface, error_handler) ?*/
 
 /*- if not options.frpc_lock_elision or 1 + len(me.instance.type.provides) + len(me.instance.type.consumes) > 1 -*/
     /*# See below for an explanation of this conditional. #*/
@@ -50,7 +72,7 @@
 
 TIMING_DEFS(/*? me.interface.name ?*/, "glue code entry", "lock acquired", "marshalling done", "communication done", "lock released", "unmarshalling done")
 
-/*- include 'array-typedef-check.c' -*/
+/*? array_check.make_array_typedef_check_symbols(me.interface.type) ?*/
 
 int /*? me.interface.name ?*/__run(void) {
     /* This function is never actually executed, but we still emit it for the
@@ -59,7 +81,7 @@ int /*? me.interface.name ?*/__run(void) {
     UNREACHABLE();
 
     /*# Check any typedefs we have been given are not arrays. #*/
-    /*- include 'call-array-typedef-check.c' -*/
+    /*? array_check.perform_array_typedef_check(me.interface.type) ?*/
     return 0;
 }
 
@@ -82,37 +104,16 @@ int /*? me.interface.name ?*/__run(void) {
     #define _TIMESTAMP(x) /* nothing */
 /*- endif -*/
 
-/*- set name = m.name -*/
-/*- set function = '%s_marshal_inputs' % m.name -*/
-/*- set buffer = BUFFER_BASE -*/
-/*- set size = 'seL4_MsgMaxLength * sizeof(seL4_Word)' -*/
-/*- set method_index = i -*/
-/*- include 'marshal-inputs.c' -*/
+/*? marshal.make_marshal_input_symbols(instance, interface, m.name, '%s_marshal_inputs' % m.name, BUFFER_BASE, 'seL4_MsgMaxLength * sizeof(seL4_Word)', i, methods_len, input_parameters, error_handler, threads) ?*/
 
-/*- set name = m.name -*/
-/*- set function = '%s_unmarshal_outputs' % m.name -*/
-/*- set buffer = BUFFER_BASE -*/
-/*- set size = 'seL4_MsgMaxLength * sizeof(seL4_Word)' -*/
-/*- set method_index = i -*/
-/*- set return_type = m.return_type -*/
-/*- set allow_trailing_data = False -*/
-/*- include 'unmarshal-outputs.c' -*/
+/*? marshal.make_unmarshal_output_symbols(instance, interface, m.name, '%s_unmarshal_outputs' % m.name, BUFFER_BASE, i, output_parameters, m.return_type, error_handler, False) ?*/
 
 /*- set ret_tls_var = c_symbol('ret_tls_var_from') -*/
 /*- if m.return_type is not none -*/
   /*# We will need to take the address of a value representing this return
    *# value at some point. Construct a TLS variable.
    #*/
-  /*- set name = ret_tls_var -*/
-  /*- if m.return_type == 'string' -*/
-    /*- set array = False -*/
-    /*- set type = 'char*' -*/
-    /*- include 'thread_local.c' -*/
-  /*- else -*/
-    /*- set array = False -*/
-    /*- set type = macros.show_type(m.return_type) -*/
-    /*- include 'thread_local.c' -*/
-  /*- endif -*/
+  /*? make_tls_symbols(macros.show_type(m.return_type), ret_tls_var, threads, False) ?*/
 /*- endif -*/
 
 /*- if m.return_type is not none -*/
@@ -199,9 +200,8 @@ int /*? me.interface.name ?*/__run(void) {
       /*- endif -*/
     /*- endif -*/
 
-    /*- set function = '%s_marshal_inputs' % m.name -*/
     /*- set length = c_symbol('length') -*/
-    unsigned /*? length ?*/ = /*- include 'call-marshal-inputs.c' -*/;
+    unsigned /*? length ?*/ = /*? marshal.call_marshal_input('%s_marshal_inputs' % m.name, input_parameters) ?*/;
     if (unlikely(/*? length ?*/ == UINT_MAX)) {
         /* Error in marshalling; bail out. */
         /*- if m.return_type is not none -*/
@@ -244,10 +244,8 @@ int /*? me.interface.name ?*/__run(void) {
     /*- set size = c_symbol('size') -*/
     unsigned /*? size ?*/ = seL4_MessageInfo_get_length(/*? info ?*/) * sizeof(seL4_Word);
 
-    /*- set function = '%s_unmarshal_outputs' % m.name -*/
-    /*- set return_type = m.return_type -*/
     /*- set err = c_symbol('error') -*/
-    int /*? err ?*/ = /*- include 'call-unmarshal-outputs.c' -*/;
+    int /*? err ?*/ = /*? marshal.call_unmarshal_output('%s_unmarshal_outputs' % m.name, size, output_parameters, m.return_type, ret_ptr) ?*/;
     if (unlikely(/*? err ?*/ != 0)) {
         /* Error in unmarshalling; bail out. */
         /*- if m.return_type is not none -*/

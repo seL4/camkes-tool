@@ -46,7 +46,7 @@ from camkes.runner.Renderer import Renderer
 from camkes.runner.Filters import CAPDL_FILTERS
 
 import argparse, collections, functools, jinja2, locale, numbers, os, re, \
-    six, sqlite3, string, traceback, pickle, errno
+    six, sqlite3, string, sys, traceback, pickle, errno
 from capdl import seL4_CapTableObject, ObjectAllocator, CSpaceAllocator, \
     ELF, lookup_architecture
 
@@ -64,7 +64,7 @@ class ParserOptions():
 
 class FilterOptions():
     def __init__(self, architecture, realtime, largeframe, largeframe_dma, default_priority,
-            default_max_priority, default_criticality, default_max_criticality, default_affinity,
+            default_max_priority, default_affinity,
             default_period, default_budget, default_data, default_size_bits, debug_fault_handlers,
             fprovide_tcb_caps):
         self.architecture = architecture
@@ -73,8 +73,6 @@ class FilterOptions():
         self.largeframe_dma = largeframe_dma
         self.default_priority = default_priority
         self.default_max_priority = default_max_priority
-        self.default_criticality = default_criticality
-        self.default_max_criticality = default_max_criticality
         self.default_affinity = default_affinity
         self.default_period = default_period
         self.default_budget = default_budget
@@ -206,10 +204,6 @@ def parse_args(argv, out, err):
         help='Default component thread priority.')
     parser.add_argument('--default-max-priority', type=int, default=254,
         help='Default component thread maximum priority.')
-    parser.add_argument('--default-criticality', type=int, default=1,
-        help='Default component thread criticality.')
-    parser.add_argument('--default-max-criticality', type=int, default=1,
-        help='Default component thread maximum criticality.')
     parser.add_argument('--default-affinity', type=int, default=0,
         help='Default component thread affinity.')
     parser.add_argument('--default-period', type=int, default=10000,
@@ -295,6 +289,12 @@ class ShmemFactory:
        A callable class is used instead of a lambda to simplify serializing.'''
     def __call__(self):
         return collections.defaultdict(list)
+
+def rendering_error(item, exn):
+    '''Helper to format an error message for template rendering errors.'''
+    tb = safe_decode(traceback.format_tb(sys.exc_info()[2]))
+    return (['While rendering %s: %s' % (item, line) for line in exn.args] +
+            ''.join(tb).splitlines())
 
 def main(argv, out, err):
 
@@ -604,15 +604,10 @@ def main(argv, out, err):
             except Exception as inst:
                 die('While opening \'%s\': %s' % (e, inst))
 
-        # It's only relevant to run these filters if the final target is CapDL.
-        # Note, this will no longer be true if we add any other templates that
-        # depend on a fully formed CapDL spec. Guarding this loop with an if
-        # is just an optimisation and the conditional can be removed if
-        # desired.
         filteroptions = FilterOptions(options.architecture, options.realtime, options.largeframe,
             options.largeframe_dma, options.default_priority, options.default_max_priority,
-            options.default_criticality, options.default_max_criticality, options.default_affinity,
-            options.default_period, options.default_budget, options.default_data, options.default_size_bits,
+            options.default_affinity, options.default_period, options.default_budget,
+            options.default_data, options.default_size_bits,
             options.debug_fault_handlers, options.fprovide_tcb_caps)
         for f in CAPDL_FILTERS:
             try:
@@ -638,7 +633,7 @@ def main(argv, out, err):
                     save(item, g)
                     done(g, outfile, item)
             except TemplateError as inst:
-                die(['While rendering %s: %s' % (item, line) for line in inst.args])
+                die(rendering_error(item, inst))
 
     if options.item[0] in ('capdl', 'label-mapping') and options.data_structure_cache_dir is not None \
             and len(options.outfile) == 1:
@@ -688,6 +683,8 @@ def main(argv, out, err):
             pds[i.address_space] = pd
 
         for t in ('%s/source' % i.name, '%s/header' % i.name,
+                '%s/c_environment_source' % i.name,
+                '%s/cakeml_start_source' % i.name, '%s/cakeml_end_source' % i.name,
                 '%s/linker' % i.name):
             try:
                 template = templates.lookup(t, i)
@@ -703,7 +700,7 @@ def main(argv, out, err):
                         done(g, outfile, item)
                         break
             except TemplateError as inst:
-                die(['While rendering %s: %s' % (i.name, line) for line in inst.args])
+                die(rendering_error(i.name, inst))
 
     # Instantiate the per-connection files.
     for c in assembly.composition.connections:
@@ -724,7 +721,7 @@ def main(argv, out, err):
                             cspaces[e.instance.address_space], shmem, kept_symbols, fill_frames,
                             options=renderoptions, my_pd=pds[e.instance.address_space])
                     except TemplateError as inst:
-                        die(['While rendering %s: %s' % (item, line) for line in inst.args])
+                        die(rendering_error(item, inst))
                     except jinja2.exceptions.TemplateNotFound:
                         die('While rendering %s: missing template for %s' %
                             (item, c.type.name))
@@ -768,7 +765,7 @@ def main(argv, out, err):
                         save(item, g)
                         done(g, outfile, item)
                     except TemplateError as inst:
-                        die(['While rendering %s: %s' % (item, line) for line in inst.args])
+                        die(rendering_error(item, inst))
 
     # Perform any per component special generation. This needs to happen last
     # as these template needs to run after all other capabilities have been
@@ -794,7 +791,7 @@ def main(argv, out, err):
                                 log.warning('Warning: no template for %s' % item)
                             done(g, outfile, item)
                 except TemplateError as inst:
-                    die(['While rendering %s: %s' % (i.name, line) for line in inst.args])
+                    die(rendering_error(i.name, inst))
 
     if options.data_structure_cache_dir is not None:
         # At this point the capdl database is in the state required for applying capdl

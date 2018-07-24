@@ -799,8 +799,6 @@ def tcb_default_properties(obj_space, options, **_):
     for t in [x for x in obj_space if isinstance(x, TCB)]:
         t.prio = options.default_priority
         t.max_prio = options.default_max_priority
-        t.crit = options.default_criticality
-        t.max_crit = options.default_max_criticality
         t.affinity = options.default_affinity
 
 def sc_default_properties(obj_space, options, **_):
@@ -872,8 +870,6 @@ def tcb_properties(ast, cspaces, options, **_):
 
             maybe_set_property_from_configuration(assembly, perspective, tcb, 'prio', 'priority_attribute', 'priority')
             maybe_set_property_from_configuration(assembly, perspective, tcb, 'max_prio', 'max_priority_attribute', 'max_priority')
-            maybe_set_property_from_configuration(assembly, perspective, tcb, 'crit', 'criticality_attribute', 'criticality')
-            maybe_set_property_from_configuration(assembly, perspective, tcb, 'max_crit', 'max_criticality_attribute', 'max_criticality')
             maybe_set_property_from_configuration(assembly, perspective, tcb, 'affinity', 'affinity_attribute', 'affinity')
 
 def sc_properties(ast, cspaces, obj_space, **_):
@@ -911,9 +907,20 @@ def tcb_domains(ast, cspaces, **_):
 
     assembly = ast.assembly
 
-    if assembly.configuration is None or \
-            len(assembly.configuration.settings) == 0:
-        # We have nothing to do if no domains were set.
+    # HACK: For capDL verification, the generator model assumes that
+    # each component is assigned to the domains 1, 2, …. We're not sure
+    # why it does that, but for now, we replicate that here.
+    # See issue VER-945.
+    domain_model_ids = None
+    if os.environ.get('CONFIG_CAMKES_LABEL_MAPPING', '') == 'y':
+        domain_model_ids = dict(
+            (comp.name, dom) for dom, comp in
+            enumerate(assembly.composition.instances, 1))
+
+    if (domain_model_ids is None and
+          (assembly.configuration is None or
+           len(assembly.configuration.settings) == 0)):
+        # Nothing to do.
         return
 
     for group, space in cspaces.items():
@@ -927,6 +934,12 @@ def tcb_domains(ast, cspaces, **_):
             dom_attribute = perspective['domain_attribute']
             name = perspective['instance']
             dom = assembly.configuration[name].get(dom_attribute)
+
+            # Auto-assign domains if we're doing the capDL verification.
+            if dom is None and domain_model_ids is not None:
+                if perspective['instance'] in domain_model_ids:
+                    dom = domain_model_ids[perspective['instance']]
+
             if dom is not None:
                 tcb.domain = dom
 

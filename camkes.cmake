@@ -329,10 +329,10 @@ set(CAmkESVerbose OFF CACHE BOOL
 
 # Save the path to to python-capdl whilst we know it (unless it was already specified)
 if (NOT PYTHON_CAPDL_PATH)
-    set(PYTHON_CAPDL_PATH "${CMAKE_CURRENT_SOURCE_DIR}/projects/capdl/python-capdl-tool")
+    set(PYTHON_CAPDL_PATH "${CMAKE_SOURCE_DIR}/projects/capdl/python-capdl-tool")
 endif()
 if (NOT CAPDL_TOOL_SOURCE_PATH)
-    set(CAPDL_TOOL_SOURCE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/projects/capdl/capDL-tool")
+    set(CAPDL_TOOL_SOURCE_PATH "${CMAKE_SOURCE_DIR}/projects/capdl/capDL-tool")
 endif()
 
 # Save the location of the camkes tool wrapper script
@@ -364,14 +364,14 @@ endif()
 # Find the sponge tool, or emulate it
 find_program(SPONGE_TOOL sponge)
 if ("${SPONGE_TOOL}" STREQUAL "SPONGE_TOOL-NOTFOUND")
-    set(CAMKES_SPONGE_INVOCATION "${CMAKE_COMMAND} -E ${CMAKE_CURRENT_BINARY_DIR}/sponge_emul.sh")
+    set(CAMKES_SPONGE_INVOCATION "sh ${CMAKE_CURRENT_BINARY_DIR}/sponge_emul.sh")
     file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/sponge_emul.sh" "python -c 'import sys; data = sys.stdin.read(); f = open(sys.argv[1], \"w\"); f.write(data); f.close()' $@")
 else()
     set(CAMKES_SPONGE_INVOCATION "${SPONGE_TOOL}")
 endif()
 
 # Find the Isabelle theory pre-process for formatting theory files
-find_program(TPP_TOOL tpp PATHS tools/camkes/tools)
+find_program(TPP_TOOL tpp PATHS ${CMAKE_CURRENT_LIST_DIR}/tools)
 if ("${TPP_TOOL}" STREQUAL "TPP_TOOL-NOTFOUND")
     message(FATAL_ERROR "Failed to find tpp tool")
 endif()
@@ -434,10 +434,10 @@ function(DeclareCAmkESRootserver adl)
         message(FATAL_ERROR "A CAmkES rootserver was already declared")
     endif()
     foreach(include IN LISTS CAMKES_ROOT_CPP_INCLUDES)
-        get_absolute_source_or_binary(include "${include}")
+        get_absolute_list_source_or_binary(include "${include}")
         list(APPEND CAMKES_ROOT_CPP_FLAGS "-I${include}")
     endforeach()
-    get_absolute_source_or_binary(adl "${adl}")
+    get_absolute_list_source_or_binary(adl "${adl}")
     set_property(GLOBAL PROPERTY CAMKES_ROOT_ADL "${adl}")
     set_property(GLOBAL PROPERTY CAMKES_ROOT_CPP_FLAGS "${CAMKES_ROOT_CPP_FLAGS}")
     set_property(GLOBAL PROPERTY CAMKES_ROOT_DECLARED TRUE)
@@ -496,7 +496,7 @@ function(GenerateCAmkESRootserver)
     get_filename_component(CAMKES_CDL_TARGET "${adl}" NAME_WE)
     set(CAMKES_CDL_TARGET "${CMAKE_CURRENT_BINARY_DIR}/${CAMKES_CDL_TARGET}.cdl")
     # Get an absolute reference to the ADL source
-    get_absolute_source_or_binary(CAMKES_ADL_SOURCE "${adl}")
+    get_absolute_list_source_or_binary(CAMKES_ADL_SOURCE "${adl}")
     # Declare a common CAMKES_FLAGS that we will need to give to every invocation of camkes
     set(CAMKES_FLAGS
         "--import-path=${CAMKES_TOOL_BUILTIN_DIR}"
@@ -578,6 +578,7 @@ function(GenerateCAmkESRootserver)
         )
         file(WRITE "${invoc_file}" "${camkes_invocation}")
         if (camkes_gen_error)
+            file(REMOVE ${gen_outfile})
             message(FATAL_ERROR "Failed to generate camkes-gen.cmake: ${camkes_output}")
         endif()
         # Add dependencies
@@ -595,8 +596,8 @@ endfunction(GenerateCAmkESRootserver)
 function(AppendCAmkESComponentTarget target_name)
     cmake_parse_arguments(PARSE_ARGV 1 CAMKES_COMPONENT
         "" # Option arguments
-        "" # Single arguments
-        "SOURCES;INCLUDES;C_FLAGS;LD_FLAGS;LIBS" # Multiple aguments
+        "CAKEML_HEAP_SIZE;CAKEML_STACK_SIZE" # Single arguments
+        "SOURCES;CAKEML_SOURCES;INCLUDES;C_FLAGS;LD_FLAGS;LIBS" # Multiple aguments
     )
     # Declare a target that we will set properties on
     if (NOT (TARGET "${target_name}"))
@@ -605,19 +606,32 @@ function(AppendCAmkESComponentTarget target_name)
     # Get absolute paths for the includes and sources
     set(includes "")
     set(sources "")
+    set(cakeml_sources "")
     foreach(inc IN LISTS CAMKES_COMPONENT_INCLUDES)
-        get_absolute_source_or_binary(inc "${inc}")
+        get_absolute_list_source_or_binary(inc "${inc}")
         list(APPEND includes "${inc}")
     endforeach()
     foreach(file IN LISTS CAMKES_COMPONENT_SOURCES)
-        get_absolute_source_or_binary(file "${file}")
+        get_absolute_list_source_or_binary(file "${file}")
         list(APPEND sources "${file}")
+    endforeach()
+    foreach(file IN LISTS CAMKES_COMPONENT_CAKEML_SOURCES)
+        get_absolute_list_source_or_binary(file "${file}")
+        list(APPEND cakeml_sources "${file}")
     endforeach()
     set_property(TARGET "${target_name}" APPEND PROPERTY COMPONENT_INCLUDES "${includes}")
     set_property(TARGET "${target_name}" APPEND PROPERTY COMPONENT_SOURCES "${sources}")
+    set_property(TARGET "${target_name}" APPEND PROPERTY COMPONENT_CAKEML_SOURCES "${cakeml_sources}")
     set_property(TARGET "${target_name}" APPEND PROPERTY COMPONENT_C_FLAGS "${CAMKES_COMPONENT_C_FLAGS}")
     set_property(TARGET "${target_name}" APPEND PROPERTY COMPONENT_LD_FLAGS "${CAMKES_COMPONENT_LD_FLAGS}")
     set_property(TARGET "${target_name}" APPEND PROPERTY COMPONENT_LIBS "${CAMKES_COMPONENT_LIBS}")
+    # Overwrite any previous CakeML heap or stack size
+    if (CAMKES_COMPONENT_CAKEML_HEAP_SIZE)
+        set_property(TARGET "${target_name}" PROPERTY COMPONENT_CAKEML_HEAP_SIZE "${CAMKES_COMPONENT_CAKEML_HEAP_SIZE}")
+    endif()
+    if (CAMKES_COMPONENT_CAKEML_STACK_SIZE)
+        set_property(TARGET "${target_name}" PROPERTY COMPONENT_CAKEML_STACK_SIZE "${CAMKES_COMPONENT_CAKEML_STACK_SIZE}")
+    endif()
 endfunction(AppendCAmkESComponentTarget)
 
 # This is called by CAmkES components to declare information needed for the camkes-gen.cmake to
@@ -625,6 +639,10 @@ endfunction(AppendCAmkESComponentTarget)
 function(DeclareCAmkESComponent name)
     AppendCAmkESComponentTarget(CAmkESComponent_${name} ${ARGN})
 endfunction(DeclareCAmkESComponent)
+
+# Declare built-in components that are constructed from templates and have no source files
+DeclareCAmkESComponent(debug_server)
+DeclareCAmkESComponent(debug_serial)
 
 # Extend a particular instantiation of a CAmkES component with additional information. This takes
 # similar arguments to DeclareCAmkESComponent and all of the declared includes, flags etc also
@@ -646,7 +664,7 @@ function(CAmkESAddImportPath)
         message(FATAL_ERROR "Adding import path after camkes-gen.cmake has been generated")
     endif()
     foreach(arg IN LISTS ARGV)
-        get_absolute_source_or_binary(arg "${arg}")
+        get_absolute_list_source_or_binary(arg "${arg}")
         set_property(GLOBAL APPEND PROPERTY CAmkESExtraImportPaths "${arg}")
     endforeach()
 endfunction(CAmkESAddImportPath)
@@ -657,7 +675,7 @@ function(CAmkESAddTemplatesPath)
         message(FATAL_ERROR "Adding templates path after camkes-gen.cmake has been generated")
     endif()
     foreach(arg IN LISTS ARGV)
-        get_absolute_source_or_binary(arg "${arg}")
+        get_absolute_list_source_or_binary(arg "${arg}")
         set_property(GLOBAL APPEND PROPERTY CAmkESTemplatePaths "${arg}")
     endforeach()
 endfunction(CAmkESAddTemplatesPath)
