@@ -329,10 +329,10 @@ set(CAmkESVerbose OFF CACHE BOOL
 
 # Save the path to to python-capdl whilst we know it (unless it was already specified)
 if (NOT PYTHON_CAPDL_PATH)
-    set(PYTHON_CAPDL_PATH "${CMAKE_CURRENT_SOURCE_DIR}/projects/capdl/python-capdl-tool")
+    set(PYTHON_CAPDL_PATH "${CMAKE_SOURCE_DIR}/projects/capdl/python-capdl-tool")
 endif()
 if (NOT CAPDL_TOOL_SOURCE_PATH)
-    set(CAPDL_TOOL_SOURCE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/projects/capdl/capDL-tool")
+    set(CAPDL_TOOL_SOURCE_PATH "${CMAKE_SOURCE_DIR}/projects/capdl/capDL-tool")
 endif()
 
 # Save the location of the camkes tool wrapper script
@@ -371,7 +371,7 @@ else()
 endif()
 
 # Find the Isabelle theory pre-process for formatting theory files
-find_program(TPP_TOOL tpp PATHS tools/camkes/tools)
+find_program(TPP_TOOL tpp PATHS ${CMAKE_CURRENT_LIST_DIR}/tools)
 if ("${TPP_TOOL}" STREQUAL "TPP_TOOL-NOTFOUND")
     message(FATAL_ERROR "Failed to find tpp tool")
 endif()
