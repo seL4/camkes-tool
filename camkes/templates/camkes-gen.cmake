@@ -61,11 +61,11 @@ function(CAmkESGen output item)
     get_filename_component(out_dir "${output}" DIRECTORY)
     # Reflow generated files if requested
     if (CAMKES_GEN_C_STYLE AND (NOT ("${CAMKES_C_FMT_INVOCATION}" STREQUAL "")))
-        ParentListAppend(reflow_commands sh -c
-            "${CAMKES_C_FMT_INVOCATION} ${output} | ${CAMKES_SPONGE_INVOCATION} ${output}" "$<SEMICOLON>")
+        ParentListAppend(reflow_commands COMMAND sh -c
+            "${CAMKES_C_FMT_INVOCATION} ${output} | ${CAMKES_SPONGE_INVOCATION} ${output}")
     elseif(CAMKES_GEN_THY_STYLE)
-        ParentListAppend(reflow_commands sh -c
-            "${TPP_TOOL} ${output} | ${CAMKES_SPONGE_INVOCATION} ${output}" "$<SEMICOLON>")
+        ParentListAppend(reflow_commands COMMAND sh -c
+            "${TPP_TOOL} ${output} | ${CAMKES_SPONGE_INVOCATION} ${output}")
     endif()
     # Append the item and outfile
     ParentListAppend(item_list "${item}")
@@ -89,12 +89,6 @@ function(CAmkESOutputGenCommand)
     if ("${item_list}" STREQUAL "")
         return()
     endif()
-    set(reflow "${reflow_commands}")
-    # If the reflow command was empty then we would output 'COMMAND ""' below, which
-    # seems to be an error as it causes the cmake generation stage to occasionally segfault
-    if ("${reflow}" STREQUAL "")
-        set(reflow "true")
-    endif()
     list(LENGTH outfile_list outfile_list_count)
     add_custom_command(
         OUTPUT ${outfile_list}
@@ -105,7 +99,7 @@ function(CAmkESOutputGenCommand)
                 "--outfile;$<JOIN:${outfile_list},;--outfile;>"
                 "$<$<BOOL:${elfs_list}>:--elf$<SEMICOLON>>$<JOIN:${elfs_list},$<SEMICOLON>--elf$<SEMICOLON>>"
                 ${CAMKES_FLAGS}
-        COMMAND "${reflow}"
+        ${reflow_commands}
         DEPENDS
             ${CAMKES_ADL_SOURCE}
             /*? ' '.join(imported) ?*/
