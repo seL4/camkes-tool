@@ -81,6 +81,7 @@ def type_to_fit_integer(value):
 def print_type_definitions(attributes, values):
     def print_struct_definition(struct, sub_value):
         return_string = "struct %s {\n" % struct.name
+        sub_value = sub_value[0]
         for i in struct.attributes:
             return_string += "%s %s%s;\n" % (show_type(i.type), i.name, "[%d]" % len(sub_value.get(i.name)) if i.array else "")
         return return_string + "};\n"
