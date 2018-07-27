@@ -207,7 +207,11 @@ endfunction(GeneratorValueOrDefault)
         /*- for id, e in enumerate(c.to_ends) -*/
             set(unique_name /*? e.interface.name ?*/_/*? c.type.name ?*/_/*? id ?*/)
             /*- if e.instance.name == i.name -*/
-                CAmkESGen("${generated_dir}/${unique_name}.c" /*? c.name ?*//to/source//*? id ?*/ SOURCE C_STYLE)
+                /*- if configuration[i.name].get('environment', 'c').lower() == 'cakeml' and lookup_template('%s/to/cakeml' % c.name,c) is not none -*/
+                    CAmkESGen("${generated_dir}/connectorScript.sml" /*? c.name ?*//to/cakeml//*? id ?*/ SOURCE SOURCES_VAR cakeml_sources)
+                /*- else -*/
+                    CAmkESGen("${generated_dir}/${unique_name}.c" /*? c.name ?*//to/source//*? id ?*/ SOURCE C_STYLE)
+                /*- endif -*/
                 # Add a rule to generate the header if this connector has a header template
                 /*- if lookup_template('%s/to/header' % c.name, c) is not none -*/
                     CAmkESGen("${generated_dir}/include/${unique_name}.h" /*? c.name ?*//to/header//*? id ?*/ C_STYLE)

@@ -708,7 +708,8 @@ def main(argv, out, err):
         for t in (('%s/from/source' % c.name, c.from_ends),
                   ('%s/from/header' % c.name, c.from_ends),
                   ('%s/to/source' % c.name, c.to_ends),
-                  ('%s/to/header' % c.name, c.to_ends)):
+                  ('%s/to/header' % c.name, c.to_ends),
+                  ('%s/to/cakeml' % c.name, c.to_ends)):
 
             template = templates.lookup(t[0], c)
 
