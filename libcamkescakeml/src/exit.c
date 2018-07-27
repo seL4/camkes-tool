@@ -10,8 +10,10 @@
  * @TAG(DATA61_BSD)
  */
 
+#include <stdio.h>
 #include <stdlib.h>
 
 void cml_exit(int arg) {
+    printf("Called cml_exit\n");
     exit(arg);
 }
