@@ -18,9 +18,94 @@ val _ = new_theory "camkesStart";
 
 val _ = translation_extends "basisProg";
 
-(* Currently nothing additional is defined in this theory, it just provides a known
-   point for the component theory to build off so that we can add helpers etc here
-   later *)
+val _ = ml_prog_update (open_module "Utils")
+
+val int_to_bytes_def = process_topdecs `
+    fun int_to_bytes w len = let
+        val array = Word8Array.array len (Word8.fromInt 0);
+        fun loop i divisor =
+            if i = len then
+                ()
+            else
+                let val _ = Word8Array.update array i (Word8.fromInt (w div divisor));
+                in loop (i + 1) (divisor * 256)
+                end
+        val _ = loop 0 1;
+        in array end;
+`;
+
+(* Read the first `len` bytes of `buf` beginning at `off` into a int *)
+val bytes_to_int_def = process_topdecs `
+    fun bytes_to_int buf off len = let
+        fun loop i acc =
+            if i = len then
+                acc
+            else
+                loop (i + 1) (acc * 256 + (Word8.toInt (Word8Array.sub buf (off + len - i - 1))))
+        in loop 0 0 end;
+`;
+
+val seL4_ReplyRecv_def = process_topdecs `
+    fun seL4_ReplyRecv ep send_length ipcbuf = let
+        val _ = Word8Array.copy (int_to_bytes ep 8) 0 8 ipcbuf 1;
+        val _ = Word8Array.copy (int_to_bytes send_length 8) 0 8 ipcbuf 9;
+        val _ = #(seL4_ReplyRecv) "" ipcbuf;
+        val len = bytes_to_int ipcbuf 1 8;
+        val badge = bytes_to_int ipcbuf 9 8;
+        in (len, badge) end;
+`;
+
+val seL4_Recv_def = process_topdecs `
+    fun seL4_Recv ep ipcbuf = let
+        val _ = Word8Array.copy (int_to_bytes ep 8) 0 8 ipcbuf 1;
+        val _ = #(seL4_Recv) "" ipcbuf;
+        val len = bytes_to_int ipcbuf 1 8;
+        val badge = bytes_to_int ipcbuf 9 8;
+        in (len, badge) end;
+`;
+
+val seL4_Send_def = process_topdecs `
+    fun seL4_Send ep send_length ipcbuf = let
+        val _ = Word8Array.copy (int_to_bytes ep 8) 0 8 ipcbuf 1;
+        val _ = Word8Array.copy (int_to_bytes send_length 8) 0 8 ipcbuf 9;
+        val _ = #(seL4_Send) "" ipcbuf;
+        in () end;
+`;
+
+val camkes_declare_reply_cap_def = process_topdecs `
+    fun camkes_declare_reply_cap slot = let
+        val buf = Word8Array.array 9 (Word8.fromInt 0);
+        val _ = Word8Array.copy (int_to_bytes slot 8) 0 8 buf 1;
+        val _ = #(camkes_declare_reply_cap) "" buf;
+        in () end;
+`;
+
+val clear_tls_reply_cap_in_tcb_def = process_topdecs `
+    fun clear_tls_reply_cap_in_tcb u = let
+        val buf = Word8Array.array 2 (Word8.fromInt 0);
+        val _ = #(clear_tls_reply_cap_in_tcb) "" buf;
+        in (Word8Array.sub buf 1) <> (Word8.fromInt 0) end;
+`;
+
+val fail_def = process_topdecs `
+    fun fail msg = let
+        val _ = TextIO.print (msg ^ "\n");
+        val _ = #(fail) "" (Word8Array.array 0 (Word8.fromInt 0));
+        in () end;
+`;
+
+val _ = app append_prog [
+    int_to_bytes_def,
+    bytes_to_int_def,
+    fail_def,
+    seL4_Recv_def,
+    seL4_ReplyRecv_def,
+    seL4_Send_def,
+    camkes_declare_reply_cap_def,
+    clear_tls_reply_cap_in_tcb_def
+];
+
+val _ = ml_prog_update (close_module NONE);
 
 val _ = export_theory ();
 
