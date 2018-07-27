@@ -65,6 +65,7 @@ TEMPLATES = {
             },
             'to':{
                 'source':'seL4RPCCall-to.template.c',
+                'cakeml':'seL4RPCCall-to.template.cakeml',
             },
         },
         Guard(lambda x: isinstance(x, Connection) and x.type.name == 'seL4SharedData'):{

@@ -68,26 +68,41 @@
 /*- endmacro -*/
 
 /*- macro _establish_buffer(namespace, buffer, recv) -*/
-    /*- if buffer is none -*/
-        /*- set namespace.userspace_ipc = False -*/
-        /*- set base = '((void*)&seL4_GetIPCBuffer()->msg[0])' -*/
-        /*- set buffer_size = '(seL4_MsgMaxLength * sizeof(seL4_Word))' -*/
-        /*- set namespace.lock = False -*/
-    /*- else -*/
-        /*- set namespace.userspace_ipc = True -*/
-        /*- set base = buffer[0] -*/
-        /*- set buffer_size = buffer[1] -*/
+    /*- if namespace.language == 'c' -*/
+        /*- if buffer is none -*/
+            /*- set namespace.userspace_ipc = False -*/
+            /*- set base = '((void*)&seL4_GetIPCBuffer()->msg[0])' -*/
+            /*- set buffer_size = '(seL4_MsgMaxLength * sizeof(seL4_Word))' -*/
+            /*- set namespace.lock = False -*/
+        /*- else -*/
+            /*- set namespace.userspace_ipc = True -*/
+            /*- set base = buffer[0] -*/
+            /*- set buffer_size = buffer[1] -*/
         /*- if not recv -*/
-            /*- set lock = buffer[2] -*/
-            /*- set namespace.lock = lock -*/
-            /*- if lock -*/
-                /*- set namespace.lock_symbol = c_symbol() -*/
-                /*- set namespace.lock_ep = alloc('userspace_buffer_ep', seL4_EndpointObject, write=True, read=True) -*/
-                static volatile int /*? namespace.lock_symbol ?*/ = 1;
-            /*- else -*/
-                /*- set namespace.lock = False -*/
+                /*- set lock = buffer[2] -*/
+                /*- set namespace.lock = lock -*/
+                /*- if lock -*/
+                    /*- set namespace.lock_symbol = c_symbol() -*/
+                    /*- set namespace.lock_ep = alloc('userspace_buffer_ep', seL4_EndpointObject, write=True, read=True) -*/
+                    static volatile int /*? namespace.lock_symbol ?*/ = 1;
+                /*- else -*/
+                    /*- set namespace.lock = False -*/
+                /*- endif -*/
             /*- endif -*/
         /*- endif -*/
+    /*- elif namespace.language == 'cakeml' -*/
+        /*- if buffer is not none -*/
+            /*? raise(TemplateError('CakeML connector only supports using the IPC buffer')) ?*/
+        /*- endif -*/
+        /*- set base = 'ConInternal.ipcbuf' -*/
+        /*- set buffer_size = 120 * 8 -*/
+        (* Add 17 because the protocol with the ffi IPC functions requires 1 byte for
+           success and two 8 byte words for data *)
+        /*- set bsize = buffer_size + 17 -*/
+        val ipcbuf_e = ``(App Aw8alloc [Lit (IntLit /*? bsize ?*/); Lit (Word8 0w)])``
+        /*- set namespace.cakeml_reserved_buf = 17 -*/
+        val eval_thm = derive_eval_thm false "ipcbuf_loc" ipcbuf_e;
+        val _ = ml_prog_update (add_Dlet eval_thm "ipcbuf" []);
     /*- endif -*/
     /*- set namespace.send_buffer = base -*/
     /*- set namespace.recv_buffer = base -*/
@@ -123,12 +138,24 @@
 
 /*- macro _save_reply_cap(namespace, might_block) -*/
     /*- if not options.realtime and might_block -*/
-        /* We need to save the reply cap because the user's implementation may
+        /*# We need to save the reply cap because the user's implementation may
          * perform operations that overwrite or discard it.
-         */
+         #*/
         /*? assert(namespace.reply_cap_slot is defined and namespace.reply_cap_slot > 0) ?*/
-        camkes_declare_reply_cap(/*? namespace.reply_cap_slot ?*/);
+        /*- if namespace.language == 'c' -*/
+            camkes_declare_reply_cap(/*? namespace.reply_cap_slot ?*/);
+        /*- elif namespace.language == 'cakeml' -*/
+            val _ = Utils.camkes_declare_reply_cap /*? namespace.reply_cap_slot ?*/;
+        /*- endif -*/
     /*- endif -*/
+/*- endmacro -*/
+
+/*- macro _begin_cakeml_module(namespace) -*/
+    val _ = ml_prog_update (open_module "ConInternal")
+/*- endmacro -*/
+
+/*- macro _end_cakeml_module(namespace) -*/
+    val _ = ml_prog_update (close_module NONE);
 /*- endmacro -*/
 
 /*# *** Public interfaces *** #*/
@@ -146,6 +173,7 @@
   #  badges: List of the badge assigned to each incoming edge of the connector
   #*/
 /*- macro establish_from_rpc(namespace, trust, buffer=none) -*/
+    /*- set namespace.language = 'c' -*/
     /*# Establish the buffer for message contents #*/
     /*? _establish_buffer(namespace, buffer, False) ?*/
     /*- set namespace.trust_partner = trust -*/
@@ -165,7 +193,11 @@
 /*# Establish the recv side of this connector for doing RPC.
   # Has the same requirements as establish_from_rpc and produces the same namespace items
   #*/
-/*- macro establish_recv_rpc(namespace, trust, interface_name, buffer=none) -*/
+/*- macro establish_recv_rpc(namespace, trust, interface_name, buffer=none, language='c') -*/
+    /*- set namespace.language = language -*/
+    /*- if namespace.language == 'cakeml' -*/
+        /*? _begin_cakeml_module(namespace) ?*/
+    /*- endif -*/
     /*# Establish the buffer for message contents #*/
     /*? _establish_buffer(namespace, buffer, True) ?*/
     /*- set namespace.trust_partner = trust -*/
@@ -176,7 +208,11 @@
 
     /*? _allocate_badges(namespace) ?*/
 
-    /*? _make_get_sender_id_symbol(namespace, interface_name) ?*/
+    /*- if language == 'c' -*/
+        /*? _make_get_sender_id_symbol(namespace, interface_name) ?*/
+    /*- elif language == 'cakeml' -*/
+        /*- set namespace.badge_symbol = 'badge' -*/
+    /*- endif -*/
 
     /*# Allocate reply cap #*/
     /*- if options.realtime -*/
@@ -190,6 +226,11 @@
             /*- set namespace.reply_cap_slot = alloc_cap('reply_cap_slot', None) -*/
         /*- endif -*/
     /*- endif -*/
+    /*- if namespace.language == 'cakeml' -*/
+    /*- endif -*/
+    /*- if namespace.language == 'cakeml' -*/
+        /*? _end_cakeml_module(namespace) ?*/
+    /*- endif -*/
 /*- endmacro -*/
 
 /*# *** The following functions all generated *code* that must be executed *** #*/
@@ -200,24 +241,36 @@
   # Otherwise this is same as begin_recv
   #*/
 /*- macro recv_first_rpc(namespace, size, might_block, notify_cptr=none) -*/
-    /*- if not options.realtime and me.might_block() -*/
-        camkes_get_tls()->cnode_cap = /*? namespace.cnode ?*/;
+    /*- if not options.realtime and might_block -*/
+        /*- if namespace.language == 'cakeml' -*/
+            val _ = #(set_tls_cnode_cap) "" (Utils.int_to_bytes /*? namespace.cnode ?*/ 8);
+        /*- else -*/
+            camkes_get_tls()->cnode_cap = /*? namespace.cnode ?*/;
+        /*- endif -*/
     /*- endif -*/
-    /*- set info = c_symbol('info') -*/
-    /*- if notify_cptr is not none -*/
-        /* This interface has a passive thread, must let the control thread know before waiting */
-        seL4_MessageInfo_t /*? info ?*/ = /*? generate_seL4_SignalRecv(options,
-                                                                       notify_cptr,
-                                                                       info, namespace.ep,
-                                                                       '&%s' % namespace.badge_symbol,
-                                                                       namespace.reply_cap_slot) ?*/;
-    /*- else -*/
-       /* This interface has an active thread, just wait for an RPC */
-        seL4_MessageInfo_t /*? info ?*/ = /*? generate_seL4_Recv(options, namespace.ep,
-                                                                 '&%s' % namespace.badge_symbol,
-                                                                 namespace.reply_cap_slot) ?*/;
+    /*- if namespace.language == 'c' -*/
+        /*- set info = c_symbol('info') -*/
+        /*- if notify_cptr is not none -*/
+            /* This interface has a passive thread, must let the control thread know before waiting */
+            seL4_MessageInfo_t /*? info ?*/ = /*? generate_seL4_SignalRecv(options,
+                                                                        notify_cptr,
+                                                                        info, namespace.ep,
+                                                                        '&%s' % namespace.badge_symbol,
+                                                                        namespace.reply_cap_slot) ?*/;
+        /*- else -*/
+            /* This interface has an active thread, just wait for an RPC */
+            seL4_MessageInfo_t /*? info ?*/ = /*? generate_seL4_Recv(options, namespace.ep,
+                                                                    '&%s' % namespace.badge_symbol,
+                                                                     namespace.reply_cap_slot) ?*/;
+        /*- endif -*/
+        /*? _extract_size(namespace, info, size, True) ?*/
+    /*- elif namespace.language == 'cakeml' -*/
+        /*- if notify_cptr is not none -*/
+            /*? raise(TemplateError('CakeML connector does not support notification')) ?*/
+        /*- endif -*/
+        val (/*? size ?*/, /*? namespace.badge_symbol ?*/) =
+            Utils.seL4_Recv /*? namespace.ep ?*/ ConInternal.ipcbuf;
     /*- endif -*/
-    /*? _extract_size(namespace, info, size, True) ?*/
     /*? _save_reply_cap(namespace, might_block) ?*/
 /*- endmacro -*/
 
@@ -250,45 +303,62 @@
 /*# Sends whatever message is in the send buffer with the given `length`, and then
   # does begin_recv. This implicitly does complete_reply #*/
 /*- macro reply_recv(namespace, length, size, might_block) -*/
-    /*- set info = c_symbol('info') -*/
-    seL4_MessageInfo_t /*? info ?*/ = seL4_MessageInfo_new(0, 0, 0, /* length */
-        /*- if namespace.userspace_ipc -*/
-            0
-        /*- else -*/
-            ROUND_UP_UNSAFE(/*? length ?*/, sizeof(seL4_Word)) / sizeof(seL4_Word)
-        /*- endif -*/
-    );
+    /*- if namespace.language == 'c' -*/
+        /*- set info = c_symbol('info') -*/
+        seL4_MessageInfo_t /*? info ?*/ = seL4_MessageInfo_new(0, 0, 0, /* length */
+            /*- if namespace.userspace_ipc -*/
+                0
+            /*- else -*/
+                ROUND_UP_UNSAFE(/*? length ?*/, sizeof(seL4_Word)) / sizeof(seL4_Word)
+            /*- endif -*/
+        );
 
-    /* Send the response */
-    /*- if not options.realtime and might_block -*/
-        /*- set tls = c_symbol() -*/
-        camkes_tls_t * /*? tls ?*/ UNUSED = camkes_get_tls();
-        assert(/*? tls ?*/ != NULL);
-        if (/*? tls ?*/->reply_cap_in_tcb) {
-            /*? tls ?*/->reply_cap_in_tcb = false;
+        /* Send the response */
+        /*- if not options.realtime and might_block -*/
+            /*- set tls = c_symbol() -*/
+            camkes_tls_t * /*? tls ?*/ UNUSED = camkes_get_tls();
+            assert(/*? tls ?*/ != NULL);
+            if (/*? tls ?*/->reply_cap_in_tcb) {
+                /*? tls ?*/->reply_cap_in_tcb = false;
+                /*? info ?*/ = /*? generate_seL4_ReplyRecv(options, namespace.ep,
+                                                        info,
+                                                        '&%s' % namespace.badge_symbol,
+                                                        namespace.reply_cap_slot) ?*/;
+            } else {
+                camkes_unprotect_reply_cap();
+                seL4_Send(/*? namespace.reply_cap_slot ?*/, /*? info ?*/);
+                /*? info ?*/ = /*? generate_seL4_Recv(options, namespace.ep,
+                                                    '&%s' % namespace.badge_symbol,
+                                                    namespace.reply_cap_slot) ?*/;
+            }
+        /*- elif options.realtime -*/
             /*? info ?*/ = /*? generate_seL4_ReplyRecv(options, namespace.ep,
-                                                       info,
-                                                       '&%s' % namespace.badge_symbol,
-                                                       namespace.reply_cap_slot) ?*/;
-        } else {
-            camkes_unprotect_reply_cap();
-            seL4_Send(/*? namespace.reply_cap_slot ?*/, /*? info ?*/);
-            /*? info ?*/ = /*? generate_seL4_Recv(options, namespace.ep,
-                                                  '&%s' % namespace.badge_symbol,
-                                                  namespace.reply_cap_slot) ?*/;
-        }
-    /*- elif options.realtime -*/
-        /*? info ?*/ = /*? generate_seL4_ReplyRecv(options, namespace.ep,
-                                                   info,
-                                                   '&%s' % namespace.badge_symbol,
-                                                   namespace.reply_cap_slot) ?*/;
-    /*- else -*/
-        /*? info ?*/ = /*? generate_seL4_ReplyRecv(options, namespace.ep,
-                                                   info,
-                                                   '&%s' % namespace.badge_symbol,
-                                                   namespace.reply_cap_slot) ?*/;
+                                                    info,
+                                                    '&%s' % namespace.badge_symbol,
+                                                    namespace.reply_cap_slot) ?*/;
+        /*- else -*/
+            /*? info ?*/ = /*? generate_seL4_ReplyRecv(options, namespace.ep,
+                                                    info,
+                                                    '&%s' % namespace.badge_symbol,
+                                                    namespace.reply_cap_slot) ?*/;
+        /*- endif -*/
+        /*? _extract_size(namespace, info, size, True) ?*/
+    /*- elif namespace.language == 'cakeml' -*/
+        /*- if options.realtime -*/
+            /*? raise(TemplateError('CakeML connector does not support realtime')) ?*/
+        /*- endif -*/
+        val (/*? size ?*/, /*? namespace.badge_symbol ?*/) =
+        /*- if might_block -*/
+                if Utils.clear_tls_reply_cap_in_tcb () then
+                    Utils.seL4_ReplyRecv /*? namespace.ep ?*/ /*? length ?*/ ConInternal.ipcbuf
+                else let
+                    val _ = Utils.seL4_Send /*? namespace.reply_cap_slot ?*/ /*? length ?*/ ConInternal.ipcbuf;
+                    in Utils.seL4_Recv /*? namespace.ep ?*/ ConInternal.ipcbuf end
+        /*- else -*/
+            Utils.seL4_ReplyRecv /*? namespace.ep ?*/ /*? length ?*/ ConInternal.ipcbuf
+        /*- endif -*/
+        ;
     /*- endif -*/
-    /*? _extract_size(namespace, info, size, True) ?*/
     /*? _save_reply_cap(namespace, might_block) ?*/
 /*- endmacro -*/
 

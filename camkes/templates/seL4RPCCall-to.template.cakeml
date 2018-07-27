@@ -1,0 +1,190 @@
+(*
+ * Copyright 2018, Data61
+ * Commonwealth Scientific and Industrial Research Organisation (CSIRO)
+ * ABN 41 687 119 230.
+ *
+ * This software may be distributed and modified according to the terms of
+ * the BSD 2-Clause license. Note that NO WARRANTY is provided.
+ * See "LICENSE_BSD2.txt" for details.
+ *
+ * @TAG(DATA61_BSD)
+ *)
+
+/*- from 'rpc-connector.c' import establish_recv_rpc, recv_first_rpc, complete_recv, begin_recv, begin_reply, complete_reply, reply_recv with context -*/
+
+/*# Determine if we trust our partner. If we trust them, we can be more liberal
+ *# with error checking.
+ #*/
+/*- set _trust_partner = [True] -*/
+/*- for f in me.parent.from_ends -*/
+  /*- if configuration[f.instance.name].get('trusted') != '"true"' -*/
+    /*- do _trust_partner.__setitem__(0, False) -*/
+  /*- endif -*/
+/*- endfor -*/
+/*- set trust_partner = _trust_partner[0] -*/
+
+/*# Construct a dict from interface types to list of from ends indicies #*/
+/*- set type_dict = {} -*/
+/*- for f in me.parent.from_ends -*/
+    /*- set cur_list = type_dict.get(f.interface.type, []) -*/
+    /*- do cur_list.append(loop.index0) -*/
+    /*- do type_dict.update({f.interface.type: cur_list}) -*/
+/*- endfor -*/
+
+/*- set connector = namespace() -*/
+
+/*- set int_types = ['uint8_t', 'uint16_t', 'uint32_t', 'uint64_t', 'unsigned int', 'unsigned char'] -*/
+
+/*- macro cakeml_unmarshal(val, type, buf, offset) -*/
+    /*- set sz = macros.sizeof(options.architecture, type) -*/
+    val /*? val ?*/ = Utils.bytes_to_int /*? buf ?*/ /*? offset ?*/ /*? sz ?*/;
+    val /*? offset ?*/ = /*? offset ?*/ + /*? sz ?*/;
+/*- endmacro -*/
+
+/*- macro cakeml_unmarshal_param(val, param, buf, offset) -*/
+    /*- if param.array -*/
+        /*? raise(TemplateError('CakeML does not support arrays')) ?*/
+    /*- endif -*/
+    /*? cakeml_unmarshal(val, param.type, buf, offset) ?*/
+/*- endmacro -*/
+
+/*- macro cakeml_marshal(val, type, buf, offset) -*/
+    /*- if type not in int_types -*/
+        /*? raise(TemplateError('CakeML only supports int types right now')) ?*/
+    /*- endif -*/
+    /*- set sz = macros.sizeof(options.architecture, type) -*/
+    val _ = Word8Array.copy (Utils.int_to_bytes /*? val ?*/ /*? sz ?*/) 0 /*? sz ?*/ /*? buf ?*/ /*? offset ?*/;
+    val /*? offset ?*/ = /*? offset ?*/ + /*? sz ?*/;
+/*- endmacro -*/
+
+/*- macro cakeml_marshal_param(val, param, buf, offset) -*/
+    /*- if param.array -*/
+        /*? raise(TemplateError('CakeML does not support arrays')) ?*/
+    /*- endif -*/
+    /*? cakeml_marshal(val, param.type, buf, offset) ?*/
+/*- endmacro -*/
+
+/*- macro log2(val) -*/
+    /*- if val <= 2 ** 8 -*/
+        1
+    /*- elif val <= 2 ** 16 -*/
+        2
+    /*- elif val <= 2 ** 32 -*/
+        4
+    /*- elif val <= 2 ** 64 -*/
+        8
+    /*- else -*/
+        /*? raise(TemplateError('Value too large')) ?*/
+    /*- endif -*/
+/*- endmacro -*/
+
+open preamble basis componentTheory
+
+val _ = new_theory "connector";
+
+val _ = translation_extends "component";
+
+/*- set buffer = configuration[me.parent.name].get('buffer') -*/
+/*- if buffer is none -*/
+    /*? establish_recv_rpc(connector, trust_partner, me.interface.name, language='cakeml') ?*/
+/*- else -*/
+    /*? raise(TemplateError('CakeML connector does not support custom buffers')) ?*/
+/*- endif -*/
+
+val _ = ml_prog_update (open_module "Connector");
+
+val rpc_loop_def = process_topdecs `
+    fun rpc_loop length badge =
+        /*- for from_type in type_dict.keys() -*/
+            /*- if not loop.first -*/
+                else
+            /*- endif -*/
+            if (
+            /*- for from_index in type_dict.get(from_type) -*/
+                /*- if not loop.first -*/
+                    orelse
+                /*- endif -*/
+                badge = /*? connector.badges[from_index] ?*/
+            /*- endfor -*/
+            ) then let
+            /*- set methods_len = len(from_type.methods) -*/
+            val offset = /*? connector.cakeml_reserved_buf ?*/;
+            (* Extract the method id if there is more than 1 method *)
+            /*- if methods_len <= 1 -*/
+                val method_id = 0;
+            /*- else -*/
+                val method_id_len = /*? log2(methods_len) ?*/;
+                val method_id = Utils.bytes_to_int /*? connector.recv_buffer ?*/ offset method_id_len;
+                val offset = offset + method_id_len;
+            /*- endif -*/
+            val _ = case method_id of
+            /*- for i, m in enumerate(from_type.methods) -*/
+                /*- set input_parameters = list(filter(lambda('x: x.direction in [\'refin\', \'in\', \'inout\']'), m.parameters)) -*/
+                /*- set output_parameters = list(filter(lambda('x: x.direction in [\'out\', \'inout\']'), m.parameters)) -*/
+                /*- if not loop.first -*/
+                    |
+                /*- endif -*/
+                /*? i ?*/ (* /*? m.name ?*/ *) => let
+                    (* Unmarshal input parameters *)
+                    /*- for j, p in enumerate(input_parameters) -*/
+                        /*? cakeml_unmarshal_param('input_val%s' % j, p, connector.recv_buffer, 'offset') ?*/
+                    /*- endfor -*/
+                    (* Call the implementation and deconstruct any result *)
+                    val
+                        (
+                        /*- if m.return_type is not none -*/
+                            return_val
+                            /*- if len(output_parameters) > 0 -*/
+                                ,
+                            /*- endif -*/
+                        /*- endif -*/
+                        /*- for j, _ in enumerate(output_parameters) -*/
+                            /*- if not loop.first -*/
+                                ,
+                            /*- endif -*/
+                            result_val/*? j?*/
+                        /*- endfor -*/
+                        ) = Component./*? me.interface.name ?*/_/*? m.name ?*/
+                        /*- for j, _ in enumerate(input_parameters) -*/
+                            input_val/*? j ?*/
+                        /*- endfor -*/
+                        /*- if len(input_parameters) == 0 -*/
+                            ()
+                        /*- endif -*/
+                        ;
+                    /*? complete_recv(connector) ?*/
+                    /*? begin_reply(connector) ?*/
+                    val offset = /*? connector.cakeml_reserved_buf ?*/;
+                    (* Marshal return value *)
+                    /*- if m.return_type is not none -*/
+                        /*? cakeml_marshal('return_val', m.return_type, connector.send_buffer, 'offset') ?*/
+                    /*- endif -*/
+                    (* Marshal other output parameters *)
+                    /*- for j, p in enumerate(output_parameters) -*/
+                        /*? cakeml_marshal_param('result_val%s' % j, p, connector.send_buffer, 'offset') ?*/
+                    /*- endfor -*/
+                    val length = offset - /*? connector.cakeml_reserved_buf ?*/;
+                    /*? reply_recv(connector, 'length', 'size', me.might_block()) ?*/
+                    in rpc_loop size /*? connector.badge_symbol ?*/ end
+            /*- endfor -*/
+            | unused => (Utils.fail "Unexpected method_id")
+            in () end
+        /*- endfor -*/
+        else
+            (Utils.fail "Unexpected badge")
+`;
+
+val run_def = process_topdecs `
+    fun run u = let
+        /*? recv_first_rpc(connector, 'size', me.might_block()) ?*/
+        in (rpc_loop size /*? connector.badge_symbol ?*/) end;
+`;
+
+val _ = app append_prog [
+    rpc_loop_def,
+    run_def
+];
+
+val _ = ml_prog_update (close_module NONE);
+
+val _ = export_theory ();
