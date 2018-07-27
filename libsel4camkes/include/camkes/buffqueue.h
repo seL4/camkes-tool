@@ -31,7 +31,7 @@ buffqueue_channel_t buffqueue_channels[MAX_CAMKES_BUFFQUEUE_ID + 1];
 int num_registered_buffqueue_channels;
 
 int init_camkes_buffqueue(buffqueue_t **buffqueue, unsigned int camkes_buffqueue_id);
-int alloc_camkes_buffqueue_buffer(buffqueue_t *buffqueue, void **buffer, size_t alloc_size);
+int alloc_camkes_buffqueue_buffer(buffqueue_t *buffqueue, volatile void **buffer, size_t alloc_size);
 void free_camkes_buffqueue_buffer(buffqueue_t *buffqueue, void *buffer);
 
 int query_num_buffqueue_channels(void);
