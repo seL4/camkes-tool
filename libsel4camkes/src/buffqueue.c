@@ -13,7 +13,7 @@
 #include <stdio.h>
 #include <camkes/buffqueue.h>
 
-int alloc_camkes_buffqueue_buffer(buffqueue_t *buffqueue, void **buffer, size_t alloc_size) {
+int alloc_camkes_buffqueue_buffer(buffqueue_t *buffqueue, volatile void **buffer, size_t alloc_size) {
     /* Check that the buffqueue or buffer pointer is not NULL */
     if(buffqueue == NULL) {
         return -1;
