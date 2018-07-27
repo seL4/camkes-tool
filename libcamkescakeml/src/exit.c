@@ -13,6 +13,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+void ffifail(unsigned char *c, long clen, unsigned char *a, long alen) {
+    printf("CakeML called fail\n");
+    exit(-1);
+}
+
 void cml_exit(int arg) {
     printf("Called cml_exit\n");
     exit(arg);
