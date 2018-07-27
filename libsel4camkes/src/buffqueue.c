@@ -12,6 +12,7 @@
 
 #include <stdio.h>
 #include <camkes/buffqueue.h>
+#include <utils/util.h>
 
 int alloc_camkes_buffqueue_buffer(buffqueue_t *buffqueue, volatile void **buffer, size_t alloc_size) {
     /* Check that the buffqueue or buffer pointer is not NULL */
@@ -58,6 +59,7 @@ void free_camkes_buffqueue_buffer(buffqueue_t *buffqueue, void *buffer) {
     buffqueue_channel_t *channel = (buffqueue_channel_t *)buffqueue->cookie;
     /* We prevent the buffer from being allocated a second time */
     if(!channel->buffer_allocated) {
+        ZF_LOGE("CAmkES Buffer %p has already been free'd\n", buffer);
         return;
     }
     channel->buffer_allocated = 0;
