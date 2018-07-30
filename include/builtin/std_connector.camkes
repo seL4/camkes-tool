@@ -96,6 +96,13 @@ connector seL4RPCCall {
     to Procedure;
 }
 
+/* Same as seL4RPCCall, except has relaxed type checking */
+connector seL4RPCCallNoType {
+    from Procedures with 0 threads;
+    to Procedure;
+    attribute bool disable_interface_type_checking = true;
+}
+
 /**
  * Direct Call connector
  *

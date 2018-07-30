@@ -59,7 +59,7 @@ TEMPLATES = {
                 'source':'seL4RPCSimple-to.template.c',
             },
         },
-        Guard(lambda x: isinstance(x, Connection) and x.type.name == 'seL4RPCCall'): {
+        Guard(lambda x: isinstance(x, Connection) and x.type.name in ['seL4RPCCall', 'seL4RPCCallNoType']): {
             'from':{
                 'source':'seL4RPCCall-from.template.c',
             },
