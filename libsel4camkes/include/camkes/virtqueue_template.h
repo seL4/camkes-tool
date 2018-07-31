@@ -12,7 +12,7 @@
 
 #pragma once
 
-#include <buffqueue.h>
-#include <camkes/buffqueue.h>
+#include <virtqueue.h>
+#include <camkes/virtqueue.h>
 
-int camkes_register_buffqueue_channel(int buffqueue_id, size_t size, volatile void *buf, notify_fn_t notify, buffqueue_role_t role);
+int camkes_register_virtqueue_channel(int virtqueue_id, size_t size, volatile void *buf, notify_fn_t notify, virtqueue_role_t role);
