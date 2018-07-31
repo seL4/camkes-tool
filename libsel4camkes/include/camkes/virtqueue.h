@@ -27,8 +27,8 @@ typedef struct virtqueue_channel {
     uint8_t buffer_allocated;
 } virtqueue_channel_t;
 
-virtqueue_channel_t virtqueue_channels[MAX_CAMKES_VIRTQUEUE_ID + 1];
-int num_registered_virtqueue_channels;
+extern virtqueue_channel_t virtqueue_channels[MAX_CAMKES_VIRTQUEUE_ID + 1];
+extern int num_registered_virtqueue_channels;
 
 int init_camkes_virtqueue(virtqueue_t **virtqueue, unsigned int camkes_virtqueue_id);
 int alloc_camkes_virtqueue_buffer(virtqueue_t *virtqueue, volatile void **buffer, size_t alloc_size);
