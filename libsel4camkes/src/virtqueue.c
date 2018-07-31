@@ -11,22 +11,23 @@
  */
 
 #include <stdio.h>
-#include <camkes/buffqueue.h>
+#include <camkes/virtqueue.h>
 #include <utils/util.h>
+#include <platsupport/io.h>
 
-int alloc_camkes_buffqueue_buffer(buffqueue_t *buffqueue, volatile void **buffer, size_t alloc_size) {
-    /* Check that the buffqueue or buffer pointer is not NULL */
-    if(buffqueue == NULL) {
+int alloc_camkes_virtqueue_buffer(virtqueue_t *virtqueue, volatile void **buffer, size_t alloc_size) {
+    /* Check that the virtqueue or buffer pointer is not NULL */
+    if(virtqueue == NULL) {
         return -1;
     }
     if(buffer == NULL) {
         return -1;
     }
     /* Check that the cookie pointer is not NULL. Required to get our buffer */
-    if(buffqueue->cookie == NULL) {
+    if(virtqueue->cookie == NULL) {
         return -1;
     }
-    buffqueue_channel_t *channel = (buffqueue_channel_t *)buffqueue->cookie;
+    virtqueue_channel_t *channel = (virtqueue_channel_t *)virtqueue->cookie;
     /* We prevent the buffer from being allocated a second time */
     if(channel->buffer_allocated) {
         return -1;
@@ -37,26 +38,26 @@ int alloc_camkes_buffqueue_buffer(buffqueue_t *buffqueue, volatile void **buffer
     }
     /* Simply return the channels buffer.
      * Current basic implementation uses a single slot queue */
-    *buffer = channel->channel_buffer + sizeof(buffqueue_header_t);
+    *buffer = channel->channel_buffer + sizeof(virtqueue_header_t);
     /* Flag the buffer as allocated */
     channel->buffer_allocated = 1;
     return 0;
 }
 
 
-void free_camkes_buffqueue_buffer(buffqueue_t *buffqueue, void *buffer) {
-    /* Check that the buffqueue or buffer pointer is not NULL */
-    if(buffqueue == NULL) {
+void free_camkes_virtqueue_buffer(virtqueue_t *virtqueue, void *buffer) {
+    /* Check that the virtqueue or buffer pointer is not NULL */
+    if(virtqueue == NULL) {
         return;
     }
     if(buffer == NULL) {
         return;
     }
     /* Check that the cookie pointer is not NULL. Required to get our buffer */
-    if(buffqueue->cookie == NULL) {
+    if(virtqueue->cookie == NULL) {
         return;
     }
-    buffqueue_channel_t *channel = (buffqueue_channel_t *)buffqueue->cookie;
+    virtqueue_channel_t *channel = (virtqueue_channel_t *)virtqueue->cookie;
     /* We prevent the buffer from being allocated a second time */
     if(!channel->buffer_allocated) {
         ZF_LOGE("CAmkES Buffer %p has already been free'd\n", buffer);
@@ -65,36 +66,39 @@ void free_camkes_buffqueue_buffer(buffqueue_t *buffqueue, void *buffer) {
     channel->buffer_allocated = 0;
 }
 
-int init_camkes_buffqueue(buffqueue_t **buffqueue, unsigned int camkes_buffqueue_id) {
-    /* Check that the buffqueue pointer is not NULL */
-    if(buffqueue == NULL) {
+int init_camkes_virtqueue(virtqueue_t **virtqueue, unsigned int camkes_virtqueue_id) {
+    /* Check that the virtqueue pointer is not NULL */
+    if(virtqueue == NULL) {
         return -1;
     }
-    /* Check that the buffqueue id is in a valid range */
-    if(camkes_buffqueue_id > MAX_CAMKES_BUFFQUEUE_ID) {
+    /* Check that the virtqueue id is in a valid range */
+    if(camkes_virtqueue_id > MAX_CAMKES_VIRTQUEUE_ID) {
         return -1;
     }
-    /* Return error if the given buffqueue channel hasn't been initialized */
-    if(buffqueue_channels[camkes_buffqueue_id].role == BUFFQUEUE_UNASSIGNED) {
+    /* Return error if the given virtqueue channel hasn't been initialized */
+    if(virtqueue_channels[camkes_virtqueue_id].role == VIRTQUEUE_UNASSIGNED) {
         return -1;
     }
-    buffqueue_channel_t *channel = &buffqueue_channels[camkes_buffqueue_id];
+    virtqueue_channel_t *channel = &virtqueue_channels[camkes_virtqueue_id];
     /* Check that the buffer is not NULL */
     if(channel->channel_buffer == NULL) {
         return -1;
     }
-    /* Create a buffqueue object for the given camkes buffqueue channel.
+    /* Create a virtqueue object for the given camkes virtqueue channel.
      * We pass the channel as our cookie data */
-    int res = buffqueue_init(buffqueue, channel->notify, channel->role, (buffqueue_header_t *)channel->channel_buffer, (void *)channel);
+    ps_malloc_ops_t malloc_ops;
+    ps_new_stdlib_malloc_ops(&malloc_ops);
+    int res = virtqueue_init(virtqueue, channel->notify, channel->role, (virtqueue_header_t *)channel->channel_buffer, 
+            (void *)channel, &malloc_ops);
     if(res) {
         return -1;
     }
     /* XXX: Remove for proper implementation. Since we are currently not sharing buffer addresses/offsets  */
-    (*buffqueue)->buffer = channel->channel_buffer + sizeof(buffqueue_header_t);
+    (*virtqueue)->buffer = channel->channel_buffer + sizeof(virtqueue_header_t);
     return 0;
 }
 
-int query_num_buffqueue_channels(void) {
-    /* Return number of registered buffqueue channels */
-    return num_registered_buffqueue_channels;
+int query_num_virtqueue_channels(void) {
+    /* Return number of registered virtqueue channels */
+    return num_registered_virtqueue_channels;
 }
