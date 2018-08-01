@@ -34,6 +34,12 @@
 
 /*- set instance = me.instance.name -*/
 /*- set interface = me.interface.name -*/
+/*# Count how many threads are in this component. This is because we want to create some
+  # thread local variables, but we don't have a way to map our general thread ID to an
+  # index into threads that specifically are spawned for this connector. I.e. a component
+  # may have 8 threads in total, and 2 threads running this connector, but without knowing
+  # what IDs those 2 threads will have we simply assume it might be any of the 8 #*/
+/*- set threads = list(six.moves.range(1, 2 + len(me.instance.type.provides) + len(me.instance.type.uses) + len(me.instance.type.emits) + len(me.instance.type.consumes))) -*/
 
 /* Interface-specific error handling */
 /*- set error_handler = '%s_error_handler' % me.interface.name -*/
@@ -48,14 +54,11 @@
 /*- endfor -*/
 
 /*- set methods_list = [] -*/
-/*- set threads_list = [] -*/
 /*- set call_tls_var_list = [] -*/
 
 /*- for f in me.parent.from_ends -*/
     /*- set methods_len = len(f.interface.type.methods) -*/
-    /*- set threads = list(six.moves.range(1, 2 + len(f.instance.type.provides) + len(f.instance.type.uses) + len(f.instance.type.emits) + len(f.instance.type.consumes))) -*/
     /*- do methods_list.append(methods_len) -*/
-    /*- do threads_list.append(threads) -*/
     /*- for m in f.interface.type.methods -*/
         extern
         /*- if m.return_type is not none -*/
