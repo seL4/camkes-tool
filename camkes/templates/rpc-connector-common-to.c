@@ -53,13 +53,11 @@
     /*- do type_dict.update({f.interface.type: cur_list}) -*/
 /*- endfor -*/
 
-/*- set methods_list = [] -*/
 /*- set call_tls_var_list = [] -*/
 
-/*- for f in me.parent.from_ends -*/
-    /*- set methods_len = len(f.interface.type.methods) -*/
-    /*- do methods_list.append(methods_len) -*/
-    /*- for m in f.interface.type.methods -*/
+/*- for j, from_type in enumerate(type_dict.keys()) -*/
+    /*- set methods_len = len(from_type.methods) -*/
+    /*- for m in from_type.methods -*/
         extern
         /*- if m.return_type is not none -*/
             /*? macros.show_type(m.return_type) ?*/
@@ -98,7 +96,6 @@
     /*- do call_tls_var_list.append(call_tls_var) -*/
 /*- endfor -*/
 
-
 /*? array_check.make_array_typedef_check_symbols(me.interface.type) ?*/
 
 /*- set p = Perspective(instance=me.instance.name, interface=me.interface.name) -*/
@@ -131,9 +128,9 @@ int
         /*- if len(type_dict.keys()) > 1 -*/
             switch (/*? connector.badge_symbol ?*/) {
         /*- endif -*/
-        /*- for from_type in type_dict.keys() -*/
-            /*- set methods_len = methods_list[type_dict.get(from_type)[0]] -*/
-            /*- set call_tls_var = call_tls_var_list[type_dict.get(from_type)[0]] -*/
+        /*- for from_index, from_type in enumerate(type_dict.keys()) -*/
+            /*- set methods_len = len(from_type.methods) -*/
+            /*- set call_tls_var = call_tls_var_list[from_index] -*/
             /*- if len(type_dict.keys()) > 1 -*/
                 /*- for from_index in type_dict.get(from_type) -*/
                     case /*? connector.badges[from_index] ?*/: {
