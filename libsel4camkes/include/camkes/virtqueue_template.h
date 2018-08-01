@@ -15,4 +15,13 @@
 #include <virtqueue.h>
 #include <camkes/virtqueue.h>
 
+/* Registers a virtqueue channel. This is expected to be called from a template.
+ * @param virtqueue_id A unique id (< MAX_CAMKES_VIRTQUEUE_ID) to register the
+ * channel with
+ * @param size Size of the virtqueue buffer shared memory region
+ * @param buf A pointer to the shared memory region used to create a virtqueue
+ * @param notify A function pointer that performs a signal on the virtqueue
+ * @param role The components role over the virtqueue channel (DEVICE or DRIVER)
+ * @return Positive 0 on success, -1 on error
+ */
 int camkes_register_virtqueue_channel(int virtqueue_id, size_t size, volatile void *buf, notify_fn_t notify, virtqueue_role_t role);
