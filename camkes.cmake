@@ -265,6 +265,13 @@ set(CAmkESSupportInit ON CACHE BOOL
     this option enabled unless you are targetting verification."
 )
 
+set(CAmkESDTS OFF CACHE BOOL
+    "Support using a device tree (.dts) file, which camkes can query
+    for device properties. A file path can be provided by as an argument
+    to DeclareCAmkESRootserver as DTS_FILE_PATH, otherwise the a dts file
+    matching the platform will be found in seL4/tools."
+)
+
 # TODO: The following options are not yet supported in cmake build template, as a result
 # these are currently commented out to as not to confuse users. They should be uncommented
 # as support is added
@@ -424,7 +431,7 @@ endfunction(camkes_append_flags)
 function(DeclareCAmkESRootserver adl)
     cmake_parse_arguments(PARSE_ARGV 1 CAMKES_ROOT
         "" # Option arguments
-        "" # Single arguments
+        "DTS_FILE_PATH" # Single arguments
         "CPP_FLAGS;CPP_INCLUDES" # Multiple aguments
     )
     # Stash this request as a global property. The main CAmkES build file will call
@@ -441,6 +448,10 @@ function(DeclareCAmkESRootserver adl)
     set_property(GLOBAL PROPERTY CAMKES_ROOT_ADL "${adl}")
     set_property(GLOBAL PROPERTY CAMKES_ROOT_CPP_FLAGS "${CAMKES_ROOT_CPP_FLAGS}")
     set_property(GLOBAL PROPERTY CAMKES_ROOT_DECLARED TRUE)
+    if(${CAmkESDTS} AND NOT "${CAMKES_ROOT_DTS_FILE}" STREQUAL "")
+        get_absolute_list_source_or_binary(CAMKES_ROOT_DTS_FILE_PATH "${CAMKES_ROOT_DTS_FILE_PATH}")
+    endif()
+    set_property(GLOBAL PROPERTY CAMKES_ROOT_DTS_FILE_PATH "${CAMKES_ROOT_DTS_FILE_PATH}")
 endfunction(DeclareCAmkESRootserver)
 
 # This takes a camkes produced dependency file (this means we can assume one dependency
@@ -474,6 +485,7 @@ function(GenerateCAmkESRootserver)
     endif()
     get_property(adl GLOBAL PROPERTY CAMKES_ROOT_ADL)
     get_property(CAMKES_ROOT_CPP_FLAGS GLOBAL PROPERTY CAMKES_ROOT_CPP_FLAGS)
+    get_property(dts_file GLOBAL PROPERTY CAMKES_ROOT_DTS_FILE_PATH)
     set(CAMKES_TOOL_ENVIRONMENT "")
     set(CAMKES_TOOL_DEPENDENCIES "")
     # Build the environment expected by camkes, as well as the camkes.sh wrapper script
@@ -505,6 +517,19 @@ function(GenerateCAmkESRootserver)
         --default-priority ${CAmkESDefaultPriority}
         --default-affinity ${CAmkESDefaultAffinity}
     )
+
+    if (${CAmkESDTS})
+        # Find the dts to use
+        if ("${dts_file}" STREQUAL "")
+            # no dts file set, try to find the default
+            FindDTS(dts_file ${PLATFORM})
+        elseif(NOT EXISTS "${dts_file}")
+            message(FATAL_ERROR "Could not find dts file ${dts_file}")
+        endif()
+        GenDTB("${dts_file}" dtb_file)
+        list(APPEND CAMKES_FLAGS "--dtb=${dtb_file}")
+    endif()
+
     # Build extra flags from the configuration
     # Each of these arguments is a CONDITION FLAG_IF_CONDITION_TRUE [FLAG_IF_CONDITION_FALSE]
     camkes_append_flags(

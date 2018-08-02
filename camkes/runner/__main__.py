@@ -241,6 +241,8 @@ def parse_args(argv, out, err):
         help='Directory for storing pickled datastructures for re-use between multiple '
              'invocations of the camkes tool in a single build. The user should delete '
              'this directory between builds.')
+    parser.add_argument('--dtb', type=argparse.FileType('r'),
+            help='DTB for camkes to query device properties.')
 
     # Juggle the standard streams either side of parsing command-line arguments
     # because argparse provides no mechanism to control this.
