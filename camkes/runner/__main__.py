@@ -45,6 +45,8 @@ from camkes.runner.NameMangling import Perspective, RUNNER
 from camkes.runner.Renderer import Renderer
 from camkes.runner.Filters import CAPDL_FILTERS
 
+from pyfdt.pyfdt import FdtBlobParse
+
 import argparse, collections, functools, jinja2, locale, numbers, os, re, \
     six, sqlite3, string, sys, traceback, pickle, errno
 from capdl import seL4_CapTableObject, ObjectAllocator, CSpaceAllocator, \
@@ -430,6 +432,9 @@ def main(argv, out, err):
     assembly = ast.assembly
     if assembly is None:
         die('No assembly found')
+
+    if options.dtb:
+        dtb = FdtBlobParse(options.dtb).to_fdt()
 
     # Do some extra checks if the user asked for verbose output.
     if options.verbosity >= 2:
