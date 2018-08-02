@@ -556,7 +556,7 @@ function(GenerateCAmkESRootserver)
     foreach(import IN LISTS imports)
         list(APPEND CAMKES_FLAGS "--import-path=${import}")
     endforeach()
-    # Retrieve any templte paths
+    # Retrieve any template paths
     get_property(templates GLOBAL PROPERTY CAmkESTemplatePaths)
     foreach(template IN LISTS templates)
         list(APPEND CAMKES_FLAGS --templates "${template}")
