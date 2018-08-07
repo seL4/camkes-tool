@@ -58,7 +58,7 @@ class TestReader(CAmkESTest):
 
     def test_unicode_file(self):
         tmp = self.mkstemp()
-        with open(tmp, 'wt') as f:
+        with open(tmp, 'wb') as f:
             f.write('↑hello world'.encode('utf-8'))
 
         content, read = self.reader.parse_file(tmp)
