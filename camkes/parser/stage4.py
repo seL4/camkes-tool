@@ -123,7 +123,7 @@ def resolve(ast_lifted, allow_forward=False):
         r.last_seen = ast_lifted
 
         # Note everything in all assemblies. This is to support cross-assembly
-        # referenes.
+        # references.
         for assembly in (x for x in ast_lifted.items if isinstance(x, Assembly)):
             [assembly_scope.register(y) for y in assembly.composition.children
                 if y is not None and not isinstance(y, Reference)]
