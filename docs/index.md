@@ -309,11 +309,9 @@ platform. It assumes a basic knowledge of C programming.
 
 ### Dependencies
 
-To work with any of the CAmkES tools you will need some extra software
-installed. It is assumed you are operating on a Linux host. Although an attempt
-has been made to implement functionality in an OS-independent way you may find
-extra dependencies or undocumented portability issues if you are running
-another OS. To check you have the appropriate dependencies installed:
+Please see [the docsite](https://docs.sel4.systems/HostDependencies) for information about dependencies.
+
+To check you have the appropriate dependencies installed:
 
 ```bash
 ./tools/check_deps.py
@@ -335,17 +333,17 @@ echo and client, communicating over a single interface.
 To build this example, from the top-level directory run:
 
 ```bash
-make arm_simple_defconfig
-make silentoldconfig
-make
+mkdir build-kzm
+cd build-kzm
+../init-build.sh -DPLATFORM=kzm -DCROSS_COMPILER_PREFIX=arm-none-eabi- -DCAMKES_APP=simple-DSIMULATE=1
+ninja 
 ```
 
 This produces an image images/simple-image-arm-imx31. To run this image in
 qemu:
 
 ```bash
-qemu-system-arm -M kzm -nographic -kernel \
-  images/capdl-loader-experimental-image-arm-imx31
+./simulate
 ```
 
 You should see debugging output from the system initialisation, followed by:
@@ -369,16 +367,11 @@ itself happens over a seL4 endpoint. The connection between the two components
 is described in apps/simple/simple.camkes, and the functional interface that
 echo is providing is described in apps/simple/interfaces/Simple.idl4.
 
-If you want to run this example on IA32, the commands are similar:
+If you want to run this example on IA32, repeat the above procedure with a new build 
+directory, replacing the configuration line with the following:
 
 ```bash
-make x86_simple_defconfig
-make silentoldconfig
-make clean
-make
-qemu-system-i386 -nographic -m 512 \
-  -kernel images/kernel-ia32-pc99 \
-  -initrd images/capdl-loader-experimental-image-ia32-pc99
+../init-build.sh -DPLATFORM=ia32 -DCAMKES_APP=simple -DSIMULATE=1
 ```
 
 #### Creating An Application
@@ -512,57 +505,28 @@ int run(void) {
 The entry point of a CAmkES component is `run`.
 
 The final thing is to add some build system boiler plate to be able to build
-the system. Create apps/helloworld/Kconfig for the build system menu:
+the system. 
+Copy one of the `CMakeLists.txt` files from another application or create
+`apps/helloworld/CMakeLists.txt` from scratch:
 
-```kconfig
-config APP_HELLOWORLD
-bool "Hello world CAmkES application"
-default n
-    help
-        Hello world tutorial exercise.
+```
+cmake_minimum_required(VERSION 3.7.2)
+
+project(helloworld C)
+
+DeclareCAmkESComponent(Client SOURCES components/Client/src/client.c)
+DeclareCAmkESComponent(Hello SOURCES components/Hello/src/hello.c)
+
+DeclareCAmkESRootserver(helloworld.camkes)
 ```
 
-Add a source line to the top-level Kconfig under the applications menu that
-references this file:
-
-```kconfig
-source "apps/helloworld/Kconfig"
-```
-
-You can now run `make menuconfig` from the top-level directory and select your
-application from the Applications menu. Make sure you deselect the simple
-application while you're here.
-
-Copy one of the Makefiles from another application or create
-apps/helloworld/Makefile from scratch:
-
-```Makefile
-# apps/helloworld/Makefile
-
-TARGETS := helloworld.cdl
-ADL := helloworld.camkes
-
-Client_CFILES = components/Client/src/client.c
-Hello_CFILES = components/Hello/src/hello.c
-
-include ${SOURCE_DIR}/../../tools/camkes/camkes.mk
-```
-
-Create a dependency entry in apps/helloworld/Kbuild for your application:
-
-```Makefile
-apps-$(CONFIG_APP_HELLOWORLD) += helloworld
-helloworld: libsel4 libmuslc libsel4platsupport \
-  libsel4muslccamkes libsel4sync libsel4bench
-```
-
-You're now ready to compile and run this application:
+You're now ready to compile and run this application, by entering the `CAMKES_APP` value in the cmake configuration GUI:
 
 ```bash
-make clean
-make
-qemu-system-arm -M kzm -nographic -kernel \
-  images/capdl-loader-experimental-image-arm-imx31
+cd build-kzm
+ccmake .. # set `helloworld` as CAMKES_APP
+ninja
+./simulate
 ```
 
 If all goes well you should see:
@@ -713,10 +677,10 @@ Note that we re-register the callback during the first execution of the handler.
 Callbacks are deregistered when invoked, so if you want the callback to fire
 again when another event arrives you need to explicitly re-register it.
 
-We now have everything we need to run this system. Add the appropriate
-information to Kconfig, apps/helloevent/Kbuild, apps/helloevent/Kconfig and
-apps/helloevent/Makefile as for the previous example. Compile the system and
-run it with similar qemu commands to the previous example. If all goes well you
+We now have everything we need to run this system. 
+
+Create the appropriate `apps/helloevent/CMakeLists.txt` as for the previous example. Compile the system and
+run it with the simulate script as per the previous example. If all goes well you
 should see something like the following:
 
 ```
@@ -913,8 +877,7 @@ assembly {
 }
 ```
 
-Add the now familiar apps/hellodataport/Kconfig, apps/hellodataport/Makefile,
-Kconfig and apps/hellodataport/Kbuild. If you now compile and run the resulting
+Add the now familiar `apps/hellodataport/CMakeLists.txt`. If you now compile and run the resulting
 image you should see some output like the following:
 
 ```
@@ -2698,16 +2661,11 @@ C source files that need access to this data type can include the file with:
 ```
 
 To make the build system aware of the header file, for each component that uses it, the following must be added
-to the application's Makefile (replacing the name `Component` with the name of the component):
+to the application's `CMakeLists.txt` (replacing the name `Component` with the name of the component):
 
-```Makefile
-Component_HFILES := \
-  $(patsubst ${SOURCE_DIR}/%,%,$(wildcard ${SOURCE_DIR}/include/*.h))
 ```
-
-The header file can be placed anywhere in the application's directory structure, provided the path
-in the Makefile is appropriately specified, though by convention, header files defining data types
-should be placed in the top level include directory of the application.
+AppendCAmkESComponentTarget(Component INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/include/vector.h)
+```
 
 #### Ports
 
@@ -2913,7 +2871,7 @@ it will be ignored for component groups.
 
 CAmkES allows users to define a list of directories that will be searched
 when resolving imports of .camkes files (components and interfaces) and
-all files included in Makefiles.
+all files included in CMake files.
 This allows one to place common components and interfaces in a central location
 rather than duplicating them inside the application directory of each
 application that uses them. Components and interfaces defined in global include
@@ -3038,7 +2996,7 @@ int run(void) {
 
 The .c file implementing the externally-defined Math component must be known
 to the build system so it can be compiled. This is achieved by including
-a component Makefile (Math.mk) in the application's Makefile.
+a component CMake file (Math.cmake) in the application's CMakeListst.txt.
 A component Makefile lists the .c and .h files required by a global component,
 in the same way as the application Makefile below lists the .c and .h
 files required by the local component `Client`.
@@ -3046,7 +3004,7 @@ files required by the local component `Client`.
 Note that the path given
 to include is relative to one of the global import directories (in this case, components).
 
-```Makefile
+```
 # apps/pythagoras/Makefile
 
 include Math/Math.mk
