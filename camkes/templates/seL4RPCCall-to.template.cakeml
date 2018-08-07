@@ -10,6 +10,8 @@
  * @TAG(DATA61_BSD)
  *)
 
+/*- if configuration[me.instance.name].get('environment', 'c').lower() == 'cakeml' -*/
+
 /*- from 'rpc-connector.c' import establish_recv_rpc, recv_first_rpc, complete_recv, begin_recv, begin_reply, complete_reply, reply_recv with context -*/
 
 /*# Determine if we trust our partner. If we trust them, we can be more liberal
@@ -188,3 +190,5 @@ val _ = app append_prog [
 val _ = ml_prog_update (close_module NONE);
 
 val _ = export_theory ();
+
+/*- endif -*/

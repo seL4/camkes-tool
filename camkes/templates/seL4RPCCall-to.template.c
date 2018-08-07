@@ -10,6 +10,8 @@
  * @TAG(DATA61_BSD)
  */
 
+/*- if configuration[me.instance.name].get('environment', 'c').lower() == 'c' -*/
+
 /*- from 'rpc-connector.c' import establish_recv_rpc, recv_first_rpc, complete_recv, begin_recv, begin_reply, complete_reply, reply_recv with context -*/
 
 #include <camkes/dataport.h>
@@ -55,3 +57,5 @@
 /*- endif -*/
 
 /*- include 'rpc-connector-common-to.c' -*/
+
+/*- endif -*/
