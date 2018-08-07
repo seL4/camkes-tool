@@ -15,7 +15,7 @@
 #include <utils/util.h>
 #include <platsupport/io.h>
 
-int alloc_camkes_virtqueue_buffer(virtqueue_t *virtqueue, volatile void **buffer, size_t alloc_size) {
+int alloc_camkes_virtqueue_buffer(virtqueue_driver_t *virtqueue, volatile void **buffer, size_t alloc_size) {
     /* Check that the virtqueue or buffer pointer is not NULL */
     if(virtqueue == NULL) {
         return -1;
@@ -24,10 +24,10 @@ int alloc_camkes_virtqueue_buffer(virtqueue_t *virtqueue, volatile void **buffer
         return -1;
     }
     /* Check that the cookie pointer is not NULL. Required to get our buffer */
-    if(virtqueue->cookie == NULL) {
+    if(virtqueue->data->cookie == NULL) {
         return -1;
     }
-    virtqueue_channel_t *channel = (virtqueue_channel_t *)virtqueue->cookie;
+    virtqueue_channel_t *channel = (virtqueue_channel_t *)virtqueue->data->cookie;
     /* We prevent the buffer from being allocated a second time */
     if(channel->buffer_allocated) {
         return -1;
@@ -45,7 +45,7 @@ int alloc_camkes_virtqueue_buffer(virtqueue_t *virtqueue, volatile void **buffer
 }
 
 
-void free_camkes_virtqueue_buffer(virtqueue_t *virtqueue, void *buffer) {
+void free_camkes_virtqueue_buffer(virtqueue_driver_t *virtqueue, volatile void *buffer) {
     /* Check that the virtqueue or buffer pointer is not NULL */
     if(virtqueue == NULL) {
         return;
@@ -54,10 +54,10 @@ void free_camkes_virtqueue_buffer(virtqueue_t *virtqueue, void *buffer) {
         return;
     }
     /* Check that the cookie pointer is not NULL. Required to get our buffer */
-    if(virtqueue->cookie == NULL) {
+    if(virtqueue->data->cookie == NULL) {
         return;
     }
-    virtqueue_channel_t *channel = (virtqueue_channel_t *)virtqueue->cookie;
+    virtqueue_channel_t *channel = (virtqueue_channel_t *)virtqueue->data->cookie;
     /* We prevent the buffer from being allocated a second time */
     if(!channel->buffer_allocated) {
         ZF_LOGE("CAmkES Buffer %p has already been free'd\n", buffer);
@@ -66,36 +66,88 @@ void free_camkes_virtqueue_buffer(virtqueue_t *virtqueue, void *buffer) {
     channel->buffer_allocated = 0;
 }
 
-int init_camkes_virtqueue(virtqueue_t **virtqueue, unsigned int camkes_virtqueue_id) {
-    /* Check that the virtqueue pointer is not NULL */
-    if(virtqueue == NULL) {
-        return -1;
-    }
+static virtqueue_channel_t * get_virtqueue_channel(virtqueue_role_t role, unsigned int camkes_virtqueue_id) {
     /* Check that the virtqueue id is in a valid range */
     if(camkes_virtqueue_id > MAX_CAMKES_VIRTQUEUE_ID) {
-        return -1;
+        return NULL;
     }
     /* Return error if the given virtqueue channel hasn't been initialized */
     if(virtqueue_channels[camkes_virtqueue_id].role == VIRTQUEUE_UNASSIGNED) {
-        return -1;
+        return NULL;
     }
     virtqueue_channel_t *channel = &virtqueue_channels[camkes_virtqueue_id];
     /* Check that the buffer is not NULL */
     if(channel->channel_buffer == NULL) {
+        return NULL;
+    }
+
+    if (channel->role != role) {
+        ZF_LOGE("role provided does not match role trying to bind to.");
+        return NULL;
+    }
+
+    return channel;
+}
+
+
+int init_camkes_virtqueue_drv(virtqueue_driver_t **drv, unsigned int camkes_virtqueue_id) {
+    if (drv == NULL) {
         return -1;
     }
-    /* Create a virtqueue object for the given camkes virtqueue channel.
-     * We pass the channel as our cookie data */
+
+    virtqueue_channel_t *channel = get_virtqueue_channel(VIRTQUEUE_DRIVER, camkes_virtqueue_id);
+    if (channel == NULL) {
+        ZF_LOGE("Failed to get channel");
+        return -1;
+    }
     ps_malloc_ops_t malloc_ops;
     ps_new_stdlib_malloc_ops(&malloc_ops);
-    int res = virtqueue_init(virtqueue, channel->notify, channel->role, (virtqueue_header_t *)channel->channel_buffer, 
-            (void *)channel, &malloc_ops);
+
+    int res = virtqueue_init_drv(drv, channel->notify, (virtqueue_header_t *)channel->channel_buffer,
+        (void *)channel, &malloc_ops);
     if(res) {
+        ZF_LOGE("Failed init");
         return -1;
     }
-    /* XXX: Remove for proper implementation. Since we are currently not sharing buffer addresses/offsets  */
-    (*virtqueue)->buffer = channel->channel_buffer + sizeof(virtqueue_header_t);
+
+    (*drv)->data->buffer = channel->channel_buffer + sizeof(virtqueue_header_t);
     return 0;
+
+}
+int init_camkes_virtqueue_dev(virtqueue_device_t **dev, unsigned int camkes_virtqueue_id) {
+    if (dev == NULL) {
+        return -1;
+    }
+
+    virtqueue_channel_t *channel = get_virtqueue_channel(VIRTQUEUE_DEVICE, camkes_virtqueue_id);
+    if (channel == NULL) {
+        ZF_LOGE("Failed to get channel");
+        return -1;
+    }
+
+    ps_malloc_ops_t malloc_ops;
+    ps_new_stdlib_malloc_ops(&malloc_ops);
+
+    int res = virtqueue_init_dev(dev, channel->notify, (virtqueue_header_t *)channel->channel_buffer,
+        (void *)channel, &malloc_ops);
+    if(res) {
+        ZF_LOGE("Failed init");
+        return -1;
+    }
+    (*dev)->data->buffer = channel->channel_buffer + sizeof(virtqueue_header_t);
+    return 0;
+}
+
+int free_camkes_virtqueue_drv(virtqueue_driver_t *drv) {
+    ps_malloc_ops_t malloc_ops;
+    ps_new_stdlib_malloc_ops(&malloc_ops);
+    return virtqueue_free_drv(drv, &malloc_ops);
+}
+
+int free_camkes_virtqueue_dev(virtqueue_device_t *dev) {
+    ps_malloc_ops_t malloc_ops;
+    ps_new_stdlib_malloc_ops(&malloc_ops);
+    return virtqueue_free_dev(dev, &malloc_ops);
 }
 
 int query_num_virtqueue_channels(void) {

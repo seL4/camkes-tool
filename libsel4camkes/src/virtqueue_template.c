@@ -16,7 +16,7 @@
 virtqueue_channel_t virtqueue_channels[MAX_CAMKES_VIRTQUEUE_ID + 1];
 int num_registered_virtqueue_channels = 0;
 
-int camkes_register_virtqueue_channel(int virtqueue_id, size_t size, volatile void *buf, notify_fn_t notify, virtqueue_role_t role) {
+int camkes_register_virtqueue_channel(int virtqueue_id, size_t size, volatile void *buf, notify_fn notify, virtqueue_role_t role) {
     /* Check that the virtqueue_id is in range */
     if(virtqueue_id > MAX_CAMKES_VIRTQUEUE_ID) {
         return -1;
