@@ -37,8 +37,12 @@ TESTS = {
 
 def run(command):
     sys.stdout.write('running %s...\n' % ' '.join(command))
+
+    # Pass capdl import through PYTHONPATH
+    env = os.environ.copy()
+    env["PYTHONPATH"] = ":".join(sys.path)
     p = subprocess.Popen(command, stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE, universal_newlines=True)
+        stderr=subprocess.PIPE, universal_newlines=True, env=env)
     stdout, stderr = p.communicate()
     return command, p.returncode, stdout, stderr
 
@@ -48,7 +52,11 @@ def main(argv):
     parser.add_argument('--jobs', '-j', nargs='?', type=int,
         help='parallelise test execution')
     parser.add_argument('test', nargs='*', help='run a specific category of tests')
+    parser.add_argument('--capdl-python', help='fullpath to the capdl python library')
     options = parser.parse_args(argv[1:])
+
+    # make capdl importable
+    sys.path.append(options.capdl_python)
 
     try:
         tests = [[os.path.join(os.path.dirname(ME), t[0])] + t[1:] for t in
