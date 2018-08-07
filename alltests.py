@@ -74,7 +74,7 @@ def main(argv):
         # `multiprocessing.Pool.map` seems to not handle Ctrl-C very well.
         def mapper(f, xs):
             return multiprocessing.Pool(options.jobs).map_async(f,
-                xs).get(sys.maxint)
+                xs).get(1000)
     else:
         mapper = map
 
