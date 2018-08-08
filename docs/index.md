@@ -336,7 +336,7 @@ To build this example, from the top-level directory run:
 mkdir build-kzm
 cd build-kzm
 ../init-build.sh -DPLATFORM=kzm -DCROSS_COMPILER_PREFIX=arm-none-eabi- -DCAMKES_APP=simple -DSIMULATE=1
-ninja 
+ninja
 ```
 
 This produces an image images/simple-image-arm-imx31. To run this image in
@@ -367,7 +367,7 @@ itself happens over a seL4 endpoint. The connection between the two components
 is described in apps/simple/simple.camkes, and the functional interface that
 echo is providing is described in apps/simple/interfaces/Simple.idl4.
 
-If you want to run this example on IA32, repeat the above procedure with a new build 
+If you want to run this example on IA32, repeat the above procedure with a new build
 directory, replacing the configuration line with the following:
 
 ```bash
@@ -505,7 +505,7 @@ int run(void) {
 The entry point of a CAmkES component is `run`.
 
 The final thing is to add some build system boiler plate to be able to build
-the system. 
+the system.
 Copy one of the `CMakeLists.txt` files from another application or create
 `apps/helloworld/CMakeLists.txt` from scratch:
 
@@ -677,7 +677,7 @@ Note that we re-register the callback during the first execution of the handler.
 Callbacks are deregistered when invoked, so if you want the callback to fire
 again when another event arrives you need to explicitly re-register it.
 
-We now have everything we need to run this system. 
+We now have everything we need to run this system.
 
 Create the appropriate `apps/helloevent/CMakeLists.txt` as for the previous example. Compile the system and
 run it with the simulate script as per the previous example. If all goes well you
