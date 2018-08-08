@@ -1612,53 +1612,21 @@ required by the DMA pool. Support for working around this is provided by the
 CAmkES build system, but is a little complicated, so the precise steps for
 achieving this in a CAmkES project are documented below.
 
-1. Enable large frame promotion for the DMA pool in your build configuration.
+Enable large frame promotion for the DMA pool in your build configuration:
 
 ```bash
-make menuconfig
-# CAmkES Options →
-#  Optimisation →
-#   Large frame promotion (DMA pool)
+cmake . -DCAmkESDMALargeFramePromotion=ON
 ```
 
-2. Set your userspace compiler to the built-in compiler wrapper. This script is
-   designed to detect when alignment constraints are rejected by the GNU
-   Assembler and fall back on the Clang integrated assembler.
-
-```bash
-make menuconfig
-# Toolchain Options →
-#  Path to a different compiler to use for userspace
-# Set to "compiler-wrapper.py"
-export PATH=${PATH}:$(pwd)/tools/camkes/tools
-```
-
-3. Disable Ccache. Ccache pre-processes files to deliver to the compiler
-   wrapper with a collection of GNU pre-defines. In most cases this does not
-   cause problems, but you will most likely trigger warnings from Clang if it
-   sees sources that were intended for GCC.
-
-```bash
-make menuconfig
-# Toolchain Options →
-#  Use ccache to improve build performance
-```
-
-4. Build your application.
-
-```bash
-make
-```
-
-If you were using a large enough DMA pool to get promoted to large frames with
-an alignment constraint that was rejected by the GNU Assembler, you should see
-output like the following:
+On older versions of binutils, if you were using a large enough DMA pool
+to get promoted to large frames with an alignment constraint that was rejected
+by the GNU Assembler, you should see output like the following:
 
 ```
 /tmp/ccfGhK5Z.s: Assembler messages:
 /tmp/ccfGhK5Z.s:1483: Error: alignment too large: 15 assumed
-Attempting to work around alignment constraint with Clang...
 ```
+Updating binutils should fix this issue.
 
 ### Error Handling
 
