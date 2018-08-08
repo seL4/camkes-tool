@@ -2850,7 +2850,7 @@ when resolving imports of .camkes files (components and interfaces).
 There is an additional path for templates which can be modified by calling
 `CAmkESAddTemplatesPath(templates)`. The repository global-components repository
 is an example of these mechanisms being used to import components, interfaces
-and templates into a project. The target project simply needs to inculde
+and templates into a project. The target project simply needs to include
 `global-components.cmake` to enable these modules to be referred to from within
 the project's camkes files. Below is an example of importing global-components:
 ```cmake
