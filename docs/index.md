@@ -524,7 +524,7 @@ You're now ready to compile and run this application, by entering the `CAMKES_AP
 
 ```bash
 cd build-kzm
-ccmake .. # set `helloworld` as CAMKES_APP
+cmake . -DCAMKES_APP=helloworld # set `helloworld` as CAMKES_APP
 ninja
 ./simulate
 ```
@@ -733,19 +733,6 @@ typedef struct MyData {
 #endif
 ```
 
-The build system puts some constraints on where included headers can reside so
-we need to symlink this header into the place the build system will be
-expecting it:
-
-```bash
-mkdir -p apps/hellodataport/components/Ping/include
-ln -s ../../../include/porttype.h \
-  apps/hellodataport/components/Ping/include/porttype.h
-mkdir -p apps/hellodataport/components/Pong/include
-ln -s ../../../include/porttype.h \
-  apps/hellodataport/components/Pong/include/porttype.h
-```
-
 Now let's create an ADL description of the Ping component:
 
 ```camkes
@@ -877,7 +864,27 @@ assembly {
 }
 ```
 
-Add the now familiar `apps/hellodataport/CMakeLists.txt`. If you now compile and run the resulting
+Add the now familiar `apps/hellodataport/CMakeLists.txt`:
+
+```cmake
+cmake_minimum_required(VERSION 3.7.2)
+
+project(hellodataport C)
+
+# Interface library for our dataport
+add_library(MyData INTERFACE)
+target_include_directories(MyData INTERFACE "${CMAKE_CURRENT_LIST_DIR}/include")
+
+DeclareCAmkESComponent(Ping SOURCES components/Ping/src/main.c LIBS MyData)
+DeclareCAmkESComponent(Pong SOURCES components/Pong/src/main.c LIBS MyData)
+
+DeclareCAmkESRootserver(hellodataport.camkes)
+
+```
+We added an interface library containing the shared header file. The LIBS field in DeclareCAmkESComponent can be
+used to specify any argument that can be ordinarily given to CMake's `target_link_libraries()`.
+
+If you now compile and run the resulting
 image you should see some output like the following:
 
 ```
