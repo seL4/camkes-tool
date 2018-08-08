@@ -335,7 +335,7 @@ To build this example, from the top-level directory run:
 ```bash
 mkdir build-kzm
 cd build-kzm
-../init-build.sh -DPLATFORM=kzm -DCROSS_COMPILER_PREFIX=arm-none-eabi- -DCAMKES_APP=simple-DSIMULATE=1
+../init-build.sh -DPLATFORM=kzm -DCROSS_COMPILER_PREFIX=arm-none-eabi- -DCAMKES_APP=simple -DSIMULATE=1
 ninja 
 ```
 
@@ -2639,7 +2639,7 @@ To make the build system aware of the header file, for each component that uses 
 to the application's `CMakeLists.txt` (replacing the name `Component` with the name of the component):
 
 ```
-AppendCAmkESComponentTarget(Component INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/include/vector.h)
+DeclareCAmkESComponent(Component INCLUDES include/vector.h)
 ```
 
 #### Ports
@@ -3005,7 +3005,7 @@ Python's `self`. It refers to the object of relevance to the current template.
 So, for example, during instantiation of the component source file, it refers
 to the component instance being instantiated. In certain general "top-level"
 templates, there is no particular "subject." In these templates, for example
-the Makefile, `me` will be `None`.
+`camkes-gen.cmake`, `me` will be `None`.
 
 The template environment is a limited subset of Python. It is relatively easy
 to extend, and if you intend to do this you can see how in the
@@ -3390,14 +3390,13 @@ implementations of `breakpoint` or `exec` informative as examples.
 
 CAmkES has a notion of "core libraries" as the set of seL4 libraries that may
 be relied on to be available from within the template context. These are
-defined within the camkes.mk Makefile fragment available in the CAmkES
-directory. This set of libraries has been extended on demand to cover all
+defined within the camkes-gen.cmake template. This set of libraries has been extended on demand to cover all
 base seL4 infrastructure. This can be freely expanded to cover more libraries
 with no expected surprises.
 
 Be aware that these libraries will be unconditionally depended upon and linked
 into all CAmkES components. That is, the user's lists of libraries defined in
-their application Makefile will all be silently extended to include the core
+their application CMakeLists.txt will all be silently extended to include the core
 libraries.
 
 ### Testing
