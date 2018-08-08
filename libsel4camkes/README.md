@@ -12,5 +12,5 @@
 
 # CAmkES support functionality
 
-To use this library in a project, you should create a symlink in your libs/
-directory to this directory.
+To use this library in a project, you should link it to your applications
+CMake target.
