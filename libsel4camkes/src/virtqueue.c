@@ -103,7 +103,7 @@ int init_camkes_virtqueue_drv(virtqueue_driver_t **drv, unsigned int camkes_virt
     ps_malloc_ops_t malloc_ops;
     ps_new_stdlib_malloc_ops(&malloc_ops);
 
-    int res = virtqueue_init_drv(drv, channel->notify, (virtqueue_header_t *)channel->channel_buffer,
+    int res = virtqueue_driver_init(drv, channel->notify, (virtqueue_header_t *)channel->channel_buffer,
         (void *)channel, &malloc_ops);
     if(res) {
         ZF_LOGE("Failed init");
@@ -128,7 +128,7 @@ int init_camkes_virtqueue_dev(virtqueue_device_t **dev, unsigned int camkes_virt
     ps_malloc_ops_t malloc_ops;
     ps_new_stdlib_malloc_ops(&malloc_ops);
 
-    int res = virtqueue_init_dev(dev, channel->notify, (virtqueue_header_t *)channel->channel_buffer,
+    int res = virtqueue_device_init(dev, channel->notify, (virtqueue_header_t *)channel->channel_buffer,
         (void *)channel, &malloc_ops);
     if(res) {
         ZF_LOGE("Failed init");
@@ -141,13 +141,13 @@ int init_camkes_virtqueue_dev(virtqueue_device_t **dev, unsigned int camkes_virt
 int free_camkes_virtqueue_drv(virtqueue_driver_t *drv) {
     ps_malloc_ops_t malloc_ops;
     ps_new_stdlib_malloc_ops(&malloc_ops);
-    return virtqueue_free_drv(drv, &malloc_ops);
+    return virtqueue_driver_free(drv, &malloc_ops);
 }
 
 int free_camkes_virtqueue_dev(virtqueue_device_t *dev) {
     ps_malloc_ops_t malloc_ops;
     ps_new_stdlib_malloc_ops(&malloc_ops);
-    return virtqueue_free_dev(dev, &malloc_ops);
+    return virtqueue_device_free(dev, &malloc_ops);
 }
 
 int query_num_virtqueue_channels(void) {
