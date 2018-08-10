@@ -16,13 +16,14 @@
 camkes_virtqueue_channel_t camkes_virtqueue_channels[MAX_CAMKES_VIRTQUEUE_ID + 1];
 int num_registered_virtqueue_channels = 0;
 
-int camkes_virtqueue_channel_register(int virtqueue_id, size_t size, volatile void *buf, notify_fn notify, virtqueue_role_t role) {
+int camkes_virtqueue_channel_register(int virtqueue_id, size_t size, volatile void *buf, notify_fn notify, virtqueue_role_t role)
+{
     /* Check that the virtqueue_id is in range */
-    if(virtqueue_id > MAX_CAMKES_VIRTQUEUE_ID) {
+    if (virtqueue_id > MAX_CAMKES_VIRTQUEUE_ID) {
         return -1;
     }
     /* Check that the buffer and notify function are not NULL */
-    if(buf == NULL || notify == NULL) {
+    if (buf == NULL || notify == NULL) {
         return -1;
     }
     /* Initialise the contents of the virtqueue channel */

@@ -15,25 +15,26 @@
 #include <utils/util.h>
 #include <platsupport/io.h>
 
-int camkes_virtqueue_buffer_alloc(virtqueue_driver_t *virtqueue, volatile void **buffer, size_t alloc_size) {
+int camkes_virtqueue_buffer_alloc(virtqueue_driver_t *virtqueue, volatile void **buffer, size_t alloc_size)
+{
     /* Check that the virtqueue or buffer pointer is not NULL */
-    if(virtqueue == NULL) {
+    if (virtqueue == NULL) {
         return -1;
     }
-    if(buffer == NULL) {
+    if (buffer == NULL) {
         return -1;
     }
     /* Check that the cookie pointer is not NULL. Required to get our buffer */
-    if(virtqueue->data->cookie == NULL) {
+    if (virtqueue->data->cookie == NULL) {
         return -1;
     }
     camkes_virtqueue_channel_t *channel = (camkes_virtqueue_channel_t *)virtqueue->data->cookie;
     /* We prevent the buffer from being allocated a second time */
-    if(channel->buffer_allocated) {
+    if (channel->buffer_allocated) {
         return -1;
     }
     /* Check we have enough memory to satisfy alloc_size */
-    if(alloc_size > channel->channel_buffer_size) {
+    if (alloc_size > channel->channel_buffer_size) {
         return -1;
     }
     /* Simply return the channels buffer.
@@ -45,39 +46,41 @@ int camkes_virtqueue_buffer_alloc(virtqueue_driver_t *virtqueue, volatile void *
 }
 
 
-void camkes_virtqueue_buffer_free(virtqueue_driver_t *virtqueue, volatile void *buffer) {
+void camkes_virtqueue_buffer_free(virtqueue_driver_t *virtqueue, volatile void *buffer)
+{
     /* Check that the virtqueue or buffer pointer is not NULL */
-    if(virtqueue == NULL) {
+    if (virtqueue == NULL) {
         return;
     }
-    if(buffer == NULL) {
+    if (buffer == NULL) {
         return;
     }
     /* Check that the cookie pointer is not NULL. Required to get our buffer */
-    if(virtqueue->data->cookie == NULL) {
+    if (virtqueue->data->cookie == NULL) {
         return;
     }
     camkes_virtqueue_channel_t *channel = (camkes_virtqueue_channel_t *)virtqueue->data->cookie;
     /* We prevent the buffer from being allocated a second time */
-    if(!channel->buffer_allocated) {
+    if (!channel->buffer_allocated) {
         ZF_LOGE("CAmkES Buffer %p has already been free'd\n", buffer);
         return;
     }
     channel->buffer_allocated = 0;
 }
 
-static camkes_virtqueue_channel_t * get_virtqueue_channel(virtqueue_role_t role, unsigned int camkes_virtqueue_id) {
+static camkes_virtqueue_channel_t * get_virtqueue_channel(virtqueue_role_t role, unsigned int camkes_virtqueue_id)
+{
     /* Check that the virtqueue id is in a valid range */
-    if(camkes_virtqueue_id > MAX_CAMKES_VIRTQUEUE_ID) {
+    if (camkes_virtqueue_id > MAX_CAMKES_VIRTQUEUE_ID) {
         return NULL;
     }
     /* Return error if the given virtqueue channel hasn't been initialized */
-    if(camkes_virtqueue_channels[camkes_virtqueue_id].role == VIRTQUEUE_UNASSIGNED) {
+    if (camkes_virtqueue_channels[camkes_virtqueue_id].role == VIRTQUEUE_UNASSIGNED) {
         return NULL;
     }
     camkes_virtqueue_channel_t *channel = &camkes_virtqueue_channels[camkes_virtqueue_id];
     /* Check that the buffer is not NULL */
-    if(channel->channel_buffer == NULL) {
+    if (channel->channel_buffer == NULL) {
         return NULL;
     }
 
@@ -90,7 +93,8 @@ static camkes_virtqueue_channel_t * get_virtqueue_channel(virtqueue_role_t role,
 }
 
 
-int camkes_virtqueue_driver_init(virtqueue_driver_t **driver, unsigned int camkes_virtqueue_id) {
+int camkes_virtqueue_driver_init(virtqueue_driver_t **driver, unsigned int camkes_virtqueue_id)
+{
     if (driver == NULL) {
         return -1;
     }
@@ -104,8 +108,8 @@ int camkes_virtqueue_driver_init(virtqueue_driver_t **driver, unsigned int camke
     ps_new_stdlib_malloc_ops(&malloc_ops);
 
     int res = virtqueue_driver_init(driver, channel->notify, (virtqueue_header_t *)channel->channel_buffer,
-        (void *)channel, &malloc_ops);
-    if(res) {
+                                    (void *)channel, &malloc_ops);
+    if (res) {
         ZF_LOGE("Failed init");
         return -1;
     }
@@ -114,7 +118,8 @@ int camkes_virtqueue_driver_init(virtqueue_driver_t **driver, unsigned int camke
     return 0;
 
 }
-int camkes_virtqueue_device_init(virtqueue_device_t **device, unsigned int camkes_virtqueue_id) {
+int camkes_virtqueue_device_init(virtqueue_device_t **device, unsigned int camkes_virtqueue_id)
+{
     if (device == NULL) {
         return -1;
     }
@@ -129,8 +134,8 @@ int camkes_virtqueue_device_init(virtqueue_device_t **device, unsigned int camke
     ps_new_stdlib_malloc_ops(&malloc_ops);
 
     int res = virtqueue_device_init(device, channel->notify, (virtqueue_header_t *)channel->channel_buffer,
-        (void *)channel, &malloc_ops);
-    if(res) {
+                                    (void *)channel, &malloc_ops);
+    if (res) {
         ZF_LOGE("Failed init");
         return -1;
     }
@@ -138,19 +143,22 @@ int camkes_virtqueue_device_init(virtqueue_device_t **device, unsigned int camke
     return 0;
 }
 
-int camkes_virtqueue_driver_free(virtqueue_driver_t *driver) {
+int camkes_virtqueue_driver_free(virtqueue_driver_t *driver)
+{
     ps_malloc_ops_t malloc_ops;
     ps_new_stdlib_malloc_ops(&malloc_ops);
     return virtqueue_driver_free(driver, &malloc_ops);
 }
 
-int camkes_virtqueue_device_free(virtqueue_device_t *device) {
+int camkes_virtqueue_device_free(virtqueue_device_t *device)
+{
     ps_malloc_ops_t malloc_ops;
     ps_new_stdlib_malloc_ops(&malloc_ops);
     return virtqueue_device_free(device, &malloc_ops);
 }
 
-int camkes_virtqueue_channel_num(void) {
+int camkes_virtqueue_channel_num(void)
+{
     /* Return number of registered virtqueue channels */
     return num_registered_virtqueue_channels;
 }
