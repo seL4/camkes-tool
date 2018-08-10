@@ -13,10 +13,10 @@
 #include <camkes/virtqueue.h>
 #include <camkes/virtqueue_template.h>
 
-virtqueue_channel_t virtqueue_channels[MAX_CAMKES_VIRTQUEUE_ID + 1];
+camkes_virtqueue_channel_t camkes_virtqueue_channels[MAX_CAMKES_VIRTQUEUE_ID + 1];
 int num_registered_virtqueue_channels = 0;
 
-int camkes_register_virtqueue_channel(int virtqueue_id, size_t size, volatile void *buf, notify_fn notify, virtqueue_role_t role) {
+int camkes_virtqueue_channel_register(int virtqueue_id, size_t size, volatile void *buf, notify_fn notify, virtqueue_role_t role) {
     /* Check that the virtqueue_id is in range */
     if(virtqueue_id > MAX_CAMKES_VIRTQUEUE_ID) {
         return -1;
@@ -26,7 +26,7 @@ int camkes_register_virtqueue_channel(int virtqueue_id, size_t size, volatile vo
         return -1;
     }
     /* Initialise the contents of the virtqueue channel */
-    virtqueue_channel_t *vq_channel = &virtqueue_channels[virtqueue_id];
+    camkes_virtqueue_channel_t *vq_channel = &camkes_virtqueue_channels[virtqueue_id];
     vq_channel->channel_buffer = buf;
     vq_channel->channel_buffer_size = size;
     vq_channel->notify = notify;

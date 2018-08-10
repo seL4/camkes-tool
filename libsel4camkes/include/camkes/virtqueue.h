@@ -36,14 +36,14 @@ typedef struct virtqueue_channel {
     notify_fn notify;
     virtqueue_role_t role;
     uint8_t buffer_allocated;
-} virtqueue_channel_t;
+} camkes_virtqueue_channel_t;
 
 /*
  * Global array that contains all the registered virtqueue channels for a
  * component. Virtqueue channels are stored in the array based on their
  * configured id
  */
-extern virtqueue_channel_t virtqueue_channels[MAX_CAMKES_VIRTQUEUE_ID + 1];
+extern camkes_virtqueue_channel_t camkes_virtqueue_channels[MAX_CAMKES_VIRTQUEUE_ID + 1];
 
 /* The number of virtqueue channels registered to a component */
 extern int num_registered_virtqueue_channels;
@@ -51,28 +51,28 @@ extern int num_registered_virtqueue_channels;
 /* Initialise a virtqueue_driver_t object from a registered virtqueue channel
  * @param virtqueue_driver_t Pointer to set with the allocated virtqueue_driver_t object
  * @param camkes_virtqueue_id The unique id of the registered virtqueue channel. This
- * indexes into the 'virtqueue_channels' array
+ * indexes into the 'camkes_virtqueue_channels' array
  * @return Positive 0 on success, -1 on error
  */
-int init_camkes_virtqueue_drv(virtqueue_driver_t **drv, unsigned int camkes_virtqueue_id);
+int camkes_virtqueue_driver_init(virtqueue_driver_t **driver, unsigned int camkes_virtqueue_id);
 
 /* Initialise a virtqueue_device_t object from a registered virtqueue channel
  * @param virtqueue_device_t Pointer to set with the allocated virtqueue_device_t object
  * @param camkes_virtqueue_id The unique id of the registered virtqueue channel. This
- * indexes into the 'virtqueue_channels' array
+ * indexes into the 'camkes_virtqueue_channels' array
  * @return Positive 0 on success, -1 on error
  */
-int init_camkes_virtqueue_dev(virtqueue_device_t **dev, unsigned int camkes_virtqueue_id);
+int camkes_virtqueue_device_init(virtqueue_device_t **device, unsigned int camkes_virtqueue_id);
 
 /* Free an initialised virtqueue_driver_t object
  * @return Positive 0 on success, -1 on error
  */
-int free_camkes_virtqueue_drv(virtqueue_driver_t *drv);
+int camkes_virtqueue_driver_free(virtqueue_driver_t *driver);
 
-/* Free an initialised free_camkes_virtqueue_dev object
+/* Free an initialised camkes_virtqueue_device_free object
  * @return Positive 0 on success, -1 on error
  */
-int free_camkes_virtqueue_dev(virtqueue_device_t *dev);
+int camkes_virtqueue_device_free(virtqueue_device_t *device);
 
 /* Allocates a virtqueue buffer that the given 'virtqueue_driver_t' can use to communicate with
  * @param virtqueue_driver_t Pointer to the virtqueue_driver_t object we are allocating a buffer for
@@ -80,15 +80,15 @@ int free_camkes_virtqueue_dev(virtqueue_device_t *dev);
  * @param alloc_size Size of memory to allocate
  * @return Positive 0 on success, -1 on error
  */
-int alloc_camkes_virtqueue_buffer(virtqueue_driver_t *virtqueue, volatile void **buffer, size_t alloc_size);
+int camkes_virtqueue_buffer_alloc(virtqueue_driver_t *virtqueue, volatile void **buffer, size_t alloc_size);
 
 /* Frees a virtqueue buffer that the given 'virtqueue_driver_t' is using
  * @param virtqueue_driver_t Pointer to the virtqueue object we are free a buffer for
  * @param buffer A pointer to the allocated region of memory we wish to free
  */
-void free_camkes_virtqueue_buffer(virtqueue_driver_t *virtqueue, volatile void *buffer);
+void camkes_virtqueue_buffer_free(virtqueue_driver_t *virtqueue, volatile void *buffer);
 
 /* Returns the number of registered virtqueue channels
  * @return Number of registered virtqueue channels
  */
-int query_num_virtqueue_channels(void);
+int camkes_virtqueue_channel_num(void);
