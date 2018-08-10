@@ -91,6 +91,9 @@ def print_type_definitions(attributes, values):
         for sub_attribute in struct.attributes:
             if isinstance(sub_attribute.type, Struct):
                 structs.extend(recurse_structs(sub_attribute, values.get(sub_attribute.name)))
+
+        if attribute.array:
+            values = values[0] if values else None
         structs.append((struct, values))
         return structs
 
