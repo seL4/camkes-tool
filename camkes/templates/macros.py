@@ -82,7 +82,10 @@ def print_type_definitions(attributes, values):
     def print_struct_definition(struct, sub_value):
         return_string = "struct %s {\n" % struct.name
         for i in struct.attributes:
-            return_string += "%s %s%s;\n" % (show_type(i.type), i.name, "[%d]" % len(sub_value.get(i.name)) if i.array else "")
+            array_string = ""
+            if i.array:
+                array_string = "[%d]" % (len(sub_value.get(i.name)) if sub_value else 0)
+            return_string += "%s %s%s;\n" % (show_type(i.type), i.name, array_string)
         return return_string + "};\n"
 
     def recurse_structs(attribute, values):
