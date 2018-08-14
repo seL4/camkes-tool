@@ -668,7 +668,7 @@ class Setting(ASTObject):
         assert isinstance(instance, six.string_types)
         assert isinstance(attribute, six.string_types)
         assert isinstance(value, (numbers.Number, list, dict,
-            AttributeReference) + six.string_types)
+                                  AttributeReference, Reference, QueryObject) + six.string_types)
         super(Setting, self).__init__(location)
         self._instance = instance
         self._attribute = attribute
@@ -1912,3 +1912,13 @@ class DictLookup(ASTObject):
     def __init__(self, lookup, location):
         super(DictLookup, self).__init__(location)
         self.lookup = lookup
+
+
+class QueryObject(ASTObject):
+    def __init__(self, query_name, query_args, dict_lookup, location):
+        assert isinstance(query_name, six.string_types)
+        assert isinstance(query_args, dict)
+        super(QueryObject, self).__init__(location)
+        self.type = query_name # the name of the query
+        self.args = query_args # the arguments passed to the query
+        self.dict_lookup = dict_lookup

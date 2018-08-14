@@ -52,12 +52,12 @@ import argparse, collections, functools, jinja2, locale, numbers, os, re, \
 from capdl import seL4_CapTableObject, ObjectAllocator, CSpaceAllocator, \
     ELF, lookup_architecture
 
-from camkes.parser import parse_file, ParseError
+from camkes.parser import parse_file, ParseError, parse_query_parser_args, print_query_parser_help
 
 CAPDL_STATE_PICKLE = 'capdl_state.p'
 
 class ParserOptions():
-    def __init__(self, cpp, cpp_flag, import_path, verbosity, allow_forward_references,save_ast,load_ast):
+    def __init__(self, cpp, cpp_flag, import_path, verbosity, allow_forward_references,save_ast,load_ast, queries):
         self.cpp = cpp
         self.cpp_flag = cpp_flag
         self.import_path = import_path
@@ -65,6 +65,7 @@ class ParserOptions():
         self.allow_forward_references = allow_forward_references
         self.save_ast = save_ast
         self.load_ast = load_ast
+        self.queries = queries
 
 class FilterOptions():
     def __init__(self, architecture, realtime, largeframe, largeframe_dma, default_priority,
@@ -257,11 +258,19 @@ def parse_args(argv, out, err):
     old_err = sys.stderr
     sys.stdout = out
     sys.stderr = err
-    options = parser.parse_args(argv[1:])
+    options, argv = parser.parse_known_args(argv[1:])
+    queries, argv = parse_query_parser_args(argv)
+
     sys.stdout = old_out
     sys.stderr = old_err
 
-    return options
+    if argv:
+        print("Unparsed arguments present:\n{0}".format(argv))
+        parser.print_help()
+        print_query_parser_help()
+        exit(1)
+
+    return options, queries
 
 def pickle_call(data_structure_cache_dir, pickle_name, fn, *args, **kwargs):
     cache_path = os.path.realpath(data_structure_cache_dir)
@@ -320,7 +329,7 @@ def main(argv, out, err):
             'environment variable.\n' % encoding)
         return -1
 
-    options = parse_args(argv, out, err)
+    options, queries = parse_args(argv, out, err)
 
     # Ensure we were supplied equal items and outfiles
     if len(options.outfile) != len(options.item):
@@ -432,7 +441,7 @@ def main(argv, out, err):
 
     try:
         # Build the parser options
-        parse_options = ParserOptions(options.cpp, options.cpp_flag, options.import_path, options.verbosity, options.allow_forward_references,options.save_ast,options.load_ast)
+        parse_options = ParserOptions(options.cpp, options.cpp_flag, options.import_path, options.verbosity, options.allow_forward_references,options.save_ast,options.load_ast, queries)
         ast, read = parse_file_cached(filename, options.data_structure_cache_dir, parse_options)
     except (ASTError, ParseError) as e:
         die(e.args)

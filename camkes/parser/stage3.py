@@ -22,13 +22,14 @@ whose output it consumes. A stage 3 parser makes the following transformation:
 
 from __future__ import absolute_import, division, print_function, \
     unicode_literals
+
 from camkes.internal.seven import cmp, filter, map, zip
 
 from camkes.ast import Assembly, Attribute, AttributeReference, Component, \
     Composition, Configuration, Connection, ConnectionEnd, Connector, \
     Consumes, Dataport, DictLookup, Emits, Export, Group, Include, Instance, Interface, \
     LiftedAST, Method, Mutex, normalise_type, Parameter, Procedure, Provides, \
-    Reference, Semaphore, BinarySemaphore, Setting, SourceLocation, Uses, Struct
+    Reference, Semaphore, BinarySemaphore, QueryObject, Setting, SourceLocation, Uses, Struct
 from .base import Parser
 from .exception import ParseError
 import numbers, plyplus, re, six
@@ -675,6 +676,12 @@ def _lift_dict_lookup(location, *args):
         new_args.append(strip_quotes(arg))
     return DictLookup(new_args, location)
 
+def _lift_query(location, query_type, query_args, dict_lookup=None):
+    assert(isinstance(query_args, dict))
+    assert(not dict_lookup or isinstance(dict_lookup, DictLookup))
+
+    return QueryObject(query_type, query_args, dict_lookup, location)
+
 def _collapse(location, content):
     return content
 
@@ -763,6 +770,7 @@ LIFT = {
     'unsigned_char':_lift_unsigned_char,
     'unsigned_int':_lift_unsigned_int,
     'uses':_lift_uses,
+    'query':_lift_query,
 }
 
 # Sanity checks.

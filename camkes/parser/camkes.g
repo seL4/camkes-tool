@@ -134,7 +134,7 @@ export: EXPORT reference '->' reference ';';
 
 configuration_decl: CONFIGURATION id? configuration_defn;
 configuration_defn: '\{' setting* '\}';
-setting: id '\.' id (('=' item) | ('<-' attribute_reference)) ';';
+setting: id '\.' id (('=' (item|query)) | ('<-' attribute_reference))';';
 attribute_reference: id ('\.' id)* (dict_lookup)?;
 
 connector_decl: CONNECTOR id? connector_defn;
@@ -224,6 +224,7 @@ angle_string: '<[^>]*>';
 list: '\[' (item (',' item)* ','?)? '\]';
 dict: '\{' (key ':' item (',' key ':' item)* ','?)? '\}';
 dict_lookup: ('\[' key '\]')+;
+query: id '\(' dict? '\)' (dict_lookup)?;
 @key: numeric_expr | multi_string;
 @item: numeric_expr | multi_string | list | dict;
 boolean_literal: TRUE1 | TRUE2 | FALSE1 | FALSE2;

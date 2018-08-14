@@ -26,6 +26,7 @@ from .stage4 import Parse4
 from .stage5 import Parse5
 from .stage6 import Parse6
 from .stage7 import Parse7
+from .query import  QueryParseStage
 from .stage8 import Parse8
 from .stage9 import Parse9
 from .stage10 import Parse10
@@ -73,8 +74,11 @@ class Parser(BaseParser):
         # Build the component hierarchy flattener.
         s7 = Parse7(s6)
 
+        # Build the Query resolver
+        s71 = QueryParseStage(s7, options.queries)
+
         # Build the attribute resolver.
-        s8 = Parse8(s7)
+        s8 = Parse8(s71)
 
         # Build the N-1 connection combiner.
         s9 = Parse9(s8)
