@@ -34,6 +34,8 @@ import logging
 import re
 import six
 
+from pyfdt.pyfdt import FdtBlobParse
+
 class Query(six.with_metaclass(abc.ABCMeta, object)):
     """A Query is a named function in the Camkes ADL that takes arguments. Classes that implement this interface
     can resolve queries into python dicts in the Camkes AST."""
@@ -70,6 +72,36 @@ class Query(six.with_metaclass(abc.ABCMeta, object)):
         """Return any dependent files used by this query"""
         return []
 
+
+class DtbMatchQuery(Query):
+    """Convert a dtb query into a dictionary of results from the device tree"""
+    def __init__(self):
+        self.dtb = None
+
+    def resolve(self, *args):
+        # for now just return a list of empty strings as the result
+        return [""]
+
+    def get_parser(self):
+        parser = argparse.ArgumentParser('dtb')
+        parser.add_argument('--dtb',
+                            type=str,
+                            help='Flattened device tree blob (.dtb) to query for device tree properties.',
+                            required=True)
+        return parser
+
+    def check_options(self):
+        try:
+            with open(self.options.dtb, 'rb') as dtb_file:
+                self.dtb = FdtBlobParse(dtb_file).to_fdt()
+        except:
+            logging.fatal("Failed to parse dtb file {0}".format(self.options.dtb.name))
+
+    def get_query_name(self):
+        return "dtb"
+
+    def get_deps(self):
+        return [self.options.dtb]
 
 def print_query_parser_help():
     """Print a help string from all query parsers"""

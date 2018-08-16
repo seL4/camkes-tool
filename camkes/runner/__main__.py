@@ -45,8 +45,6 @@ from camkes.runner.NameMangling import Perspective, RUNNER
 from camkes.runner.Renderer import Renderer
 from camkes.runner.Filters import CAPDL_FILTERS
 
-from pyfdt.pyfdt import FdtBlobParse
-
 import argparse, collections, functools, jinja2, locale, numbers, os, re, \
     six, sqlite3, string, sys, traceback, pickle, errno
 from capdl import seL4_CapTableObject, ObjectAllocator, CSpaceAllocator, \
@@ -242,8 +240,6 @@ def parse_args(argv, out, err):
         help='Directory for storing pickled datastructures for re-use between multiple '
              'invocations of the camkes tool in a single build. The user should delete '
              'this directory between builds.')
-    parser.add_argument('--dtb', type=argparse.FileType('r'),
-            help='DTB for camkes to query device properties.')
     parser.add_argument('--save-ast',type=argparse.FileType('wb'), help='cache the ast during the build')
     # To get the AST, there should be either a pickled AST or a file to parse
     group = parser.add_mutually_exclusive_group(required=True)
@@ -451,8 +447,6 @@ def main(argv, out, err):
     if assembly is None:
         die('No assembly found')
 
-    if options.dtb:
-        dtb = FdtBlobParse(options.dtb).to_fdt()
 
     # Do some extra checks if the user asked for verbose output.
     if options.verbosity >= 2:
