@@ -42,8 +42,10 @@ from camkes.parser.stage7 import Parse7
 from camkes.parser.stage8 import Parse8
 from camkes.parser.stage9 import Parse9
 from camkes.parser.stage10 import Parse10
+from camkes.parser.query import QueryParseStage
+from camkes.parser.query import DtbMatchQuery
 
-PARSERS = ('reader', 'cpp', 's1', 's2', 's3', 's4', 's5', 's6', 's7', 's8', 's9', 's10')
+PARSERS = ('reader', 'cpp', 's1', 's2', 's3', 's4', 's5', 's6', 's7', 's71', 's8', 's9', 's10')
 
 class TestExamples(CAmkESTest):
     def setUp(self):
@@ -57,7 +59,14 @@ class TestExamples(CAmkESTest):
         self.s5 = Parse5(self.s4)
         self.s6 = Parse6(self.s5)
         self.s7 = Parse7(self.s6)
-        self.s8 = Parse8(self.s7)
+
+        # initialise a dtb query parser
+        dtbQuery = DtbMatchQuery()
+        dtbQuery.parse_args(['--dtb', os.path.join(os.path.dirname(ME), "test.dtb")])
+        dtbQuery.check_options()
+
+        self.s71 = QueryParseStage(self.s7, {dtbQuery.get_query_name() : dtbQuery})
+        self.s8 = Parse8(self.s71)
         self.s9 = Parse9(self.s8)
         self.s10 = Parse10(self.s9)
         assert all([hasattr(self, p) for p in PARSERS])
