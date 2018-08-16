@@ -65,7 +65,8 @@ class CPP(Parser):
                 output] + self.flags, stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                 universal_newlines=True)
-            _, stderr = p.communicate(string.encode('utf-8'))
+
+            _, stderr = p.communicate(str(string))
             if p.returncode != 0:
                 raise ParseError('CPP failed: %s' % stderr)
             with codecs.open(output, 'r', 'utf-8') as f:
