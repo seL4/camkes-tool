@@ -45,6 +45,27 @@ val bytes_to_int_def = process_topdecs `
         in loop 0 0 end;
 `;
 
+(* Read the a nul-terminated string from `buf` beginning at `off` *)
+val read_c_string_def = process_topdecs `
+  fun read_c_string buf off len = let
+    fun nul_byte_idx i =
+      if i = len orelse Word8Array.sub buf i = Word8.fromInt 0 then
+        i
+      else
+        nul_byte_idx (i + 1);
+    val str_len = nul_byte_idx off - off;
+    in (Word8Array.substring buf off str_len, str_len) end;
+`;
+
+(* Convert a string to a Word8Array *)
+val string_to_bytes_def = process_topdecs `
+  fun string_to_bytes str = let
+    val len = String.size str;
+    val result = Word8Array.array len (Word8.fromInt 0);
+    val _ = Word8Array.copyVec str 0 len result 0;
+    in result end;
+`;
+
 val seL4_ReplyRecv_def = process_topdecs `
     fun seL4_ReplyRecv ep send_length ipcbuf = let
         val _ = Word8Array.copy (int_to_bytes ep 8) 0 8 ipcbuf 1;
@@ -97,6 +118,8 @@ val fail_def = process_topdecs `
 val _ = app append_prog [
     int_to_bytes_def,
     bytes_to_int_def,
+    read_c_string_def,
+    string_to_bytes_def,
     fail_def,
     seL4_Recv_def,
     seL4_ReplyRecv_def,

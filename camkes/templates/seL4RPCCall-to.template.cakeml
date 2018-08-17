@@ -38,9 +38,18 @@
 /*- set int_types = ['uint8_t', 'uint16_t', 'uint32_t', 'uint64_t', 'unsigned int', 'unsigned char'] -*/
 
 /*- macro cakeml_unmarshal(val, type, buf, offset) -*/
-    /*- set sz = macros.sizeof(options.architecture, type) -*/
-    val /*? val ?*/ = Utils.bytes_to_int /*? buf ?*/ /*? offset ?*/ /*? sz ?*/;
-    val /*? offset ?*/ = /*? offset ?*/ + /*? sz ?*/;
+    /*- if type in int_types -*/
+        /*- set sz = macros.sizeof(options.architecture, type) -*/
+        val /*? val ?*/ = Utils.bytes_to_int /*? buf ?*/ /*? offset ?*/ /*? sz ?*/;
+        val /*? offset ?*/ = /*? offset ?*/ + /*? sz ?*/;
+    /*- elif type == 'string' -*/
+        (* FIXME: compute the max length statically *)
+        val (/*? val ?*/, str_len) = Utils.read_c_string /*? buf ?*/ /*? offset ?*/
+                                                         (Word8Array.length /*? buf ?*/);
+        val /*? offset ?*/ = /*? offset ?*/ + str_len + 1;
+    /*- else -*/
+        /*? raise(TemplateError('CakeML does not support this type: %s' % type)) ?*/
+    /*- endif -*/
 /*- endmacro -*/
 
 /*- macro cakeml_unmarshal_param(val, param, buf, offset) -*/
@@ -51,12 +60,23 @@
 /*- endmacro -*/
 
 /*- macro cakeml_marshal(val, type, buf, offset) -*/
-    /*- if type not in int_types -*/
+    /*- if type in int_types -*/
+        /*- set sz = macros.sizeof(options.architecture, type) -*/
+        val _ = Word8Array.copy (Utils.int_to_bytes /*? val ?*/ /*? sz ?*/) 0 /*? sz ?*/ /*? buf ?*/ /*? offset ?*/;
+        val /*? offset ?*/ = /*? offset ?*/ + /*? sz ?*/;
+    /*- elif type == 'string' -*/
+        val byte_array_output = Utils.string_to_bytes /*? val ?*/;
+        val len = Word8Array.length byte_array_output;
+        (* FIXME: compute buffer length statically (should be bsize) *)
+        val space_remaining = Word8Array.length /*? buf ?*/ - offset - 1;
+        val copy_len = if len <= space_remaining then len else space_remaining;
+        val _ = Word8Array.copy byte_array_output 0 copy_len /*? buf ?*/ /*? offset ?*/;
+        (* Null byte at the end of the string *)
+        val _ = Word8Array.update /*? buf ?*/ (/*? offset ?*/ + copy_len) (Word8.fromInt 0);
+        val /*? offset ?*/ = /*? offset ?*/ + copy_len + 1;
+    /*- else -*/
         /*? raise(TemplateError('CakeML only supports int types right now')) ?*/
     /*- endif -*/
-    /*- set sz = macros.sizeof(options.architecture, type) -*/
-    val _ = Word8Array.copy (Utils.int_to_bytes /*? val ?*/ /*? sz ?*/) 0 /*? sz ?*/ /*? buf ?*/ /*? offset ?*/;
-    val /*? offset ?*/ = /*? offset ?*/ + /*? sz ?*/;
 /*- endmacro -*/
 
 /*- macro cakeml_marshal_param(val, param, buf, offset) -*/
