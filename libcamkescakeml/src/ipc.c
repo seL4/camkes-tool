@@ -83,3 +83,13 @@ void ffiseL4_Send(unsigned char *c, long clen, unsigned char *a, long alen) {
         seL4_MessageInfo_new(0, 0, 0, ROUND_UP_UNSAFE(len, sizeof(seL4_Word)) / sizeof(seL4_Word)));
     a[0] = FFI_SUCCESS;
 }
+
+// Wait on an seL4 notification or endpoint
+void ffiseL4_Wait(unsigned char *c, long clen, unsigned char *a, long alen) {
+    uint64_t src;
+    memcpy(&src, a + 1, sizeof(src));
+    uint64_t badge;
+    seL4_Wait(src, &badge);
+    memcpy(a + 1, &badge, sizeof(badge));
+    a[0] = FFI_SUCCESS;
+}

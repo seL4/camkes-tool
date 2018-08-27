@@ -93,6 +93,15 @@ val seL4_Send_def = process_topdecs `
         in () end;
 `;
 
+val seL4_Wait_def = process_topdecs `
+    fun seL4_Wait src = let
+        val buf = Word8Array.array 9 (Word8.fromInt 0);
+        val _ = Word8Array.copy (int_to_bytes src 8) 0 8 buf 1;
+        val _ = #(seL4_Wait) "" buf;
+        val badge = bytes_to_int buf 1 8;
+        in badge end;
+`;
+
 val camkes_declare_reply_cap_def = process_topdecs `
     fun camkes_declare_reply_cap slot = let
         val buf = Word8Array.array 9 (Word8.fromInt 0);
@@ -124,6 +133,7 @@ val _ = app append_prog [
     seL4_Recv_def,
     seL4_ReplyRecv_def,
     seL4_Send_def,
+    seL4_Wait_def,
     camkes_declare_reply_cap_def,
     clear_tls_reply_cap_in_tcb_def
 ];
