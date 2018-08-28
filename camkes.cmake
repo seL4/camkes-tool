@@ -354,7 +354,7 @@ ExternalProject_Add(parse_capdl_tool
     SOURCE_DIR "${CAPDL_TOOL_SOURCE_PATH}"
     CONFIGURE_COMMAND bash -c "cp -ra ${CAPDL_TOOL_SOURCE_PATH}/* ."
     BUILD_ALWAYS ON
-    BUILD_COMMAND ${CMAKE_COMMAND} -E env "CONFIG_CAPDL_LOADER_MAX_IRQS=${CapDLLoaderMaxIRQs}" make
+    BUILD_COMMAND ${CMAKE_COMMAND} -E env make
     INSTALL_COMMAND ${CMAKE_COMMAND} -E env "PATH=$ENV{PATH}:${CMAKE_CURRENT_BINARY_DIR}/parse_capdl_tool-prefix/src/parse_capdl_tool-build" make install
 )
 ExternalProject_Get_property(parse_capdl_tool BINARY_DIR)

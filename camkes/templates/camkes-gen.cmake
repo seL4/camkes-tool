@@ -453,7 +453,7 @@ add_custom_target(camkes_capdl_target DEPENDS "${CAMKES_CDL_TARGET}")
 add_custom_command(
     OUTPUT "capdl_spec.c"
     COMMAND
-        ${CAPDL_TOOL_PATH}/parse-capDL --code capdl_spec.c "${CAMKES_CDL_TARGET}"
+        ${CAPDL_TOOL_PATH}/parse-capDL --code-max-irqs=${CapDLLoaderMaxIRQs} --code capdl_spec.c "${CAMKES_CDL_TARGET}"
     DEPENDS
         "${CAMKES_CDL_TARGET}"
         camkes_capdl_target
