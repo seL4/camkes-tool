@@ -338,9 +338,16 @@ set(CAmkESVerbose OFF CACHE BOOL
 if (NOT PYTHON_CAPDL_PATH)
     set(PYTHON_CAPDL_PATH "${CMAKE_SOURCE_DIR}/projects/capdl/python-capdl-tool")
 endif()
-if (NOT CAPDL_TOOL_SOURCE_PATH)
-    set(CAPDL_TOOL_SOURCE_PATH "${CMAKE_SOURCE_DIR}/projects/capdl/capDL-tool")
+
+# Require the CapDL tool
+find_file(CAPDL_TOOL_HELPERS capDL-tool.cmake PATHS "${CMAKE_SOURCE_DIR}/projects/capdl/capDL-tool" CMAKE_FIND_ROOT_PATH_BOTH)
+mark_as_advanced(FORCE CAPDL_TOOL_HELPERS)
+if("${CAPDL_TOOL_HELPERS}" STREQUAL "CAPDL_TOOL_HELPERS-NOTFOUND")
+    message(FATAL_ERROR "Failed to find capDL-tool. Consider cmake -DCAPDL_TOOL_HELPERS=/path/to/capDL-tool")
 endif()
+include(${CAPDL_TOOL_HELPERS})
+CapDLToolInstall(install_capdl_tool CAPDL_TOOL_BINARY)
+
 
 # Save the location of the camkes tool wrapper script
 RequireFile(CAMKES_TOOL camkes.sh PATHS "${CMAKE_CURRENT_LIST_DIR}")
@@ -348,16 +355,6 @@ RequireFile(CAMKES_TOOL camkes.sh PATHS "${CMAKE_CURRENT_LIST_DIR}")
 # Use the camkes script to determine the location of other things
 get_filename_component(CAMKES_TOOL_DIR "${CAMKES_TOOL}" DIRECTORY)
 set(CAMKES_TOOL_BUILTIN_DIR "${CAMKES_TOOL_DIR}/include/builtin")
-
-# Require the parse-capDL tool
-ExternalProject_Add(parse_capdl_tool
-    SOURCE_DIR "${CAPDL_TOOL_SOURCE_PATH}"
-    CONFIGURE_COMMAND bash -c "cp -ra ${CAPDL_TOOL_SOURCE_PATH}/* ."
-    BUILD_COMMAND ${CMAKE_COMMAND} -E env make
-    INSTALL_COMMAND ${CMAKE_COMMAND} -E env "PATH=$ENV{PATH}:${CMAKE_CURRENT_BINARY_DIR}/parse_capdl_tool-prefix/src/parse_capdl_tool-build" make install
-)
-ExternalProject_Get_property(parse_capdl_tool BINARY_DIR)
-set(CAPDL_TOOL_PATH "${BINARY_DIR}")
 
 # Search for a FMT tool for reformatting generated CAmkES C files
 find_program(CLANG_FORMAT_TOOL clang-format)
