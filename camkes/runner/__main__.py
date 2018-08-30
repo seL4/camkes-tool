@@ -288,10 +288,12 @@ def pickle_call(data_structure_cache_dir, pickle_name, fn, *args, **kwargs):
         return fn(*args, **kwargs)
 
 def parse_file_cached(filename, data_structure_cache_dir, parser_options):
-    if data_structure_cache_dir is None:
-        return parse_file(filename, parser_options)
-
-    return pickle_call(data_structure_cache_dir, 'ast.p', parse_file, filename, parser_options)
+    if parser_options.load_ast is not None:
+        return pickle.load(parser_options.load_ast)
+    ast,read = parse_file(filename, parser_options)
+    if parser_options.save_ast is not None:
+        pickle.dump((ast,read),parser_options.save_ast)
+    return ast,read
 
 class ShmemFactory:
     '''Factory supplied to the shared memory allocator's defaultdict.
