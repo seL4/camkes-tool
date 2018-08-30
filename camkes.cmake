@@ -554,6 +554,7 @@ function(GenerateCAmkESRootserver)
             ${CMAKE_COMMAND} -E env ${CAMKES_TOOL_ENVIRONMENT} "${CAMKES_TOOL}"
                 --file "${CAMKES_ADL_SOURCE}"
                 --item camkes-gen.cmake
+                "--save-ast=${CMAKE_CURRENT_BINARY_DIR}/ast.pickle"
                 --outfile "${gen_outfile}"
                 --makefile-dependencies "${deps_file}"
                 ${CAMKES_FLAGS}
