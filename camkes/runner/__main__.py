@@ -57,12 +57,14 @@ from camkes.parser import parse_file, ParseError
 CAPDL_STATE_PICKLE = 'capdl_state.p'
 
 class ParserOptions():
-    def __init__(self, cpp, cpp_flag, import_path, verbosity, allow_forward_references):
+    def __init__(self, cpp, cpp_flag, import_path, verbosity, allow_forward_references,save_ast,load_ast):
         self.cpp = cpp
         self.cpp_flag = cpp_flag
         self.import_path = import_path
         self.verbosity = verbosity
         self.allow_forward_references = allow_forward_references
+        self.save_ast = save_ast
+        self.load_ast = load_ast
 
 class FilterOptions():
     def __init__(self, architecture, realtime, largeframe, largeframe_dma, default_priority,
@@ -139,10 +141,6 @@ def _die(options, message):
 def parse_args(argv, out, err):
     parser = argparse.ArgumentParser(prog='python -m camkes.runner',
         description='instantiate templates based on a CAmkES specification')
-    parser.add_argument('--file', '-f', help='Add this file to the list of '
-        'input files to parse. Files are parsed in the order in which they are '
-        'encountered on the command line.', type=argparse.FileType('r'),
-        required=True)
     parser.add_argument('--cpp', action='store_true', help='Pre-process the '
         'source with CPP')
     parser.add_argument('--nocpp', action='store_false', dest='cpp',
@@ -245,6 +243,13 @@ def parse_args(argv, out, err):
              'this directory between builds.')
     parser.add_argument('--dtb', type=argparse.FileType('r'),
             help='DTB for camkes to query device properties.')
+    parser.add_argument('--save-ast',type=argparse.FileType('wb'), help='cache the ast during the build')
+    # To get the AST, there should be either a pickled AST or a file to parse
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument('--load-ast',type=argparse.FileType('rb'), help='load the cached ast during the build')
+    group.add_argument('--file', '-f', help='Add this file to the list of '
+        'input files to parse. Files are parsed in the order in which they are '
+        'encountered on the command line.', type=argparse.FileType('r'))
 
     # Juggle the standard streams either side of parsing command-line arguments
     # because argparse provides no mechanism to control this.
@@ -423,7 +428,7 @@ def main(argv, out, err):
 
     try:
         # Build the parser options
-        parse_options = ParserOptions(options.cpp, options.cpp_flag, options.import_path, options.verbosity, options.allow_forward_references)
+        parse_options = ParserOptions(options.cpp, options.cpp_flag, options.import_path, options.verbosity, options.allow_forward_references,options.save_ast,options.load_ast)
         ast, read = parse_file_cached(filename, options.data_structure_cache_dir, parse_options)
     except (ASTError, ParseError) as e:
         die(e.args)
