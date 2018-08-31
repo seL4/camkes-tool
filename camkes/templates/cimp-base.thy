@@ -13,9 +13,9 @@
 (* /*? macros.generated_file_notice() ?*/ *)
 
 theory "/*? macros.isabelle_theory_name(outfile_name) ?*/" imports
-  "~~/../l4v/camkes/glue-spec/Types"
-  "~~/../l4v/camkes/glue-spec/Abbreviations"
-  "~~/../l4v/camkes/glue-spec/Connector"
+  "CamkesGlueSpec.Types"
+  "CamkesGlueSpec.Abbreviations"
+  "CamkesGlueSpec.Connector"
 begin
 
 /*- macro show_native_type(type) --*/

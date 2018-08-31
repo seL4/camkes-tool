@@ -11,9 +11,9 @@
  #*/
 
 theory "/*? macros.isabelle_theory_name(outfile_name) ?*/" imports
-  "~~/../l4v/camkes/adl-spec/Types_CAMKES"
-  "~~/../l4v/camkes/adl-spec/Library_CAMKES"
-  "~~/../l4v/camkes/adl-spec/Wellformed_CAMKES"
+  "CamkesAdlSpec.Types_CAMKES"
+  "CamkesAdlSpec.Library_CAMKES"
+  "CamkesAdlSpec.Wellformed_CAMKES"
 begin
 
 (* /*? macros.generated_file_notice() ?*/ *)
