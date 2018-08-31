@@ -462,12 +462,46 @@ BuildCapDLApplication(
     /*- endfor -*/
     DEPENDS
         # Dependency on the C_SPEC and ELFs are added automatically, we just have to add the target
-        # depenencies
+        # dependencies
         capdl_c_spec_target
         ${capdl_elf_targets}
     OUTPUT "capdl-loader"
 )
 DeclareRootserver("capdl-loader")
+
+# Generate Isabelle theory scripts if needed
+if (${CAmkESCapDLVerification})
+    # Isabelle capDL spec
+    set(CAMKES_CDL_THY "${CAMKES_APP}_CDL.thy")
+    add_custom_command(
+        OUTPUT "${CAMKES_CDL_THY}"
+        COMMAND
+            # HACK: workaround for SELFOUR-6
+            # This removes Grant from all endpoint caps
+            ${CAPDL_THY_HACK_TOOL} <"${CAMKES_CDL_TARGET}" >"${CAMKES_CDL_TARGET}.munge"
+        COMMAND
+            ${CAPDL_TOOL_BINARY} --isabelle "${CAMKES_CDL_THY}" "${CAMKES_CDL_TARGET}.munge"
+        DEPENDS
+            "${CAMKES_CDL_TARGET}"
+            camkes_capdl_target
+            "${CAPDL_TOOL_BINARY}"
+            install_capdl_tool
+        BYPRODUCTS
+            "${CAMKES_CDL_TARGET}.munge"
+    )
+    add_custom_target(camkes_cdl_thy DEPENDS "${CAMKES_CDL_THY}")
+    # Generate these theory files as part of overall build
+    # FIXME: hack?
+    add_dependencies("capdl-loader" camkes_cdl_thy)
+
+    # ADL spec
+    set(CAMKES_ADL_THY "${CAMKES_APP}_Arch_Spec.thy")
+    CAmkESGen("${CAMKES_ADL_THY}" "arch-spec" THY_STYLE)
+    add_custom_target(camkes_adl_thy DEPENDS "${CAMKES_ADL_THY}")
+    add_dependencies("capdl-loader" camkes_adl_thy)
+
+    CAmkESOutputGenCommand()
+endif()
 
 # Ensure we generated all the files we intended to, this is just sanity checking
 if (NOT ("${item_list}" STREQUAL ""))

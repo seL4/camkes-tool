@@ -299,35 +299,18 @@ set(CAmkESDTS OFF CACHE BOOL
 #    DEPENDS CAmkESPruneGenerated
 #)
 
-#set(CAmkESArchThy OFF CACHE BOOL
-#    "Generate architectural specification
-#    Generate an Isabelle theory specifying the architecture of the
-#    system, using the l4.verified formal model of ADL."
-#)
-
 #set(CAmkESCImpThy OFF CACHE BOOL
 #    "Generate dynamic behavioural specification
 #    Generate an Isabelle theory specifying the dynamic behaviour of the
 #    system. This theory builds on top of the CIMP formalisation."
 #)
 
-#set(CAmkESCapDLThy OFF CACHE BOOL
-#    "Generate CapDL Isabelle specification
-#    During a CAmkES build, a textual CapDL specification of the system
-#    is generated for the purpose of initialisation. Selecting this
-#    option causes an Isabelle version of this specification to be
-#    generated as well for the purposes of reasoning about the
-#    capability distribution of a CAmkES system"
-#)
-
-#set(CAmkESLabelMapping OFF CACHE BOOL
-#    "Generate policy label mapping
-#    Enable this option to generate a mapping from labels to kernel objects
-#    during compilation. A label per-CAmkES entity (component instance or
-#    connection) is generated and they are intended to form the input domain
-#    of a function mapping these to final policy labels. The final labels
-#    are then used to reason about the security properties of a system."
-#)
+set(CAmkESCapDLVerification OFF CACHE BOOL
+    "Generate CapDL refinement proofs
+    Generate Isabelle definitions and proofs for CapDL refinement.
+    This verifies that the system's capability distribution conforms to
+    the expected integrity policy of the component assembly."
+)
 
 set(CAmkESVerbose OFF CACHE BOOL
     "Enable verbose output from CAmkES. This is disabled by default as it
@@ -377,6 +360,11 @@ endif()
 find_program(TPP_TOOL tpp PATHS ${CMAKE_CURRENT_LIST_DIR}/tools)
 if ("${TPP_TOOL}" STREQUAL "TPP_TOOL-NOTFOUND")
     message(FATAL_ERROR "Failed to find tpp tool")
+endif()
+
+find_program(CAPDL_THY_HACK_TOOL capdl-thy-hack.pl PATHS ${CMAKE_CURRENT_LIST_DIR}/tools)
+if ("${CAPDL_THY_HACK_TOOL}" STREQUAL "CAPDL_THY_HACK_TOOL-NOTFOUND")
+    message(FATAL_ERROR "Failed to find Isabelle capDL hack script")
 endif()
 
 # CAmkES defines its own heaps and for this to work muslcsys must not be configured to
