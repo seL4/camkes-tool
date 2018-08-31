@@ -20,12 +20,7 @@ theory "/*? thy ?*/" imports
   "~~/../l4v/proof/access-control/Access"
 begin
 
-/*# Ignore the comment below. It is intended to apply to the generated output,
- *# not this template.
- #*/
-(* THIS THEORY IS GENERATED. DO NOT EDIT.
- * It is expected to be hosted in l4v/camkes/cdl-refine.
- *)
+(* /*? macros.generated_file_notice() ?*/ *)
 
 /*# Forced garbage collection that we emit between proofs when debugging in
  *# order to keep an interactive Isabelle session manageable.

@@ -16,10 +16,7 @@ theory "/*? macros.isabelle_theory_name(outfile_name) ?*/" imports
   "~~/../l4v/camkes/adl-spec/Wellformed_CAMKES"
 begin
 
-/*# Ignore the following line. It is intended to apply to the output of this
- *# template.
-#*/
-(* THIS FILE IS GENERATED. DO NOT EDIT. *)
+(* /*? macros.generated_file_notice() ?*/ *)
 
 /*- macro param_type(type) -*/
     /*- if type == 'int' -*/
