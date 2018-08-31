@@ -176,19 +176,21 @@ lemma wf_/*? i.name ?*/: "wellformed_component /*? i.name ?*/"
 /*- endfor -*/
 
 /*- for c in me.composition.connections -*/
-  /*- if len(c.from_ends) != 1 -*/
-    /*? raise(TemplateError('connections without a single from end are not supported', c)) ?*/
-  /*- endif -*/
-  /*- if len(c.to_ends) != 1 -*/
-    /*? raise(TemplateError('connections without a single to end are not supported', c)) ?*/
-  /*- endif -*/
 definition
     /*? c.name ?*/ :: connection
 where
     "/*? c.name ?*/ \<equiv> \<lparr>
         conn_type = /*? c.type.name ?*/,
-        conn_from = (''/*? c.from_instance.name ?*/'', ''/*? c.from_interface.name ?*/''),
-        conn_to = (''/*? c.to_instance.name ?*/'', ''/*? c.to_interface.name ?*/'')
+        conn_from =
+        /*- for i, from_end in enumerate(c.from_ends) -*/
+          (''/*? from_end.instance.name ?*/'', ''/*? from_end.interface.name ?*/'') #
+        /*- endfor -*/
+          [],
+        conn_to =
+        /*- for i, to_end in enumerate(c.to_ends) -*/
+          (''/*? to_end.instance.name ?*/'', ''/*? to_end.interface.name ?*/'') #
+        /*- endfor -*/
+          []
     \<rparr>"
 
 lemma wf_/*? c.name ?*/: "wellformed_connection /*? c.name ?*/"

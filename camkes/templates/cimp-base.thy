@@ -324,17 +324,13 @@ where
       Call_/*? c.name ?*/_/*? u.name ?*/_/*? m.name ?*/ (\<lambda>/*? l ?*/. case /*? l ?*/ of
       /*- set j = joiner('|') -*/
       /*- for conn in connections -*/
-          /*- if len(conn.from_ends) != 1 -*/
-              /*? raise(TemplateError('connections without a single from end are not supported', conn)) ?*/
+          /*- set idx = eval('[ idx for idx in range(len(conn.from_ends)) if i.name == conn.from_ends[idx].instance.name ]', {'i': i, 'conn': conn}) -*/
+          /*- if idx -*/
+              /*? j() ?*/ /*? c.name ?*/_/*? conn.from_ends[idx[0]].interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
           /*- endif -*/
-          /*- if len(conn.to_ends) != 1 -*/
-              /*? raise(TemplateError('connections without a single to end are not supported', conn)) ?*/
-          /*- endif -*/
-          /*- if conn.from_instance.name == i.name -*/
-              /*? j() ?*/ /*? c.name ?*/_/*? conn.from_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
-          /*- endif -*/
-          /*- if conn.to_instance.name == i.name -*/
-              /*? j() ?*/ /*? c.name ?*/_/*? conn.to_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
+          /*- set idx = eval('[ idx for idx in range(len(conn.to_ends)) if i.name == conn.to_ends[idx].instance.name ]', {'i': i, 'conn': conn}) -*/
+          /*- if idx -*/
+              /*? j() ?*/ /*? c.name ?*/_/*? conn.to_ends[idx[0]].interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
           /*- endif -*/
       /*- endfor -*/
       )"
@@ -370,14 +366,13 @@ where
       Recv_/*? c.name ?*/_/*? u.name ?*/ (\<lambda>/*? l ?*/. case /*? l ?*/ of
       /*- set j = joiner('|') -*/
       /*- for conn in connections -*/
-          /*- if len(conn.to_ends) != 1 -*/
-              /*? raise(TemplateError('connections without a single to end are not supported', conn)) ?*/
+          /*- set idx = eval('[ idx for idx in range(len(conn.from_ends)) if i.name == conn.from_ends[idx].instance.name ]', {'i': i, 'conn': conn}) -*/
+          /*- if idx -*/
+              /*? j() ?*/ /*? c.name ?*/_/*? conn.from_ends[idx[0]].interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
           /*- endif -*/
-          /*- if conn.from_instance.name == i.name -*/
-              /*? j() ?*/ /*? c.name ?*/_/*? conn.from_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
-          /*- endif -*/
-          /*- if conn.to_instance.name == i.name -*/
-              /*? j() ?*/ /*? c.name ?*/_/*? conn.to_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
+          /*- set idx = eval('[ idx for idx in range(len(conn.to_ends)) if i.name == conn.to_ends[idx].instance.name ]', {'i': i, 'conn': conn}) -*/
+          /*- if idx -*/
+              /*? j() ?*/ /*? c.name ?*/_/*? conn.to_ends[idx[0]].interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
           /*- endif -*/
       /*- endfor -*/
       )"
@@ -393,14 +388,13 @@ where
   "Emit_/*? i.name ?*/_/*? u.name ?*/ \<equiv> Emit_/*? c.name ?*/_/*? u.name ?*/ (\<lambda>/*? l ?*/. case /*? l ?*/ of
   /*- set j = joiner('|') -*/
   /*- for conn in connections -*/
-      /*- if len(conn.to_ends) != 1 -*/
-          /*? raise(TemplateError('connections without a single to end are not supported', conn)) ?*/
+      /*- set idx = eval('[ idx for idx in range(len(conn.from_ends)) if i.name == conn.from_ends[idx].instance.name ]', {'i': i, 'conn': conn}) -*/
+      /*- if idx -*/
+          /*? j() ?*/ /*? c.name ?*/_/*? conn.from_ends[idx[0]].interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
       /*- endif -*/
-      /*- if conn.from_instance.name == i.name -*/
-          /*? j() ?*/ /*? c.name ?*/_/*? conn.from_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
-      /*- endif -*/
-      /*- if conn.to_instance.name == i.name -*/
-          /*? j() ?*/ /*? c.name ?*/_/*? conn.to_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
+      /*- set idx = eval('[ idx for idx in range(len(conn.to_ends)) if i.name == conn.to_ends[idx].instance.name ]', {'i': i, 'conn': conn}) -*/
+      /*- if idx -*/
+          /*? j() ?*/ /*? c.name ?*/_/*? conn.to_ends[idx[0]].interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
       /*- endif -*/
   /*- endfor -*/
   )"
@@ -416,14 +410,13 @@ where
   "Poll_/*? i.name ?*/_/*? u.name ?*/ \<equiv> Poll_/*? c.name ?*/_/*? u.name ?*/ (\<lambda>/*? l ?*/. case /*? l ?*/ of
   /*- set j = joiner('|') -*/
   /*- for conn in connections -*/
-      /*- if len(conn.to_ends) != 1 -*/
-          /*? raise(TemplateError('connections without a single to end are not supported', conn)) ?*/
+      /*- set idx = eval('[ idx for idx in range(len(conn.from_ends)) if i.name == conn.from_ends[idx].instance.name ]', {'i': i, 'conn': conn}) -*/
+      /*- if idx -*/
+          /*? j() ?*/ /*? c.name ?*/_/*? conn.from_ends[idx[0]].interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
       /*- endif -*/
-      /*- if conn.from_instance.name == i.name -*/
-          /*? j() ?*/ /*? c.name ?*/_/*? conn.from_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
-      /*- endif -*/
-      /*- if conn.to_instance.name == i.name -*/
-          /*? j() ?*/ /*? c.name ?*/_/*? conn.to_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
+      /*- set idx = eval('[ idx for idx in range(len(conn.to_ends)) if i.name == conn.to_ends[idx].instance.name ]', {'i': i, 'conn': conn}) -*/
+      /*- if idx -*/
+          /*? j() ?*/ /*? c.name ?*/_/*? conn.to_ends[idx[0]].interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
       /*- endif -*/
   /*- endfor -*/
   )"
@@ -437,14 +430,13 @@ where
   "Wait_/*? i.name ?*/_/*? u.name ?*/ \<equiv> Wait_/*? c.name ?*/_/*? u.name ?*/ (\<lambda>/*? l ?*/. case /*? l ?*/ of
   /*- set j = joiner('|') -*/
   /*- for conn in connections -*/
-      /*- if len(conn.to_ends) != 1 -*/
-          /*? raise(TemplateError('connections without a single to end are not supported', conn)) ?*/
+      /*- set idx = eval('[ idx for idx in range(len(conn.from_ends)) if i.name == conn.from_ends[idx].instance.name ]', {'i': i, 'conn': conn}) -*/
+      /*- if idx -*/
+          /*? j() ?*/ /*? c.name ?*/_/*? conn.from_ends[idx[0]].interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
       /*- endif -*/
-      /*- if conn.from_instance.name == i.name -*/
-          /*? j() ?*/ /*? c.name ?*/_/*? conn.from_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
-      /*- endif -*/
-      /*- if conn.to_instance.name == i.name -*/
-          /*? j() ?*/ /*? c.name ?*/_/*? conn.to_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
+      /*- set idx = eval('[ idx for idx in range(len(conn.to_ends)) if i.name == conn.to_ends[idx].instance.name ]', {'i': i, 'conn': conn}) -*/
+      /*- if idx -*/
+          /*? j() ?*/ /*? c.name ?*/_/*? conn.to_ends[idx[0]].interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
       /*- endif -*/
   /*- endfor -*/
   )"
@@ -460,14 +452,13 @@ where
   "Read_/*? i.name ?*/_/*? u.name ?*/ \<equiv> Read_/*? c.name ?*/_/*? u.name ?*/ (\<lambda>/*? l ?*/. case /*? l ?*/ of
   /*- set j = joiner('|') -*/
   /*- for conn in connections -*/
-      /*- if len(conn.to_ends) != 1 -*/
-          /*? raise(TemplateError('connections without a single to end are not supported', conn)) ?*/
+      /*- set idx = eval('[ idx for idx in range(len(conn.from_ends)) if i.name == conn.from_ends[idx].instance.name ]', {'i': i, 'conn': conn}) -*/
+      /*- if idx -*/
+          /*? j() ?*/ /*? c.name ?*/_/*? conn.from_ends[idx[0]].interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
       /*- endif -*/
-      /*- if conn.from_instance.name == i.name -*/
-          /*? j() ?*/ /*? c.name ?*/_/*? conn.from_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
-      /*- endif -*/
-      /*- if conn.to_instance.name == i.name -*/
-          /*? j() ?*/ /*? c.name ?*/_/*? conn.to_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
+      /*- set idx = eval('[ idx for idx in range(len(conn.to_ends)) if i.name == conn.to_ends[idx].instance.name ]', {'i': i, 'conn': conn}) -*/
+      /*- if idx -*/
+          /*? j() ?*/ /*? c.name ?*/_/*? conn.to_ends[idx[0]].interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
       /*- endif -*/
   /*- endfor -*/
   )"
@@ -481,14 +472,13 @@ where
   "Write_/*? i.name ?*/_/*? u.name ?*/ \<equiv> Write_/*? c.name ?*/_/*? u.name ?*/ (\<lambda>/*? l ?*/. case /*? l ?*/ of
   /*- set j = joiner('|') -*/
   /*- for conn in connections -*/
-      /*- if len(conn.to_ends) != 1 -*/
-          /*? raise(TemplateError('connections without a single to end are not supported', conn)) ?*/
+      /*- set idx = eval('[ idx for idx in range(len(conn.from_ends)) if i.name == conn.from_ends[idx].instance.name ]', {'i': i, 'conn': conn}) -*/
+      /*- if idx -*/
+          /*? j() ?*/ /*? c.name ?*/_/*? conn.from_ends[idx[0]].interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
       /*- endif -*/
-      /*- if conn.from_instance.name == i.name -*/
-          /*? j() ?*/ /*? c.name ?*/_/*? conn.from_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
-      /*- endif -*/
-      /*- if conn.to_instance.name == i.name -*/
-          /*? j() ?*/ /*? c.name ?*/_/*? conn.to_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
+      /*- set idx = eval('[ idx for idx in range(len(conn.to_ends)) if i.name == conn.to_ends[idx].instance.name ]', {'i': i, 'conn': conn}) -*/
+      /*- if idx -*/
+          /*? j() ?*/ /*? c.name ?*/_/*? conn.to_ends[idx[0]].interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
       /*- endif -*/
   /*- endfor -*/
   )"
@@ -564,14 +554,13 @@ where
   "/*? i.name ?*/_untrusted \<equiv> /*? c.name ?*/_untrusted (\<lambda>/*? l ?*/. case /*? l ?*/ of
   /*- set j = joiner('|') -*/
   /*- for conn in connections -*/
-      /*- if len(conn.to_ends) != 1 -*/
-          /*? raise(TemplateError('connections without a single to end are not supported', conn)) ?*/
+      /*- set idx = eval('[ idx for idx in range(len(conn.from_ends)) if i.name == conn.from_ends[idx].instance.name ]', {'i': i, 'conn': conn}) -*/
+      /*- if idx -*/
+          /*? j() ?*/ /*? c.name ?*/_/*? conn.from_ends[idx[0]].interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
       /*- endif -*/
-      /*- if conn.from_instance.name == i.name -*/
-          /*? j() ?*/ /*? c.name ?*/_/*? conn.from_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
-      /*- endif -*/
-      /*- if conn.to_instance.name == i.name -*/
-          /*? j() ?*/ /*? c.name ?*/_/*? conn.to_interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
+      /*- set idx = eval('[ idx for idx in range(len(conn.to_ends)) if i.name == conn.to_ends[idx].instance.name ]', {'i': i, 'conn': conn}) -*/
+      /*- if idx -*/
+          /*? j() ?*/ /*? c.name ?*/_/*? conn.to_ends[idx[0]].interface.name ?*/ \<Rightarrow> /*? conn.name ?*/
       /*- endif -*/
   /*- endfor -*/
   )"
@@ -611,9 +600,6 @@ where
       /*? j() ?*/ /*? i.name ?*/ \<Rightarrow> Some (/*? i.name ?*/_untrusted, Component init_component_state)
   /*- endfor -*/
   /*- for c in connections -*/
-      /*- if len(c.to_ends) != 1 -*/
-          /*? raise(TemplateError('connections without a single to end are not supported', c)) ?*/
-      /*- endif -*/
       /*- if c.type.from_type == 'Event' -*/
           /*? j() ?*/ /*? c.name ?*/\<^sub>e \<Rightarrow> Some (/*? c.name ?*/\<^sub>e_instance, init_event_state)
       /*- elif c.type.from_type == 'Dataport' -*/
