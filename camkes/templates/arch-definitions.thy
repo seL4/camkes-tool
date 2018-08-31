@@ -10,7 +10,7 @@
  *# @TAG(DATA61_BSD)
  #*/
 
-theory ArchSpec imports
+theory "/*? macros.isabelle_theory_name(outfile_name) ?*/" imports
   "~~/../l4v/camkes/adl-spec/Types_CAMKES"
   "~~/../l4v/camkes/adl-spec/Library_CAMKES"
   "~~/../l4v/camkes/adl-spec/Wellformed_CAMKES"

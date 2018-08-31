@@ -51,7 +51,9 @@ from camkes.internal.version import version
 from camkes.templates import macros, TemplateError
 from .NameMangling import TEMPLATES, FILTERS, Perspective
 
-def new_context(entity, assembly, obj_space, cap_space, shmem, kept_symbols, fill_frames, templates, **kwargs):
+def new_context(entity, assembly, obj_space, cap_space,
+                shmem, kept_symbols, fill_frames, outfile_name,
+                templates, **kwargs):
     '''Create a new default context for rendering.'''
     return dict(list(__builtins__.items()) + list({
         # Kernel object allocator
@@ -263,6 +265,10 @@ def new_context(entity, assembly, obj_space, cap_space, shmem, kept_symbols, fil
 
         # Look up a template
         'lookup_template':lambda path, entity: templates.lookup(path, entity),
+
+        # Output filename (mainly needed by Isabelle templates)
+        # Currently only supported for misc templates.
+        'outfile_name': outfile_name,
     }.items()) + list(kwargs.items()))
 
 # For all three of these functions below, for the 'badge_var_name' variable,

@@ -635,8 +635,10 @@ def main(argv, out, err):
             try:
                 template = templates.lookup(item)
                 if template:
-                    g = r.render(assembly, assembly, template, obj_space, None,
-                        shmem, kept_symbols, fill_frames, imported=read, options=renderoptions)
+                    g = r.render(
+                        assembly, assembly, template, obj_space, None,
+                        shmem, kept_symbols, fill_frames, outfile_name=outfile.name,
+                        imported=read, options=renderoptions)
                     save(item, g)
                     done(g, outfile, item)
             except TemplateError as inst:
@@ -698,7 +700,8 @@ def main(argv, out, err):
                 g = ''
                 if template:
                     g = r.render(i, assembly, template, obj_space, cspaces[i.address_space],
-                        shmem, kept_symbols, fill_frames, options=renderoptions, my_pd=pds[i.address_space])
+                        shmem, kept_symbols, fill_frames, outfile_name=None,
+                        options=renderoptions, my_pd=pds[i.address_space])
                 save(t, g)
                 for (item, outfile) in (all_items - done_items):
                     if item == t:
@@ -726,7 +729,8 @@ def main(argv, out, err):
                     g = ''
                     try:
                         g = r.render(e, assembly, template, obj_space,
-                            cspaces[e.instance.address_space], shmem, kept_symbols, fill_frames,
+                            cspaces[e.instance.address_space], shmem, kept_symbols,
+                            fill_frames, outfile_name=None,
                             options=renderoptions, my_pd=pds[e.instance.address_space])
                     except TemplateError as inst:
                         die(rendering_error(item, inst))
@@ -768,7 +772,8 @@ def main(argv, out, err):
                 for e in t[1]:
                     try:
                         g = r.render(e, assembly, template, obj_space,
-                            cspaces[e.instance.address_space], shmem, kept_symbols, fill_frames,
+                            cspaces[e.instance.address_space], shmem, kept_symbols,
+                            fill_frames, outfile_name=None,
                             options=renderoptions, my_pd=pds[e.instance.address_space])
                         save(item, g)
                         done(g, outfile, item)
@@ -791,7 +796,8 @@ def main(argv, out, err):
                     g = ''
                     if template:
                         g = r.render(i, assembly, template, obj_space, cspaces[i.address_space],
-                            shmem, kept_symbols, fill_frames, options=renderoptions, my_pd=pds[i.address_space])
+                            shmem, kept_symbols, fill_frames, outfile_name=None,
+                            options=renderoptions, my_pd=pds[i.address_space])
                     save(t, g)
                     for (item, outfile) in (all_items - done_items):
                         if item == t:

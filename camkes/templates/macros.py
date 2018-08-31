@@ -256,6 +256,19 @@ def to_isabelle_set(xs):
         return '{%s}' % ', '.join('\'\'%s\'\'' % x for x in xs)
     raise NotImplementedError
 
+def isabelle_theory_name(filename):
+    '''Isabelle theories need to know their filenames.
+       We assume that the CAmkES tool is being called with only one
+       --outfile to generate this theory file. Then the filename is
+       uniquely specified in the outfile array.
+
+       FIXME: this is a bit of a hack.
+    '''
+    basename = os.path.basename(filename)
+    if basename.endswith('.thy'):
+        basename = basename[:-len('.thy')]
+    return basename
+
 def capdl_sorter(arch, a, b):
     '''
     This function replicates `sorter` from the CapDL translator. The purpose is
