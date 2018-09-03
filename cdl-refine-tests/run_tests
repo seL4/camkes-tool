@@ -1,0 +1,282 @@
+#!/usr/bin/env python3
+#
+# Copyright 2018, Data61
+# Commonwealth Scientific and Industrial Research Organisation (CSIRO)
+# ABN 41 687 119 230.
+#
+# This software may be distributed and modified according to the terms of
+# the BSD 2-Clause license. Note that NO WARRANTY is provided.
+# See "LICENSE_BSD2.txt" for details.
+#
+# @TAG(DATA61_BSD)
+#
+
+'''
+Set up and run tests for CAmkES capDL refinement proofs.
+'''
+
+import jinja2
+import itertools
+import os
+import shutil
+import subprocess
+import sys
+import tempfile
+import time
+
+# Jinja template setup
+START_BLOCK = '/*-'
+END_BLOCK = '-*/'
+START_VARIABLE = '/*?'
+END_VARIABLE = '?*/'
+START_COMMENT = '/*#'
+END_COMMENT = '#*/'
+
+jinja_env = jinja2.Environment(
+    block_start_string=START_BLOCK,
+    block_end_string=END_BLOCK,
+    variable_start_string=START_VARIABLE,
+    variable_end_string=END_VARIABLE,
+    comment_start_string=START_COMMENT,
+    comment_end_string=END_COMMENT,
+    auto_reload=False,
+    undefined=jinja2.StrictUndefined)
+
+# Test these apps. For now, we need a manual
+# ${APP}_CDL_Refine.thy for each app.
+test_apps = [
+    'simple',
+    # NB: 'dataport' is expected to fail with non-default options
+    #     because our proof hardcodes the shared frame IDs
+    'dataport',
+    'multiclient',
+    ]
+
+# Test these option combinations.
+# The first value of each option list will be the default used in this
+# test runner (once we add a command line option for that).
+test_options = {
+    # Having extra fault handler threads and EPs shouldn't matter,
+    # since our policy spec can access them from component CNodes
+    'CAmkESFaultHandlers': ['0', '1'],
+
+    # Release/debug mode only affects C code, so shouldn't matter
+    'RELEASE': ['1', '0'],
+}
+
+# Default app build options.
+# This builds for the current verified ARM platform, sabre (on QEMU).
+standard_build_config = {
+    'PLATFORM': 'sabre',
+    'CROSS_COMPILER_PREFIX': 'arm-none-eabi-',
+    'CAmkESCapDLVerification': '1',
+    'SIMULATE': '1',
+}
+# TODO: accept extra config on command line
+
+
+# Messages
+# TODO: allow adjusting verbosity
+def info(msg):
+    print('run_tests: info: %s' % msg)
+
+def fatal(msg):
+    print('run_tests: fatal: %s' % msg, file=sys.stderr)
+    sys.exit(1)
+
+def run_cmd(cmdline, **kwargs):
+    '''Run a command, printing its output if it fails'''
+    print('run_tests: command: %s' %
+          ', '.join([repr(cmdline)] + ['%s=%s' % x for x in kwargs.items()]))
+    start = time.time()
+    try:
+        return subprocess.check_output(cmdline, stderr=subprocess.STDOUT, **kwargs)
+    except subprocess.CalledProcessError as exn:
+        print('run_tests: command failed with code %d' % exn.returncode)
+        print(exn.output.decode('utf-8'))
+        raise
+    finally:
+        duration = time.time() - start
+        if duration > 10:
+            info('command took %.3g seconds' % duration)
+
+class TempDir():
+    '''Context manager for a temporary directory.'''
+    def __init__(self, prefix=None, parent_dir=None, cleanup_on_error=True):
+        self.prefix = prefix
+        self.parent_dir = parent_dir
+        self.cleanup_on_error = cleanup_on_error
+
+    def __enter__(self):
+        self.filename = tempfile.mkdtemp(prefix=self.prefix, dir=self.parent_dir)
+        return self.filename
+
+    def __exit__(self, exn_type, exn_val, traceback):
+        if exn_type is None or self.cleanup_on_error:
+            shutil.rmtree(self.filename)
+        return False # propagate exceptions
+
+# Main.
+# TODO: argparse
+def main():
+    info('Testing %d apps...' % len(test_apps))
+
+    this_script_dir = os.path.dirname(os.path.realpath(__file__))
+    # Expected path to our script
+    if this_script_dir.endswith('projects/camkes-tool/cdl-refine-tests'):
+        # Build in the project root by default
+        camkes_root = os.path.normpath(os.path.join(this_script_dir, '../../..'))
+        if camkes_root != os.getcwd():
+            info('Changing directory to project root: %s' % camkes_root)
+            os.chdir(camkes_root)
+    else:
+        camkes_root = os.getcwd() # guessed
+
+    # Find the entry point to the project's build system.
+    init_build_tool = os.path.normpath(os.path.join(camkes_root, 'init-build.sh'))
+    if not os.path.exists(init_build_tool):
+        fatal('init-build.sh not found at: %s' % init_build_tool)
+
+    # Show the CAmkES version.
+    try:
+        camkes_tool_rev = subprocess.check_output(
+            ['git', 'describe', '--tags'],
+            cwd=os.path.normpath(os.path.join(camkes_root, 'projects/camkes-tool'))
+        ).decode('utf-8')
+    except subprocess.CalledProcessError as exn:
+        camkes_tool_rev = 'unknown [error: %s]' % str(exn)
+    info('camkes-tool revision: %s' % camkes_tool_rev)
+
+    # Find Isabelle.
+    isabelle_tool = os.path.normpath(os.path.join(camkes_root, 'projects/isabelle/bin/isabelle'))
+    if not os.path.exists(isabelle_tool):
+        fatal('''isabelle not found at: %s
+(Make sure to check out the correct project manifest)''' % isabelle_tool)
+    try:
+        isabelle_rev = subprocess.check_output(
+            ['git', 'describe', '--tags'],
+            cwd=os.path.normpath(os.path.join(camkes_root, 'projects/isabelle'))
+            ).decode('utf-8')
+    except subprocess.CalledProcessError as exn:
+        isabelle_rev = 'unknown [error: %s]' % str(exn)
+    info('Isabelle revision: %s' % isabelle_rev)
+
+    l4v_dir = os.path.normpath(os.path.join(camkes_root, 'projects/l4v'))
+    if not os.path.exists(l4v_dir):
+        fatal('l4v not found at: %s' % l4v_dir)
+    try:
+        l4v_rev = subprocess.check_output(
+            ['git', 'describe', '--tags'],
+            cwd=os.path.normpath(os.path.join(camkes_root, 'projects/l4v'))
+            ).decode('utf-8')
+    except subprocess.CalledProcessError as exn:
+        l4v_rev = 'unknown [error: %s]' % str(exn)
+    info('l4v revision: %s' % l4v_rev)
+
+    # Find ninja-build.
+    ninja_build_tool = 'ninja'
+    try:
+        ninja_version = subprocess.check_output(
+            [ninja_build_tool, '--version']
+            ).decode('utf-8')
+        info('ninja-build version: %s' % ninja_version)
+    except OSError as exn:
+        fatal('''can't run ninja-build tool at: %s
+[%s]''' % (ninja_build_tool, str(exn)))
+
+    def build_one(app_name, this_build_config):
+        '''Do one test run for the given app and build options.'''
+        # Use temporary directory, but in the project root.
+        # Any other location should also work, but this is the
+        # “standard” place for it.
+        with TempDir(prefix='build-%s-' % app_name,
+                     parent_dir=os.getcwd(),
+                     cleanup_on_error=False
+                    ) as build_dir:
+            try:
+                info('Build directory: %s' % build_dir)
+                build_cmdline = (
+                    [init_build_tool,
+                     '-DCAMKES_APP=%s' % app_name] +
+                    ['-D%s=%s' % opt for opt in sorted(standard_build_config.items())] +
+                    ['-D%s=%s' % opt for opt in sorted(this_build_config.items())]
+                    )
+                run_cmd(build_cmdline, cwd=build_dir)
+                run_cmd([ninja_build_tool], cwd=build_dir)
+                info('App build succeeded.')
+
+                info('Setting up extra theory files...')
+                app_thy_dir = os.path.join(build_dir, 'projects/camkes')
+                # CDL refinement proof
+                cdl_refine_thy_base = '%s_CDL_Refine.thy' % app_name
+                cdl_refine_thy = os.path.join(this_script_dir, cdl_refine_thy_base)
+                shutil.copyfile(cdl_refine_thy, os.path.join(app_thy_dir, cdl_refine_thy_base))
+
+                # session ROOT
+                ROOT_template_env = {
+                    'app_name': app_name,
+                    'session_name': '%s_CDL_Refine' % app_name
+                }
+                ROOT_template = os.path.join(this_script_dir, 'ROOT.template')
+                # quick-and-dirty jinja usage, because we have only one template
+                with open(ROOT_template, 'r') as f:
+                    ROOT_template_text = f.read()
+                ROOT_jinja_template = jinja_env.from_string(ROOT_template_text)
+                app_ROOT_text = ROOT_jinja_template.render(ROOT_template_env)
+                app_ROOT = os.path.join(app_thy_dir, 'ROOT')
+                with open(app_ROOT, 'w') as f:
+                    f.write(app_ROOT_text)
+                info('Done setting up theory files')
+
+                info('Running proofs...')
+                isabelle_cmdline = [
+                    'timeout', '1h',
+                    isabelle_tool, 'build',
+                    '-d', l4v_dir, '-d', app_thy_dir,
+                    '-v',
+                    ROOT_template_env['session_name']
+                ]
+                run_cmd(isabelle_cmdline, cwd=build_dir)
+            except Exception as exn:
+                info('Build directory retained at: %s' % build_dir)
+                raise
+
+    # Some of the l4v sessions rely on generated files.
+    # Here, we run l4v's own build system to generate them.
+    # Also pre-build the CAmkES formal model while we're at it.
+
+    # NB: we can't use l4v/run_tests directly because it builds with
+    #     slightly different Isabelle env options, causing our
+    #     'isabelle build' in build_one() to miss the image cache
+    info('Setting up l4v...')
+    run_cmd(['./misc/regression/run_tests.py', '-v', 'CamkesCdlRefine'],
+            cwd=l4v_dir)
+    info('Done setting up l4v')
+
+    # Main test loop.
+    num_tests = 0
+    num_passed = 0
+    for app_name in test_apps:
+        for this_build_config in itertools.product(
+                *[[(k, v) for v in vals]
+                  for k, vals in sorted(test_options.items())]):
+            num_tests += 1
+            this_build_config = dict(this_build_config)
+            info('Testing app: %s' % app_name)
+            info('Build config for this test:')
+            for k, v in sorted(this_build_config.items()):
+                info('  %s=%s' % (k, v))
+
+            try:
+                build_one(app_name, dict(this_build_config))
+
+                info('Test succeeded.\n\n')
+                num_passed += 1
+            except Exception as exn:
+                info('Test failed with exception:\n  %s\n\n' % str(exn))
+
+    info('Summary: %d test(s), %d passed, %d failed' %
+         (num_tests, num_passed, num_tests - num_passed))
+
+if __name__ == '__main__':
+    main()
