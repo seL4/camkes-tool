@@ -1,0 +1,24 @@
+/*
+ * Copyright 2018, Data61
+ * Commonwealth Scientific and Industrial Research Organisation (CSIRO)
+ * ABN 41 687 119 230.
+ *
+ * This software may be distributed and modified according to the terms of
+ * the BSD 2-Clause license. Note that NO WARRANTY is provided.
+ * See "LICENSE_BSD2.txt" for details.
+ *
+ * @TAG(DATA61_BSD)
+ */
+
+component PIT {
+    hardware;
+    provides IOPort command;
+    provides IOPort channel0;
+    emits PITIRQ irq;
+    attribute string command_attributes = "0x43:0x43";
+    attribute string channel0_attributes = "0x40:0x40";
+    attribute string irq_irq_type = "isa";
+    attribute int irq_irq_ioapic = 0;
+    attribute int irq_irq_ioapic_pin = 2;
+    attribute int irq_irq_vector = 2;
+}

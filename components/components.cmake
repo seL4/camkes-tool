@@ -16,3 +16,6 @@ CAmkESMaybeAddImportPath(${CMAKE_CURRENT_LIST_DIR}/plat/${KernelPlatform})
 CAmkESMaybeAddImportPath(${CMAKE_CURRENT_LIST_DIR}/mach/${KernelArmMach})
 CAmkESMaybeAddImportPath(${CMAKE_CURRENT_LIST_DIR}/arch/${KernelArch})
 
+if (EXISTS ${CMAKE_CURRENT_LIST_DIR}/plat/${KernelPlatform}/CMakeLists.txt)
+include(${CMAKE_CURRENT_LIST_DIR}/plat/${KernelPlatform}/CMakeLists.txt)
+endif()

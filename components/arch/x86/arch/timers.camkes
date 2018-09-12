@@ -10,3 +10,4 @@
  * @TAG(DATA61_BSD)
  */
 
+import <plat/timers.camkes>;
