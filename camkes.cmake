@@ -701,7 +701,7 @@ endfunction(CAmkESAddTemplatesPath)
 
 # Function to add an include path to the c preprocessor when running over
 # camkes ADL files (example.camkes).
-function(AddCamkesCPPInclude)
+function(CAmkESAddCPPInclude)
     foreach(arg IN LISTS ARGV)
         get_absolute_list_source_or_binary(arg "${arg}")
         set_property(GLOBAL PROPERTY CAMKES_ROOT_CPP_FLAGS "-I${arg}")
