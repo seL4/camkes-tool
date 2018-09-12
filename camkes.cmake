@@ -687,6 +687,16 @@ function(CAmkESAddImportPath)
         set_property(GLOBAL APPEND PROPERTY CAmkESExtraImportPaths "${arg}")
     endforeach()
 endfunction(CAmkESAddImportPath)
+
+# Add an import path but only if it exists
+function(CAmkESMaybeAddImportPath)
+    foreach(arg IN LISTS ARGV)
+        if(EXISTS ${arg})
+            CAmkESAddImportPath(${arg})
+        endif()
+    endforeach()
+endfunction()
+
 function(CAmkESAddTemplatesPath)
     # Ensure we haven't generated the camkes-gen.cmake yet
     get_property(is_done GLOBAL PROPERTY CAMKES_GEN_DONE)
