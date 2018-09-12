@@ -709,6 +709,8 @@ function(CAmkESAddTemplatesPath)
     endforeach()
 endfunction(CAmkESAddTemplatesPath)
 
+include(${CMAKE_CURRENT_LIST_DIR}/components/components.cmake)
+
 # Function to add an include path to the c preprocessor when running over
 # camkes ADL files (example.camkes).
 function(CAmkESAddCPPInclude)
