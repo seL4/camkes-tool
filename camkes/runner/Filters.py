@@ -278,7 +278,7 @@ def replace_frame_with_paging_structure(obj_space, vspace_root, frame_cap, botto
     # populate the paging structure with new frames
     for i in range(0, bottom_level.coverage // child_size):
         new_frame = obj_space.alloc(seL4_FrameObject, size=child_size)
-        paging_structure[i] = Cap(new_frame, frame_cap.read, frame_cap.write, frame_cap.grant)
+        paging_structure[i] = Cap(new_frame, read=frame_cap.read, write=frame_cap.write, grant=frame_cap.grant)
 
     # find the parent paging structure
     if len(indices) == 1:
@@ -287,7 +287,7 @@ def replace_frame_with_paging_structure(obj_space, vspace_root, frame_cap, botto
         _, parent = lookup_vspace_indices(vspace_root, indices[0:-1])
 
     # replace the entry in the parent
-    parent[indices[-1]] = Cap(paging_structure, frame_cap.read, frame_cap.write, frame_cap.grant)
+    parent[indices[-1]] = Cap(paging_structure, read=frame_cap.read, write=frame_cap.write, grant=frame_cap.grant)
 
     # delete the old frame
     obj_space.remove(frame_cap.referent)
@@ -321,7 +321,7 @@ def replace_frame_with_small_frames(obj_space, vspace_root, frame_cap, bottom_le
     # create new frames and map them in
     for i in range(0, num_frames):
         new_frame = obj_space.alloc(seL4_FrameObject, size=new_frame_size)
-        paging_structure[start_index + i] = Cap(new_frame, frame_cap.read, frame_cap.write, frame_cap.grant)
+        paging_structure[start_index + i] = Cap(new_frame, read=frame_cap.read, write=frame_cap.write, grant=frame_cap.grant)
 
     obj_space.remove(frame_cap.referent)
 
@@ -426,7 +426,7 @@ def set_tcb_caps(ast, obj_space, cspaces, elfs, options, **_):
                     raise Exception('IPC buffer of TCB %s in group %s does ' \
                         'not appear to be backed by a frame' % (tcb.name, group))
 
-                tcb['ipc_buffer_slot'] = Cap(frame, True, True, False) # RW
+                tcb['ipc_buffer_slot'] = Cap(frame, read=True, write=True, grant=False) # RW
 
             # Optional fault endpoints are configured in the per-component
             # template.
@@ -521,7 +521,7 @@ def collapse_shared_frames(ast, obj_space, elfs, shmem, options, **_):
                         # Now insert the new frames
                         for new_vaddr in six.moves.range(vaddr, vaddr + size, largest_frame_size):
                             frame = new_frames[new_vaddr]
-                            cap = Cap(frame, read, write, execute)
+                            cap = Cap(frame, read=read, write=write, grant=execute)
                             if paddr is not None:
                                 frame.paddr = paddr + (new_vaddr - vaddr)
                                 cap.set_cached(cached_hw)
@@ -556,7 +556,7 @@ def collapse_shared_frames(ast, obj_space, elfs, shmem, options, **_):
                         delete_small_frames(arch, obj_space, pd, level_num, map_indices)
                     offset = 0
                     for frame in frames:
-                        cap = Cap(frame, read, write, execute)
+                        cap = Cap(frame, read=read, write=write, grant=execute)
                         if paddr is not None:
                             cap.set_cached(cached_hw)
                         if exact_frames:
@@ -676,7 +676,7 @@ def replace_dma_frames(ast, obj_space, elfs, options, **_):
         replace_large_frames(obj_space, arch, pd, base, sz, page_size)
 
         for page_vaddr in six.moves.range(base, base + sz, page_size):
-            cap = Cap(get_dma_frame(dma_frame_index), True, True, False)
+            cap = Cap(get_dma_frame(dma_frame_index), read=True, write=True, grant=False)
             cap.set_cached(False)
             update_frame_in_vaddr(arch, pd, page_vaddr, page_size, cap)
             dma_frame_index = dma_frame_index + 1
