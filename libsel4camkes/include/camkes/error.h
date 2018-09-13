@@ -217,7 +217,7 @@ camkes_error_action_t camkes_error(camkes_error_t *e) COLD;
  * to be called from user code. Note that it does not halt on a non-debug
  * kernel.
  */
-#ifdef SEL4_DEBUG_KERNEL
+#ifdef CONFIG_DEBUG_BUILD
     #define halt() seL4_DebugHalt()
 #else
     #define halt() do { } while (0)
