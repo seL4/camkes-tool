@@ -15,17 +15,6 @@
 # an entry point in preference to calling Python files directly because it
 # checks the dependencies for you.
 
-# If the user has the CAmkES accelerator enabled, first try to see if it can
-# retrieve the requested output from the level A cache. Note that the
-# accelerator returns non-zero on a cache miss and we just fall back on running
-# the CAmkES code generator.
-if [ -n "${CONFIG_CAMKES_ACCELERATOR}" ]; then
-    camkes-accelerator "${@}"
-    if [ $? -eq 0 ]; then
-        exit 0
-    fi
-fi
-
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 if [ -z "${PYTHONPATH}" ]; then

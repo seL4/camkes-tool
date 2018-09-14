@@ -32,7 +32,6 @@ TESTS = {
     'parser':['camkes/parser/tests/runall.py'],
     'runner':['camkes/runner/tests/runall.py'],
     'templates':['camkes/templates/tests/runall.py'],
-    'accelerator':['tools/accelerator/alltests.py'],
 }
 
 def run(command):

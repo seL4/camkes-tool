@@ -22,8 +22,6 @@ ME = os.path.abspath(__file__)
 
 from lint import TestLint
 from lintsource import TestSourceLint
-from testcachea import TestCacheA
-from testcacheb import TestCacheB
 from testfilehash import TestFileHash
 from testfrozendict import TestFrozenDict
 from testsqlsource import TestSQLSource
