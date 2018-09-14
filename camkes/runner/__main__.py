@@ -426,7 +426,9 @@ def main(argv, out, err):
                 options.__dict__)
             done(output, options.outfile[0], options.item[0])
 
-    filename = os.path.abspath(options.file.name)
+    filename = None
+    if options.file is not None:
+        filename = os.path.abspath(options.file.name)
 
     try:
         # Build the parser options
@@ -534,7 +536,7 @@ def main(argv, out, err):
     read |= set(options.elf)
 
     # Write a Makefile dependency rule if requested.
-    if options.makefile_dependencies is not None:
+    if filename and options.makefile_dependencies is not None:
         options.makefile_dependencies.write('%s: \\\n  %s\n' %
             (filename, ' \\\n  '.join(sorted(read))))
 
