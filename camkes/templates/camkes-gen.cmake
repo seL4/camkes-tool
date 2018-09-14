@@ -98,7 +98,6 @@ function(CAmkESOutputGenCommand)
         OUTPUT ${outfile_list}
         COMMAND
             ${CMAKE_COMMAND} -E env ${CAMKES_TOOL_ENVIRONMENT} "${CAMKES_TOOL}"
-                --file "${CAMKES_ADL_SOURCE}"
                 "--item;$<JOIN:${item_list},;--item;>"
                 "--load-ast=${CMAKE_CURRENT_BINARY_DIR}/ast.pickle"
                 "--outfile;$<JOIN:${outfile_list},;--outfile;>"
