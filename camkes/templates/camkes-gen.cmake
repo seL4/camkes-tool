@@ -107,7 +107,7 @@ function(CAmkESOutputGenCommand)
         DEPENDS
             ${CAMKES_ADL_SOURCE}
             /*? ' '.join(imported) ?*/
-            # This pulls in miscelaneous dependencies such as the camkes-accelerator
+            # This pulls in miscelaneous dependencies 
             # which is used by the camkes tool
             ${CAMKES_TOOL_DEPENDENCIES}
             # Any additional dependencies from the files

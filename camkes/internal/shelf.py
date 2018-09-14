@@ -84,8 +84,14 @@ def blank_database():
     '''
     Return data representing a blank database as a bytearray.
 
-    See the note on the identically named function in cachea.py for the
-    motivation for this function.
+    The motivation for this function.
+    One of the surprising things when profiling the original implementation of
+    this cache was that a hot spot was creating SQLite databases. The SQLite
+    CREATE operation is not particularly efficient, because it is assumed that
+    you will not be executing it often. However, we are. This memoized function
+    minimises the cost of repeated database creation, cutting build time to 20%
+    in a representative project.
+
     '''
     _, tmp = tempfile.mkstemp()
 

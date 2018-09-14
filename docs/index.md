@@ -3308,14 +3308,6 @@ it simply chains these stages together. It is possible to programmatically
 construct a differing or partial parser by composing the low-level parsers in a
 different manner.
 
-### Cache Internals
-
-The compilation cache, previously referred to, appears to users as a monolithic
-mechanism. However, it is actually made up of three separate caches hosted
-within the cache directory. It is unlikely you will understand how the caches
-work from this section alone; it is merely intended to orient you reading of
-the source code that implements the caches.
-
 #### Pre-Compiled Templates
 
  * camkes/runner/Renderer.py
@@ -3327,44 +3319,6 @@ when caching is enabled, the templates are compiled to the cache directory. In
 future executions, template rendering optimistically fetches pre-compiled
 templates from this cache. On a cache miss, it falls back to the original
 template sources.
-
-#### Level A Cache
-
- * camkes/internal/cachea.py
-
-The level A cache works in a similar manner to
-[ccache](https://ccache.samba.org/). For each execution, it notes the inputs
-and output of code generation. It saves the output in the cache directory and
-metadata related to the inputs in a SQLite database. In future executions, it
-optimistically fetches from this cache as an initial step. If inputs have not
-changed since last time, the previous output can be retrieved from the cache
-and the overhead of code generation can be avoided entirely. On a cache miss,
-it falls back to the standard code path. See also the
-[cache accelerator](#cache-accelerator) below.
-
-#### Level B Cache
-
- * camkes/internal/cacheb.py
- * camkes/internal/shelf.py
-
-In some circumstances, the inputs to code generation can have changed such that
-the level A cache misses, but not in a semantically relevant way. For example,
-whitespace changes to the input specification. This second level cache stores
-the same output data as the level B cache, but keyed on the programmatic
-structure of the AST itself. This cache is unlikely to provide much benefit in
-standard circumstances.
-
-#### Cache Accelerator
-
- * tools/accelerator/accelerator.c
-
-In a large project with significant level A cache hits, the build can be slowed
-unnecessarily by the startup of the Python interpreter itself. This cost can be
-avoided by enabling the so-called cache accelerator. This is a C program that
-reads from the level A cache. By replicating the level A cache reading logic in
-C we can, on a cache hit, short circuit code generation before even running
-Python. The level A cache read remains in the code generator itself in case the
-accelerator cannot be enabled for another reason.
 
 ### Template Context
 
