@@ -244,6 +244,8 @@ endfunction(GeneratorValueOrDefault)
         GeneratorValueOrDefault(heap "${heap}" $<TARGET_PROPERTY:${instance_target},COMPONENT_CAKEML_HEAP_SIZE>)
         GeneratorValueOrDefault(stack 50 $<TARGET_PROPERTY:CAmkESComponent_/*? i.type.name ?*/,COMPONENT_CAKEML_STACK_SIZE>)
         GeneratorValueOrDefault(stack "${stack}" $<TARGET_PROPERTY:${instance_target},COMPONENT_CAKEML_STACK_SIZE>)
+        # Additional directories for the HOL build to depend on
+        get_property(cakeml_includes TARGET CAmkESComponent_/*? i.type.name ?*/ PROPERTY COMPONENT_CAKEML_INCLUDES)
         DeclareCakeMLLib(camkescakeml_contents
             SOURCES "${cakeml_sources}"
             TRANSLATION_THEORY "camkesEnd"
@@ -251,6 +253,7 @@ endfunction(GeneratorValueOrDefault)
             STACK_SIZE "${stack}"
             RUNTIME_ENTRY "component_control_main"
             CAKEML_ENTRY "camkes_entry"
+            INCLUDES "${cakeml_includes}"
             DEPENDS "${gen_target}"
         )
         target_link_libraries(${target} camkescakeml camkescakeml_contents)
