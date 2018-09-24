@@ -12,11 +12,13 @@
 #
 # @TAG(DATA61_BSD)
 #
+import argparse
 
 import six
 import re
 import logging
 import pyfdt.pyfdt
+from camkes.parser import Query
 
 from .exception import  DtbBindingError, DtbBindingQueryFormatError, \
                         DtbBindingNodeLookupError, DtbBindingSyntaxError, \
@@ -384,3 +386,34 @@ class FdtQueryEngine():
         property_matches = self._match_nodes_by_attrs(attr_dict, path_matches)
 
         return property_matches
+
+
+class DtbMatchQuery(Query):
+    """Convert a dtb query into a dictionary of results from the device tree"""
+    def __init__(self):
+        self.dtb = None
+
+    def resolve(self, *args):
+        # for now just return a list of empty strings as the result
+        return [""]
+
+    def get_parser(self):
+        parser = argparse.ArgumentParser('dtb')
+        parser.add_argument('--dtb',
+                            type=str,
+                            help='Flattened device tree blob (.dtb) to query for device tree properties.',
+                            required=True)
+        return parser
+
+    def check_options(self):
+        try:
+            with open(self.options.dtb, 'rb') as dtb_file:
+                self.dtb = FdtBlobParse(dtb_file).to_fdt()
+        except:
+            logging.fatal("Failed to parse dtb file {0}".format(self.options.dtb.name))
+
+    def get_query_name(self):
+        return "dtb"
+
+    def get_deps(self):
+        return [self.options.dtb]

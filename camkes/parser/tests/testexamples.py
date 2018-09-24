@@ -43,7 +43,7 @@ from camkes.parser.stage8 import Parse8
 from camkes.parser.stage9 import Parse9
 from camkes.parser.stage10 import Parse10
 from camkes.parser.query import QueryParseStage
-from camkes.parser.query import DtbMatchQuery
+from camkes.parser.fdtQueryEngine import DtbMatchQuery
 
 PARSERS = ('reader', 'cpp', 's1', 's2', 's3', 's4', 's5', 's6', 's7', 's71', 's8', 's9', 's10')
 
