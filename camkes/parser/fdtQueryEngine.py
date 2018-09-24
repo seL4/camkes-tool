@@ -222,19 +222,15 @@ class FdtQueryEngine():
                 index = -1
             else:
                 try:
-                    """ Try hex first because the 0x prefix will be greedily
-                        parsed as a decimal otherwise.
-                    """
-                    index = string.atol(idx_str, base=16)
-                except string.atol_error:
-                    # Is it a decimal number?
-                    try:
-                        index = string.atol(idx_str, base=10)
-                    except string.atol_error:
-                        # Rethrow it with a human-readable error string.
-                        raise DtbBindingTypeError("Invalid integer index %s in "
-                                                  "key %s!"
-                                                  % (idx_str, key_str))
+                    if idx_str.startswith("0x"):
+                        index = int(idx_str, 16)
+                    else:
+                        index = int(idx_str, 10)
+                except ValueError:
+                    # Rethrow it with a human-readable error string.
+                    raise DtbBindingTypeError("Invalid integer index %s in "
+                                              "key %s!"
+                                              % (idx_str, key_str))
 
             attr = key_str[:lbrace_idx]
 
