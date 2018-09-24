@@ -13,13 +13,15 @@
 # @TAG(DATA61_BSD)
 #
 
-import six, re, logging
-import string # string.atol()
+import six
+import re
+import logging
 import pyfdt.pyfdt
 
 from .exception import  DtbBindingError, DtbBindingQueryFormatError, \
                         DtbBindingNodeLookupError, DtbBindingSyntaxError, \
                         DtbBindingTypeError, DtbBindingNotImplementedError
+
 
 class FdtQueryEngine():
     """
@@ -236,7 +238,7 @@ class FdtQueryEngine():
 
             attr = key_str[:lbrace_idx]
 
-        return { "key": attr, "index": index }
+        return {"key": attr, "index": index}
 
     def _get_matching_prop_from_node(self, node_props, parsed_key):
         matching_props = [prop for prop in node_props
@@ -323,8 +325,7 @@ class FdtQueryEngine():
         """
         if ("camkes_dts_alias" in attr_dict) or ("camkes_dtb_alias" in attr_dict):
             # Force the user to choose one; don't allow them to supply both.
-            if ("camkes_dts_alias" in attr_dict) \
-                and ("camkes_dtb_alias" in attr_dict):
+            if ("camkes_dts_alias" in attr_dict) and ("camkes_dtb_alias" in attr_dict):
                 raise DtbBindingQueryFormatError("Please choose between "
                                                  "camkes_dts_alias and "
                                                  "camkes_dtb_alias!")
@@ -360,8 +361,7 @@ class FdtQueryEngine():
         path_matches = []
         if ("camkes_dts_path" in attr_dict) or ("camkes_dtb_path" in attr_dict):
             # Force the user to supply one; Don't allow them to set both.
-            if ("camkes_dts_path" in attr_dict) \
-                and ("camkes_dtb_path" in attr_dict):
+            if ("camkes_dts_path" in attr_dict) and ("camkes_dtb_path" in attr_dict):
                 raise DtbBindingQueryFormatError("Please choose between "
                                                  "camkes_dts_path and "
                                                  "camkes_dtb_path!")
