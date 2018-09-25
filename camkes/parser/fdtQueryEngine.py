@@ -20,9 +20,9 @@ import logging
 import pyfdt.pyfdt
 from camkes.parser import Query
 
-from .exception import  DtbBindingError, DtbBindingQueryFormatError, \
-                        DtbBindingNodeLookupError, DtbBindingSyntaxError, \
-                        DtbBindingTypeError, DtbBindingNotImplementedError
+from .exception import DtbBindingError, DtbBindingQueryFormatError, \
+    DtbBindingNodeLookupError, DtbBindingSyntaxError, \
+    DtbBindingTypeError, DtbBindingNotImplementedError, ParseError
 
 
 class FdtQueryEngine:
@@ -373,11 +373,27 @@ class FdtQueryEngine:
 class DtbMatchQuery(Query):
     """Convert a dtb query into a dictionary of results from the device tree"""
     def __init__(self):
-        self.dtb = None
+        self.engine = None
 
-    def resolve(self, *args):
-        # for now just return a list of empty strings as the result
-        return [""]
+    def resolve(self, args):
+        result = self.engine.query(args)
+
+        if not len(result):
+            raise ParseError("DTB query has no results.")
+
+        node = result[0]
+        resolved = {}
+
+        # convert the properties we retrieved to a dictionary
+        # of property-name: values. If there is more than one
+        # value, use a list, otherwise the raw type.
+        for p in node.walk():
+            # properties are a tuple of (key, values)
+            # drop the leading slash on the key
+            key = p[0][1:]
+            values = p[1]
+            resolved[key] = list(values)
+        return resolved
 
     @staticmethod
     def get_parser():
