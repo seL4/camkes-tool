@@ -31,6 +31,11 @@ class FdtQueryEngine:
     implementing a querying engine on top of it which can query for device nodes
     by path, alias and by matching against device properties.
     """
+
+    ALIAS_STRING = "aliases"
+    PATH_STRING = "path"
+    PROPERTIES_STRING = "properties"
+
     def __init__(self, parsed_fdt):
         """
         The constructor takes an initialized instance of the fdt parser library
@@ -51,7 +56,7 @@ class FdtQueryEngine:
         """
         fdt_root = self.parsed_fdt.get_rootnode()
         try:
-            aliases_idx = fdt_root.index("aliases")
+            aliases_idx = fdt_root.index(self.ALIAS_STRING)
         except ValueError:
             # Rethrow with a human readable error message
             raise DtbBindingNodeLookupError("Request to lookup alias \"%s\" in "
@@ -87,7 +92,7 @@ class FdtQueryEngine:
 
     def _match_nodes_by_path(self, qstring):
         """
-        Parses a single camkes_dts_path query string.
+        Parses a single path query string.
 
         @param[in] qstring                The query string
                                           The query string can contain Regex
@@ -326,19 +331,9 @@ class FdtQueryEngine:
         """ If there is an alias binding query which we can use, then try that
             first since those should only resolve to a single result.
         """
-        if ("camkes_dts_alias" in attr_dict) or ("camkes_dtb_alias" in attr_dict):
-            # Force the user to choose one; don't allow them to supply both.
-            if ("camkes_dts_alias" in attr_dict) and ("camkes_dtb_alias" in attr_dict):
-                raise DtbBindingQueryFormatError("Please choose between "
-                                                 "camkes_dts_alias and "
-                                                 "camkes_dtb_alias!")
-
-            if "camkes_dts_alias" in attr_dict:
-                alias_key = "camkes_dts_alias"
-            else:
-                alias_key = "camkes_dtb_alias"
-
-            """ Since camkes_dts_alias is meant to be an unambiguous match
+        alias_value = attr_dict.pop(self.ALIAS_STRING, None)
+        if alias_value:
+            """ Since ALIAS_STRING is meant to be an unambiguous match
                 against a single node, do not try to resolve other attributes
                 if the user already supplied camkes_dts_alias.
 
@@ -346,12 +341,11 @@ class FdtQueryEngine:
                 matched, and that it is a mistake on their part that other
                 attributes were also supplied.
             """
-            other_attrs = [key for key in attr_dict if key != alias_key]
-            if len(other_attrs):
+            if len(attr_dict):
                 logging.warn("Silently ignoring other attributes supplied in "
                              "DTB binding since %s should be sufficient.\n"
                              "Ignored attributes were: %s."
-                             % (alias_key, str(other_attrs)))
+                             % (self.ALIAS_STRING, str(attr_dict)))
 
             """ An alias match, if found, is an unambiguous match. No need to
                 do any further searching.
@@ -362,35 +356,18 @@ class FdtQueryEngine:
             get that out of the way first.
         """
         path_matches = []
-        if ("camkes_dts_path" in attr_dict) or ("camkes_dtb_path" in attr_dict):
-            # Force the user to supply one; Don't allow them to set both.
-            if ("camkes_dts_path" in attr_dict) and ("camkes_dtb_path" in attr_dict):
-                raise DtbBindingQueryFormatError("Please choose between "
-                                                 "camkes_dts_path and "
-                                                 "camkes_dtb_path!")
+        path_key = attr_dict.pop(self.PATH_STRING, None)
+        if path_key:
+            path_matches = self._match_nodes_by_path(path_key)
 
-            # See which one they used and use that to index into the dict.
-            if "camkes_dts_path" in attr_dict:
-                path_key = "camkes_dts_path"
-            else:
-                path_key = "camkes_dtb_path"
-
-            path_matches = self._match_nodes_by_path(attr_dict[path_key],
-                                                     include_consumed_nodes)
-            """ Remove the path attribute so it isn't used during property
-                matching
-            """
-            attr_dict.pop(path_key)
-
-        if not len(attr_dict):
+        properties = attr_dict.pop(self.PROPERTIES_STRING, None)
+        if not properties:
             return path_matches
 
         """ Now, using the narrowed down results from the path query, attempt to
             match based on the properties.
         """
-        property_matches = self._match_nodes_by_attrs(attr_dict, path_matches)
-
-        return property_matches
+        return self._match_nodes_by_attrs(properties, path_matches)
 
 
 class DtbMatchQuery(Query):
