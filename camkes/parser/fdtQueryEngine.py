@@ -25,7 +25,7 @@ from .exception import  DtbBindingError, DtbBindingQueryFormatError, \
                         DtbBindingTypeError, DtbBindingNotImplementedError
 
 
-class FdtQueryEngine():
+class FdtQueryEngine:
     """
     This class is responsible for wrapping around an instance of pyfdt and
     implementing a querying engine on top of it which can query for device nodes
@@ -73,7 +73,7 @@ class FdtQueryEngine():
         assert len(prop.strings) == 1
         # From here we have the path to the node the user wanted. Look it up.
         ret = self._match_nodes_by_path(re.escape(prop.strings[0]));
-        if len(ret) == 0:
+        if not len(ret):
             raise DtbBindingNodeLookupError("Alias %s maps to path %s, but "
                                             "that path resolves to nothing."
                                             % (alias, prop.strings[0]))
@@ -265,7 +265,7 @@ class FdtQueryEngine():
         node_props = [sub for sub in node.subdata
             if isinstance(sub, pyfdt.pyfdt.FdtProperty)]
 
-        for key, val in attr_dict.iteritems():
+        for key, val in attr_dict.items():
             """ We allow things like indexing in the lvalue key
                 (e.g: 'regs[0]'), so we have to potentially extract the raw key
                 from an key with indexed notation attached to it.
@@ -287,12 +287,12 @@ class FdtQueryEngine():
     def _match_nodes_by_attrs(self, attr_dict, search_data_set):
 
         # If there are no attrs to compare against, exit early.
-        if len(attr_dict.keys()) == 0:
+        if not len(attr_dict.keys()):
             return []
 
         matches = []
 
-        if search_data_set and len(search_data_set) > 0:
+        if search_data_set and len(search_data_set):
             """ If the caller has already narrowed down the set of nodes s/he
                 wants us to search, then use that data set:
             """
@@ -342,7 +342,7 @@ class FdtQueryEngine():
                 attributes were also supplied.
             """
             other_attrs = [key for key in attr_dict if key != alias_key]
-            if len(other_attrs) > 0:
+            if len(other_attrs):
                 logging.warn("Silently ignoring other attributes supplied in "
                              "DTB binding since %s should be sufficient.\n"
                              "Ignored attributes were: %s."
@@ -377,7 +377,7 @@ class FdtQueryEngine():
             """
             attr_dict.pop(path_key)
 
-        if len(attr_dict.keys()) == 0:
+        if not len(attr_dict):
             return path_matches
 
         """ Now, using the narrowed down results from the path query, attempt to
