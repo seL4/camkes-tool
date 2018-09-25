@@ -384,16 +384,17 @@ class DtbMatchQuery(Query):
         parser = argparse.ArgumentParser('dtb')
         parser.add_argument('--dtb',
                             type=str,
-                            help='Flattened device tree blob (.dtb) to query for device tree properties.',
-                            required=True)
+                            help='Flattened device tree blob (.dtb) to query for device tree properties.')
         return parser
 
     def check_options(self):
-        try:
-            with open(self.options.dtb, 'rb') as dtb_file:
-                self.dtb = FdtBlobParse(dtb_file).to_fdt()
-        except:
-            logging.fatal("Failed to parse dtb file {0}".format(self.options.dtb.name))
+        if self.options.dtb:
+            try:
+                with open(self.options.dtb, 'rb') as dtb_file:
+                    self.engine = FdtQueryEngine(pyfdt.pyfdt.FdtBlobParse(dtb_file).to_fdt())
+            except:
+                logging.fatal("Failed to parse dtb file {0}".format(self.options.dtb.name))
+
     @staticmethod
     def get_query_name():
         return "dtb"
