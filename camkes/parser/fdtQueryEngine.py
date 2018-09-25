@@ -123,7 +123,8 @@ class FdtQueryEngine:
 
         return matches
 
-    def _compare_node_property_as_string(self, prop, p_key, val):
+    @staticmethod
+    def _compare_node_property_as_string(prop, p_key, val):
         """ Negative index into the string array is how the the "*" operator is
             implemented internally.
         """
@@ -143,7 +144,8 @@ class FdtQueryEngine:
 
             return prop.strings[p_key["index"]] == val
 
-    def _compare_node_property_as_integers(self, prop, p_key, val, size):
+    @staticmethod
+    def _compare_node_property_as_integers(prop, p_key, val, size):
         """ Negative index into the string array is how the the "*" operator is
             implemented internally.
         """
@@ -172,7 +174,8 @@ class FdtQueryEngine:
 
             return prop.words[p_key["index"]] == val
 
-    def _compare_node_property_as_null(self, prop, p_key, val):
+    @staticmethod
+    def _compare_node_property_as_null(prop, p_key, val):
         if not val:
             return True
         if isinstance(val, six.string_types) and val == "":
@@ -201,7 +204,8 @@ class FdtQueryEngine:
 
         return result
 
-    def _parse_key(self, key_str):
+    @staticmethod
+    def _parse_key(key_str):
         attr = key_str
         index = 0
 
@@ -238,7 +242,8 @@ class FdtQueryEngine:
 
         return {"key": attr, "index": index}
 
-    def _get_matching_prop_from_node(self, node_props, parsed_key):
+    @staticmethod
+    def _get_matching_prop_from_node(node_props, parsed_key):
         matching_props = [prop for prop in node_props
             if prop.get_name() == parsed_key["key"]]
 
@@ -397,7 +402,8 @@ class DtbMatchQuery(Query):
         # for now just return a list of empty strings as the result
         return [""]
 
-    def get_parser(self):
+    @staticmethod
+    def get_parser():
         parser = argparse.ArgumentParser('dtb')
         parser.add_argument('--dtb',
                             type=str,
@@ -411,8 +417,8 @@ class DtbMatchQuery(Query):
                 self.dtb = FdtBlobParse(dtb_file).to_fdt()
         except:
             logging.fatal("Failed to parse dtb file {0}".format(self.options.dtb.name))
-
-    def get_query_name(self):
+    @staticmethod
+    def get_query_name():
         return "dtb"
 
     def get_deps(self):
