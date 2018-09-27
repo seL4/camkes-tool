@@ -12,6 +12,5 @@
 
 cmake_minimum_required(VERSION 3.8.2)
 
-DeclareCAmkESComponent(Epit1)
-DeclareCAmkESComponent(Epit2)
+DeclareCAmkESComponent(Epit)
 DeclareCAmkESComponent(Gpt)
