@@ -33,6 +33,11 @@
     /*- if not isinstance(_irq, numbers.Integral) -*/
         /*? raise(TemplateError('Setting %s.%s that should specify an IRQ number is not an integer' % (me.parent.from_instance.name, attr))) ?*/
     /*- endif -*/
+    /*- set spi_attr = '%s_spi_number' % me.parent.from_interface.name -*/
+    /*- set _irq_spi = configuration[me.parent.from_instance.name].get(spi_attr) -*/
+    /*- if (isinstance(_irq_spi, numbers.Integral)) and (_irq_spi == 0) -*/
+        /*- set _irq = _irq + 32 -*/
+    /*- endif -*/
     /*- set irq = alloc('irq', seL4_IRQControl, number=_irq, notification=my_cnode[ntfn]) -*/
 /*- elif type in ['ioapic','isa','pci'] -*/
     /*- if type == 'isa' -*/
