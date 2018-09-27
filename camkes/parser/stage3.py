@@ -26,7 +26,7 @@ from camkes.internal.seven import cmp, filter, map, zip
 
 from camkes.ast import Assembly, Attribute, AttributeReference, Component, \
     Composition, Configuration, Connection, ConnectionEnd, Connector, \
-    Consumes, Dataport, Emits, Export, Group, Include, Instance, Interface, \
+    Consumes, Dataport, DictLookup, Emits, Export, Group, Include, Instance, Interface, \
     LiftedAST, Method, Mutex, normalise_type, Parameter, Procedure, Provides, \
     Reference, Semaphore, BinarySemaphore, Setting, SourceLocation, Uses, Struct
 from .base import Parser
@@ -173,8 +173,13 @@ def _lift_attribute(location, attribute_param, default=None):
         default = default[1:-1] # Strip quotes
     return Attribute(attribute_param.type, attribute_param.name, attribute_param.array, default, location)
 
-def _lift_attribute_reference(location, *ids):
-    return AttributeReference('.'.join(ids), location)
+def _lift_attribute_reference(location, *args):
+    dict_lookup = None
+    args = list(args)
+    if len(args) and isinstance(args[-1], DictLookup):
+        dict_lookup = args.pop()
+
+    return AttributeReference('.'.join(args), dict_lookup, location)
 
 def _lift_boolean_literal(location, text):
     if text in ('True', 'true'):
@@ -664,6 +669,12 @@ def _lift_uses(location, *args):
         type, name = args
     return Uses(Reference(type.name, Procedure, type.location), name, optional, location)
 
+def _lift_dict_lookup(location, *args):
+    new_args = []
+    for arg in args:
+        new_args.append(strip_quotes(arg))
+    return DictLookup(new_args, location)
+
 def _collapse(location, content):
     return content
 
@@ -700,6 +711,7 @@ LIFT = {
     'dataport':_lift_dataport,
     'dataport_type':_lift_dataport_type,
     'dict':_lift_dict,
+    'dict_lookup' : _lift_dict_lookup,
     'direction':_collapse,
     'emits':_lift_emits,
     'export':_lift_export,

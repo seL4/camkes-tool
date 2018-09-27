@@ -106,8 +106,13 @@ def resolve(ast_lifted):
             if not sub_resolve(referents[0], depth +  [setting.value.reference]):
                 setting.value = None
                 return False
-
-        setting.value = referents[0].value
+        elif setting.value.dict_lookup and isinstance(referents[0].value, dict):
+            value = referents[0].value
+            for key in setting.value.dict_lookup.lookup:
+                value = value[key]
+            setting.value = value
+        else:
+            setting.value = referents[0].value
         return True
 
     # Iterate through each setting we need to resolve

@@ -1886,10 +1886,11 @@ class Export(ASTObject):
         self._destination = value
 
 class AttributeReference(ASTObject):
-    def __init__(self, reference, location=None):
+    def __init__(self, reference, dict_lookup, location=None):
         assert isinstance(reference, six.string_types)
         super(AttributeReference, self).__init__(location)
         self._reference = reference
+        self._dict_lookup = dict_lookup
 
     @property
     def reference(self):
@@ -1901,3 +1902,13 @@ class AttributeReference(ASTObject):
             raise TypeError('you cannot set the \'reference\' field of a '
                 'frozen object')
         self._reference = value
+
+    @property
+    def dict_lookup(self):
+        return self._dict_lookup
+
+
+class DictLookup(ASTObject):
+    def __init__(self, lookup, location):
+        super(DictLookup, self).__init__(location)
+        self.lookup = lookup
