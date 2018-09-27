@@ -18,6 +18,10 @@ component EPIT {
     attribute int mem_paddr = 0;
     attribute int mem_size = 0;
     attribute int irq_irq_number = 0;
+    attribute {
+        int reg[];
+        int interrupts[];
+    } dtb;
 }
 
 component GPT {
@@ -28,4 +32,11 @@ component GPT {
     attribute int mem_paddr = 0;
     attribute int mem_size = 0;
     attribute int irq_irq_number = 0;
+    attribute {
+        int reg[];
+        int interrupts[];
+        int clocks[];
+        string clock_names[];
+        string compatible[];
+    } dtb;
 }
