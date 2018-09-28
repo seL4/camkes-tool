@@ -97,6 +97,10 @@ def new_context(entity, assembly, render_state, state_key, outfile_name,
         'get_shared_variable_backing_frames':None if cap_space is None else \
             (lambda global_name, size, frame_size=None:
                 get_shared_variable_backing_frames(obj_space, global_name, size, frame_size)),
+
+        # Get the object-label mapping for our verification models.
+        'object_label_mapping': (lambda: object_label_mapping(obj_space)),
+
         # Function for templates to inform us that they would like certain
         # 'fill' information to get placed into the provided symbol. Provided
         # symbol should be page size and aligned. The 'fill' parameter is
@@ -518,3 +522,31 @@ def register_dma_pool(addr_space, symbol, page_size, caps, cap_space):
     '''
     assert addr_space
     addr_space.add_symbol_with_caps(symbol, [page_size] * len(caps), [cap_space.cnode[i] for i in caps])
+
+def object_label_mapping(obj_space):
+    '''Return a list of all objects and the integrity labels for them.
+
+       We can retrieve the labels for most objects from the allocator.
+       For shared frames, however, we have to reverse engineer the
+       connector label from register_shared_variable and the connector
+       templates that call it.'''
+    standard_labels = ((obj, label) for label, objs in obj_space.labels.items()
+                                    for obj in objs)
+
+    # This needs to be in sync with the global_name used by templates
+    # that call register_shared_variable. TODO: fix those templates!
+    def guess_shared_frame_dataport_name(n):
+        m = re.match('(.*)_data_([0-9]+)_obj', n)
+        if m:
+            return m.group(1)
+        else:
+            return None
+
+    # Update our mapping and return it.
+    def real_label_of(obj, standard_label):
+        dataport_label = guess_shared_frame_dataport_name(obj.name)
+        if dataport_label is not None:
+            return dataport_label
+        return standard_label
+
+    return ((obj, real_label_of(obj, label)) for obj, label in standard_labels)
