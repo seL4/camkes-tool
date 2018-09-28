@@ -65,8 +65,14 @@ class CPP(Parser):
                 output] + self.flags, stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                 universal_newlines=True)
-
-            _, stderr = p.communicate(str(string))
+            # hack around python2 and 3's awful unicode problems
+            try:
+                string = str(string)
+            except UnicodeEncodeError:
+                # str will fail on python2 as it is ascii only.
+                # however the below fails on python3. So here we are.
+                string = string.encode('utf-8')
+            _, stderr = p.communicate(string)
             if p.returncode != 0:
                 raise ParseError('CPP failed: %s' % stderr)
             with codecs.open(output, 'r', 'utf-8') as f:
