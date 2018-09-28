@@ -200,8 +200,6 @@ class TestDTBMatchQuery(CAmkESTest):
         self.assertEquals(node, expected)
 
     def test_properties_star_word_and_byte(self):
-        import pdb
-        pdb.set_trace()
         node = self.dtbQuery.resolve({
             'properties': {
                 "clocks[*]": [0x4, 0x98, 0x4, 0x99, 0x4, 0x97, 0x4, 0x96, 0x4, 0x95]
