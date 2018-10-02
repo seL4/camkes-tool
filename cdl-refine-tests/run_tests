@@ -148,26 +148,26 @@ def main():
     info('camkes-tool revision: %s' % camkes_tool_rev)
 
     # Find Isabelle.
-    isabelle_tool = os.path.normpath(os.path.join(camkes_root, 'projects/isabelle/bin/isabelle'))
+    isabelle_tool = os.path.normpath(os.path.join(camkes_root, 'projects/l4v/isabelle/bin/isabelle'))
     if not os.path.exists(isabelle_tool):
         fatal('''isabelle not found at: %s
 (Make sure to check out the correct project manifest)''' % isabelle_tool)
     try:
         isabelle_rev = subprocess.check_output(
             ['git', 'describe', '--tags'],
-            cwd=os.path.normpath(os.path.join(camkes_root, 'projects/isabelle'))
+            cwd=os.path.normpath(os.path.join(camkes_root, 'projects/l4v/isabelle'))
             ).decode('utf-8')
     except subprocess.CalledProcessError as exn:
         isabelle_rev = 'unknown [error: %s]' % str(exn)
     info('Isabelle revision: %s' % isabelle_rev)
 
-    l4v_dir = os.path.normpath(os.path.join(camkes_root, 'projects/l4v'))
+    l4v_dir = os.path.normpath(os.path.join(camkes_root, 'projects/l4v/l4v'))
     if not os.path.exists(l4v_dir):
         fatal('l4v not found at: %s' % l4v_dir)
     try:
         l4v_rev = subprocess.check_output(
             ['git', 'describe', '--tags'],
-            cwd=os.path.normpath(os.path.join(camkes_root, 'projects/l4v'))
+            cwd=os.path.normpath(os.path.join(camkes_root, 'projects/l4v/l4v'))
             ).decode('utf-8')
     except subprocess.CalledProcessError as exn:
         l4v_rev = 'unknown [error: %s]' % str(exn)

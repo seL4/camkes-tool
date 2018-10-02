@@ -30,7 +30,7 @@ In the camkes-manifest repo, do
 ```
 (cd .repo/manifests && git fetch origin &&
     git checkout camkes-cdl-refine-VER-984)
-repo sync -m master.xml
+repo sync -m l4v-default.xml
 ```
 
 Then run the `run_tests` script that is in this directory.
