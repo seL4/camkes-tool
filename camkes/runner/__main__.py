@@ -83,7 +83,7 @@ class FilterOptions():
 class RenderOptions():
     def __init__(self, file, verbosity, frpc_lock_elision, fspecialise_syscall_stubs,
             fprovide_tcb_caps, fsupport_init, largeframe, largeframe_dma, architecture,
-            debug_fault_handlers, realtime):
+            debug_fault_handlers, realtime, filter_options):
         self.file = file
         self.verbosity = verbosity
         self.frpc_lock_elision = frpc_lock_elision
@@ -95,6 +95,7 @@ class RenderOptions():
         self.architecture = architecture
         self.debug_fault_handlers = debug_fault_handlers
         self.realtime = realtime
+        self.filter_options = filter_options
 
 def safe_decode(s):
     '''
@@ -498,7 +499,7 @@ def main(argv, out, err):
     renderoptions = RenderOptions(options.file, options.verbosity, options.frpc_lock_elision,
         options.fspecialise_syscall_stubs, options.fprovide_tcb_caps, options.fsupport_init,
         options.largeframe, options.largeframe_dma, options.architecture, options.debug_fault_handlers,
-        options.realtime)
+        options.realtime, filteroptions)
 
     def instantiate_misc_template():
         for (item, outfile) in (all_items - done_items):
