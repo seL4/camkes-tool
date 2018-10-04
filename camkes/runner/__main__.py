@@ -47,7 +47,7 @@ from camkes.runner.Filters import CAPDL_FILTERS
 
 import argparse, collections, functools, jinja2, locale, numbers, os, re, \
     six, sqlite3, string, sys, traceback, pickle, errno
-from capdl import seL4_CapTableObject, ObjectAllocator, CSpaceAllocator, \
+from capdl import ObjectType, ObjectAllocator, CSpaceAllocator, \
     ELF, lookup_architecture
 
 from camkes.parser import parse_file, ParseError, parse_query_parser_args, print_query_parser_help
@@ -696,7 +696,7 @@ def main(argv, out, err):
         if i.address_space not in cspaces:
             p = Perspective(phase=RUNNER, instance=i.name,
                 group=i.address_space)
-            cnode = obj_space.alloc(seL4_CapTableObject,
+            cnode = obj_space.alloc(ObjectType.seL4_CapTableObject,
                 name=p['cnode'], label=i.address_space)
             cspaces[i.address_space] = CSpaceAllocator(cnode)
             pd = obj_space.alloc(lookup_architecture(options.architecture).vspace().object, name=p['pd'],

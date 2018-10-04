@@ -19,7 +19,7 @@ from __future__ import absolute_import, division, print_function, \
 from camkes.internal.seven import cmp, filter, map, zip
 
 import os, re, six, subprocess
-from capdl import seL4_FrameObject, Cap, CNode, Frame, TCB, SC, page_sizes, lookup_architecture
+from capdl import ObjectType, Cap, CNode, Frame, TCB, SC, page_sizes, lookup_architecture
 from capdl.util import IA32Arch, X64Arch
 from camkes.internal.memoization import memoize
 from .NameMangling import Perspective
@@ -277,7 +277,7 @@ def replace_frame_with_paging_structure(obj_space, vspace_root, frame_cap, botto
 
     # populate the paging structure with new frames
     for i in range(0, bottom_level.coverage // child_size):
-        new_frame = obj_space.alloc(seL4_FrameObject, size=child_size)
+        new_frame = obj_space.alloc(ObjectType.seL4_FrameObject, size=child_size)
         paging_structure[i] = Cap(new_frame, read=frame_cap.read, write=frame_cap.write, grant=frame_cap.grant)
 
     # find the parent paging structure

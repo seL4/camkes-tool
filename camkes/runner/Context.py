@@ -28,14 +28,7 @@ from camkes.internal.seven import cmp, filter, map, zip
 from functools import partial
 import capdl, code, collections, copy, inspect, itertools, functools, numbers, \
     orderedset, os, pdb, re, six, sys, textwrap, math
-
-from capdl.Allocator import seL4_TCBObject, seL4_EndpointObject, \
-    seL4_NotificationObject, seL4_CanRead, seL4_CanWrite, seL4_AllRights, \
-    seL4_ARM_SmallPageObject, seL4_FrameObject, seL4_IRQControl, \
-    seL4_UntypedObject, seL4_IA32_IOPort, seL4_IA32_IOSpace, \
-    seL4_ARM_IOSpace, \
-    seL4_ARM_SectionObject, seL4_ARM_SuperSectionObject, \
-    seL4_SchedContextObject, seL4_SchedControl, seL4_RTReplyObject
+from capdl.Object import ObjectType, ObjectRights
 
 # Depending on what kernel branch we are on, we may or may not have ASIDs.
 # There are separate python-capdl branches for this, but this import allows us
@@ -55,36 +48,17 @@ def new_context(entity, assembly, obj_space, cap_space,
                 shmem, kept_symbols, fill_frames, outfile_name,
                 templates, **kwargs):
     '''Create a new default context for rendering.'''
-    return dict(list(__builtins__.items()) + list({
+    return dict(list(__builtins__.items()) + ObjectType.__members__.items() + ObjectRights.__members__.items() + list({
         # Kernel object allocator
         'alloc_obj':(lambda name, type, **kwargs:
             alloc_obj((entity.label(), obj_space), obj_space,
                 '%s_%s' % (entity.label(), name), type, label=entity.label(), **kwargs))
                     if obj_space else None,
-        'seL4_EndpointObject':seL4_EndpointObject,
-        'seL4_NotificationObject':seL4_NotificationObject,
-        'seL4_TCBObject':seL4_TCBObject,
-        'seL4_ARM_SmallPageObject':seL4_ARM_SmallPageObject,
-        'seL4_ARM_SectionObject':seL4_ARM_SectionObject,
-        'seL4_ARM_SuperSectionObject':seL4_ARM_SuperSectionObject,
-        'seL4_FrameObject':seL4_FrameObject,
-        'seL4_UntypedObject':seL4_UntypedObject,
-        'seL4_IA32_IOPort':seL4_IA32_IOPort,
-        'seL4_IA32_IOSpace':seL4_IA32_IOSpace,
-        'seL4_ARM_IOSpace':seL4_ARM_IOSpace,
-        'seL4_SchedContextObject':seL4_SchedContextObject,
-        'seL4_SchedControl':seL4_SchedControl,
-        'seL4_RTReplyObject':seL4_RTReplyObject,
-        'seL4_ASID_Pool':seL4_ASID_Pool,
 
         # Cap allocator
         'alloc_cap':(lambda name, obj, **kwargs:
             alloc_cap((entity.label(), cap_space), cap_space, name, obj, **kwargs)) \
                 if cap_space else None,
-        'seL4_CanRead':seL4_CanRead,
-        'seL4_CanWrite':seL4_CanWrite,
-        'seL4_AllRights':seL4_AllRights,
-        'seL4_IRQControl':seL4_IRQControl,
 
         # The CNode root of your CSpace. Should only be necessary in cases
         # where you need to allocate a cap to it.
