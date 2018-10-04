@@ -262,7 +262,14 @@ def parse_args(argv, out, err):
         print_query_parser_help()
         exit(1)
 
-    return options, queries
+    filteroptions = FilterOptions(options.architecture, options.realtime, options.largeframe,
+            options.largeframe_dma, options.default_priority, options.default_max_priority,
+            options.default_affinity, options.default_period, options.default_budget,
+            options.default_data, options.default_size_bits,
+            options.debug_fault_handlers, options.fprovide_tcb_caps)
+
+
+    return options, queries, filteroptions
 
 def pickle_call(data_structure_cache_dir, pickle_name, fn, *args, **kwargs):
     cache_path = os.path.realpath(data_structure_cache_dir)
@@ -321,7 +328,7 @@ def main(argv, out, err):
             'environment variable.\n' % encoding)
         return -1
 
-    options, queries = parse_args(argv, out, err)
+    options, queries, filteroptions = parse_args(argv, out, err)
 
     # Ensure we were supplied equal items and outfiles
     if len(options.outfile) != len(options.item):
@@ -479,11 +486,6 @@ def main(argv, out, err):
             except Exception as inst:
                 die('While opening \'%s\': %s' % (e, inst))
 
-        filteroptions = FilterOptions(options.architecture, options.realtime, options.largeframe,
-            options.largeframe_dma, options.default_priority, options.default_max_priority,
-            options.default_affinity, options.default_period, options.default_budget,
-            options.default_data, options.default_size_bits,
-            options.debug_fault_handlers, options.fprovide_tcb_caps)
         for f in CAPDL_FILTERS:
             try:
                 # Pass everything as named arguments to allow filters to
