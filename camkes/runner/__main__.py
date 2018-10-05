@@ -410,7 +410,6 @@ def main(argv, out, err):
     obj_space.spec.arch = options.architecture
     cspaces = {}
     pds = {}
-    conf = assembly.configuration
     shmem = collections.defaultdict(ShmemFactory())
     kept_symbols = {}
     fill_frames = {}
@@ -656,7 +655,7 @@ def main(argv, out, err):
             continue
         assert i.address_space in cspaces
         SPECIAL_TEMPLATES = [('debug', 'debug'), ('simple', 'simple'), ('rump_config', 'rumprun')]
-        for special in [bl for bl in SPECIAL_TEMPLATES if conf[i.name].get(bl[0])]:
+        for special in [bl for bl in SPECIAL_TEMPLATES if assembly.configuration[i.name].get(bl[0])]:
             for t in ('%s/%s' % (i.name, special[1]),):
                 try:
                     template = templates.lookup(t, i)
