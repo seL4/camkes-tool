@@ -49,7 +49,6 @@ def new_context(entity, assembly, render_state, state_key, outfile_name,
     obj_space = render_state.obj_space
     cap_space = render_state.cspaces[state_key] if state_key else None
     shmem = render_state.shmem
-    kept_symbols = render_state.kept_symbols
     fill_frames = render_state.fill_frames
     '''Create a new default context for rendering.'''
     return dict(list(__builtins__.items()) + ObjectType.__members__.items() + ObjectRights.__members__.items() + list({
@@ -100,14 +99,6 @@ def new_context(entity, assembly, render_state, state_key, outfile_name,
         # on the underlying loader
         'register_fill_frame':(lambda symbol, fill:
             register_fill_frame(fill_frames, symbol, fill, entity)),
-
-        # Inform the linker that a C symbol should not be removed, even if
-        # it not used by any C code.
-        'keep_symbol':(lambda symbol: keep_symbol(kept_symbols, symbol, entity)),
-
-        # Returns an iterator over all the C symbols declared to be kept
-        # by a given component instance (specified by name).
-        'kept_symbols':(lambda name: iter(kept_symbols[name] if name in kept_symbols else ())),
 
         # A `self`-like reference to the current AST object. It would be nice
         # to actually call this `self` to lead to more pythonic templates, but
@@ -419,15 +410,6 @@ def register_shared_variable(shmem, global_name, local_context, local_name,
            '  "%(sym)s not page-sized. Template bug in its declaration? '       \
            'Suggested formulation: `char %(sym)s[ROUND_UP_UNSAFE(sizeof(...), ' \
            'PAGE_SIZE_4K)];`");' % {'sym':local_name}
-
-def keep_symbol(kept_symbols, symbol, entity):
-
-    name = entity.instance.name
-
-    if name not in kept_symbols:
-        kept_symbols[name] = set()
-
-    kept_symbols[name].add(symbol)
 
 def register_fill_frame(fill_frames, symbol, fill, entity):
 

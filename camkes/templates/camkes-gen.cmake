@@ -268,9 +268,6 @@ endfunction(GeneratorValueOrDefault)
     # Set our CAmkES specific additional link flags
     set_property(TARGET ${target} APPEND_STRING PROPERTY LINK_FLAGS
         " -static -nostdlib -u _camkes_start -e _camkes_start ")
-    /*- for symbol in kept_symbols(i.name) -*/
-        set_property(TARGET ${target} APPEND_STRING PROPERTY LINK_FLAGS " -u /*? symbol ?*/ ")
-    /*- endfor -*/
     # Add extra flags specified by the user
     target_compile_options(${target} PRIVATE ${extra_c_flags} ${CAMKES_C_FLAGS})
     set_property(TARGET ${TARGET} APPEND_STRING PROPERTY LINK_FLAGS ${extra_ld_flags})

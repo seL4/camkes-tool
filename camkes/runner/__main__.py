@@ -87,12 +87,11 @@ class FilterOptions():
         self.fprovide_tcb_caps = fprovide_tcb_caps
 
 class RenderState():
-    def __init__(self, obj_space, shmem=collections.defaultdict(ShmemFactory()), cspaces={}, pds={}, kept_symbols={}, fill_frames={}):
+    def __init__(self, obj_space, shmem=collections.defaultdict(ShmemFactory()), cspaces={}, pds={}, fill_frames={}):
         self.obj_space = obj_space
         self.shmem = shmem
         self.cspaces = cspaces
         self.pds = pds
-        self.kept_symbols = kept_symbols
         self.fill_frames = fill_frames
 
 class RenderOptions():

@@ -29,9 +29,8 @@ struct {
 } /*? dataport_symbol_name ?*/
         ALIGN(MMIO_ALIGN)
         __attribute__((section("ignore_from_/*? index ?*/_/*? me.interface.name ?*/")))
-        VISIBLE;
-
-/*- do keep_symbol(dataport_symbol_name) -*/
+        VISIBLE
+        USED;
 
 volatile /*? macros.dataport_type(me.interface.type) ?*/ * /*? me.interface.name ?*/ =
     (volatile /*? macros.dataport_type(me.interface.type) ?*/ *) & /*? dataport_symbol_name ?*/;
