@@ -103,11 +103,9 @@ class Renderer(object):
                 ignore_errors=False, py_compile=
                 platform.python_implementation() == 'CPython' and six.PY2)
 
-    def render(self, me, assembly, template, obj_space, cap_space,
-               shmem, kept_symbols, fill_frames, outfile_name,
+    def render(self, me, assembly, template, render_state, state_key, outfile_name,
             **kwargs):
-        context = new_context(me, assembly, obj_space, cap_space,
-            shmem, kept_symbols, fill_frames, outfile_name,
+        context = new_context(me, assembly, render_state, state_key, outfile_name,
             self.templates, **kwargs)
 
         t = self.env.get_template(template)

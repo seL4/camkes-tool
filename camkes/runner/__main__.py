@@ -86,10 +86,19 @@ class FilterOptions():
         self.debug_fault_handlers = debug_fault_handlers
         self.fprovide_tcb_caps = fprovide_tcb_caps
 
+class RenderState():
+    def __init__(self, obj_space, shmem=collections.defaultdict(ShmemFactory()), cspaces={}, pds={}, kept_symbols={}, fill_frames={}):
+        self.obj_space = obj_space
+        self.shmem = shmem
+        self.cspaces = cspaces
+        self.pds = pds
+        self.kept_symbols = kept_symbols
+        self.fill_frames = fill_frames
+
 class RenderOptions():
     def __init__(self, file, verbosity, frpc_lock_elision, fspecialise_syscall_stubs,
             fprovide_tcb_caps, fsupport_init, largeframe, largeframe_dma, architecture,
-            debug_fault_handlers, realtime, filter_options):
+            debug_fault_handlers, realtime, filter_options, render_state):
         self.file = file
         self.verbosity = verbosity
         self.frpc_lock_elision = frpc_lock_elision
@@ -102,6 +111,7 @@ class RenderOptions():
         self.debug_fault_handlers = debug_fault_handlers
         self.realtime = realtime
         self.filter_options = filter_options
+        self.render_state = render_state
 
 def safe_decode(s):
     '''
@@ -405,14 +415,9 @@ def main(argv, out, err):
                         log.warning('attribute %s.%s has type int but is set '
                             'to a value that is not an integer' % (i.name,
                                 a.name))
-
     obj_space = ObjectAllocator()
     obj_space.spec.arch = options.architecture
-    cspaces = {}
-    pds = {}
-    shmem = collections.defaultdict(ShmemFactory())
-    kept_symbols = {}
-    fill_frames = {}
+    render_state = RenderState(obj_space=obj_space)
 
     templates = Templates(options.platform)
     [templates.add_root(t) for t in options.templates]
@@ -480,8 +485,8 @@ def main(argv, out, err):
                 group = p['group']
                 # Avoid inferring a TCB as we've already created our own.
                 elf_spec = elf.get_spec(infer_tcb=False, infer_asid=False,
-                    pd=pds[group], use_large_frames=options.largeframe)
-                obj_space.merge(elf_spec, label=group)
+                    pd=render_state.pds[group], use_large_frames=options.largeframe)
+                render_state.obj_space.merge(elf_spec, label=group)
                 elfs[name] = (e, elf)
             except Exception as inst:
                 die('While opening \'%s\': %s' % (e, inst))
@@ -490,15 +495,20 @@ def main(argv, out, err):
             try:
                 # Pass everything as named arguments to allow filters to
                 # easily ignore what they don't want.
-                f(ast=ast, obj_space=obj_space, cspaces=cspaces, elfs=elfs,
-                    options=filteroptions, shmem=shmem, fill_frames=fill_frames)
+                f(ast=ast,
+                  obj_space=render_state.obj_space,
+                  cspaces=render_state.cspaces,
+                  elfs=elfs,
+                  options=filteroptions,
+                  shmem=render_state.shmem,
+                  fill_frames=render_state.fill_frames)
             except Exception as inst:
                 die('While forming CapDL spec: %s' % inst)
 
     renderoptions = RenderOptions(options.file, options.verbosity, options.frpc_lock_elision,
         options.fspecialise_syscall_stubs, options.fprovide_tcb_caps, options.fsupport_init,
         options.largeframe, options.largeframe_dma, options.architecture, options.debug_fault_handlers,
-        options.realtime, filteroptions)
+        options.realtime, filteroptions, render_state)
 
     def instantiate_misc_template():
         for (item, outfile) in (all_items - done_items):
@@ -506,9 +516,8 @@ def main(argv, out, err):
                 template = templates.lookup(item)
                 if template:
                     g = r.render(
-                        assembly, assembly, template, obj_space, None,
-                        shmem, kept_symbols, fill_frames, outfile_name=outfile.name,
-                        imported=read, options=renderoptions)
+                        assembly, assembly, template, renderoptions.render_state, None,
+                        outfile_name=outfile.name, imported=read, options=renderoptions)
                     done(g, outfile, item)
             except TemplateError as inst:
                 die(rendering_error(item, inst))
@@ -523,7 +532,7 @@ def main(argv, out, err):
         if os.path.isfile(pickle_path):
             with open(pickle_path, 'rb') as pickle_file:
                 # Found a cached version of the necessary data structures
-                obj_space, shmem, cspaces, pds, kept_symbols, fill_frames = pickle.load(pickle_file)
+                renderoptions.render_state = pickle.load(pickle_file)
                 apply_capdl_filters()
                 instantiate_misc_template()
 
@@ -550,15 +559,15 @@ def main(argv, out, err):
         if i.type.hardware:
             continue
 
-        if i.address_space not in cspaces:
+        if i.address_space not in renderoptions.render_state.cspaces:
             p = Perspective(phase=RUNNER, instance=i.name,
                 group=i.address_space)
-            cnode = obj_space.alloc(ObjectType.seL4_CapTableObject,
+            cnode = renderoptions.render_state.obj_space.alloc(ObjectType.seL4_CapTableObject,
                 name=p['cnode'], label=i.address_space)
-            cspaces[i.address_space] = CSpaceAllocator(cnode)
+            renderoptions.render_state.cspaces[i.address_space] = CSpaceAllocator(cnode)
             pd = obj_space.alloc(lookup_architecture(options.architecture).vspace().object, name=p['pd'],
                 label=i.address_space)
-            pds[i.address_space] = pd
+            renderoptions.render_state.pds[i.address_space] = pd
 
         for t in ('%s/source' % i.name, '%s/header' % i.name,
                 '%s/c_environment_source' % i.name,
@@ -568,9 +577,8 @@ def main(argv, out, err):
                 template = templates.lookup(t, i)
                 g = ''
                 if template:
-                    g = r.render(i, assembly, template, obj_space, cspaces[i.address_space],
-                        shmem, kept_symbols, fill_frames, outfile_name=None,
-                        options=renderoptions, my_pd=pds[i.address_space])
+                    g = r.render(i, assembly, template, renderoptions.render_state, i.address_space,
+                        outfile_name=None, options=renderoptions, my_pd=renderoptions.render_state.pds[i.address_space])
                 for (item, outfile) in (all_items - done_items):
                     if item == t:
                         if not template:
@@ -596,10 +604,9 @@ def main(argv, out, err):
                     item = '%s/%d' % (t[0], id)
                     g = ''
                     try:
-                        g = r.render(e, assembly, template, obj_space,
-                            cspaces[e.instance.address_space], shmem, kept_symbols,
-                            fill_frames, outfile_name=None,
-                            options=renderoptions, my_pd=pds[e.instance.address_space])
+                        g = r.render(e, assembly, template, renderoptions.render_state,
+                            e.instance.address_space, outfile_name=None,
+                            options=renderoptions, my_pd=renderoptions.render_state.pds[e.instance.address_space])
                     except TemplateError as inst:
                         die(rendering_error(item, inst))
                     except jinja2.exceptions.TemplateNotFound:
@@ -638,10 +645,9 @@ def main(argv, out, err):
 
                 for e in t[1]:
                     try:
-                        g = r.render(e, assembly, template, obj_space,
-                            cspaces[e.instance.address_space], shmem, kept_symbols,
-                            fill_frames, outfile_name=None,
-                            options=renderoptions, my_pd=pds[e.instance.address_space])
+                        g = r.render(e, assembly, template, renderoptions.render_state,
+                            e.instance.address_space, outfile_name=None,
+                            options=renderoptions, my_pd=renderoptions.render_state.pds[e.instance.address_space])
                         done(g, outfile, item)
                     except TemplateError as inst:
                         die(rendering_error(item, inst))
@@ -653,7 +659,7 @@ def main(argv, out, err):
         # Don't generate any code for hardware components.
         if i.type.hardware:
             continue
-        assert i.address_space in cspaces
+        assert i.address_space in renderoptions.render_state.cspaces
         SPECIAL_TEMPLATES = [('debug', 'debug'), ('simple', 'simple'), ('rump_config', 'rumprun')]
         for special in [bl for bl in SPECIAL_TEMPLATES if assembly.configuration[i.name].get(bl[0])]:
             for t in ('%s/%s' % (i.name, special[1]),):
@@ -661,9 +667,9 @@ def main(argv, out, err):
                     template = templates.lookup(t, i)
                     g = ''
                     if template:
-                        g = r.render(i, assembly, template, obj_space, cspaces[i.address_space],
-                            shmem, kept_symbols, fill_frames, outfile_name=None,
-                            options=renderoptions, my_pd=pds[i.address_space])
+                        g = r.render(i, assembly, template, renderoptions.render_state,
+                            i.address_space, outfile_name=None,
+                            options=renderoptions, my_pd=renderoptions.render_state.pds[i.address_space])
                     for (item, outfile) in (all_items - done_items):
                         if item == t:
                             if not template:
@@ -680,7 +686,7 @@ def main(argv, out, err):
         cache_path = os.path.realpath(options.data_structure_cache_dir)
         pickle_path = os.path.join(cache_path, CAPDL_STATE_PICKLE)
         with open(pickle_path, 'wb') as pickle_file:
-            pickle.dump((obj_space, shmem, cspaces, pds, kept_symbols, fill_frames), pickle_file)
+            pickle.dump(renderoptions.render_state, pickle_file)
 
     for (item, outfile) in (all_items - done_items):
         if item in ('capdl', 'label-mapping'):

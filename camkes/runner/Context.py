@@ -44,9 +44,13 @@ from camkes.internal.version import version
 from camkes.templates import macros, TemplateError
 from .NameMangling import TEMPLATES, FILTERS, Perspective
 
-def new_context(entity, assembly, obj_space, cap_space,
-                shmem, kept_symbols, fill_frames, outfile_name,
+def new_context(entity, assembly, render_state, state_key, outfile_name,
                 templates, **kwargs):
+    obj_space = render_state.obj_space
+    cap_space = render_state.cspaces[state_key] if state_key else None
+    shmem = render_state.shmem
+    kept_symbols = render_state.kept_symbols
+    fill_frames = render_state.fill_frames
     '''Create a new default context for rendering.'''
     return dict(list(__builtins__.items()) + ObjectType.__members__.items() + ObjectRights.__members__.items() + list({
         # Kernel object allocator
