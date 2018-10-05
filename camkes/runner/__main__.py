@@ -50,6 +50,12 @@ from camkes.parser import parse_file, ParseError, parse_query_parser_args, print
 
 CAPDL_STATE_PICKLE = 'capdl_state.p'
 
+class ShmemFactory:
+    '''Factory supplied to the shared memory allocator's defaultdict.
+       A callable class is used instead of a lambda to simplify serializing.'''
+    def __call__(self):
+        return collections.defaultdict(list)
+
 class ParserOptions():
     def __init__(self, cpp, cpp_flag, import_path, verbosity, allow_forward_references,save_ast,load_ast, queries):
         self.cpp = cpp
@@ -303,12 +309,6 @@ def parse_file_cached(filename, data_structure_cache_dir, parser_options):
     if parser_options.save_ast is not None:
         pickle.dump((ast,read),parser_options.save_ast)
     return ast,read
-
-class ShmemFactory:
-    '''Factory supplied to the shared memory allocator's defaultdict.
-       A callable class is used instead of a lambda to simplify serializing.'''
-    def __call__(self):
-        return collections.defaultdict(list)
 
 def rendering_error(item, exn):
     '''Helper to format an error message for template rendering errors.'''
