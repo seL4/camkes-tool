@@ -44,7 +44,7 @@ from camkes.runner.Filters import CAPDL_FILTERS
 import argparse, collections, functools, jinja2, locale, numbers, os, re, \
     six, sqlite3, string, sys, traceback, pickle, errno
 from capdl import ObjectType, ObjectAllocator, CSpaceAllocator, \
-    ELF, lookup_architecture
+    ELF, lookup_architecture, AddressSpaceAllocator
 
 from camkes.parser import parse_file, ParseError, parse_query_parser_args, print_query_parser_help
 
@@ -87,11 +87,12 @@ class FilterOptions():
         self.fprovide_tcb_caps = fprovide_tcb_caps
 
 class RenderState():
-    def __init__(self, obj_space, shmem=collections.defaultdict(ShmemFactory()), cspaces={}, pds={}, fill_frames={}):
+    def __init__(self, obj_space, shmem=collections.defaultdict(ShmemFactory()), cspaces={}, pds={}, addr_spaces={}, fill_frames={}):
         self.obj_space = obj_space
         self.shmem = shmem
         self.cspaces = cspaces
         self.pds = pds
+        self.addr_spaces = addr_spaces
         self.fill_frames = fill_frames
 
 class RenderOptions():
@@ -484,7 +485,8 @@ def main(argv, out, err):
                 group = p['group']
                 # Avoid inferring a TCB as we've already created our own.
                 elf_spec = elf.get_spec(infer_tcb=False, infer_asid=False,
-                    pd=render_state.pds[group], use_large_frames=options.largeframe)
+                    pd=render_state.pds[group], use_large_frames=options.largeframe,
+                    addr_space=renderoptions.render_state.addr_spaces[group])
                 render_state.obj_space.merge(elf_spec, label=group)
                 elfs[name] = (e, elf)
             except Exception as inst:
@@ -566,7 +568,9 @@ def main(argv, out, err):
             renderoptions.render_state.cspaces[i.address_space] = CSpaceAllocator(cnode)
             pd = obj_space.alloc(lookup_architecture(options.architecture).vspace().object, name=p['pd'],
                 label=i.address_space)
+            addr_space = AddressSpaceAllocator(re.sub(r'[^A-Za-z0-9]', '_', p['elf_name']), pd)
             renderoptions.render_state.pds[i.address_space] = pd
+            renderoptions.render_state.addr_spaces[i.address_space] = addr_space
 
         for t in ('%s/source' % i.name, '%s/header' % i.name,
                 '%s/c_environment_source' % i.name,
