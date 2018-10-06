@@ -29,6 +29,7 @@ from functools import partial
 import capdl, code, collections, copy, inspect, itertools, functools, numbers, \
     orderedset, os, pdb, re, six, sys, textwrap, math
 from capdl.Object import ObjectType, ObjectRights
+from capdl.Allocator import Cap
 
 # Depending on what kernel branch we are on, we may or may not have ASIDs.
 # There are separate python-capdl branches for this, but this import allows us
@@ -49,7 +50,7 @@ def new_context(entity, assembly, render_state, state_key, outfile_name,
     obj_space = render_state.obj_space
     cap_space = render_state.cspaces[state_key] if state_key else None
     shmem = render_state.shmem
-    fill_frames = render_state.fill_frames
+    addr_space = render_state.addr_spaces[state_key] if state_key else None
     '''Create a new default context for rendering.'''
     return dict(list(__builtins__.items()) + ObjectType.__members__.items() + ObjectRights.__members__.items() + list({
         # Kernel object allocator
@@ -98,7 +99,7 @@ def new_context(entity, assembly, render_state, state_key, outfile_name,
         # capDL frame object. The meaning of fill is completely dependent
         # on the underlying loader
         'register_fill_frame':(lambda symbol, fill:
-            register_fill_frame(fill_frames, symbol, fill, entity)),
+            register_fill_frame(addr_space, symbol, fill, obj_space, entity.label())),
 
         # A `self`-like reference to the current AST object. It would be nice
         # to actually call this `self` to lead to more pythonic templates, but
@@ -411,14 +412,16 @@ def register_shared_variable(shmem, global_name, local_context, local_name,
            'Suggested formulation: `char %(sym)s[ROUND_UP_UNSAFE(sizeof(...), ' \
            'PAGE_SIZE_4K)];`");' % {'sym':local_name}
 
-def register_fill_frame(fill_frames, symbol, fill, entity):
+def register_fill_frame(addr_space, symbol, fill, obj_space, label):
+    '''
+    Take a 4K sized symbol and create a 4k Frame with fill data to be added by the
+    loader.
 
-    name = entity.instance.name
-
-    if name not in fill_frames:
-        fill_frames[name]=set()
-
-    fill_frames[name].add((symbol, fill))
+    Return a static_assert checking that the symbol is of the correct size
+    '''
+    assert addr_space
+    frame = obj_space.alloc(ObjectType.seL4_FrameObject, name='%s_%s_obj' % (symbol, label), label=label, fill=fill, size=4096)
+    addr_space.add_symbol_with_caps(symbol, [4096], [Cap(frame, read=True, write=False, grant=False)])
     return 'static_assert(sizeof(%(sym)s) == PAGE_SIZE_4K,\n'           \
            ' "%(sym)s not page sized. Templage bug in its declaration?");'  \
            % {'sym':symbol}

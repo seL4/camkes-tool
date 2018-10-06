@@ -574,44 +574,6 @@ def collapse_shared_frames(ast, obj_space, elfs, shmem, options, **_):
                         update_frame_in_vaddr(arch, pd, vaddr + offset, frame.size, cap)
                         offset = offset + frame.size
 
-def describe_fill_frames(ast, obj_space, elfs, fill_frames, options, **_):
-
-    if not elfs:
-        # If we haven't been passed any ELF files this step is not relevant yet.
-        return
-
-    arch = lookup_architecture(options.architecture)
-    assembly = ast.assembly
-
-    for name in fill_frames:
-        # Find it in assembly.composition.instances?
-        instances = [x for x in assembly.composition.instances if x.name == name]
-        assert len(instances) == 1, 'Found registered fill frame with no associated ' \
-            'instance (template bug?)'
-        instance, = instances
-        perspective = Perspective(instance=name, group=instance.address_space)
-
-        elf_name = perspective['elf_name']
-        assert elf_name in elfs, 'Failed to find binary image for instance %s' % name
-        elf = elfs[elf_name]
-
-        # Find the vspace root
-        root_name = perspective['pd']
-        roots = [x for x in obj_space.spec.objs if x.name == root_name]
-        assert len(roots) == 1, 'No vspace found for instance %s' % name
-        root, = roots
-
-        # Go over all the fill symbols
-        for symbol,fill in iter(fill_frames[name]):
-            base = get_symbol_vaddr(elf, symbol)
-            assert base is not None, 'Registered fill symbol not found in elf image (template bug?)'
-            # Ensure this symbol is correctly aligned
-            assert base % PAGE_SIZE == 0, 'Fill symbol in elf image is not correctly aligned (template bug?)'
-
-            (cap, frame) = frame_for_vaddr(arch, root, base, PAGE_SIZE)
-            assert frame is not None, 'Failed to find frame for symbol at %x (CAmkES bug?)' % base
-            frame.set_fill(fill)
-
 def replace_dma_frames(ast, obj_space, elfs, options, **_):
     '''Locate the DMA pool (a region that needs to have frames whose mappings
     can be reversed) and replace its backing frames with pre-allocated,
@@ -956,7 +918,6 @@ CAPDL_FILTERS = [
     set_tcb_caps,
     collapse_shared_frames,
     replace_dma_frames,
-    describe_fill_frames,
     guard_cnode_caps,
     guard_pages,
     tcb_default_properties,

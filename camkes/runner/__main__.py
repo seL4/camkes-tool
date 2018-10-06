@@ -87,13 +87,12 @@ class FilterOptions():
         self.fprovide_tcb_caps = fprovide_tcb_caps
 
 class RenderState():
-    def __init__(self, obj_space, shmem=collections.defaultdict(ShmemFactory()), cspaces={}, pds={}, addr_spaces={}, fill_frames={}):
+    def __init__(self, obj_space, shmem=collections.defaultdict(ShmemFactory()), cspaces={}, pds={}, addr_spaces={}):
         self.obj_space = obj_space
         self.shmem = shmem
         self.cspaces = cspaces
         self.pds = pds
         self.addr_spaces = addr_spaces
-        self.fill_frames = fill_frames
 
 class RenderOptions():
     def __init__(self, file, verbosity, frpc_lock_elision, fspecialise_syscall_stubs,
@@ -501,8 +500,7 @@ def main(argv, out, err):
                   cspaces=render_state.cspaces,
                   elfs=elfs,
                   options=filteroptions,
-                  shmem=render_state.shmem,
-                  fill_frames=render_state.fill_frames)
+                  shmem=render_state.shmem)
             except Exception as inst:
                 die('While forming CapDL spec: %s' % inst)
 
