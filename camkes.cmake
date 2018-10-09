@@ -500,6 +500,7 @@ function(GenerateCAmkESRootserver)
         --architecture ${KernelSel4Arch}
         --default-priority ${CAmkESDefaultPriority}
         --default-affinity ${CAmkESDefaultAffinity}
+        --default-stack-size ${CAmkESDefaultStackSize}
     )
 
     if (${CAmkESDTS})

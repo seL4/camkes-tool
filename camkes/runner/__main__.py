@@ -97,7 +97,7 @@ class RenderState():
 class RenderOptions():
     def __init__(self, file, verbosity, frpc_lock_elision, fspecialise_syscall_stubs,
             fprovide_tcb_caps, fsupport_init, largeframe, largeframe_dma, architecture,
-            debug_fault_handlers, realtime, filter_options, render_state):
+            debug_fault_handlers, default_stack_size, realtime, filter_options, render_state):
         self.file = file
         self.verbosity = verbosity
         self.frpc_lock_elision = frpc_lock_elision
@@ -108,6 +108,7 @@ class RenderOptions():
         self.largeframe_dma = largeframe_dma
         self.architecture = architecture
         self.debug_fault_handlers = debug_fault_handlers
+        self.default_stack_size = default_stack_size
         self.realtime = realtime
         self.filter_options = filter_options
         self.render_state = render_state
@@ -225,6 +226,8 @@ def parse_args(argv, out, err):
         help='Default component thread scheduling context data.')
     parser.add_argument('--default-size_bits', type=int, default=8,
         help='Default scheduling context size bits.')
+    parser.add_argument('--default-stack-size', type=int, default=16384,
+        help='Default stack size of each thread.')
     parser.add_argument('--prune', action='store_true',
         help='Minimise the number of functions in generated C files.')
     parser.add_argument('--largeframe', action='store_true',
@@ -507,7 +510,7 @@ def main(argv, out, err):
     renderoptions = RenderOptions(options.file, options.verbosity, options.frpc_lock_elision,
         options.fspecialise_syscall_stubs, options.fprovide_tcb_caps, options.fsupport_init,
         options.largeframe, options.largeframe_dma, options.architecture, options.debug_fault_handlers,
-        options.realtime, filteroptions, render_state)
+        options.default_stack_size, options.realtime, filteroptions, render_state)
 
     def instantiate_misc_template():
         for (item, outfile) in (all_items - done_items):

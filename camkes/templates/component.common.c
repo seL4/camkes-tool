@@ -440,10 +440,6 @@ static void /*? init ?*/(void) {
     /*- endfor -*/
 }
 
-#ifndef CONFIG_CAMKES_DEFAULT_STACK_SIZE
-    #define CONFIG_CAMKES_DEFAULT_STACK_SIZE PAGE_SIZE_4K
-#endif
-
 /*- for i in me.type.provides + me.type.uses -*/
     /*? macros.show_includes(i.type.includes) ?*/
 /*- endfor -*/
@@ -452,16 +448,16 @@ static void /*? init ?*/(void) {
 
 /* Thread stacks */
 /*- set p = Perspective(instance=me.name, control=True) -*/
-/*- set stack_size = configuration[me.name].get('_stack_size', 'CONFIG_CAMKES_DEFAULT_STACK_SIZE') -*/
+/*- set stack_size = configuration[me.name].get('_stack_size', options.default_stack_size) -*/
 /*? macros.thread_stack(p['stack_symbol'], stack_size) ?*/
 /*- for t in threads[1:] -*/
     /*- set p = Perspective(instance=me.name, interface=t.interface.name, intra_index=t.intra_index) -*/
-    /*- set stack_size = configuration[me.name].get('%s_stack_size' % t.interface.name, 'CONFIG_CAMKES_DEFAULT_STACK_SIZE') -*/
+    /*- set stack_size = configuration[me.name].get('%s_stack_size' % t.interface.name, options.default_stack_size) -*/
     /*? macros.thread_stack(p['stack_symbol'], stack_size) ?*/
 /*- endfor -*/
 /*- if options.debug_fault_handlers -*/
     /*- set p = Perspective(instance=me.name, interface='0_fault_handler', intra_index=0) -*/
-    /*? macros.thread_stack(p['stack_symbol'], 'CONFIG_CAMKES_DEFAULT_STACK_SIZE') ?*/
+    /*? macros.thread_stack(p['stack_symbol'], options.default_stack_size) ?*/
 /*- endif -*/
 
 /* IPC buffers */
