@@ -450,26 +450,35 @@ static void /*? init ?*/(void) {
 /*- set p = Perspective(instance=me.name, control=True) -*/
 /*- set stack_size = configuration[me.name].get('_stack_size', options.default_stack_size) -*/
 /*? macros.thread_stack(p['stack_symbol'], stack_size) ?*/
+/*- do register_stack_symbol(p['stack_symbol'], stack_size) -*/
 /*- for t in threads[1:] -*/
     /*- set p = Perspective(instance=me.name, interface=t.interface.name, intra_index=t.intra_index) -*/
     /*- set stack_size = configuration[me.name].get('%s_stack_size' % t.interface.name, options.default_stack_size) -*/
     /*? macros.thread_stack(p['stack_symbol'], stack_size) ?*/
+    /*- do register_stack_symbol(p['stack_symbol'], stack_size) -*/
 /*- endfor -*/
 /*- if options.debug_fault_handlers -*/
     /*- set p = Perspective(instance=me.name, interface='0_fault_handler', intra_index=0) -*/
     /*? macros.thread_stack(p['stack_symbol'], options.default_stack_size) ?*/
+    /*- do register_stack_symbol(p['stack_symbol'], stack_size) -*/
 /*- endif -*/
 
 /* IPC buffers */
 /*- set p = Perspective(instance=me.name, control=True) -*/
 /*? macros.ipc_buffer(p['ipc_buffer_symbol']) ?*/
+/*- set _ = threads[0].set_ipc_frame(alloc_obj('frame_%s' % (p['ipc_buffer_symbol']), seL4_FrameObject)) -*/
+/*- do register_ipc_symbol(p['ipc_buffer_symbol'], threads[0].ipc_frame) -*/
 /*- for t in threads[1:] -*/
     /*- set p = Perspective(instance=me.name, interface=t.interface.name, intra_index=t.intra_index) -*/
     /*? macros.ipc_buffer(p['ipc_buffer_symbol']) ?*/
+    /*- set _ = t.set_ipc_frame(alloc_obj('frame_%s' % (p['ipc_buffer_symbol']), seL4_FrameObject)) -*/
+    /*- do register_ipc_symbol(p['ipc_buffer_symbol'], t.ipc_frame) -*/
 /*- endfor -*/
 /*- if options.debug_fault_handlers -*/
     /*- set p = Perspective(instance=me.name, interface='0_fault_handler', intra_index=0) -*/
     /*? macros.ipc_buffer(p['ipc_buffer_symbol']) ?*/
+    /*- set fault_ipc_frame = alloc_obj('frame_%s' % (p['ipc_buffer_symbol']), seL4_FrameObject) -*/
+    /*- do register_ipc_symbol(p['ipc_buffer_symbol'], fault_ipc_frame) -*/
 /*- endif -*/
 
 /* Attributes */
@@ -502,7 +511,7 @@ void USED _camkes_tls_init(int thread_id) {
         /*- set thread_names = dict() -*/
         /*- set _tcb_control = alloc_obj('%d_0_control_%d_tcb' % (len(me.name), len('0_control')), seL4_TCBObject) -*/
         /*- set tcb_control = alloc_cap('%d_0_control_%d_tcb' % (len(me.name), len('0_control')), _tcb_control) -*/
-
+        /*- do _tcb_control.__setitem__('ipc_buffer_slot', Cap(threads[0].ipc_frame, read=True, write=True, grant=False)) -*/
         /*- if options.realtime -*/
             /*# SC for main component instance thread #*/
             /*- set sc_control = alloc('%d_0_control_%d_sc' % (len(me.name), len('0_control')), seL4_SchedContextObject) -*/
@@ -551,6 +560,7 @@ void USED _camkes_tls_init(int thread_id) {
 
             /*- set _tcb = alloc_obj('%s_tcb' % prefix, seL4_TCBObject) -*/
             /*- set tcb = alloc_cap('%s_tcb' % prefix, _tcb) -*/
+            /*- do _tcb.__setitem__('ipc_buffer_slot', Cap(t.ipc_frame, read=True, write=True, grant=False)) -*/
             /*- do thread_names.__setitem__(tcb, t.interface.name) -*/
 
             /*- set p = Perspective(instance=me.name, interface=t.interface.name, intra_index=t.intra_index) -*/
@@ -588,7 +598,9 @@ void USED _camkes_tls_init(int thread_id) {
         /*- endfor -*/
 
         /*- if options.debug_fault_handlers -*/
-            /*- set tcb = alloc('%d_0_fault_handler_%d_0000_tcb' % (len(me.name), len('0_fault_handler')), seL4_TCBObject) -*/
+            /*- set _tcb = alloc_obj('%d_0_fault_handler_%d_0000_tcb' % (len(me.name), len('0_fault_handler')), seL4_TCBObject) -*/
+            /*- set tcb = alloc_cap('%d_0_fault_handler_%d_0000_tcb' % (len(me.name), len('0_fault_handler')), _tcb) -*/
+            /*- do _tcb.__setitem__('ipc_buffer_slot', Cap(fault_ipc_frame, read=True, write=True, grant=False)) -*/
             /*- do thread_names.__setitem__(tcb, "fault_handler") -*/
             /*- if options.realtime -*/
                 /*- set sc = alloc('%d_0_fault_handler_%d_0000_sc' % (len(me.name), len('0_fault_handler')), seL4_SchedContextObject) -*/

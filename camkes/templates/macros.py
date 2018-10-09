@@ -177,6 +177,10 @@ def threads(composition, instance):
         def __init__(self, interface, intra_index):
             self.interface = interface
             self.intra_index = intra_index
+            self.ipc_frame = None
+        def set_ipc_frame(self, frame):
+            self.ipc_frame = frame
+
     ts = [Thread(None, 0)]
     for connection in composition.connections:
         for end in connection.from_ends:

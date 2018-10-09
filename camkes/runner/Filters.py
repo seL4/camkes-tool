@@ -393,8 +393,6 @@ def set_tcb_caps(ast, obj_space, cspaces, elfs, options, **_):
             cspace.set_guard_size(arch.word_size_bits() - cnode.size_bits)
             tcb['cspace'] = cspace
 
-            elf_name = perspective['elf_name']
-
             pd = None
             pd_name = perspective['pd']
             pds = [x for x in obj_space.spec.objs if x.name == pd_name]
@@ -409,24 +407,6 @@ def set_tcb_caps(ast, obj_space, cspaces, elfs, options, **_):
             if perspective['pool']:
                 # This TCB is part of the (cap allocator's) TCB pool.
                 continue
-
-            elf = elfs.get(elf_name)
-
-            if pd and elf:
-
-                ipc_symbol = perspective['ipc_buffer_symbol']
-
-                # Find the IPC buffer's virtual address.
-                assert get_symbol_size(elf, ipc_symbol) == PAGE_SIZE * 3
-                ipc_vaddr = get_symbol_vaddr(elf, ipc_symbol) + PAGE_SIZE
-
-                # Find the frame for this
-                (cap, frame) = frame_for_vaddr(arch, pd, ipc_vaddr, PAGE_SIZE)
-                if frame is None:
-                    raise Exception('IPC buffer of TCB %s in group %s does ' \
-                        'not appear to be backed by a frame' % (tcb.name, group))
-
-                tcb['ipc_buffer_slot'] = Cap(frame, read=True, write=True, grant=False) # RW
 
             # Optional fault endpoints are configured in the per-component
             # template.
@@ -654,106 +634,6 @@ def guard_cnode_caps(cspaces, options, **_):
             for cap in space.cnode.slots.values()
             if cap is not None and isinstance(cap.referent, CNode)]
 
-def guard_pages(obj_space, cspaces, elfs, options, **_):
-    '''Introduce a guard page around each stack and IPC buffer. Note that the
-    templates should have ensured a three page region for each stack in order to
-    enable this.'''
-
-    arch = lookup_architecture(options.architecture)
-    for group, space in cspaces.items():
-        cnode = space.cnode
-        for index, tcb in [(k, v.referent) for (k, v) in cnode.slots.items()
-                if v is not None and isinstance(v.referent, TCB)]:
-
-            perspective = Perspective(group=group, tcb=tcb.name)
-
-            if perspective['pool']:
-                # This TCB is part of the (cap allocator's) TCB pool.
-                continue
-
-            elf_name = perspective['elf_name']
-
-            # Find the page directory.
-            pd = None
-            pd_name = perspective['pd']
-            pds = [x for x in obj_space.spec.objs if x.name == pd_name]
-            if len(pds) > 1:
-                raise Exception('Multiple PDs found for group %s' % group)
-            elif len(pds) == 1:
-                pd, = pds
-                tcb['vspace'] = Cap(pd)
-            # If no PD was found we were probably just not passed any ELF files
-            # in this pass.
-
-            elf = elfs.get(elf_name)
-
-            if pd and elf:
-
-                ipc_symbol = perspective['ipc_buffer_symbol']
-
-                # Find the IPC buffer's preceding guard page's virtual address.
-                assert get_symbol_size(elf, ipc_symbol) == PAGE_SIZE * 3
-                pre_guard = get_symbol_vaddr(elf, ipc_symbol)
-
-                (cap, frame) = frame_for_vaddr(arch, pd, pre_guard, PAGE_SIZE)
-                if frame is None:
-                    raise Exception('IPC buffer region of TCB %s in '
-                        'group %s does not appear to be backed by a frame'
-                        % (tcb.name, group))
-
-                # Delete the page.
-                obj_space.remove(frame)
-                update_frame_in_vaddr(arch, pd, pre_guard, PAGE_SIZE, None)
-
-                # Now do the same for the following guard page. We do this
-                # calculation separately just in case the region crosses a PT
-                # boundary and the two guard pages are in separate PTs.
-
-                post_guard = pre_guard + 2 * PAGE_SIZE
-
-                (cap, frame) = frame_for_vaddr(arch, pd, post_guard, PAGE_SIZE)
-                if frame is None:
-                    raise Exception('IPC buffer region of TCB %s in '
-                        'group %s does not appear to be backed by a frame'
-                        % (tcb.name, group))
-
-                obj_space.remove(frame)
-                update_frame_in_vaddr(arch, pd, post_guard, PAGE_SIZE, None)
-
-                # Now we do the same thing for the preceding guard page of the
-                # thread's stack...
-
-                stack_symbol = perspective['stack_symbol']
-
-                pre_guard = get_symbol_vaddr(elf, stack_symbol)
-
-                (cap, frame) = frame_for_vaddr(arch, pd, pre_guard, PAGE_SIZE)
-                if frame is None:
-                    raise Exception('stack region of TCB %s in '
-                        'group %s does not appear to be backed by a frame'
-                        % (tcb.name, group))
-
-                obj_space.remove(frame)
-                update_frame_in_vaddr(arch, pd, pre_guard, PAGE_SIZE, None)
-
-                # ...and the following guard page.
-
-                stack_region_size = get_symbol_size(elf, stack_symbol)
-                assert stack_region_size % PAGE_SIZE == 0, \
-                    'stack region is not page-aligned'
-                assert stack_region_size >= 3 * PAGE_SIZE, \
-                    'stack region has no room for guard pages'
-                post_guard = pre_guard + stack_region_size - PAGE_SIZE
-
-                (cap, frame) = frame_for_vaddr(arch, pd, post_guard, PAGE_SIZE)
-                if frame is None:
-                    raise Exception('stack region of TCB %s in '
-                        'group %s does not appear to be backed by a frame'
-                        % (tcb.name, group))
-
-                obj_space.remove(frame)
-                update_frame_in_vaddr(arch, pd, post_guard, PAGE_SIZE, None)
-
 def tcb_default_properties(obj_space, options, **_):
     '''Set up default thread priorities. Note this filter needs to operate
     *before* tcb_priorities.'''
@@ -919,7 +799,6 @@ CAPDL_FILTERS = [
     collapse_shared_frames,
     replace_dma_frames,
     guard_cnode_caps,
-    guard_pages,
     tcb_default_properties,
     tcb_properties,
     tcb_domains,

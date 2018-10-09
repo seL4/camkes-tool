@@ -102,6 +102,12 @@ def new_context(entity, assembly, render_state, state_key, outfile_name,
         'register_fill_frame':(lambda symbol, fill:
             register_fill_frame(addr_space, symbol, fill, obj_space, entity.label())),
 
+        'register_stack_symbol':(lambda symbol, size:
+            register_stack_symbol(addr_space, symbol, size, obj_space, entity.label())),
+
+        'register_ipc_symbol':(lambda symbol, frame:
+            register_ipc_symbol(addr_space, symbol, frame)),
+
         # A `self`-like reference to the current AST object. It would be nice
         # to actually call this `self` to lead to more pythonic templates, but
         # `self` inside template blocks refers to the jinja2 parser.
@@ -426,3 +432,31 @@ def register_fill_frame(addr_space, symbol, fill, obj_space, label):
     return 'static_assert(sizeof(%(sym)s) == PAGE_SIZE_4K,\n'           \
            ' "%(sym)s not page sized. Templage bug in its declaration?");'  \
            % {'sym':symbol}
+
+def register_stack_symbol(addr_space, symbol, size, obj_space, label):
+    '''
+    Create a stack of `size` with a guard page on each side. This allocates the frames internally
+    from the obj_space that is passed in as the frame objects shouldn't be needed anywhere else.
+    Stack frames are read, write mappings.
+    '''
+    assert addr_space
+    number_frames = size//4096
+    frames = [obj_space.alloc(ObjectType.seL4_FrameObject, name='stack_%s_%d_%s_obj' % (symbol, i, label), label=label, size=4096)
+              for i in range(number_frames)]
+    # We create 2 additional mappings with None caps that are for the guard pages.
+    sizes = [4096] * (number_frames + 2)
+    caps = [None] + [Cap(frame, read=True, write=True, grant=False) for frame in frames] + [None]
+    addr_space.add_symbol_with_caps(symbol, sizes, caps)
+
+def register_ipc_symbol(addr_space, symbol, frame):
+    '''
+    Register an IPC buffer symbol with a cap to the frame that is passed in.
+    The frame needs to be passed in instead of allocated internally because caps
+    to the frame are needed by other objects such as the TCB for the thread.
+    It is left to the caller to manage references to the Frame passed in.
+    '''
+    assert addr_space
+    # We create 3*4K mappings with None on each side of the IPC buffer for guard pages
+    caps = [None, Cap(frame, read=True, write=True, grant=False), None]
+    sizes = [4096] * 3
+    addr_space.add_symbol_with_caps(symbol, sizes, caps)
