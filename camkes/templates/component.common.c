@@ -115,9 +115,12 @@ static char /*? p['dma_pool_symbol'] ?*/[/*? dma_pool ?*/]
 
 /*- for i in six.moves.range(num_dma_frames) -*/
     /*- set q = Perspective(dma_frame_index=i) -*/
-    /*- set frame = alloc(q['dma_frame_symbol'], seL4_FrameObject, size=page_size[0], read=True, write=True) -*/
+    /*- set frame = alloc(q['dma_frame_symbol'], seL4_FrameObject, size=page_size[0], read=True, write=True, cached=False) -*/
     /*- do dma_frames.append(frame) -*/
 /*- endfor -*/
+/*# We need to use a special Perspective for registering the dma_pool because the symbol defined above, gets renamed in the
+    final ELF file #*/
+/*- do register_dma_pool(p['dma_pool_symbol'], page_size[0], dma_frames) -*/
 
 /*- set get_paddr = c_symbol('get_paddr') -*/
 uintptr_t /*? get_paddr ?*/(void *ptr) {

@@ -181,13 +181,6 @@ def update_frame_in_vaddr(arch, vspace_root, vaddr, size, cap):
         object = object[index].referent
     object[indices[-1]] = cap
 
-def frame_for_vaddr(arch, vspace_root, vaddr, size):
-    '''Looks up a frame of a given size in a vspace hierarchy, returning
-       the cap and object'''
-    cap, object = lookup_vspace_indices(vspace_root, make_indices(arch, vaddr, size))
-    assert isinstance(object, Frame), "Expected to find a frame"
-    return cap, object
-
 def num_vspace_levels(arch):
     '''Return the number of levels in the vspace hierarchy'''
     level = arch.vspace()
@@ -242,118 +235,6 @@ def delete_small_frames(arch, obj_space, vspace_root, level_num, map_indices):
                 obj_space.remove(object)
                 parent_object[sub_indices[-1]] = None
         level = level - 1
-
-def make_indices_to_frame(arch, vspace_root, vaddr):
-    '''Given the root paging structure of a vspace, and a vaddr in that vspace,
-       constructs a list of indices to traverse the paging hierarchy from the root
-       to the frame containing the vaddr.'''
-    level = arch.vspace()
-    assert level.make_object == type(vspace_root), "vspace root must be top of page hierarchy"
-    levels = []
-    obj = vspace_root
-    cap = None
-
-    while not isinstance(obj, Frame):
-        index = level.child_index(vaddr)
-
-        levels.append((level, index))
-
-        level = level.child
-        cap = obj[index]
-        obj = cap.referent
-
-    return cap, levels
-
-def replace_frame_with_paging_structure(obj_space, vspace_root, frame_cap, bottom_level, indices):
-    '''Given the root paging structure of a vspace, a cap to a frame in that vspace,
-       a list of indices to traverse the paging hierarchy from the root to the that frame,
-       and the level of the paging hierarchy containing the frame, replaces the frame with
-       a paging structure of the same size, and populates it with appropriately sized frames.'''
-
-    assert len(indices) >= 1, "Empty list of indices"
-
-    paging_structure = obj_space.alloc(bottom_level.object)
-    child_size = min(p.size for p in bottom_level.pages)
-
-    # populate the paging structure with new frames
-    for i in range(0, bottom_level.coverage // child_size):
-        new_frame = obj_space.alloc(ObjectType.seL4_FrameObject, size=child_size)
-        paging_structure[i] = Cap(new_frame, read=frame_cap.read, write=frame_cap.write, grant=frame_cap.grant)
-
-    # find the parent paging structure
-    if len(indices) == 1:
-        parent = vspace_root
-    else:
-        _, parent = lookup_vspace_indices(vspace_root, indices[0:-1])
-
-    # replace the entry in the parent
-    parent[indices[-1]] = Cap(paging_structure, read=frame_cap.read, write=frame_cap.write, grant=frame_cap.grant)
-
-    # delete the old frame
-    obj_space.remove(frame_cap.referent)
-
-def replace_frame_with_small_frames(obj_space, vspace_root, frame_cap, bottom_level, indices):
-    '''Given the root paging structure of a vspace, a cap to a frame in that vspace,
-       a list of indices to traverse the paging hierarchy from the root to the that frame,
-       and the level of the paging hierarchy containing the frame, replaces the frame with
-       a collection of smaller frames, mapped into the same paging structure.'''
-
-    assert len(indices) >= 1, "Empty list of indices"
-
-    # look up the paging structure containing the frame that we'll be replacing
-    if len(indices) == 1:
-        paging_structure = vspace_root
-    else:
-        _, paging_structure = lookup_vspace_indices(vspace_root, indices[0:-1])
-
-    # index of the frame we're replacing in its paging structure
-    start_index = indices[-1]
-
-    assert paging_structure[start_index] == frame_cap, "Unexpected frame cap"
-
-    old_frame_size = frame_cap.referent.size
-    new_frame_size = min(p.size for p in bottom_level.pages)
-
-    assert old_frame_size % new_frame_size == 0, "Small frame size does not evenly divide larger frame size"
-
-    num_frames = old_frame_size // new_frame_size
-
-    # create new frames and map them in
-    for i in range(0, num_frames):
-        new_frame = obj_space.alloc(seL4_FrameObject, size=new_frame_size)
-        paging_structure[start_index + i] = Cap(new_frame, read=frame_cap.read, write=frame_cap.write, grant=frame_cap.grant)
-
-    obj_space.remove(frame_cap.referent)
-
-def replace_large_frames(obj_space, arch, vspace_root, start_vaddr, size, page_size):
-    '''Given the root paging structure of a vspace, and a virtual address range, replaces
-       all frames with frames of the given (smaller) size, creating necessary intermediate
-       paging structures.'''
-    offset = 0
-    while offset < size:
-        vaddr = start_vaddr + offset
-        frame_cap, levels = make_indices_to_frame(arch, vspace_root, vaddr)
-
-        if frame_cap.referent.size <= page_size:
-            # Found frame of desired size - keep going.
-            offset += page_size
-        else:
-            # Found a large frame - replace it.
-            # Note that we don't increment the offset here, as we may
-            # have to replace the frame with even smaller frames.
-
-            # extract a list of indices from the list of (level, index) tuples
-            indices = [l[1] for l in levels]
-
-            (bottom_level, _) = levels[-1]
-            if bottom_level.child is not None and bottom_level.child.coverage == frame_cap.referent.size:
-                # This large frame can be replaced with a paging structure
-                # of the same coverage.
-                replace_frame_with_paging_structure(obj_space, vspace_root, frame_cap, bottom_level.child, indices)
-            else:
-                # This large frame can be replace by smaller frames in
-                # the same paging structure.
-                replace_frame_with_small_frames(obj_space, vspace_root, frame_cap, bottom_level, indices)
 
 def set_tcb_caps(ast, obj_space, cspaces, elfs, options, **_):
     arch = lookup_architecture(options.architecture)
@@ -554,75 +435,6 @@ def collapse_shared_frames(ast, obj_space, elfs, shmem, options, **_):
                         update_frame_in_vaddr(arch, pd, vaddr + offset, frame.size, cap)
                         offset = offset + frame.size
 
-def replace_dma_frames(ast, obj_space, elfs, options, **_):
-    '''Locate the DMA pool (a region that needs to have frames whose mappings
-    can be reversed) and replace its backing frames with pre-allocated,
-    reversible ones.'''
-
-    if not elfs:
-        # If we haven't been passed any ELF files this step is not relevant yet.
-        return
-
-    arch = lookup_architecture(options.architecture)
-    assembly = ast.assembly
-
-    for i in (x for x in assembly.composition.instances
-            if not x.type.hardware):
-
-        perspective = Perspective(instance=i.name, group=i.address_space)
-
-        elf_name = perspective['elf_name']
-        assert elf_name in elfs
-        elf = elfs[elf_name]
-
-        # Find this instance's page directory.
-        pd_name = perspective['pd']
-        pds = [x for x in obj_space.spec.objs if x.name == pd_name]
-        assert len(pds) == 1
-        pd, = pds
-
-        sym = perspective['dma_pool_symbol']
-        base = get_symbol_vaddr(elf, sym)
-        if base is None:
-            # We don't have a DMA pool.
-            continue
-        assert base != 0
-        sz = get_symbol_size(elf, sym)
-        assert sz % PAGE_SIZE == 0 # DMA pool should be at least page-aligned.
-
-        # Replicate logic from the template to determine the page size used to
-        # back the DMA pool.
-        page_size = 4 * 1024
-        if options.largeframe_dma:
-            for size in reversed(page_sizes(options.architecture)):
-                if sz >= size:
-                    page_size = size
-                    break
-
-        assert sz % page_size == 0, 'DMA pool not rounded up to a multiple ' \
-            'of page size %d (template bug?)' % page_size
-
-        dma_frame_index = 0
-        def get_dma_frame(index):
-            '''
-            Find the `index`-th DMA frame. Note that these are constructed in
-            the component template itself.
-            '''
-            p = Perspective(instance=i.name, group=i.address_space,
-                dma_frame_index=index)
-            name = p['dma_frame_symbol']
-            assert name in obj_space, "No such symbol in capdl spec %s" % name
-            return obj_space[name]
-
-        # Ensure paging structures are in place to map in dma frames
-        replace_large_frames(obj_space, arch, pd, base, sz, page_size)
-
-        for page_vaddr in six.moves.range(base, base + sz, page_size):
-            cap = Cap(get_dma_frame(dma_frame_index), read=True, write=True, grant=False)
-            cap.set_cached(False)
-            update_frame_in_vaddr(arch, pd, page_vaddr, page_size, cap)
-            dma_frame_index = dma_frame_index + 1
-
 def guard_cnode_caps(cspaces, options, **_):
     '''If the templates have allocated any caps to CNodes, they will not have
     the correct guards. This is due to the CNodes' sizes being automatically
@@ -797,7 +609,6 @@ CAPDL_FILTERS = [
     set_tcb_info,
     set_tcb_caps,
     collapse_shared_frames,
-    replace_dma_frames,
     guard_cnode_caps,
     tcb_default_properties,
     tcb_properties,

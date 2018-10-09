@@ -325,8 +325,6 @@ DERIVATIONS = {
         BackwardDeriver(r'(.+)_group_bin_pd$', 'pd', 'group'),
         ForwardDeriver('%(to_interface)s_cached', 'hardware_cached'),
         BackwardDeriver(r'^(.+)_cached', 'hardware_cached', 'to_interface'),
-        ForwardDeriver('camkes %(instance)s_dma_pool', 'dma_pool_symbol'),
-        BackwardDeriver(r'camkes (.+)_dma_pool$', 'dma_pool_symbol', 'instance'),
         ForwardDeriver('%(instance)s_dma_frame_%(dma_frame_index)04d', 'dma_frame_symbol'),
         BackwardDeriver(r'(.+)_dma_frame_[0-9]+$', 'dma_frame_symbol', 'instance'),
         DMAFrameIndexDeriver(r'.+_dma_frame_([0-9]+)$', 'dma_frame_symbol'),

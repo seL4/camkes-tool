@@ -108,6 +108,9 @@ def new_context(entity, assembly, render_state, state_key, outfile_name,
         'register_ipc_symbol':(lambda symbol, frame:
             register_ipc_symbol(addr_space, symbol, frame)),
 
+        'register_dma_pool':(lambda symbol, page_size, caps:
+            register_dma_pool(addr_space, symbol, page_size, caps, cap_space)),
+
         # A `self`-like reference to the current AST object. It would be nice
         # to actually call this `self` to lead to more pythonic templates, but
         # `self` inside template blocks refers to the jinja2 parser.
@@ -460,3 +463,12 @@ def register_ipc_symbol(addr_space, symbol, frame):
     caps = [None, Cap(frame, read=True, write=True, grant=False), None]
     sizes = [4096] * 3
     addr_space.add_symbol_with_caps(symbol, sizes, caps)
+
+def register_dma_pool(addr_space, symbol, page_size, caps, cap_space):
+    '''
+    Register a DMA pool symbol region in the AddressSpaceAllocator.
+    We pass in a list of slots and a cap_space allocator with the page size
+    to specify the size and caps of the DMA region.
+    '''
+    assert addr_space
+    addr_space.add_symbol_with_caps(symbol, [page_size] * len(caps), [cap_space.cnode[i] for i in caps])

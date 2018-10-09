@@ -316,9 +316,6 @@ endfunction(GeneratorValueOrDefault)
               #*/
             --redefine-sym "_camkes_start=/*? post['entry_symbol'] ?*/"
 
-            /*# Rename the DMA pools so they don't collide. #*/
-            --redefine-sym "/*? pre['dma_pool_symbol'] ?*/=/*? post['dma_pool_symbol'] ?*/"
-
             /*# Rename shared memory symbols so they don't collide. While doing so,
              *# we update their information in the shared memory metadata so they
              *# can still be located by the CapDL filters.
