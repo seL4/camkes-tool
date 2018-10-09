@@ -55,6 +55,7 @@ int run(void) {
 /*- set timer_config_interface = rump_config.get('timer_interface') -*/
     custom_simple.timer_config.timer_ntfn = /*? timer_config_interface ?*/_notification();
     custom_simple.timer_config.interface.oneshot_relative = /*? timer_config_interface ?*/_oneshot_relative;
+    custom_simple.timer_config.interface.time = /*? timer_config_interface ?*/_time;
     custom_simple.timer_config.tsc_freq = /*? timer_config_interface ?*/_tsc_frequency();
 
 /*- set serial_config_interface = rump_config.get('serial_interface') -*/
