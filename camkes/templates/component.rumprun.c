@@ -31,6 +31,8 @@ void /*? eth_irq_config ?*/_handle(void) {
 }
 /*- endif -*/
 
+uint64_t /*? rump_config.get('timer_interface') ?*/_tsc_frequency() WEAK;
+
 const char format_string[] = "{,,%s\"cmdline\": \"%s\",,},,";
 const char network_format_string[] = "\"net\" :  {,,\"if\":\"wm0\",, \"type\":\"inet\",,\"method\":\"dhcp\",,},,";
 int run(void) {
