@@ -63,6 +63,7 @@ def new_context(entity, assembly, render_state, state_key, outfile_name,
         'alloc_cap':(lambda name, obj, **kwargs:
             alloc_cap((entity.label(), cap_space), cap_space, name, obj, **kwargs)) \
                 if cap_space else None,
+        'Cap': Cap,
 
         # The CNode root of your CSpace. Should only be necessary in cases
         # where you need to allocate a cap to it.
