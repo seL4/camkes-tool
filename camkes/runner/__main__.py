@@ -244,10 +244,9 @@ def parse_args(argv, out, err):
         help='promote frames backing DMA pools to large frames where possible')
     parser.add_argument('--realtime', action='store_true',
         help='Target realtime seL4.')
-    parser.add_argument('--data-structure-cache-dir', type=str,
-        help='Directory for storing pickled datastructures for re-use between multiple '
-             'invocations of the camkes tool in a single build. The user should delete '
-             'this directory between builds.')
+    parser.add_argument('--object-cache', type=str,
+        help='object pickle for re-use between multiple '
+             'invocations of the camkes tool in a single build.')
     parser.add_argument('--save-ast',type=argparse.FileType('wb'), help='cache the ast during the build')
     # To get the AST, there should be either a pickled AST or a file to parse
     group = parser.add_mutually_exclusive_group(required=True)
@@ -283,31 +282,7 @@ def parse_args(argv, out, err):
 
     return options, queries, filteroptions
 
-def pickle_call(data_structure_cache_dir, pickle_name, fn, *args, **kwargs):
-    cache_path = os.path.realpath(data_structure_cache_dir)
-    pickle_path = os.path.join(cache_path, pickle_name)
-
-    try:
-        if not os.path.isdir(cache_path):
-            os.makedirs(cache_path)
-
-        with open(pickle_path, 'rb') as pickle_file:
-            return pickle.load(pickle_file)
-
-    except IOError as e:
-        result = fn(*args, **kwargs)
-        if e.args[0] == errno.ENOENT:
-            # pickled file doesn't exist yet - create it
-            with open(pickle_path, 'wb') as pickle_file:
-                pickle.dump(result, pickle_file)
-
-        return result
-
-    except Exception:
-        # fall back to calling the function without pickling
-        return fn(*args, **kwargs)
-
-def parse_file_cached(filename, data_structure_cache_dir, parser_options):
+def parse_file_cached(filename, parser_options):
     if parser_options.load_ast is not None:
         return pickle.load(parser_options.load_ast)
     ast,read = parse_file(filename, parser_options)
@@ -378,7 +353,7 @@ def main(argv, out, err):
     try:
         # Build the parser options
         parse_options = ParserOptions(options.cpp, options.cpp_flag, options.import_path, options.verbosity, options.allow_forward_references,options.save_ast,options.load_ast, queries)
-        ast, read = parse_file_cached(filename, options.data_structure_cache_dir, parse_options)
+        ast, read = parse_file_cached(filename, parse_options)
     except (ASTError, ParseError) as e:
         die(e.args)
 
@@ -516,13 +491,9 @@ def main(argv, out, err):
             except TemplateError as inst:
                 die(rendering_error(item, inst))
 
-    if options.item[0] in ('capdl', 'label-mapping') and options.data_structure_cache_dir is not None \
+    if options.item[0] in ('capdl', 'label-mapping') and options.object_cache is not None \
             and len(options.outfile) == 1:
-        # It's possible that data structures required to instantiate the capdl spec
-        # were saved during a previous invocation of this script in the current build.
-        cache_path = os.path.realpath(options.data_structure_cache_dir)
-        pickle_path = os.path.join(cache_path, CAPDL_STATE_PICKLE)
-
+        pickle_path = options.object_cache
         if os.path.isfile(pickle_path):
             with open(pickle_path, 'rb') as pickle_file:
                 # Found a cached version of the necessary data structures
@@ -674,13 +645,12 @@ def main(argv, out, err):
                 except TemplateError as inst:
                     die(rendering_error(i.name, inst))
 
-    if options.data_structure_cache_dir is not None:
+    if options.object_cache is not None:
         # At this point the capdl database is in the state required for applying capdl
         # filters and generating the capdl spec. In case the capdl spec isn't the current
         # target, we pickle the database here, so when the capdl spec is built, these
         # data structures don't need to be regenerated.
-        cache_path = os.path.realpath(options.data_structure_cache_dir)
-        pickle_path = os.path.join(cache_path, CAPDL_STATE_PICKLE)
+        pickle_path = options.object_cache
         with open(pickle_path, 'wb') as pickle_file:
             pickle.dump(renderoptions.render_state, pickle_file)
 

@@ -99,8 +99,9 @@ function(CAmkESOutputGenCommand)
         COMMAND
             ${CMAKE_COMMAND} -E env ${CAMKES_TOOL_ENVIRONMENT} "${CAMKES_TOOL}"
                 "--item;$<JOIN:${item_list},;--item;>"
-                "--load-ast=${CMAKE_CURRENT_BINARY_DIR}/ast.pickle"
                 "--outfile;$<JOIN:${outfile_list},;--outfile;>"
+                "--load-ast=${CMAKE_CURRENT_BINARY_DIR}/ast.pickle"
+                "--object-cache=${CMAKE_CURRENT_BINARY_DIR}/object.pickle"
                 "$<$<BOOL:${elfs_list}>:--elf$<SEMICOLON>>$<JOIN:${elfs_list},$<SEMICOLON>--elf$<SEMICOLON>>"
                 ${CAMKES_FLAGS}
         ${reflow_commands}
