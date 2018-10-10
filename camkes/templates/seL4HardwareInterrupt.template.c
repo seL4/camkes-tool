@@ -38,7 +38,7 @@
     /*- if (isinstance(_irq_spi, numbers.Integral)) and (_irq_spi == 0) -*/
         /*- set _irq = _irq + 32 -*/
     /*- endif -*/
-    /*- set irq = alloc('irq', seL4_IRQControl, number=_irq, notification=my_cnode[ntfn]) -*/
+    /*- set irq = alloc('irq', seL4_IRQHandler, number=_irq, notification=my_cnode[ntfn]) -*/
 /*- elif type in ['ioapic','isa','pci'] -*/
     /*- if type == 'isa' -*/
         /*- set level = 0 -*/
@@ -88,7 +88,7 @@
     /*- if not isinstance(vector, numbers.Integral) -*/
         /*? raise(TemplateError('Setting %s.%s that should specify an IRQ vector is not an integer' % (me.parent.from_instance.name, attr))) ?*/
     /*- endif -*/
-    /*- set irq = alloc('irq', seL4_IRQControl, vector=vector, ioapic=ioapic, ioapic_pin=ioapic_pin, level=level, polarity=polarity, notification=my_cnode[ntfn]) -*/
+    /*- set irq = alloc('irq', seL4_IRQHandler, vector=vector, ioapic=ioapic, ioapic_pin=ioapic_pin, level=level, polarity=polarity, notification=my_cnode[ntfn]) -*/
 /*- elif type == 'msi' -*/
     /*- set attr = '%s_irq_handle' % me.parent.from_interface.name -*/
     /*- set handle = configuration[me.parent.from_instance.name].get(attr) -*/
@@ -130,7 +130,7 @@
     /*- if not isinstance(vector, numbers.Integral) -*/
         /*? raise(TemplateError('Setting %s.%s that should specify an IRQ vector is not an integer' % (me.parent.from_instance.name, attr))) ?*/
     /*- endif -*/
-    /*- set irq = alloc('irq', seL4_IRQControl, vector=vector, handle=handle, pci_bus=pci_bus, pci_dev=pci_dev, pci_fun=pci_fun, notification=my_cnode[ntfn]) -*/
+    /*- set irq = alloc('irq', seL4_IRQHandler, vector=vector, handle=handle, pci_bus=pci_bus, pci_dev=pci_dev, pci_fun=pci_fun, notification=my_cnode[ntfn]) -*/
 /*- else -*/
     /*? raise(TemplateError('Unknown irq type specified by %s.%s' % (me.parent.from_instance.name, type_attr))) ?*/
 /*- endif -*/

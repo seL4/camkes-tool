@@ -157,7 +157,7 @@
 /*- set irq_list = configuration[me.name].get('irqs') -*/
 /*- if irq_list is not none -*/
     /*- for irq in irq_list -*/
-        /*- set irq_cap = alloc('irq_%d' % irq, seL4_IRQControl, number=irq, notification=my_cnode[irq_notification]) -*/
+        /*- set irq_cap = alloc('irq_%d' % irq, seL4_IRQHandler, number=irq, notification=my_cnode[irq_notification]) -*/
         /*- do irqs.append( (irq, irq_cap) ) -*/
     /*- endfor -*/
 /*- endif -*/
