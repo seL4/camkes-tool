@@ -33,7 +33,7 @@
    ALIGN(4096)
    SECTION("align_12bit");
   volatile int *counter_/*? index ?*/ = (volatile int*)from_/*? my_index ?*/_/*? me.interface.name ?*/_/*? index ?*/_data;
-  /*? register_shared_variable('%s_%d_data' % (me.parent.name, index), 'from_%d_%s_%d_data' % (my_index, me.interface.name, index), 'RW') ?*/
+  /*? register_shared_variable('%s_%d_data' % (me.parent.name, index), 'from_%d_%s_%d_data' % (my_index, me.interface.name, index), 4096, perm='RW') ?*/
 /*- endfor -*/
 
 void /*? me.interface.name ?*/_emit_underlying(void) {

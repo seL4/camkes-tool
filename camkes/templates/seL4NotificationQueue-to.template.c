@@ -38,7 +38,7 @@ char to_/*? id ?*/_/*? me.interface.name ?*/_data[ROUND_UP_UNSAFE(sizeof(int), P
    ALIGN(4096)
    SECTION("align_12bit");
 static volatile int *value = (volatile int*)to_/*? id ?*/_/*? me.interface.name ?*/_data;
-/*? register_shared_variable('%s_%d_data' % (me.parent.name, id), 'to_%d_%s_data' % (id, me.interface.name), 'RW') ?*/
+/*? register_shared_variable('%s_%d_data' % (me.parent.name, id), 'to_%d_%s_data' % (id, me.interface.name), 4096, perm='RW') ?*/
 
 /*- set lock = alloc('lock_%d' % id, seL4_NotificationObject, read=True, write=True) -*/
 static volatile int lock_count = 1;

@@ -30,6 +30,7 @@ import capdl, code, collections, copy, inspect, itertools, functools, numbers, \
     orderedset, os, pdb, re, six, sys, textwrap, math
 from capdl.Object import ObjectType, ObjectRights
 from capdl.Allocator import Cap
+from capdl import page_sizes
 
 # Depending on what kernel branch we are on, we may or may not have ASIDs.
 # There are separate python-capdl branches for this, but this import allows us
@@ -89,10 +90,14 @@ def new_context(entity, assembly, render_state, state_key, outfile_name,
         # to locate the relevant ELF frame(s) to remap. Note that we assume
         # address spaces and CSpaces are 1-to-1.
         'register_shared_variable':None if cap_space is None else \
-            (lambda gname, lname, perm='RWX', paddr=None, frames=None, cached_hw=False:
-                register_shared_variable(shmem, gname, cap_space.cnode.name,
-                    lname, perm, paddr, frames, cached_hw)),
+            (lambda global_name, symbol, size, frame_size=None, paddr=None,
+                perm='RWX', cached=None:
+                register_shared_variable(addr_space, obj_space, global_name, symbol, size,
+                                         frame_size, paddr, perm, cached)),
 
+        'get_shared_variable_backing_frames':None if cap_space is None else \
+            (lambda global_name, size, frame_size=None:
+                get_shared_variable_backing_frames(obj_space, global_name, size, frame_size)),
         # Function for templates to inform us that they would like certain
         # 'fill' information to get placed into the provided symbol. Provided
         # symbol should be page size and aligned. The 'fill' parameter is
@@ -401,26 +406,72 @@ def alloc_cap(client, space, name, obj, **kwargs):
 
     return cap
 
-def register_shared_variable(shmem, global_name, local_context, local_name,
-        permissions='RWX', paddr=None, frames=None, cached_hw=False):
-    '''Track a variable that is intended to map to a cross-address-space shared
-    variable.
-     shmem - The dictionary to use for tracking
-     global_name - The system-wide name for this variable
-     local_context - The owner's CNode name
-     local_name - The name of this variable in the owner's address space
-    '''
-    shmem[global_name][local_context].append((local_name, permissions, paddr, frames, cached_hw))
+def calc_frame_size(size, frame_size, arch):
+    if not frame_size:
+        for sz in reversed(page_sizes(arch)):
+            if size >= sz and size % sz == 0:
+                frame_size = sz
+                break
+    assert frame_size, "Shared variable size: %d is not a valid page size multiple" % size
+    return frame_size
 
+def register_shared_variable(addr_space, obj_space, global_name, symbol, size,
+       frame_size=None, paddr=None, perm='RWX', cached=None):
+    '''
+    Create a reservation for a shared memory region between multiple components.
+    global_name is a global key that is used to link up the reservations across multiple components
+    symbol is the name of the local symbol to be backed by the mapping frames.
+    size is the size of the region. Size needs to at least be a multiple of the smallest page size.
+    frame_size is the size of frames to use to back the region. size mod frame_size must be 0
+    If frame_size is not specified, the frame size to be used will be the largest
+    frame size that the size parameter is a multiple of.
+    paddr is the starting physical address of the frames. Only one caller needs to specify this. If
+    multiple callers specify different values it is undefined what the final result will be
+    perm and cached are mapping options that are only valid for the caller's mapping.
+    '''
+    assert addr_space
+    size = int(size)
+    frame_size = calc_frame_size(size, frame_size, obj_space.spec.arch.capdl_name())
+    num_frames = size//frame_size
+
+    # If these frames have been allocated already then the allocator will return them.
+    # Therefore calls to register_shared_variable with the same global_name have to have the same size.
+    frames = [obj_space.alloc(ObjectType.seL4_FrameObject, name='%s_%d_obj' % (global_name, i), size=frame_size) for i in range(num_frames)]
+    if paddr is not None:
+        for f in frames:
+            f.paddr = paddr
+            paddr += frame_size
+
+    read = 'R' in perm
+    write = 'W' in perm
+    grant = 'X' in perm
+
+    caps = [Cap(frame, read=read, write=write, grant=grant, cached=cached) for frame in frames]
+    sizes = [frame_size] * num_frames
+    addr_space.add_symbol_with_caps(symbol, sizes, caps)
     # Return code to:
     #  1. page-align the shared variable;
     #  2. make it visible in the final ELF; and
     #  3. Check that it is page-sized.
-    return 'extern typeof(%(sym)s) %(sym)s ALIGN(PAGE_SIZE_4K) VISIBLE;\n'      \
-           'static_assert(sizeof(%(sym)s) %% PAGE_SIZE_4K == 0,\n'              \
+    return 'extern typeof(%(sym)s) %(sym)s ALIGN(%(size)d) VISIBLE;\n'      \
+           'static_assert(sizeof(%(sym)s) <= %(size)d,\n'                       \
+           '  "typeof(%(sym)s) size greater than dataport size.");\n'                    \
+           'static_assert(sizeof(%(sym)s) %% %(frame_size)d == 0,\n'              \
            '  "%(sym)s not page-sized. Template bug in its declaration? '       \
            'Suggested formulation: `char %(sym)s[ROUND_UP_UNSAFE(sizeof(...), ' \
-           'PAGE_SIZE_4K)];`");' % {'sym':local_name}
+           'PAGE_SIZE_4K)];`");' % {'sym':symbol, 'size': size, 'frame_size': frame_size}
+
+def get_shared_variable_backing_frames(obj_space, global_name, size, frame_size=None):
+    '''
+    Return the objects for the frame mapping.
+    global_name, size and frame_size need to be the same as was provided to register_shared_variable
+    It is possible to call this in a component that does not call register_shared_variable if the component
+    doesn't want a mapping itself, but requires caps for its cspace.
+    '''
+    size = int(size)
+    frame_size = calc_frame_size(size, frame_size, obj_space.spec.arch.capdl_name())
+    num_frames = size//frame_size
+    return [obj_space.alloc(ObjectType.seL4_FrameObject, name='%s_%d_obj' % (global_name, i), size=frame_size) for i in range(num_frames)]
 
 def register_fill_frame(addr_space, symbol, fill, obj_space, label):
     '''

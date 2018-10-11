@@ -55,6 +55,16 @@ struct {
         VISIBLE
         USED;
 
+/*? register_shared_variable('%s_data' % me.parent.name, dataport_symbol_name, size, frame_size=page_size, perm='RW', paddr=paddr, cached=cached) ?*/
+
+/*# We need to copy all of the frame caps into our cspace for frame cache operations #*/
+/*- set frame_objs = get_shared_variable_backing_frames('%s_data' % me.parent.name, size) -*/
+/*- set frame_caps = [] -*/
+/*- for (i, frame) in enumerate(frame_objs) -*/
+    /*- set frame_cap = alloc_cap('%s_%d' % ('%s_data' % me.parent.name, i), frame) -*/
+    /*- do frame_caps.append(frame_cap) -*/
+/*- endfor -*/
+
 volatile /*? macros.dataport_type(me.interface.type) ?*/ * /*? me.interface.name ?*/ =
     (volatile /*? macros.dataport_type(me.interface.type) ?*/ *) & /*? dataport_symbol_name ?*/;
 
@@ -94,23 +104,6 @@ void * /*? me.interface.name ?*/_translate_paddr(
 }
 
 /*- set frame_caps_symbol = c_symbol('frame_caps') -*/
-/*- set frame_caps = pop('frame_caps') -*/
-/*- set frame_objs = none -*/
-/*- if frame_caps is none -*/
-    /*- set frame_caps = [] -*/
-    /*- set frame_objs = [] -*/
-    /*- set n_frames = (size + macros.PAGE_SIZE - 1) // macros.PAGE_SIZE -*/
-    /*- for i in range(n_frames) -*/
-        /*- set name = "frame_%s_%d" % (me.instance.name, i) -*/
-        /*- set offset = macros.PAGE_SIZE * i -*/
-        /*- set frame_obj = alloc_obj(name, seL4_FrameObject, paddr=(paddr + offset)) -*/
-        /*- do frame_objs.append(frame_obj) -*/
-        /*- set frame_cap = alloc_cap(name, frame_obj) -*/
-        /*- do frame_caps.append(frame_cap) -*/
-    /*- endfor -*/
-/*- endif -*/
-/*# Always restash as 'pop' removes them #*/
-/*- do stash('frame_caps', frame_caps) -*/
 
 /*# Allocate frame objects to back the hardware dataport #*/
 static const seL4_CPtr /*? frame_caps_symbol ?*/[] = {
@@ -122,7 +115,6 @@ static const seL4_CPtr /*? frame_caps_symbol ?*/[] = {
 /*# We only pull frame_caps from the stash. This is because only one caller of register_shared_variable
     should pass a frames parameter. By not stashing the frame_objs we ensure that only the original
     creator passed the frames, and everyone else will still have a None here #*/
-/*- do register_shared_variable('%s_data' % me.parent.name, 'from_%d_%s_data' % (index, me.interface.name), 'RW', paddr, frames=frame_objs, cached_hw=cached) -*/
 
 /*- if options.architecture in ('aarch32', 'arm_hyp') -*/
     static int sel4_cache_op(seL4_CPtr frame_cap, seL4_Word start, seL4_Word end, dma_cache_op_t cache_op) {
