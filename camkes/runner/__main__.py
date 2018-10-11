@@ -50,12 +50,6 @@ from camkes.parser import parse_file, ParseError, parse_query_parser_args, print
 
 CAPDL_STATE_PICKLE = 'capdl_state.p'
 
-class ShmemFactory:
-    '''Factory supplied to the shared memory allocator's defaultdict.
-       A callable class is used instead of a lambda to simplify serializing.'''
-    def __call__(self):
-        return collections.defaultdict(list)
-
 class ParserOptions():
     def __init__(self, cpp, cpp_flag, import_path, verbosity, allow_forward_references,save_ast,load_ast, queries):
         self.cpp = cpp
@@ -87,9 +81,8 @@ class FilterOptions():
         self.fprovide_tcb_caps = fprovide_tcb_caps
 
 class RenderState():
-    def __init__(self, obj_space, shmem=collections.defaultdict(ShmemFactory()), cspaces={}, pds={}, addr_spaces={}):
+    def __init__(self, obj_space, cspaces={}, pds={}, addr_spaces={}):
         self.obj_space = obj_space
-        self.shmem = shmem
         self.cspaces = cspaces
         self.pds = pds
         self.addr_spaces = addr_spaces
@@ -502,8 +495,7 @@ def main(argv, out, err):
                   obj_space=render_state.obj_space,
                   cspaces=render_state.cspaces,
                   elfs=elfs,
-                  options=filteroptions,
-                  shmem=render_state.shmem)
+                  options=filteroptions)
             except Exception as inst:
                 die('While forming CapDL spec: %s' % inst)
 

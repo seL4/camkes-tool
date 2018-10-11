@@ -50,7 +50,6 @@ def new_context(entity, assembly, render_state, state_key, outfile_name,
                 templates, **kwargs):
     obj_space = render_state.obj_space
     cap_space = render_state.cspaces[state_key] if state_key else None
-    shmem = render_state.shmem
     addr_space = render_state.addr_spaces[state_key] if state_key else None
     '''Create a new default context for rendering.'''
     return dict(list(__builtins__.items()) + ObjectType.__members__.items() + ObjectRights.__members__.items() + list({
@@ -126,10 +125,6 @@ def new_context(entity, assembly, render_state, state_key, outfile_name,
 
         # The AST assembly's composition
         'composition':assembly.composition,
-
-        # Shared memory metadata. Templates should only need to modify this if
-        # they're doing something cross-component.
-        'shmem':shmem if entity is not None else None,
 
         # Cross-template variable passing helpers. These are quite low-level.
         # Avoid calling them unless necessary.
