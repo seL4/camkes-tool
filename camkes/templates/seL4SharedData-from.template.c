@@ -20,9 +20,20 @@
 /*- set index = me.parent.from_ends.index(me) -*/
 
 /*- set dataport_symbol_name = "from_%d_%s_data" % (index, me.interface.name) -*/
+/*- set type_size = macros.dataport_size(me.interface.type) -*/
+/*- if type_size.startswith("sizeof") -*/
+   /*- set size = configuration[me.parent.name].get('size', 4096) -*/
+/*- else -*/
+   /*- set size = type_size -*/
+/*- endif -*/
+/*- set page_size = macros.get_page_size(size, options.architecture) -*/
+/*- if page_size == 0 -*/
+  /*? raise(TemplateError('Setting %s.%s_size does not meet minimum size requirements. %d must be at least %d and %d aligned' % (me.parent.to_instance.name, me.parent.to_interface.name, size, 4096, 4096))) ?*/
+/*- endif -*/
+/*- set page_size_bits = int(math.log(page_size, 2)) -*/
 
 struct {
-    char content[ROUND_UP_UNSAFE(/*? macros.dataport_size(me.interface.type) ?*/,
+    char content[ROUND_UP_UNSAFE(/*? type_size ?*/,
         PAGE_SIZE_4K)];
 } /*? dataport_symbol_name ?*/
         __attribute__((section("shared_from_/*? index ?*/_/*? me.interface.name ?*/")))

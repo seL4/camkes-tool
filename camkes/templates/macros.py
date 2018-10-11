@@ -54,6 +54,20 @@ def save_ipc_buffer_address(sym):
            '    seL4_SetUserData((seL4_Word)%s + 2 * PAGE_SIZE_4K - sizeof(seL4_IPCBuffer));\n' \
            '#endif\n' % sym
 
+def get_page_size(size, arch):
+    '''
+    Returns the largest frame_size that can be used to create
+    a mapping for the provided size on a given architecture. It assumes
+    that the variable will be aligned to the start of the frame.
+    '''
+    frame_size = 0
+    size = int(size)
+    for sz in reversed(page_sizes(arch)):
+        if size >= sz and size % sz == 0:
+            frame_size = sz
+            break
+    return frame_size
+
 def show_type(t):
     assert isinstance(t, (six.string_types, Struct))
     if isinstance(t, six.string_types):

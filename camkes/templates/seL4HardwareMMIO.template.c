@@ -21,6 +21,30 @@
 
 /*- set index = me.parent.from_ends.index(me) -*/
 
+/*- set paddr = configuration[me.parent.to_instance.name].get('%s_paddr' % me.parent.to_interface.name) -*/
+/*- if paddr is none -*/
+  /*? raise(TemplateError('Setting %s.%s_paddr that should specify the physical address of an MMIO device is not set' % (me.parent.to_instance.name, me.parent.to_interface.name))) ?*/
+/*- endif -*/
+/*- if not isinstance(paddr, numbers.Integral) or paddr < 0 -*/
+  /*? raise(TemplateError('Setting %s.%s_paddr that should specify the physical address of an MMIO device does not appear to be a valid address' % (me.parent.to_instance.name, me.parent.to_interface.name))) ?*/
+/*- endif -*/
+
+/*- set size = configuration[me.parent.to_instance.name].get('%s_size' % me.parent.to_interface.name) -*/
+/*- if size is none -*/
+  /*? raise(TemplateError('Setting %s.%s_size that should specify the size of an MMIO device is not set' % (me.parent.to_instance.name, me.parent.to_interface.name))) ?*/
+/*- endif -*/
+/*- if not isinstance(size, numbers.Integral) or size <= 0 -*/
+  /*? raise(TemplateError('Setting %s.%s_size that should specify the size of an MMIO device does not appear to be a valid size' % (me.parent.to_instance.name, me.parent.to_interface.name))) ?*/
+/*- endif -*/
+/*- set page_size = macros.get_page_size(size, options.architecture) -*/
+/*- if page_size == 0 -*/
+  /*? raise(TemplateError('Setting %s.%s_size does not meet minimum size requirements. %d must be at least %d and %d aligned' % (me.parent.to_instance.name, me.parent.to_interface.name, size, 4096, 4096))) ?*/
+/*- endif -*/
+/*- set page_size_bits = int(math.log(page_size, 2)) -*/
+
+/*- set cached = configuration[me.parent.to_instance.name].get('%s_hardware_cached' % me.parent.to_interface.name, False) -*/
+
+
 /*- set dataport_symbol_name = "from_%d_%s_data" % (index, me.interface.name) -*/
 #define MMIO_ALIGN (1 << 12)
 struct {
@@ -57,26 +81,10 @@ void * /*? me.interface.name ?*/_unwrap_ptr(dataport_ptr_t *p) {
     }
 }
 
-/*- set paddr = configuration[me.parent.to_instance.name].get('%s_paddr' % me.parent.to_interface.name) -*/
-/*- if paddr is none -*/
-  /*? raise(TemplateError('Setting %s.%s_paddr that should specify the physical address of an MMIO device is not set' % (me.parent.to_instance.name, me.parent.to_interface.name))) ?*/
-/*- endif -*/
-/*- if not isinstance(paddr, numbers.Integral) or paddr < 0 -*/
-  /*? raise(TemplateError('Setting %s.%s_paddr that should specify the physical address of an MMIO device does not appear to be a valid address' % (me.parent.to_instance.name, me.parent.to_interface.name))) ?*/
-/*- endif -*/
-
-/*- set size = configuration[me.parent.to_instance.name].get('%s_size' % me.parent.to_interface.name) -*/
-/*- if size is none -*/
-  /*? raise(TemplateError('Setting %s.%s_size that should specify the size of an MMIO device is not set' % (me.parent.to_instance.name, me.parent.to_interface.name))) ?*/
-/*- endif -*/
-/*- if not isinstance(size, numbers.Integral) or size <= 0 -*/
-  /*? raise(TemplateError('Setting %s.%s_size that should specify the size of an MMIO device does not appear to be a valid size' % (me.parent.to_instance.name, me.parent.to_interface.name))) ?*/
-/*- endif -*/
 
 /*# Check if we have reserved enough virtual memory for the MMIO. #*/
 static_assert(/*? macros.dataport_size(me.interface.type) ?*/ == /*? size ?*/, "Data type mismatch!");
 
-/*- set cached = configuration[me.parent.to_instance.name].get('%s_hardware_cached' % me.parent.to_interface.name, False) -*/
 
 void * /*? me.interface.name ?*/_translate_paddr(
         uintptr_t paddr, size_t size) {
