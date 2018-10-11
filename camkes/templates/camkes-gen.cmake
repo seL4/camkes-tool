@@ -484,6 +484,12 @@ if (${CAmkESCapDLVerification})
     add_custom_target(camkes_adl_thy DEPENDS "${CAMKES_ADL_THY}")
     add_dependencies("capdl-loader" camkes_adl_thy)
 
+    # CDL refinement proof
+    set(CAMKES_CDL_REFINE_THY "${CAMKES_APP}_CDL_Refine.thy")
+    CAmkESGen("${CAMKES_CDL_REFINE_THY}" "cdl-refine" THY_STYLE DEPENDS "${capdl_elf_targets}" ELFS "${capdl_elfs}")
+    add_custom_target(camkes_cdl_refine_thy DEPENDS "${CAMKES_CDL_REFINE_THY}")
+    add_dependencies("capdl-loader" camkes_cdl_refine_thy)
+
     CAmkESOutputGenCommand()
 endif()
 

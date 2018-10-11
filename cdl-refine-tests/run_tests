@@ -57,11 +57,25 @@ test_apps = [
 # test runner (once we add a command line option for that).
 test_options = {
     # Having extra fault handler threads and EPs shouldn't matter,
-    # since our policy spec can access them from component CNodes
+    # because they are internal to components.
     'CAmkESFaultHandlers': ['0', '1'],
 
-    # Release/debug mode only affects C code, so shouldn't matter
+    # Release/debug mode only affects C code, so shouldn't matter.
     'RELEASE': ['1', '0'],
+
+    # Our proofs should work with many small frames without taking
+    # too much time.
+    'CAmkESLargeFramePromotion': ['1', '0'],
+
+    # This only gives each component access to its own TCB,
+    # which shouldn't affect the integrity model.
+    'CAmkESProvideTCBCaps': ['0', '1'],
+
+    # If this is enabled, the toolchain may create extra endpoints for
+    # internal synchronisation. This option isn't really optional
+    # because any app with init callbacks will require it. Nonetheless,
+    # we can check that we correctly handle it for the simpler apps.
+    'CAmkESSupportInit': ['1', '0'],
 }
 
 # Default app build options.
@@ -70,7 +84,7 @@ standard_build_config = {
     'PLATFORM': 'sabre',
     'CROSS_COMPILER_PREFIX': 'arm-none-eabi-',
     'CAmkESCapDLVerification': '1',
-    'SIMULATE': '1',
+    'SIMULATION': '1',
 }
 # TODO: accept extra config on command line
 
@@ -97,7 +111,7 @@ def run_cmd(cmdline, **kwargs):
         raise
     finally:
         duration = time.time() - start
-        if duration > 10:
+        if duration > 1.0:
             info('command took %.3g seconds' % duration)
 
 class TempDir():
@@ -207,10 +221,6 @@ def main():
 
                 info('Setting up extra theory files...')
                 app_thy_dir = os.path.join(build_dir, 'projects/camkes')
-                # CDL refinement proof
-                cdl_refine_thy_base = '%s_CDL_Refine.thy' % app_name
-                cdl_refine_thy = os.path.join(this_script_dir, cdl_refine_thy_base)
-                shutil.copyfile(cdl_refine_thy, os.path.join(app_thy_dir, cdl_refine_thy_base))
 
                 # session ROOT
                 ROOT_template_env = {

@@ -344,7 +344,7 @@ def main(argv, out, err):
 
         done_items.add((item, file))
         if len(all_items - done_items) == 0:
-            if options.object_cache is not None and item not in ('capdl', 'label-mapping'):
+            if options.object_cache is not None and item not in ('capdl', 'cdl-refine'):
                 # At this point the capdl database is in the state required for applying capdl
                 # filters and generating the capdl spec. In case the capdl spec isn't the current
                 # target, we pickle the database here, so when the capdl spec is built, these
@@ -503,7 +503,8 @@ def main(argv, out, err):
     if "camkes-gen.cmake" in options.item:
         instantiate_misc_template(renderoptions)
 
-    if options.item[0] in ('capdl', 'label-mapping') and options.object_cache is not None \
+    if options.item[0] in ('capdl', 'cdl-refine') \
+            and options.object_cache is not None \
             and len(options.outfile) == 1:
         pickle_path = options.object_cache
         if os.path.isfile(pickle_path):
@@ -658,7 +659,7 @@ def main(argv, out, err):
                     die(rendering_error(i.name, inst))
 
     for (item, outfile) in (all_items - done_items):
-        if item in ('capdl', 'label-mapping'):
+        if item in ('capdl', 'cdl-refine'):
             apply_capdl_filters(renderoptions)
 
     # Instantiate any other, miscellaneous template. If we've reached this

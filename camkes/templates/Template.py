@@ -150,7 +150,7 @@ TEMPLATES = {
         # Isabelle ADL formalism
         'arch-spec':'arch-definitions.thy',
         # CapDL generator correspondence proofs
-        'label-mapping':'label-mapping.thy',
+        'cdl-refine':'cdl-refine.thy',
     },
     'autocorres':{ # AutoCorres-based C code proofs
         Guard(lambda x: isinstance(x, Connection) and x.type.name == 'seL4NotificationNative'):{
