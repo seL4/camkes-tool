@@ -14,9 +14,17 @@ theory "/*? macros.isabelle_theory_name(outfile_name) ?*/" imports
   "CamkesAdlSpec.Types_CAMKES"
   "CamkesAdlSpec.Library_CAMKES"
   "CamkesAdlSpec.Wellformed_CAMKES"
+  "Lib.Qualify"
 begin
 
 (* /*? macros.generated_file_notice() ?*/ *)
+
+(* We restrict the scope of all names to a locale with the same name
+ * as our theory. This ensures that entity names from the CAmkES
+ * assembly won't overlap with names we use elsewhere. *)
+
+locale /*? macros.isabelle_theory_name(outfile_name) ?*/
+qualify /*? macros.isabelle_theory_name(outfile_name) ?*/
 
 /*- macro param_type(type) -*/
     /*- if type == 'int' -*/
@@ -251,5 +259,7 @@ where
 
 lemma wf_/*? assembly ?*/: "wellformed_assembly /*? assembly ?*/"
   by code_simp
+
+end_qualify
 
 end
