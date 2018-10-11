@@ -42,14 +42,33 @@ jinja_env = jinja2.Environment(
     auto_reload=False,
     undefined=jinja2.StrictUndefined)
 
-# Test these apps. For now, we need a manual
-# ${APP}_CDL_Refine.thy for each app.
+# Test these apps. Commented-out tests are those that don't work
+# but we have a good idea of what needs to be fixed.
 test_apps = [
+    # RPC test
     'simple',
-    # NB: 'dataport' is expected to fail with non-default options
-    #     because our proof hardcodes the shared frame IDs
+
+    # dataport test
     'dataport',
+
+    # event test
+    'event',
+
+    # others
     'multiclient',
+
+    #'hierarchical-components', # app name needs to be mangled first
+
+    'multiassembly',
+
+    'socket',
+
+    # test single-component assembly
+    #'structs', # arch-spec template doesn't support struct types
+
+    #'testgrouping', # build fails when processing object files
+
+    'testunderscorename',
     ]
 
 # Test these option combinations.
