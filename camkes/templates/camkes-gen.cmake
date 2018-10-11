@@ -316,20 +316,6 @@ endfunction(GeneratorValueOrDefault)
               #*/
             --redefine-sym "_camkes_start=/*? post['entry_symbol'] ?*/"
 
-            /*# Rename shared memory symbols so they don't collide. While doing so,
-             *# we update their information in the shared memory metadata so they
-             *# can still be located by the CapDL filters.
-              #*/
-            /*- for mappings in shmem.values() -*/
-                /*- set new_mappings = [] -*/
-                /*- for local in mappings[i.name] -*/
-                    /*- set old_name = local[0] -*/
-                    /*- set new_name = 'camkes shmem %s %s' % (i.name, local[0]) -*/
-                    --redefine-sym "/*? old_name ?*/=/*? new_name ?*/"
-                    /*- do new_mappings.append((new_name, local[1], local[2])) -*/
-                /*- endfor -*/
-                /*- do mappings.__setitem__(i.name, new_mappings) -*/
-            /*- endfor -*/
             /*- for c in connections -*/
                 /*- if c.type.name == 'seL4DirectCall' -*/
                     /*# For all 'from' connection ends (calls to unresolved symbols),
