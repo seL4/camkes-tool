@@ -46,13 +46,12 @@
 
 
 /*- set dataport_symbol_name = "from_%d_%s_data" % (index, me.interface.name) -*/
-#define MMIO_ALIGN (1 << 12)
 struct {
     char content[ROUND_UP_UNSAFE(/*? macros.dataport_size(me.interface.type) ?*/,
         PAGE_SIZE_4K)];
 } /*? dataport_symbol_name ?*/
-        ALIGN(MMIO_ALIGN)
-        __attribute__((section("ignore_from_/*? index ?*/_/*? me.interface.name ?*/")))
+        ALIGN(/*? page_size ?*/)
+        SECTION("align_/*? page_size_bits ?*/bit")
         VISIBLE
         USED;
 

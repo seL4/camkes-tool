@@ -99,16 +99,9 @@ const char *get_instance_name(void) {
 
 /*- set p = Perspective() -*/
 static char /*? p['dma_pool_symbol'] ?*/[/*? dma_pool ?*/]
-/*- if options.architecture in ('aarch32', 'arm_hyp') -*/
     /*- set page_size_bits = int(math.log(page_size[0], 2)) -*/
-    /*- if page_size_bits not in [12, 16, 20, 24] -*/
-        /*? raise(TemplateError('invalid dma page size: 0x%x bytes' % int(math.pow(2, page_size_bits)))) ?*/
-    /*- endif -*/
     SECTION("align_/*? page_size_bits ?*/bit")
-/*- else -*/
-    ALIGN(/*? page_size[0] ?*/)
-/*- endif -*/
-;
+    ALIGN(/*? page_size[0] ?*/);
 
 /*- set dma_frames = [] -*/
 /*- set num_dma_frames = int(macros.ROUND_UP(dma_pool, page_size[0]) // page_size[0]) -*/
@@ -640,7 +633,7 @@ void USED _camkes_tls_init(int thread_id) {
 
             /* Various symbols that are provided by the linker script. */
             extern const char __executable_start[1];
-            extern const char guarded[1] UNUSED;
+            extern const char align_12bit[1] UNUSED;
             extern const char _end[1] UNUSED;
 
             /* Thread name and address space map relevant for this fault. Note
@@ -666,85 +659,36 @@ void USED _camkes_tls_init(int thread_id) {
                 /*- set p = Perspective(instance=me.name, control=True) -*/
                 case /*? tcb_control ?*/ : {
                     thread_name = "control";
-                    /*- if options.architecture in ('aarch32', 'arm_hyp') and options.largeframe_dma and page_size[0] > 2 ** 15 -*/
-                      /*# XXX: The short version is, we can't do accurate memory maps under these
-                       *# circumstances.
-                       *#
-                       *# The long version is, with a large DMA pool, the DMA pool array needs to be
-                       *# aligned to the (large) page size in use. On ARM, for reasons that are
-                       *# unclear to me, GAS rejects alignment constraints beyond 15-bit. CAmkES
-                       *# contains a compiler wrapper and build system support for working around
-                       *# this by detecting such an issue and calling Clang, which does not have
-                       *# this limitation. Unfortunately this prevents the section symbol
-                       *# `guarded` from being visible at runtime. To cope with
-                       *# this, we can mark them as weak and do runtime detection of their
-                       *# existence. However, all my attempts to do this have resulted in the linker
-                       *# segfaulting while trying to build the component. Instead of continuing
-                       *# down this dark and ever-narrowing road, we just provide an inaccurate
-                       *# memory map. Sorry, folks.
-                       #*/
-                      memory_map = (camkes_memory_region_t[]){
-                          { .start = (uintptr_t)__executable_start,
-                            .end = (uintptr_t)&/*? p['stack_symbol'] ?*/ - 1,
-                            .name = "code and data" },
-                          { .start = (uintptr_t)&/*? p['stack_symbol'] ?*/,
-                            .end = (uintptr_t)&/*? p['stack_symbol'] ?*/ + PAGE_SIZE_4K - 1,
-                            .name = "guard page" },
-                          { .start = (uintptr_t)&/*? p['stack_symbol'] ?*/ + PAGE_SIZE_4K,
-                            .end = (uintptr_t)&/*? p['stack_symbol'] ?*/ +
-                              sizeof(/*? p['stack_symbol'] ?*/) - PAGE_SIZE_4K - 1,
-                            .name = "stack" },
-                          { .start = (uintptr_t)&/*? p['stack_symbol'] ?*/ +
-                              sizeof(/*? p['stack_symbol'] ?*/) - PAGE_SIZE_4K,
-                            .end = (uintptr_t)&/*? p['stack_symbol'] ?*/ +
-                              sizeof(/*? p['stack_symbol'] ?*/) - 1,
-                            .name = "guard page" },
-                          { .start = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/,
-                            .end = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/ + PAGE_SIZE_4K - 1,
-                            .name = "guard page" },
-                          { .start = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/ + PAGE_SIZE_4K,
-                            .end = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/ +
-                              sizeof(/*? p['ipc_buffer_symbol'] ?*/) - PAGE_SIZE_4K - 1,
-                            .name = "IPC buffer" },
-                          { .start = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/ +
-                              sizeof(/*? p['ipc_buffer_symbol'] ?*/) - PAGE_SIZE_4K,
-                            .end = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/ +
-                              sizeof(/*? p['ipc_buffer_symbol'] ?*/) - 1,
-                            .name = "guard page" },
-                          { .start = 0, .end = 0, .name = NULL },
+                    memory_map = (camkes_memory_region_t[]){
+                        { .start = (uintptr_t)__executable_start,
+                          .end = (uintptr_t)align_12bit - 1,
+                          .name = "code and data" },
+                        { .start = (uintptr_t)&/*? p['stack_symbol'] ?*/,
+                          .end = (uintptr_t)&/*? p['stack_symbol'] ?*/ + PAGE_SIZE_4K - 1,
+                          .name = "guard page" },
+                        { .start = (uintptr_t)&/*? p['stack_symbol'] ?*/ + PAGE_SIZE_4K,
+                          .end = (uintptr_t)&/*? p['stack_symbol'] ?*/ +
+                            sizeof(/*? p['stack_symbol'] ?*/) - PAGE_SIZE_4K - 1,
+                          .name = "stack" },
+                        { .start = (uintptr_t)&/*? p['stack_symbol'] ?*/ +
+                            sizeof(/*? p['stack_symbol'] ?*/) - PAGE_SIZE_4K,
+                          .end = (uintptr_t)&/*? p['stack_symbol'] ?*/ +
+                            sizeof(/*? p['stack_symbol'] ?*/) - 1,
+                          .name = "guard page" },
+                        { .start = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/,
+                          .end = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/ + PAGE_SIZE_4K - 1,
+                          .name = "guard page" },
+                        { .start = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/ + PAGE_SIZE_4K,
+                          .end = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/ +
+                            sizeof(/*? p['ipc_buffer_symbol'] ?*/) - PAGE_SIZE_4K - 1,
+                          .name = "IPC buffer" },
+                        { .start = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/ +
+                            sizeof(/*? p['ipc_buffer_symbol'] ?*/) - PAGE_SIZE_4K,
+                          .end = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/ +
+                            sizeof(/*? p['ipc_buffer_symbol'] ?*/) - 1,
+                          .name = "guard page" },
+                        { .start = 0, .end = 0, .name = NULL },
                       };
-                    /*- else -*/
-                      memory_map = (camkes_memory_region_t[]){
-                          { .start = (uintptr_t)__executable_start,
-                            .end = (uintptr_t)guarded - 1,
-                            .name = "code and data" },
-                          { .start = (uintptr_t)&/*? p['stack_symbol'] ?*/,
-                            .end = (uintptr_t)&/*? p['stack_symbol'] ?*/ + PAGE_SIZE_4K - 1,
-                            .name = "guard page" },
-                          { .start = (uintptr_t)&/*? p['stack_symbol'] ?*/ + PAGE_SIZE_4K,
-                            .end = (uintptr_t)&/*? p['stack_symbol'] ?*/ +
-                              sizeof(/*? p['stack_symbol'] ?*/) - PAGE_SIZE_4K - 1,
-                            .name = "stack" },
-                          { .start = (uintptr_t)&/*? p['stack_symbol'] ?*/ +
-                              sizeof(/*? p['stack_symbol'] ?*/) - PAGE_SIZE_4K,
-                            .end = (uintptr_t)&/*? p['stack_symbol'] ?*/ +
-                              sizeof(/*? p['stack_symbol'] ?*/) - 1,
-                            .name = "guard page" },
-                          { .start = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/,
-                            .end = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/ + PAGE_SIZE_4K - 1,
-                            .name = "guard page" },
-                          { .start = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/ + PAGE_SIZE_4K,
-                            .end = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/ +
-                              sizeof(/*? p['ipc_buffer_symbol'] ?*/) - PAGE_SIZE_4K - 1,
-                            .name = "IPC buffer" },
-                          { .start = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/ +
-                              sizeof(/*? p['ipc_buffer_symbol'] ?*/) - PAGE_SIZE_4K,
-                            .end = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/ +
-                              sizeof(/*? p['ipc_buffer_symbol'] ?*/) - 1,
-                            .name = "guard page" },
-                          { .start = 0, .end = 0, .name = NULL },
-                      };
-                    /*- endif -*/
                     break;
                 }
 
@@ -753,70 +697,36 @@ void USED _camkes_tls_init(int thread_id) {
                     /*- set p = Perspective(instance=me.name, interface=t.interface.name, intra_index=t.intra_index) -*/
                     case /*? tcb ?*/ : {
                         thread_name = "/*? t.interface.name ?*/";
-                        /*- if options.architecture in ('aarch32', 'arm_hyp') and options.largeframe_dma and page_size[0] > 2 ** 15 -*/
-                          /*# See comment above. #*/
-                          memory_map = (camkes_memory_region_t[]){
-                              { .start = (uintptr_t)__executable_start,
-                                .end = (uintptr_t)&/*? p['stack_symbol'] ?*/ - 1,
-                                .name = "code and data" },
-                              { .start = (uintptr_t)&/*? p['stack_symbol'] ?*/,
-                                .end = (uintptr_t)&/*? p['stack_symbol'] ?*/ + PAGE_SIZE_4K - 1,
-                                .name = "guard page" },
-                              { .start = (uintptr_t)&/*? p['stack_symbol'] ?*/ + PAGE_SIZE_4K,
-                                .end = (uintptr_t)&/*? p['stack_symbol'] ?*/ +
-                                  sizeof(/*? p['stack_symbol'] ?*/) - PAGE_SIZE_4K - 1,
-                                .name = "stack" },
-                              { .start = (uintptr_t)&/*? p['stack_symbol'] ?*/ +
-                                  sizeof(/*? p['stack_symbol'] ?*/) - PAGE_SIZE_4K,
-                                .end = (uintptr_t)&/*? p['stack_symbol'] ?*/ +
-                                  sizeof(/*? p['stack_symbol'] ?*/) - 1,
-                                .name = "guard page" },
-                              { .start = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/,
-                                .end = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/ + PAGE_SIZE_4K - 1,
-                                .name = "guard page" },
-                              { .start = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/ + PAGE_SIZE_4K,
-                                .end = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/ +
-                                  sizeof(/*? p['ipc_buffer_symbol'] ?*/) - PAGE_SIZE_4K - 1,
-                                .name = "IPC buffer" },
-                              { .start = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/ +
-                                  sizeof(/*? p['ipc_buffer_symbol'] ?*/) - PAGE_SIZE_4K,
-                                .end = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/ +
-                                  sizeof(/*? p['ipc_buffer_symbol'] ?*/) - 1,
-                                .name = "guard page" },
-                              { .start = 0, .end = 0, .name = NULL },
-                          };
-                        /*- else -*/
-                          memory_map = (camkes_memory_region_t[]){
-                              { .start = (uintptr_t)__executable_start,
-                                .end = (uintptr_t)guarded - 1,
-                                .name = "code and data" },
-                              { .start = (uintptr_t)&/*? p['stack_symbol'] ?*/,
-                                .end = (uintptr_t)&/*? p['stack_symbol'] ?*/ + PAGE_SIZE_4K - 1,
-                                .name = "guard page" },
-                              { .start = (uintptr_t)&/*? p['stack_symbol'] ?*/ + PAGE_SIZE_4K,
-                                .end = (uintptr_t)&/*? p['stack_symbol'] ?*/ +
-                                  sizeof(/*? p['stack_symbol'] ?*/) - PAGE_SIZE_4K - 1,
-                                .name = "stack" },
-                              { .start = (uintptr_t)&/*? p['stack_symbol'] ?*/ +
-                                  sizeof(/*? p['stack_symbol'] ?*/) - PAGE_SIZE_4K,
-                                .end = (uintptr_t)&/*? p['stack_symbol'] ?*/ +
-                                  sizeof(/*? p['stack_symbol'] ?*/) - 1,
-                                .name = "guard page" },
-                              { .start = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/,
-                                .end = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/ + PAGE_SIZE_4K - 1,
-                                .name = "guard page" },
-                              { .start = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/ + PAGE_SIZE_4K,
-                                .end = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/ +
-                                  sizeof(/*? p['ipc_buffer_symbol'] ?*/) - PAGE_SIZE_4K - 1,
-                                .name = "IPC buffer" },
-                              { .start = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/ +
-                                  sizeof(/*? p['ipc_buffer_symbol'] ?*/) - PAGE_SIZE_4K,
-                                .end = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/ +
-                                  sizeof(/*? p['ipc_buffer_symbol'] ?*/) - 1,
-                                .name = "guard page" },
-                              { .start = 0, .end = 0, .name = NULL },
-                          };
-                        /*- endif -*/
+                        memory_map = (camkes_memory_region_t[]){
+                            { .start = (uintptr_t)__executable_start,
+                              .end = (uintptr_t)align_12bit - 1,
+                              .name = "code and data" },
+                            { .start = (uintptr_t)&/*? p['stack_symbol'] ?*/,
+                              .end = (uintptr_t)&/*? p['stack_symbol'] ?*/ + PAGE_SIZE_4K - 1,
+                              .name = "guard page" },
+                            { .start = (uintptr_t)&/*? p['stack_symbol'] ?*/ + PAGE_SIZE_4K,
+                              .end = (uintptr_t)&/*? p['stack_symbol'] ?*/ +
+                                sizeof(/*? p['stack_symbol'] ?*/) - PAGE_SIZE_4K - 1,
+                              .name = "stack" },
+                            { .start = (uintptr_t)&/*? p['stack_symbol'] ?*/ +
+                                sizeof(/*? p['stack_symbol'] ?*/) - PAGE_SIZE_4K,
+                              .end = (uintptr_t)&/*? p['stack_symbol'] ?*/ +
+                                sizeof(/*? p['stack_symbol'] ?*/) - 1,
+                              .name = "guard page" },
+                            { .start = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/,
+                              .end = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/ + PAGE_SIZE_4K - 1,
+                              .name = "guard page" },
+                            { .start = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/ + PAGE_SIZE_4K,
+                              .end = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/ +
+                                sizeof(/*? p['ipc_buffer_symbol'] ?*/) - PAGE_SIZE_4K - 1,
+                              .name = "IPC buffer" },
+                            { .start = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/ +
+                                sizeof(/*? p['ipc_buffer_symbol'] ?*/) - PAGE_SIZE_4K,
+                              .end = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/ +
+                                sizeof(/*? p['ipc_buffer_symbol'] ?*/) - 1,
+                              .name = "guard page" },
+                            { .start = 0, .end = 0, .name = NULL },
+                        };
                         break;
                     }
                 /*- endfor -*/

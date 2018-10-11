@@ -44,7 +44,7 @@
     /*- set symbol = 'extra_bootinfo_frame_%d' % loop.index0 -*/
     struct {
         char content[PAGE_SIZE_4K];
-    } /*? symbol ?*/ ALIGN(PAGE_SIZE_4K);
+    } /*? symbol ?*/ ALIGN(PAGE_SIZE_4K) SECTION("align_12bit");
     /*- do register_fill_frame(symbol, 'bootinfo 0 %s' % name) -*/
     /*- do extrabi_list.append((name, symbol)) -*/
 /*- endfor -*/

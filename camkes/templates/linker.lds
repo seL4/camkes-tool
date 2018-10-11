@@ -12,14 +12,6 @@
 
 /* Linker script for CAmkES components. */
 
-/*- if options.architecture in ('x86_64') -*/
-  /*- set align = '0x200000' -*/
-/*- elif options.architecture in ('aarch32', 'arm_hyp') -*/
-  /*- set align = '0x100000' -*/
-/*- elif options.architecture in ('ia32') -*/
-  /*- set align = '0x400000' -*/
-/*- endif -*/
-
 /*- set instances = composition.instances -*/
 /*- set grouped = [False] -*/
 
@@ -55,59 +47,15 @@ INSERT AFTER .tbss
 
 SECTIONS {
 
-    guarded (NOLOAD) : ALIGN(4096) {
-        *(guarded)
-    }
 
-    /*- for c in composition.connections -*/
-      /*- if c.type.name == 'seL4SharedData' -*/
-        /*- for index, e in enumerate(c.from_ends) -*/
-          /*- if id(e.instance) == id(me) -*/
-            shared_from_/*? index ?*/_/*? e.interface.name ?*/ (NOLOAD) : ALIGN(0x1000) {
-              *(shared_from_/*? index ?*/_/*? e.interface.name ?*/)
-            }
-          /*- endif -*/
-        /*- endfor -*/
-        /*- for index, e in enumerate(c.to_ends) -*/
-          /*- if id(e.instance) == id(me) -*/
-            shared_to_/*? index ?*/_/*? e.interface.name ?*/ (NOLOAD) : ALIGN(0x1000) {
-              *(shared_to_/*? index ?*/_/*? e.interface.name ?*/)
-            }
-          /*- endif -*/
-        /*- endfor -*/
-      /*- endif -*/
-    /*- endfor -*/
+  /*- for size in macros.page_sizes(options.architecture) -*/
 
-    /*- for c in composition.connections -*/
-      /*- if c.type.name == 'seL4HardwareMMIO' -*/
-        /*- for index, e in enumerate(c.from_ends) -*/
-          /*- if id(e.instance) == id(me) -*/
-            ignore_from_/*? index ?*/_/*? e.interface.name ?*/ (NOLOAD) : ALIGN(/*? align ?*/) {
-              *(ignore_from_/*? index ?*/_/*? e.interface.name ?*/)
-            }
-          /*- endif -*/
-        /*- endfor -*/
-      /*- endif -*/
-    /*- endfor -*/
+      /*- set size_bits = int(math.log(size, 2)) -*/
 
-    /*- if options.architecture in ('aarch32', 'arm_hyp') -*/
+      align_/*? size_bits ?*/bit (NOLOAD) : ALIGN(/*? size ?*/) {
+          *(align_/*? size_bits ?*/bit)
+      }
 
-        /* The ARM GNU Assembler does not permit allignment constraints of more than
-         * 15 bits. To work around this limitation, objects which are multiples of
-         * page sizes that require page-size-alignment are placed in sections aligned
-         * to the size of a page. A section for 12-bit-aligned regular pages is
-         * included for consistency.
-         */
-
-        /*- for size in macros.page_sizes(options.architecture) -*/
-
-            /*- set size_bits = int(math.log(size, 2)) -*/
-
-            align_/*? size_bits ?*/bit (NOLOAD) : ALIGN(/*? size ?*/) {
-                *(align_/*? size_bits ?*/bit)
-            }
-
-        /*- endfor -*/
-    /*- endif -*/
+  /*- endfor -*/
 }
 INSERT AFTER .bss;

@@ -35,13 +35,13 @@ def thread_stack(sym, size):
     return 'char %s[ROUND_UP_UNSAFE(%d, ' \
                 'PAGE_SIZE_4K) + PAGE_SIZE_4K * 2]\n' \
            '    VISIBLE\n' \
-           '    __attribute__((section("guarded")))\n' \
+           '    __attribute__((section("align_12bit")))\n' \
            '    ALIGN(PAGE_SIZE_4K);\n' % (sym, size)
 
 def ipc_buffer(sym):
     return 'char %s[PAGE_SIZE_4K * 3]\n' \
            '    VISIBLE\n' \
-           '    __attribute__((section("guarded")))\n' \
+           '    __attribute__((section("align_12bit")))\n' \
            '    ALIGN(PAGE_SIZE_4K);\n' % sym
 
 def save_ipc_buffer_address(sym):
