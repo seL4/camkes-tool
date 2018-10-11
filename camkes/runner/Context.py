@@ -51,6 +51,7 @@ def new_context(entity, assembly, render_state, state_key, outfile_name,
     obj_space = render_state.obj_space
     cap_space = render_state.cspaces[state_key] if state_key else None
     addr_space = render_state.addr_spaces[state_key] if state_key else None
+    integrity_labels = render_state.integrity_labels
     '''Create a new default context for rendering.'''
     return dict(list(__builtins__.items()) + ObjectType.__members__.items() + ObjectRights.__members__.items() + list({
         # Kernel object allocator
@@ -98,8 +99,13 @@ def new_context(entity, assembly, render_state, state_key, outfile_name,
             (lambda global_name, size, frame_size=None:
                 get_shared_variable_backing_frames(obj_space, global_name, size, frame_size)),
 
+        # Keep track of integrity labels that don't match the allocator labels,
+        # for formal verification purposes.
+        'set_integrity_label': (lambda obj_name, label:
+                                set_integrity_label(integrity_labels, obj_name, label)),
+
         # Get the object-label mapping for our verification models.
-        'object_label_mapping': (lambda: object_label_mapping(obj_space)),
+        'object_label_mapping': (lambda: object_label_mapping(obj_space, integrity_labels)),
 
         # Function for templates to inform us that they would like certain
         # 'fill' information to get placed into the provided symbol. Provided
@@ -523,15 +529,28 @@ def register_dma_pool(addr_space, symbol, page_size, caps, cap_space):
     assert addr_space
     addr_space.add_symbol_with_caps(symbol, [page_size] * len(caps), [cap_space.cnode[i] for i in caps])
 
-def object_label_mapping(obj_space):
+def set_integrity_label(integrity_labels, obj_name, label):
+    '''Override the default owner of an object with respect to the
+       integrity model. This is useful when a connector template wants
+       to allocate objects on behalf of the component that uses it.'''
+    # Our templates should never try to give inconsistent labels
+    assert (obj_name not in integrity_labels) or integrity_labels[obj_name] == label
+    integrity_labels[obj_name] = label
+    # This will be called in template expressions, so return a dummy value
+    return ''
+
+def object_label_mapping(obj_space, integrity_labels):
     '''Return a list of all objects and the integrity labels for them.
 
-       We can retrieve the labels for most objects from the allocator.
+       We can retrieve the labels for most objects from the allocator,
+       and our templates can track most of the exceptions using
+       set_integrity_label.
+
        For shared frames, however, we have to reverse engineer the
        connector label from register_shared_variable and the connector
        templates that call it.'''
-    standard_labels = ((obj, label) for label, objs in obj_space.labels.items()
-                                    for obj in objs)
+    default_labels = ((obj, label) for label, objs in obj_space.labels.items()
+                                   for obj in objs)
 
     # This needs to be in sync with the global_name used by templates
     # that call register_shared_variable. TODO: fix those templates!
@@ -543,10 +562,12 @@ def object_label_mapping(obj_space):
             return None
 
     # Update our mapping and return it.
-    def real_label_of(obj, standard_label):
+    def real_label_of(obj, default_label):
+        if obj.name in integrity_labels:
+            return integrity_labels[obj.name]
         dataport_label = guess_shared_frame_dataport_name(obj.name)
         if dataport_label is not None:
             return dataport_label
-        return standard_label
+        return default_label
 
-    return ((obj, real_label_of(obj, label)) for obj, label in standard_labels)
+    return ((obj, real_label_of(obj, label)) for obj, label in default_labels)

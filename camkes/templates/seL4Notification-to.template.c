@@ -49,10 +49,14 @@
 
 /*- set notification = alloc('notification_%d' % id, seL4_NotificationObject, read=True) -*/
 
-/*- set handoff = alloc('handoff_%d' % id, seL4_EndpointObject, read=True, write=True) -*/
+/*- set handoff_obj = alloc_obj('handoff_%d' % id, seL4_EndpointObject) -*/
+/*- set handoff = alloc_cap('handoff_%d' % id, handoff_obj, read=True, write=True) -*/
+/*? set_integrity_label(handoff_obj.name, me.instance.name) ?*/
 static volatile int handoff_value;
 
-/*- set lock = alloc('lock_%d' % id, seL4_NotificationObject, read=True, write=True) -*/
+/*- set lock_obj = alloc_obj('lock_%d' % id, seL4_NotificationObject) -*/
+/*- set lock = alloc_cap('lock_%d' % id, lock_obj, read=True, write=True) -*/
+/*? set_integrity_label(lock_obj.name, me.instance.name) ?*/
 static volatile int lock_count = 1;
 
 static int lock(void) {

@@ -31,7 +31,10 @@
 /*- set id = me.parent.to_ends.index(me) -*/
 
 /*- set ep = alloc('ep_%d' % id, seL4_EndpointObject, read=True) -*/
-/*- set handoff = alloc('handoff_%d' % id, seL4_EndpointObject, read=True, write=True) -*/
+
+/*- set handoff_obj = alloc_obj('handoff_%d' % id, seL4_EndpointObject) -*/
+/*- set handoff = alloc_cap('handoff_%d' % id, handoff_obj, read=True, write=True) -*/
+/*? set_integrity_label(handoff_obj.name, me.instance.name) ?*/
 static volatile int handoff_value;
 
 char to_/*? id ?*/_/*? me.interface.name ?*/_data[ROUND_UP_UNSAFE(sizeof(int), PAGE_SIZE_4K)]
@@ -40,7 +43,9 @@ char to_/*? id ?*/_/*? me.interface.name ?*/_data[ROUND_UP_UNSAFE(sizeof(int), P
 static volatile int *value = (volatile int*)to_/*? id ?*/_/*? me.interface.name ?*/_data;
 /*? register_shared_variable('%s_%d_data' % (me.parent.name, id), 'to_%d_%s_data' % (id, me.interface.name), 4096, perm='RW') ?*/
 
-/*- set lock = alloc('lock_%d' % id, seL4_NotificationObject, read=True, write=True) -*/
+/*- set lock_obj = alloc_obj('lock_%d' % id, seL4_NotificationObject) -*/
+/*- set lock = alloc_cap('lock_%d' % id, lock_obj, read=True, write=True) -*/
+/*? set_integrity_label(lock_obj.name, me.instance.name) ?*/
 static volatile int lock_count = 1;
 
 static int lock(void) {
