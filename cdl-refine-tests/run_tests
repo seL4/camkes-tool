@@ -284,28 +284,62 @@ def main():
 
     # Main test loop.
     num_tests = 0
-    num_passed = 0
+    num_failed = 0
+
+    # Keep track of which apps or options caused failures.
+    def init_per_opt_counts():
+        return dict(((k, v), 0)
+                    for k, vals in
+                        [('app', test_apps)] + list(test_options.items())
+                    for v in vals)
+    def incr_opt_counts(counts, app_name, build_opts):
+        counts[('app', app_name)] += 1
+        for k, v in build_opts.items():
+            counts[(k, v)] += 1
+    per_opt_tests = init_per_opt_counts()
+    per_opt_failed = init_per_opt_counts()
+
     for app_name in test_apps:
-        for this_build_config in itertools.product(
+        for this_build_config in map(dict, itertools.product(
                 *[[(k, v) for v in vals]
-                  for k, vals in sorted(test_options.items())]):
+                  for k, vals in sorted(test_options.items())])):
             num_tests += 1
-            this_build_config = dict(this_build_config)
+            incr_opt_counts(per_opt_tests, app_name, this_build_config)
+
             info('Testing app: %s' % app_name)
             info('Build config for this test:')
-            for k, v in sorted(this_build_config.items()):
-                info('  %s=%s' % (k, v))
+            if this_build_config:
+                for k, v in sorted(this_build_config.items()):
+                    info('    %s=%s' % (k, v))
+            else:
+                info('    (nothing)')
 
             try:
                 build_one(app_name, dict(this_build_config))
 
                 info('Test succeeded.\n\n')
-                num_passed += 1
             except Exception as exn:
                 info('Test failed with exception:\n  %s\n\n' % str(exn))
+                num_failed += 1
+                incr_opt_counts(per_opt_failed, app_name, this_build_config)
 
     info('Summary: %d test(s), %d passed, %d failed' %
-         (num_tests, num_passed, num_tests - num_passed))
+         (num_tests, num_tests - num_failed, num_failed))
+
+    if any(per_opt_failed.values()):
+        info('Failure counts:')
+        counts = []
+        for (k, v), tests in per_opt_tests.items():
+            failed = per_opt_failed[(k, v)]
+            if failed == 0:
+                continue
+            counts.append((float(failed) / tests,
+                           failed, tests, k, v))
+        def most_failures(x):
+            frac_failed, failed, tests, k, v = x
+            return (-frac_failed, -failed, k) # tiebreak on k
+        for frac_failed, failed, tests, k, v in sorted(counts, key=most_failures):
+            info('    %d/%d when %s=%s' % (failed, tests, k, v))
 
 if __name__ == '__main__':
     main()
