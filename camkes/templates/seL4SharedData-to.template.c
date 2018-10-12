@@ -23,12 +23,16 @@
 /*- set type_size = macros.dataport_size(me.interface.type) -*/
 /*- if type_size.startswith("sizeof") -*/
    /*- set size = configuration[me.parent.name].get('size', 4096) -*/
+   /*- set page_size = macros.get_page_size(size, options.architecture) -*/
+   /*- if page_size == 0 -*/
+     /*? raise(TemplateError('Setting %s.size does not meet minimum size requirements. %d must be at least %d and %d aligned' % (me.parent.name, int(size), 4096, 4096))) ?*/
+   /*- endif -*/
 /*- else -*/
    /*- set size = type_size -*/
-/*- endif -*/
-/*- set page_size = macros.get_page_size(size, options.architecture) -*/
-/*- if page_size == 0 -*/
-  /*? raise(TemplateError('Setting %s.%s_size does not meet minimum size requirements. %d must be at least %d and %d aligned' % (me.parent.to_instance.name, me.parent.to_interface.name, size, 4096, 4096))) ?*/
+   /*- set page_size = macros.get_page_size(size, options.architecture) -*/
+   /*- if page_size == 0 -*/
+     /*? raise(TemplateError('Setting Buf(%d) does not meet minimum size requirements. %d must be at least %d and %d aligned' % (int(size), int(size), 4096, 4096))) ?*/
+   /*- endif -*/
 /*- endif -*/
 /*- set page_size_bits = int(math.log(page_size, 2)) -*/
 
