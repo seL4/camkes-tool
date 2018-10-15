@@ -181,14 +181,15 @@ def main():
     info('camkes-tool revision: %s' % camkes_tool_rev)
 
     # Find Isabelle.
-    isabelle_tool = os.path.normpath(os.path.join(camkes_root, 'projects/l4v/isabelle/bin/isabelle'))
+    isabelle_dir = os.path.normpath(os.path.join(camkes_root, 'projects/l4v/isabelle'))
+    isabelle_tool = os.path.join(isabelle_dir, 'bin/isabelle')
     if not os.path.exists(isabelle_tool):
         fatal('''isabelle not found at: %s
 (Make sure to check out the correct project manifest)''' % isabelle_tool)
     try:
         isabelle_rev = subprocess.check_output(
             ['git', 'describe', '--tags'],
-            cwd=os.path.normpath(os.path.join(camkes_root, 'projects/l4v/isabelle'))
+            cwd=isabelle_dir
             ).decode('utf-8')
     except subprocess.CalledProcessError as exn:
         isabelle_rev = 'unknown [error: %s]' % str(exn)
@@ -200,7 +201,7 @@ def main():
     try:
         l4v_rev = subprocess.check_output(
             ['git', 'describe', '--tags'],
-            cwd=os.path.normpath(os.path.join(camkes_root, 'projects/l4v/l4v'))
+            cwd=l4v_dir
             ).decode('utf-8')
     except subprocess.CalledProcessError as exn:
         l4v_rev = 'unknown [error: %s]' % str(exn)
@@ -239,6 +240,7 @@ def main():
                 info('App build succeeded.')
 
                 info('Setting up extra theory files...')
+                # We expect the build system to generate theory files here
                 app_thy_dir = os.path.join(build_dir, 'projects/camkes')
 
                 # session ROOT
@@ -282,7 +284,7 @@ def main():
             cwd=l4v_dir)
     info('Done setting up l4v')
 
-    # Main test loop.
+    # Set up test counters.
     num_tests = 0
     num_failed = 0
 
@@ -299,6 +301,7 @@ def main():
     per_opt_tests = init_per_opt_counts()
     per_opt_failed = init_per_opt_counts()
 
+    # Main test loop.
     for app_name in test_apps:
         for this_build_config in map(dict, itertools.product(
                 *[[(k, v) for v in vals]
@@ -326,6 +329,7 @@ def main():
     info('Summary: %d test(s), %d passed, %d failed' %
          (num_tests, num_tests - num_failed, num_failed))
 
+    # Print details of which options are associated with failures.
     if any(per_opt_failed.values()):
         info('Failure counts:')
         counts = []
