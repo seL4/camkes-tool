@@ -554,8 +554,9 @@ def object_label_mapping(obj_space, integrity_labels):
 
     # This needs to be in sync with the global_name used by templates
     # that call register_shared_variable. TODO: fix those templates!
+    dataport_obj_re = re.compile(r'(.*)_data_([0-9]+)_obj$')
     def guess_shared_frame_dataport_name(n):
-        m = re.match('(.*)_data_([0-9]+)_obj', n)
+        m = dataport_obj_re.match(n)
         if m:
             return m.group(1)
         else:
