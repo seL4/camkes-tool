@@ -149,6 +149,12 @@ class TempDir():
             shutil.rmtree(self.filename)
         return False # propagate exceptions
 
+# Expected paths, relative to the root of the camkes project structure
+camkes_tool_rel_dir = 'projects/camkes-tool'
+isabelle_rel_dir    = 'projects/l4v/isabelle'
+l4v_rel_dir         = 'projects/l4v/l4v'
+init_build_rel_path = 'init-build.sh'
+
 # Main.
 # TODO: argparse
 def main():
@@ -165,8 +171,12 @@ def main():
     else:
         camkes_root = os.getcwd() # guessed
 
+    def get_abs_path(rel_path):
+        '''Resolve a path in the camkes project dir'''
+        return os.path.normpath(os.path.join(camkes_root, rel_path))
+
     # Find the entry point to the project's build system.
-    init_build_tool = os.path.normpath(os.path.join(camkes_root, 'init-build.sh'))
+    init_build_tool = get_abs_path(init_build_rel_path)
     if not os.path.exists(init_build_tool):
         fatal('init-build.sh not found at: %s' % init_build_tool)
 
@@ -174,14 +184,14 @@ def main():
     try:
         camkes_tool_rev = subprocess.check_output(
             ['git', 'describe', '--tags'],
-            cwd=os.path.normpath(os.path.join(camkes_root, 'projects/camkes-tool'))
+            cwd=get_abs_path(camkes_tool_rel_dir)
         ).decode('utf-8')
     except subprocess.CalledProcessError as exn:
         camkes_tool_rev = 'unknown [error: %s]' % str(exn)
     info('camkes-tool revision: %s' % camkes_tool_rev)
 
     # Find Isabelle.
-    isabelle_dir = os.path.normpath(os.path.join(camkes_root, 'projects/l4v/isabelle'))
+    isabelle_dir = get_abs_path(isabelle_rel_dir)
     isabelle_tool = os.path.join(isabelle_dir, 'bin/isabelle')
     if not os.path.exists(isabelle_tool):
         fatal('''isabelle not found at: %s
@@ -195,7 +205,8 @@ def main():
         isabelle_rev = 'unknown [error: %s]' % str(exn)
     info('Isabelle revision: %s' % isabelle_rev)
 
-    l4v_dir = os.path.normpath(os.path.join(camkes_root, 'projects/l4v/l4v'))
+    # Find l4v.
+    l4v_dir = get_abs_path(l4v_rel_dir)
     if not os.path.exists(l4v_dir):
         fatal('l4v not found at: %s' % l4v_dir)
     try:
