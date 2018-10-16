@@ -12,7 +12,10 @@
 
 (* /*? macros.generated_file_notice() ?*/ *)
 
-theory "/*? macros.isabelle_theory_name(outfile_name) ?*/" imports
+/*? macros.check_isabelle_outfile(
+        '%s_Cimp_Base' % options.verification_base_name, outfile_name) ?*/
+
+theory "/*? options.verification_base_name ?*/_Cimp_Base" imports
   "CamkesGlueSpec.Types"
   "CamkesGlueSpec.Abbreviations"
   "CamkesGlueSpec.Connector"

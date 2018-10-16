@@ -48,6 +48,7 @@ set(outfile_list "")
 set(reflow_commands "")
 set(deps_list "")
 set(elfs_list "")
+set(camkes_ver_opts "")
 
 macro(ParentListAppend list)
     set(local_list_value "${${list}}")
@@ -57,7 +58,7 @@ endmacro(ParentListAppend list)
 
 # Helper function for declaring a generated file
 function(CAmkESGen output item)
-    cmake_parse_arguments(PARSE_ARGV 2 CAMKES_GEN "SOURCE;C_STYLE;THY_STYLE" "SOURCES_VAR" "DEPENDS;ELFS")
+    cmake_parse_arguments(PARSE_ARGV 2 CAMKES_GEN "SOURCE;C_STYLE;THY_STYLE" "SOURCES_VAR;VER_BASE_NAME" "DEPENDS;ELFS")
     if (NOT "${CAMKES_GEN_UNPARSED_ARGUMENTS}" STREQUAL "")
         message(FATAL_ERROR "Unknown arguments to CAmkESGen: ${CAMKES_GEN_UNPARSED_ARGUMENTS}")
     endif()
@@ -77,6 +78,10 @@ function(CAmkESGen output item)
     ParentListAppend(deps_list "${CAMKES_GEN_DEPENDS}")
     ParentListAppend(elfs_list "${CAMKES_GEN_ELFS}")
     ParentListAppend(deps_list "${CAMKES_GEN_ELFS}")
+    # Pass along base name for verification templates
+    if (NOT "${CAMKES_GEN_VER_BASE_NAME}" STREQUAL "")
+        ParentListAppend(camkes_ver_opts "--verification-base-name=${CAMKES_GEN_VER_BASE_NAME}")
+    endif()
     # Add to the sources list if it's a source file
     if (CAMKES_GEN_SOURCE)
         if (CAMKES_GEN_SOURCES_VAR)
@@ -103,12 +108,13 @@ function(CAmkESOutputGenCommand)
                 "--load-ast=${CMAKE_CURRENT_BINARY_DIR}/ast.pickle"
                 "--object-cache=${CMAKE_CURRENT_BINARY_DIR}/object.pickle"
                 "$<$<BOOL:${elfs_list}>:--elf$<SEMICOLON>>$<JOIN:${elfs_list},$<SEMICOLON>--elf$<SEMICOLON>>"
+                ${camkes_ver_opts}
                 ${CAMKES_FLAGS}
         ${reflow_commands}
         DEPENDS
             ${CAMKES_ADL_SOURCE}
             /*? ' '.join(imported) ?*/
-            # This pulls in miscelaneous dependencies 
+            # This pulls in miscellaneous dependencies 
             # which is used by the camkes tool
             ${CAMKES_TOOL_DEPENDENCIES}
             # Any additional dependencies from the files
@@ -122,6 +128,7 @@ function(CAmkESOutputGenCommand)
     set(deps_list "" PARENT_SCOPE)
     set(outfile_list "" PARENT_SCOPE)
     set(elfs_list "" PARENT_SCOPE)
+    set(camkes_ver_opts "" PARENT_SCOPE)
 endfunction(CAmkESOutputGenCommand)
 
 # helper for appending lists of generator expressions
@@ -455,8 +462,25 @@ DeclareRootserver("capdl-loader")
 
 # Generate Isabelle theory scripts if needed
 if (${CAmkESCapDLVerification})
+    # Base name for Isabelle theories. We derive this from the app name,
+    # but mangled to ensure that it is a valid identifier.
+    string(MAKE_C_IDENTIFIER ${CAMKES_APP} VER_BASE_NAME)
+
+    # Generated theory names. These must be consistent with the templates.
+    set(CAMKES_CDL_THY "${VER_BASE_NAME}_CDL.thy")
+    set(CAMKES_ADL_THY "${VER_BASE_NAME}_Arch_Spec.thy")
+    set(CAMKES_CDL_REFINE_THY "${VER_BASE_NAME}_CDL_Refine.thy")
+    set(CAMKES_VER_ROOT "ROOT")
+
+    # ROOT file
+    CAmkESGen("${CAMKES_VER_ROOT}" "ROOT" THY_STYLE VER_BASE_NAME ${VER_BASE_NAME})
+    add_custom_target(isabelle_root DEPENDS "${CAMKES_VER_ROOT}")
+
+    # Generate these theory files as part of overall build
+    # FIXME: hack?
+    add_dependencies("capdl-loader" isabelle_root)
+
     # Isabelle capDL spec
-    set(CAMKES_CDL_THY "${CAMKES_APP}_CDL.thy")
     add_custom_command(
         OUTPUT "${CAMKES_CDL_THY}"
         COMMAND
@@ -474,21 +498,18 @@ if (${CAmkESCapDLVerification})
             "${CAMKES_CDL_TARGET}.munge"
     )
     add_custom_target(camkes_cdl_thy DEPENDS "${CAMKES_CDL_THY}")
-    # Generate these theory files as part of overall build
-    # FIXME: hack?
-    add_dependencies("capdl-loader" camkes_cdl_thy)
+    add_dependencies(isabelle_root camkes_cdl_thy)
 
     # ADL spec
-    set(CAMKES_ADL_THY "${CAMKES_APP}_Arch_Spec.thy")
-    CAmkESGen("${CAMKES_ADL_THY}" "arch-spec" THY_STYLE)
+    CAmkESGen("${CAMKES_ADL_THY}" "arch-spec" THY_STYLE VER_BASE_NAME ${VER_BASE_NAME})
     add_custom_target(camkes_adl_thy DEPENDS "${CAMKES_ADL_THY}")
-    add_dependencies("capdl-loader" camkes_adl_thy)
+    add_dependencies(isabelle_root camkes_adl_thy)
 
     # CDL refinement proof
-    set(CAMKES_CDL_REFINE_THY "${CAMKES_APP}_CDL_Refine.thy")
-    CAmkESGen("${CAMKES_CDL_REFINE_THY}" "cdl-refine" THY_STYLE DEPENDS "${capdl_elf_targets}" ELFS "${capdl_elfs}")
+    CAmkESGen("${CAMKES_CDL_REFINE_THY}" "cdl-refine" THY_STYLE VER_BASE_NAME ${VER_BASE_NAME}
+              DEPENDS "${capdl_elf_targets}" ELFS "${capdl_elfs}")
     add_custom_target(camkes_cdl_refine_thy DEPENDS "${CAMKES_CDL_REFINE_THY}")
-    add_dependencies("capdl-loader" camkes_cdl_refine_thy)
+    add_dependencies(isabelle_root camkes_cdl_refine_thy)
 
     CAmkESOutputGenCommand()
 endif()

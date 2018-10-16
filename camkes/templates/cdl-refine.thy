@@ -10,14 +10,14 @@
  *# @TAG(DATA61_BSD)
  #*/
 
-/*# FIXME: pass app name around the toolchain properly so we don't need
- *#        to guess these #*/
+(* /*? macros.generated_file_notice() ?*/ *)
 
-/*- set app_name = outfile_name[:-len('_CDL_Refine.thy')] -*/
-/*- set cdl_thy = app_name + '_CDL' -*/
-/*- set arch_spec_thy = app_name + '_Arch_Spec' -*/
+/*? macros.check_isabelle_outfile(
+        '%s_CDL_Refine' % options.verification_base_name, outfile_name) ?*/
+/*- set cdl_thy = options.verification_base_name + '_CDL' -*/
+/*- set arch_spec_thy = options.verification_base_name + '_Arch_Spec' -*/
 
-theory "/*? macros.isabelle_theory_name(outfile_name) ?*/"
+theory "/*? options.verification_base_name ?*/_CDL_Refine"
 imports
   /*? arch_spec_thy ?*/ (* generated arch spec *)
   /*? cdl_thy ?*/ (* generated CDL spec *)
@@ -25,8 +25,6 @@ imports
   "DPolicy.Dpolicy"
   "Lib.FastMap"
 begin
-
-(* /*? macros.generated_file_notice() ?*/ *)
 
 section \<open>Generic policy labelling helpers\<close>
 (* FIXME: MOVE *)
@@ -69,14 +67,14 @@ text \<open>
 ML \<open>
 (* The FastMap package expects the input in sorted order,
    we need to sort the object IDs by numeric value. *)
-fun /*? app_name ?*/_id_value ctxt obj_name =
+fun /*? options.verification_base_name ?*/_id_value ctxt obj_name =
     Proof_Context.get_thm ctxt ("/*? cdl_thy ?*/." ^ obj_name ^ "_id_def")
     |> Thm.prop_of
     |> Logic.dest_equals |> snd
     |> HOLogic.dest_number |> snd;
 
-val /*? app_name ?*/_obj_labels =
-  sort (apply2 (fst #> /*? app_name ?*/_id_value @{context}) #> int_ord)
+val /*? options.verification_base_name ?*/_obj_labels =
+  sort (apply2 (fst #> /*? options.verification_base_name ?*/_id_value @{context}) #> int_ord)
     /*- for not_first, (obj, label) in enumerate(sorted(object_label_mapping(), key=lambda('x: x[0].name'))) -*/
       /*? ',' if not_first else '[' ?*/ ("/*? obj.name ?*/", "/*? label ?*/")
     /*- endfor -*/
@@ -85,14 +83,14 @@ val /*? app_name ?*/_obj_labels =
 
 local_setup \<open>
   let
-    val mapping = /*? app_name ?*/_obj_labels
+    val mapping = /*? options.verification_base_name ?*/_obj_labels
        |> map (fn (obj, label) => (Const ("/*? cdl_thy ?*/." ^ obj ^ "_id", @{typ cdl_object_id}),
                                    HOLogic.mk_string label));
     val key_getter = @{term "id :: word32 \<Rightarrow> word32"};
     val extra_simps = @{thms /*? cdl_thy ?*/.ids};
   in
     FastMap.define_map
-      (FastMap.name_opts_default "/*? app_name ?*/_labelling")
+      (FastMap.name_opts_default "/*? options.verification_base_name ?*/_labelling")
       mapping
       key_getter
       extra_simps
@@ -101,19 +99,19 @@ local_setup \<open>
 \<close>
 print_theorems
 
-definition /*? app_name ?*/_admissible_labelling :: "label agent_map \<Rightarrow> bool"
+definition /*? options.verification_base_name ?*/_admissible_labelling :: "label agent_map \<Rightarrow> bool"
   where
-  "/*? app_name ?*/_admissible_labelling label_of \<equiv>
-      (\<forall>i l. /*? app_name ?*/_labelling i = Some l \<longrightarrow> label_of i = l)"
+  "/*? options.verification_base_name ?*/_admissible_labelling label_of \<equiv>
+      (\<forall>i l. /*? options.verification_base_name ?*/_labelling i = Some l \<longrightarrow> label_of i = l)"
 
-lemma /*? app_name ?*/_admissible_labelling_default:
-  "/*? app_name ?*/_admissible_labelling (the o /*? app_name ?*/_labelling)"
-  by (simp add: /*? app_name ?*/_admissible_labelling_def)
+lemma /*? options.verification_base_name ?*/_admissible_labelling_default:
+  "/*? options.verification_base_name ?*/_admissible_labelling (the o /*? options.verification_base_name ?*/_labelling)"
+  by (simp add: /*? options.verification_base_name ?*/_admissible_labelling_def)
 
 text \<open>Make sure that an admissible labelling exists.\<close>
-corollary /*? app_name ?*/_admissible_labelling_exists:
-  "\<exists>label_of. /*? app_name ?*/_admissible_labelling label_of"
-  by (blast intro: /*? app_name ?*/_admissible_labelling_default)
+corollary /*? options.verification_base_name ?*/_admissible_labelling_exists:
+  "\<exists>label_of. /*? options.verification_base_name ?*/_admissible_labelling label_of"
+  by (blast intro: /*? options.verification_base_name ?*/_admissible_labelling_default)
 
 text \<open>
   Helper to unfold the list of object-to-label mappings.
@@ -121,16 +119,16 @@ text \<open>
   equations for the label_of function.
 \<close>
 lemma iterate_labelling_helper:
-  "\<lbrakk> /*? app_name ?*/_admissible_labelling label_of;
-     /*? app_name ?*/_labelling = map_of binds;
+  "\<lbrakk> /*? options.verification_base_name ?*/_admissible_labelling label_of;
+     /*? options.verification_base_name ?*/_labelling = map_of binds;
      distinct (map fst binds)
    \<rbrakk> \<Longrightarrow> list_all (\<lambda>(k, v). label_of k = v) binds"
-  unfolding /*? app_name ?*/_admissible_labelling_def
+  unfolding /*? options.verification_base_name ?*/_admissible_labelling_def
   by (blast intro: list_allI FastMap.map_of_lookups)
 
 lemmas admissible_labelling_values =
   iterate_labelling_helper[
-    OF _ /*? app_name ?*/_labelling_to_lookup_list /*? app_name ?*/_labelling_keys_distinct,
+    OF _ /*? options.verification_base_name ?*/_labelling_to_lookup_list /*? options.verification_base_name ?*/_labelling_keys_distinct,
     simplified FastMap.list_all_dest prod.case]
 
 subsection \<open>Sanity checks for object labelling\<close>
@@ -148,8 +146,8 @@ text \<open>
           additional things like the IPC buffer frame)
   \end{itemize}
 \<close>
-lemma /*? app_name ?*/_admissible_labelling__tcbs_correct:
-  "/*? app_name ?*/_admissible_labelling label_of \<Longrightarrow>
+lemma /*? options.verification_base_name ?*/_admissible_labelling__tcbs_correct:
+  "/*? options.verification_base_name ?*/_admissible_labelling label_of \<Longrightarrow>
       (
 /*- for not_first, c in enumerate(me.composition.instances) -*/
       /*? '\\<and>' if not_first else ' ' ?*/ label_of /*? c.name ?*/_cnode_id = ''/*? c.name ?*/''
@@ -167,8 +165,8 @@ lemma /*? app_name ?*/_admissible_labelling__tcbs_correct:
 text \<open>
   Also check that all labels are inhabited.
 \<close>
-lemma /*? app_name ?*/_admissible_labelling__all_labels_inhabited:
-  "/*? app_name ?*/_admissible_labelling label_of \<Longrightarrow>
+lemma /*? options.verification_base_name ?*/_admissible_labelling__all_labels_inhabited:
+  "/*? options.verification_base_name ?*/_admissible_labelling label_of \<Longrightarrow>
 /*- for not_first, c in enumerate(me.composition.instances + me.composition.connections) -*/
      /*? '\\<and>' if not_first else ' ' ?*/ (\<exists>obj. label_of obj = ''/*? c.name ?*/'')
 /*- endfor -*/
@@ -183,19 +181,19 @@ lemma /*? app_name ?*/_admissible_labelling__all_labels_inhabited:
 
 section \<open>More helpers\<close>
 
-definition /*? app_name ?*/_policy
+definition /*? options.verification_base_name ?*/_policy
   where
-  "/*? app_name ?*/_policy \<equiv> policy_of /*? arch_spec_thy ?*/.assembly'"
+  "/*? options.verification_base_name ?*/_policy \<equiv> policy_of /*? arch_spec_thy ?*/.assembly'"
 
 
-schematic_goal /*? app_name ?*/_component_names:
+schematic_goal /*? options.verification_base_name ?*/_component_names:
   "components (composition /*? arch_spec_thy ?*/.assembly') = ?comps"
   apply (clarsimp simp: /*? arch_spec_thy ?*/.assembly'_def
                         /*? arch_spec_thy ?*/.composition'_def)
   apply (rule refl)
   done
 
-schematic_goal /*? app_name ?*/_connections:
+schematic_goal /*? options.verification_base_name ?*/_connections:
   "connections (composition /*? arch_spec_thy ?*/.assembly') = ?spec"
   apply (clarsimp simp: /*? arch_spec_thy ?*/.assembly'_def
                         /*? arch_spec_thy ?*/.composition'_def
@@ -223,11 +221,11 @@ lemma Collect_graph_cong_helper:
    Collect (\<lambda>(x, y, z). P x y z) = Collect (\<lambda>(x, y, z). P' x y z)"
   by simp
 
-schematic_goal /*? app_name ?*/_policy_def':
-  "/*? app_name ?*/_policy = ?PAS"
+schematic_goal /*? options.verification_base_name ?*/_policy_def':
+  "/*? options.verification_base_name ?*/_policy = ?PAS"
   apply (clarsimp simp:
             policy_of_def connector_simps
-            /*? app_name ?*/_policy_def /*? app_name ?*/_component_names /*? app_name ?*/_connections
+            /*? options.verification_base_name ?*/_policy_def /*? options.verification_base_name ?*/_component_names /*? options.verification_base_name ?*/_connections
             Collect_Int_pred_eq Collect_union)
   apply (subst split_Collect_graph_edge)
   apply (rule Collect_graph_cong_helper)
@@ -236,12 +234,12 @@ schematic_goal /*? app_name ?*/_policy_def':
   done
 
 (*
- * From /*? app_name ?*/_policy_def', generate a list of rules of the form
- *   "(''subj'', auth, ''obj'') \<in> /*? app_name ?*/_policy"
+ * From /*? options.verification_base_name ?*/_policy_def', generate a list of rules of the form
+ *   "(''subj'', auth, ''obj'') \<in> /*? options.verification_base_name ?*/_policy"
  *)
-schematic_goal /*? app_name ?*/_policy_gen_cases_:
-  "((subj, auth, obj) \<in> /*? app_name ?*/_policy) = ?cases"
-  apply (clarsimp simp only: /*? app_name ?*/_policy_def' mem_Collect_eq)
+schematic_goal /*? options.verification_base_name ?*/_policy_gen_cases_:
+  "((subj, auth, obj) \<in> /*? options.verification_base_name ?*/_policy) = ?cases"
+  apply (clarsimp simp only: /*? options.verification_base_name ?*/_policy_def' mem_Collect_eq)
   by (assign_schematic_dnf)
 
 lemma subst_eqn_helper:
@@ -260,57 +258,57 @@ local_setup {* fn ctxt => let
           case try subst_values thm of
               SOME eqn => [eqn]
             | NONE => process (@{thm disjI1} RS thm) @ process (@{thm disjI2} RS thm);
-    val /*? app_name ?*/_policy_intros = process @{thm /*? app_name ?*/_policy_gen_cases_[THEN iffD2]};
+    val /*? options.verification_base_name ?*/_policy_intros = process @{thm /*? options.verification_base_name ?*/_policy_gen_cases_[THEN iffD2]};
   in
     ctxt
-    |> Local_Theory.notes [((Binding.name "/*? app_name ?*/_policy_intros", []),
-                            [(/*? app_name ?*/_policy_intros, [])])]
+    |> Local_Theory.notes [((Binding.name "/*? options.verification_base_name ?*/_policy_intros", []),
+                            [(/*? options.verification_base_name ?*/_policy_intros, [])])]
     |> snd
   end
 *}
-thm /*? app_name ?*/_policy_intros
+thm /*? options.verification_base_name ?*/_policy_intros
 
 section \<open>Admissible PAS\<close>
 
 text \<open>
   This defines a set of policies that fit our arch spec and cap layout.
 \<close>
-definition /*? app_name ?*/_admissible_pas :: "label PAS \<Rightarrow> bool"
+definition /*? options.verification_base_name ?*/_admissible_pas :: "label PAS \<Rightarrow> bool"
   where
-  "/*? app_name ?*/_admissible_pas pas \<equiv>
-     /*? app_name ?*/_admissible_labelling (pasObjectAbs pas) \<and>
+  "/*? options.verification_base_name ?*/_admissible_pas pas \<equiv>
+     /*? options.verification_base_name ?*/_admissible_labelling (pasObjectAbs pas) \<and>
      pasSubject pas \<in> fst ` set (components (composition /*? arch_spec_thy ?*/.assembly')) \<and>
-     /*? app_name ?*/_policy \<subseteq> pasPolicy pas"
+     /*? options.verification_base_name ?*/_policy \<subseteq> pasPolicy pas"
 
 text \<open>Again, ensure that admissible policies exist.\<close>
-lemma /*? app_name ?*/_admissible_pas_exists:
-  "\<exists>pas. /*? app_name ?*/_admissible_pas pas"
-  apply (insert /*? app_name ?*/_admissible_labelling_exists)
+lemma /*? options.verification_base_name ?*/_admissible_pas_exists:
+  "\<exists>pas. /*? options.verification_base_name ?*/_admissible_pas pas"
+  apply (insert /*? options.verification_base_name ?*/_admissible_labelling_exists)
   apply (erule exE, rename_tac poa)
   (* For now, just fill in the fields we need. *)
   apply (rule_tac x = "undefined\<lparr>
                          pasObjectAbs := poa,
-                         pasPolicy := /*? app_name ?*/_policy,
+                         pasPolicy := /*? options.verification_base_name ?*/_policy,
                          pasSubject := fst (hd (components (composition /*? arch_spec_thy ?*/.assembly')))
                          \<rparr>"
                   in exI)
 
-  apply (simp add: /*? app_name ?*/_admissible_pas_def /*? app_name ?*/_connections /*? app_name ?*/_component_names)
+  apply (simp add: /*? options.verification_base_name ?*/_admissible_pas_def /*? options.verification_base_name ?*/_connections /*? options.verification_base_name ?*/_component_names)
   done
 
 text \<open>
   Ensure that our base access policy is wellformed.
   This lets us extend it to other wellformed policies.
 \<close>
-lemma /*? app_name ?*/_policy_wellformed:
-  "\<lbrakk> pasPolicy aag = /*? app_name ?*/_policy;
+lemma /*? options.verification_base_name ?*/_policy_wellformed:
+  "\<lbrakk> pasPolicy aag = /*? options.verification_base_name ?*/_policy;
      pasSubject aag \<in> fst ` set (components (composition /*? arch_spec_thy ?*/.assembly'));
      \<not> pasMaySendIrqs aag \<comment> \<open>ignore IRQs for now\<close>
    \<rbrakk> \<Longrightarrow> pas_wellformed aag"
-  apply (clarsimp simp: policy_wellformed_def /*? app_name ?*/_connections /*? app_name ?*/_component_names)
+  apply (clarsimp simp: policy_wellformed_def /*? options.verification_base_name ?*/_connections /*? options.verification_base_name ?*/_component_names)
   apply (fastforce simp only:
-                   intro!: /*? app_name ?*/_policy_intros
-                   dest!: /*? app_name ?*/_policy_gen_cases_[THEN iffD1])
+                   intro!: /*? options.verification_base_name ?*/_policy_intros
+                   dest!: /*? options.verification_base_name ?*/_policy_gen_cases_[THEN iffD1])
   done
 
 
@@ -386,7 +384,7 @@ lemma helper_pcs_refined_policyI:
                 split: option.splits)
 
 text \<open>FIXME: Our capDL assigns no ASIDs, so there's not much to do here right now.\<close>
-lemma /*? app_name ?*/_asid_policy_trivial:
+lemma /*? options.verification_base_name ?*/_asid_policy_trivial:
   "cdl_state_asids_to_policy pas /*? cdl_thy ?*/.state \<subseteq> pasPolicy pas"
   apply (clarsimp simp: /*? cdl_thy ?*/.state_def /*? cdl_thy ?*/.asid_table_def
                         opt_cap_def slots_of_def opt_object_def object_slots_def)
@@ -413,7 +411,7 @@ lemma /*? app_name ?*/_asid_policy_trivial:
   done
 
 text \<open>FIXME: Our capDL assigns no IRQs, so there's not much to do here right now.\<close>
-lemma /*? app_name ?*/_irq_policy_trivial:
+lemma /*? options.verification_base_name ?*/_irq_policy_trivial:
   "cdl_state_irqs_to_policy pas /*? cdl_thy ?*/.state \<subseteq> pasPolicy pas"
   apply clarsimp
   apply (erule cdl_state_irqs_to_policy_aux.cases)
@@ -436,26 +434,26 @@ lemma /*? app_name ?*/_irq_policy_trivial:
 
 text \<open>Main integrity proof\<close>
 
-theorem /*? app_name ?*/_pcs_refined:
+theorem /*? options.verification_base_name ?*/_pcs_refined:
   assumes other_assms:
      "pas_wellformed pas"
      (* TODO *) "cdl_irq_map_wellformed pas /*? cdl_thy ?*/.state"
      (* TODO *) "cdl_tcb_domain_map_wellformed pas /*? cdl_thy ?*/.state"
   assumes admissible_pas:
-     "/*? app_name ?*/_admissible_pas pas"
+     "/*? options.verification_base_name ?*/_admissible_pas pas"
   shows
      "pcs_refined pas /*? cdl_thy ?*/.state"
 proof -
-  from admissible_pas have /*? app_name ?*/_policy:
-    "/*? app_name ?*/_policy \<subseteq> pasPolicy pas"
-    by (simp add: /*? app_name ?*/_admissible_pas_def)
+  from admissible_pas have /*? options.verification_base_name ?*/_policy:
+    "/*? options.verification_base_name ?*/_policy \<subseteq> pasPolicy pas"
+    by (simp add: /*? options.verification_base_name ?*/_admissible_pas_def)
 
   (* HACK to split the labelling values theorem into multiple equations.
      We put them into the simpset for fast lookup during the proof procedure.
      This uses the conjuncts attribute from Lib, which stashes the result into
      the dynamic theorem "conjuncts". We retrieve it from there. *)
   note dummy = admissible_labelling_values
-            [OF /*? app_name ?*/_admissible_pas_def[simplified atomize_eq, THEN iffD1, THEN conjunct1],
+            [OF /*? options.verification_base_name ?*/_admissible_pas_def[simplified atomize_eq, THEN iffD1, THEN conjunct1],
              OF admissible_pas, simplified atomize_conj[symmetric], conjuncts]
   note labelling_values = conjuncts
   (* end hack *)
@@ -463,7 +461,7 @@ proof -
   show ?thesis
     apply (clarsimp simp only: simp_thms
                                pcs_refined_def other_assms
-                               /*? app_name ?*/_asid_policy_trivial /*? app_name ?*/_irq_policy_trivial
+                               /*? options.verification_base_name ?*/_asid_policy_trivial /*? options.verification_base_name ?*/_irq_policy_trivial
                     del: subsetI)
     apply (rule helper_pcs_refined_policyI)
      text \<open>
@@ -475,15 +473,15 @@ proof -
     text \<open>Object case.\<close>
     apply (clarsimp simp: /*? cdl_thy ?*/.state_def)
 
-    (* Assume /*? app_name ?*/_policy is concrete enough and we don't need any
+    (* Assume /*? options.verification_base_name ?*/_policy is concrete enough and we don't need any
        default policy rules from pas_wellformed. *)
-    apply (rule subsetD[OF /*? app_name ?*/_policy])
+    apply (rule subsetD[OF /*? options.verification_base_name ?*/_policy])
 
     (* Unfold big object mapping. *)
     apply (simp only: /*? cdl_thy ?*/.objects_def)
 
     (* Cache rulesets to speed up the "solve policy" steps slightly *)
-    supply /*? app_name ?*/_policy_intros[intro!]
+    supply /*? options.verification_base_name ?*/_policy_intros[intro!]
     supply labelling_values[simp]
 
     (* Iterate through all objects and their contained caps (if any) *)

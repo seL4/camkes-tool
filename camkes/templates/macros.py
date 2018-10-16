@@ -280,18 +280,15 @@ def to_isabelle_set(xs):
         return '{%s}' % ', '.join('\'\'%s\'\'' % x for x in xs)
     raise NotImplementedError
 
-def isabelle_theory_name(filename):
-    '''Isabelle theories need to know their filenames.
-       We assume that the CAmkES tool is being called with only one
-       --outfile to generate this theory file. Then the filename is
-       uniquely specified in the outfile array.
-
-       FIXME: this is a bit of a hack.
-    '''
-    basename = os.path.basename(filename)
-    if basename.endswith('.thy'):
-        basename = basename[:-len('.thy')]
-    return basename
+def check_isabelle_outfile(thy_name, outfile_name):
+    '''Our Isabelle templates need to refer to each other using a
+       consistent naming scheme. This checks that the expected theory
+       name matches the output file passed on the command line.'''
+    outfile_base = os.path.basename(outfile_name)
+    if outfile_base.endswith('.thy'):
+        outfile_base = outfile_base[:-len('.thy')]
+    assert thy_name == outfile_base
+    return ''
 
 def capdl_sorter(arch, a, b):
     '''

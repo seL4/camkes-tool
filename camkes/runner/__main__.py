@@ -92,7 +92,8 @@ class RenderState():
 class RenderOptions():
     def __init__(self, file, verbosity, frpc_lock_elision, fspecialise_syscall_stubs,
             fprovide_tcb_caps, fsupport_init, largeframe, largeframe_dma, architecture,
-            debug_fault_handlers, default_stack_size, realtime, filter_options, render_state):
+            debug_fault_handlers, default_stack_size, realtime, verification_base_name,
+            filter_options, render_state):
         self.file = file
         self.verbosity = verbosity
         self.frpc_lock_elision = frpc_lock_elision
@@ -105,6 +106,7 @@ class RenderOptions():
         self.debug_fault_handlers = debug_fault_handlers
         self.default_stack_size = default_stack_size
         self.realtime = realtime
+        self.verification_base_name = verification_base_name
         self.filter_options = filter_options
         self.render_state = render_state
 
@@ -167,6 +169,8 @@ def parse_args(argv, out, err):
         dest='verbosity', action='store_const', const=3)
     parser.add_argument('--outfile', '-O', help='Output to the given file.',
         type=argparse.FileType('w'), required=True, action='append', default=[])
+    parser.add_argument('--verification-base-name', type=str,
+        help='Identifier to use when generating Isabelle theory files')
     parser.add_argument('--elf', '-E', help='ELF files to contribute to a '
         'CapDL specification.', action='append', default=[])
     parser.add_argument('--item', '-T', help='AST entity to produce code for.',
@@ -281,6 +285,12 @@ def parse_args(argv, out, err):
             options.default_data, options.default_size_bits,
             options.debug_fault_handlers, options.fprovide_tcb_caps)
 
+    # Check that verification_base_name would be a valid identifer before
+    # our templates try to use it
+    if options.verification_base_name is not None:
+        if not re.match(r'[a-zA-Z][a-zA-Z0-9_]*$', options.verification_base_name):
+            parser.error('Not a valid identifer for --verification-base-name: %r' %
+                         options.verification_base_name)
 
     return options, queries, filteroptions
 
@@ -489,7 +499,9 @@ def main(argv, out, err):
     renderoptions = RenderOptions(options.file, options.verbosity, options.frpc_lock_elision,
         options.fspecialise_syscall_stubs, options.fprovide_tcb_caps, options.fsupport_init,
         options.largeframe, options.largeframe_dma, options.architecture, options.debug_fault_handlers,
-        options.default_stack_size, options.realtime, filteroptions, render_state)
+        options.default_stack_size, options.realtime,
+        options.verification_base_name, filteroptions, render_state)
+
     def instantiate_misc_template(renderoptions):
         for (item, outfile) in (all_items - done_items):
             try:

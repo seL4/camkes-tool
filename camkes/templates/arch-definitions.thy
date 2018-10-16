@@ -10,21 +10,30 @@
  *# @TAG(DATA61_BSD)
  #*/
 
-theory "/*? macros.isabelle_theory_name(outfile_name) ?*/" imports
+(* /*? macros.generated_file_notice() ?*/ *)
+
+/*? macros.check_isabelle_outfile(
+        '%s_Arch_Spec' % options.verification_base_name, outfile_name) ?*/
+
+theory "/*? options.verification_base_name ?*/_Arch_Spec" imports
   "CamkesAdlSpec.Types_CAMKES"
   "CamkesAdlSpec.Library_CAMKES"
   "CamkesAdlSpec.Wellformed_CAMKES"
   "Lib.Qualify"
 begin
 
-(* /*? macros.generated_file_notice() ?*/ *)
-
-(* We restrict the scope of all names to a locale with the same name
+(*
+ * We restrict the scope of all names to a locale with the same name
  * as our theory. This ensures that entity names from the CAmkES
- * assembly won't overlap with names we use elsewhere. *)
+ * assembly won't overlap with names we use elsewhere.
+ *
+ * Note that we need to use qualify\<dots>end_qualify instead of doing
+ * everything in the locale directly, because code_simp doesn't work
+ * for locale constants.
+ *)
 
-locale /*? macros.isabelle_theory_name(outfile_name) ?*/
-qualify /*? macros.isabelle_theory_name(outfile_name) ?*/
+locale /*? options.verification_base_name ?*/_Arch_Spec
+qualify /*? options.verification_base_name ?*/_Arch_Spec
 
 /*- macro param_type(type) -*/
     /*- if type == 'int' -*/
