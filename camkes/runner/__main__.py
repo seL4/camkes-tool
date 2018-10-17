@@ -344,6 +344,15 @@ def main(argv, out, err):
 
         done_items.add((item, file))
         if len(all_items - done_items) == 0:
+            if options.object_cache is not None and item not in ('capdl', 'label-mapping'):
+                # At this point the capdl database is in the state required for applying capdl
+                # filters and generating the capdl spec. In case the capdl spec isn't the current
+                # target, we pickle the database here, so when the capdl spec is built, these
+                # data structures don't need to be regenerated.
+                pickle_path = options.object_cache
+                with open(pickle_path, 'wb') as pickle_file:
+                    pickle.dump(renderoptions.render_state, pickle_file)
+
             sys.exit(ret)
 
     filename = None
@@ -647,15 +656,6 @@ def main(argv, out, err):
                             done(g, outfile, item)
                 except TemplateError as inst:
                     die(rendering_error(i.name, inst))
-
-    if options.object_cache is not None:
-        # At this point the capdl database is in the state required for applying capdl
-        # filters and generating the capdl spec. In case the capdl spec isn't the current
-        # target, we pickle the database here, so when the capdl spec is built, these
-        # data structures don't need to be regenerated.
-        pickle_path = options.object_cache
-        with open(pickle_path, 'wb') as pickle_file:
-            pickle.dump(renderoptions.render_state, pickle_file)
 
     for (item, outfile) in (all_items - done_items):
         if item in ('capdl', 'label-mapping'):
