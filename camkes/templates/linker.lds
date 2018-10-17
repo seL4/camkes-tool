@@ -53,7 +53,7 @@ SECTIONS {
       /*- set size_bits = int(math.log(size, 2)) -*/
 
       align_/*? size_bits ?*/bit (NOLOAD) : ALIGN(/*? size ?*/) {
-          *(align_/*? size_bits ?*/bit)
+          KEEP (*(align_/*? size_bits ?*/bit))
       }
 
   /*- endfor -*/
