@@ -442,8 +442,9 @@ def main(argv, out, err):
         options.makefile_dependencies.write('%s: \\\n  %s\n' %
             (filename, ' \\\n  '.join(sorted(read))))
 
-    def apply_capdl_filters():
+    def apply_capdl_filters(renderoptions):
         # Derive a set of usable ELF objects from the filenames we were passed.
+        render_state = renderoptions.render_state
         elfs = {}
         for e in options.elf:
             try:
@@ -456,7 +457,7 @@ def main(argv, out, err):
                 # Avoid inferring a TCB as we've already created our own.
                 elf_spec = elf.get_spec(infer_tcb=False, infer_asid=False,
                     pd=render_state.pds[group], use_large_frames=options.largeframe,
-                    addr_space=renderoptions.render_state.addr_spaces[group])
+                    addr_space=render_state.addr_spaces[group])
                 render_state.obj_space.merge(elf_spec, label=group)
                 elfs[name] = (e, elf)
             except Exception as inst:
@@ -478,8 +479,7 @@ def main(argv, out, err):
         options.fspecialise_syscall_stubs, options.fprovide_tcb_caps, options.fsupport_init,
         options.largeframe, options.largeframe_dma, options.architecture, options.debug_fault_handlers,
         options.default_stack_size, options.realtime, filteroptions, render_state)
-
-    def instantiate_misc_template():
+    def instantiate_misc_template(renderoptions):
         for (item, outfile) in (all_items - done_items):
             try:
                 template = templates.lookup(item)
@@ -498,8 +498,8 @@ def main(argv, out, err):
             with open(pickle_path, 'rb') as pickle_file:
                 # Found a cached version of the necessary data structures
                 renderoptions.render_state = pickle.load(pickle_file)
-                apply_capdl_filters()
-                instantiate_misc_template()
+                apply_capdl_filters(renderoptions)
+                instantiate_misc_template(renderoptions)
 
                 # If a template wasn't instantiated, something went wrong, and we can't recover
                 raise CAmkESError("No template instantiated on capdl generation fastpath")
@@ -656,11 +656,11 @@ def main(argv, out, err):
 
     for (item, outfile) in (all_items - done_items):
         if item in ('capdl', 'label-mapping'):
-            apply_capdl_filters()
+            apply_capdl_filters(renderoptions)
 
     # Instantiate any other, miscellaneous template. If we've reached this
     # point, we know the user did not request a code template.
-    instantiate_misc_template()
+    instantiate_misc_template(renderoptions)
 
     # Check if there are any remaining items
     not_done = all_items - done_items
