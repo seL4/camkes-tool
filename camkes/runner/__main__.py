@@ -491,6 +491,9 @@ def main(argv, out, err):
             except TemplateError as inst:
                 die(rendering_error(item, inst))
 
+    if "camkes-gen.cmake" in options.item:
+        instantiate_misc_template(renderoptions)
+
     if options.item[0] in ('capdl', 'label-mapping') and options.object_cache is not None \
             and len(options.outfile) == 1:
         pickle_path = options.object_cache
