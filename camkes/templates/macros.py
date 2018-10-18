@@ -271,6 +271,13 @@ def sizeof(arch, t):
     assert size is not None
     return size
 
+def get_word_size(arch):
+    if arch in ('aarch32', 'ia32', 'riscv32'):
+        return 4
+    elif arch in ('aarch64','x86_64', 'riscv64'):
+        return 8
+    raise Exception('Unable to get word size: Unsupported architecture')
+
 def to_isabelle_set(xs):
     assert isinstance(xs, collections.Iterable)
     if all(isinstance(x, six.string_types) for x in xs):

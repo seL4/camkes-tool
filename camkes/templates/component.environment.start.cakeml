@@ -68,44 +68,49 @@ val string_to_bytes_def = process_topdecs `
 
 val seL4_ReplyRecv_def = process_topdecs `
     fun seL4_ReplyRecv ep send_length ipcbuf = let
-        val _ = Word8Array.copy (int_to_bytes ep 8) 0 8 ipcbuf 1;
-        val _ = Word8Array.copy (int_to_bytes send_length 8) 0 8 ipcbuf 9;
+        val word_size = /*? macros.get_word_size(options.architecture) ?*/;
+        val _ = Word8Array.copy (int_to_bytes ep word_size) 0 word_size ipcbuf 1;
+        val _ = Word8Array.copy (int_to_bytes send_length word_size) 0 word_size ipcbuf (1 + word_size);
         val _ = #(seL4_ReplyRecv) "" ipcbuf;
-        val len = bytes_to_int ipcbuf 1 8;
-        val badge = bytes_to_int ipcbuf 9 8;
+        val len = bytes_to_int ipcbuf 1 word_size;
+        val badge = bytes_to_int ipcbuf (1 + word_size) word_size;
         in (len, badge) end;
 `;
 
 val seL4_Recv_def = process_topdecs `
     fun seL4_Recv ep ipcbuf = let
-        val _ = Word8Array.copy (int_to_bytes ep 8) 0 8 ipcbuf 1;
+        val word_size = /*? macros.get_word_size(options.architecture) ?*/;
+        val _ = Word8Array.copy (int_to_bytes ep word_size) 0 word_size ipcbuf 1;
         val _ = #(seL4_Recv) "" ipcbuf;
-        val len = bytes_to_int ipcbuf 1 8;
-        val badge = bytes_to_int ipcbuf 9 8;
+        val len = bytes_to_int ipcbuf 1 word_size;
+        val badge = bytes_to_int ipcbuf (1 + word_size) word_size;
         in (len, badge) end;
 `;
 
 val seL4_Send_def = process_topdecs `
     fun seL4_Send ep send_length ipcbuf = let
-        val _ = Word8Array.copy (int_to_bytes ep 8) 0 8 ipcbuf 1;
-        val _ = Word8Array.copy (int_to_bytes send_length 8) 0 8 ipcbuf 9;
+        val word_size = /*? macros.get_word_size(options.architecture) ?*/;
+        val _ = Word8Array.copy (int_to_bytes ep word_size) 0 word_size ipcbuf 1;
+        val _ = Word8Array.copy (int_to_bytes send_length 8) 0 word_size ipcbuf (1 + word_size);
         val _ = #(seL4_Send) "" ipcbuf;
         in () end;
 `;
 
 val seL4_Wait_def = process_topdecs `
     fun seL4_Wait src = let
-        val buf = Word8Array.array 9 (Word8.fromInt 0);
-        val _ = Word8Array.copy (int_to_bytes src 8) 0 8 buf 1;
+        val word_size = /*? macros.get_word_size(options.architecture) ?*/;
+        val buf = Word8Array.array (1 + word_size)  (Word8.fromInt 0);
+        val _ = Word8Array.copy (int_to_bytes src word_size) 0 word_size buf 1;
         val _ = #(seL4_Wait) "" buf;
-        val badge = bytes_to_int buf 1 8;
+        val badge = bytes_to_int buf 1 word_size;
         in badge end;
 `;
 
 val camkes_declare_reply_cap_def = process_topdecs `
     fun camkes_declare_reply_cap slot = let
-        val buf = Word8Array.array 9 (Word8.fromInt 0);
-        val _ = Word8Array.copy (int_to_bytes slot 8) 0 8 buf 1;
+        val word_size = /*? macros.get_word_size(options.architecture) ?*/;
+        val buf = Word8Array.array (1 + word_size) (Word8.fromInt 0);
+        val _ = Word8Array.copy (int_to_bytes slot word_size) 0 word_size buf 1;
         val _ = #(camkes_declare_reply_cap) "" buf;
         in () end;
 `;

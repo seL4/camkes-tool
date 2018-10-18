@@ -110,17 +110,17 @@
             val v_def = define_abbrev false v_name v_tm
             in v_thm |> REWRITE_RULE [GSYM v_def] end
 
+        /*- set word_size = macros.get_word_size(options.architecture) -*/
         /*- if buffer is not none -*/
             /*? raise(TemplateError('CakeML connector only supports using the IPC buffer')) ?*/
         /*- endif -*/
         /*- set base = 'ConInternal.ipcbuf' -*/
-        /*- set buffer_size = 120 * 8 -*/
-        (* Add 17 because the protocol with the ffi IPC functions requires 1 byte for
-           success and two 8 byte words for data *)
-        /*- set bsize = buffer_size + 17 -*/
+        /*- set buffer_size = 120 * word_size -*/
+        (* Add '2 * word_size + 1' because the protocol with the ffi IPC functions requires 1 byte for
+           success and two words for data *)
+        /*- set bsize = buffer_size + 2 * word_size + 1 -*/
         val ipcbuf_e = ``(App Aw8alloc [Lit (IntLit /*? bsize ?*/); Lit (Word8 0w)])``
-        /*- set namespace.cakeml_reserved_buf = 17 -*/
-        val eval_thm = derive_eval_thm false "ipcbuf_loc" ipcbuf_e;
+        /*- set namespace.cakeml_reserved_buf = 2 * word_size + 1 -*/
         val eval_thm = derive_eval_thm_bytes false "ipcbuf_loc" ipcbuf_e /*? bsize ?*/;
         val _ = ml_prog_update (add_Dlet eval_thm "ipcbuf" []);
     /*- endif -*/
