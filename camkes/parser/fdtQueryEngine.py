@@ -105,7 +105,7 @@ class FdtQueryEngine:
 
         qstring = r"" + qstring
         try:
-            regex = re.compile(qstring)
+            regex = re.compile(qstring, re.IGNORECASE)
         except re.error:
             # Rethrow with a more user friendly message to help the dev debug
             raise DtbBindingQueryFormatError("Input query string \"%s\" is not "
