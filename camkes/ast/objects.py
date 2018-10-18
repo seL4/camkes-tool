@@ -28,6 +28,7 @@ from .exception import ASTError
 from .location import SourceLocation
 from camkes.internal.frozendict import frozendict
 import abc, collections, itertools, numbers, six
+import logging
 
 def types_compatible(value, attribute):
     type = attribute.type;
@@ -63,7 +64,7 @@ def types_compatible(value, attribute):
                     else:
                         new_missing.append(attr)
                 if len(new_missing) != 0:
-                    return (False, "Attributes: \"%s\" are missing from assignment." % new_missing)
+                    logging.warn("Attributes: \"%s\" are missing from assignment." % new_missing)
 
             extra_attrs = list(set(value.keys())- attr_names)
             if len(extra_attrs) != 0:
