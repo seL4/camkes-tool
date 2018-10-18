@@ -27,6 +27,5 @@ component UART {
         string clock_names[];
         int dmas[];
         string dma_names[];
-        string status[];
     } dtb;
 }
