@@ -68,7 +68,7 @@ def types_compatible(value, attribute):
 
             extra_attrs = list(set(value.keys())- attr_names)
             if len(extra_attrs) != 0:
-                return (False, "Attributes: \"%s\" do not exist in \"%s\" definition." %(extra_attrs, type.name))
+                logging.warn("Attributes: \"%s\" do not exist in \"%s\" definition." %(extra_attrs, type.name))
 
             for x in type.attributes:
                 (compat, error_str) = types_compatible(value[x.name], x)
