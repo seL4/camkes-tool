@@ -55,10 +55,10 @@ struct {
         VISIBLE
         USED;
 
-/*? register_shared_variable('%s_data' % me.parent.name, dataport_symbol_name, size, frame_size=page_size, perm='RW', paddr=paddr, cached=cached) ?*/
+/*? register_shared_variable('%s_data' % me.parent.name, dataport_symbol_name, size, frame_size=page_size, perm='RW', paddr=paddr, cached=cached, label=me.parent.name) ?*/
 
 /*# We need to copy all of the frame caps into our cspace for frame cache operations #*/
-/*- set frame_objs = get_shared_variable_backing_frames('%s_data' % me.parent.name, size) -*/
+/*- set frame_objs = get_shared_variable_backing_frames('%s_data' % me.parent.name, size, label=me.parent.name) -*/
 /*- set frame_caps = [] -*/
 /*- for (i, frame) in enumerate(frame_objs) -*/
     /*- set frame_cap = alloc_cap('%s_%d' % ('%s_data' % me.parent.name, i), frame) -*/

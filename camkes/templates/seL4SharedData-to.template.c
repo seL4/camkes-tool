@@ -48,7 +48,7 @@ struct {
   /*? raise(TemplateError('invalid permissions attribute %s.%s_access' % (me.instance.name, me.interface.name), configuration.settings_dict[me.instance.name]['%s_access' % me.interface.name])) ?*/
 /*- endif -*/
 
-/*? register_shared_variable('%s_data' % me.parent.name, dataport_symbol_name, size, frame_size=page_size, perm=perm if perm is not none else 'RWX') ?*/
+/*? register_shared_variable('%s_data' % me.parent.name, dataport_symbol_name, size, frame_size=page_size, perm=perm if perm is not none else 'RWX', label=me.parent.name) ?*/
 
 /*? macros.dataport_type(me.interface.type) ?*/ * /*? me.interface.name ?*/ =
     (/*? macros.dataport_type(me.interface.type) ?*/ *) & to_/*? index ?*/_/*? me.interface.name ?*/_data;

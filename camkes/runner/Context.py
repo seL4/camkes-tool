@@ -91,9 +91,9 @@ def new_context(entity, assembly, render_state, state_key, outfile_name,
         # address spaces and CSpaces are 1-to-1.
         'register_shared_variable':None if cap_space is None else \
             (lambda global_name, symbol, size, frame_size=None, paddr=None,
-                perm='RWX', cached=None:
+                perm='RWX', cached=None, label=None:
                 register_shared_variable(addr_space, obj_space, global_name, symbol, size,
-                                         frame_size, paddr, perm, cached)),
+                                         frame_size, paddr, perm, cached, label)),
 
         'get_shared_variable_backing_frames':None if cap_space is None else \
             (lambda global_name, size, frame_size=None:
@@ -421,7 +421,7 @@ def calc_frame_size(size, frame_size, arch):
     return frame_size
 
 def register_shared_variable(addr_space, obj_space, global_name, symbol, size,
-       frame_size=None, paddr=None, perm='RWX', cached=None):
+       frame_size=None, paddr=None, perm='RWX', cached=None, label=None):
     '''
     Create a reservation for a shared memory region between multiple components.
     global_name is a global key that is used to link up the reservations across multiple components
@@ -441,7 +441,11 @@ def register_shared_variable(addr_space, obj_space, global_name, symbol, size,
 
     # If these frames have been allocated already then the allocator will return them.
     # Therefore calls to register_shared_variable with the same global_name have to have the same size.
-    frames = [obj_space.alloc(ObjectType.seL4_FrameObject, name='%s_%d_obj' % (global_name, i), size=frame_size) for i in range(num_frames)]
+    frames = [obj_space.alloc(ObjectType.seL4_FrameObject,
+                              name='%s_%d_obj' % (global_name, i),
+                              label=label,
+                              size=frame_size)
+              for i in range(num_frames)]
     if paddr is not None:
         for f in frames:
             f.paddr = paddr
@@ -466,7 +470,7 @@ def register_shared_variable(addr_space, obj_space, global_name, symbol, size,
            'Suggested formulation: `char %(sym)s[ROUND_UP_UNSAFE(sizeof(...), ' \
            'PAGE_SIZE_4K)];`");' % {'sym':symbol, 'size': size, 'frame_size': frame_size}
 
-def get_shared_variable_backing_frames(obj_space, global_name, size, frame_size=None):
+def get_shared_variable_backing_frames(obj_space, global_name, size, frame_size=None, label=None):
     '''
     Return the objects for the frame mapping.
     global_name, size and frame_size need to be the same as was provided to register_shared_variable
@@ -476,7 +480,11 @@ def get_shared_variable_backing_frames(obj_space, global_name, size, frame_size=
     size = int(size)
     frame_size = calc_frame_size(size, frame_size, obj_space.spec.arch.capdl_name())
     num_frames = size//frame_size
-    return [obj_space.alloc(ObjectType.seL4_FrameObject, name='%s_%d_obj' % (global_name, i), size=frame_size) for i in range(num_frames)]
+    return [obj_space.alloc(ObjectType.seL4_FrameObject,
+                            name='%s_%d_obj' % (global_name, i),
+                            size=frame_size,
+                            label=label)
+            for i in range(num_frames)]
 
 def register_fill_frame(addr_space, symbol, fill, obj_space, label):
     '''
@@ -543,32 +551,15 @@ def object_label_mapping(obj_space, integrity_labels):
     '''Return a list of all objects and the integrity labels for them.
 
        We can retrieve the labels for most objects from the allocator,
-       and our templates can track most of the exceptions using
-       set_integrity_label.
-
-       For shared frames, however, we have to reverse engineer the
-       connector label from register_shared_variable and the connector
-       templates that call it.'''
+       and our templates track the remaining exceptions using
+       set_integrity_label.'''
     default_labels = ((obj, label) for label, objs in obj_space.labels.items()
                                    for obj in objs)
-
-    # This needs to be in sync with the global_name used by templates
-    # that call register_shared_variable. TODO: fix those templates!
-    dataport_obj_re = re.compile(r'(.*)_data_([0-9]+)_obj$')
-    def guess_shared_frame_dataport_name(n):
-        m = dataport_obj_re.match(n)
-        if m:
-            return m.group(1)
-        else:
-            return None
 
     # Update our mapping and return it.
     def real_label_of(obj, default_label):
         if obj.name in integrity_labels:
             return integrity_labels[obj.name]
-        dataport_label = guess_shared_frame_dataport_name(obj.name)
-        if dataport_label is not None:
-            return dataport_label
         return default_label
 
     return ((obj, real_label_of(obj, label)) for obj, label in default_labels)
