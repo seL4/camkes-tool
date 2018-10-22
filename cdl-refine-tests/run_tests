@@ -57,7 +57,7 @@ test_apps = [
     # others
     'multiclient',
 
-    #'hierarchical-components', # app name needs to be mangled first
+    #'hierarchical-components', # our ADL model doesn't support hierarchies
 
     'multiassembly',
 
