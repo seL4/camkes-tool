@@ -48,17 +48,20 @@ from .NameMangling import TEMPLATES, FILTERS, Perspective
 
 def new_context(entity, assembly, render_state, state_key, outfile_name,
                 templates, **kwargs):
+    '''Create a new default context for rendering.'''
+
     obj_space = render_state.obj_space
     cap_space = render_state.cspaces[state_key] if state_key else None
     addr_space = render_state.addr_spaces[state_key] if state_key else None
-    integrity_labels = render_state.integrity_labels
-    '''Create a new default context for rendering.'''
     return dict(list(__builtins__.items()) + ObjectType.__members__.items() + ObjectRights.__members__.items() + list({
         # Kernel object allocator
-        'alloc_obj':(lambda name, type, **kwargs:
-            alloc_obj((entity.label(), obj_space), obj_space,
-                '%s_%s' % (entity.label(), name), type, label=entity.label(), **kwargs))
-                    if obj_space else None,
+        'alloc_obj':(
+            lambda name, type, label=None, **kwargs:
+                alloc_obj((entity.label(), obj_space), obj_space,
+                          '%s_%s' % (entity.label(), name), type,
+                          label=label if label is not None else entity.label(),
+                          **kwargs))
+            if obj_space else None,
 
         # Cap allocator
         'alloc_cap':(lambda name, obj, **kwargs:
@@ -75,10 +78,11 @@ def new_context(entity, assembly, render_state, state_key, outfile_name,
         # you see `set y = alloc('foo', bar, moo)` in template code, think:
         #  set x = alloc_obj('foo_obj', bar)
         #  set y = alloc_cap('foo_cap', x, moo)
-        'alloc':(lambda name, type, **kwargs:
+        'alloc':(lambda name, type, label=None, **kwargs:
             alloc_cap((entity.label(), cap_space), cap_space, name,
             alloc_obj((entity.label(), obj_space), obj_space,
-                '%s_%s' % (entity.label(), name), type, label=entity.label(),
+                '%s_%s' % (entity.label(), name), type,
+                label=label if label is not None else entity.label(),
                 **kwargs),
                 **kwargs)) if cap_space else None,
 
@@ -92,20 +96,19 @@ def new_context(entity, assembly, render_state, state_key, outfile_name,
         'register_shared_variable':None if cap_space is None else \
             (lambda global_name, symbol, size, frame_size=None, paddr=None,
                 perm='RWX', cached=None, label=None:
-                register_shared_variable(addr_space, obj_space, global_name, symbol, size,
-                                         frame_size, paddr, perm, cached, label)),
+                register_shared_variable(
+                    addr_space, obj_space, global_name, symbol, size,
+                    frame_size, paddr, perm, cached,
+                    label if label is not None else entity.parent.label())),
 
         'get_shared_variable_backing_frames':None if cap_space is None else \
-            (lambda global_name, size, frame_size=None:
-                get_shared_variable_backing_frames(obj_space, global_name, size, frame_size)),
-
-        # Keep track of integrity labels that don't match the allocator labels,
-        # for formal verification purposes.
-        'set_integrity_label': (lambda obj_name, label:
-                                set_integrity_label(integrity_labels, obj_name, label)),
+            (lambda global_name, size, frame_size=None, label=None:
+                get_shared_variable_backing_frames(
+                    obj_space, global_name, size, frame_size,
+                    label if label is not None else entity.parent.label())),
 
         # Get the object-label mapping for our verification models.
-        'object_label_mapping': (lambda: object_label_mapping(obj_space, integrity_labels)),
+        'object_label_mapping': (lambda: object_label_mapping(obj_space)),
 
         # Function for templates to inform us that they would like certain
         # 'fill' information to get placed into the provided symbol. Provided
@@ -423,16 +426,26 @@ def calc_frame_size(size, frame_size, arch):
 def register_shared_variable(addr_space, obj_space, global_name, symbol, size,
        frame_size=None, paddr=None, perm='RWX', cached=None, label=None):
     '''
-    Create a reservation for a shared memory region between multiple components.
-    global_name is a global key that is used to link up the reservations across multiple components
-    symbol is the name of the local symbol to be backed by the mapping frames.
-    size is the size of the region. Size needs to at least be a multiple of the smallest page size.
-    frame_size is the size of frames to use to back the region. size mod frame_size must be 0
-    If frame_size is not specified, the frame size to be used will be the largest
-    frame size that the size parameter is a multiple of.
-    paddr is the starting physical address of the frames. Only one caller needs to specify this. If
-    multiple callers specify different values it is undefined what the final result will be
-    perm and cached are mapping options that are only valid for the caller's mapping.
+    Create a reservation for a shared memory region between multiple
+    components.
+
+    global_name:   a global key that is used to link up the reservations
+                   across multiple components.
+    symbol:        the name of the local symbol to be backed by the
+                   mapping frames.
+    size:          the size of the region. Needs to be a multiple of the
+                   smallest page size.
+    frame_size:    the size of frames to use to back the region. `size`
+                   must be a multiple of `frame_size`. If `frame_size`
+                   is not specified, the largest frame size that divides
+                   evenly into `size` will be used.
+    paddr:         the starting physical address of the frames. Only one
+                   caller needs to specify this. If multiple callers
+                   specify different values, the result is undefined.
+    perm, cached:  page mapping options. These are only applied to the
+                   caller's mapping
+    label:         integrity label of the frame objects. In the default
+                   `Context`, this defaults to the current entity name.
     '''
     assert addr_space
     size = int(size)
@@ -443,8 +456,8 @@ def register_shared_variable(addr_space, obj_space, global_name, symbol, size,
     # Therefore calls to register_shared_variable with the same global_name have to have the same size.
     frames = [obj_space.alloc(ObjectType.seL4_FrameObject,
                               name='%s_%d_obj' % (global_name, i),
-                              label=label,
-                              size=frame_size)
+                              size=frame_size,
+                              label=label)
               for i in range(num_frames)]
     if paddr is not None:
         for f in frames:
@@ -537,29 +550,8 @@ def register_dma_pool(addr_space, symbol, page_size, caps, cap_space):
     assert addr_space
     addr_space.add_symbol_with_caps(symbol, [page_size] * len(caps), [cap_space.cnode[i] for i in caps])
 
-def set_integrity_label(integrity_labels, obj_name, label):
-    '''Override the default owner of an object with respect to the
-       integrity model. This is useful when a connector template wants
-       to allocate objects on behalf of the component that uses it.'''
-    # Our templates should never try to give inconsistent labels
-    assert (obj_name not in integrity_labels) or integrity_labels[obj_name] == label
-    integrity_labels[obj_name] = label
-    # This will be called in template expressions, so return a dummy value
-    return ''
-
-def object_label_mapping(obj_space, integrity_labels):
-    '''Return a list of all objects and the integrity labels for them.
-
-       We can retrieve the labels for most objects from the allocator,
-       and our templates track the remaining exceptions using
-       set_integrity_label.'''
-    default_labels = ((obj, label) for label, objs in obj_space.labels.items()
-                                   for obj in objs)
-
-    # Update our mapping and return it.
-    def real_label_of(obj, default_label):
-        if obj.name in integrity_labels:
-            return integrity_labels[obj.name]
-        return default_label
-
-    return ((obj, real_label_of(obj, label)) for obj, label in default_labels)
+def object_label_mapping(obj_space):
+    '''Return a list of all objects and the integrity labels for them.'''
+    return ((obj, label)
+            for label, objs in obj_space.labels.items()
+            for obj in objs)

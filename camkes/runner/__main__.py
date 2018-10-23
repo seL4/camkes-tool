@@ -81,13 +81,11 @@ class FilterOptions():
         self.fprovide_tcb_caps = fprovide_tcb_caps
 
 class RenderState():
-    def __init__(self, obj_space, cspaces={}, pds={}, addr_spaces={},
-                       integrity_labels={}):
+    def __init__(self, obj_space, cspaces={}, pds={}, addr_spaces={}):
         self.obj_space = obj_space
         self.cspaces = cspaces
         self.pds = pds
         self.addr_spaces = addr_spaces
-        self.integrity_labels = integrity_labels
 
 class RenderOptions():
     def __init__(self, file, verbosity, frpc_lock_elision, fspecialise_syscall_stubs,
