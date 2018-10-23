@@ -179,12 +179,15 @@ void ffivirtqueue_driver_recv(char * c, unsigned long clen, char * a, unsigned l
 
 void ffivirtqueue_driver_send(char * c, unsigned long clen, char * a, unsigned long alen) {
     virtqueue_driver_t * virtqueue;
-    memcpy(&virtqueue, a + 1, sizeof(virtqueue));
+    int offset = 1;
+    memcpy(&virtqueue, a + offset, sizeof(virtqueue));
+    offset += sizeof(virtqueue);
 
-    size_t message_len;
-    memcpy(&message_len, a + 9, 4);
+    size_t message_len = 0;
+    memcpy(&message_len, a + offset, sizeof(size_t));
+    offset += sizeof(size_t);
 
-    char * message = a + 13;
+    char * message = a + offset;
 
     volatile void * alloc_buffer = NULL;
     int err = camkes_virtqueue_buffer_alloc(virtqueue, &alloc_buffer, message_len);
