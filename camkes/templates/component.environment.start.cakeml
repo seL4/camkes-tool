@@ -20,6 +20,10 @@ val _ = translation_extends "basisProg";
 
 val _ = ml_prog_update (open_module "Utils")
 
+val get_word_size_def = process_topdecs `
+    fun get_word_size u = /*? macros.get_word_size(options.architecture) ?*/
+`;
+
 val int_to_bytes_def = process_topdecs `
     fun int_to_bytes w len = let
         val array = Word8Array.array len (Word8.fromInt 0);
@@ -134,6 +138,7 @@ val _ = app append_prog [
     bytes_to_int_def,
     read_c_string_def,
     string_to_bytes_def,
+    get_word_size_def,
     fail_def,
     seL4_Recv_def,
     seL4_ReplyRecv_def,
