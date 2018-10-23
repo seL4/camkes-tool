@@ -250,33 +250,16 @@ def main():
                 run_cmd([ninja_build_tool], cwd=build_dir)
                 info('App build succeeded.')
 
-                info('Setting up extra theory files...')
                 # We expect the build system to generate theory files here
                 app_thy_dir = os.path.join(build_dir, 'projects/camkes')
-
-                # session ROOT
-                ROOT_template_env = {
-                    'app_name': app_name,
-                    'session_name': '%s_CDL_Refine' % app_name
-                }
-                ROOT_template = os.path.join(this_script_dir, 'ROOT.template')
-                # quick-and-dirty jinja usage, because we have only one template
-                with open(ROOT_template, 'r') as f:
-                    ROOT_template_text = f.read()
-                ROOT_jinja_template = jinja_env.from_string(ROOT_template_text)
-                app_ROOT_text = ROOT_jinja_template.render(ROOT_template_env)
-                app_ROOT = os.path.join(app_thy_dir, 'ROOT')
-                with open(app_ROOT, 'w') as f:
-                    f.write(app_ROOT_text)
-                info('Done setting up theory files')
 
                 info('Running proofs...')
                 isabelle_cmdline = [
                     'timeout', '1h',
                     isabelle_tool, 'build',
-                    '-d', l4v_dir, '-d', app_thy_dir,
-                    '-v',
-                    ROOT_template_env['session_name']
+                    '-d', l4v_dir,
+                    '-D', app_thy_dir,
+                    '-v'
                 ]
                 run_cmd(isabelle_cmdline, cwd=build_dir)
             except Exception as exn:

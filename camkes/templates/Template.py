@@ -153,7 +153,7 @@ TEMPLATES = {
         # CapDL generator correspondence proofs
         'cdl-refine':'cdl-refine.thy',
         # Isabelle ROOT file
-        'ROOT':'ROOT',
+        'isabelle-root':'root.thy',
     },
     'autocorres':{ # AutoCorres-based C code proofs
         Guard(lambda x: isinstance(x, Connection) and x.type.name == 'seL4NotificationNative'):{

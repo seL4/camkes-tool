@@ -476,7 +476,7 @@ if (${CAmkESCapDLVerification})
     set(CAMKES_VER_ROOT "ROOT")
 
     # ROOT file
-    CAmkESGen("${CAMKES_VER_ROOT}" "ROOT" THY_STYLE VER_BASE_NAME ${VER_BASE_NAME})
+    CAmkESGen("${CAMKES_VER_ROOT}" "isabelle-root" THY_STYLE VER_BASE_NAME ${VER_BASE_NAME})
     add_custom_target(isabelle_root DEPENDS "${CAMKES_VER_ROOT}")
 
     # Generate these theory files as part of overall build
