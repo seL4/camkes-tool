@@ -94,7 +94,10 @@ function(CAmkESGen output item)
     ParentListAppend(gen_files "${output}")
 endfunction(CAmkESGen)
 
-function(CAmkESOutputGenCommand)
+# Generate all the files declared previously. object_state_op is either
+# load- or save-object-state, depending on whether the object state has
+# already been built.
+function(CAmkESOutputGenCommand object_state_op)
     if ("${item_list}" STREQUAL "")
         return()
     endif()
@@ -106,7 +109,7 @@ function(CAmkESOutputGenCommand)
                 "--item;$<JOIN:${item_list},;--item;>"
                 "--outfile;$<JOIN:${outfile_list},;--outfile;>"
                 "--load-ast=${CMAKE_CURRENT_BINARY_DIR}/ast.pickle"
-                "--object-cache=${CMAKE_CURRENT_BINARY_DIR}/object.pickle"
+                "--${object_state_op}=${CMAKE_CURRENT_BINARY_DIR}/object.pickle"
                 "$<$<BOOL:${elfs_list}>:--elf$<SEMICOLON>>$<JOIN:${elfs_list},$<SEMICOLON>--elf$<SEMICOLON>>"
                 ${camkes_ver_opts}
                 ${CAMKES_FLAGS}
@@ -423,7 +426,7 @@ set(CMAKE_INSTANCE_GROUP_LINK_EXECUTABLE "<CMAKE_C_COMPILER> <FLAGS> <CMAKE_C_LI
 /*- endfor -*/
 
 # Generate our targets up to this point
-CAmkESOutputGenCommand()
+CAmkESOutputGenCommand(save-object-state)
 
 set(capdl_elf_depends "")
 set(capdl_elf_targets "")
@@ -436,7 +439,7 @@ set(capdl_elf_targets "")
 # depends upon the copied instance binaries
 # First define the capDL spec generation from CAmkES
 CAmkESGen("${CAMKES_CDL_TARGET}" capdl DEPENDS "${capdl_elf_targets}" ELFS "${capdl_elfs}")
-CAmkESOutputGenCommand()
+CAmkESOutputGenCommand(load-object-state)
 add_custom_target(camkes_capdl_target DEPENDS "${CAMKES_CDL_TARGET}")
 
 # Invoke the parse-capDL tool to turn the CDL spec into a C spec
@@ -511,7 +514,7 @@ if (${CAmkESCapDLVerification})
     add_custom_target(camkes_cdl_refine_thy DEPENDS "${CAMKES_CDL_REFINE_THY}")
     add_dependencies(isabelle_root camkes_cdl_refine_thy)
 
-    CAmkESOutputGenCommand()
+    CAmkESOutputGenCommand(load-object-state)
 endif()
 
 # Ensure we generated all the files we intended to, this is just sanity checking

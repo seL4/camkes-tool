@@ -248,14 +248,18 @@ def parse_args(argv, out, err):
         help='promote frames backing DMA pools to large frames where possible')
     parser.add_argument('--realtime', action='store_true',
         help='Target realtime seL4.')
-    parser.add_argument('--object-cache', type=str,
-        help='object pickle for re-use between multiple '
-             'invocations of the camkes tool in a single build.')
+
+    object_state_group = parser.add_mutually_exclusive_group()
+    object_state_group.add_argument('--load-object-state', type=argparse.FileType('rb'),
+        help='load previously-generated cap and object state')
+    object_state_group.add_argument('--save-object-state', type=argparse.FileType('wb'),
+        help='save generated cap and object state to this file')
+
     parser.add_argument('--save-ast',type=argparse.FileType('wb'), help='cache the ast during the build')
     # To get the AST, there should be either a pickled AST or a file to parse
-    group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument('--load-ast',type=argparse.FileType('rb'), help='load the cached ast during the build')
-    group.add_argument('--file', '-f', help='Add this file to the list of '
+    adl_group = parser.add_mutually_exclusive_group(required=True)
+    adl_group.add_argument('--load-ast',type=argparse.FileType('rb'), help='load the cached ast during the build')
+    adl_group.add_argument('--file', '-f', help='Add this file to the list of '
         'input files to parse. Files are parsed in the order in which they are '
         'encountered on the command line.', type=argparse.FileType('r'))
 
@@ -354,14 +358,9 @@ def main(argv, out, err):
 
         done_items.add((item, file))
         if len(all_items - done_items) == 0:
-            if options.object_cache is not None and item not in ('capdl', 'cdl-refine'):
-                # At this point the capdl database is in the state required for applying capdl
-                # filters and generating the capdl spec. In case the capdl spec isn't the current
-                # target, we pickle the database here, so when the capdl spec is built, these
-                # data structures don't need to be regenerated.
-                pickle_path = options.object_cache
-                with open(pickle_path, 'wb') as pickle_file:
-                    pickle.dump(renderoptions.render_state, pickle_file)
+            if options.save_object_state is not None:
+                # Write the render_state to the supplied outfile
+                pickle.dump(renderoptions.render_state, options.save_object_state)
 
             sys.exit(ret)
 
@@ -500,7 +499,7 @@ def main(argv, out, err):
         options.default_stack_size, options.realtime,
         options.verification_base_name, filteroptions, render_state)
 
-    def instantiate_misc_template(renderoptions):
+    def instantiate_misc_templates(renderoptions):
         for (item, outfile) in (all_items - done_items):
             try:
                 template = templates.lookup(item)
@@ -513,21 +512,18 @@ def main(argv, out, err):
                 die(rendering_error(item, inst))
 
     if "camkes-gen.cmake" in options.item:
-        instantiate_misc_template(renderoptions)
+        instantiate_misc_templates(renderoptions)
 
-    if options.item[0] in ('capdl', 'cdl-refine') \
-            and options.object_cache is not None \
-            and len(options.outfile) == 1:
-        pickle_path = options.object_cache
-        if os.path.isfile(pickle_path):
-            with open(pickle_path, 'rb') as pickle_file:
-                # Found a cached version of the necessary data structures
-                renderoptions.render_state = pickle.load(pickle_file)
-                apply_capdl_filters(renderoptions)
-                instantiate_misc_template(renderoptions)
+    if options.load_object_state is not None:
+        # There is an assumption that if load_object_state is set, we
+        # skip all of the component and connector logic below.
+        # FIXME: refactor to clarify control flow
+        renderoptions.render_state = pickle.load(options.load_object_state)
+        apply_capdl_filters(renderoptions)
+        instantiate_misc_templates(renderoptions)
 
-                # If a template wasn't instantiated, something went wrong, and we can't recover
-                raise CAmkESError("No template instantiated on capdl generation fastpath")
+        # If a template wasn't instantiated, something went wrong, and we can't recover
+        raise CAmkESError("No template instantiated on capdl generation path")
 
     # We're now ready to instantiate the template the user requested, but there
     # are a few wrinkles in the process. Namely,
@@ -669,14 +665,6 @@ def main(argv, out, err):
                             done(g, outfile, item)
                 except TemplateError as inst:
                     die(rendering_error(i.name, inst))
-
-    for (item, outfile) in (all_items - done_items):
-        if item in ('capdl', 'cdl-refine'):
-            apply_capdl_filters(renderoptions)
-
-    # Instantiate any other, miscellaneous template. If we've reached this
-    # point, we know the user did not request a code template.
-    instantiate_misc_template(renderoptions)
 
     # Check if there are any remaining items
     not_done = all_items - done_items
