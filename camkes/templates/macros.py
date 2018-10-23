@@ -23,7 +23,7 @@ from camkes.ast import Composition, Instance, Parameter, Struct
 from camkes.templates import sizeof_probe
 from capdl import ASIDPool, CNode, Endpoint, Frame, IODevice, IOPageTable, \
     Notification, page_sizes, PageDirectory, PageTable, TCB, Untyped, \
-    calculate_cnode_size
+    calculate_cnode_size, lookup_architecture
 import collections, math, os, platform, re, six
 
 from camkes.templates.arch_helpers import min_untyped_size, max_untyped_size
@@ -272,11 +272,7 @@ def sizeof(arch, t):
     return size
 
 def get_word_size(arch):
-    if arch in ('aarch32', 'ia32', 'riscv32'):
-        return 4
-    elif arch in ('aarch64','x86_64', 'riscv64'):
-        return 8
-    raise Exception('Unable to get word size: Unsupported architecture')
+    return int(lookup_architecture(arch).word_size_bits()/8)
 
 def to_isabelle_set(xs):
     assert isinstance(xs, collections.Iterable)
