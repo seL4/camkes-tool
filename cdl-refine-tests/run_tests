@@ -313,29 +313,32 @@ def main():
     per_opt_failed = init_per_opt_counts()
 
     # Main test loop.
-    for app_name in test_apps:
-        for this_build_config in map(dict, itertools.product(
-                *[[(k, v) for v in vals]
-                  for k, vals in sorted(test_options.items())])):
-            num_tests += 1
-            incr_opt_counts(per_opt_tests, app_name, this_build_config)
+    try:
+        for app_name in test_apps:
+            for this_build_config in map(dict, itertools.product(
+                    *[[(k, v) for v in vals]
+                      for k, vals in sorted(test_options.items())])):
+                num_tests += 1
+                incr_opt_counts(per_opt_tests, app_name, this_build_config)
 
-            info('Testing app: %s' % app_name)
-            info('Build config for this test:')
-            if this_build_config:
-                for k, v in sorted(this_build_config.items()):
-                    info('    %s=%s' % (k, v))
-            else:
-                info('    (nothing)')
+                info('Testing app: %s' % app_name)
+                info('Build config for this test:')
+                if this_build_config:
+                    for k, v in sorted(this_build_config.items()):
+                        info('    %s=%s' % (k, v))
+                else:
+                    info('    (nothing)')
 
-            try:
-                build_one(app_name, dict(this_build_config))
+                try:
+                    build_one(app_name, dict(this_build_config))
 
-                info('Test succeeded.\n\n')
-            except Exception as exn:
-                info('Test failed with exception:\n  %s\n\n' % str(exn))
-                num_failed += 1
-                incr_opt_counts(per_opt_failed, app_name, this_build_config)
+                    info('Test succeeded.\n\n')
+                except Exception as exn:
+                    info('Test failed with exception:\n  %s\n\n' % str(exn))
+                    num_failed += 1
+                    incr_opt_counts(per_opt_failed, app_name, this_build_config)
+    except KeyboardInterrupt:
+        info('Aborting tests...')
 
     info('Summary: %d test(s), %d passed, %d failed' %
          (num_tests, num_tests - num_failed, num_failed))
