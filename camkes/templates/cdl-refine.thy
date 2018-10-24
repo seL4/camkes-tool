@@ -14,8 +14,8 @@
 
 /*? macros.check_isabelle_outfile(
         '%s_CDL_Refine' % options.verification_base_name, outfile_name) ?*/
-/*- set cdl_thy = options.verification_base_name + '_CDL' -*/
-/*- set arch_spec_thy = options.verification_base_name + '_Arch_Spec' -*/
+/*- set cdl_thy = '%s_CDL' % options.verification_base_name -*/
+/*- set arch_spec_thy = '%s_Arch_Spec' % options.verification_base_name -*/
 
 theory "/*? options.verification_base_name ?*/_CDL_Refine"
 imports
