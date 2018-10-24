@@ -56,10 +56,9 @@ def new_context(entity, assembly, render_state, state_key, outfile_name,
     return dict(list(__builtins__.items()) + ObjectType.__members__.items() + ObjectRights.__members__.items() + list({
         # Kernel object allocator
         'alloc_obj':(
-            lambda name, type, label=None, **kwargs:
+            lambda name, type, label=entity.label(), **kwargs:
                 alloc_obj((entity.label(), obj_space), obj_space,
-                          '%s_%s' % (entity.label(), name), type,
-                          label=label if label is not None else entity.label(),
+                          '%s_%s' % (entity.label(), name), type, label,
                           **kwargs))
             if obj_space else None,
 
@@ -78,11 +77,10 @@ def new_context(entity, assembly, render_state, state_key, outfile_name,
         # you see `set y = alloc('foo', bar, moo)` in template code, think:
         #  set x = alloc_obj('foo_obj', bar)
         #  set y = alloc_cap('foo_cap', x, moo)
-        'alloc':(lambda name, type, label=None, **kwargs:
+        'alloc':(lambda name, type, label=entity.label(), **kwargs:
             alloc_cap((entity.label(), cap_space), cap_space, name,
             alloc_obj((entity.label(), obj_space), obj_space,
-                '%s_%s' % (entity.label(), name), type,
-                label=label if label is not None else entity.label(),
+                '%s_%s' % (entity.label(), name), type, label,
                 **kwargs),
                 **kwargs)) if cap_space else None,
 
@@ -95,17 +93,15 @@ def new_context(entity, assembly, render_state, state_key, outfile_name,
         # address spaces and CSpaces are 1-to-1.
         'register_shared_variable':None if cap_space is None else \
             (lambda global_name, symbol, size, frame_size=None, paddr=None,
-                perm='RWX', cached=None, label=None:
+                perm='RWX', cached=None, label=entity.parent.label():
                 register_shared_variable(
                     addr_space, obj_space, global_name, symbol, size,
-                    frame_size, paddr, perm, cached,
-                    label if label is not None else entity.parent.label())),
+                    frame_size, paddr, perm, cached, label)),
 
         'get_shared_variable_backing_frames':None if cap_space is None else \
-            (lambda global_name, size, frame_size=None, label=None:
+            (lambda global_name, size, frame_size=None, label=entity.parent.label():
                 get_shared_variable_backing_frames(
-                    obj_space, global_name, size, frame_size,
-                    label if label is not None else entity.parent.label())),
+                    obj_space, global_name, size, frame_size, label)),
 
         # Get the object-label mapping for our verification models.
         'object_label_mapping': (lambda: object_label_mapping(obj_space)),
