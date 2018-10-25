@@ -608,7 +608,7 @@ function(AppendCAmkESComponentTarget target_name)
     cmake_parse_arguments(PARSE_ARGV 1 CAMKES_COMPONENT
         "" # Option arguments
         "CAKEML_HEAP_SIZE;CAKEML_STACK_SIZE;LINKER_LANGUAGE" # Single arguments
-        "SOURCES;CAKEML_SOURCES;CAKEML_INCLUDES;INCLUDES;C_FLAGS;LD_FLAGS;LIBS" # Multiple aguments
+        "SOURCES;CAKEML_SOURCES;CAKEML_DEPENDS;CAKEML_INCLUDES;INCLUDES;C_FLAGS;LD_FLAGS;LIBS" # Multiple aguments
     )
     # Declare a target that we will set properties on
     if (NOT (TARGET "${target_name}"))
@@ -639,6 +639,7 @@ function(AppendCAmkESComponentTarget target_name)
     set_property(TARGET "${target_name}" APPEND PROPERTY COMPONENT_SOURCES "${sources}")
     set_property(TARGET "${target_name}" APPEND PROPERTY COMPONENT_CAKEML_SOURCES "${cakeml_sources}")
     set_property(TARGET "${target_name}" APPEND PROPERTY COMPONENT_CAKEML_INCLUDES "${cakeml_includes}")
+    set_property(TARGET "${target_name}" APPEND PROPERTY COMPONENT_CAKEML_DEPENDS "${CAMKES_COMPONENT_CAKEML_DEPENDS}")
     set_property(TARGET "${target_name}" APPEND PROPERTY COMPONENT_C_FLAGS "${CAMKES_COMPONENT_C_FLAGS}")
     set_property(TARGET "${target_name}" APPEND PROPERTY COMPONENT_LD_FLAGS "${CAMKES_COMPONENT_LD_FLAGS}")
     set_property(TARGET "${target_name}" APPEND PROPERTY COMPONENT_LIBS "${CAMKES_COMPONENT_LIBS}")
