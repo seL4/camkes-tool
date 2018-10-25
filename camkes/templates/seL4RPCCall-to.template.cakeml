@@ -100,8 +100,7 @@
     /*- endif -*/
 /*- endmacro -*/
 
-open preamble basis bigStepTheory semanticPrimitivesTheory ml_translatorTheory
-     ml_translatorLib ml_progLib cfLib componentTheory;
+open preamble basis componentTheory;
 
 val _ = new_theory "connector";
 
