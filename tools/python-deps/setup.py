@@ -32,12 +32,13 @@ DEPS = [
     'pyelftools',
     'sel4-deps',
     'pycparser',
-    'pyfdt'
+    'pyfdt',
+    'enum34'
 ]
 
 setup(
     name='camkes-deps',
-    version='0.3.0',
+    version='0.4.0',
     description='Metapackage for downloading build dependencies for CAmkES',
     url='https://docs.sel4.systems/CAmkES/',
     licence='BSD2',
