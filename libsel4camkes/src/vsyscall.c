@@ -36,7 +36,9 @@ struct {
     {__NR_munlockall, camkes_sys_munlockall},
     {__NR_madvise, camkes_sys_madvise},
     {__NR_mincore, camkes_sys_mincore},
+#ifdef __NR_pause
     {__NR_pause, camkes_sys_pause},
+#endif
     {__NR_clock_gettime, camkes_sys_clock_gettime},
 #ifdef __NR__newselect
     {__NR__newselect, camkes_sys__newselect},
