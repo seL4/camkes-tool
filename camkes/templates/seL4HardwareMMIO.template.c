@@ -116,7 +116,7 @@ static const seL4_CPtr /*? frame_caps_symbol ?*/[] = {
     should pass a frames parameter. By not stashing the frame_objs we ensure that only the original
     creator passed the frames, and everyone else will still have a None here #*/
 
-/*- if options.architecture in ('aarch32', 'arm_hyp') -*/
+/*- if options.architecture in ('aarch32', 'arm_hyp', 'aarch64') -*/
     static int sel4_cache_op(seL4_CPtr frame_cap, seL4_Word start, seL4_Word end, dma_cache_op_t cache_op) {
         switch (cache_op) {
         case DMA_CACHE_OP_CLEAN:
@@ -134,7 +134,7 @@ static const seL4_CPtr /*? frame_caps_symbol ?*/[] = {
 
 /* Flush data corresponding to the dataport-relative address range from the CPU cache */
 int /*? me.interface.name ?*/_flush_cache(size_t start_offset UNUSED, size_t size UNUSED, dma_cache_op_t cache_op UNUSED) {
-    /*- if options.architecture in ('aarch32', 'arm_hyp') -*/
+    /*- if options.architecture in ('aarch32', 'arm_hyp', 'aarch64') -*/
 
     if (start_offset >= /*? size ?*/ || size > /*? size ?*/ || /*? size ?*/ - size < start_offset) {
         ZF_LOGE("Specified range is outside the bounds of the dataport");
