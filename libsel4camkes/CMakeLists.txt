@@ -14,13 +14,18 @@ cmake_minimum_required(VERSION 3.7.2)
 
 project(libsel4camkes C ASM)
 
+set(adjusted_seL4_arch "${KernelSel4Arch}")
+if ("${KernelSel4Arch}" STREQUAL "arm_hyp")
+	set(adjusted_seL4_arch "aarch32")
+endif()
+
 file(GLOB deps
     src/*.c
     src/arch/${KernelArch}/*.c
-    src/sel4_arch/${KernelSel4Arch}/*.c
-    src/sel4_arch/${KernelSel4Arch}/gdb_server/*.c
+    src/sel4_arch/${adjusted_seL4_arch}/*.c
+    src/sel4_arch/${adjusted_seL4_arch}/gdb_server/*.c
     src/arch/${KernelArch}/*.S
-    src/sel4_arch/${KernelSel4Arch}/*.S
+    src/sel4_arch/${adjusted_seL4_arch}/*.S
 )
 
 list(SORT deps)
