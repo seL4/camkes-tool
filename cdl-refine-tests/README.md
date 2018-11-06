@@ -10,27 +10,32 @@
      @TAG(DATA61_BSD)
 -->
 
-This is a little framework for generating Isabelle specs about the
-CAmkES ADL and capDL, and performing proofs over them.
+This is a test suite for running the generated capDL refinement proofs.
+These are Isabelle proof scripts, to prove that the generated capDL
+respects the isolation properties expected from its CAmkES system
+specification.
 
-Eventually, most of this ought to be automated in the main CAmkES tool
-and the L4.verified theories. For now, we have manually-written
-capDL refinement proofs, which are tested against the ADL and capDL
-specs generated from the CAmkES tool.
+Currently, the verification only supports apps that use the basic
+CAmkES features and connectors.
+We plan to extend verification support to more complex CAmkES
+assemblies in the future (eventually including a CAmkES VMM).
+
+When building a CAmkES app, enable proof generation with the
+`CAmkESCapDLVerification` option. The proof scripts will be
+generated in `projects/camkes` in your build directory.
 
 # Tests
-The top-level test script is ./run_tests.
+The top-level test script is `./run_tests`.
 
-The tests expect to run as part of a camkes-manifest checkout.
-You need a branch of the camkes-manifest that has suitable tool
-versions and a copy of `l4v`.
-
+The tests expect to run as part of a
+[camkes-manifest](https://github.com/seL4/camkes-manifest) checkout.
 In the camkes-manifest repo, do
 
 ```
-(cd .repo/manifests && git fetch origin &&
-    git checkout camkes-cdl-refine-VER-984)
 repo sync -m l4v-default.xml
 ```
+
+This will clone the Isabelle theorem prover and the L4.verified
+infrastructure into `projects/l4v`.
 
 Then run the `run_tests` script that is in this directory.
