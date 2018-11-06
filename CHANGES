@@ -9,12 +9,32 @@ Upcoming release
 
 ## Changes
 
+* AARCH64 is now supported.
+* CakeML components are now supported.
+* Added `query` type to Camkes ADL to allow for querying plugins for component configuration values.
+* Components can now make dtb queries to parse device information from dts files.
+* Component definitions for serial and timer added on exynos5422, exynos5410, pc99.
+* Preliminary support for Isabelle verification of generated capDL.
+    - See cdl-refine-tests/README for more information
+* Simplify and refactor the alignment and section linking policy for generated Camkes binaries.
+* Dataports are now required to declare their size in the ADL.
+* Templates now use seL4_IRQHandler instead of seL4_IRQControl, which is consistent with the seL4 API.
+    - This change is BREAKING.
+* Remove Kbuild based build system.
+* Remove caches that optimised the Kbuild build system, which are not required with the new Cmake build system.
+* Added virtqueue infrastructure to libsel4camkes, which allows virtio style queues between components.
+
 
 ## Upgrade Notes
+
+* Any dataport definitions that did not specify a size must be updated to use a size.
+* Any template that used seL4_IRQControl must be updated to use seL4_IRQHandler.
+* Projects must now use the new Cmake based build system.
+
 ---
 camkes-3.5.0 2018-05-28
 Using seL4 version 10.0.0
-  
+
 This release is the last release with official support for Kbuild based projects.
 This release and future releases use CMake as the build system for building applications.
 
