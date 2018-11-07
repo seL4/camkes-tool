@@ -9,6 +9,14 @@ Upcoming release
 
 ## Changes
 
+
+## Upgrade Notes
+---
+camkes-3.6.0 2018-11-07
+Using seL4 version 10.1.0
+  
+## Changes
+
 * AARCH64 is now supported.
 * CakeML components are now supported.
 * Added `query` type to Camkes ADL to allow for querying plugins for component configuration values.
