@@ -13,3 +13,4 @@
 cmake_minimum_required(VERSION 3.8.2)
 
 DeclareCAmkESComponent(Timer)
+DeclareCAmkESComponent(Serial)
