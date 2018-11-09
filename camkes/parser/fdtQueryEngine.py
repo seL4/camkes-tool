@@ -392,7 +392,10 @@ class DtbMatchQuery(Query):
             # drop the leading slash on the key
             key = p[0][1:]
             values = p[1]
-            resolved[key] = list(values)
+            if type(values) is pyfdt.pyfdt.FdtProperty:
+                resolved[key] = []
+            else:
+                resolved[key] = list(values)
         return resolved
 
     @staticmethod
