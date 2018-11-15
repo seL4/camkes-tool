@@ -265,7 +265,7 @@ endfunction(GeneratorValueOrDefault)
             STACK_SIZE "${stack}"
             RUNTIME_ENTRY "component_control_main"
             CAKEML_ENTRY "camkes_entry"
-            INCLUDES "${cakeml_includes}"
+            INCLUDES ${cakeml_includes}
             DEPENDS "${gen_target}" "${cakeml_depends}"
         )
         target_link_libraries(${target} camkescakeml camkescakeml_contents)
