@@ -75,7 +75,11 @@ class Parser(BaseParser):
         s7 = Parse7(s6)
 
         # Build the Query resolver
-        s71 = QueryParseStage(s7, options.queries)
+        if hasattr(options, 'queries'):
+            queries = options.queries
+        else:
+            queries = None
+        s71 = QueryParseStage(s7, queries)
 
         # Build the attribute resolver.
         s8 = Parse8(s71)
