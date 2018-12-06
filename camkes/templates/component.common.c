@@ -507,7 +507,7 @@ void USED _camkes_tls_init(int thread_id) {
         /*- set thread_names = dict() -*/
         /*- set _tcb_control = alloc_obj('%d_0_control_%d_tcb' % (len(me.name), len('0_control')), seL4_TCBObject) -*/
         /*- set tcb_control = alloc_cap('%d_0_control_%d_tcb' % (len(me.name), len('0_control')), _tcb_control) -*/
-        /*- do _tcb_control.__setitem__('ipc_buffer_slot', Cap(threads[0].ipc_frame, read=True, write=True, grant=False)) -*/
+        /*- do _tcb_control.__setitem__('ipc_buffer_slot', Cap(threads[0].ipc_frame, read=True, write=True)) -*/
         /*- if options.realtime -*/
             /*# SC for main component instance thread #*/
             /*- set sc_control = alloc('%d_0_control_%d_sc' % (len(me.name), len('0_control')), seL4_SchedContextObject) -*/
@@ -556,7 +556,7 @@ void USED _camkes_tls_init(int thread_id) {
 
             /*- set _tcb = alloc_obj('%s_tcb' % prefix, seL4_TCBObject) -*/
             /*- set tcb = alloc_cap('%s_tcb' % prefix, _tcb) -*/
-            /*- do _tcb.__setitem__('ipc_buffer_slot', Cap(t.ipc_frame, read=True, write=True, grant=False)) -*/
+            /*- do _tcb.__setitem__('ipc_buffer_slot', Cap(t.ipc_frame, read=True, write=True)) -*/
             /*- do thread_names.__setitem__(tcb, t.interface.name) -*/
 
             /*- set p = Perspective(instance=me.name, interface=t.interface.name, intra_index=t.intra_index) -*/
@@ -596,7 +596,7 @@ void USED _camkes_tls_init(int thread_id) {
         /*- if options.debug_fault_handlers -*/
             /*- set _tcb = alloc_obj('%d_0_fault_handler_%d_0000_tcb' % (len(me.name), len('0_fault_handler')), seL4_TCBObject) -*/
             /*- set tcb = alloc_cap('%d_0_fault_handler_%d_0000_tcb' % (len(me.name), len('0_fault_handler')), _tcb) -*/
-            /*- do _tcb.__setitem__('ipc_buffer_slot', Cap(fault_ipc_frame, read=True, write=True, grant=False)) -*/
+            /*- do _tcb.__setitem__('ipc_buffer_slot', Cap(fault_ipc_frame, read=True, write=True)) -*/
             /*- do thread_names.__setitem__(tcb, "fault_handler") -*/
             /*- if options.realtime -*/
                 /*- set sc = alloc('%d_0_fault_handler_%d_0000_sc' % (len(me.name), len('0_fault_handler')), seL4_SchedContextObject) -*/
