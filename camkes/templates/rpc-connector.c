@@ -182,7 +182,7 @@
 
     /*# Ensure the endpoint is allocated #*/
     /*- set ep_obj = alloc_obj('ep', seL4_EndpointObject) -*/
-    /*- set ep = alloc_cap('ep_%s' % me.interface.name, ep_obj, write=True, grant=True) -*/
+    /*- set ep = alloc_cap('ep_%s' % me.interface.name, ep_obj, write=True, grantreply=True) -*/
 
     /*? _allocate_badges(namespace) ?*/
     /*# Badge our capability #*/

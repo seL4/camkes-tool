@@ -22,20 +22,7 @@
 /*? macros.show_includes(me.instance.type.includes) ?*/
 /*? macros.show_includes(me.interface.type.includes) ?*/
 
-/*# HACK: The CapDL verification is based on a future, proposed version of
- *# seL4, wherein only Write is required on an endpoint to call to it. This
- *# allows a more principled information flow analysis.
- *#
- *# To get around this mess, we detect if the user is targeting the CapDL
- *# verification and, if so, do not provide Grant on this capability. Note that
- *# the resulting system will not run correctly.
- #*/
-/*- if os.environ.get('CONFIG_CAMKES_LABEL_MAPPING', '') == 'y' -*/
-  /*- set grant = False -*/
-/*- else -*/
-  /*- set grant = True -*/
-/*- endif -*/
-/*- set ep = alloc('ep', seL4_EndpointObject, write=True, grant=grant) -*/
+/*- set ep = alloc('ep', seL4_EndpointObject, write=True, grantreply=True) -*/
 
 /*- for i, m in enumerate(me.interface.type.methods) -*/
 

@@ -14,7 +14,7 @@
 /*? macros.show_includes(me.interface.type.includes, '../static/components/%s/' % me.instance.type.name) ?*/
 
 /*- set thread_caps = [] -*/
-/*- set mem_ep = alloc("mem_fault", seL4_EndpointObject, read=True, write=True, grant=True) -*/
+/*- set mem_ep = alloc("mem_fault", seL4_EndpointObject, read=True, write=True, grantreply=True) -*/
 
 /*- for cap in cap_space.cnode: -*/
     /*- if isinstance(cap_space.cnode[cap].referent, capdl.TCB): -*/

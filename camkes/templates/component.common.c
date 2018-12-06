@@ -528,7 +528,7 @@ void USED _camkes_tls_init(int thread_id) {
         /*- if options.debug_fault_handlers -*/
             /*? assert(fault_ep is defined and fault_ep is not none) ?*/
             /*- if not options.realtime -*/
-                /*- set fault_ep_cap = alloc_cap('fault_ep_0_control', fault_ep, read=True, write=True, grant=True) -*/
+                /*- set fault_ep_cap = alloc_cap('fault_ep_0_control', fault_ep, read=True, write=True, grantreply=True) -*/
                 /*- do my_cnode[fault_ep_cap].set_badge(tcb_control) -*/
                 /*- do setattr(_tcb_control, 'fault_ep_slot', fault_ep_cap) -*/
             /*- endif -*/
@@ -575,7 +575,7 @@ void USED _camkes_tls_init(int thread_id) {
             /*- if options.debug_fault_handlers -*/
                 /*? assert(fault_ep is defined and fault_ep is not none) ?*/
                 /*- if not options.realtime -*/
-                    /*- set fault_ep_cap = alloc_cap('fault_ep_%s_%04d' % (t.interface.name, t.intra_index), fault_ep, read=True, write=True, grant=True) -*/
+                    /*- set fault_ep_cap = alloc_cap('fault_ep_%s_%04d' % (t.interface.name, t.intra_index), fault_ep, read=True, write=True, grantreply=True) -*/
                     /*- do my_cnode[fault_ep_cap].set_badge(tcb) -*/
                     /*- do setattr(_tcb, 'fault_ep_slot', fault_ep_cap) -*/
                 /*- endif -*/
@@ -625,7 +625,7 @@ void USED _camkes_tls_init(int thread_id) {
             seL4_Word badge;
 
             /* Wait for a fault from one of the component's threads. */
-            /*- set fault_ep_cap = alloc_cap('fault_ep__fault_handler', fault_ep, read=True, write=True, grant=True) -*/
+            /*- set fault_ep_cap = alloc_cap('fault_ep__fault_handler', fault_ep, read=True, write=True, grantreply=True) -*/
             /*- if options.realtime -*/
                 /*- set fault_reply_cap = alloc('fault_reply__fault_handler', seL4_RTReplyObject) -*/
             /*- endif -*/

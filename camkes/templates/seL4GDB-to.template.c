@@ -32,7 +32,7 @@
 /*- set interface = me.interface.name -*/
 /*- set size = 'seL4_MsgMaxLength * sizeof(seL4_Word)' -*/
 /*- set allow_trailing_data = False -*/
-/*- set ep = alloc("ep_fault", seL4_EndpointObject, read=True, write=True, grant=True) -*/
+/*- set ep = alloc("ep_fault", seL4_EndpointObject, read=True, write=True, grantreply=True) -*/
 /*- set cnode = alloc_cap('cnode', my_cnode, write=True) -*/
     /*- if options.realtime -*/
         /*- set reply_cap_slot = alloc('reply_cap_slot', seL4_RTReplyObject) -*/
