@@ -68,6 +68,16 @@ def get_page_size(size, arch):
             break
     return frame_size
 
+def get_perm(conf, instance_name, interface_name):
+    '''Fetch a valid permission string'''
+    perm = configuration[instance_name].get('%s_access' % interface_name)
+    if not perm:
+        perm = "RWXP"
+    elif not re.match('^R?W?X?P?$'):
+        raise(TemplateError('invalid permissions attribute %s.%s_access' %
+            (instance_name, me.interface_name), conf))
+    return perm
+
 def show_type(t):
     assert isinstance(t, (six.string_types, Struct))
     if isinstance(t, six.string_types):
