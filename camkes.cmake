@@ -507,7 +507,7 @@ function(GenerateCAmkESRootserver)
         # Find the dts to use
         if ("${dts_file}" STREQUAL "")
             # no dts file set, try to find the default
-            FindDTS(dts_file ${PLATFORM})
+            FindDTS(dts_file ${KernelARMPlatform})
         elseif(NOT EXISTS "${dts_file}")
             message(FATAL_ERROR "Could not find dts file ${dts_file}")
         endif()
