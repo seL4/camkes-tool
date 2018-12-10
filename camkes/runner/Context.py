@@ -407,6 +407,8 @@ def alloc_cap(client, space, name, obj, **kwargs):
         space.cnode[cap].write = True
     if not space.cnode[cap].grant and kwargs.get('grant', False):
         space.cnode[cap].grant = True
+    if not space.cnode[cap].grantreply and kwargs.get('grantreply', False):
+        space.cnode[cap].grantreply = True
 
     return cap
 
