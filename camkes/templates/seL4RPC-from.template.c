@@ -32,7 +32,7 @@
 /*? macros.show_includes(me.instance.type.includes) ?*/
 /*? macros.show_includes(me.interface.type.includes) ?*/
 
-/*- set ep = alloc('ep', seL4_EndpointObject, read=read, grantreply=True) -*/
+/*- set ep = alloc('ep', seL4_EndpointObject, write=True, grantreply=True) -*/
 
 /*- set BUFFER_BASE = c_symbol('BUFFER_BASE') -*/
 #define /*? BUFFER_BASE ?*/ ((void*)&seL4_GetIPCBuffer()->msg[0])
