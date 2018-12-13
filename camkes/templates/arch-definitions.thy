@@ -35,14 +35,11 @@ begin
 locale /*? options.verification_base_name ?*/_Arch_Spec
 qualify /*? options.verification_base_name ?*/_Arch_Spec
 
-/*- macro param_type(type) -*/
+/*- macro camkes_type(type) -*/
     /*- if type == 'int' -*/
         Primitive (Numerical Integer)
     /*- elif type == 'unsigned int' -*/
         Primitive (Numerical UnsignedInteger)
-    /*- elif type in ['int8_t', 'int16_t', 'int32_t', 'int64_t', 'uint8_t', 'uint16_t', 'uint32_t', 'uint64_t', 'double', 'float', 'uintptr_t'] -*/
-        /*# C-specific types #*/
-        Primitive (Numerical /*? type ?*/)
     /*- elif type == 'real' -*/
         Primitive (Numerical Real)
     /*- elif type == 'char' -*/
@@ -54,8 +51,33 @@ qualify /*? options.verification_base_name ?*/_Arch_Spec
     /*- elif type == 'string' -*/
         Primitive (Textual String)
     /*- else -*/
-        /*? raise(TemplateError('unsupported type')) ?*/
+        CType ''/*? type ?*/''
     /*- endif -*/
+/*- endmacro -*/
+
+/*- macro param_type(param) -*/
+    /*- if param.array -*/
+        Array (SizedArray
+        /*- if type == 'int' -*/
+            (Numerical Integer)
+        /*- elif type == 'unsigned int' -*/
+            (Numerical UnsignedInteger)
+        /*- elif type == 'real' -*/
+            (Numerical Real)
+        /*- elif type == 'char' -*/
+            (Textual char)
+        /*- elif type == 'character' -*/
+            (Textual Character)
+        /*- elif type == 'boolean' -*/
+            (Numerical Boolean)
+        /*- else -*/
+            /*? raise(TemplateError('unsupported type: array of %s' % param.type)) ?*/
+        /*- endif -*/
+    /*- else -*/
+    /*- endif -*/
+    /*? 'Array (SizedArray (' if param.array else '' ?*/
+    /*? camkes_type(param.type) ?*/
+    /*? '))' if param.array else '' ?*/
 /*- endmacro -*/
 
 /*- if me.name is not none -*/
@@ -85,14 +107,14 @@ where
     /*- for m in i.methods -*/
         \<lparr> m_return_type =
         /*- if m.return_type -*/
-            Some (/*? param_type(m.return_type) ?*/)
+            Some (/*? camkes_type(m.return_type) ?*/)
         /*- else -*/
             None
         /*- endif -*/
         , m_name = ''/*? m.name ?*/'',
         m_parameters =
         /*- for p in m.parameters -*/
-            \<lparr> p_type = /*? param_type(p.type) ?*/,
+            \<lparr> p_type = /*? param_type(p) ?*/,
             p_direction =
             /*- if p.direction in ['in', 'refin'] -*/
                 InParameter
@@ -124,13 +146,16 @@ lemma wf_/*? i ?*/: "wellformed_event /*? i ?*/"
 /*- endfor -*/
 
 (* Dataport interfaces *)
-/*- for i in uniq(map(lambda('x: x.type'), flatMap(lambda('x: x.type.dataports'), me.composition.instances))) -*/
-definition
-    /*? i ?*/ :: dataport
-where
-    "/*? i ?*/ \<equiv> Some ''/*? i ?*/''"
 
-lemma wf_/*? i ?*/: "wellformed_dataport /*? i ?*/"
+/*- for i in uniq(map(lambda('x: x.type'), flatMap(lambda('x: x.type.dataports'), me.composition.instances))) -*/
+/*# hack to fix up names for sized buffer types e.g. 'Buf(4096)' -> 'Buf_4096' #*/
+/*- set dp_name = re.sub('\\((.*)\\)', '_\\1', i) -*/
+definition
+    /*? dp_name ?*/ :: dataport
+where
+    "/*? dp_name ?*/ \<equiv> Some ''/*? i ?*/''"
+
+lemma wf_/*? dp_name ?*/: "wellformed_dataport /*? dp_name ?*/"
   by code_simp
 /*- endfor -*/
 
@@ -158,7 +183,7 @@ where
         [],
         dataports =
         /*- for i in c.dataports -*/
-            (''/*? i.name ?*/'', /*? i.type ?*/) #
+            (''/*? i.name ?*/'', /*? re.sub('\\((.*)\\)', '_\\1', i.type) ?*/) #
         /*- endfor -*/
         [],
         emits =
@@ -173,7 +198,7 @@ where
         [],
         attributes =
         /*- for a in c.attributes -*/
-            (''/*? a.name ?*/'', /*? param_type(a.type) ?*/) #
+            (''/*? a.name ?*/'', /*? camkes_type(a.type) ?*/) #
         /*- endfor -*/
         []
     \<rparr>"
