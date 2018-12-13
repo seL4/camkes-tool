@@ -206,7 +206,7 @@
 
     /*# Ensure the endpoint is allocated #*/
     /*- set ep_obj = alloc_obj('ep', seL4_EndpointObject) -*/
-    /*- set namespace.ep = alloc_cap('ep_%s' % me.interface.name, ep_obj, read=True, write=True) -*/
+    /*- set namespace.ep = alloc_cap('ep_%s' % me.interface.name, ep_obj, read=True) -*/
 
     /*? _allocate_badges(namespace) ?*/
 

@@ -488,18 +488,12 @@ if (${CAmkESCapDLVerification})
     add_custom_command(
         OUTPUT "${CAMKES_CDL_THY}"
         COMMAND
-            # HACK: workaround for SELFOUR-6
-            # This removes Grant from all endpoint caps
-            ${CAPDL_THY_HACK_TOOL} <"${CAMKES_CDL_TARGET}" >"${CAMKES_CDL_TARGET}.munge"
-        COMMAND
-            ${CAPDL_TOOL_BINARY} --isabelle "${CAMKES_CDL_THY}" "${CAMKES_CDL_TARGET}.munge"
+            ${CAPDL_TOOL_BINARY} --isabelle "${CAMKES_CDL_THY}" "${CAMKES_CDL_TARGET}"
         DEPENDS
             "${CAMKES_CDL_TARGET}"
             camkes_capdl_target
             "${CAPDL_TOOL_BINARY}"
             install_capdl_tool
-        BYPRODUCTS
-            "${CAMKES_CDL_TARGET}.munge"
     )
     add_custom_target(camkes_cdl_thy DEPENDS "${CAMKES_CDL_THY}")
     add_dependencies(isabelle_root camkes_cdl_thy)

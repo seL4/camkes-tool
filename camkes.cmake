@@ -362,11 +362,6 @@ if ("${TPP_TOOL}" STREQUAL "TPP_TOOL-NOTFOUND")
     message(FATAL_ERROR "Failed to find tpp tool")
 endif()
 
-find_program(CAPDL_THY_HACK_TOOL capdl-thy-hack.pl PATHS ${CMAKE_CURRENT_LIST_DIR}/tools)
-if ("${CAPDL_THY_HACK_TOOL}" STREQUAL "CAPDL_THY_HACK_TOOL-NOTFOUND")
-    message(FATAL_ERROR "Failed to find Isabelle capDL hack script")
-endif()
-
 # CAmkES defines its own heaps and for this to work muslcsys must not be configured to
 # use a static morecore. We make the morecore dynamic by setting the size to 0
 set(LibSel4MuslcSysMorecoreBytes 0 CACHE STRING "" FORCE)

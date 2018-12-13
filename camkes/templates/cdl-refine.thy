@@ -240,7 +240,7 @@ schematic_goal /*? options.verification_base_name ?*/_policy_def':
 schematic_goal /*? options.verification_base_name ?*/_policy_gen_cases_:
   "((subj, auth, obj) \<in> /*? options.verification_base_name ?*/_policy) = ?cases"
   apply (clarsimp simp only: /*? options.verification_base_name ?*/_policy_def' mem_Collect_eq)
-  by (assign_schematic_dnf)
+  by assign_schematic_dnf
 
 lemma subst_eqn_helper:
   "(\<And>s. s = t \<longrightarrow> P s) \<Longrightarrow> P t"
@@ -297,6 +297,59 @@ lemma /*? options.verification_base_name ?*/_admissible_pas_exists:
   done
 
 text \<open>
+  Simplified, automation-friendl(ier) intro for policy_wellformed, assuming that
+  CAmkES never provides Grant auth across components and IRQs are disabled.
+\<close>
+
+lemma camkes_policy_wellformedI:
+  assumes "\<not>maySendIrqs"
+      and "\<And>a. (agent, a, agent) \<in> aag"
+      and "\<And>s auth r. (s, auth, r) \<in> aag \<Longrightarrow> (s, Control, s) \<in> aag"
+      and "\<And>s r. (s, Grant, r) \<in> aag \<Longrightarrow> s = r"
+      and "\<And>s r. (s, Control, r) \<in> aag \<Longrightarrow> s = r"
+      and "\<And>s auth. (s, Control, s) \<in> aag \<Longrightarrow> (s, auth, s) \<in> aag"
+      and "\<And>s r. (s, Receive, r) \<in> aag \<Longrightarrow> s \<noteq> r \<Longrightarrow> (r, Control, r) \<in> aag \<Longrightarrow> False"
+      and "\<And>s r. (s, Call, r) \<in> aag \<Longrightarrow> s \<noteq> r \<Longrightarrow> (r, Control, r) \<in> aag \<Longrightarrow> False"
+      and "\<And>s ep. (s, Call, ep) \<in> aag \<Longrightarrow> (s, SyncSend, ep) \<in> aag"
+      and "\<And>s r. (s, Reply, r) \<in> aag \<Longrightarrow> (r, DeleteDerived, s) \<in> aag"
+      and "\<And>s r ep. (s, Call, ep) \<in> aag \<Longrightarrow> s \<noteq> ep \<Longrightarrow> (r, Receive, ep) \<in> aag
+                     \<Longrightarrow> (r, Reply, s) \<in> aag"
+      and "\<And>l1 l2 l3. (l1, DeleteDerived, l2) \<in> aag \<Longrightarrow> l1 \<noteq> l2 \<Longrightarrow> (l2, DeleteDerived, l3) \<in> aag
+                       \<Longrightarrow> (l1, DeleteDerived, l3) \<in> aag"
+  shows "policy_wellformed aag maySendIrqs irqSet agent"
+  unfolding policy_wellformed_def
+  apply (insert assms)
+  apply (safe; metis)
+  done
+
+text \<open>
+  Checking the transitivity conditions for @{const policy_wellformed} is quadratic in
+  the size of our policy; here we extract relevant subsets of the policy cases to
+  make things a bit faster.
+
+  Ultimately, we would like to prove a generic @{const policy_wellformed} theorem for
+  all @{const policy_of} outputs, but the current messiness of
+  @{const policy_of} and @{const wellformed_assembly} are not conducive for that.
+\<close>
+
+lemmas /*? options.verification_base_name ?*/_policy_cases_Control =
+  /*? options.verification_base_name ?*/_policy_gen_cases_[where auth = "Control", simplified]
+lemmas /*? options.verification_base_name ?*/_policy_cases_Receive =
+  /*? options.verification_base_name ?*/_policy_gen_cases_[where auth = "Receive", simplified]
+lemmas /*? options.verification_base_name ?*/_policy_cases_Reply =
+  /*? options.verification_base_name ?*/_policy_gen_cases_[where auth = "Reply", simplified]
+lemmas /*? options.verification_base_name ?*/_policy_cases_Grant =
+  /*? options.verification_base_name ?*/_policy_gen_cases_[where auth = "Grant", simplified]
+lemmas /*? options.verification_base_name ?*/_policy_cases_Call =
+  /*? options.verification_base_name ?*/_policy_gen_cases_[where auth = "Call", simplified]
+lemmas /*? options.verification_base_name ?*/_policy_cases_DeleteDerived =
+  /*? options.verification_base_name ?*/_policy_gen_cases_[where auth = "DeleteDerived", simplified]
+lemmas /*? options.verification_base_name ?*/_policy_cases_DeleteDerived2 =
+/*- for c in me.composition.instances -*/
+  /*? options.verification_base_name ?*/_policy_cases_DeleteDerived[where subj = "''/*? c.name ?*/''", simplified]
+/*- endfor -*/
+
+text \<open>
   Ensure that our base access policy is wellformed.
   This lets us extend it to other wellformed policies.
 \<close>
@@ -305,13 +358,52 @@ lemma /*? options.verification_base_name ?*/_policy_wellformed:
      pasSubject aag \<in> fst ` set (components (composition /*? arch_spec_thy ?*/.assembly'));
      \<not> pasMaySendIrqs aag \<comment> \<open>ignore IRQs for now\<close>
    \<rbrakk> \<Longrightarrow> pas_wellformed aag"
-  apply (clarsimp simp: policy_wellformed_def /*? options.verification_base_name ?*/_connections /*? options.verification_base_name ?*/_component_names)
-  apply (fastforce simp only:
-                   intro!: /*? options.verification_base_name ?*/_policy_intros
-                   dest!: /*? options.verification_base_name ?*/_policy_gen_cases_[THEN iffD1])
+  apply clarsimp
+  apply (rule camkes_policy_wellformedI)
+             (* IRQs disabled *)
+             apply blast
+            (* Components are agents *)
+            apply (fastforce simp: /*? options.verification_base_name ?*/_connections /*? options.verification_base_name ?*/_component_names
+                            intro: /*? options.verification_base_name ?*/_policy_intros)
+           (* All subjects have self Control *)
+           apply (drule /*? options.verification_base_name ?*/_policy_gen_cases_[THEN iffD1])
+           apply (fast intro: /*? options.verification_base_name ?*/_policy_intros)
+          (* Grant confinement *)
+          apply (fastforce dest: /*? options.verification_base_name ?*/_policy_cases_Grant[THEN iffD1]
+                          intro: /*? options.verification_base_name ?*/_policy_intros)
+         (* Control confinement *)
+         apply (fastforce dest: /*? options.verification_base_name ?*/_policy_cases_Control[THEN iffD1]
+                         intro: /*? options.verification_base_name ?*/_policy_intros)
+        (* Control implies all rights *)
+        apply (fastforce dest: /*? options.verification_base_name ?*/_policy_cases_Control[THEN iffD1]
+                        intro: /*? options.verification_base_name ?*/_policy_intros)
+       (* Components are not Receive targets *)
+       apply (fastforce dest: /*? options.verification_base_name ?*/_policy_cases_Receive[THEN iffD1]
+                              /*? options.verification_base_name ?*/_policy_cases_Control[THEN iffD1]
+                       intro: /*? options.verification_base_name ?*/_policy_intros)
+      (* Components are not Call targets *)
+      apply (fastforce dest: /*? options.verification_base_name ?*/_policy_cases_Call[THEN iffD1]
+                             /*? options.verification_base_name ?*/_policy_cases_Control[THEN iffD1]
+                      intro: /*? options.verification_base_name ?*/_policy_intros)
+     (* Call implies SyncSend *)
+     apply (fastforce dest: /*? options.verification_base_name ?*/_policy_cases_Call[THEN iffD1]
+                     intro: /*? options.verification_base_name ?*/_policy_intros)
+    (* Reply implies DeleteDerived *)
+    apply (fastforce dest: /*? options.verification_base_name ?*/_policy_cases_Reply[THEN iffD1]
+                    intro: /*? options.verification_base_name ?*/_policy_intros)
+   (* Call + Receive implies Reply *)
+   apply (fast dest: /*? options.verification_base_name ?*/_policy_cases_Call[THEN iffD1]
+                     /*? options.verification_base_name ?*/_policy_cases_Receive[THEN iffD1]
+              intro: /*? options.verification_base_name ?*/_policy_intros)
+  (* DeleteDerived is transitive *)
+  apply (drule /*? options.verification_base_name ?*/_policy_cases_DeleteDerived[THEN iffD1];
+         elim conjE disjE;
+         (simp only: simp_thms cong: disj_cong)?;
+         drule /*? options.verification_base_name ?*/_policy_cases_DeleteDerived2[THEN iffD1];
+         (simp only: simp_thms cong: disj_cong)?;
+         elim conjE disjE;
+         simp only: /*? options.verification_base_name ?*/_policy_intros)
   done
-
-
 
 section \<open>More helpers\<close>
 
@@ -370,6 +462,9 @@ lemma helper_pcs_refined_policyI:
   assumes cdt_policy: "\<And>p slot p' slot'.
                           cdl_cdt s (p, slot) = Some (p', slot') \<Longrightarrow>
                           (pasObjectAbs aag p', Control, pasObjectAbs aag p) \<in> pasPolicy aag"
+      and delete_derived_policy: "\<And>p slot p' slot'.
+                          cdl_cdt s (p, slot) = Some (p', slot') \<Longrightarrow>
+                          (pasObjectAbs aag p', DeleteDerived, pasObjectAbs aag p) \<in> pasPolicy aag"
       and obj_policy: "\<And>p p_obj p_idx cap auth oref.
                           \<lbrakk> cdl_objects s p = Some p_obj;
                             object_slots p_obj p_idx = Some cap;
@@ -379,7 +474,7 @@ lemma helper_pcs_refined_policyI:
   shows "auth_graph_map (pasObjectAbs aag) (cdl_state_objs_to_policy s) \<subseteq> (pasPolicy aag)"
   apply (clarsimp simp: cdl_state_objs_to_policy_def auth_graph_map_def)
   by (fastforce elim: cdl_state_bits_to_policy.cases
-                intro: obj_policy cdt_policy
+                intro: obj_policy cdt_policy delete_derived_policy
                 simp: opt_cap_def slots_of_def opt_object_def
                 split: option.splits)
 
@@ -464,11 +559,11 @@ proof -
                                /*? options.verification_base_name ?*/_asid_policy_trivial /*? options.verification_base_name ?*/_irq_policy_trivial
                     del: subsetI)
     apply (rule helper_pcs_refined_policyI)
-     text \<open>
-        CDT case.
-        FIXME: Our capDL assigns an empty CDT, so there's not much to do here right now.
-     \<close>
-     apply (fastforce simp: /*? cdl_thy ?*/.state_def /*? cdl_thy ?*/.cdt_def)
+      text \<open>
+         CDT properties.
+         FIXME: Our capDL assigns an empty CDT, so there's not much to do here right now.
+      \<close>
+      apply ((fastforce simp: /*? cdl_thy ?*/.state_def /*? cdl_thy ?*/.cdt_def)+)[2]
 
     text \<open>Object case.\<close>
     apply (clarsimp simp: /*? cdl_thy ?*/.state_def)
@@ -514,6 +609,9 @@ proof -
                                                   cap_rights_to_auth_def
                                                   vspace_cap_rights_to_auth_def\<close>\<close>)+,
                            solves \<open>simp only: option.distinct\<close>\<close>\<close>)+
+
+    (* Assert that we have processed all normal objects *)
+    apply (match premises in "(empty_irq_objects ++ Map.empty) _ = Some _" \<Rightarrow> succeed)
 
     text \<open>FIXME: Our capDL assigns no IRQs, so there's not much to do here right now.\<close>
     apply (clarsimp simp: /*? cdl_thy ?*/.empty_irq_objects_def /*? cdl_thy ?*/.empty_irq_node_def
