@@ -33,7 +33,8 @@ sys.path.append(os.path.join(MY_DIR, '../../../../python-capdl'))
 sys.path.append(os.path.join(MY_DIR, '../../..'))
 
 from camkes.internal.tests.utils import CAmkESTest, which
-from camkes.templates.macros import sizeof
+from camkes.templates.macros import sizeof, get_perm
+from camkes.templates import TemplateError
 
 def uname():
     '''
@@ -64,6 +65,20 @@ class TestMacros(CAmkESTest):
         sz = sizeof('ia32', 'long')
 
         self.assertEqual(sz, 4)
+
+    def test_get_perm(self):
+        conf = {}
+        instance = "bah"
+        iface = "humbug"
+        field = '%s_access' % iface
+        conf[instance] = {}
+
+        self.assertEqual(get_perm(conf, instance, iface), "RWXP")
+        conf[instance][field] = "R"
+        self.assertEqual(get_perm(conf, instance, iface), "R")
+        conf[instance][field] = "FOO"
+        with self.assertRaises(TemplateError):
+            get_perm(conf, instance, iface)
 
     def test_find_unused_macros(self):
         '''
