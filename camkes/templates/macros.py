@@ -20,7 +20,7 @@ from __future__ import absolute_import, division, print_function, \
 from camkes.internal.seven import cmp, filter, map, zip
 
 from camkes.ast import Composition, Instance, Parameter, Struct
-from camkes.templates import sizeof_probe
+from camkes.templates import sizeof_probe, TemplateError
 from capdl import ASIDPool, CNode, Endpoint, Frame, IODevice, IOPageTable, \
     Notification, page_sizes, PageDirectory, PageTable, TCB, Untyped, \
     calculate_cnode_size, lookup_architecture
@@ -73,9 +73,8 @@ def get_perm(configuration, instance_name, interface_name):
     perm = configuration[instance_name].get('%s_access' % interface_name)
     if not perm:
         perm = "RWXP"
-    elif not re.match('^R?W?X?P?$'):
-        raise(TemplateError('invalid permissions attribute %s.%s_access' %
-            (instance_name, me.interface_name), conf))
+    elif not re.match('^R?W?X?P?$', perm):
+        raise(TemplateError('invalid permissions attribute %s.%s_access' % (instance_name, interface_name)))
     return perm
 
 def show_type(t):
