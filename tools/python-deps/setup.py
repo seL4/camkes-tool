@@ -33,12 +33,13 @@ DEPS = [
     'sel4-deps',
     'pycparser',
     'pyfdt',
-    'enum34'
+    'enum34',
+    'concurrencytest'
 ]
 
 setup(
     name='camkes-deps',
-    version='0.4.0',
+    version='0.5.0',
     description='Metapackage for downloading build dependencies for CAmkES',
     url='https://docs.sel4.systems/CAmkES/',
     licence='BSD2',
