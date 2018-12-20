@@ -18,78 +18,54 @@ This script is a quick way to execute the tests for all CAmkES modules.
 
 from __future__ import absolute_import, division, print_function, \
     unicode_literals
+from concurrencytest import ConcurrentTestSuite, fork_for_tests
 import capdl
+import camkes.ast
+import camkes.internal
+import camkes.parser
+import camkes.runner
+import camkes.templates
 
-import argparse, multiprocessing, os, subprocess, sys
+import argparse, multiprocessing, os, subprocess, sys, unittest
 
 ME = os.path.abspath(__file__)
 
-# Available tests. The keys to this dictionary should be category names and the
-# values should be executable files at either absolute paths or relative paths
-# to this directory.
-TESTS = {
-    'ast':['camkes/ast/tests/runall.py'],
-    'internal':['camkes/internal/tests/runall.py'],
-    'parser':['camkes/parser/tests/runall.py'],
-    'runner':['camkes/runner/tests/runall.py'],
-    'templates':['camkes/templates/tests/runall.py'],
-}
-
-def run(command):
-    sys.stdout.write('running %s...\n' % ' '.join(command))
-
-    # Pass capdl import through PYTHONPATH
-    env = os.environ.copy()
-    env["PYTHONPATH"] = ":".join(sys.path)
-    p = subprocess.Popen(command, stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE, universal_newlines=True, env=env)
-    stdout, stderr = p.communicate()
-    return command, p.returncode, stdout, stderr
+# Available tests. The keys to this dictionary should be names of packages containing tests
+# packages must be imported in this file and the directory with tests must be a valid
+# python module (--> contains an __init__.py)
+TESTS = ['ast', 'internal', 'parser','runner','templates']
 
 def main(argv):
     parser = argparse.ArgumentParser(prog=argv[0],
         description='run CAmkES tests')
     parser.add_argument('--jobs', '-j', nargs='?', type=int,
         help='parallelise test execution')
-    parser.add_argument('test', nargs='*', help='run a specific category of tests')
+    parser.add_argument('test', nargs='*', choices=TESTS+['all'], default='all', help='run a specific category of tests')
     parser.add_argument('--capdl-python', help='Deprecated. Using this argument has no effect.')
     options = parser.parse_args(argv[1:])
 
-
-    try:
-        tests = [[os.path.join(os.path.dirname(ME), t[0])] + t[1:] for t in
-            ([TESTS[t] for t in options.test] or TESTS.values())]
-    except KeyError as e:
-        sys.stderr.write('invalid test category %s\n' % e)
-        return -1
-
     if options.jobs is None:
         # Maximum parallelism.
-        options.jobs = min(len(tests), multiprocessing.cpu_count())
+        options.jobs = multiprocessing.cpu_count()
 
-    if options.jobs > 1:
-        # XXX: This is just a map using a thread pool, but
-        # `multiprocessing.Pool.map` seems to not handle Ctrl-C very well.
-        def mapper(f, xs):
-            return multiprocessing.Pool(options.jobs).map_async(f,
-                xs).get(1000)
+    # work out which tests to run
+    if options.test == 'all' or 'all' in options.test:
+        test_packages = TESTS
     else:
-        mapper = map
+        test_packages = options.test
 
-    # Run the tests.
-    results = mapper(run, tests)
+    # load the tests we want to run
+    loader = unittest.TestLoader()
+    test_suite = unittest.TestSuite()
+    for v in test_packages:
+        test_suite.addTests(loader.discover('camkes.' + v, top_level_dir=os.path.dirname(ME)))
 
-    # Dump the stdout and stderr of each test.
-    for command, _, stdout, stderr in results:
-        if stdout:
-            sys.stdout.write(' -- stdout %s --\n%s' %
-                (' '.join(command), stdout))
-        if stderr:
-            sys.stderr.write(' -- stderr %s --\n%s' %
-                (' '.join(command), stderr))
-
-    # Return non-zero if any of the tests fail.
-    return any(r for _, r, _, _ in results)
+    concurrent_suite = ConcurrentTestSuite(test_suite, fork_for_tests(options.jobs))
+    runner = unittest.TextTestRunner()
+    result = runner.run(concurrent_suite)
+    if result.wasSuccessful():
+        return 0
+    return 1
 
 if __name__ == '__main__':
     sys.exit(main(sys.argv))
