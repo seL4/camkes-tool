@@ -40,6 +40,7 @@ def main(argv):
         description='run CAmkES tests')
     parser.add_argument('--jobs', '-j', nargs='?', type=int,
         help='parallelise test execution')
+    parser.add_argument('--verbosity', '-v', default=1, type=int, help="Verbosity to run tests. 0 = quiet. 1 = default. 2 = verbose")
     parser.add_argument('test', nargs='*', choices=TESTS+['all'], default='all', help='run a specific category of tests')
     parser.add_argument('--capdl-python', help='Deprecated. Using this argument has no effect.')
     options = parser.parse_args(argv[1:])
@@ -61,7 +62,7 @@ def main(argv):
         test_suite.addTests(loader.discover('camkes.' + v, top_level_dir=os.path.dirname(ME)))
 
     concurrent_suite = ConcurrentTestSuite(test_suite, fork_for_tests(options.jobs))
-    runner = unittest.TextTestRunner()
+    runner = unittest.TextTestRunner(verbosity=options.verbosity)
     result = runner.run(concurrent_suite)
     if result.wasSuccessful():
         return 0
