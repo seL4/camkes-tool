@@ -33,6 +33,13 @@ def cpp_available():
         _cpp_available = which('cpp')
     return _cpp_available
 
+_spin_available = None
+def spin_available():
+    global _spin_available
+    if _spin_available is None:
+        _spin_available = which('spin')
+    return _spin_available
+
 _plyplus_introspectible = None
 def plyplus_introspectible():
     '''

@@ -29,7 +29,7 @@ MY_DIR = os.path.dirname(ME)
 # Make CAmkES importable
 sys.path.append(os.path.join(os.path.dirname(ME), '../../..'))
 
-from camkes.internal.tests.utils import CAmkESTest
+from camkes.internal.tests.utils import CAmkESTest, spin_available
 
 class TestSel4Notification(CAmkESTest):
     def test_locking_protocol(self):
@@ -68,6 +68,7 @@ class TestSel4Notification(CAmkESTest):
             if isinstance(node, c_ast.FuncDef):
                 check_termination(src, node.decl.name, node.body.block_items)
 
+    @unittest.skipIf(not spin_available(), 'Spin not found')
     def test_sel4notification_safety(self):
         pml = os.path.join(MY_DIR, 'sel4notification.pml')
 
@@ -89,6 +90,7 @@ class TestSel4Notification(CAmkESTest):
         if stdout.find('errors: 0') < 0:
             self.fail('pan-safety failed:\n%s' % stdout)
 
+    @unittest.skipIf(not spin_available(), 'Spin not found')
     def test_sel4notification_liveness(self):
         pml = os.path.join(MY_DIR, 'sel4notification.pml')
 
