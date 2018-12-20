@@ -18,6 +18,7 @@ This script is a quick way to execute the tests for all CAmkES modules.
 
 from __future__ import absolute_import, division, print_function, \
     unicode_literals
+import capdl
 
 import argparse, multiprocessing, os, subprocess, sys
 
@@ -51,11 +52,9 @@ def main(argv):
     parser.add_argument('--jobs', '-j', nargs='?', type=int,
         help='parallelise test execution')
     parser.add_argument('test', nargs='*', help='run a specific category of tests')
-    parser.add_argument('--capdl-python', help='fullpath to the capdl python library')
+    parser.add_argument('--capdl-python', help='Deprecated. Using this argument has no effect.')
     options = parser.parse_args(argv[1:])
 
-    # make capdl importable
-    sys.path.append(options.capdl_python)
 
     try:
         tests = [[os.path.join(os.path.dirname(ME), t[0])] + t[1:] for t in
