@@ -22,7 +22,7 @@
 #include <sys/reg.h>
 #include <utils/util.h>
 
-/*- if not options.realtime -*/
+/*- if options.realtime -*/
 /*- set ro = alloc('ro', seL4_RTReplyObject) -*/
 /*- endif -*/
 /*? macros.show_includes(me.instance.type.includes) ?*/
