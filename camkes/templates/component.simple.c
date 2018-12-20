@@ -469,6 +469,10 @@ static UNUSED seL4_CPtr camkes_simple_sched_ctrl(void *data, seL4_Word core) {
     return seL4_CapNull;
 }
 
+static int simple_default_core_count(void *data) {
+    return CONFIG_MAX_NUM_NODES;
+}
+
 void camkes_make_simple(simple_t *simple) {
     if (!camkes_simple_init) {
         /*- if cnodesize is none -*/
@@ -508,6 +512,7 @@ void camkes_make_simple(simple_t *simple) {
     simple->extended_bootinfo = &camkes_get_extended_bootinfo;
 #ifdef CONFIG_KERNEL_RT
     simple->sched_ctrl = &camkes_simple_sched_ctrl;
+    simple->core_count = &camkes_simple_core_count;
 #endif
 #ifdef CONFIG_ARM_SMMU
     simple->arch_simple.iospace_cap_count = simple_camkes_get_iospace_cap_count;
