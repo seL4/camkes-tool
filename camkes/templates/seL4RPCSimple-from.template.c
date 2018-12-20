@@ -149,8 +149,10 @@ static
     void
 /*- endif -*/
 ) {
+    /*- if not options.realtime -*/
     /* Save any pending reply cap, as we'll overwrite it during `seL4_Call`. */
     camkes_protect_reply_cap();
+    /*- endif -*/
 
     /* Marshal input parameters. */
     /*- set mr = c_symbol('mr_index') -*/

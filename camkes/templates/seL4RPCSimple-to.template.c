@@ -22,6 +22,9 @@
 #include <sys/reg.h>
 #include <utils/util.h>
 
+/*- if not options.realtime -*/
+/*- set ro = alloc('ro', seL4_RTReplyObject) -*/
+/*- endif -*/
 /*? macros.show_includes(me.instance.type.includes) ?*/
 /*? macros.show_includes(me.interface.type.includes) ?*/
 
@@ -55,9 +58,11 @@
 /*- set ep = alloc('ep', seL4_EndpointObject, read=True, write=True) -*/
 
 /*# We may need a slot to save reply caps in. #*/
-/*- if len(me.instance.type.provides + me.instance.type.uses + me.instance.type.consumes + me.instance.type.mutexes + me.instance.type.semaphores) > 1 -*/
+/*- if not options.realtime -*/
+/*- if len(me.instance.type.provides + me.instance.type.uses + me.instance.type.consumes + me.instance.type.mutexes + me.instance.type.semaphores) > 1 -*//
     /*- set cnode = alloc_cap('cnode', my_cnode, write=True) -*/
     /*- set reply_cap_slot = alloc_cap('reply_cap_slot', None) -*/
+/*- endif -*/
 /*- endif -*/
 
 /*# Necessary TLS variables #*/
@@ -226,11 +231,13 @@ static unsigned /*? me.interface.name ?*/_/*? m.name ?*/_internal(void) {
         /*- endfor -*/
     );
 
+    /*- if not options.realtime -*/
     /*- if len(me.instance.type.provides + me.instance.type.uses + me.instance.type.consumes + me.instance.type.mutexes + me.instance.type.semaphores) > 1 -*/
         /*- set result = c_symbol() -*/
 
         int /*? result ?*/ UNUSED = seL4_CNode_SaveCaller(/*? cnode ?*/, /*? reply_cap_slot ?*/, 32);
         assert(/*? result ?*/ == 0);
+    /*- endif -*/
     /*- endif -*/
 
     /*- set ret = c_symbol('ret') -*/
@@ -278,7 +285,11 @@ static unsigned /*? me.interface.name ?*/_/*? m.name ?*/_internal(void) {
 /*- set first = c_symbol('first') -*/
 static seL4_MessageInfo_t /*? me.interface.name ?*/__run_internal(bool /*? first ?*/, seL4_MessageInfo_t /*? info ?*/) {
     if (/*? first ?*/) {
+        /*- if options.realtime -*/
+        /*? info ?*/ = seL4_Recv(/*? ep ?*/, NULL, /*? ro ?*/);
+        /*- else -*/
         /*? info ?*/ = seL4_Recv(/*? ep ?*/, NULL);
+        /*- endif -*/
     }
 
     /* We should have at least been passed a method index */
@@ -295,7 +306,9 @@ static seL4_MessageInfo_t /*? me.interface.name ?*/__run_internal(bool /*? first
                 /* Send the response */
                 /*? info ?*/ = seL4_MessageInfo_new(0, 0, 0, /*? length ?*/);
 
-                /*- if len(me.instance.type.provides + me.instance.type.uses + me.instance.type.consumes + me.instance.type.mutexes + me.instance.type.semaphores) > 1 -*/
+                /*- if options.realtime -*/
+                /*? info ?*/ = seL4_ReplyRecv(/*? ep ?*/, NULL, /*? ro ?*/);
+                /*- elif len(me.instance.type.provides + me.instance.type.uses + me.instance.type.consumes + me.instance.type.mutexes + me.instance.type.semaphores) > 1 -*/
                     seL4_Send(/*? reply_cap_slot ?*/, /*? info ?*/);
                     /*? info ?*/ = seL4_Recv(/*? ep ?*/, NULL);
                 /*- else -*/
