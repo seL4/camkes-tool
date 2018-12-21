@@ -469,7 +469,7 @@ static UNUSED seL4_CPtr camkes_simple_sched_ctrl(void *data, seL4_Word core) {
     return seL4_CapNull;
 }
 
-static int simple_default_core_count(void *data) {
+static int camkes_simple_core_count(void *data) {
     return CONFIG_MAX_NUM_NODES;
 }
 
