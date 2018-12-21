@@ -307,7 +307,7 @@ static seL4_MessageInfo_t /*? me.interface.name ?*/__run_internal(bool /*? first
                 /*? info ?*/ = seL4_MessageInfo_new(0, 0, 0, /*? length ?*/);
 
                 /*- if options.realtime -*/
-                /*? info ?*/ = seL4_ReplyRecv(/*? ep ?*/, NULL, /*? ro ?*/);
+                /*? info ?*/ = seL4_ReplyRecv(/*? ep ?*/, /*? info ?*/, NULL, /*? ro ?*/);
                 /*- elif len(me.instance.type.provides + me.instance.type.uses + me.instance.type.consumes + me.instance.type.mutexes + me.instance.type.semaphores) > 1 -*/
                     seL4_Send(/*? reply_cap_slot ?*/, /*? info ?*/);
                     /*? info ?*/ = seL4_Recv(/*? ep ?*/, NULL);
