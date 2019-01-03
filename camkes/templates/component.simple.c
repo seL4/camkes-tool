@@ -34,8 +34,10 @@
 /*- set self_cnode = alloc_cap('cnode', my_cnode, write=true) -*/
 /*- set self_pd = alloc_cap('my_pd_cap', my_pd, write=true) -*/
 
+/*- if options.realtime -*/
 /*- if 'sched_ctrl' in configuration[me.name].keys() -*/
     /*- set sched_control = alloc('sched_control', type=seL4_SchedControl, core=configuration[me.name].get('sched_ctrl')) -*/
+/*- endif -*/
 /*- endif -*/
 
 /*- set extrabi_list = [] -*/
@@ -461,10 +463,12 @@ static ssize_t camkes_get_extended_bootinfo(void *data, seL4_Word type, void *de
 }
 
 static UNUSED seL4_CPtr camkes_simple_sched_ctrl(void *data, seL4_Word core) {
+    /*- if options.realtime -*/
     /*- if 'sched_ctrl' in configuration[me.name].keys() -*/
     if (core == /*? configuration[me.name].get('sched_ctrl') ?*/) {
         return /*? sched_control ?*/;
     }
+    /*- endif -*/
     /*- endif -*/
     return seL4_CapNull;
 }
