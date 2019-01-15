@@ -123,6 +123,7 @@ function(CAmkESOutputGenCommand object_state_op)
             # Any additional dependencies from the files
             ${deps_list}
         VERBATIM
+        USES_TERMINAL
         COMMAND_EXPAND_LISTS
         COMMENT "Performing CAmkES generation for ${outfile_list_count} files"
     )

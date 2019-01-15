@@ -575,14 +575,15 @@ function(GenerateCAmkESRootserver)
         message(STATUS "camkes-gen.cmake is out of date. Regenerating...")
         execute_process(
             COMMAND ${camkes_invocation}
+            INPUT_FILE /dev/stdin
+            OUTPUT_FILE /dev/stdout
+            ERROR_FILE /dev/stderr
             RESULT_VARIABLE camkes_gen_error
-            OUTPUT_VARIABLE camkes_output
-            ERROR_VARIABLE camkes_output
         )
         file(WRITE "${invoc_file}" "${camkes_invocation}")
         if (camkes_gen_error)
             file(REMOVE ${gen_outfile})
-            message(FATAL_ERROR "Failed to generate camkes-gen.cmake: ${camkes_output}")
+            message(FATAL_ERROR "Failed to generate camkes-gen.cmake")
         endif()
         # Add dependencies
         MakefileDepsToList("${deps_file}" deps)
