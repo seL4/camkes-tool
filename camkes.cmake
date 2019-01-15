@@ -574,9 +574,6 @@ function(GenerateCAmkESRootserver)
     if (regen)
         message(STATUS "camkes-gen.cmake is out of date. Regenerating...")
         execute_process(
-            # First delete the data structure cache directory as this is a new build
-            COMMAND
-                ${CMAKE_COMMAND} -E remove_directory "${CMAKE_CURRENT_BINARY_DIRECTOR}/camkes_pickle"
             COMMAND ${camkes_invocation}
             RESULT_VARIABLE camkes_gen_error
             OUTPUT_VARIABLE camkes_output
