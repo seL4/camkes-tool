@@ -89,7 +89,7 @@ class RenderState():
 
 class RenderOptions():
     def __init__(self, file, verbosity, frpc_lock_elision, fspecialise_syscall_stubs,
-            fprovide_tcb_caps, fsupport_init, largeframe, largeframe_dma, architecture,
+            fprovide_tcb_caps, largeframe, largeframe_dma, architecture,
             debug_fault_handlers, default_stack_size, realtime, verification_base_name,
             filter_options, render_state):
         self.file = file
@@ -97,7 +97,6 @@ class RenderOptions():
         self.frpc_lock_elision = frpc_lock_elision
         self.fspecialise_syscall_stubs = fspecialise_syscall_stubs
         self.fprovide_tcb_caps = fprovide_tcb_caps
-        self.fsupport_init = fsupport_init
         self.largeframe = largeframe
         self.largeframe_dma = largeframe_dma
         self.architecture = architecture
@@ -204,11 +203,6 @@ def parse_args(argv, out, err):
     parser.add_argument('--fno-provide-tcb-caps', action='store_false',
         dest='fprovide_tcb_caps', help='Do not hand out TCB caps, causing '
         'components to fault on exiting.')
-    parser.add_argument('--fsupport-init', action='store_true', default=True,
-        help='Support pre_init, post_init and friends.')
-    parser.add_argument('--fno-support-init', action='store_false',
-        dest='fsupport_init', help='Do not support pre_init, post_init and '
-        'friends.')
     parser.add_argument('--default-priority', type=int, default=254,
         help='Default component thread priority.')
     parser.add_argument('--default-max-priority', type=int, default=254,
@@ -494,7 +488,7 @@ def main(argv, out, err):
                 die('While forming CapDL spec: %s' % inst)
 
     renderoptions = RenderOptions(options.file, options.verbosity, options.frpc_lock_elision,
-        options.fspecialise_syscall_stubs, options.fprovide_tcb_caps, options.fsupport_init,
+        options.fspecialise_syscall_stubs, options.fprovide_tcb_caps,
         options.largeframe, options.largeframe_dma, options.architecture, options.debug_fault_handlers,
         options.default_stack_size, options.realtime,
         options.verification_base_name, filteroptions, render_state)

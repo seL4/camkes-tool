@@ -17,11 +17,9 @@ int component_control_main() {
     /*- set result = c_symbol() -*/
     int /*? result ?*/;
 
-    /*- if options.fsupport_init -*/
-        if (pre_init) {
-            pre_init();
-        }
-    /*- endif -*/
+    if (pre_init) {
+        pre_init();
+    }
 
     /* we call pre_init_interface_sync in all circumstances, even if we do not support
      * init, as the implementation already has an internal guard for init support and
@@ -34,11 +32,9 @@ int component_control_main() {
         return /*? result ?*/;
     }
 
-    /*- if options.fsupport_init -*/
-        if (post_init) {
-            post_init();
-        }
-    /*- endif -*/
+    if (post_init) {
+        post_init();
+    }
 
     /*? result ?*/ = post_init_interface_sync();
     if (/*? result ?*/) {

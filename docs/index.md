@@ -1131,14 +1131,6 @@ The following options are all related to verification of templates outputs.
   reasoning about a generated CapDL specification. This option elides these TCB
   caps at the cost of threads messily VM faulting when they exit.
 
-**--fsupport-init**
-**--fno-support-init**
-
-> By default, CAmkES provides a fairly rich initialisation environment. This
-  includes features like automatic calls to `pre_init`. All this infrastructure
-  can be disabled at an obvious loss of functionality, but with a less
-  complicated resulting capability distribution and control flow.
-
 ### Modules
 
 Each subset of CAmkES functionality is encapsulated in a Python module that

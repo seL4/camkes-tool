@@ -258,13 +258,6 @@ set(CAmkESFaultHandlers ON CACHE BOOL
     a system where you want to handle your own faults."
 )
 
-set(CAmkESSupportInit ON CACHE BOOL
-    "Support the pre_init, post_init and interface init functions as part of
-    component startup. These functions allow extra functionality, but
-    introduce some endpoint caps for synchronisation. You probably want
-    this option enabled unless you are targetting verification."
-)
-
 set(CAmkESDTS OFF CACHE BOOL
     "Support using a device tree (.dts) file, which camkes can query
     for device properties. A file path can be provided by as an argument
@@ -518,7 +511,6 @@ function(GenerateCAmkESRootserver)
         "CAmkESRPCLockElision;--frpc-lock-elision;--fno-rpc-lock-elision"
         "CAmkESSpecialiseSyscallStubs;--fspecialise-syscall-stubs;--fno-specialise-syscall-stubs"
         "CAmkESProvideTCBCaps;--fprovide-tcb-caps;--fno-provide-tcb-caps"
-        "CAmkESSupportInit;--fsupport-init;--fno-support-init"
         "CAmkESLargeFramePromotion;--largeframe"
         "CAmkESDMALargeFramePromotion;--largeframe-dma"
         "CAmkESAllowForwardReferences;--allow-forward-references"

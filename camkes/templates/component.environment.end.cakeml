@@ -21,17 +21,13 @@ val _ = translation_extends /*- if me.type.control -*/ "component" /*- else -*/ 
 val supervisor = process_topdecs `
     fun camkes_entry u =
         let
-            /*- if options.fsupport_init -*/
-                val dummy = Component.pre_init ();
-            /*- endif -*/
+            val dummy = Component.pre_init ();
 
             val raw_result = Word8Array.array 1 (Word8.fromInt 0);
             val dummy = #(pre_init_interface_sync) "" raw_result;
             val result = Word8.toInt (Word8Array.sub raw_result 0) = 0;
 
-            /*- if options.fsupport_init -*/
-                val dummy = if result then (Component.post_init ()) else ();
-            /*- endif -*/
+            val dummy = if result then (Component.post_init ()) else ();
 
             val dummy = if result then (#(post_init_interface_sync) "" raw_result) else ();
             val result = Word8.toInt (Word8Array.sub raw_result 0) = 0;
