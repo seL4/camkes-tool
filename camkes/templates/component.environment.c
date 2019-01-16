@@ -14,8 +14,7 @@
 #include <camkes/init.h>
 
 int component_control_main() {
-    /*- set result = c_symbol() -*/
-    int /*? result ?*/;
+    int error;
 
     if (pre_init) {
         pre_init();
@@ -27,18 +26,18 @@ int component_control_main() {
      * provides a bit more flexibility in the future, and is consistent with the
      * post_init version which *does* do something even if we do not support init
      */
-    /*? result ?*/ = pre_init_interface_sync();
-    if (/*? result ?*/) {
-        return /*? result ?*/;
+    error = pre_init_interface_sync();
+    if (error) {
+        return error;
     }
 
     if (post_init) {
         post_init();
     }
 
-    /*? result ?*/ = post_init_interface_sync();
-    if (/*? result ?*/) {
-        return /*? result ?*/;
+    error = post_init_interface_sync();
+    if (error) {
+        return error;
     }
 
     /*- if me.type.control -*/

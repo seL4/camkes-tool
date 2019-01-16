@@ -46,17 +46,16 @@
 
 /*? macros.show_includes(me.type.includes) ?*/
 
-/*- set putchar = c_symbol() -*/
-static void (* /*? putchar ?*/)(int c);
+static void (* _putchar)(int c);
 
 void set_putchar(void (*putchar)(int c)) {
-    /*? putchar ?*/ = putchar;
+    _putchar = putchar;
 }
 
 static
 void __camkes_putchar(int c) {
-    if (/*? putchar ?*/ != NULL) {
-        /*? putchar ?*/(c);
+    if (_putchar != NULL) {
+        _putchar(c);
         return;
     }
 #ifdef CONFIG_PRINTING
@@ -97,8 +96,7 @@ const char *get_instance_name(void) {
   /*- endfor -*/
 /*- endif -*/
 
-/*- set p = Perspective() -*/
-static char /*? p['dma_pool_symbol'] ?*/[/*? dma_pool ?*/]
+static char dma_pool_symbol[/*? dma_pool ?*/]
     /*- set page_size_bits = int(math.log(page_size[0], 2)) -*/
     SECTION("align_/*? page_size_bits ?*/bit")
     ALIGN(/*? page_size[0] ?*/);
@@ -107,23 +105,19 @@ static char /*? p['dma_pool_symbol'] ?*/[/*? dma_pool ?*/]
 /*- set num_dma_frames = int(macros.ROUND_UP(dma_pool, page_size[0]) // page_size[0]) -*/
 
 /*- for i in six.moves.range(num_dma_frames) -*/
-    /*- set q = Perspective(dma_frame_index=i) -*/
-    /*- set frame = alloc(q['dma_frame_symbol'], seL4_FrameObject, size=page_size[0], read=True, write=True, cached=False) -*/
+    /*- set frame = alloc("dma_frame_%04d" % i, seL4_FrameObject, size=page_size[0], read=True, write=True, cached=False) -*/
     /*- do dma_frames.append(frame) -*/
 /*- endfor -*/
-/*# We need to use a special Perspective for registering the dma_pool because the symbol defined above, gets renamed in the
-    final ELF file #*/
-/*- do register_dma_pool(p['dma_pool_symbol'], page_size[0], dma_frames) -*/
+/*- do register_dma_pool('dma_pool_symbol', page_size[0], dma_frames) -*/
 
-/*- set get_paddr = c_symbol('get_paddr') -*/
-uintptr_t /*? get_paddr ?*/(void *ptr) {
+static uintptr_t dma_get_paddr(void *ptr) {
     uintptr_t base UNUSED = (uintptr_t)ptr & ~MASK(ffs(/*? page_size[0] ?*/) - 1);
     uintptr_t offset UNUSED = (uintptr_t)ptr & MASK(ffs(/*? page_size[0] ?*/) - 1);
     /*- for i in six.moves.range(num_dma_frames) -*/
         /*- if not loop.first -*/
             else
         /*- endif -*/
-        if (base == (uintptr_t)/*? p['dma_pool_symbol'] ?*/ + /*? i ?*/ * /*? page_size[0] ?*/) {
+        if (base == (uintptr_t)dma_pool_symbol + /*? i ?*/ * /*? page_size[0] ?*/) {
             /*- set frame = dma_frames[i] -*/
             /*- set paddr_sym = c_symbol('paddr') -*/
             static uintptr_t /*? paddr_sym ?*/;
@@ -146,15 +140,14 @@ uintptr_t /*? get_paddr ?*/(void *ptr) {
     return (uintptr_t)NULL;
 }
 
-/*- set get_cptr = c_symbol('get_cptr') -*/
-seL4_CPtr /*? get_cptr ?*/(void *ptr) {
+static seL4_CPtr get_cptr(void *ptr) {
     uintptr_t base UNUSED = (uintptr_t)ptr & ~MASK(ffs(/*? page_size[0] ?*/) - 1);
     uintptr_t offset UNUSED = (uintptr_t)ptr & MASK(ffs(/*? page_size[0] ?*/) - 1);
     /*- for i in six.moves.range(num_dma_frames) -*/
         /*- if not loop.first -*/
             else
         /*- endif -*/
-        if (base == (uintptr_t)/*? p['dma_pool_symbol'] ?*/ + /*? i ?*/ * /*? page_size[0] ?*/) {
+        if (base == (uintptr_t)dma_pool_symbol + /*? i ?*/ * /*? page_size[0] ?*/) {
             /*- set frame = dma_frames[i] -*/
             return /*? frame ?*/;
         }
@@ -302,8 +295,7 @@ int /*? b.name ?*/_post(void) {
 #ifdef CONFIG_CAMKES_DEFAULT_HEAP_SIZE
 /*- set heap_size = configuration[me.name].get('heap_size', 'CONFIG_CAMKES_DEFAULT_HEAP_SIZE') -*/
 
-/*- set heap = c_symbol() -*/
-static char /*? heap ?*/[/*? heap_size ?*/];
+static char heap [/*? heap_size ?*/];
 extern char *morecore_area;
 extern size_t morecore_size;
 #else
@@ -323,19 +315,18 @@ static void CONSTRUCTOR(CAMKES_SYSCALL_CONSTRUCTOR_PRIORITY) init_install_syscal
 /* General CAmkES platform initialisation. Expects to be run in a
  * single-threaded, exclusive context. On failure it does not return.
  */
-/*- set init = c_symbol() -*/
-static void /*? init ?*/(void) {
+static void init(void) {
 #ifdef CONFIG_CAMKES_DEFAULT_HEAP_SIZE
     /* Assign the heap */
-    morecore_area = /*? heap ?*/;
+    morecore_area = heap;
     morecore_size = /*? heap_size ?*/;
 #endif
 
     /* The user has actually had no opportunity to install any error handlers at
      * this point, so any error triggered below will certainly be fatal.
      */
-    int res = camkes_dma_init(/*? p['dma_pool_symbol'] ?*/, /*? dma_pool ?*/,
-        /*? page_size[0] ?*/, /*? get_paddr ?*/, /*? get_cptr ?*/);
+    int res = camkes_dma_init(dma_pool_symbol, /*? dma_pool ?*/,
+        /*? page_size[0] ?*/, dma_get_paddr, get_cptr);
     ERR_IF(res != 0, camkes_error, ((camkes_error_t){
             .type = CE_ALLOCATION_FAILURE,
             .instance = "/*? me.name ?*/",
@@ -618,9 +609,8 @@ void USED _camkes_tls_init(int thread_id) {
 }
 
 /*- if options.debug_fault_handlers -*/
-    /*- set fault_handler = c_symbol('fault_handler') -*/
-    static void /*? fault_handler ?*/(void) UNUSED NORETURN;
-    static void /*? fault_handler ?*/(void) {
+    static void fault_handler(void) UNUSED NORETURN;
+    static void fault_handler(void) {
         while (true) {
             seL4_Word badge;
 
@@ -761,60 +751,56 @@ const char * get_thread_name(int thread_id) {
     pre_init_interface_sync, post_init_interface_sync and post_main
   #*/
 /*- set pre_init_ep = alloc('pre_init_ep', seL4_EndpointObject, read=True, write=True) -*/
-/*- set pre_init_lock = c_symbol('pre_init_lock') -*/
-static volatile int UNUSED /*? pre_init_lock ?*/ = 0;
+static volatile int UNUSED pre_init_lock = 0;
 /*- set interface_init_ep = alloc('interface_init_ep', seL4_EndpointObject, read=True, write=True) -*/
-/*- set interface_init_lock = c_symbol('interface_init_lock') -*/
-static volatile int UNUSED /*? interface_init_lock ?*/ = 0;
+static volatile int UNUSED interface_init_lock = 0;
 /*- set post_init_ep = alloc('post_init_ep', seL4_EndpointObject, read=True, write=True) -*/
-/*- set post_init_lock = c_symbol('post_init_lock') -*/
-static volatile int UNUSED /*? post_init_lock ?*/ = 0;
+static volatile int UNUSED post_init_lock = 0;
 
 int pre_init_interface_sync() {
-    /*- set result = c_symbol() -*/
-    int /*? result ?*/ UNUSED;
+    int result UNUSED;
 
     /* Wake all the non-passive interface threads. */
     /*- for t in threads[1:] -*/
         /*- if not options.realtime or t not in passive_threads -*/
-            sync_sem_bare_post(/*? pre_init_ep ?*/, &/*? pre_init_lock ?*/);
+            sync_sem_bare_post(/*? pre_init_ep ?*/, &pre_init_lock);
         /*- endif -*/
     /*- endfor -*/
 
     /* Wait for all the non-passive interface threads to run their inits. */
     /*- for t in threads[1:] -*/
         /*- if not options.realtime or t not in passive_threads -*/
-            sync_sem_bare_wait(/*? interface_init_ep ?*/, &/*? interface_init_lock ?*/);
+            sync_sem_bare_wait(/*? interface_init_ep ?*/, &interface_init_lock);
         /*- endif -*/
     /*- endfor -*/
 
     /*- if options.realtime -*/
         /* Wake each passive thread one at a time and allow it to run its init. */
         /*- for prefix, tcb in passive_tcbs.items() -*/
-            /*? result ?*/ = seL4_SchedContext_Bind(/*? sc_passive_init ?*/, /*? tcb ?*/);
-            ERR_IF(/*? result ?*/ != 0, camkes_error, ((camkes_error_t){
+            result = seL4_SchedContext_Bind(/*? sc_passive_init ?*/, /*? tcb ?*/);
+            ERR_IF(result != 0, camkes_error, ((camkes_error_t){
                     .type = CE_SYSCALL_FAILED,
                     .instance = "/*? me.name ?*/",
                     .description = "failed to bind initialisation scheduling context for thread \"/*? prefix ?*/_tcb\"",
                     .syscall = SchedContextBind,
-                    .error = /*? result ?*/,
+                    .error = result,
                 }), ({
                     return -1;
                 }));
 
             /*# Wake thread #*/
-            sync_sem_bare_post(/*? pre_init_ep ?*/, &/*? pre_init_lock ?*/);
+            sync_sem_bare_post(/*? pre_init_ep ?*/, &pre_init_lock);
 
             /*# Wait for thread to run its init #*/
-            sync_sem_bare_wait(/*? interface_init_ep ?*/, &/*? interface_init_lock ?*/);
+            sync_sem_bare_wait(/*? interface_init_ep ?*/, &interface_init_lock);
 
-            /*? result ?*/ = seL4_SchedContext_Unbind(/*? sc_passive_init ?*/);
-            ERR_IF(/*? result ?*/ != 0, camkes_error, ((camkes_error_t){
+            result = seL4_SchedContext_Unbind(/*? sc_passive_init ?*/);
+            ERR_IF(result != 0, camkes_error, ((camkes_error_t){
                     .type = CE_SYSCALL_FAILED,
                     .instance = "/*? me.name ?*/",
                     .description = "failed to unbind initialisation scheduling context for thread \"/*? prefix ?*/_tcb\"",
                     .syscall = SchedContextUnbind,
-                    .error = /*? result ?*/,
+                    .error = result,
                 }), ({
                     return -1;
                 }));
@@ -824,15 +810,14 @@ int pre_init_interface_sync() {
 }
 
 int post_init_interface_sync() {
-    /*- set result = c_symbol() -*/
-    int /*? result ?*/ UNUSED;
+    int result UNUSED;
 
     /* Wake all the interface threads, including passive threads.
      * Passive threads will receive the IPC despite not having scheduling contexts
      * at this point. Next time they are given scheduling contexts they will be
      * unblocked. */
     /*- for _ in threads[1:] -*/
-        sync_sem_bare_post(/*? post_init_ep ?*/, &/*? post_init_lock ?*/);
+        sync_sem_bare_post(/*? post_init_ep ?*/, &post_init_lock);
     /*- endfor -*/
 
     /*- if options.realtime -*/
@@ -843,13 +828,13 @@ int post_init_interface_sync() {
         /*- for prefix, tcb in passive_tcbs.items() -*/
 
             /*# Bind the initialision scheduling context to the tcb. #*/
-            /*? result ?*/ = seL4_SchedContext_Bind(/*? sc_passive_init ?*/, /*? tcb ?*/);
-            ERR_IF(/*? result ?*/ != 0, camkes_error, ((camkes_error_t){
+            result = seL4_SchedContext_Bind(/*? sc_passive_init ?*/, /*? tcb ?*/);
+            ERR_IF(result != 0, camkes_error, ((camkes_error_t){
                     .type = CE_SYSCALL_FAILED,
                     .instance = "/*? me.name ?*/",
                     .description = "failed to bind initialisation scheduling context for thread \"/*? prefix ?*/_tcb\"",
                     .syscall = SchedContextBind,
-                    .error = /*? result ?*/,
+                    .error = result,
                 }), ({
                     return -1;
                 }));
@@ -858,13 +843,13 @@ int post_init_interface_sync() {
             seL4_Wait(/*? ntfn_passive_init ?*/, NULL);
 
             /*# Unbind the sc from the tcb. #*/
-            /*? result ?*/ = seL4_SchedContext_Unbind(/*? sc_passive_init ?*/);
-            ERR_IF(/*? result ?*/ != 0, camkes_error, ((camkes_error_t){
+            result = seL4_SchedContext_Unbind(/*? sc_passive_init ?*/);
+            ERR_IF(result != 0, camkes_error, ((camkes_error_t){
                     .type = CE_SYSCALL_FAILED,
                     .instance = "/*? me.name ?*/",
                     .description = "failed to unbind initialisation scheduling context for thread \"/*? prefix ?*/_tcb\"",
                     .syscall = SchedContextUnbind,
-                    .error = /*? result ?*/,
+                    .error = result,
                 }), ({
                     return -1;
                 }));
@@ -875,12 +860,11 @@ int post_init_interface_sync() {
 
 static int post_main(int thread_id) {
 #if defined(CONFIG_DEBUG_BUILD) && defined(CONFIG_CAMKES_PROVIDE_TCB_CAPS)
-   /*- set thread_name = c_symbol() -*/
-   char /*? thread_name ?*/[seL4_MsgMaxLength * sizeof(seL4_Word)];
-   snprintf(/*? thread_name ?*/, sizeof(/*? thread_name ?*/), "%s:%s",
+   char thread_name[seL4_MsgMaxLength * sizeof(seL4_Word)];
+   snprintf(thread_name, sizeof(thread_name), "%s:%s",
        get_instance_name(), get_thread_name(thread_id));
-   /*? thread_name ?*/[sizeof(/*? thread_name ?*/) - 1] = '\0';
-   seL4_DebugNameThread(camkes_get_tls()->tcb_cap, /*? thread_name ?*/);
+   thread_name[sizeof(thread_name) - 1] = '\0';
+   seL4_DebugNameThread(camkes_get_tls()->tcb_cap, thread_name);
 #endif
 
     switch (thread_id) {
@@ -895,7 +879,7 @@ static int post_main(int thread_id) {
 
         /*- set tcb_control = alloc('%d_0_control_%d_tcb' % (len(me.name), len('0_control')), seL4_TCBObject) -*/
         case /*? tcb_control ?*/ : /* Control thread */
-            /*? init ?*/();
+            init();
             return component_control_main();
 
         /*# Interface threads #*/
@@ -903,14 +887,14 @@ static int post_main(int thread_id) {
             /*- set tcb = alloc('%d_%s_%d_%04d_tcb' % (len(me.name), t.interface.name, len(t.interface.name), t.intra_index), seL4_TCBObject) -*/
             case /*? tcb ?*/ : { /* Interface /*? t.interface.name ?*/ */
                 /* Wait for `pre_init` to complete. */
-                sync_sem_bare_wait(/*? pre_init_ep ?*/, &/*? pre_init_lock ?*/);
+                sync_sem_bare_wait(/*? pre_init_ep ?*/, &pre_init_lock);
                 if (/*? t.interface.name ?*/__init) {
                     /*? t.interface.name ?*/__init();
                 }
                 /* Notify the control thread that we've completed init. */
-                sync_sem_bare_post(/*? interface_init_ep ?*/, &/*? interface_init_lock ?*/);
+                sync_sem_bare_post(/*? interface_init_ep ?*/, &interface_init_lock);
                 /* Wait for the `post_init` to complete. */
-                sync_sem_bare_wait(/*? post_init_ep ?*/, &/*? post_init_lock ?*/);
+                sync_sem_bare_wait(/*? post_init_ep ?*/, &post_init_lock);
 
                 /*- set prefix = '%d_%s_%d_%04d' % (len(me.name), t.interface.name, len(t.interface.name), t.intra_index) -*/
                 /*- if options.realtime and prefix in passive_tcbs -*/
@@ -940,7 +924,7 @@ static int post_main(int thread_id) {
         /*- if options.debug_fault_handlers -*/
             /*- set tcb = alloc('%d_0_fault_handler_%d_0000_tcb' % (len(me.name), len('0_fault_handler')), seL4_TCBObject) -*/
             case /*? tcb ?*/ : { /* Fault handler thread */
-                /*? fault_handler ?*/();
+                fault_handler();
                 UNREACHABLE();
                 return 0;
             }
@@ -1141,10 +1125,9 @@ const struct camkes_vma camkes_vmas[] = {
         .cached = true,
         .name = "guard page above control thread's TLS/IPC region",
     },
-    /*- set p = Perspective() -*/
     {
-        .start = (void*)/*? p['dma_pool_symbol'] ?*/,
-        .end = (void*)/*? p['dma_pool_symbol'] ?*/ + sizeof(/*? p['dma_pool_symbol'] ?*/),
+        .start = (void*)dma_pool_symbol,
+        .end = (void*)dma_pool_symbol + sizeof(dma_pool_symbol),
         .read = true,
         .write = true,
         .execute = false,
