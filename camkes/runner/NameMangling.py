@@ -120,20 +120,6 @@ class FromControlDeriver(ForwardDeriver):
             return None
         return self.format % perspective
 
-class DMAFrameIndexDeriver(Deriver):
-    def __init__(self, regex, input):
-        self.regex = re.compile(regex)
-        self.input = input
-    def inputs(self):
-        return set([self.input])
-    def output(self):
-        return 'dma_frame_index'
-    def derive(self, perspective):
-        m = self.regex.match(perspective[self.input])
-        if m is None:
-            return None
-        return int(m.group(1))
-
 class PerThreadDeriver(Deriver):
     def __init__(self, name):
         self.name = name
@@ -281,8 +267,6 @@ DERIVATIONS = {
         ForwardDeriver('%(group)s_cnode', 'cnode'),
         BackwardDeriver(r'(.+)_cnode$', 'cnode', 'group'),
     ], TEMPLATES:[
-        ForwardDeriver('dma_frame_%(dma_frame_index)04d', 'dma_frame_symbol'),
-        DMAFrameIndexDeriver(r'dma_frame_([0-9]+)$', 'dma_frame_symbol'),
         ForwardDeriver('_camkes_ipc_buffer_%(safe_instance)s_%(interface)s_%(intra_index)04d', 'ipc_buffer_symbol'),
         FromControlDeriver('_camkes_ipc_buffer_%(safe_instance)s_0_control', 'ipc_buffer_symbol'),
         ControlDeriver(r'_camkes_ipc_buffer_.+_0_control$', 'ipc_buffer_symbol'),
@@ -293,7 +277,6 @@ DERIVATIONS = {
         BackwardDeriver(r'^(.+)_cached', 'hardware_cached', 'to_interface'),
         ForwardDeriver('%(group)s_group_bin', 'elf_name'),
         BackwardDeriver(r'(.+)_group_bin', 'elf_name', 'group'),
-        ForwardDeriver('camkes_dma_pool', 'dma_pool_symbol'),
         BackwardDeriver(r'.*?\.?([a-zA-Z_]\w*)$', 'instance', 'safe_instance'),
         ControlDeriver(r'_passive$', 'passive_attribute'),
         FromControlDeriver('_passive', 'passive_attribute'),
@@ -325,9 +308,6 @@ DERIVATIONS = {
         BackwardDeriver(r'(.+)_group_bin_pd$', 'pd', 'group'),
         ForwardDeriver('%(to_interface)s_cached', 'hardware_cached'),
         BackwardDeriver(r'^(.+)_cached', 'hardware_cached', 'to_interface'),
-        ForwardDeriver('%(instance)s_dma_frame_%(dma_frame_index)04d', 'dma_frame_symbol'),
-        BackwardDeriver(r'(.+)_dma_frame_[0-9]+$', 'dma_frame_symbol', 'instance'),
-        DMAFrameIndexDeriver(r'.+_dma_frame_([0-9]+)$', 'dma_frame_symbol'),
         ControlDeriver(r'_priority$', 'priority_attribute'),
         FromControlDeriver('_priority', 'priority_attribute'),
         ForwardDeriver('%(interface)s_priority', 'priority_attribute'),
