@@ -26,6 +26,7 @@ python setup.py sdist upload -r pypi
 from setuptools import setup
 
 DEPS = [
+    'aenum',
     'jinja2',
     'orderedset',
     'plyplus',
@@ -33,13 +34,12 @@ DEPS = [
     'sel4-deps',
     'pycparser',
     'pyfdt',
-    'enum34',
     'concurrencytest'
 ]
 
 setup(
     name='camkes-deps',
-    version='0.5.2',
+    version='0.6.2',
     description='Metapackage for downloading build dependencies for CAmkES',
     url='https://docs.sel4.systems/CAmkES/',
     license='BSD2',
