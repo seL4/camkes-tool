@@ -16,11 +16,9 @@
 """Filters to be applied to generated CapDL."""
 from __future__ import absolute_import, division, print_function, \
     unicode_literals
-from camkes.internal.seven import cmp, filter, map, zip
 
-import os, re, six, subprocess
-from capdl import ObjectType, Cap, CNode, Frame, TCB, SC, page_sizes, lookup_architecture
-from capdl.util import IA32Arch, X64Arch
+import os, six, subprocess
+from capdl import Cap, CNode, TCB, SC, lookup_architecture
 from camkes.internal.memoization import memoize
 from .NameMangling import Perspective
 

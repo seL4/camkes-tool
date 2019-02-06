@@ -17,7 +17,7 @@
 
 from __future__ import absolute_import, division, print_function, \
     unicode_literals
-from camkes.internal.seven import cmp, filter, map, zip
+from camkes.internal.seven import zip
 
 # Excuse this horrible prelude. When running under a different interpreter we
 # have an import path that doesn't include dependencies like elftools and
@@ -41,8 +41,8 @@ from camkes.runner.NameMangling import Perspective, RUNNER
 from camkes.runner.Renderer import Renderer
 from camkes.runner.Filters import CAPDL_FILTERS
 
-import argparse, collections, functools, jinja2, locale, numbers, os, re, \
-    six, sqlite3, string, sys, traceback, pickle, errno
+import argparse, functools, jinja2, locale, numbers, os, re, \
+    six, string, sys, traceback, pickle
 from capdl import ObjectType, ObjectAllocator, CSpaceAllocator, \
     ELF, lookup_architecture, AddressSpaceAllocator
 
