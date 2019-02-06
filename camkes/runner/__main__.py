@@ -338,8 +338,6 @@ def main(argv, out, err):
 
     log.set_verbosity(options.verbosity)
 
-    cwd = os.getcwd()
-
     # Build a list of item/outfile pairs that we have yet to match and process
     all_items = set(zip(options.item, options.outfile))
     done_items = set([])
@@ -433,12 +431,6 @@ def main(argv, out, err):
             # No connections use this type. There's no point adding it to the
             # template lookup dictionary.
             pass
-
-    # Check if our current target is in the level B cache. The level A cache
-    # will 'miss' and this one will 'hit' when the input spec is identical to
-    # some previously observed execution modulo a semantically irrelevant
-    # element (e.g. an introduced comment).
-    ast_hash = None
 
     # Add custom templates.
     read |= extra_templates
