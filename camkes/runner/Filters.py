@@ -13,7 +13,7 @@
 # @TAG(DATA61_BSD)
 #
 
-'''Filters to be applied to generated CapDL.'''
+"""Filters to be applied to generated CapDL."""
 from __future__ import absolute_import, division, print_function, \
     unicode_literals
 from camkes.internal.seven import cmp, filter, map, zip
@@ -74,7 +74,7 @@ def get_symbol_size(elf, symbol):
     return get_symbol(elf, symbol)[1]
 
 def set_tcb_info(cspaces, obj_space, elfs, options, **_):
-    '''Set relevant extra info for TCB objects.'''
+    """Set relevant extra info for TCB objects."""
     arch = lookup_architecture(options.architecture)
 
     for group, space in cspaces.items():
@@ -200,9 +200,9 @@ def set_tcb_caps(ast, obj_space, cspaces, elfs, options, **_):
             # template.
 
 def guard_cnode_caps(cspaces, options, **_):
-    '''If the templates have allocated any caps to CNodes, they will not have
+    """If the templates have allocated any caps to CNodes, they will not have
     the correct guards. This is due to the CNodes' sizes being automatically
-    calculated (during set_tcb_caps above). Correct them here.'''
+    calculated (during set_tcb_caps above). Correct them here."""
 
     arch = lookup_architecture(options.architecture)
     for space in cspaces.values():
@@ -211,8 +211,8 @@ def guard_cnode_caps(cspaces, options, **_):
             if cap is not None and isinstance(cap.referent, CNode)]
 
 def tcb_default_properties(obj_space, options, **_):
-    '''Set up default thread priorities. Note this filter needs to operate
-    *before* tcb_priorities.'''
+    """Set up default thread priorities. Note this filter needs to operate
+    *before* tcb_priorities."""
 
     for t in [x for x in obj_space if isinstance(x, TCB)]:
         t.prio = options.default_priority
@@ -220,8 +220,8 @@ def tcb_default_properties(obj_space, options, **_):
         t.affinity = options.default_affinity
 
 def sc_default_properties(obj_space, options, **_):
-    '''Set up default scheduling context properties. Note this filter needs to operate
-    *before* sc_properties.'''
+    """Set up default scheduling context properties. Note this filter needs to operate
+    *before* sc_properties."""
 
     for s in (x for x in obj_space if isinstance(x, SC)):
         s.period = options.default_period
@@ -230,7 +230,7 @@ def sc_default_properties(obj_space, options, **_):
         s.size_bits = options.default_size_bits
 
 def maybe_set_property_from_configuration(assembly, perspective, obj, field_name, attribute_name, general_attribute):
-    '''Sets a field "field_name" of an object "obj" to the value of a configuration
+    """Sets a field "field_name" of an object "obj" to the value of a configuration
     setting of the form:
     instance.attribute = value;
     where "instance" and "attribute" are obtained from the perspective argument
@@ -239,7 +239,7 @@ def maybe_set_property_from_configuration(assembly, perspective, obj, field_name
     If such a setting exists, the field is set.
     Otherwise, check if a corresponding general property was set for the instance.
     This is a setting that applies the property to all threads related to the instance
-    including all interface threads.'''
+    including all interface threads."""
 
     name = perspective['instance']
     attribute = perspective[attribute_name]
@@ -252,8 +252,8 @@ def maybe_set_property_from_configuration(assembly, perspective, obj, field_name
         setattr(obj, field_name, value)
 
 def tcb_properties(ast, cspaces, options, **_):
-    ''' Override a TCB's default property if the user has specified this in an
-    attribute.'''
+    """ Override a TCB's default property if the user has specified this in an
+    attribute."""
 
     assembly = ast.assembly
 
@@ -291,8 +291,8 @@ def tcb_properties(ast, cspaces, options, **_):
             maybe_set_property_from_configuration(assembly, perspective, tcb, 'affinity', 'affinity_attribute', 'affinity')
 
 def sc_properties(ast, cspaces, obj_space, **_):
-    ''' Override an SC's default properties if the user has specified this in an
-    attribute.'''
+    """ Override an SC's default properties if the user has specified this in an
+    attribute."""
 
     assembly = ast.assembly
 
@@ -320,8 +320,8 @@ def sc_properties(ast, cspaces, obj_space, **_):
             maybe_set_property_from_configuration(assembly, perspective, sc, 'size_bits', 'size_bits_attribute', 'size_bits')
 
 def tcb_domains(ast, cspaces, **_):
-    '''Set the domain of a TCB if the user has specified this in an
-    attribute.'''
+    """Set the domain of a TCB if the user has specified this in an
+    attribute."""
 
     assembly = ast.assembly
 
@@ -346,7 +346,7 @@ def tcb_domains(ast, cspaces, **_):
                 tcb.domain = dom
 
 def remove_tcb_caps(cspaces, options, **_):
-    '''Remove all TCB caps in the system if requested by the user.'''
+    """Remove all TCB caps in the system if requested by the user."""
     if not options.fprovide_tcb_caps:
         for space in cspaces.values():
             for slot in [k for (k, v) in space.cnode.slots.items()

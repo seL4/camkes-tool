@@ -108,7 +108,7 @@ class RenderOptions():
         self.render_state = render_state
 
 def safe_decode(s):
-    '''
+    """
     Safely extract a string that may contain invalid character encodings.
 
     When formatting a traceback that crosses a boundary between compiled and
@@ -116,7 +116,7 @@ def safe_decode(s):
     appending garbage to the traceback. If we try to print this we trigger a
     UnicodeDecodeError. To avoid this, wrap traceback printing in this
     function.
-    '''
+    """
     r = []
     for c in s:
         if c not in string.printable:
@@ -299,7 +299,7 @@ def parse_file_cached(filename, parser_options):
     return ast,read
 
 def rendering_error(item, exn):
-    '''Helper to format an error message for template rendering errors.'''
+    """Helper to format an error message for template rendering errors."""
     tb = safe_decode(traceback.format_tb(sys.exc_info()[2]))
     return (['While rendering %s: %s' % (item, line) for line in exn.args] +
             ''.join(tb).splitlines())
