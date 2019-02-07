@@ -110,6 +110,7 @@ function(CAmkESOutputGenCommand object_state_op)
                 "--outfile;$<JOIN:${outfile_list},;--outfile;>"
                 "--load-ast=${CMAKE_CURRENT_BINARY_DIR}/ast.pickle"
                 "--${object_state_op}=${CMAKE_CURRENT_BINARY_DIR}/object.pickle"
+                "--object-sizes=$<TARGET_PROPERTY:object_sizes,FILE_PATH>"
                 "$<$<BOOL:${elfs_list}>:--elf$<SEMICOLON>>$<JOIN:${elfs_list},$<SEMICOLON>--elf$<SEMICOLON>>"
                 ${camkes_ver_opts}
                 ${CAMKES_FLAGS}
@@ -122,6 +123,7 @@ function(CAmkESOutputGenCommand object_state_op)
             ${CAMKES_TOOL_DEPENDENCIES}
             # Any additional dependencies from the files
             ${deps_list}
+            object_sizes
         VERBATIM
         USES_TERMINAL
         COMMAND_EXPAND_LISTS

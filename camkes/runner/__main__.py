@@ -17,6 +17,9 @@
 
 from __future__ import absolute_import, division, print_function, \
     unicode_literals
+
+import yaml
+
 from camkes.internal.seven import zip
 
 # Excuse this horrible prelude. When running under a different interpreter we
@@ -24,6 +27,9 @@ from camkes.internal.seven import zip
 # Jinja. We need to juggle the import path prior to importing them. Note, this
 # code has no effect when running under the standard Python interpreter.
 import platform, subprocess, sys
+
+from capdl.Object import register_object_sizes
+
 if platform.python_implementation() != 'CPython':
     path = eval(subprocess.check_output(['python', '-c',
         'import sys; sys.stdout.write(\'%s\' % sys.path)'],
@@ -242,7 +248,8 @@ def parse_args(argv, out, err):
         help='promote frames backing DMA pools to large frames where possible')
     parser.add_argument('--realtime', action='store_true',
         help='Target realtime seL4.')
-
+    parser.add_argument('--object-sizes', type=argparse.FileType('r'),
+                        help="YAML file specifying the object sizes for any seL4 objects used in this invocation of the runner.")
     object_state_group = parser.add_mutually_exclusive_group()
     object_state_group.add_argument('--load-object-state', type=argparse.FileType('rb'),
         help='load previously-generated cap and object state')
@@ -318,6 +325,10 @@ def main(argv, out, err):
         return -1
 
     options, queries, filteroptions = parse_args(argv, out, err)
+
+    # register object sizes with loader
+    if options.object_sizes:
+        register_object_sizes(yaml.load(options.object_sizes))
 
     # Ensure we were supplied equal items and outfiles
     if len(options.outfile) != len(options.item):

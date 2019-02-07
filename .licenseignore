@@ -8,3 +8,4 @@ CHANGES
 *.png
 *.sql
 *.dtb
+object_sizes.yaml

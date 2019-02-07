@@ -15,3 +15,4 @@ cmake_minimum_required(VERSION 3.7.2)
 # Include all the other projects
 add_subdirectory(libsel4camkes)
 add_subdirectory(libcamkescakeml)
+add_subdirectory(object_sizes)
