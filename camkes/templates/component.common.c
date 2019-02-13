@@ -158,6 +158,10 @@ static seL4_CPtr get_cptr(void *ptr) {
 /* MMIO related functionality for interaction with libplatsupport. */
 void *camkes_io_map(void *cookie UNUSED, uintptr_t paddr UNUSED,
         size_t size UNUSED, int cached UNUSED, ps_mem_flags_t flags UNUSED) {
+    if (paddr % PAGE_SIZE_4K != 0 && size % PAGE_SIZE_4K != 0) {
+        ZF_LOGE("paddr or size has incorrect alignment: (%p, 0x%zx)", paddr, size);
+        return NULL;
+    }
 
     /*- for d in me.type.dataports -*/
         extern void * /*? d.name ?*/_translate_paddr(uintptr_t paddr,
