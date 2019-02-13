@@ -99,7 +99,7 @@
 /*- set bits_to_frame_type = { 12:seL4_FrameObject, 20:seL4_ARM_SectionObject, 21:seL4_ARM_SectionObject } -*/
 /*- do mmio_caps_len.append(0) -*/
 /*- for paddr, size, bits in mmio_regions -*/
-    /*- set mmio_key = '%d%d' % (paddr, size) -*/
+    /*- set mmio_key = '0x%x_0x%x' % (paddr, size) -*/
     static seL4_CPtr mmio_cap_lookup_/*? mmio_key ?*/[] = {
     /*- for frame_offset in six.moves.range(0, size, 2 ** bits) -*/
         /*- set frames = paddr + frame_offset -*/
@@ -119,7 +119,7 @@
         /*- set paddr, size_bits = ut_mmio.split(':') -*/
         /*- set paddr = int(paddr, 0) -*/
         /*- set size_bits = int(size_bits, 0) -*/
-        /*- set cap = alloc('untyped_cap_%d' % paddr, seL4_UntypedObject, read=True, write=True, paddr = paddr, size_bits = size_bits) -*/
+        /*- set cap = alloc('untyped_cap_0x%x' % paddr, seL4_UntypedObject, read=True, write=True, paddr = paddr, size_bits = size_bits) -*/
         /*- do untyped_mmio.append( (paddr, size_bits, cap) ) -*/
     /*- endfor -*/
 /*- endif -*/
@@ -229,7 +229,7 @@ static seL4_CPtr simple_camkes_nth_untyped(void *data, int n, size_t *size_bits,
 static seL4_Error simple_camkes_get_frame_cap(void *data, void *paddr, int size_bits, cspacepath_t *path) {
     /*- if len(mmio_regions) > 0 -*/
         /*- for paddr, size, bits in mmio_regions -*/
-            /*- set mmio_key = '%d%d' % (paddr, size) -*/
+            /*- set mmio_key = '0x%x_0x%x' % (paddr, size) -*/
             if ((uintptr_t)paddr >= (uintptr_t)/*? paddr ?*/ && (uintptr_t)paddr < (uintptr_t)/*? paddr ?*/ + (uintptr_t)/*? size ?*/ && size_bits == /*? bits ?*/) {
                 return seL4_CNode_Copy(path->root, path->capPtr, path->capDepth, /*? self_cnode ?*/, mmio_cap_lookup_/*? mmio_key ?*/[((uintptr_t)paddr - (uintptr_t)/*? paddr ?*/) >> /*? bits ?*/], CONFIG_WORD_SIZE, seL4_AllRights);
             }
@@ -252,7 +252,7 @@ static seL4_CPtr simple_camkes_nth_cap(void *data, int n) {
     /*- set mmio_counter = [] -*/
     /*- do mmio_counter.append(0) -*/
     /*- for paddr, size, bits in mmio_regions -*/
-        /*- set mmio_key = '%d%d' % (paddr, size) -*/
+        /*- set mmio_key = '0x%x_0x%x' % (paddr, size) -*/
         /*- set mmio_range_len = len(list(six.moves.range(0, size, 2 ** bits))) -*/
         case /*? 2 + len(untyped_obj_list) + mmio_counter[0] ?*/ ... /*? 2 + len(untyped_obj_list) + mmio_counter[0] + mmio_range_len - 1 ?*/:
             return mmio_cap_lookup_/*? mmio_key ?*/[n - /*? 2 + len(untyped_obj_list) + mmio_counter[0] ?*/];
