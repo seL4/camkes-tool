@@ -97,8 +97,8 @@ static_assert(/*? macros.dataport_size(me.interface.type) ?*/ == /*? size ?*/, "
 
 void * /*? me.interface.name ?*/_translate_paddr(
         uintptr_t paddr, size_t size) {
-    if (paddr == /*? paddr ?*/ && size == /*? size ?*/) {
-        return (void*)/*? me.interface.name ?*/;
+    if (paddr >= /*? paddr ?*/ && (paddr + size) <= /*? paddr + size ?*/) {
+        return (void*)/*? me.interface.name ?*/ + (paddr - /*? paddr ?*/);
     }
     return NULL;
 }
