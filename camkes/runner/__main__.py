@@ -113,24 +113,6 @@ class RenderOptions():
         self.filter_options = filter_options
         self.render_state = render_state
 
-def safe_decode(s):
-    """
-    Safely extract a string that may contain invalid character encodings.
-
-    When formatting a traceback that crosses a boundary between compiled and
-    interpreted code, the backtracer can lose the frame pointer and start
-    appending garbage to the traceback. If we try to print this we trigger a
-    UnicodeDecodeError. To avoid this, wrap traceback printing in this
-    function.
-    """
-    r = []
-    for c in s:
-        if c not in string.printable:
-            r.append('\n  <MALFORMED BYTES>\n')
-            break
-        r.append(c)
-    return ''.join(r)
-
 def _die(options, message):
 
     if isinstance(message, (list, tuple)):
@@ -140,14 +122,7 @@ def _die(options, message):
         log.error(message)
 
     tb = traceback.format_exc()
-    log.debug('\n --- Python traceback ---\n%s ------------------------\n' %
-        safe_decode(tb))
-    if options.cache and re.search(r'^\s*File\s+".*\.pyc",\s+line\s+\d+,\s*in'
-            r'\s*top-level\s*template\s*code$', tb, flags=re.MULTILINE) is \
-            not None:
-        log.debug('If the preceding backtrace traverses a pre-compiled '
-            'template, you may wish to disable the CAmkES cache and re-run '
-            'for a more accurate backtrace.\n')
+    log.debug('\n --- Python traceback ---\n%s ------------------------\n' % tb)
     sys.exit(-1)
 
 def parse_args(argv, out, err):
@@ -184,11 +159,6 @@ def parse_args(argv, out, err):
     parser.add_argument('--templates', '-t', help='Extra directories to '
         'search for templates (before builtin templates).', action='append',
         default=[])
-    parser.add_argument('--cache', '-c', action='store_true',
-        help='Enable code generation cache.')
-    parser.add_argument('--cache-dir',
-        default=os.path.expanduser('~/.camkes/cache'),
-        help='Set code generation cache location.')
     parser.add_argument('--version', action='version', version='%s %s' %
         (argv[0], version()))
     parser.add_argument('--frpc-lock-elision', action='store_true',
@@ -307,7 +277,7 @@ def parse_file_cached(filename, parser_options):
 
 def rendering_error(item, exn):
     """Helper to format an error message for template rendering errors."""
-    tb = safe_decode(traceback.format_tb(sys.exc_info()[2]))
+    tb = '\n'.join(traceback.format_tb(sys.exc_info()[2]))
     return (['While rendering %s: %s' % (item, line) for line in exn.args] +
             ''.join(tb).splitlines())
 
@@ -413,7 +383,7 @@ def main(argv, out, err):
     templates = Templates(options.platform)
     [templates.add_root(t) for t in options.templates]
     try:
-        r = Renderer(templates, options.cache, options.cache_dir)
+        r = Renderer(templates)
     except jinja2.exceptions.TemplateSyntaxError as e:
         die('template syntax error: %s' % e)
 
@@ -432,9 +402,7 @@ def main(argv, out, err):
             connection = next(x for x in ast if isinstance(x, Connection) and
                 x.type == c)
             # Add the custom templates and update our collection of read
-            # inputs. It is necessary to update the read set here to avoid
-            # false compilation cache hits when the source of a custom template
-            # has changed.
+            # inputs.
             extra_templates |= templates.add(c, connection)
         except TemplateError as e:
             die('while adding connector %s: %s' % (c.name, e))
