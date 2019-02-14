@@ -61,7 +61,7 @@
             /*- if not macros.min_untyped_size(options.architecture) <= bits <= macros.max_untyped_size(options.architecture) -*/
                 /*? raise(TemplateError('illegal untyped size')) ?*/
             /*- endif -*/
-            /*- set untyped = alloc('simple_untyped_%d_pool_%d' % (bits, i), seL4_UntypedObject, size_bits=bits, read=True, write=True) -*/
+            /*- set untyped = alloc('simple_untyped_%d_pool_%d' % (bits, i), seL4_UntypedObject, size_bits=bits) -*/
             /*- do untyped_obj_list.append((untyped, bits)) -*/
         /*- endfor -*/
     /*- endif -*/
@@ -119,7 +119,7 @@
         /*- set paddr, size_bits = ut_mmio.split(':') -*/
         /*- set paddr = int(paddr, 0) -*/
         /*- set size_bits = int(size_bits, 0) -*/
-        /*- set cap = alloc('untyped_cap_0x%x' % paddr, seL4_UntypedObject, read=True, write=True, paddr = paddr, size_bits = size_bits) -*/
+        /*- set cap = alloc('untyped_cap_0x%x' % paddr, seL4_UntypedObject, paddr = paddr, size_bits = size_bits) -*/
         /*- do untyped_mmio.append( (paddr, size_bits, cap) ) -*/
     /*- endfor -*/
 /*- endif -*/

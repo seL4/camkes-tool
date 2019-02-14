@@ -372,7 +372,7 @@ static void init(void) {
     /* Initialise cap allocator. */
     /*- set tcb_pool = configuration[me.name].get('tcb_pool', 0) -*/
     /*- for i in six.moves.range(tcb_pool) -*/
-        /*- set tcb = alloc('tcb_pool_%d' % i, seL4_TCBObject, read=True, write=True) -*/
+        /*- set tcb = alloc('tcb_pool_%d' % i, seL4_TCBObject) -*/
         res = camkes_provide(seL4_TCBObject, /*? tcb ?*/, 0, seL4_CanRead|seL4_CanWrite);
         ERR_IF(res != 0, camkes_error, ((camkes_error_t){
                 .type = CE_ALLOCATION_FAILURE,
@@ -418,7 +418,7 @@ static void init(void) {
             /*- if not 4 <= int(u[0]) <= 28 -*/
                 /*? raise(TemplateError('illegal untyped size')) ?*/
             /*- endif -*/
-            /*- set untyped = alloc('untyped_%s_pool_%d' % (u[0], i), seL4_UntypedObject, size_bits=int(u[0]), read=True, write=True) -*/
+            /*- set untyped = alloc('untyped_%s_pool_%d' % (u[0], i), seL4_UntypedObject, size_bits=int(u[0])) -*/
             res = camkes_provide(seL4_UntypedObject, /*? untyped ?*/, 1U << /*? u[0] ?*/, seL4_CanRead|seL4_CanWrite);
             ERR_IF(res != 0, camkes_error, ((camkes_error_t){
                     .type = CE_ALLOCATION_FAILURE,

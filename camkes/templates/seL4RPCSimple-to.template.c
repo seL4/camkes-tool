@@ -60,7 +60,7 @@
 /*# We may need a slot to save reply caps in. #*/
 /*- if not options.realtime -*/
 /*- if len(me.instance.type.provides + me.instance.type.uses + me.instance.type.consumes + me.instance.type.mutexes + me.instance.type.semaphores) > 1 -*//
-    /*- set cnode = alloc_cap('cnode', my_cnode, write=True) -*/
+    /*- set cnode = alloc_cap('cnode', my_cnode) -*/
     /*- set reply_cap_slot = alloc_cap('reply_cap_slot', None) -*/
 /*- endif -*/
 /*- endif -*/

@@ -3113,7 +3113,7 @@ receive a reply capability:
 
 ```c
 /*# Allocate a cap to our own CNode. #*/
-/*- set cnode = alloc_cap('cnode', my_cnode, write=True) -*/
+/*- set cnode = alloc_cap('cnode', my_cnode) -*/
 /* Configure a TLS pointer to our own CNode cap. */
 camkes_get_tls()->cnode_cap = /*? cnode ?*/;
 ```

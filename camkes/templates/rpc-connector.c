@@ -224,7 +224,7 @@
             /*# We're going to need a CNode cap in order to save our pending reply
              * caps in the future.
              #*/
-            /*- set namespace.cnode = alloc_cap('cnode', my_cnode, write=True) -*/
+            /*- set namespace.cnode = alloc_cap('cnode', my_cnode) -*/
             /*- set namespace.reply_cap_slot = alloc_cap('reply_cap_slot', None) -*/
         /*- endif -*/
     /*- endif -*/
