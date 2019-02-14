@@ -128,27 +128,27 @@ def _die(options, message):
 def parse_args(argv, out, err):
     parser = argparse.ArgumentParser(prog='python -m camkes.runner',
         description='instantiate templates based on a CAmkES specification')
-    parser.add_argument('--cpp', action='store_true', help='Pre-process the '
-        'source with CPP')
+    parser.add_argument('--cpp', action='store_true',
+        help='Pre-process the source with CPP.')
     parser.add_argument('--nocpp', action='store_false', dest='cpp',
-        help='Do not pre-process the source with CPP')
+        help='Do not pre-process the source with CPP.')
     parser.add_argument('--cpp-flag', action='append', default=[],
-        help='Specify a flag to pass to CPP')
+        help='Specify a flag to pass to CPP.')
     parser.add_argument('--import-path', '-I', help='Add this path to the list '
         'of paths to search for built-in imports. That is, add it to the list '
         'of directories that are searched to find the file "foo" when '
         'encountering an expression "import <foo>;".', action='append',
         default=[])
-    parser.add_argument('--quiet', '-q', help='No output.', dest='verbosity',
+    parser.add_argument('--quiet', '-q', help='No diagnostics.', dest='verbosity',
         default=1, action='store_const', const=0)
-    parser.add_argument('--verbose', '-v', help='Verbose output.',
+    parser.add_argument('--verbose', '-v', help='Verbose diagnostics.',
         dest='verbosity', action='store_const', const=2)
-    parser.add_argument('--debug', '-D', help='Extra verbose output.',
+    parser.add_argument('--debug', '-D', help='Extra verbose diagnostics.',
         dest='verbosity', action='store_const', const=3)
     parser.add_argument('--outfile', '-O', help='Output to the given file.',
         type=argparse.FileType('w'), required=True, action='append', default=[])
     parser.add_argument('--verification-base-name', type=str,
-        help='Identifier to use when generating Isabelle theory files')
+        help='Prefix to use when generating Isabelle theory files.')
     parser.add_argument('--elf', '-E', help='ELF files to contribute to a '
         'CapDL specification.', action='append', default=[])
     parser.add_argument('--item', '-T', help='AST entity to produce code for.',
@@ -198,41 +198,45 @@ def parse_args(argv, out, err):
     parser.add_argument('--prune', action='store_true',
         help='Minimise the number of functions in generated C files.')
     parser.add_argument('--largeframe', action='store_true',
-        help='Try to use large frames when possible.')
+        help='Use large frames (for non-DMA pools) when possible.')
     parser.add_argument('--architecture', '--arch', default='aarch32',
-        type=lambda x: type('')(x).lower(), choices=('aarch32', 'arm_hyp', 'ia32', 'x86_64', 'aarch64'),
+        type=lambda x: type('')(x).lower(),
+        choices=('aarch32', 'arm_hyp', 'ia32', 'x86_64', 'aarch64'),
         help='Target architecture.')
     parser.add_argument('--makefile-dependencies', '-MD',
         type=argparse.FileType('w'), help='Write Makefile dependency rule to '
         'FILE')
     parser.add_argument('--allow-forward-references', action='store_true',
-        help='allow refering to objects in your specification that are '
-        'defined after the point at which they are referenced')
+        help='Allow referring to objects in your specification that are '
+        'defined after the point at which they are referenced.')
     parser.add_argument('--disallow-forward-references', action='store_false',
-        dest='allow_forward_references', help='only permit references in '
-        'specifications to objects that have been defined before that point')
+        dest='allow_forward_references', help='Only permit references in '
+        'specifications to objects that have been defined before that point.')
     parser.add_argument('--debug-fault-handlers', action='store_true',
-        help='provide fault handlers to decode cap and VM faults for the '
-        'purposes of debugging')
+        help='Provide fault handlers to decode cap and VM faults for '
+        'debugging purposes.')
     parser.add_argument('--largeframe-dma', action='store_true',
-        help='promote frames backing DMA pools to large frames where possible')
+        help='Use large frames for DMA pools when possible.')
     parser.add_argument('--realtime', action='store_true',
         help='Target realtime seL4.')
     parser.add_argument('--object-sizes', type=argparse.FileType('r'),
-                        help="YAML file specifying the object sizes for any seL4 objects used in this invocation of the runner.")
+        help='YAML file specifying the object sizes for any seL4 objects '
+        'used in this invocation of the runner.')
+
     object_state_group = parser.add_mutually_exclusive_group()
     object_state_group.add_argument('--load-object-state', type=argparse.FileType('rb'),
-        help='load previously-generated cap and object state')
+        help='Load previously-generated cap and object state.')
     object_state_group.add_argument('--save-object-state', type=argparse.FileType('wb'),
-        help='save generated cap and object state to this file')
+        help='Save generated cap and object state to this file.')
 
-    parser.add_argument('--save-ast',type=argparse.FileType('wb'), help='cache the ast during the build')
+    parser.add_argument('--save-ast', type=argparse.FileType('wb'),
+        help='Cache the AST for the specification to this file.')
     # To get the AST, there should be either a pickled AST or a file to parse
     adl_group = parser.add_mutually_exclusive_group(required=True)
-    adl_group.add_argument('--load-ast',type=argparse.FileType('rb'), help='load the cached ast during the build')
-    adl_group.add_argument('--file', '-f', help='Add this file to the list of '
-        'input files to parse. Files are parsed in the order in which they are '
-        'encountered on the command line.', type=argparse.FileType('r'))
+    adl_group.add_argument('--load-ast', type=argparse.FileType('rb'),
+        help='Load specification AST from this file.')
+    adl_group.add_argument('--file', '-f', type=argparse.FileType('r'),
+        help='Load specification from this file.')
 
     # Juggle the standard streams either side of parsing command-line arguments
     # because argparse provides no mechanism to control this.
