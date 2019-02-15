@@ -79,19 +79,3 @@ def sources():
                     result.append((abspath, hashlib.sha256(content).hexdigest()))
 
     return result
-
-@memoize()
-def version():
-    # Accumulate all relevant source files.
-    srcs = sorted(sources())
-
-    # Hash each file and hash a concatenation of these hashes. Note, hashing a
-    # hash is not good practice for cryptography, but it's fine for this
-    # purpose.
-    hfinal = hashlib.sha256()
-    for _, digest in srcs:
-        chunk = '%s|' % digest
-        if isinstance(chunk, six.text_type):
-            chunk = chunk.encode('utf-8')
-        hfinal.update(chunk)
-    return hfinal.hexdigest()

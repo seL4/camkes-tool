@@ -41,7 +41,7 @@ if platform.python_implementation() != 'CPython':
 from camkes.ast import ASTError, Connection, Connector
 from camkes.templates import Templates, PLATFORMS, TemplateError
 import camkes.internal.log as log
-from camkes.internal.version import sources, version
+from camkes.internal.version import sources
 from camkes.internal.exception import CAmkESError
 from camkes.runner.NameMangling import Perspective, RUNNER
 from camkes.runner.Renderer import Renderer
@@ -159,8 +159,6 @@ def parse_args(argv, out, err):
     parser.add_argument('--templates', '-t', help='Extra directories to '
         'search for templates (before builtin templates).', action='append',
         default=[])
-    parser.add_argument('--version', action='version', version='%s %s' %
-        (argv[0], version()))
     parser.add_argument('--frpc-lock-elision', action='store_true',
         default=True, help='Enable lock elision optimisation in seL4RPC '
         'connector.')

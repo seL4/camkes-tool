@@ -21,7 +21,6 @@ from camkes.internal.seven import cmp, filter, map, zip
 
 from .Context import new_context
 from camkes.internal.mkdirp import mkdirp
-from camkes.internal.version import version
 from camkes.templates import TemplateError, TEMPLATES
 
 import jinja2, os, platform, six, sys

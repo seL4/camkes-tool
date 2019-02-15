@@ -42,7 +42,6 @@ except ImportError:
 
 import camkes.ast as AST
 from camkes.internal.Counter import Counter
-from camkes.internal.version import version
 from camkes.templates import macros, TemplateError
 from .NameMangling import TEMPLATES, FILTERS, Perspective
 
