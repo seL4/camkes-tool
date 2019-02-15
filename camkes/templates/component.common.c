@@ -30,7 +30,6 @@
 #include <camkes/pid.h>
 #include <camkes/tls.h>
 #include <camkes/vma.h>
-#include <camkes/version.h>
 #include <camkes/syscalls.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -1224,5 +1223,3 @@ const size_t camkes_vmas_size = sizeof camkes_vmas / sizeof camkes_vmas[0];
     /*- break -*/
   /*- endif -*/
 /*- endfor -*/
-
-const char *camkes_release = "/*? camkes_version ?*/";

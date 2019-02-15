@@ -11,7 +11,6 @@
  */
 
 #include <autoconf.h>
-#include <camkes/version.h>
 #include <errno.h>
 #include <stdarg.h>
 #include <stddef.h>
@@ -49,9 +48,8 @@ long camkes_sys_uname(va_list ap) {
     /* Set the network name. */
     memcpy(buf->nodename, nodename, sizeof buf->nodename);
 
-    /* Set the CAmkES release. */
-    strncpy(buf->release, camkes_release, sizeof buf->release);
-    buf->release[sizeof buf->release - 1] = '\0';
+    /* No relevant release information to set. */
+    buf->release[0] = '\0';
 
     /* No relevant version information to set. */
     buf->version[0] = '\0';

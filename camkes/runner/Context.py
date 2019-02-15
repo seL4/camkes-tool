@@ -247,11 +247,6 @@ def new_context(entity, assembly, render_state, state_key, outfile_name,
         # to invalid input specification.
         'TemplateError':TemplateError,
 
-        # Version information. Templates are unlikely to depend on this, but we
-        # emit it to give component instances a runtime-discoverable CAmkES
-        # version.
-        'camkes_version':version(),
-
         # Look up a template
         'lookup_template':lambda path, entity: templates.lookup(path, entity),
 
