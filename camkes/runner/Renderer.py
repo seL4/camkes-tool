@@ -47,20 +47,31 @@ def get_leaves(d):
             # We're at a leaf node.
             yield v
 
+class FileSystemLoaderWithLog(jinja2.FileSystemLoader):
+
+    def __init__(self, path):
+        super(FileSystemLoaderWithLog,self).__init__(path)
+        self.files = set()
+
+    def get_source(self, environment, template):
+        (source, filename, uptodate) = super(FileSystemLoaderWithLog, self).get_source(environment, template)
+        self.files.add(filename)
+        return (source, filename, uptodate)
+
 class Renderer(object):
     def __init__(self, templates):
         # This function constructs a Jinja environment for our templates.
 
         self.templates = templates
 
-        loaders = []
+        self.loaders = []
 
         # Source templates.
-        loaders.extend(jinja2.FileSystemLoader(os.path.abspath(x)) for x in
+        self.loaders.extend(FileSystemLoaderWithLog(os.path.abspath(x)) for x in
             templates.get_roots())
 
         self.env = jinja2.Environment(
-            loader=jinja2.ChoiceLoader(loaders),
+            loader=jinja2.ChoiceLoader(self.loaders),
             extensions=["jinja2.ext.do", "jinja2.ext.loopcontrols"],
             block_start_string=START_BLOCK,
             block_end_string=END_BLOCK,
@@ -87,3 +98,9 @@ class Renderer(object):
             # exceptions aren't our fault.
             six.reraise(TemplateError, TemplateError('unhandled exception in '
                 'template %s: %s' % (template, e)), sys.exc_info()[2])
+
+    def get_files_used(self):
+        files = set()
+        for x in self.loaders:
+            files |= x.files
+        return files
