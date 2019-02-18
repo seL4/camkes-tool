@@ -102,8 +102,16 @@ function(CAmkESOutputGenCommand object_state_op)
         return()
     endif()
     list(LENGTH outfile_list outfile_list_count)
+    string(COMPARE EQUAL ${object_state_op} "load-object-state" load_object_state)
+    set(object_file_depends)
+    set(object_file_output)
+    if(load_object_state)
+        set(object_file_depends ${CMAKE_CURRENT_BINARY_DIR}/object.pickle)
+    else()
+        set(object_file_output ${CMAKE_CURRENT_BINARY_DIR}/object.pickle)
+    endif()
     add_custom_command(
-        OUTPUT ${outfile_list}
+        OUTPUT ${outfile_list} ${object_file_output}
         COMMAND
             ${CMAKE_COMMAND} -E env ${CAMKES_TOOL_ENVIRONMENT} "${CAMKES_TOOL}"
                 "--item;$<JOIN:${item_list},;--item;>"
@@ -116,13 +124,13 @@ function(CAmkESOutputGenCommand object_state_op)
                 ${CAMKES_FLAGS}
         ${reflow_commands}
         DEPENDS
-            ${CAMKES_ADL_SOURCE}
-            /*? ' '.join(imported) ?*/
+            ${CMAKE_CURRENT_BINARY_DIR}/ast.pickle
             # This pulls in miscellaneous dependencies 
             # which is used by the camkes tool
             ${CAMKES_TOOL_DEPENDENCIES}
             # Any additional dependencies from the files
             ${deps_list}
+            ${object_file_depends}
             object_sizes
         VERBATIM
         USES_TERMINAL

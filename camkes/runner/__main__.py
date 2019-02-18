@@ -466,7 +466,7 @@ def main(argv, out, err):
                 if template:
                     g = r.render(
                         assembly, assembly, template, renderoptions.render_state, None,
-                        outfile_name=outfile.name, imported=read, options=renderoptions)
+                        outfile_name=outfile.name, options=renderoptions)
                     done(g, outfile, item, r, read)
             except TemplateError as inst:
                 die(rendering_error(item, inst))
