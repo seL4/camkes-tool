@@ -102,6 +102,14 @@ function(CAmkESOutputGenCommand object_state_op)
         return()
     endif()
     list(LENGTH outfile_list outfile_list_count)
+    # Calculate the string length of ${CMAKE_BINARY_DIR} + 1 to do a hacky relative
+    # path calculation when editing our generated depfile.  This is because, we need
+    # to calculate the depfile path depending on the top level build directory, but
+    # the tool generating the depfile only knows the current subdirectory and doesn't
+    # get told the top level one.
+    string(LENGTH ${CMAKE_BINARY_DIR} strlen)
+    math(EXPR strlen "${strlen} + 1")
+    set(depfile ${CMAKE_CURRENT_BINARY_DIR}/${object_state_op}moredeps)
     string(COMPARE EQUAL ${object_state_op} "load-object-state" load_object_state)
     set(object_file_depends)
     set(object_file_output)
@@ -120,8 +128,12 @@ function(CAmkESOutputGenCommand object_state_op)
                 "--${object_state_op}=${CMAKE_CURRENT_BINARY_DIR}/object.pickle"
                 "--object-sizes=$<TARGET_PROPERTY:object_sizes,FILE_PATH>"
                 "$<$<BOOL:${elfs_list}>:--elf$<SEMICOLON>>$<JOIN:${elfs_list},$<SEMICOLON>--elf$<SEMICOLON>>"
+                --makefile-dependencies "${depfile}"
                 ${camkes_ver_opts}
                 ${CAMKES_FLAGS}
+        # For some reason, ninja only accepts relative targets.
+        # We truncate the first `strlen` chars which takes off the CMAKE_BINARY_DIR from the depfile.
+        COMMAND sh -c "dd if=${depfile} of=${depfile}.truncated bs=${strlen} skip=1 2> /dev/null && mv ${depfile}.truncated ${depfile}"
         ${reflow_commands}
         DEPENDS
             ${CMAKE_CURRENT_BINARY_DIR}/ast.pickle
@@ -133,6 +145,7 @@ function(CAmkESOutputGenCommand object_state_op)
             ${object_file_depends}
             object_sizes
         VERBATIM
+        DEPFILE "${depfile}"
         USES_TERMINAL
         COMMAND_EXPAND_LISTS
         COMMENT "Performing CAmkES generation for ${outfile_list_count} files"
