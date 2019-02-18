@@ -419,9 +419,6 @@ def main(argv, out, err):
     # Add the CAmkES sources themselves to the accumulated list of inputs.
     read |= set(path for path, _ in sources())
 
-    # Add any ELF files we were passed as inputs.
-    read |= set(options.elf)
-
     # Write a Makefile dependency rule if requested.
     if filename and options.makefile_dependencies is not None:
         options.makefile_dependencies.write('%s: \\\n  %s\n' %
