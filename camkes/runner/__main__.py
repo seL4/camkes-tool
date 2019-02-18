@@ -325,7 +325,7 @@ def main(argv, out, err):
     all_items = set(zip(options.item, options.outfile))
     done_items = set([])
 
-    def done(s, file, item):
+    def done(s, file, item, r, read):
         ret = 0
         if s:
             file.write(s)
@@ -333,6 +333,13 @@ def main(argv, out, err):
 
         done_items.add((item, file))
         if len(all_items - done_items) == 0:
+
+            read |= r.get_files_used()
+            # Write a Makefile dependency rule if requested.
+            if options.makefile_dependencies is not None:
+                options.makefile_dependencies.write('%s: \\\n  %s\n' %
+                    (options.outfile[0].name, ' \\\n  '.join(sorted(read))))
+
             if options.save_object_state is not None:
                 # Write the render_state to the supplied outfile
                 pickle.dump(renderoptions.render_state, options.save_object_state)
@@ -413,16 +420,8 @@ def main(argv, out, err):
             # template lookup dictionary.
             pass
 
-    # Add custom templates.
-    read |= extra_templates
-
     # Add the CAmkES sources themselves to the accumulated list of inputs.
     read |= set(path for path, _ in sources())
-
-    # Write a Makefile dependency rule if requested.
-    if filename and options.makefile_dependencies is not None:
-        options.makefile_dependencies.write('%s: \\\n  %s\n' %
-            (filename, ' \\\n  '.join(sorted(read))))
 
     def apply_capdl_filters(renderoptions):
         # Derive a set of usable ELF objects from the filenames we were passed.
@@ -471,7 +470,7 @@ def main(argv, out, err):
                     g = r.render(
                         assembly, assembly, template, renderoptions.render_state, None,
                         outfile_name=outfile.name, imported=read, options=renderoptions)
-                    done(g, outfile, item)
+                    done(g, outfile, item, r, read)
             except TemplateError as inst:
                 die(rendering_error(item, inst))
 
@@ -535,7 +534,7 @@ def main(argv, out, err):
                     if item == t:
                         if not template:
                             log.warning('Warning: no template for %s' % item)
-                        done(g, outfile, item)
+                        done(g, outfile, item, r, read)
                         break
             except TemplateError as inst:
                 die(rendering_error(i.name, inst))
@@ -568,7 +567,7 @@ def main(argv, out, err):
                         if target == item:
                             if not template:
                                 log.warning('Warning: no template for %s' % item)
-                            done(g, outfile, item)
+                            done(g, outfile, item, r, read)
                             break
 
         # The following block handles instantiations of per-connection
@@ -600,7 +599,7 @@ def main(argv, out, err):
                         g = r.render(e, assembly, template, renderoptions.render_state,
                             e.instance.address_space, outfile_name=None,
                             options=renderoptions, my_pd=renderoptions.render_state.pds[e.instance.address_space])
-                        done(g, outfile, item)
+                        done(g, outfile, item, r, read)
                     except TemplateError as inst:
                         die(rendering_error(item, inst))
 
@@ -626,7 +625,7 @@ def main(argv, out, err):
                         if item == t:
                             if not template:
                                 log.warning('Warning: no template for %s' % item)
-                            done(g, outfile, item)
+                            done(g, outfile, item, r, read)
                 except TemplateError as inst:
                     die(rendering_error(i.name, inst))
 
