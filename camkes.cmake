@@ -355,6 +355,18 @@ if ("${TPP_TOOL}" STREQUAL "TPP_TOOL-NOTFOUND")
     message(FATAL_ERROR "Failed to find tpp tool")
 endif()
 
+
+file(GLOB CAMKES_TOOL_FILES
+    ${CMAKE_CURRENT_LIST_DIR}/camkes.sh
+    ${CMAKE_CURRENT_LIST_DIR}/camkes/ast/*.py
+    ${CMAKE_CURRENT_LIST_DIR}/camkes/internal/*.py
+    ${CMAKE_CURRENT_LIST_DIR}/camkes/parser/*.py
+    ${CMAKE_CURRENT_LIST_DIR}/camkes/runner/*.py
+    ${CMAKE_CURRENT_LIST_DIR}/camkes/templates/Template.py
+    ${CMAKE_CURRENT_LIST_DIR}/camkes/templates/macros.py)
+
+file(GLOB PYTHON_CAPDL_FILES ${PYTHON_CAPDL_PATH}/capdl/*.py)
+
 # CAmkES defines its own heaps and for this to work muslcsys must not be configured to
 # use a static morecore. We make the morecore dynamic by setting the size to 0
 set(LibSel4MuslcSysMorecoreBytes 0 CACHE STRING "" FORCE)
@@ -555,7 +567,7 @@ function(GenerateCAmkESRootserver)
             MakefileDepsToList("${deps_file}" deps)
             # At this point assume we do not need to regenerate, unless we found a newer file
             set(regen FALSE)
-            foreach(dep IN LISTS deps)
+            foreach(dep IN LISTS deps CAMKES_TOOL_FILES PYTHON_CAPDL_FILES)
                 if("${dep}" IS_NEWER_THAN "${gen_outfile}")
                     set(regen TRUE)
                     break()
@@ -580,7 +592,7 @@ function(GenerateCAmkESRootserver)
     endif()
     # Add dependencies
     MakefileDepsToList("${deps_file}" deps)
-    set_property(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${deps}")
+    set_property(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${deps};${CAMKES_TOOL_FILES};${PYTHON_CAPDL_FILES}")
     # We set a property to indicate that we have done execute_process (which happens during the
     # generation phase. This just allows us to do some debugging and detect cases where options
     # are changed *after* this point that would have affected the execute_process

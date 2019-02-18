@@ -417,9 +417,6 @@ def main(argv, out, err):
             # template lookup dictionary.
             pass
 
-    # Add the CAmkES sources themselves to the accumulated list of inputs.
-    read |= set(path for path, _ in sources())
-
     def apply_capdl_filters(renderoptions):
         # Derive a set of usable ELF objects from the filenames we were passed.
         render_state = renderoptions.render_state
