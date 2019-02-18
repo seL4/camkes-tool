@@ -15,7 +15,6 @@
 Set up and run tests for CAmkES capDL refinement proofs.
 '''
 
-import jinja2
 import itertools
 import os
 import shutil
@@ -23,24 +22,6 @@ import subprocess
 import sys
 import tempfile
 import time
-
-# Jinja template setup
-START_BLOCK = '/*-'
-END_BLOCK = '-*/'
-START_VARIABLE = '/*?'
-END_VARIABLE = '?*/'
-START_COMMENT = '/*#'
-END_COMMENT = '#*/'
-
-jinja_env = jinja2.Environment(
-    block_start_string=START_BLOCK,
-    block_end_string=END_BLOCK,
-    variable_start_string=START_VARIABLE,
-    variable_end_string=END_VARIABLE,
-    comment_start_string=START_COMMENT,
-    comment_end_string=END_COMMENT,
-    auto_reload=False,
-    undefined=jinja2.StrictUndefined)
 
 # Test these apps. Commented-out tests are those that don't work
 # but we have a good idea of what needs to be fixed.
