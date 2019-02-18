@@ -403,7 +403,6 @@ def main(argv, out, err):
     # the extra check that the connector has some templates is just an
     # optimisation; the templates module handles connectors without templates
     # just fine.
-    extra_templates = set()
     for c in (x for x in ast.items if isinstance(x, Connector) and
             (x.from_template is not None or x.to_template is not None)):
         try:
@@ -412,7 +411,7 @@ def main(argv, out, err):
                 x.type == c)
             # Add the custom templates and update our collection of read
             # inputs.
-            extra_templates |= templates.add(c, connection)
+            templates.add(c, connection)
         except TemplateError as e:
             die('while adding connector %s: %s' % (c.name, e))
         except StopIteration:

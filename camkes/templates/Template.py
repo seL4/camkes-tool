@@ -189,54 +189,6 @@ TEMPLATES = {
 }
 PLATFORMS = list(TEMPLATES.keys())
 
-# A Jinja include or import statement. We will use this to recognise
-# subordinate inputs resulting from a user-provided template.
-INCLUDE_STATEMENT = re.compile(
-    r'/\*-\s*(?:import|include)\s+(\'[^\']*\'|"[^"]*")\s*-\*/',
-    flags=re.MULTILINE)
-
-def get_dependencies(roots, stem, seen=None):
-    '''
-    Retrieve the files included or imported by a given template. Note that the
-    returned set will contain the template itself as well.
-    '''
-    assert isinstance(roots, collections.Iterable) and \
-        all(isinstance(x, six.string_types) for x in roots)
-    assert isinstance(stem, six.string_types)
-
-    if seen is None:
-        seen = set()
-
-    if stem in seen:
-        # If we were to continue, this function would infinitely recurse.
-        raise TemplateError('template \'%s\' eventually includes/imports '
-            'itself' % stem)
-    seen.add(stem)
-
-    # Here we imitate the Jinja template lookup algorithm to discover the actual
-    # file whose source will be read during template instantiation.
-    for r in roots:
-        path = os.path.join(r, stem)
-        if os.path.exists(path):
-            # Found it.
-            with open(path, 'rt') as f:
-                content = f.read()
-
-            # Find everything this template includes, recursively.
-            included = INCLUDE_STATEMENT.findall(content)
-            read = set([path])
-            # Note that we use [1:-1] to strip the quotes from the include
-            # target.
-            for target in (x[1:-1] for x in included):
-                extra = get_dependencies(roots, target, set(seen))
-                read |= extra
-
-            return read
-
-    # If we reached here, the template cannot be found. Don't throw an error at
-    # this point, as it may be confusing to the user. Eventually an error
-    # should result from an attempt to instantiate this template.
-    return set()
 
 class Templates(object):
     def __init__(self, platform):
@@ -282,14 +234,11 @@ class Templates(object):
             if 'from' not in intermediate:
                 intermediate['from'] = {}
             intermediate['from']['source'] = connector.from_template
-            dependencies |= get_dependencies(self.roots, connector.from_template)
         if connector.to_template is not None:
             if 'to' not in intermediate:
                 intermediate['to'] = {}
             intermediate['to']['source'] = connector.to_template
-            dependencies |= get_dependencies(self.roots, connector.to_template)
 
-        return dependencies
 
     def lookup(self, path, entity=None):
         '''Lookup the given path string (dict key elements separated by '/') in
