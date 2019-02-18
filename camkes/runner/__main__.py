@@ -41,7 +41,6 @@ if platform.python_implementation() != 'CPython':
 from camkes.ast import ASTError, Connection, Connector
 from camkes.templates import Templates, PLATFORMS, TemplateError
 import camkes.internal.log as log
-from camkes.internal.version import sources
 from camkes.internal.exception import CAmkESError
 from camkes.runner.NameMangling import Perspective, RUNNER
 from camkes.runner.Renderer import Renderer
