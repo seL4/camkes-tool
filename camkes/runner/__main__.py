@@ -57,14 +57,12 @@ from camkes.parser import parse_file, ParseError, parse_query_parser_args, print
 CAPDL_STATE_PICKLE = 'capdl_state.p'
 
 class ParserOptions():
-    def __init__(self, cpp, cpp_flag, import_path, verbosity, allow_forward_references,save_ast,load_ast, queries):
+    def __init__(self, cpp, cpp_flag, import_path, verbosity, allow_forward_references, queries):
         self.cpp = cpp
         self.cpp_flag = cpp_flag
         self.import_path = import_path
         self.verbosity = verbosity
         self.allow_forward_references = allow_forward_references
-        self.save_ast = save_ast
-        self.load_ast = load_ast
         self.queries = queries
 
 class FilterOptions():
@@ -269,14 +267,6 @@ def parse_args(argv, out, err):
 
     return options, queries, filteroptions
 
-def parse_file_cached(filename, parser_options):
-    if parser_options.load_ast is not None:
-        return pickle.load(parser_options.load_ast)
-    ast,read = parse_file(filename, parser_options)
-    if parser_options.save_ast is not None:
-        pickle.dump((ast,read),parser_options.save_ast)
-    return ast,read
-
 def rendering_error(item, exn):
     """Helper to format an error message for template rendering errors."""
     tb = '\n'.join(traceback.format_tb(sys.exc_info()[2]))
@@ -346,14 +336,22 @@ def main(argv, out, err):
 
             sys.exit(ret)
 
-    filename = None
-    if options.file is not None:
-        filename = os.path.abspath(options.file.name)
-
     try:
-        # Build the parser options
-        parse_options = ParserOptions(options.cpp, options.cpp_flag, options.import_path, options.verbosity, options.allow_forward_references,options.save_ast,options.load_ast, queries)
-        ast, read = parse_file_cached(filename, parse_options)
+        if options.load_ast is not None:
+            ast = pickle.load(options.load_ast)
+            read = set()
+        else:
+            if options.file is not None:
+                filename = os.path.abspath(options.file.name)
+            else:
+                die("Need file to load ast from")
+
+            # Build the parser options
+            parse_options = ParserOptions(options.cpp, options.cpp_flag, options.import_path, options.verbosity, options.allow_forward_references, queries)
+            ast, read = parse_file(filename, parse_options)
+            if options.save_ast is not None:
+                pickle.dump(ast,options.save_ast)
+
     except (ASTError, ParseError) as e:
         die(e.args)
 
