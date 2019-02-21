@@ -15,6 +15,7 @@
 #include <camkes/fault.h>
 #include <limits.h>
 #include <sel4/sel4.h>
+#include <sel4debug/register_dump.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -166,7 +167,7 @@ void camkes_show_fault(seL4_MessageInfo_t info, seL4_CPtr thread_id,
                 get_instance_name(), safe_name, thread_id, (void*)addr,
                 (void*)pc, fsr);
             if (tcb_caps_available) {
-                show_register_dump(thread_id);
+                sel4debug_dump_registers_prefix(thread_id, FAULT_PREFIX);
             } else {
                 SHOW("register dump unavailable (no cap to target TCB)\n");
             }

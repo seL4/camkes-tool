@@ -16,9 +16,8 @@
 #include <sel4/sel4.h>
 #include <stdio.h>
 
-#define SHOW(args...) printf("FAULT HANDLER: " args)
-
-void show_register_dump(seL4_CPtr tcb);
+#define FAULT_PREFIX "FAULT HANDLER: "
+#define SHOW(args...) printf(FAULT_PREFIX args)
 
 void show_unknown_syscall_fault(seL4_CPtr thread_id, const char *name);
 
