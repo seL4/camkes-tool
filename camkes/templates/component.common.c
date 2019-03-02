@@ -495,6 +495,13 @@ static void init(void) {
             /*- set _sc = alloc_obj("%s_sc" % t.name, seL4_SchedContextObject) -*/
             /*- set sc = alloc_cap("%s_sc" % t.name, _sc) -*/
             /*- do _tcb.__setitem__('sc_slot', Cap(_sc)) -*/
+            /*- if loop.first -*/
+                /*- do macros.set_sc_properties(_sc, options, configuration[me.name], "_") -*/
+            /*- elif options.debug_fault_handlers and loop.last -*/
+                /*- do macros.set_sc_properties(_sc, options, configuration[me.name], "fault") -*/
+            /*- else -*/
+                /*- do macros.set_sc_properties(_sc, options, configuration[me.name], "%s_" % t.interface.name) -*/
+            /*- endif -*/
         /*- else -*/
             /*# This branch is for interface threads that are passive #*/
             /*- do passive_tcbs.__setitem__(t.name, tcb) -*/
@@ -515,11 +522,17 @@ static void init(void) {
     /*- endif -*/
 
     /*- if loop.first -*/
+        /*- do macros.set_tcb_properties(_tcb, options, configuration[me.name], "_") -*/
         /*- do thread_names.__setitem__(tcb, "control") -*/
     /*- elif options.debug_fault_handlers and loop.last -*/
         /*- do thread_names.__setitem__(tcb, "fault_handler") -*/
+        /*- do _tcb.__setattr__('prio', 255) -*/
+        /*- do _tcb.__setattr__('affinity', options.default_affinity) -*/
+        /*- do _tcb.__setattr__('max_prio', options.default_max_priority) -*/
+
     /*- else -*/
         /*- do thread_names.__setitem__(tcb, t.interface.name) -*/
+        /*- do macros.set_tcb_properties(_tcb, options, configuration[me.name], "%s_" % t.interface.name) -*/
     /*- endif -*/
 
 

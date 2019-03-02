@@ -94,7 +94,8 @@ class RenderState():
 class RenderOptions():
     def __init__(self, file, verbosity, frpc_lock_elision, fspecialise_syscall_stubs,
             fprovide_tcb_caps, largeframe, largeframe_dma, architecture,
-            debug_fault_handlers, default_stack_size, realtime, verification_base_name,
+            debug_fault_handlers, default_priority, default_max_priority, default_affinity,
+            default_period, default_budget, default_data, default_size_bits, default_stack_size, realtime, verification_base_name,
             filter_options, render_state):
         self.file = file
         self.verbosity = verbosity
@@ -105,6 +106,14 @@ class RenderOptions():
         self.largeframe_dma = largeframe_dma
         self.architecture = architecture
         self.debug_fault_handlers = debug_fault_handlers
+        self.default_priority = default_priority
+        self.default_max_priority = default_max_priority
+        self.default_affinity = default_affinity
+        self.default_period = default_period
+        self.default_budget = default_budget
+        self.default_data = default_data
+        self.default_size_bits = default_size_bits
+
         self.default_stack_size = default_stack_size
         self.realtime = realtime
         self.verification_base_name = verification_base_name
@@ -462,6 +471,8 @@ def main(argv, out, err):
     renderoptions = RenderOptions(options.file, options.verbosity, options.frpc_lock_elision,
         options.fspecialise_syscall_stubs, options.fprovide_tcb_caps,
         options.largeframe, options.largeframe_dma, options.architecture, options.debug_fault_handlers,
+        options.default_priority, options.default_max_priority, options.default_affinity,
+        options.default_period, options.default_budget, options.default_data, options.default_size_bits,
         options.default_stack_size, options.realtime,
         options.verification_base_name, filteroptions, render_state)
 

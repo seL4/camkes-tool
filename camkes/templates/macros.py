@@ -310,6 +310,57 @@ def sizeof(arch, t):
 def get_word_size(arch):
     return int(lookup_architecture(arch).word_size_bits()/8)
 
+def maybe_set_property_from_configuration(configuration, prefix, obj, field_name, general_attribute):
+    """Sets a field "field_name" of an object "obj" to the value of a configuration
+    setting of the form:
+    instance.attribute = value;
+    where configuration is the configuration only for the instance.
+    and "attribute" is obtained from the "general_attribute" and "prefix"
+    If such a setting exists, the field is set.
+    Otherwise, check if a corresponding general property was set for the instance.
+    This is a setting that applies the property to all threads related to the instance
+    including all interface threads."""
+
+    attribute = prefix + general_attribute
+    value = configuration.get(attribute)
+    if value is None:
+        general_value = configuration.get(general_attribute)
+        if general_value is not None:
+            setattr(obj, field_name, general_value)
+    else:
+        setattr(obj, field_name, value)
+
+
+
+def set_tcb_properties(tcb, options, configuration, prefix):
+    tcb.prio = options.default_priority
+    tcb.max_prio = options.default_max_priority
+    tcb.affinity = options.default_affinity
+
+
+    maybe_set_property_from_configuration(configuration, prefix, tcb, 'prio', 'priority')
+    maybe_set_property_from_configuration(configuration, prefix, tcb, 'max_prio', 'max_priority')
+    maybe_set_property_from_configuration(configuration, prefix, tcb, 'affinity', 'affinity')
+    # Find the domain if it was set.
+    dom_attribute = prefix + "domain"
+    dom = configuration.get(dom_attribute)
+
+    if dom is not None:
+        tcb.domain = dom
+
+
+
+def set_sc_properties(sc, options, configuration, prefix):
+    sc.period = options.default_period
+    sc.budget = options.default_budget
+    sc.data = options.default_data
+    sc.size_bits = options.default_size_bits
+
+    maybe_set_property_from_configuration(configuration, prefix, sc, 'period', 'period')
+    maybe_set_property_from_configuration(configuration, prefix, sc, 'budget', 'budget')
+    maybe_set_property_from_configuration(configuration, prefix, sc, 'data', 'data')
+    maybe_set_property_from_configuration(configuration, prefix, sc, 'size_bits', 'size_bits')
+
 def to_isabelle_set(xs):
     assert isinstance(xs, collections.Iterable)
     if all(isinstance(x, six.string_types) for x in xs):
