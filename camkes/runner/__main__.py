@@ -445,6 +445,7 @@ def main(argv, out, err):
                 tcb.ip = simple_eval(str(tcb.ip), functions=funcs)
                 tcb.sp = simple_eval(str(tcb.sp), functions=funcs)
                 tcb.addr = simple_eval(str(tcb.addr), functions=funcs)
+            space.cnode.finalise_size(arch=lookup_architecture(options.architecture))
 
         for f in CAPDL_FILTERS:
             try:

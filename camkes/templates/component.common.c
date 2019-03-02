@@ -77,6 +77,17 @@ const char *get_instance_name(void) {
     return name;
 }
 
+/*- set cnode_size = configuration[me.address_space].get('cnode_size_bits') -*/
+/*- if cnode_size -*/
+        /*- if isinstance(cnode_size, six.string_types) -*/
+            /*- set size = int(cnode_size, 0) -*/
+        /*- else -*/
+            /*- set size = cnode_size -*/
+        /*- endif -*/
+    /*- do my_cnode.__setattr__('size_bits', size) -*/
+/*- endif -*/
+
+
 /* DMA functionality. */
 
 /*# Determine the size of the DMA pool. Note that we make no attempt to
@@ -468,6 +479,10 @@ static void init(void) {
     /*- set _tcb = alloc_obj("%s_tcb" % t.name, seL4_TCBObject) -*/
     /*- set tcb = alloc_cap("%s_tcb" % t.name, _tcb) -*/
     /*- do _tcb.__setitem__('ipc_buffer_slot', Cap(ipc_frame, read=True, write=True)) -*/
+    /*- do _tcb.__setitem__('vspace', Cap(my_pd)) -*/
+    /*- set cnode_cap = Cap(my_cnode) -*/
+    /*- do my_cnode.update_guard_size_caps.append(cnode_cap) -*/
+    /*- do _tcb.__setitem__('cspace', cnode_cap) -*/
 
     /*- do _tcb.__setattr__('ip', "get_vaddr(\'%s\')" % ("camkes %s _camkes_start" % me.name) ) -*/
     /*- do _tcb.__setattr__('sp', t.sp) -*/

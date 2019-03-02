@@ -22,73 +22,6 @@ from capdl import Cap, CNode, TCB, SC, lookup_architecture
 from .NameMangling import Perspective
 
 
-def set_tcb_caps(ast, obj_space, cspaces, elfs, options, **_):
-    arch = lookup_architecture(options.architecture)
-    assembly = ast.assembly
-
-    for group, space in cspaces.items():
-        cnode = space.cnode
-        for index, tcb in [(k, v.referent) for (k, v) in cnode.slots.items()
-                if v is not None and isinstance(v.referent, TCB)]:
-
-            perspective = Perspective(tcb=tcb.name, group=group)
-
-            # Finalise the CNode so that we know what its absolute size will
-            # be. Note that we are assuming no further caps will be added to
-            # the CNode after this point.
-            cnode.finalise_size()
-
-            # Allow the user to override CNode sizes with the 'cnode_size_bits'
-            # attribute.
-            cnode_size = assembly.configuration[group].get('cnode_size_bits')
-            if cnode_size is not None:
-                try:
-                    if isinstance(cnode_size, six.string_types):
-                        size = int(cnode_size, 0)
-                    else:
-                        size = cnode_size
-                except ValueError:
-                    raise Exception('illegal value for CNode size for %s' %
-                        group)
-                if size < cnode.size_bits:
-                    raise Exception('%d-bit CNode specified for %s, but this '
-                        'CSpace needs to be at least %d bits' %
-                        (size, group, cnode.size_bits))
-                cnode.size_bits = size
-
-            cspace = Cap(cnode)
-            cspace.set_guard_size(arch.word_size_bits() - cnode.size_bits)
-            tcb['cspace'] = cspace
-
-            pd = None
-            pd_name = perspective['pd']
-            pds = [x for x in obj_space.spec.objs if x.name == pd_name]
-            if len(pds) > 1:
-                raise Exception('Multiple PDs found for %s' % group)
-            elif len(pds) == 1:
-                pd, = pds
-                tcb['vspace'] = Cap(pd)
-            # If no PD was found we were probably just not passed any ELF files
-            # in this pass.
-
-            if perspective['pool']:
-                # This TCB is part of the (cap allocator's) TCB pool.
-                continue
-
-            # Optional fault endpoints are configured in the per-component
-            # template.
-
-def guard_cnode_caps(cspaces, options, **_):
-    """If the templates have allocated any caps to CNodes, they will not have
-    the correct guards. This is due to the CNodes' sizes being automatically
-    calculated (during set_tcb_caps above). Correct them here."""
-
-    arch = lookup_architecture(options.architecture)
-    for space in cspaces.values():
-        [cap.set_guard_size(arch.word_size_bits() - cap.referent.size_bits)
-            for cap in space.cnode.slots.values()
-            if cap is not None and isinstance(cap.referent, CNode)]
-
 def tcb_default_properties(obj_space, options, **_):
     """Set up default thread priorities. Note this filter needs to operate
     *before* tcb_priorities."""
@@ -233,8 +166,6 @@ def remove_tcb_caps(cspaces, options, **_):
                 del space.cnode[slot]
 
 CAPDL_FILTERS = [
-    set_tcb_caps,
-    guard_cnode_caps,
     tcb_default_properties,
     tcb_properties,
     tcb_domains,
