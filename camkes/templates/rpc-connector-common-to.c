@@ -98,8 +98,7 @@
 
 /*? array_check.make_array_typedef_check_symbols(me.interface.type) ?*/
 
-/*- set p = Perspective(instance=me.instance.name, interface=me.interface.name) -*/
-/*- set passive = options.realtime and configuration[me.instance.name].get(p['passive_attribute'], False) -*/
+/*- set passive = options.realtime and configuration[me.instance.name].get("%s_passive" % me.interface.name, False) -*/
 
 /*# Passive interface "run" functions must be passed a ntfn cap as part of the passive thread init protocol.
  *# As such if this is a passive interface, a different function prototype is needed for "run".

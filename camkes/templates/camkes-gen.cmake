@@ -328,8 +328,6 @@ endfunction(GeneratorValueOrDefault)
 # user-provided symbols.
 /*- set instancelist = set() -*/
 /*- for i in instances if not i.type.hardware -*/
-/*- set pre = NameMangling.Perspective(phase=NameMangling.TEMPLATES, instance=i.name, group=i.address_space) -*/
-/*- set post = NameMangling.Perspective(phase=NameMangling.FILTERS, instance=i.name, group=i.address_space) -*/
     set(input_target /*? i.name ?*/.instance.bin)
     set(output ${CMAKE_CURRENT_BINARY_DIR}//*? i.name ?*/.instance-copy.bin)
     set(output_target /*? i.name ?*/_instance_copy_target)
@@ -350,7 +348,7 @@ endfunction(GeneratorValueOrDefault)
              *# colocated with other components. Note that we will still use this as
              *# the entry point.
               #*/
-            --redefine-sym "_camkes_start=/*? post['entry_symbol'] ?*/"
+            --redefine-sym "_camkes_start=/*? "camkes %s _camkes_start" % i.name ?*/"
 
             /*- for c in connections -*/
                 /*- if c.type.name == 'seL4DirectCall' -*/
@@ -412,13 +410,13 @@ endfunction(GeneratorValueOrDefault)
 set(CMAKE_INSTANCE_GROUP_LINK_EXECUTABLE "<CMAKE_C_COMPILER> <FLAGS> <CMAKE_C_LINK_FLAGS> <LINK_FLAGS> <OBJECTS> -o <TARGET>" CACHE INTERNAL "" FORCE)
 # Finally link together the instances in the different groups */
 /*- for g in groups -*/
-    /*- set p = Perspective(group=g) -*/
+    /*- set elf_name = "%s_group_bin" % g -*/
     # Find all the instances that are part of this group */
     set(instances "")
     set(instance_targets "")
     /*- for i in instances if not i.type.hardware -*/
-        /*- set q = Perspective(group=i.address_space) -*/
-        /*- if p['elf_name'] == q['elf_name'] -*/
+        /*- set other_elf_name = "%s_group_bin" % i.address_space -*/
+        /*- if elf_name == other_elf_name -*/
             list(APPEND instances "/*? i.name ?*/.instance-copy.bin")
             list(APPEND instance_targets "/*? i.name ?*/_instance_copy_target")
             # Define the copies as objects in case we need to link them into a group and
@@ -426,17 +424,17 @@ set(CMAKE_INSTANCE_GROUP_LINK_EXECUTABLE "<CMAKE_C_COMPILER> <FLAGS> <CMAKE_C_LI
             set_property(SOURCE "/*? i.name ?*/.instance-copy.bin" PROPERTY EXTERNAL_OBJECT TRUE)
         /*- endif -*/
     /*- endfor -*/
-    set(target ${CMAKE_CURRENT_BINARY_DIR}//*? p['elf_name'] ?*/)
+    set(target ${CMAKE_CURRENT_BINARY_DIR}//*? elf_name ?*/)
     list(LENGTH instances instances_len)
     if (${instances_len} GREATER 1)
-        add_executable(/*? p['elf_name'] ?*/ EXCLUDE_FROM_ALL ${instances})
-        add_dependencies(/*? p['elf_name'] ?*/ ${instance_targets})
+        add_executable(/*? elf_name ?*/ EXCLUDE_FROM_ALL ${instances})
+        add_dependencies(/*? elf_name ?*/ ${instance_targets})
         # Use a custom linker definition that will not include crt objects
-        set_property(TARGET /*? p['elf_name'] ?*/ PROPERTY LINKER_LANGUAGE INSTANCE_GROUP)
+        set_property(TARGET /*? elf_name ?*/ PROPERTY LINKER_LANGUAGE INSTANCE_GROUP)
         # Note that we deliberately give groups a
         # broken entry point so that, if they are incorrectly loaded without correct
         # initial instruction pointers, threads will immediately fault
-        set_property(TARGET /*? p['elf_name'] ?*/ APPEND PROPERTY LINK_FLAGS " -static -nostdlib --entry=0x0 -Wl,--build-id=none")
+        set_property(TARGET /*? elf_name ?*/ APPEND PROPERTY LINK_FLAGS " -static -nostdlib --entry=0x0 -Wl,--build-id=none")
     else()
         add_custom_command(
             OUTPUT ${target}
@@ -447,7 +445,7 @@ set(CMAKE_INSTANCE_GROUP_LINK_EXECUTABLE "<CMAKE_C_COMPILER> <FLAGS> <CMAKE_C_LI
                 ${instance_targets}
         )
     endif()
-    add_custom_target(/*? p['elf_name'] ?*/_group_target DEPENDS "${target}")
+    add_custom_target(/*? elf_name ?*/_group_target DEPENDS "${target}")
 /*- endfor -*/
 
 # Generate our targets up to this point
@@ -456,9 +454,9 @@ CAmkESOutputGenCommand(save-object-state)
 set(capdl_elf_depends "")
 set(capdl_elf_targets "")
 /*- for g in groups -*/
-    /*- set p = Perspective(group=g) -*/
-    list(APPEND capdl_elfs "${CMAKE_CURRENT_BINARY_DIR}//*? p['elf_name'] ?*/")
-    list(APPEND capdl_elf_targets "/*? p['elf_name'] ?*/_group_target")
+    /*- set elf_name = "%s_group_bin" % g -*/
+    list(APPEND capdl_elfs "${CMAKE_CURRENT_BINARY_DIR}//*? elf_name ?*/")
+    list(APPEND capdl_elf_targets "/*? elf_name ?*/_group_target")
 /*- endfor -*/
 # CapDL generation. Aside from depending upon the CAmkES specifications themselves, it
 # depends upon the copied instance binaries
@@ -476,8 +474,7 @@ CapDLToolCFileGen(capdl_c_spec_target capdl_spec.c "${CAMKES_CDL_TARGET}" "${CAP
 BuildCapDLApplication(
     C_SPEC "capdl_spec.c"
     /*- for g in groups -*/
-        /*- set p = Perspective(group=g) -*/
-        ELF "${CMAKE_CURRENT_BINARY_DIR}//*? p['elf_name'] ?*/"
+        ELF "${CMAKE_CURRENT_BINARY_DIR}//*? "%s_group_bin" % g ?*/"
     /*- endfor -*/
     DEPENDS
         # Dependency on the C_SPEC and ELFs are added automatically, we just have to add the target
