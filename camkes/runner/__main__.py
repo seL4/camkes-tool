@@ -43,7 +43,6 @@ from camkes.ast import ASTError, Connection, Connector
 from camkes.templates import Templates, PLATFORMS, TemplateError
 import camkes.internal.log as log
 from camkes.internal.exception import CAmkESError
-from camkes.runner.NameMangling import Perspective, RUNNER
 from camkes.runner.Renderer import Renderer
 
 import argparse, functools, jinja2, locale, numbers, os, re, \
@@ -409,8 +408,7 @@ def main(argv, out, err):
                 if name in elfs:
                     raise Exception('duplicate ELF files of name \'%s\' encountered' % name)
                 elf = ELF(e, name, options.architecture)
-                p = Perspective(phase=RUNNER, elf_name=name)
-                group = p['group']
+                group = name.replace("_group_bin","")
                 # Avoid inferring a TCB as we've already created our own.
                 elf_spec = elf.get_spec(infer_tcb=False, infer_asid=False,
                     pd=render_state.pds[group], use_large_frames=options.largeframe,
@@ -486,14 +484,12 @@ def main(argv, out, err):
             continue
 
         if i.address_space not in renderoptions.render_state.cspaces:
-            p = Perspective(phase=RUNNER, instance=i.name,
-                group=i.address_space)
             cnode = renderoptions.render_state.obj_space.alloc(ObjectType.seL4_CapTableObject,
-                name=p['cnode'], label=i.address_space)
+                name="%s_cnode" % i.address_space, label=i.address_space)
             renderoptions.render_state.cspaces[i.address_space] = CSpaceAllocator(cnode)
-            pd = obj_space.alloc(lookup_architecture(options.architecture).vspace().object, name=p['pd'],
+            pd = obj_space.alloc(lookup_architecture(options.architecture).vspace().object, name="%s_group_bin_pd" % i.address_space,
                 label=i.address_space)
-            addr_space = AddressSpaceAllocator(re.sub(r'[^A-Za-z0-9]', '_', p['elf_name']), pd)
+            addr_space = AddressSpaceAllocator(re.sub(r'[^A-Za-z0-9]', '_', "%s_group_bin" % i.address_space), pd)
             renderoptions.render_state.pds[i.address_space] = pd
             renderoptions.render_state.addr_spaces[i.address_space] = addr_space
 

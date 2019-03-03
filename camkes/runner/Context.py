@@ -43,7 +43,6 @@ except ImportError:
 import camkes.ast as AST
 from camkes.internal.Counter import Counter
 from camkes.templates import macros, TemplateError
-from .NameMangling import TEMPLATES, FILTERS, Perspective
 
 def new_context(entity, assembly, render_state, state_key, outfile_name,
                 templates, **kwargs):
@@ -184,16 +183,6 @@ def new_context(entity, assembly, render_state, state_key, outfile_name,
 
         # Work around for Jinja's bizarre scoping rules.
         'Counter':Counter,
-
-        # Support for name mangling in the templates. See existing usage for
-        # examples.
-        'Perspective':lambda **kwargs:Perspective(TEMPLATES, **kwargs),
-
-        # Low-level access to name mangling. Should only be required when you
-        # need to access both mangling phases.
-        'NameMangling':collections.namedtuple('NameMangling',
-            ['FILTERS', 'TEMPLATES', 'Perspective'])(FILTERS, TEMPLATES,
-                Perspective),
 
         # Return a list of distinct elements. Normally you would just do this
         # as list(set(xs)), but this turns out to be non-deterministic in the
