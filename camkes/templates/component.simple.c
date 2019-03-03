@@ -181,7 +181,6 @@
     /*- endif -*/
 /*- else -*/
     /*- set cnodesize = cap_space.cnode.size_bits -*/
-    simple_data.cnodesizebits = /*? cap_space.cnode.size_bits ?*/;
 /*- endif -*/
 
 /* Static declaration for our cap information. We will populate this when we make
