@@ -22,14 +22,4 @@ from capdl import Cap, CNode, TCB, SC, lookup_architecture
 from .NameMangling import Perspective
 
 
-def remove_tcb_caps(cspaces, options, **_):
-    """Remove all TCB caps in the system if requested by the user."""
-    if not options.fprovide_tcb_caps:
-        for space in cspaces.values():
-            for slot in [k for (k, v) in space.cnode.slots.items()
-                    if v is not None and isinstance(v.referent, TCB)]:
-                del space.cnode[slot]
-
-CAPDL_FILTERS = [
-    remove_tcb_caps,
-]
+CAPDL_FILTERS = []

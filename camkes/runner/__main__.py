@@ -447,13 +447,15 @@ def main(argv, out, err):
             except Exception as inst:
                 die('While opening \'%s\': %s' % (e, inst))
         for space in render_state.cspaces.values():
-            for tcb in [v.referent for (k, v) in space.cnode.slots.items()
+            for (slot, tcb) in [(v, v.referent) for (k, v) in space.cnode.slots.items()
                     if v is not None and isinstance(v.referent, TCB)]:
                 elf = elfs.get(tcb.elf)
                 funcs = {"get_vaddr": lambda x: elf[1].get_symbol_vaddr(x)}
                 tcb.ip = simple_eval(str(tcb.ip), functions=funcs)
                 tcb.sp = simple_eval(str(tcb.sp), functions=funcs)
                 tcb.addr = simple_eval(str(tcb.addr), functions=funcs)
+                if not options.fprovide_tcb_caps:
+                    del space.cnode[slot]
             space.cnode.finalise_size(arch=lookup_architecture(options.architecture))
 
         for f in CAPDL_FILTERS:
