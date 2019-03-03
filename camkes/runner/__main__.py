@@ -45,7 +45,6 @@ import camkes.internal.log as log
 from camkes.internal.exception import CAmkESError
 from camkes.runner.NameMangling import Perspective, RUNNER
 from camkes.runner.Renderer import Renderer
-from camkes.runner.Filters import CAPDL_FILTERS
 
 import argparse, functools, jinja2, locale, numbers, os, re, \
     six, string, sys, traceback, pickle
@@ -65,25 +64,6 @@ class ParserOptions():
         self.allow_forward_references = allow_forward_references
         self.queries = queries
 
-class FilterOptions():
-    def __init__(self, architecture, realtime, largeframe, largeframe_dma, default_priority,
-            default_max_priority, default_affinity,
-            default_period, default_budget, default_data, default_size_bits, debug_fault_handlers,
-            fprovide_tcb_caps):
-        self.architecture = architecture
-        self.realtime = realtime
-        self.largeframe = largeframe
-        self.largeframe_dma = largeframe_dma
-        self.default_priority = default_priority
-        self.default_max_priority = default_max_priority
-        self.default_affinity = default_affinity
-        self.default_period = default_period
-        self.default_budget = default_budget
-        self.default_data = default_data
-        self.default_size_bits = default_size_bits
-        self.debug_fault_handlers = debug_fault_handlers
-        self.fprovide_tcb_caps = fprovide_tcb_caps
-
 class RenderState():
     def __init__(self, obj_space, cspaces={}, pds={}, addr_spaces={}):
         self.obj_space = obj_space
@@ -96,7 +76,7 @@ class RenderOptions():
             fprovide_tcb_caps, largeframe, largeframe_dma, architecture,
             debug_fault_handlers, default_priority, default_max_priority, default_affinity,
             default_period, default_budget, default_data, default_size_bits, default_stack_size, realtime, verification_base_name,
-            filter_options, render_state):
+            render_state):
         self.file = file
         self.verbosity = verbosity
         self.frpc_lock_elision = frpc_lock_elision
@@ -117,7 +97,6 @@ class RenderOptions():
         self.default_stack_size = default_stack_size
         self.realtime = realtime
         self.verification_base_name = verification_base_name
-        self.filter_options = filter_options
         self.render_state = render_state
 
 def _die(options, message):
@@ -261,12 +240,6 @@ def parse_args(argv, out, err):
         print_query_parser_help()
         exit(1)
 
-    filteroptions = FilterOptions(options.architecture, options.realtime, options.largeframe,
-            options.largeframe_dma, options.default_priority, options.default_max_priority,
-            options.default_affinity, options.default_period, options.default_budget,
-            options.default_data, options.default_size_bits,
-            options.debug_fault_handlers, options.fprovide_tcb_caps)
-
     # Check that verification_base_name would be a valid identifer before
     # our templates try to use it
     if options.verification_base_name is not None:
@@ -274,7 +247,7 @@ def parse_args(argv, out, err):
             parser.error('Not a valid identifer for --verification-base-name: %r' %
                          options.verification_base_name)
 
-    return options, queries, filteroptions
+    return options, queries
 
 def rendering_error(item, exn):
     """Helper to format an error message for template rendering errors."""
@@ -295,7 +268,7 @@ def main(argv, out, err):
             'environment variable.\n' % encoding)
         return -1
 
-    options, queries, filteroptions = parse_args(argv, out, err)
+    options, queries = parse_args(argv, out, err)
 
     # register object sizes with loader
     if options.object_sizes:
@@ -458,25 +431,13 @@ def main(argv, out, err):
                     del space.cnode[slot]
             space.cnode.finalise_size(arch=lookup_architecture(options.architecture))
 
-        for f in CAPDL_FILTERS:
-            try:
-                # Pass everything as named arguments to allow filters to
-                # easily ignore what they don't want.
-                f(ast=ast,
-                  obj_space=render_state.obj_space,
-                  cspaces=render_state.cspaces,
-                  elfs=elfs,
-                  options=filteroptions)
-            except Exception as inst:
-                die('While forming CapDL spec: %s' % inst)
-
     renderoptions = RenderOptions(options.file, options.verbosity, options.frpc_lock_elision,
         options.fspecialise_syscall_stubs, options.fprovide_tcb_caps,
         options.largeframe, options.largeframe_dma, options.architecture, options.debug_fault_handlers,
         options.default_priority, options.default_max_priority, options.default_affinity,
         options.default_period, options.default_budget, options.default_data, options.default_size_bits,
         options.default_stack_size, options.realtime,
-        options.verification_base_name, filteroptions, render_state)
+        options.verification_base_name, render_state)
 
     def instantiate_misc_templates(renderoptions):
         for (item, outfile) in (all_items - done_items):
