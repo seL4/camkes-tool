@@ -102,7 +102,7 @@ static void *camkes_io_map(void *cookie UNUSED, uintptr_t paddr,
                            size_t size, int cached UNUSED, ps_mem_flags_t flags UNUSED)
 {
     if (paddr % PAGE_SIZE_4K != 0 && size % PAGE_SIZE_4K != 0) {
-        ZF_LOGE("paddr or size has incorrect alignment: (%p, 0x%zx)", paddr, size);
+        ZF_LOGE("paddr or size has incorrect alignment: (%p, 0x%zx)", (void *) paddr, size);
         return NULL;
     }
 
