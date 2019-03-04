@@ -469,6 +469,7 @@ const char * get_thread_name(int thread_id) {
     return "(unknown)";
 }
 
+    /*- set tcb_control = alloc("%s_tcb" % threads[0].name, seL4_TCBObject) -*/
 static int post_main(int thread_id);
 /* This function is called from crt0.S. If this is called for the control
  * thread then we should return so that the C library can be initialized
@@ -732,7 +733,6 @@ static int post_main(int thread_id) {
             assert(!"invalid thread ID");
             return -1;
 
-        /*- set tcb_control = alloc("%s_tcb" % threads[0].name, seL4_TCBObject) -*/
         case /*? tcb_control ?*/ : /* Control thread */
             init();
             return component_control_main();
