@@ -501,6 +501,16 @@ void USED _camkes_tls_init(int thread_id) {
         default:
             assert(!"invalid thread ID");
     }
+
+/*- if options.fprovide_tcb_caps -*/
+#ifdef CONFIG_DEBUG_BUILD
+   char thread_name[seL4_MsgMaxLength * sizeof(seL4_Word)];
+   snprintf(thread_name, sizeof(thread_name), "%s:%s",
+       get_instance_name(), get_thread_name(thread_id));
+   thread_name[sizeof(thread_name) - 1] = '\0';
+   seL4_DebugNameThread(camkes_get_tls()->tcb_cap, thread_name);
+#endif
+/*- endif -*/
 }
 /*- if options.debug_fault_handlers -*/
     static void fault_handler(void) UNUSED NORETURN;
@@ -712,15 +722,6 @@ int post_init_interface_sync() {
 }
 
 static int post_main(int thread_id) {
-/*- if options.fprovide_tcb_caps -*/
-#if defined(CONFIG_DEBUG_BUILD)
-   char thread_name[seL4_MsgMaxLength * sizeof(seL4_Word)];
-   snprintf(thread_name, sizeof(thread_name), "%s:%s",
-       get_instance_name(), get_thread_name(thread_id));
-   thread_name[sizeof(thread_name) - 1] = '\0';
-   seL4_DebugNameThread(camkes_get_tls()->tcb_cap, thread_name);
-#endif
-/*- endif -*/
     switch (thread_id) {
 
         case 0:
