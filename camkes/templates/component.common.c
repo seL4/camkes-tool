@@ -460,6 +460,15 @@ static void init(void) {
   /*- set fault_ep = alloc_obj('fault_ep', seL4_EndpointObject) -*/
 /*- endif -*/
 
+const char * get_thread_name(int thread_id) {
+    switch (thread_id) {
+        /*- for (id, name) in thread_names.items() -*/
+        case /*? id ?*/: return "/*?name?*/";
+        /*- endfor -*/
+    }
+    return "(unknown)";
+}
+
 static int post_main(int thread_id);
 /* This function is called from crt0.S. If this is called for the control
  * thread then we should return so that the C library can be initialized
@@ -584,15 +593,6 @@ void USED _camkes_tls_init(int thread_id) {
         }
     }
 /*- endif -*/
-
-const char * get_thread_name(int thread_id) {
-    switch (thread_id) {
-        /*- for (id, name) in thread_names.items() -*/
-        case /*? id ?*/: return "/*?name?*/";
-        /*- endfor -*/
-    }
-    return "(unknown)";
-}
 
 /*# Locks for synchronising init ops. These are used by
     pre_init_interface_sync, post_init_interface_sync and post_main
