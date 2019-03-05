@@ -56,8 +56,8 @@ typedef enum {
     GDBRegister_ss =     11,
     GDBRegister_ds =     12,
     GDBRegister_es =     13,
-    GDBRegister_fs =     14,
-    GDBRegister_gs =     15
+    GDBRegister_fs_base = 14,
+    GDBRegister_gs_base = 15
 } x86_gdb_registers;
 
 
@@ -74,8 +74,8 @@ static size_t gdb_to_seL4_register_index[] = {
      DECLARE_GDB_TO_SEL4(edi),
      DECLARE_GDB_TO_SEL4(eip),
      DECLARE_GDB_TO_SEL4(eflags),
-     DECLARE_GDB_TO_SEL4(fs),
-     DECLARE_GDB_TO_SEL4(gs),
+     DECLARE_GDB_TO_SEL4(fs_base),
+     DECLARE_GDB_TO_SEL4(gs_base),
      [GDBRegister_cs] = -1,
      [GDBRegister_ss] = -1,
      [GDBRegister_ds] = -1,
