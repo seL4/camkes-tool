@@ -32,6 +32,7 @@ imports
   "Lib.TermPatternAntiquote"
 begin
 
+context begin interpretation Arch . (* FIXME: needed to talk about ASIDs *)
 section \<open>System-specific policy definitions\<close>
 text \<open>
   We need to label objects in a way that matches the architecture spec
@@ -315,6 +316,99 @@ lemma /*? options.verification_base_name ?*/_admissible_labelling__all_labels_in
 (* FIXME: more sanity checks *)
 
 
+subsection \<open>Admissible ASID labels\<close>
+/*- set have_ASIDPools = namespace(value=False) -*//*# need this nonsense to modify variable -- see jinja2 docs #*/
+/*- for asid_pool, label in object_label_mapping() -*/
+    /*- if is_ASIDPool_object(asid_pool) and not (asid_pool.asid_high is none) -*/
+        /*- set have_ASIDPools.value = True -*/
+    /*- endif -*/
+/*- endfor -*/
+
+definition /*? options.verification_base_name ?*/_asids :: "asid_high \<Rightarrow> label option"
+  where
+/*- if have_ASIDPools.value -*/
+  "/*? options.verification_base_name ?*/_asids \<equiv> [
+    /*- set delim = namespace(value=' ') -*//*# need this nonsense to modify variable -- see jinja2 docs #*/
+    /*- for asid_pool, label in object_label_mapping() -*/
+        /*- if is_ASIDPool_object(asid_pool) and not (asid_pool.asid_high is none) -*/
+            /*? delim.value ?*/ /*? '0x%x' % asid_pool.asid_high ?*/ \<mapsto> ''/*? label ?*/''
+            /*- set delim.value = ',' -*/
+        /*- endif -*/
+    /*- endfor -*/
+   ]"
+/*- else -*/
+   "/*? options.verification_base_name ?*/_asids \<equiv> Map.empty"
+/*- endif -*/
+
+definition /*? options.verification_base_name ?*/_admissible_asids :: "label agent_asid_map \<Rightarrow> bool"
+  where
+  "/*? options.verification_base_name ?*/_admissible_asids asidAbs \<equiv>
+     (\<forall>asid label. /*? options.verification_base_name ?*/_asids (asid_high_bits_of asid) = Some label \<longrightarrow> asidAbs asid = label)"
+
+(* Expanded (FIXME: assumes exactly one ASID slot) *)
+schematic_goal /*? options.verification_base_name ?*/_admissible_asids_cases:
+  "/*? options.verification_base_name ?*/_admissible_asids irqAbs = ?cases"
+  apply (clarsimp simp: /*? options.verification_base_name ?*/_admissible_asids_def /*? options.verification_base_name ?*/_asids_def)
+/*- if have_ASIDPools.value -*/
+  apply (rule refl)
+/*- else -*/
+  apply clarsimp
+  apply (rule TrueI)
+/*- endif -*/
+  done
+
+subsection \<open>Admissible IRQ labels\<close>
+/*- set have_IRQs = namespace(value=False) -*//*# need this nonsense to modify variable -- see jinja2 docs #*/
+/*- for obj, label in object_label_mapping() -*/
+  /*- if is_IRQ_object(obj) -*/
+    /*- set have_IRQs.value = True -*/
+  /*- endif -*/
+/*- endfor -*/
+definition /*? options.verification_base_name ?*/_irqs :: "label option agent_irq_map"
+  where
+/*- if have_IRQs.value -*/
+  "/*? options.verification_base_name ?*/_irqs \<equiv> [
+    /*- set delim = namespace(value=False) -*//*# need this nonsense to modify variable -- see jinja2 docs #*/
+    /*- for obj, label in object_label_mapping() -*/
+      /*- if is_IRQ_object(obj) -*/
+        /*? ',' if delim.value else ' ' ?*/ /*? obj.number ?*/ \<mapsto> ''/*? label ?*/''
+        /*- set delim.value = True -*/
+      /*- endif -*/
+    /*- endfor -*/
+   ]"
+/*- else -*/
+  "/*? options.verification_base_name ?*/_irqs \<equiv> Map.empty"
+/*- endif -*/
+
+definition /*? options.verification_base_name ?*/_admissible_irqs :: "label agent_irq_map \<Rightarrow> bool"
+  where
+  "/*? options.verification_base_name ?*/_admissible_irqs irqAbs \<equiv>
+     (\<forall>irq label. /*? options.verification_base_name ?*/_irqs irq = Some label \<longrightarrow> irqAbs irq = label)"
+
+(* Helper for IRQ labelling. FIXME: MOVE *)
+lemma forall_in_map_expand:
+  "f x = None \<Longrightarrow>
+   (\<forall>k v. (f(x \<mapsto> y)) k = Some v \<longrightarrow> P k v)
+    = (P x y \<and> (\<forall>k v. f k = Some v \<longrightarrow> P k v))"
+  apply (rule iffI)
+   apply (simp split: if_splits)
+   apply (metis option.simps(3))
+  apply simp
+  done
+
+(* Expanded *)
+schematic_goal /*? options.verification_base_name ?*/_admissible_irqs_cases:
+  "/*? options.verification_base_name ?*/_admissible_irqs irqAbs = ?cases"
+  apply (clarsimp simp only: /*? options.verification_base_name ?*/_admissible_irqs_def /*? options.verification_base_name ?*/_irqs_def)
+/*- if have_IRQs.value -*/
+  apply (time_methods \<open>subst forall_in_map_expand, simp cong del: if_cong\<close>)+
+  apply (clarsimp simp only: option.simps(2) simp_thms)
+  apply assign_schematic_eq_conjs
+/*- else -*/
+  apply (rule TrueI)
+/*- endif -*/
+  done
+
 section \<open>Admissible PAS\<close>
 
 text \<open>
@@ -324,6 +418,8 @@ definition /*? options.verification_base_name ?*/_admissible_pas :: "label PAS \
   where
   "/*? options.verification_base_name ?*/_admissible_pas pas \<equiv>
      /*? options.verification_base_name ?*/_admissible_labelling (pasObjectAbs pas) \<and>
+     /*? options.verification_base_name ?*/_admissible_asids (pasASIDAbs pas) \<and>
+     /*? options.verification_base_name ?*/_admissible_irqs (pasIRQAbs pas) \<and>
      pasSubject pas \<in> fst ` set (components (composition /*? assembly_name ?*/)) \<and>
      /*? options.verification_base_name ?*/_policy \<subseteq> pasPolicy pas"
 
@@ -336,10 +432,16 @@ lemma /*? options.verification_base_name ?*/_admissible_pas_exists:
   apply (rule_tac x = "undefined\<lparr>
                          pasObjectAbs := poa,
                          pasPolicy := /*? options.verification_base_name ?*/_policy,
-                         pasSubject := fst (hd (components (composition /*? assembly_name ?*/)))
+                         pasSubject := fst (hd (components (composition /*? assembly_name ?*/))),
+                         pasASIDAbs := the o /*? options.verification_base_name ?*/_asids o asid_high_bits_of,
+                         pasIRQAbs := the o /*? options.verification_base_name ?*/_irqs
                          \<rparr>"
                   in exI)
 
+  apply (simp add: /*? options.verification_base_name ?*/_admissible_pas_def)
+  apply (intro conjI)
+    apply (simp add: /*? options.verification_base_name ?*/_admissible_asids_def)
+   apply (simp add: /*? options.verification_base_name ?*/_admissible_irqs_def)
   apply (simp add: /*? options.verification_base_name ?*/_admissible_pas_def /*? options.verification_base_name ?*/_connections /*? options.verification_base_name ?*/_component_names)
   done
 
@@ -489,8 +591,7 @@ lemmas /*? options.verification_base_name ?*/_label_over_ptr_range =
 lemmas /*? options.verification_base_name ?*/_label_over_ptr_range_cases =
   /*? options.verification_base_name ?*/_label_lookups[THEN /*? options.verification_base_name ?*/_label_over_ptr_range]
 
-text \<open>FIXME: Our capDL assigns no ASIDs, so there's not much to do here right now.\<close>
-lemma /*? options.verification_base_name ?*/_asid_policy_trivial:
+lemma /*? options.verification_base_name ?*/_asid_policy:
   assumes admissible_pas:
      "/*? options.verification_base_name ?*/_admissible_pas pas"
   shows
@@ -507,17 +608,21 @@ proof -
         /*? options.verification_base_name ?*/_CDL.cap_defs[simplified fun_upds_to_map_of]
         /*? options.verification_base_name ?*/_label_over_ptr_range_cases
 
+        Collect_asid_high__eval_helper[simplified asid_high_bits_def, simplified]
+        /*? options.verification_base_name ?*/_asids_def[simplified fun_upds_to_map_of] map_of_Cons_code
+        /*? options.verification_base_name ?*/_CDL.asid_table_def[simplified fun_upds_to_map_of]
+
         obj_policy_eval_simps
 
   show ?thesis
     apply (rule cdl_state_asids_to_policy__eval[where
                   policy_spec=/*? options.verification_base_name ?*/_policy and
                   obj_label_spec=/*? options.verification_base_name ?*/_labelling and
-                  asid_label_spec="\<lambda>_. None"
+                  asid_label_spec=/*? options.verification_base_name ?*/_asids
            ])
         using admissible_pas /*? options.verification_base_name ?*/_admissible_pas_def apply blast
        using admissible_pas /*? options.verification_base_name ?*/_admissible_pas_def /*? options.verification_base_name ?*/_admissible_labelling_def apply blast
-      apply blast
+      using admissible_pas /*? options.verification_base_name ?*/_admissible_pas_def /*? options.verification_base_name ?*/_admissible_asids_def apply blast
 
      (* ASIDs in objects *)
      subgoal
@@ -544,12 +649,30 @@ proof -
        done
 
     (* ASID pools *)
-    apply (simp add: /*? options.verification_base_name ?*/_CDL.state_def /*? options.verification_base_name ?*/_CDL.asid_table_def graph_of_def)
+    apply (simp only: /*? options.verification_base_name ?*/_labelling_def /*? options.verification_base_name ?*/_CDL.state_def cdl_state.simps)
+    apply (tactic \<open>let
+             val rules = @{thms /*? options.verification_base_name ?*/_CDL.state_def cdl_state.simps
+                                /*? options.verification_base_name ?*/_CDL.objects_to_lookup_list
+                                graph_of_map_of__distinct_eval if_True
+                                /*? options.verification_base_name ?*/_CDL.objects_keys_distinct};
+             val congs = @{thms obj_policy_eval_congs};
+             in SUBGOAL (fn _ => FP_Eval.eval_tac @{context} (FP_Eval.make_rules rules congs) 1)
+                        1 end\<close>)
+    (* this is a separate step for now, because graph_of_map_of__sorted_eval
+       won't work for objects list *)
+    apply (tactic \<open>let
+             val rules = @{thms obj_policy_eval_simps'};
+             val congs = @{thms obj_policy_eval_congs};
+             val conv = rpair FP_Eval.skel0
+                      #> FP_Eval.eval @{context} (FP_Eval.make_rules rules congs)
+                      #> tap (fn (_, c) => tracing ("fp_eval counters: " ^ @{make_string} c))
+                      #> fst #> fst;
+             in SUBGOAL (fn _ => Conv.gconv_rule conv 1 #> Seq.succeed) 1 end\<close>;
+           intro TrueI conjI /*? options.verification_base_name ?*/_policy_intros[THEN generic_tagP_I])
     done
 qed
 
-text \<open>FIXME: Our capDL assigns no IRQs, so there's not much to do here right now.\<close>
-lemma /*? options.verification_base_name ?*/_irq_policy_trivial:
+lemma /*? options.verification_base_name ?*/_irq_policy:
   assumes admissible_pas:
      "/*? options.verification_base_name ?*/_admissible_pas pas"
   shows
@@ -566,17 +689,19 @@ proof -
         /*? options.verification_base_name ?*/_CDL.cap_defs[simplified fun_upds_to_map_of]
         /*? options.verification_base_name ?*/_label_over_ptr_range_cases
 
+        /*? options.verification_base_name ?*/_irqs_def
+
         obj_policy_eval_simps
 
   show ?thesis
     apply (rule cdl_state_irqs_to_policy__eval[where
                   policy_spec=/*? options.verification_base_name ?*/_policy and
                   obj_label_spec=/*? options.verification_base_name ?*/_labelling and
-                  irq_label_spec="\<lambda>_. None"
+                  irq_label_spec=/*? options.verification_base_name ?*/_irqs
            ])
        using admissible_pas /*? options.verification_base_name ?*/_admissible_pas_def apply blast
       using admissible_pas /*? options.verification_base_name ?*/_admissible_pas_def /*? options.verification_base_name ?*/_admissible_labelling_def apply blast
-     apply blast
+     using admissible_pas /*? options.verification_base_name ?*/_admissible_pas_def /*? options.verification_base_name ?*/_admissible_irqs_def apply blast
 
     apply (simp only: /*? options.verification_base_name ?*/_labelling_def)
     apply (tactic \<open>let
@@ -633,8 +758,8 @@ proof -
   show ?thesis
     apply (clarsimp simp only: simp_thms
                                pcs_refined_def other_assms
-                               /*? options.verification_base_name ?*/_asid_policy_trivial[OF admissible_pas]
-                               /*? options.verification_base_name ?*/_irq_policy_trivial[OF admissible_pas]
+                               /*? options.verification_base_name ?*/_asid_policy[OF admissible_pas]
+                               /*? options.verification_base_name ?*/_irq_policy[OF admissible_pas]
                     del: subsetI)
     apply (rule helper_pcs_refined_policy__eval[
                   where policy_spec = /*? options.verification_base_name ?*/_policy
@@ -676,4 +801,5 @@ proof -
     done
 qed
 
+end
 end

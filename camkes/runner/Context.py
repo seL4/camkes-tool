@@ -265,6 +265,11 @@ def new_context(entity, assembly, render_state, state_key, outfile_name,
         # Output filename (mainly needed by Isabelle templates)
         # Currently only supported for misc templates.
         'outfile_name': outfile_name,
+
+        # FIXME: these are currently used in cdl-refine.thy,
+        # but should be done in a cleaner way.
+        'is_IRQ_object': lambda obj: isinstance(obj, capdl.IRQ),
+        'is_ASIDPool_object': lambda obj: isinstance(obj, capdl.ASIDPool),
     }.items()) + list(kwargs.items()))
 
 
