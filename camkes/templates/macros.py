@@ -205,8 +205,8 @@ def threads(composition, instance, configuration, options):
     assert isinstance(composition, Composition)
     assert isinstance(instance, Instance)
     class Thread(object):
-        def __init__(self, pname, name, interface, intra_index, stack_size):
-            self.name = pname
+        def __init__(self, name, interface, intra_index, stack_size):
+            self.name = name
             self.interface = interface
             self.intra_index = intra_index
             self.stack_symbol = "_camkes_stack_%s" % name
@@ -219,30 +219,26 @@ def threads(composition, instance, configuration, options):
     # First thread is control thread
     stack_size = configuration.get('_stack_size', options.default_stack_size)
     name = "%s_0_control" % instance_name
-    pname = '%d_0_control_%d' % (len(instance.name), len('0_control'))
-    ts = [Thread(pname, name, None, 0, stack_size)]
+    ts = [Thread(name, None, 0, stack_size)]
     for connection in composition.connections:
         for end in connection.from_ends:
             if end.instance == instance:
                 for x in six.moves.range(connection.type.from_threads):
                     name = "%s_%s_%04d" % (instance_name, end.interface.name, x)
-                    pname = "%d_%s_%d_%04d" % (len(instance.name), end.interface.name, len(end.interface.name), x)
                     stack_size = configuration.get('%s_stack_size' % end.interface.name, options.default_stack_size)
-                    ts.append(Thread(pname, name, end.interface, x, stack_size))
+                    ts.append(Thread(name, end.interface, x, stack_size))
         for end in connection.to_ends:
             if end.instance == instance:
                 for x in six.moves.range(connection.type.to_threads):
                     name = "%s_%s_%04d" % (instance_name, end.interface.name, x)
-                    pname = "%d_%s_%d_%04d" % (len(instance.name), end.interface.name, len(end.interface.name), x)
                     stack_size = configuration.get('%s_stack_size' % end.interface.name, options.default_stack_size)
-                    ts.append(Thread(pname, name, end.interface, x, stack_size) )
+                    ts.append(Thread(name, end.interface, x, stack_size) )
 
     if options.debug_fault_handlers:
         # Last thread is fault handler thread
         stack_size = options.default_stack_size
-        name = "%s_0_fault_handler_0000" % instance_name
-        pname = "%d_0_fault_handler_%d_0000" % (len(instance.name), len('0_fault_handler'))
-        ts.append(Thread(pname, name, None, 0, stack_size) )
+        name = "%s_0_fault_handler" % instance_name
+        ts.append(Thread(name, None, 0, stack_size) )
     return ts
 
 def dataport_size(type):
