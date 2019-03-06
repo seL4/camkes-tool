@@ -186,34 +186,59 @@ def show_includes(xs, prefix=''):
             s += '#include <%s>\n' % header.source
     return s
 
-def threads(composition, instance):
+def threads(composition, instance, configuration, options):
     '''
     Compute the threads for a given instance.
 
-    This function could be written more efficiently as a generator, but it is
-    assumed that most callers (in the template context) will need to repeatedly
-    iterate over it, so will get no benefit from this.
-    '''
+    This function returns an array of all the threads for a component
+    containing properties for each thread:
+    - name: The name used for creating objects
+    - interface: If the thread is an interface thread, what interface it is
+    for
+    - intra_index: Index of the thread within an interface that has more
+    than one thread. 0 if not an interface thread.
+    - stack_symbol: Name of the stack for this thread
+    - stack_size: Size of the stack
+    - ipc_symbol: Name of the ipc buffer symbol for this thread.    '''
     assert isinstance(composition, Composition)
     assert isinstance(instance, Instance)
     class Thread(object):
-        def __init__(self, interface, intra_index):
+        def __init__(self, pname, name, interface, intra_index, stack_size):
+            self.name = pname
             self.interface = interface
             self.intra_index = intra_index
-            self.ipc_frame = None
-        def set_ipc_frame(self, frame):
-            self.ipc_frame = frame
+            self.stack_symbol = "_camkes_stack_%s" % name
+            self.stack_size = stack_size
+            self.ipc_symbol = "_camkes_ipc_buffer_%s" % name
 
-    ts = [Thread(None, 0)]
+    instance_name = re.sub(r'[^A-Za-z0-9]', '_', instance.name)
+    # First thread is control thread
+    stack_size = configuration.get('_stack_size', options.default_stack_size)
+    name = "%s_0_control" % instance_name
+    pname = '%d_0_control_%d' % (len(instance.name), len('0_control'))
+    ts = [Thread(pname, name, None, 0, stack_size)]
     for connection in composition.connections:
         for end in connection.from_ends:
             if end.instance == instance:
-                ts.extend(Thread(end.interface, x) for x in
-                    six.moves.range(connection.type.from_threads))
+                for x in six.moves.range(connection.type.from_threads):
+                    name = "%s_%s_%04d" % (instance_name, end.interface.name, x)
+                    pname = "%d_%s_%d_%04d" % (len(instance.name), end.interface.name, len(end.interface.name), x)
+                    stack_size = configuration.get('%s_stack_size' % end.interface.name, options.default_stack_size)
+                    ts.append(Thread(pname, name, end.interface, x, stack_size))
         for end in connection.to_ends:
             if end.instance == instance:
-                ts.extend(Thread(end.interface, x) for x in
-                    six.moves.range(connection.type.to_threads))
+                for x in six.moves.range(connection.type.to_threads):
+                    name = "%s_%s_%04d" % (instance_name, end.interface.name, x)
+                    pname = "%d_%s_%d_%04d" % (len(instance.name), end.interface.name, len(end.interface.name), x)
+                    stack_size = configuration.get('%s_stack_size' % end.interface.name, options.default_stack_size)
+                    ts.append(Thread(pname, name, end.interface, x, stack_size) )
+
+    if options.debug_fault_handlers:
+        # Last thread is fault handler thread
+        stack_size = options.default_stack_size
+        name = "%s_0_fault_handler_0000" % instance_name
+        pname = "%d_0_fault_handler_%d_0000" % (len(instance.name), len('0_fault_handler'))
+        ts.append(Thread(pname, name, None, 0, stack_size) )
     return ts
 
 def dataport_size(type):

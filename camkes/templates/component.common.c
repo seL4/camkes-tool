@@ -434,42 +434,74 @@ static void init(void) {
     /*? macros.show_includes(i.type.includes) ?*/
 /*- endfor -*/
 
-/*- set threads = macros.threads(composition, me) -*/
+/*- set threads = macros.threads(composition, me, configuration[me.name], options) -*/
 
-/* Thread stacks */
-/*- set p = Perspective(instance=me.name, control=True) -*/
-/*- set stack_size = configuration[me.name].get('_stack_size', options.default_stack_size) -*/
-/*? macros.thread_stack(p['stack_symbol'], stack_size) ?*/
-/*- do register_stack_symbol(p['stack_symbol'], stack_size) -*/
-/*- for t in threads[1:] -*/
-    /*- set p = Perspective(instance=me.name, interface=t.interface.name, intra_index=t.intra_index) -*/
-    /*- set stack_size = configuration[me.name].get('%s_stack_size' % t.interface.name, options.default_stack_size) -*/
-    /*? macros.thread_stack(p['stack_symbol'], stack_size) ?*/
-    /*- do register_stack_symbol(p['stack_symbol'], stack_size) -*/
-/*- endfor -*/
 /*- if options.debug_fault_handlers -*/
-    /*- set p = Perspective(instance=me.name, interface='0_fault_handler', intra_index=0) -*/
-    /*? macros.thread_stack(p['stack_symbol'], options.default_stack_size) ?*/
-    /*- do register_stack_symbol(p['stack_symbol'], stack_size) -*/
+  /*- set fault_ep = alloc_obj('fault_ep', seL4_EndpointObject) -*/
 /*- endif -*/
 
-/* IPC buffers */
-/*- set p = Perspective(instance=me.name, control=True) -*/
-/*? macros.ipc_buffer(p['ipc_buffer_symbol']) ?*/
-/*- set _ = threads[0].set_ipc_frame(alloc_obj('frame_%s' % (p['ipc_buffer_symbol']), seL4_FrameObject)) -*/
-/*- do register_ipc_symbol(p['ipc_buffer_symbol'], threads[0].ipc_frame) -*/
-/*- for t in threads[1:] -*/
-    /*- set p = Perspective(instance=me.name, interface=t.interface.name, intra_index=t.intra_index) -*/
-    /*? macros.ipc_buffer(p['ipc_buffer_symbol']) ?*/
-    /*- set _ = t.set_ipc_frame(alloc_obj('frame_%s' % (p['ipc_buffer_symbol']), seL4_FrameObject)) -*/
-    /*- do register_ipc_symbol(p['ipc_buffer_symbol'], t.ipc_frame) -*/
-/*- endfor -*/
-/*- if options.debug_fault_handlers -*/
-    /*- set p = Perspective(instance=me.name, interface='0_fault_handler', intra_index=0) -*/
-    /*? macros.ipc_buffer(p['ipc_buffer_symbol']) ?*/
-    /*- set fault_ipc_frame = alloc_obj('frame_%s' % (p['ipc_buffer_symbol']), seL4_FrameObject) -*/
-    /*- do register_ipc_symbol(p['ipc_buffer_symbol'], fault_ipc_frame) -*/
+/*- if options.realtime -*/
+    /*# SC to use to initialise all passive interfaces of this instance #*/
+    /*- set sc_passive_init = alloc('%d_0_control_%d_passive_init_sc' % (len(me.name), len('0_control')), seL4_SchedContextObject) -*/
+
+    /*# Ntfn to use in passive init protocol #*/
+    /*- set ntfn_passive_init = alloc('%d_0_control_%d_passive_init_ntfn' % (len(me.name), len('0_control')), seL4_NotificationObject, read=True, write=True) -*/
+
+    /*# Dict mapping thread prefixes to tcb caps #*/
+    /*- set passive_tcbs = {} -*/
+
+    /*# Set of Thread objects corresponding to passive threads #*/
+    /*- set passive_threads = set() -*/
 /*- endif -*/
+
+/*- set thread_names = dict() -*/
+/*- for t in threads -*/
+    /* Thread stacks */
+    /*? macros.thread_stack(t.stack_symbol, t.stack_size) ?*/
+    /*- do register_stack_symbol(t.stack_symbol, t.stack_size) -*/
+
+    /* IPC buffers */
+    /*? macros.ipc_buffer(t.ipc_symbol) ?*/
+    /*- set ipc_frame = alloc_obj('frame_%s' % (t.ipc_symbol), seL4_FrameObject) -*/
+    /*- do register_ipc_symbol(t.ipc_symbol, ipc_frame) -*/
+
+    /*- set _tcb = alloc_obj("%s_tcb" % t.name, seL4_TCBObject) -*/
+    /*- set tcb = alloc_cap("%s_tcb" % t.name, _tcb) -*/
+    /*- do _tcb.__setitem__('ipc_buffer_slot', Cap(ipc_frame, read=True, write=True)) -*/
+
+    /*- if options.realtime -*/
+        /*- if not t.interface or configuration[me.name].get("%s_passive" % t.interface.name, False) -*/
+            /*- set _sc = alloc_obj("%s_sc" % t.name, seL4_SchedContextObject) -*/
+            /*- set sc = alloc_cap("%s_sc" % t.name, _sc) -*/
+        /*- else -*/
+            /*# This branch is for interface threads that are passive #*/
+            /*- do passive_tcbs.__setitem__(t.name, tcb) -*/
+            /*- do passive_threads.add(t) -*/
+        /*- endif -*/
+    /*- endif -*/
+
+    /*- if options.debug_fault_handlers and not loop.last -*/
+        /*- if not options.realtime -*/
+            /*- set fault_ep_cap = alloc_cap('fault_ep_%s' % t.name, fault_ep, read=True, write=True, grantreply=True, badge=tcb) -*/
+            /*- do setattr(_tcb, 'fault_ep_slot', fault_ep_cap) -*/
+        /*- endif -*/
+
+        /*- if options.realtime -*/
+            /*- do _tcb.set_fault_ep_slot(fault_ep=fault_ep.name, badge=tcb) -*/
+        /*- endif -*/
+
+    /*- endif -*/
+
+    /*- if loop.first -*/
+        /*- do thread_names.__setitem__(tcb, "control") -*/
+    /*- elif options.debug_fault_handlers and loop.last -*/
+        /*- do thread_names.__setitem__(tcb, "fault_handler") -*/
+    /*- else -*/
+        /*- do thread_names.__setitem__(tcb, t.interface.name) -*/
+    /*- endif -*/
+
+
+/*- endfor -*/
 
 /* Attributes */
 /*- set myconf = configuration[me.name] -*/
@@ -498,119 +530,27 @@ void USED _camkes_tls_init(int thread_id) {
         write_buf_registered = true;
     }
     switch (thread_id) {
-        /*- set thread_names = dict() -*/
-        /*- set _tcb_control = alloc_obj('%d_0_control_%d_tcb' % (len(me.name), len('0_control')), seL4_TCBObject) -*/
-        /*- set tcb_control = alloc_cap('%d_0_control_%d_tcb' % (len(me.name), len('0_control')), _tcb_control) -*/
-        /*- do _tcb_control.__setitem__('ipc_buffer_slot', Cap(threads[0].ipc_frame, read=True, write=True)) -*/
-        /*- if options.realtime -*/
-            /*# SC for main component instance thread #*/
-            /*- set sc_control = alloc('%d_0_control_%d_sc' % (len(me.name), len('0_control')), seL4_SchedContextObject) -*/
+        /*- for index, t in enumerate(threads) -*/
+            /*- set tcb = alloc('%s_tcb' % t.name, seL4_TCBObject) -*/
 
-            /*# SC to use to initialise all passive interfaces of this instance #*/
-            /*- set sc_passive_init = alloc('%d_0_control_%d_passive_init_sc' % (len(me.name), len('0_control')), seL4_SchedContextObject) -*/
-
-            /*# Ntfn to use in passive init protocol #*/
-            /*- set ntfn_passive_init = alloc('%d_0_control_%d_passive_init_ntfn' % (len(me.name), len('0_control')), seL4_NotificationObject, read=True, write=True) -*/
-
-            /*# Dict mapping thread prefixes to tcb caps #*/
-            /*- set passive_tcbs = {} -*/
-
-            /*# Set of Thread objects corresponding to passive threads #*/
-            /*- set passive_threads = set() -*/
-        /*- endif -*/
-
-        /*- if options.debug_fault_handlers -*/
-            /*? assert(fault_ep is defined and fault_ep is not none) ?*/
-            /*- if not options.realtime -*/
-                /*- set fault_ep_cap = alloc_cap('fault_ep_0_control', fault_ep, read=True, write=True, grantreply=True) -*/
-                /*- do my_cnode[fault_ep_cap].set_badge(tcb_control) -*/
-                /*- do setattr(_tcb_control, 'fault_ep_slot', fault_ep_cap) -*/
-            /*- endif -*/
-
-            /*- if options.realtime -*/
-                /*- do _tcb_control.set_fault_ep_slot(fault_ep=fault_ep.name, badge=tcb_control) -*/
-            /*- endif -*/
-
-        /*- endif -*/
-        /*- do thread_names.__setitem__(tcb_control, "control") -*/
-        case /*? tcb_control ?*/ : /* Control thread */
-            /*- set p = Perspective(instance=me.name, control=True) -*/
-            /*? macros.save_ipc_buffer_address(p['ipc_buffer_symbol']) ?*/
-            /*- if options.realtime -*/
-            camkes_get_tls()->sc_cap = /*? sc_control ?*/;
-            /*- endif -*/
-            camkes_get_tls()->tcb_cap = /*? tcb_control ?*/;
-            camkes_get_tls()->thread_index = 1;
-            break;
-
-        /*# Interface threads #*/
-        /*- for index, t in enumerate(threads[1:]) -*/
-            /*# Prefix for names of TCBs and SCs in capdl spec #*/
-            /*- set prefix = '%d_%s_%d_%04d' % (len(me.name), t.interface.name, len(t.interface.name), t.intra_index) -*/
-
-            /*- set _tcb = alloc_obj('%s_tcb' % prefix, seL4_TCBObject) -*/
-            /*- set tcb = alloc_cap('%s_tcb' % prefix, _tcb) -*/
-            /*- do _tcb.__setitem__('ipc_buffer_slot', Cap(t.ipc_frame, read=True, write=True)) -*/
-            /*- do thread_names.__setitem__(tcb, t.interface.name) -*/
-
-            /*- set p = Perspective(instance=me.name, interface=t.interface.name, intra_index=t.intra_index) -*/
-
-            /*- if options.realtime -*/
-                /*- if configuration[me.name].get(p['passive_attribute'], False) -*/
-                    /*# Passive thread #*/
-                    /*- do passive_tcbs.__setitem__(prefix, tcb) -*/
-                    /*- do passive_threads.add(t) -*/
-                /*- else -*/
-                    /*# Non-passive thread - create its scheduling context #*/
-                    /*- set sc = alloc('%s_sc' % prefix, seL4_SchedContextObject) -*/
+            case /*? tcb ?*/ : { /* Thread /*? t.name ?*/ */
+                /*? macros.save_ipc_buffer_address(t.ipc_symbol) ?*/
+                /*- if options.realtime and loop.first -*/
+                    camkes_get_tls()->sc_cap = /*? sc_control ?*/;
                 /*- endif -*/
-            /*- endif -*/
-
-            /*- if options.debug_fault_handlers -*/
-                /*? assert(fault_ep is defined and fault_ep is not none) ?*/
-                /*- if not options.realtime -*/
-                    /*- set fault_ep_cap = alloc_cap('fault_ep_%s_%04d' % (t.interface.name, t.intra_index), fault_ep, read=True, write=True, grantreply=True) -*/
-                    /*- do my_cnode[fault_ep_cap].set_badge(tcb) -*/
-                    /*- do setattr(_tcb, 'fault_ep_slot', fault_ep_cap) -*/
-                /*- endif -*/
-                /*- if options.realtime -*/
-                    /*- do _tcb.set_fault_ep_slot(fault_ep=fault_ep.name, badge=tcb) -*/
-                /*- endif -*/
-
-            /*- endif -*/
-            case /*? tcb ?*/ : { /* Interface /*? t.interface.name ?*/ */
-                /*? macros.save_ipc_buffer_address(p['ipc_buffer_symbol']) ?*/
                 camkes_get_tls()->tcb_cap = /*? tcb ?*/;
-                camkes_get_tls()->thread_index = /*? index ?*/ + 2;
+                camkes_get_tls()->thread_index = /*? index ?*/ + 1;
+                /*- if not loop.first -*/
                 exit(post_main(thread_id));
+                /*- endif -*/
                 break;
             }
         /*- endfor -*/
-
-        /*- if options.debug_fault_handlers -*/
-            /*- set _tcb = alloc_obj('%d_0_fault_handler_%d_0000_tcb' % (len(me.name), len('0_fault_handler')), seL4_TCBObject) -*/
-            /*- set tcb = alloc_cap('%d_0_fault_handler_%d_0000_tcb' % (len(me.name), len('0_fault_handler')), _tcb) -*/
-            /*- do _tcb.__setitem__('ipc_buffer_slot', Cap(fault_ipc_frame, read=True, write=True)) -*/
-            /*- do thread_names.__setitem__(tcb, "fault_handler") -*/
-            /*- if options.realtime -*/
-                /*- set sc = alloc('%d_0_fault_handler_%d_0000_sc' % (len(me.name), len('0_fault_handler')), seL4_SchedContextObject) -*/
-            /*- endif -*/
-
-            case /*? tcb ?*/ : { /* Fault handler thread */
-                /*- set p = Perspective(instance=me.name, interface='0_fault_handler', intra_index=0) -*/
-                /*? macros.save_ipc_buffer_address(p['ipc_buffer_symbol']) ?*/
-                camkes_get_tls()->tcb_cap = /*? tcb ?*/;
-                camkes_get_tls()->thread_index = /*? len(threads) ?*/ + 1;
-                exit(post_main(thread_id));
-                break;
-            }
-        /*- endif -*/
 
         default:
             assert(!"invalid thread ID");
     }
 }
-
 /*- if options.debug_fault_handlers -*/
     static void fault_handler(void) UNUSED NORETURN;
     static void fault_handler(void) {
@@ -648,75 +588,37 @@ void USED _camkes_tls_init(int thread_id) {
              */
             switch (badge) {
 
-                /*- set tcb_control = alloc('%d_0_control_%d_tcb' % (len(me.name), len('0_control')), seL4_TCBObject) -*/
-                /*- set p = Perspective(instance=me.name, control=True) -*/
-                case /*? tcb_control ?*/ : {
-                    thread_name = "control";
-                    memory_map = (camkes_memory_region_t[]){
-                        { .start = (uintptr_t)__executable_start,
-                          .end = (uintptr_t)align_12bit - 1,
-                          .name = "code and data" },
-                        { .start = (uintptr_t)&/*? p['stack_symbol'] ?*/,
-                          .end = (uintptr_t)&/*? p['stack_symbol'] ?*/ + PAGE_SIZE_4K - 1,
-                          .name = "guard page" },
-                        { .start = (uintptr_t)&/*? p['stack_symbol'] ?*/ + PAGE_SIZE_4K,
-                          .end = (uintptr_t)&/*? p['stack_symbol'] ?*/ +
-                            sizeof(/*? p['stack_symbol'] ?*/) - PAGE_SIZE_4K - 1,
-                          .name = "stack" },
-                        { .start = (uintptr_t)&/*? p['stack_symbol'] ?*/ +
-                            sizeof(/*? p['stack_symbol'] ?*/) - PAGE_SIZE_4K,
-                          .end = (uintptr_t)&/*? p['stack_symbol'] ?*/ +
-                            sizeof(/*? p['stack_symbol'] ?*/) - 1,
-                          .name = "guard page" },
-                        { .start = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/,
-                          .end = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/ + PAGE_SIZE_4K - 1,
-                          .name = "guard page" },
-                        { .start = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/ + PAGE_SIZE_4K,
-                          .end = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/ +
-                            sizeof(/*? p['ipc_buffer_symbol'] ?*/) - PAGE_SIZE_4K - 1,
-                          .name = "IPC buffer" },
-                        { .start = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/ +
-                            sizeof(/*? p['ipc_buffer_symbol'] ?*/) - PAGE_SIZE_4K,
-                          .end = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/ +
-                            sizeof(/*? p['ipc_buffer_symbol'] ?*/) - 1,
-                          .name = "guard page" },
-                        { .start = 0, .end = 0, .name = NULL },
-                      };
-                    break;
-                }
-
-                /*- for t in threads[1:] -*/
-                    /*- set tcb = alloc('%d_%s_%d_%04d_tcb' % (len(me.name), t.interface.name, len(t.interface.name), t.intra_index), seL4_TCBObject) -*/
-                    /*- set p = Perspective(instance=me.name, interface=t.interface.name, intra_index=t.intra_index) -*/
+                /*- for t in threads -*/
+                    /*- set tcb = alloc('%s_tcb' % t.name, seL4_TCBObject) -*/
                     case /*? tcb ?*/ : {
-                        thread_name = "/*? t.interface.name ?*/";
+                        thread_name = "/*? t.name ?*/";
                         memory_map = (camkes_memory_region_t[]){
                             { .start = (uintptr_t)__executable_start,
                               .end = (uintptr_t)align_12bit - 1,
                               .name = "code and data" },
-                            { .start = (uintptr_t)&/*? p['stack_symbol'] ?*/,
-                              .end = (uintptr_t)&/*? p['stack_symbol'] ?*/ + PAGE_SIZE_4K - 1,
+                            { .start = (uintptr_t)&/*? t.stack_symbol ?*/,
+                              .end = (uintptr_t)&/*? t.stack_symbol ?*/ + PAGE_SIZE_4K - 1,
                               .name = "guard page" },
-                            { .start = (uintptr_t)&/*? p['stack_symbol'] ?*/ + PAGE_SIZE_4K,
-                              .end = (uintptr_t)&/*? p['stack_symbol'] ?*/ +
-                                sizeof(/*? p['stack_symbol'] ?*/) - PAGE_SIZE_4K - 1,
+                            { .start = (uintptr_t)&/*? t.stack_symbol ?*/ + PAGE_SIZE_4K,
+                              .end = (uintptr_t)&/*? t.stack_symbol ?*/ +
+                                sizeof(/*? t.stack_symbol ?*/) - PAGE_SIZE_4K - 1,
                               .name = "stack" },
-                            { .start = (uintptr_t)&/*? p['stack_symbol'] ?*/ +
-                                sizeof(/*? p['stack_symbol'] ?*/) - PAGE_SIZE_4K,
-                              .end = (uintptr_t)&/*? p['stack_symbol'] ?*/ +
-                                sizeof(/*? p['stack_symbol'] ?*/) - 1,
+                            { .start = (uintptr_t)&/*? t.stack_symbol ?*/ +
+                                sizeof(/*? t.stack_symbol ?*/) - PAGE_SIZE_4K,
+                              .end = (uintptr_t)&/*? t.stack_symbol ?*/ +
+                                sizeof(/*? t.stack_symbol ?*/) - 1,
                               .name = "guard page" },
-                            { .start = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/,
-                              .end = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/ + PAGE_SIZE_4K - 1,
+                            { .start = (uintptr_t)&/*? t.ipc_symbol ?*/,
+                              .end = (uintptr_t)&/*? t.ipc_symbol ?*/ + PAGE_SIZE_4K - 1,
                               .name = "guard page" },
-                            { .start = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/ + PAGE_SIZE_4K,
-                              .end = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/ +
-                                sizeof(/*? p['ipc_buffer_symbol'] ?*/) - PAGE_SIZE_4K - 1,
+                            { .start = (uintptr_t)&/*? t.ipc_symbol ?*/ + PAGE_SIZE_4K,
+                              .end = (uintptr_t)&/*? t.ipc_symbol ?*/ +
+                                sizeof(/*? t.ipc_symbol ?*/) - PAGE_SIZE_4K - 1,
                               .name = "IPC buffer" },
-                            { .start = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/ +
-                                sizeof(/*? p['ipc_buffer_symbol'] ?*/) - PAGE_SIZE_4K,
-                              .end = (uintptr_t)&/*? p['ipc_buffer_symbol'] ?*/ +
-                                sizeof(/*? p['ipc_buffer_symbol'] ?*/) - 1,
+                            { .start = (uintptr_t)&/*? t.ipc_symbol ?*/ +
+                                sizeof(/*? t.ipc_symbol ?*/) - PAGE_SIZE_4K,
+                              .end = (uintptr_t)&/*? t.ipc_symbol ?*/ +
+                                sizeof(/*? t.ipc_symbol ?*/) - 1,
                               .name = "guard page" },
                             { .start = 0, .end = 0, .name = NULL },
                         };
@@ -765,15 +667,19 @@ int pre_init_interface_sync() {
 
     /* Wake all the non-passive interface threads. */
     /*- for t in threads[1:] -*/
+        /*- if not (options.debug_fault_handlers and loop.last) -*/
         /*- if not options.realtime or t not in passive_threads -*/
             sync_sem_bare_post(/*? pre_init_ep ?*/, &pre_init_lock);
+        /*- endif -*/
         /*- endif -*/
     /*- endfor -*/
 
     /* Wait for all the non-passive interface threads to run their inits. */
     /*- for t in threads[1:] -*/
+        /*- if not (options.debug_fault_handlers and loop.last) -*/
         /*- if not options.realtime or t not in passive_threads -*/
             sync_sem_bare_wait(/*? interface_init_ep ?*/, &interface_init_lock);
+        /*- endif -*/
         /*- endif -*/
     /*- endfor -*/
 
@@ -820,7 +726,9 @@ int post_init_interface_sync() {
      * at this point. Next time they are given scheduling contexts they will be
      * unblocked. */
     /*- for _ in threads[1:] -*/
+        /*- if not (options.debug_fault_handlers and loop.last) -*/
         sync_sem_bare_post(/*? post_init_ep ?*/, &post_init_lock);
+        /*- endif -*/
     /*- endfor -*/
 
     /*- if options.realtime -*/
@@ -880,14 +788,22 @@ static int post_main(int thread_id) {
             assert(!"invalid thread ID");
             return -1;
 
-        /*- set tcb_control = alloc('%d_0_control_%d_tcb' % (len(me.name), len('0_control')), seL4_TCBObject) -*/
+        /*- set tcb_control = alloc("%s_tcb" % threads[0].name, seL4_TCBObject) -*/
         case /*? tcb_control ?*/ : /* Control thread */
             init();
             return component_control_main();
 
         /*# Interface threads #*/
         /*- for t in threads[1:] -*/
-            /*- set tcb = alloc('%d_%s_%d_%04d_tcb' % (len(me.name), t.interface.name, len(t.interface.name), t.intra_index), seL4_TCBObject) -*/
+        /*- if options.debug_fault_handlers and loop.last -*/
+            /*- set tcb = alloc("%s_tcb" % t.name, seL4_TCBObject) -*/
+            case /*? tcb ?*/ : { /* Fault handler thread */
+                fault_handler();
+                UNREACHABLE();
+                return 0;
+            }
+        /*- else -*/
+            /*- set tcb = alloc("%s_tcb" % t.name, seL4_TCBObject) -*/
             case /*? tcb ?*/ : { /* Interface /*? t.interface.name ?*/ */
                 /* Wait for `pre_init` to complete. */
                 sync_sem_bare_wait(/*? pre_init_ep ?*/, &pre_init_lock);
@@ -922,16 +838,9 @@ static int post_main(int thread_id) {
 
                 return 0;
             }
+        /*- endif -*/
         /*- endfor -*/
 
-        /*- if options.debug_fault_handlers -*/
-            /*- set tcb = alloc('%d_0_fault_handler_%d_0000_tcb' % (len(me.name), len('0_fault_handler')), seL4_TCBObject) -*/
-            case /*? tcb ?*/ : { /* Fault handler thread */
-                fault_handler();
-                UNREACHABLE();
-                return 0;
-            }
-        /*- endif -*/
 
         default:
             /* If we reach this point, the initialiser gave us a thread we
@@ -1055,79 +964,6 @@ const struct camkes_vma camkes_vmas[] = {
         .cached = true,
         .name = ".bss",
     },
-    /*- set p = Perspective(instance=me.name, control=True) -*/
-    {
-        .start = (void*)/*? p['stack_symbol'] ?*/,
-        .end = (void*)/*? p['stack_symbol'] ?*/ + PAGE_SIZE_4K,
-        .read = false,
-        .write = false,
-        .execute = false,
-        .cached = true,
-        .name = "guard page below control thread's stack",
-    },
-    {
-        .start = (void*)/*? p['stack_symbol'] ?*/ + PAGE_SIZE_4K,
-        .end = (void*)/*? p['stack_symbol'] ?*/ + sizeof(/*? p['stack_symbol'] ?*/) - PAGE_SIZE_4K,
-        .read = true,
-        .write = true,
-        .execute = false,
-        .cached = true,
-        .name = "control thread's stack",
-    },
-    {
-        .start = (void*)/*? p['stack_symbol'] ?*/ + sizeof(/*? p['stack_symbol'] ?*/) - PAGE_SIZE_4K,
-        .end = (void*)/*? p['stack_symbol'] ?*/ + sizeof(/*? p['stack_symbol'] ?*/),
-        .read = false,
-        .end = false,
-        .execute = false,
-        .cached = true,
-        .name = "guard page above control thread's stack",
-    },
-    {
-        .start = (void*)/*? p['ipc_buffer_symbol'] ?*/,
-        .end = (void*)/*? p['ipc_buffer_symbol'] ?*/ + PAGE_SIZE_4K,
-        .read = false,
-        .write = false,
-        .execute = false,
-        .cached = true,
-        .name = "guard page below control thread's TLS/IPC region",
-    },
-    {
-        .start = (void*)/*? p['ipc_buffer_symbol'] ?*/ + PAGE_SIZE_4K,
-        .end = (void*)/*? p['ipc_buffer_symbol'] ?*/ + PAGE_SIZE_4K + sizeof(camkes_tls_t),
-        .read = true,
-        .write = true,
-        .execute = false,
-        .cached = true,
-        .name = "control thread's TLS region",
-    },
-    {
-        .start = (void*)/*? p['ipc_buffer_symbol'] ?*/ + PAGE_SIZE_4K + sizeof(camkes_tls_t),
-        .end = (void*)/*? p['ipc_buffer_symbol'] ?*/ + sizeof(/*? p['ipc_buffer_symbol'] ?*/) - PAGE_SIZE_4K - sizeof(seL4_IPCBuffer),
-        .read = false,
-        .write = false,
-        .execute = false,
-        .cached = true,
-        .name = "control thread's TLS to IPC buffer interstice",
-    },
-    {
-        .start = (void*)/*? p['ipc_buffer_symbol'] ?*/ + sizeof(/*? p['ipc_buffer_symbol'] ?*/) - PAGE_SIZE_4K - sizeof(seL4_IPCBuffer),
-        .end = (void*)/*? p['ipc_buffer_symbol'] ?*/ + sizeof(/*? p['ipc_buffer_symbol'] ?*/) - PAGE_SIZE_4K,
-        .read = true,
-        .write = true,
-        .execute = false,
-        .cached = true,
-        .name = "control thread's IPC buffer",
-    },
-    {
-        .start = (void*)/*? p['ipc_buffer_symbol'] ?*/ + sizeof(/*? p['ipc_buffer_symbol'] ?*/) - PAGE_SIZE_4K,
-        .end = (void*)/*? p['ipc_buffer_symbol'] ?*/ + sizeof(/*? p['ipc_buffer_symbol'] ?*/),
-        .read = false,
-        .write = false,
-        .execute = false,
-        .cached = true,
-        .name = "guard page above control thread's TLS/IPC region",
-    },
     {
         .start = (void*)dma_pool_symbol,
         .end = (void*)dma_pool_symbol + sizeof(dma_pool_symbol),
@@ -1137,79 +973,78 @@ const struct camkes_vma camkes_vmas[] = {
         .cached = false,
         .name = "DMA pool",
     },
-    /*- for t in threads[1:] -*/
-        /*- set p = Perspective(instance=me.name, interface=t.interface.name, intra_index=t.intra_index) -*/
+    /*- for t in threads -*/
         {
-            .start = (void*)/*? p['stack_symbol'] ?*/,
-            .end = (void*)/*? p['stack_symbol'] ?*/ + PAGE_SIZE_4K,
+            .start = (void*)/*? t.stack_symbol ?*/,
+            .end = (void*)/*? t.stack_symbol ?*/ + PAGE_SIZE_4K,
             .read = false,
             .write = false,
             .execute = false,
             .cached = true,
-            .name = "guard page below interface /*? t.interface.name ?*/ thread's stack",
+            .name = "guard page below /*? t.name ?*/ thread's stack",
         },
         {
-            .start = (void*)/*? p['stack_symbol'] ?*/ + PAGE_SIZE_4K,
-            .end = (void*)/*? p['stack_symbol'] ?*/ + sizeof(/*? p['stack_symbol'] ?*/) - PAGE_SIZE_4K,
+            .start = (void*)/*? t.stack_symbol ?*/ + PAGE_SIZE_4K,
+            .end = (void*)/*? t.stack_symbol ?*/ + sizeof(/*? t.stack_symbol ?*/) - PAGE_SIZE_4K,
             .read = true,
             .write = true,
             .execute = false,
             .cached = true,
-            .name = "interface /*? t.interface.name ?*/ thread's stack",
+            .name = "/*? t.name ?*/ thread's stack",
         },
         {
-            .start = (void*)/*? p['stack_symbol'] ?*/ + sizeof(/*? p['stack_symbol'] ?*/) - PAGE_SIZE_4K,
-            .end = (void*)/*? p['stack_symbol'] ?*/ + sizeof(/*? p['stack_symbol'] ?*/),
+            .start = (void*)/*? t.stack_symbol ?*/ + sizeof(/*? t.stack_symbol ?*/) - PAGE_SIZE_4K,
+            .end = (void*)/*? t.stack_symbol ?*/ + sizeof(/*? t.stack_symbol ?*/),
             .read = false,
             .end = false,
             .execute = false,
             .cached = true,
-            .name = "guard page above interface /*? t.interface.name ?*/ thread's stack",
+            .name = "guard page above /*? t.name ?*/ thread's stack",
         },
         {
-            .start = (void*)/*? p['ipc_buffer_symbol'] ?*/,
-            .end = (void*)/*? p['ipc_buffer_symbol'] ?*/ + PAGE_SIZE_4K,
+            .start = (void*)/*? t.ipc_symbol ?*/,
+            .end = (void*)/*? t.ipc_symbol ?*/ + PAGE_SIZE_4K,
             .read = false,
             .write = false,
             .execute = false,
             .cached = true,
-            .name = "guard page below interface /*? t.interface.name ?*/ thread's TLS/IPC region",
+            .name = "guard page below /*? t.name ?*/ thread's TLS/IPC region",
         },
         {
-            .start = (void*)/*? p['ipc_buffer_symbol'] ?*/ + PAGE_SIZE_4K,
-            .end = (void*)/*? p['ipc_buffer_symbol'] ?*/ + PAGE_SIZE_4K + sizeof(camkes_tls_t),
+            .start = (void*)/*? t.ipc_symbol ?*/ + PAGE_SIZE_4K,
+            .end = (void*)/*? t.ipc_symbol ?*/ + PAGE_SIZE_4K + sizeof(camkes_tls_t),
             .read = true,
             .write = true,
             .execute = false,
             .cached = true,
-            .name = "interface /*? t.interface.name ?*/ thread's TLS region",
+            .name = "/*? t.name ?*/ thread's TLS region",
         },
         {
-            .start = (void*)/*? p['ipc_buffer_symbol'] ?*/ + PAGE_SIZE_4K + sizeof(camkes_tls_t),
-            .end = (void*)/*? p['ipc_buffer_symbol'] ?*/ + sizeof(/*? p['ipc_buffer_symbol'] ?*/) - PAGE_SIZE_4K - sizeof(seL4_IPCBuffer),
+            .start = (void*)/*? t.ipc_symbol ?*/ + PAGE_SIZE_4K + sizeof(camkes_tls_t),
+            .end = (void*)/*? t.ipc_symbol ?*/ + sizeof(/*? t.ipc_symbol ?*/) - PAGE_SIZE_4K - sizeof(seL4_IPCBuffer),
             .read = false,
             .write = false,
             .execute = false,
             .cached = true,
-            .name = "interface /*? t.interface.name ?*/ thread's TLS to IPC buffer interstice",
+            .name = "/*? t.name ?*/ thread's TLS to IPC buffer interstice",
         },
         {
-            .start = (void*)/*? p['ipc_buffer_symbol'] ?*/ + sizeof(/*? p['ipc_buffer_symbol'] ?*/) - PAGE_SIZE_4K - sizeof(seL4_IPCBuffer),
-            .end = (void*)/*? p['ipc_buffer_symbol'] ?*/ + sizeof(/*? p['ipc_buffer_symbol'] ?*/) - PAGE_SIZE_4K,
+            .start = (void*)/*? t.ipc_symbol ?*/ + sizeof(/*? t.ipc_symbol ?*/) - PAGE_SIZE_4K - sizeof(seL4_IPCBuffer),
+            .end = (void*)/*? t.ipc_symbol ?*/ + sizeof(/*? t.ipc_symbol ?*/) - PAGE_SIZE_4K,
             .read = true,
             .write = true,
             .execute = false,
             .cached = true,
-            .name = "interface /*? t.interface.name ?*/ thread's IPC buffer",
+            .name = "/*? t.name ?*/ thread's IPC buffer",
         },
         {
-            .start = (void*)/*? p['ipc_buffer_symbol'] ?*/ + sizeof(/*? p['ipc_buffer_symbol'] ?*/) - PAGE_SIZE_4K,
-            .end = (void*)/*? p['ipc_buffer_symbol'] ?*/ + sizeof(/*? p['ipc_buffer_symbol'] ?*/),
+            .start = (void*)/*? t.ipc_symbol ?*/ + sizeof(/*? t.ipc_symbol ?*/) - PAGE_SIZE_4K,
+            .end = (void*)/*? t.ipc_symbol ?*/ + sizeof(/*? t.ipc_symbol ?*/),
             .read = false,
             .write = false,
             .execute = false,
             .cached = true,
-            .name = "guard page above interface /*? t.interface.name ?*/ thread's TLS/IPC region",
+            .name = "guard page above /*? t.name ?*/ thread's TLS/IPC region",
         },
     /*- endfor -*/
 };
