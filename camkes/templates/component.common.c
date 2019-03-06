@@ -469,10 +469,17 @@ static void init(void) {
     /*- set tcb = alloc_cap("%s_tcb" % t.name, _tcb) -*/
     /*- do _tcb.__setitem__('ipc_buffer_slot', Cap(ipc_frame, read=True, write=True)) -*/
 
+    /*- do _tcb.__setattr__('ip', "get_vaddr(\'%s\')" % ("camkes %s _camkes_start" % me.name) ) -*/
+    /*- do _tcb.__setattr__('sp', t.sp) -*/
+    /*- do _tcb.__setattr__('addr', t.addr) -*/
+    /*- do _tcb.__setattr__('elf', "%s_group_bin" % me.address_space) -*/
+    /*- do _tcb.init.append(tcb) -*/
+
     /*- if options.realtime -*/
         /*- if not t.interface or configuration[me.name].get("%s_passive" % t.interface.name, False) -*/
             /*- set _sc = alloc_obj("%s_sc" % t.name, seL4_SchedContextObject) -*/
             /*- set sc = alloc_cap("%s_sc" % t.name, _sc) -*/
+            /*- do _tcb.__setitem__('sc_slot', Cap(_sc)) -*/
         /*- else -*/
             /*# This branch is for interface threads that are passive #*/
             /*- do passive_tcbs.__setitem__(t.name, tcb) -*/

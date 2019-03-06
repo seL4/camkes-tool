@@ -186,6 +186,8 @@ def show_includes(xs, prefix=''):
             s += '#include <%s>\n' % header.source
     return s
 
+PAGE_SIZE = 4096
+
 def threads(composition, instance, configuration, options):
     '''
     Compute the threads for a given instance.
@@ -210,6 +212,8 @@ def threads(composition, instance, configuration, options):
             self.stack_symbol = "_camkes_stack_%s" % name
             self.stack_size = stack_size
             self.ipc_symbol = "_camkes_ipc_buffer_%s" % name
+            self.sp = "get_vaddr(\'%s\') + %d" % (self.stack_symbol, self.stack_size + PAGE_SIZE)
+            self.addr = "get_vaddr(\'%s\') + %d" % (self.ipc_symbol, 2 * PAGE_SIZE - lookup_architecture(options.architecture).ipc_buffer_size())
 
     instance_name = re.sub(r'[^A-Za-z0-9]', '_', instance.name)
     # First thread is control thread
@@ -258,8 +262,6 @@ def dataport_type(type):
 # folding. These are not robust and for cases when a generation-time constant
 # is not required, you should simply emit the C equivalent and let the C
 # compiler handle it.
-
-PAGE_SIZE = 4096
 
 def ROUND_UP(x, y):
     return int(int(math.ceil(int(x) / float(y))) * y)

@@ -37,6 +37,7 @@ if platform.python_implementation() != 'CPython':
     for p in path:
         if p not in sys.path:
             sys.path.append(p)
+from simpleeval import simple_eval
 
 from camkes.ast import ASTError, Connection, Connector
 from camkes.templates import Templates, PLATFORMS, TemplateError
@@ -49,7 +50,7 @@ from camkes.runner.Filters import CAPDL_FILTERS
 import argparse, functools, jinja2, locale, numbers, os, re, \
     six, string, sys, traceback, pickle
 from capdl import ObjectType, ObjectAllocator, CSpaceAllocator, \
-    ELF, lookup_architecture, AddressSpaceAllocator
+    ELF, lookup_architecture, AddressSpaceAllocator, TCB
 
 from camkes.parser import parse_file, ParseError, parse_query_parser_args, print_query_parser_help
 
@@ -436,6 +437,14 @@ def main(argv, out, err):
                 elfs[name] = (e, elf)
             except Exception as inst:
                 die('While opening \'%s\': %s' % (e, inst))
+        for space in render_state.cspaces.values():
+            for tcb in [v.referent for (k, v) in space.cnode.slots.items()
+                    if v is not None and isinstance(v.referent, TCB)]:
+                elf = elfs.get(tcb.elf)
+                funcs = {"get_vaddr": lambda x: elf[1].get_symbol_vaddr(x)}
+                tcb.ip = simple_eval(str(tcb.ip), functions=funcs)
+                tcb.sp = simple_eval(str(tcb.sp), functions=funcs)
+                tcb.addr = simple_eval(str(tcb.addr), functions=funcs)
 
         for f in CAPDL_FILTERS:
             try:

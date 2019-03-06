@@ -19,127 +19,8 @@ from __future__ import absolute_import, division, print_function, \
 
 import os, six, subprocess
 from capdl import Cap, CNode, TCB, SC, lookup_architecture
-from camkes.internal.memoization import memoize
 from .NameMangling import Perspective
 
-PAGE_SIZE = 4096 # bytes
-
-# PERF/HACK: This function is memoized and optionally calls out to objdump
-# because it becomes a performance bottleneck in large systems. Note that the
-# second branch here is much more reliable and you should use it when possible.
-objdump_output = {}
-@memoize()
-def get_symbol(elf, symbol):
-    objdump = None
-    if os.environ.get('CONFIG_CAMKES_USE_OBJDUMP_ON', '') == 'y':
-        objdump = '%sobjdump' % os.environ.get('TOOLPREFIX', '')
-    elif os.environ.get('CONFIG_CAMKES_USE_OBJDUMP_AUTO', '') == 'y':
-        with open(os.devnull, 'wt') as f:
-            try:
-                objdump = subprocess.check_output(['which', '%sobjdump' %
-                    os.environ.get('TOOLPREFIX', '')], stderr=f,
-                    universal_newlines=True).strip()
-            except subprocess.CalledProcessError:
-                objdump = None
-    if objdump is not None:
-        global objdump_output
-        stdout = objdump_output.get(elf[0])
-        if stdout is None:
-            # We haven't run objdump on this output yet. Need to do it now.
-            # Construct the bash invocation we want
-            argument = "%s --syms %s | grep -E '^[0-9a-fA-F]{8}' | sed -r 's/^([0-9a-fA-F]{8,})[ \\t].*[ \\t]([0-9a-fA-F]{8,})[ \\t]+(.*)/\\3 \\1 \\2/'" % (objdump, elf[0])
-            stdout = subprocess.check_output(['sh', '-c', argument],
-                universal_newlines=True)
-            # Cache the result for future symbol lookups.
-            objdump_output[elf[0]] = stdout
-        sym_index = stdout.find('\n%s ' % symbol)
-        if sym_index == -1:
-            return None, None
-        end_index = stdout[sym_index+1:].find('\n')
-        vaddr_start_index = sym_index + len(symbol) + 2
-        if end_index == -1:
-            substring = stdout[vaddr_start_index:]
-        else:
-            substring = stdout[vaddr_start_index:sym_index + end_index + 1]
-        [vaddr, size] = substring.split()
-        return int(vaddr, 16), int(size, 16)
-    else:
-        return elf[1].get_symbol_vaddr(symbol), elf[1].get_symbol_size(symbol)
-
-def get_symbol_vaddr(elf, symbol):
-    return get_symbol(elf, symbol)[0]
-def get_symbol_size(elf, symbol):
-    return get_symbol(elf, symbol)[1]
-
-def set_tcb_info(cspaces, obj_space, elfs, options, **_):
-    """Set relevant extra info for TCB objects."""
-    arch = lookup_architecture(options.architecture)
-
-    for group, space in cspaces.items():
-        cnode = space.cnode
-        for index, tcb in [(k, v.referent) for (k, v) in cnode.slots.items()
-                if v is not None and isinstance(v.referent, TCB)]:
-
-            perspective = Perspective(group=group, tcb=tcb.name)
-
-            elf_name = perspective['elf_name']
-
-            elf = elfs.get(elf_name)
-
-            if elf is None:
-                # We were not passed an ELF file for this CSpace. This will be
-                # true in the first pass of the runner where no ELFs are passed.
-                continue
-
-            tcb.elf = elf_name
-            tcb.ip = get_symbol_vaddr(elf, perspective['entry_symbol'])
-            assert tcb.ip != 0, 'entry point \'%s\' of %s appears to be 0x0' \
-                % (perspective['entry_symbol'], tcb.name)
-
-            if perspective['pool']:
-                # This TCB is part of the (cap allocator's) TCB pool.
-                continue
-
-            stack_symbol = perspective['stack_symbol']
-            ipc_buffer_symbol = perspective['ipc_buffer_symbol']
-
-            # The stack should be at least three pages and the IPC buffer
-            # region should be exactly three pages. Note that these regions
-            # both include a guard page either side of the used area. It is
-            # assumed that the stack grows downwards.
-            stack_size = get_symbol_size(elf, stack_symbol)
-            assert stack_size is not None, 'Stack for %(name)s, ' \
-                '\'%(symbol)s\', not found' % {
-                    'name':tcb.name,
-                    'symbol':stack_symbol,
-                }
-            assert stack_size >= PAGE_SIZE * 3, 'Stack for %(name)s, ' \
-                '\'%(symbol)s\', is only %(size)d bytes and does not have ' \
-                'room for guard pages' % {
-                    'name':tcb.name,
-                    'symbol':stack_symbol,
-                    'size':stack_size,
-                }
-            assert get_symbol_size(elf, ipc_buffer_symbol) == PAGE_SIZE * 3
-
-            # Move the stack pointer to the top of the stack. Extra page is
-            # to account for the (upper) guard page.
-            assert stack_size % PAGE_SIZE == 0
-            tcb.sp = get_symbol_vaddr(elf, stack_symbol) + stack_size - PAGE_SIZE
-            tcb.addr = get_symbol_vaddr(elf, ipc_buffer_symbol) + \
-                2 * PAGE_SIZE - arch.ipc_buffer_size()
-
-            # Each TCB needs to be passed its 'thread_id' that is the value
-            # it branches on in main(). This corresponds to the slot index
-            # to a cap to it in the component's CNode.
-            tcb.init.append(index)
-
-            if options.realtime:
-                sc_name = perspective['sc']
-                if sc_name in obj_space:
-                    # For non-passive threads, associate the sc with the tcb
-                    sc = obj_space[sc_name]
-                    tcb['sc_slot'] = Cap(sc)
 
 def set_tcb_caps(ast, obj_space, cspaces, elfs, options, **_):
     arch = lookup_architecture(options.architecture)
@@ -352,7 +233,6 @@ def remove_tcb_caps(cspaces, options, **_):
                 del space.cnode[slot]
 
 CAPDL_FILTERS = [
-    set_tcb_info,
     set_tcb_caps,
     guard_cnode_caps,
     tcb_default_properties,
