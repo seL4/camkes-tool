@@ -31,6 +31,7 @@
 #include <camkes/tls.h>
 #include <camkes/vma.h>
 #include <camkes/syscalls.h>
+#include <sel4runtime.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -469,32 +470,45 @@ const char * get_thread_name(int thread_id) {
     return "(unknown)";
 }
 
-    /*- set tcb_control = alloc("%s_tcb" % threads[0].name, seL4_TCBObject) -*/
 static int post_main(int thread_id);
-/* This function is called from crt0.S. If this is called for the control
- * thread then we should return so that the C library can be initialized
- * and we will come back executing in 'main'. For all other threads we should
- * jump straight to post_main */
-void USED _camkes_tls_init(int thread_id) {
-    static bool write_buf_registered = false;
-    if (!write_buf_registered) {
+void USED NORETURN _camkes_start_c(int thread_id) {
+    /*- set tcb_control = alloc("%s_tcb" % threads[0].name, seL4_TCBObject) -*/
+    if (thread_id != /*? tcb_control ?*/) {
+        exit(post_main(thread_id));
+    } else {
         sel4muslcsys_register_stdio_write_fn(write_buf);
-        write_buf_registered = true;
+        void *ipc_buf_ptr = (void *) /*? macros.ipc_buffer_address(threads[0].ipc_symbol) ?*/;
+        camkes_start_control(thread_id, ipc_buf_ptr);
     }
+    UNREACHABLE();
+}
+
+// a tls region for every thread except the control thread
+static void *tls_regions[/*? len(threads) - 1 ?*/] = {0};
+
+void camkes_tls_init(int thread_id) {
     switch (thread_id) {
         /*- for index, t in enumerate(threads) -*/
             /*- set tcb = alloc('%s_tcb' % t.name, seL4_TCBObject) -*/
 
             case /*? tcb ?*/ : { /* Thread /*? t.name ?*/ */
-                /*? macros.save_ipc_buffer_address(t.ipc_symbol) ?*/
+                /*- if tcb == tcb_control -*/
+                // the control thread has an initial tls region created for it,
+                // but this may fail if the tls region is too big.
+                ZF_LOGF_IF(!sel4runtime_initial_tls_enabled(), "Failed to init TLS");
+                /*- else -*/
+                void *tls_mem = tls_regions[/*? loop.index - 2?*/];
+                assert(tls_mem != NULL);
+                uintptr_t tls_base = sel4runtime_write_tls_image(tls_mem);
+                sel4runtime_set_tls_base(tls_base);
+                ZF_LOGF_IF(!tls_base, "Failed to write new tls");
+                __sel4_ipc_buffer = (seL4_IPCBuffer *) /*? macros.ipc_buffer_address(t.ipc_symbol) ?*/;
+                /*- endif -*/
                 /*- if options.realtime and loop.first -*/
                     camkes_get_tls()->sc_cap = /*? sc_control ?*/;
                 /*- endif -*/
                 camkes_get_tls()->tcb_cap = /*? tcb ?*/;
                 camkes_get_tls()->thread_index = /*? index ?*/ + 1;
-                /*- if not loop.first -*/
-                exit(post_main(thread_id));
-                /*- endif -*/
                 break;
             }
         /*- endfor -*/
@@ -620,10 +634,8 @@ int pre_init_interface_sync() {
 
     /* Wake all the non-passive interface threads. */
     /*- for t in threads[1:] -*/
-        /*- if not (options.debug_fault_handlers and loop.last) -*/
         /*- if not options.realtime or t not in passive_threads -*/
             sync_sem_bare_post(/*? pre_init_ep ?*/, &pre_init_lock);
-        /*- endif -*/
         /*- endif -*/
     /*- endfor -*/
 
@@ -734,7 +746,12 @@ static int post_main(int thread_id) {
             return -1;
 
         case /*? tcb_control ?*/ : /* Control thread */
+            camkes_tls_init(thread_id);
             init();
+            for (int i = 0; i < /*? len(threads) - 1 ?*/; i++) {
+                tls_regions[i] = malloc(sel4runtime_get_tls_size());
+                ZF_LOGF_IF(tls_regions[i] == NULL, "Failed to create tls");
+            }
             return component_control_main();
 
         /*# Interface threads #*/
@@ -742,6 +759,8 @@ static int post_main(int thread_id) {
         /*- if options.debug_fault_handlers and loop.last -*/
             /*- set tcb = alloc("%s_tcb" % t.name, seL4_TCBObject) -*/
             case /*? tcb ?*/ : { /* Fault handler thread */
+                sync_sem_bare_wait(/*? pre_init_ep ?*/, &pre_init_lock);
+                camkes_tls_init(thread_id);
                 fault_handler();
                 UNREACHABLE();
                 return 0;
@@ -751,6 +770,7 @@ static int post_main(int thread_id) {
             case /*? tcb ?*/ : { /* Interface /*? t.interface.name ?*/ */
                 /* Wait for `pre_init` to complete. */
                 sync_sem_bare_wait(/*? pre_init_ep ?*/, &pre_init_lock);
+                camkes_tls_init(thread_id);
                 if (/*? t.interface.name ?*/__init) {
                     /*? t.interface.name ?*/__init();
                 }

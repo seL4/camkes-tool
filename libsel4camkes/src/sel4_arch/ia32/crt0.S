@@ -21,10 +21,7 @@
 #include <autoconf.h>
 
     .global _camkes_start
-    .extern _camkes_tls_init
-    .extern _start
-    .extern sel4_vsyscall
-
+    .extern _camkes_start_c
     .text
 
 _camkes_start:
@@ -54,14 +51,9 @@ _camkes_start:
      * pointer is offset by 8 bytes from a 16 byte aligned value.
      */
 
-    movw    $IPCBUF_GDT_SELECTOR, %ax
-    movw    %ax, %fs
-
     /* Save thread_id and entry_point so we can
      * put them into argv later */
     pushl %ecx
-
-    /* Setup per thread tls */
     pushl %ecx
 
     /* The two push instructions decreased the stack pointer by 8 in
@@ -69,47 +61,4 @@ _camkes_start:
      * byte aligned value prior to those instructions, at this point
      * it is 16 byte aligned, so we can safely call the function.
      */
-    call _camkes_tls_init
-
-    /* If we get back here we no longer care about stack alignment.
-     * This is because the next function we call is _start, and on
-     * ia32, _start checks and corrects the stack pointer alignment.
-     */
-
-    addl $4, %esp
-
-    /* Restore */
-    popl %eax
-
-    /* Null terminate auxiliary vector */
-    pushl $0
-    pushl $0
-    /* Set __sysinfo */
-    leal  sel4_vsyscall, %ecx
-    pushl %ecx
-    pushl $32 /* AT_SYSINFO */
-    /* Null terminate environment vector */
-    pushl $0
-    leal  environment_string, %ecx
-    pushl %ecx
-    /* Null terminate argument vector */
-    pushl $0
-    /* Construct arguments */
-    pushl %eax
-    leal camkes_name, %ecx
-    pushl %ecx
-    /* Push argument count */
-    pushl $2
-    /* No atexit */
-    movl $0, %edx
-
-    /* Go to the real start function */
-    jmp _start
-
-    .data
-    .align 4
-
-camkes_name:
-    .asciz "camkes"
-environment_string:
-    .asciz "seL4=1"
+    call _camkes_start_c

@@ -44,15 +44,8 @@ def ipc_buffer(sym):
            '    __attribute__((section("align_12bit")))\n' \
            '    ALIGN(PAGE_SIZE_4K);\n' % sym
 
-def save_ipc_buffer_address(sym):
-    return '#ifdef CONFIG_ARCH_X86\n' \
-           '    /* We need to save the address of the IPC buffer (for\n' \
-           '     * marshalling/unmarshalling) per-thread. Essentially what we\'re after\n' \
-           '     * is TLS. Use the IPC buffer\'s user data word for that. Note that we\n' \
-           '     * add a page to skip over the guard page in front of the IPC buffer.\n' \
-           '     */\n' \
-           '    seL4_SetUserData((seL4_Word)%s + 2 * PAGE_SIZE_4K - sizeof(seL4_IPCBuffer));\n' \
-           '#endif\n' % sym
+def ipc_buffer_address(sym):
+    return '((seL4_Word)%s + 2 * PAGE_SIZE_4K - sizeof(seL4_IPCBuffer));\n' % sym
 
 def next_page_multiple(size, arch):
     '''

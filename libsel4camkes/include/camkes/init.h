@@ -25,3 +25,7 @@ int post_init_interface_sync();
  */
 int component_control_main();
 
+/**
+ * Entry point for camkes control threads that sets up the runtime.
+ */
+void camkes_start_control(int thread_id, void *ipc_buffer_ptr);

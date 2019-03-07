@@ -39,27 +39,10 @@ typedef struct camkes_tls_t {
     seL4_Error reply_cap_save_error;
 
 } camkes_tls_t;
+extern __thread camkes_tls_t camkes_tls;
 
-static inline camkes_tls_t * UNUSED camkes_get_tls(void) {
-    /* We store TLS data in the same page as the thread's IPC buffer, but at
-     * the start of the page.
-     */
-    uintptr_t ipc_buffer = (uintptr_t)seL4_GetIPCBuffer();
-    /* Normally we would just use MASK here, but the verification C parser
-     * doesn't like the GCC extension used in that macro. The following
-     * assertion could be checked at compile-time, but then it appears in input
-     * to the verification process that causes other problems.
-     */
-    assert(PAGE_BITS_4K <= 31 && "mask shift is safe");
-    uintptr_t tls = ipc_buffer & ~MASK_UNSAFE(PAGE_BITS_4K);
-
-    /* We should have enough room for the TLS data preceding the IPC buffer. */
-    assert(ipc_buffer - tls >= sizeof(camkes_tls_t));
-
-    /* We'd better be returning a valid pointer. */
-    assert(tls % alignof(camkes_tls_t) == 0);
-
-    return (camkes_tls_t*)tls;
+static inline camkes_tls_t *camkes_get_tls(void) {
+    return &camkes_tls;
 }
 
 #ifndef CONFIG_KERNEL_RT

@@ -17,6 +17,8 @@
 #include <stdbool.h>
 #include <utils/util.h>
 
+__thread camkes_tls_t camkes_tls;
+
 #ifndef CONFIG_KERNEL_RT
 
 int camkes_declare_reply_cap(seL4_CPtr shadow_slot) {
