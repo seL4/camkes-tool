@@ -982,7 +982,7 @@ class AttributeReference(ASTObject):
         self.reference = reference
         self.dict_lookup = dict_lookup
 
-@ast_property("lookup", six.string_types)
+@ast_property("lookup", list)
 class DictLookup(ASTObject):
     def __init__(self, lookup, location):
         super(DictLookup, self).__init__(location)
