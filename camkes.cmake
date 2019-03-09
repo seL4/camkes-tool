@@ -494,7 +494,7 @@ function(GenerateCAmkESRootserver)
         --load-ast
         "${CMAKE_CURRENT_BINARY_DIR}/ast.pickle"
         --item
-        camkes-gen.cmake
+        assembly/
         --template
         camkes-gen.cmake
         --outfile

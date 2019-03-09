@@ -283,26 +283,24 @@ def main(argv, out, err):
 
     for (item, outfile, template) in zip(options.item, options.outfile, options.template):
         key = item.split("/")
-        if len(key) is 1:
-            # We are rendering something that isn't a component or connection.
-            i = assembly
-            obj_key = None
-        elif key[1] in ["source", "header", "c_environment_source", "cakeml_start_source", "cakeml_end_source", "camkesConstants", "linker", "debug", "simple", "rump_config"]:
-            # We are rendering a component template
-            i = [x for x in assembly.composition.instances if x.name == key[0]][0]
+        if key[0] == "component":
+            i = [x for x in assembly.composition.instances if x.name == key[1]][0]
             obj_key = i.address_space
-        elif key[1] in ["from", "to"]:
-            # We are rendering a connection template
-            c = [c for c in assembly.composition.connections if c.name == key[0]][0]
-            if key[1] == "to":
-                i = c.to_ends[int(key[-1])]
-            elif key[1] == "from":
-                i = c.from_ends[int(key[-1])]
+        elif key[0] == "connector":
+            c = [c for c in assembly.composition.connections if c.name == key[1]][0]
+            if key[2] == "to":
+                i = c.to_ends[int(key[3])]
+            elif key[2] == "from":
+                i = c.from_ends[int(key[3])]
             else:
                 die("Invalid connector end")
             obj_key = i.instance.address_space
+        elif key[0] == "assembly":
+            i = assembly
+            obj_key = None
         else:
             die("item: \"%s\" does not have the correct formatting to render." % item)
+
         try:
             g = r.render(i, assembly, template, render_state, obj_key,
                          outfile_name=outfile.name, options=options, my_pd=render_state.pds[obj_key] if obj_key else None)
