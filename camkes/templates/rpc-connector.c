@@ -366,15 +366,15 @@
 
 /*# Takes ownership of the send buffer #*/
 /*- macro begin_send(namespace) -*/
-    /* Save any pending reply cap as we'll eventually call seL4_Call which
-     * could overwrite it. Note that we do this here before marshalling
-     * parameters to ensure we don't inadvertently overwrite any marshalled
-     * data with this call.
-     */
-    /*- if not options.realtime -*/
+   /*- if namespace.lock -*/
+        /*- if me.might_block() and not options.realtime -*/
+        /* Save any pending reply cap as the lock will call seL4_Recv on an endpoint which
+         * will overwrite it. Note that we do this here before marshalling
+         * parameters to ensure we don't inadvertently overwrite any marshalled
+         * data with this call.
+         */
         camkes_protect_reply_cap();
-    /*- endif -*/
-    /*- if namespace.lock -*/
+        /*- endif -*/
         sync_sem_bare_wait(/*? namespace.lock_ep ?*/,
             &/*? namespace.lock_symbol ?*/);
     /*- endif -*/
