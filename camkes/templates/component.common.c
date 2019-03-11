@@ -820,7 +820,8 @@ int USED main(int argc UNUSED, char *argv[]) {
     assert(strcmp(argv[0], "camkes") == 0);
 
     int thread_id = (int)(uintptr_t)(argv[1]);
-    return post_main(thread_id);
+    exit(post_main(thread_id));
+    return 0;
 }
 
 /*- for e in me.type.emits -*/
