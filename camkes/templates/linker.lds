@@ -59,3 +59,18 @@ SECTIONS {
   /*- endfor -*/
 }
 INSERT AFTER .bss;
+SECTIONS {
+    .tdata :
+    {
+        _tdata_start = . ;
+        *(.tdata .tdata.* .gnu.linkonce.td.*)
+        _tdata_end = . ;
+    }
+    .tbss :
+    {
+        _tbss_start = . ;
+        *(.tbss .tbss.* .gnu.linkonce.tb.*) *(.tcommon)
+        _tbss_end = . ;
+    }
+}
+INSERT AFTER .rodata;
