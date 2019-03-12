@@ -14,101 +14,167 @@ cmake_minimum_required(VERSION 3.7.2)
 
 include(${KERNEL_HELPERS_PATH})
 
-set(CAmkESDefaultStackSize 16384 CACHE STRING
-    "Stack size to allocate per-component, in bytes. Note that this value
-    should be page-aligned. If not, it will be rounded up."
-)
+function(append_flags parent_list)
+    math(EXPR limit "${ARGC} - 1")
+    set(local_flags "${${parent_list}}")
+    foreach(i RANGE 1 ${limit})
+        set(list "${ARGV${i}}")
+        list(GET list 0 check)
+        string(REGEX REPLACE " +" ";" check "${check}")
+        if(${check})
+            list(GET list 1 when_true)
+            list(APPEND local_flags "${when_true}")
+        else()
+            list(LENGTH list len)
+            if (${len} GREATER 2)
+                list(GET list 2 when_false)
+                list(APPEND local_flags "${when_false}")
+            endif()
+        endif()
+    endforeach()
+    set(${parent_list} "${local_flags}" PARENT_SCOPE)
+endfunction(append_flags)
 
 
-set(CAmkESProvideTCBCaps ON CACHE BOOL
-    "Hand out TCB caps to components. These caps are used by the component
-    to exit cleanly by suspending. Disabling this option leaves components
-    with an empty slot in place of their TCB cap. This means they will cap
-    fault when attempting to exit. The advantage is that your resulting
-    CapDL specification contains no TCB caps and is thus easier to reason
-    about."
-)
+function(set_camkes_flags_from_config list)
 
-set(CAmkESDefaultPriority 254 CACHE STRING
-    "Default priority for component threads if this is not overridden via an
-    attribute. Generally you want to set this as high as possible due to
-    the suboptimal seL4 scheduler.
-    Default to one less than max prio to avoid interleaving with the CapDL intialiser"
-)
-if ((${CAmkESDefaultPriority} LESS 0) OR (${CAmkESDefaultPriority} GREATER 255))
-    message(FATAL_ERROR "CAmkESDefaultPriority must be [0, 255]")
-endif()
+    set(CAmkESVerbose OFF CACHE BOOL
+        "Enable verbose output from CAmkES. This is disabled by default as it
+        can result in a lot of output, but is useful for debugging CAmkES problems"
+    )
 
-# These options are not declared with the config_* system because they only need to exist
-# in the build system, and not appear in a configuration library
-set(CAmkESCPP OFF CACHE BOOL
-    "Run CPP on the input specification(s) before parsing them into an AST.
-    This can allow you to write parameterised specs in the case of more
-    complex system"
-)
+    set(local_flags "${${list}}")
+    append_flags(local_flags "CAmkESVerbose;--debug")
+    set(${list} "${local_flags}" PARENT_SCOPE)
+endfunction(set_camkes_flags_from_config)
 
-set(CAmkESDefaultAffinity 0 CACHE STRING
-    # Default to 0 as this is the index assigned to the BSP (Boot Strap Processor) by seL4
-    "Default affinity for component threads if this is not overridden via an
-    attribute. Think carefully when organizing your applications for
-    multiprocessor operation"
-)
-math(EXPR MaxNumNodesMin1 "${KernelMaxNumNodes} - 1")
-if((${CAmkESDefaultAffinity} < 0) OR (${CAmkESDefaultAffinity} GREATER ${MaxNumNodesMin1}))
-    message(FATAL_ERROR "Invalid CAmkESDefaultAffinity")
-endif()
+function(set_camkes_parser_flags_from_config list)
 
-set(CAmkESAllowForwardReferences OFF CACHE BOOL
-    "By default, you can only refer to objects in your specification which
-    have been defined before the point at which you reference them.
-    Selecting this option allows you to also reference objects that are
-    defined below the point at which the reference occurs. This option is
-    off by default because it leads to a slight performance degradation in
-    parsing specification"
-)
+    # These options are not declared with the config_* system because they only need to exist
+    # in the build system, and not appear in a configuration library
+    set(CAmkESCPP OFF CACHE BOOL
+        "Run CPP on the input specification(s) before parsing them into an AST.
+        This can allow you to write parameterised specs in the case of more
+        complex system"
+    )
+    set(CAmkESAllowForwardReferences OFF CACHE BOOL
+        "By default, you can only refer to objects in your specification which
+        have been defined before the point at which you reference them.
+        Selecting this option allows you to also reference objects that are
+        defined below the point at which the reference occurs. This option is
+        off by default because it leads to a slight performance degradation in
+        parsing specification"
+    )
+    set(local_flags "${${list}}")
+    append_flags(local_flags
+        "CAmkESAllowForwardReferences;--allow-forward-references"
+        "CAmkESCPP;--cpp"
+    )
+    set(${list} "${local_flags}" PARENT_SCOPE)
 
-set(CAmkESRPCLockElision ON CACHE BOOL
-    "Detect when it is safe to exclude locking operations in the seL4RPC connector and
-    automatically do so. This is an optimisation that can improve the performance of
-    this connector."
-)
+endfunction(set_camkes_parser_flags_from_config)
 
-set(CAmkESSpecialiseSyscallStubs ON CACHE BOOL
-    "Detect when glue code overhead could be reduced with a custom syscall
-    stub and generate and use this instead of the libsel4 stubs. This does
-    not affect whether a given IPC will hit the fastpath, but it does
-    reduce the userlevel overhead of these system calls. In ideal
-    conditions this will give you RPC as fast as native seL4 IPC. This only
-    has an effect on ARM."
-)
+function(set_camkes_render_flags_from_config list)
 
-set(CAmkESLargeFramePromotion ON CACHE BOOL
-    "Some hardware platforms support multiple page sizes. In components with
-    large virtual address spaces, it is possible to reduce memory usage
-    (and consequent load time) by backing the component's address space with
-    pages of these larger sizes. When this setting is enabled, small
-    consecutive page mappings will be promoted to fewer consecutive large
-    mappings. Note that larger frame sizes are directly mapped into page
-    directories and can also save the overhead of an accompanying page
-    table."
-)
+    set(CAmkESDefaultStackSize 16384 CACHE STRING
+        "Stack size to allocate per-component, in bytes. Note that this value
+        should be page-aligned. If not, it will be rounded up."
+    )
 
-set(CAmkESDMALargeFramePromotion OFF CACHE BOOL
-    "For components with a configured DMA pool, the frames backing this
-    are not automatically promoted to large frames even if the pool is
-    sufficiently large. Select this option to enable such promotion
-    automatically. This is off by default because it requires support
-    for large alignments in your toolchain's assembler, which is often
-    absent in ARM toolchains."
-)
+    set(CAmkESProvideTCBCaps ON CACHE BOOL
+        "Hand out TCB caps to components. These caps are used by the component
+        to exit cleanly by suspending. Disabling this option leaves components
+        with an empty slot in place of their TCB cap. This means they will cap
+        fault when attempting to exit. The advantage is that your resulting
+        CapDL specification contains no TCB caps and is thus easier to reason
+        about."
+    )
 
-set(CAmkESFaultHandlers ON CACHE BOOL
-    "When a component references invalid virtual memory or an invalid
-    capability, the access generates a fault. With this option selected
-    a handler is provided that decodes this fault for debugging
-    purposes. You will want to disable this in a production system or in
-    a system where you want to handle your own faults."
-)
+    set(CAmkESDefaultPriority 254 CACHE STRING
+        "Default priority for component threads if this is not overridden via an
+        attribute. Generally you want to set this as high as possible.
+        Defaults to one less than the max priority to avoid interleaving with the CapDL intialiser."
+    )
+    if ((${CAmkESDefaultPriority} LESS 0) OR (${CAmkESDefaultPriority} GREATER 255))
+        message(FATAL_ERROR "CAmkESDefaultPriority must be [0, 255]")
+    endif()
+
+    set(CAmkESDefaultAffinity 0 CACHE STRING
+        # Default to 0 as this is the index assigned to the BSP (Boot Strap Processor) by seL4
+        "Default affinity for component threads if this is not overridden via an
+        attribute. Think carefully when organizing your applications for
+        multiprocessor operation"
+    )
+    math(EXPR MaxNumNodesMin1 "${KernelMaxNumNodes} - 1")
+    if((${CAmkESDefaultAffinity} < 0) OR (${CAmkESDefaultAffinity} GREATER ${MaxNumNodesMin1}))
+        message(FATAL_ERROR "Invalid CAmkESDefaultAffinity")
+    endif()
+
+    set(CAmkESRPCLockElision ON CACHE BOOL
+        "Detect when it is safe to exclude locking operations in the seL4RPC connector and
+        automatically do so. This is an optimisation that can improve the performance of
+        this connector."
+    )
+
+    set(CAmkESSpecialiseSyscallStubs ON CACHE BOOL
+        "Detect when glue code overhead could be reduced with a custom syscall
+        stub and generate and use this instead of the libsel4 stubs. This does
+        not affect whether a given IPC will hit the fastpath, but it does
+        reduce the userlevel overhead of these system calls. In ideal
+        conditions this will give you RPC as fast as native seL4 IPC. This only
+        has an effect on ARM."
+    )
+
+    set(CAmkESLargeFramePromotion ON CACHE BOOL
+        "Some hardware platforms support multiple page sizes. In components with
+        large virtual address spaces, it is possible to reduce memory usage
+        (and consequent load time) by backing the component's address space with
+        pages of these larger sizes. When this setting is enabled, small
+        consecutive page mappings will be promoted to fewer consecutive large
+        mappings. Note that larger frame sizes are directly mapped into page
+        directories and can also save the overhead of an accompanying page
+        table."
+    )
+
+    set(CAmkESDMALargeFramePromotion OFF CACHE BOOL
+        "For components with a configured DMA pool, the frames backing this
+        are not automatically promoted to large frames even if the pool is
+        sufficiently large. Select this option to enable such promotion
+        automatically. This is off by default because it requires support
+        for large alignments in your toolchain's assembler, which is often
+        absent in ARM toolchains."
+    )
+
+    set(CAmkESFaultHandlers ON CACHE BOOL
+        "When a component references invalid virtual memory or an invalid
+        capability, the access generates a fault. With this option selected
+        a handler is provided that decodes this fault for debugging
+        purposes. You will want to disable this in a production system or in
+        a system where you want to handle your own faults."
+    )
+
+    set(local_flags "${${list}}")
+
+    list(APPEND local_flags
+        --platform seL4
+        --architecture ${KernelSel4Arch}
+        --default-priority ${CAmkESDefaultPriority}
+        --default-affinity ${CAmkESDefaultAffinity}
+        --default-stack-size ${CAmkESDefaultStackSize}
+    )
+    append_flags(local_flags
+        "KernelIsMCS;--realtime"
+        "CAmkESRPCLockElision;--frpc-lock-elision;--fno-rpc-lock-elision"
+        "CAmkESSpecialiseSyscallStubs;--fspecialise-syscall-stubs;--fno-specialise-syscall-stubs"
+        "CAmkESProvideTCBCaps;--fprovide-tcb-caps;--fno-provide-tcb-caps"
+        "CAmkESLargeFramePromotion;--largeframe"
+        "CAmkESDMALargeFramePromotion;--largeframe-dma"
+        "CAmkESFaultHandlers;--debug-fault-handlers"
+    )
+
+    set(${list} "${local_flags}" PARENT_SCOPE)
+
+endfunction(set_camkes_render_flags_from_config)
 
 set(CAmkESDTS OFF CACHE BOOL
     "Support using a device tree (.dts) file, which camkes can query
@@ -124,10 +190,6 @@ set(CAmkESCapDLVerification OFF CACHE BOOL
     the expected integrity policy of the component assembly."
 )
 
-set(CAmkESVerbose OFF CACHE BOOL
-    "Enable verbose output from CAmkES. This is disabled by default as it
-    can result in a lot of output, but is useful for debugging CAmkES problems"
-)
 
 # Save the path to to python-capdl whilst we know it (unless it was already specified)
 if (NOT PYTHON_CAPDL_PATH)
@@ -188,26 +250,6 @@ file(GLOB PYTHON_CAPDL_FILES ${PYTHON_CAPDL_PATH}/capdl/*.py)
 # use a static morecore. We make the morecore dynamic by setting the size to 0
 set(LibSel4MuslcSysMorecoreBytes 0 CACHE STRING "" FORCE)
 
-function(camkes_append_flags)
-    math(EXPR limit "${ARGC} - 1")
-    set(local_flags "${CAMKES_FLAGS}")
-    foreach(i RANGE 0 ${limit})
-        set(list "${ARGV${i}}")
-        list(GET list 0 check)
-        string(REGEX REPLACE " +" ";" check "${check}")
-        if(${check})
-            list(GET list 1 when_true)
-            list(APPEND local_flags "${when_true}")
-        else()
-            list(LENGTH list len)
-            if (${len} GREATER 2)
-                list(GET list 2 when_false)
-                list(APPEND local_flags "${when_false}")
-            endif()
-        endif()
-    endforeach()
-    set(CAMKES_FLAGS "${local_flags}" PARENT_SCOPE)
-endfunction(camkes_append_flags)
 
 # This is called from the context of a CAmkES application that has decided what the 'root'
 # application is. This function will effectively generate a rule for building the final
@@ -256,13 +298,8 @@ function(GenerateCAmkESRootserver)
     # Get an absolute reference to the ADL source
     get_absolute_list_source_or_binary(CAMKES_ADL_SOURCE "${adl}")
     # Declare a common CAMKES_FLAGS that we will need to give to every invocation of camkes
-    set(CAMKES_FLAGS
+    set(CAMKES_PARSER_FLAGS
         "--import-path=${CAMKES_TOOL_BUILTIN_DIR}"
-        --platform seL4
-        --architecture ${KernelSel4Arch}
-        --default-priority ${CAmkESDefaultPriority}
-        --default-affinity ${CAmkESDefaultAffinity}
-        --default-stack-size ${CAmkESDefaultStackSize}
     )
 
     if (${CAmkESDTS})
@@ -274,38 +311,28 @@ function(GenerateCAmkESRootserver)
             message(FATAL_ERROR "Could not find dts file ${dts_file}")
         endif()
         GenDTB("${dts_file}" dtb_file)
-        list(APPEND CAMKES_FLAGS "--dtb=${dtb_file}")
+        list(APPEND CAMKES_PARSER_FLAGS "--dtb=${dtb_file}")
     endif()
 
-    # Build extra flags from the configuration
-    # Each of these arguments is a CONDITION FLAG_IF_CONDITION_TRUE [FLAG_IF_CONDITION_FALSE]
-    camkes_append_flags(
-        "CAmkESVerbose;--debug"
-        "KernelIsMCS;--realtime"
-        "CAmkESRPCLockElision;--frpc-lock-elision;--fno-rpc-lock-elision"
-        "CAmkESSpecialiseSyscallStubs;--fspecialise-syscall-stubs;--fno-specialise-syscall-stubs"
-        "CAmkESProvideTCBCaps;--fprovide-tcb-caps;--fno-provide-tcb-caps"
-        "CAmkESLargeFramePromotion;--largeframe"
-        "CAmkESDMALargeFramePromotion;--largeframe-dma"
-        "CAmkESAllowForwardReferences;--allow-forward-references"
-        "CAmkESFaultHandlers;--debug-fault-handlers"
-        "CAmkESCPP;--cpp"
-    )
+    set_camkes_flags_from_config(CAMKES_FLAGS)
+    set_camkes_parser_flags_from_config(CAMKES_PARSER_FLAGS)
+    set_camkes_render_flags_from_config(CAMKES_RENDER_FLAGS)
+
     foreach(flag IN LISTS CAMKES_ROOT_CPP_FLAGS)
-        if(NOT CAmkESCPP)
+        if(NOT "--cpp" IN_LIST CAMKES_PARSER_FLAGS)
             message(FATAL_ERROR "Given CPP_FLAGS ${CAMKES_ROOT_CPP_FLAGS} but CAmkESCPP is disabled")
         endif()
-        list(APPEND CAMKES_FLAGS "--cpp-flag=${flag}")
+        list(APPEND CAMKES_PARSER_FLAGS "--cpp-flag=${flag}")
     endforeach()
     # Retrieve any extra import paths
     get_property(imports GLOBAL PROPERTY CAmkESExtraImportPaths)
     foreach(import IN LISTS imports)
-        list(APPEND CAMKES_FLAGS "--import-path=${import}")
+        list(APPEND CAMKES_PARSER_FLAGS "--import-path=${import}")
     endforeach()
     # Retrieve any template paths
     get_property(templates GLOBAL PROPERTY CAmkESTemplatePaths)
     foreach(template IN LISTS templates)
-        list(APPEND CAMKES_FLAGS --templates "${template}")
+        list(APPEND CAMKES_RENDER_FLAGS --templates "${template}")
     endforeach()
     # Need to ensure our camkes_gen folder exists as camkes will not create the directory
     file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/camkes_gen")
@@ -319,7 +346,7 @@ function(GenerateCAmkESRootserver)
                 "--save-ast=${CMAKE_CURRENT_BINARY_DIR}/ast.pickle"
                 --outfile "${gen_outfile}"
                 --makefile-dependencies "${deps_file}"
-                ${CAMKES_FLAGS}
+                ${CAMKES_FLAGS} ${CAMKES_PARSER_FLAGS} ${CAMKES_RENDER_FLAGS}
     )
     set(extra_dependencies ${CAMKES_TOOL_FILES} ${PYTHON_CAPDL_FILES})
     execute_process_with_stale_check("${invoc_file}" "${deps_file}" "${gen_outfile}" "${extra_dependencies}"
