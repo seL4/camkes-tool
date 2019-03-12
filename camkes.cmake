@@ -249,12 +249,15 @@ include(${CAPDL_TOOL_HELPERS})
 CapDLToolInstall(install_capdl_tool CAPDL_TOOL_BINARY)
 
 
-# Save the location of the camkes tool wrapper script
-RequireFile(CAMKES_TOOL camkes.sh PATHS "${CMAKE_CURRENT_LIST_DIR}")
-
 # Use the camkes script to determine the location of other things
-get_filename_component(CAMKES_TOOL_DIR "${CAMKES_TOOL}" DIRECTORY)
+set(CAMKES_TOOL_DIR "${CMAKE_CURRENT_LIST_DIR}")
 set(CAMKES_TOOL_BUILTIN_DIR "${CAMKES_TOOL_DIR}/include/builtin")
+
+# Build the environment expected by camkes
+set(CAMKES_TOOL_ENVIRONMENT "PYTHONPATH=${CAMKES_TOOL_DIR}:${PYTHON_CAPDL_PATH}")
+
+# Save camkes tool command
+set(CAMKES_TOOL ${CMAKE_COMMAND} -E env "${CAMKES_TOOL_ENVIRONMENT}" ${PYTHON} -m camkes.runner)
 
 # Search for a FMT tool for reformatting generated CAmkES C files
 find_program(CLANG_FORMAT_TOOL clang-format)
@@ -281,7 +284,6 @@ endif()
 
 
 file(GLOB CAMKES_TOOL_FILES
-    ${CMAKE_CURRENT_LIST_DIR}/camkes.sh
     ${CMAKE_CURRENT_LIST_DIR}/camkes/ast/*.py
     ${CMAKE_CURRENT_LIST_DIR}/camkes/internal/*.py
     ${CMAKE_CURRENT_LIST_DIR}/camkes/parser/*.py
@@ -378,8 +380,6 @@ function(GenerateCAmkESRootserver)
     get_property(CAMKES_ROOT_CPP_FLAGS GLOBAL PROPERTY CAMKES_ROOT_CPP_FLAGS)
     get_property(dts_file GLOBAL PROPERTY CAMKES_ROOT_DTS_FILE_PATH)
     set(CAMKES_TOOL_DEPENDENCIES "")
-    # Build the environment expected by camkes, as well as the camkes.sh wrapper script
-    list(APPEND CAMKES_TOOL_ENVIRONMENT "PYTHONPATH=${PYTHON_CAPDL_PATH}")
     get_filename_component(CAMKES_CDL_TARGET "${adl}" NAME_WE)
     set(CAMKES_CDL_TARGET "${CMAKE_CURRENT_BINARY_DIR}/${CAMKES_CDL_TARGET}.cdl")
     # Get an absolute reference to the ADL source
@@ -442,7 +442,7 @@ function(GenerateCAmkESRootserver)
     set(invoc_file "${CMAKE_CURRENT_BINARY_DIR}/camkes_gen/last_invocation")
     set(gen_outfile "${CMAKE_CURRENT_BINARY_DIR}/camkes-gen.cmake")
     set(camkes_invocation
-            ${CMAKE_COMMAND} -E env ${CAMKES_TOOL_ENVIRONMENT} "${CAMKES_TOOL}"
+            ${CAMKES_TOOL}
                 --file "${CAMKES_ADL_SOURCE}"
                 --item camkes-gen.cmake
                 "--save-ast=${CMAKE_CURRENT_BINARY_DIR}/ast.pickle"

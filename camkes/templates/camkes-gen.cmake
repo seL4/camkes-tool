@@ -117,7 +117,7 @@ function(CAmkESOutputGenCommand object_state_op)
     add_custom_command(
         OUTPUT ${outfile_list} ${object_file_output}
         COMMAND
-            ${CMAKE_COMMAND} -E env ${CAMKES_TOOL_ENVIRONMENT} "${CAMKES_TOOL}"
+            ${CAMKES_TOOL}
                 "--item;$<JOIN:${item_list},;--item;>"
                 "--outfile;$<JOIN:${outfile_list},;--outfile;>"
                 "--load-ast=${CMAKE_CURRENT_BINARY_DIR}/ast.pickle"
