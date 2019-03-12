@@ -485,6 +485,8 @@ void USED NORETURN _camkes_start_c(int thread_id) {
 
 // a tls region for every thread except the control thread
 static void *tls_regions[/*? len(threads) - 1 ?*/] = {0};
+// static tls regions
+static char static_tls_regions[/*? len(threads) - 1 ?*/][CONFIG_SEL4RUNTIME_STATIC_TLS] = {0};
 
 void camkes_tls_init(int thread_id) {
     switch (thread_id) {
@@ -749,8 +751,12 @@ static int post_main(int thread_id) {
             camkes_tls_init(thread_id);
             init();
             for (int i = 0; i < /*? len(threads) - 1 ?*/; i++) {
-                tls_regions[i] = malloc(sel4runtime_get_tls_size());
-                ZF_LOGF_IF(tls_regions[i] == NULL, "Failed to create tls");
+                if (sel4runtime_get_tls_size() < CONFIG_SEL4RUNTIME_STATIC_TLS) {
+                    tls_regions[i] = static_tls_regions[i];
+                } else {
+                    tls_regions[i] = malloc(sel4runtime_get_tls_size());
+                    ZF_LOGF_IF(tls_regions[i] == NULL, "Failed to create tls");
+                }
             }
             return component_control_main();
 
