@@ -143,29 +143,6 @@ set(CAmkESAllowForwardReferences OFF CACHE BOOL
     parsing specification"
 )
 
-set(CAmkESObjdumpMethod "auto" CACHE STRING
-    "Instead of using the internal ELF parsing functionality, it is
-    possible to call out to your toolchain's objdump to perform
-    required operations. This is more fragile than using internal
-    functionality, but can provide a performance boost in compilation
-    times. If you set this to auto (default), CAmkES will use your
-    toolchain's objdump if it is in your PATH.
-
-    off -> Disable the use of objdump for ELF symbol lookups. Lookups will be
-    done via standard built-in CAmkES mechanisms. This may be slightly
-    slower.
-
-    auto -> Automatically detect whether objdump is available for use for ELF
-    symbol lookups, and use it if so. This will result in the fastest
-    available method for ELF symbol lookup being used automatically and
-    is the recommended default.
-
-    on -> Use objdump for ELF symbol lookups. Lookups will be done by calling
-    out to your toolchain's objdump binary. This is fastest at the
-    expense of some robustness."
-)
-set_property(CACHE CAmkESObjdumpMethod PROPERTY STRINGS "auto;on;off")
-
 set(CAmkESRPCLockElision ON CACHE BOOL
     "Detect when it is safe to exclude locking operations in the seL4RPC connector and
     automatically do so. This is an optimisation that can improve the performance of
@@ -200,53 +177,6 @@ set(CAmkESDMALargeFramePromotion OFF CACHE BOOL
     for large alignments in your toolchain's assembler, which is often
     absent in ARM toolchains."
 )
-
-set(CAmkESPythonOptimisation "none" CACHE STRING
-    "Select the optimisation flag to pass to the Python interpreter. The
-    default is for no optimisation because profiling has suggested this
-    has a detrimental effect for CAmkES. However, you may find
-    different results depending on your wor
-
-    none -> Do not pass any optimisation flags to the Python interpreter.
-
-    -O -> Enable basic optimisations. This disables assertions and is not
-    recommended if you are working on the internals of CAmkES itself.
-
-    -OO -> Enable basic optimisations and also strip docstrings."
-)
-set_property(CACHE CAmkESPythonOptimisation PROPERTY STRINGS "none;-O;-OO")
-
-set(CAmkESPythonInterpreter "cpython" CACHE STRING
-    "Select the Python interpreter used for executing CAmkES. The default
-    CPython interpreter should be acceptable for any normal use, but you
-    may find PyPy provides better build system performance under some
-    circumstances. To use PyPy, obviously you need it installed. The other
-    interpreters are for profiling or dynamic analysis.
-
-    cpython -> Use CPython, the default Python interpreter. This is what will be
-    most familiar to Python users.
-
-    cpython2 -> Force the use of Python 2, instead of the default Python
-    executable.
-
-    cpython3 -> Force the use of Python 3, instead of the default Python
-    executable. Note that Python 3 support is currently experimental
-    and should not be expected to work without tweaks.
-
-    pypy -> Use PyPy, an optimised Python interpreter. PyPy is intended to be
-    faster than CPython with maximum compatibility, but it is not
-    recommended for use with CAmkES because profiling has indicated it
-    is actually *slower* in general for CAmkES' workload.
-
-    figleaf -> Use Figleaf, an interpreter that reports code coverage statistics.
-    This interpreter is primarily useful for profiling or debugging
-    CAmkES itself.
-
-    coverage -> Use Python-coverage, an interpreter that reports code coverage
-    statistics. This interpreter is primarily useful for profiling or
-    debugging CAmkES itself."
-)
-set_property(CACHE CAmkESPythonInterpreter PROPERTY STRINGS "cpython;cpython2;cpython3;pypy;figleaf;coverage")
 
 set(CAmkESFaultHandlers ON CACHE BOOL
     "When a component references invalid virtual memory or an invalid
@@ -365,23 +295,6 @@ file(GLOB PYTHON_CAPDL_FILES ${PYTHON_CAPDL_PATH}/capdl/*.py)
 # use a static morecore. We make the morecore dynamic by setting the size to 0
 set(LibSel4MuslcSysMorecoreBytes 0 CACHE STRING "" FORCE)
 
-# Function to help build the CAMKES_TOOL_ENVIRONMENT below
-function(camkes_append_env_if)
-    # Loop through each pair of arguments and build the environment
-    set(local_env "${CAMKES_TOOL_ENVIRONMENT}")
-    math(EXPR limit "${ARGC} - 1")
-    foreach(i RANGE 0 ${limit} 2)
-        math(EXPR ip1 "${i} + 1")
-        set(check "${ARGV${i}}")
-        string(REGEX REPLACE " +" ";" check "${check}")
-        if(${check})
-            # Add the environment
-            list(APPEND local_env "${ARGV${ip1}}=1")
-        endif()
-    endforeach()
-    set(CAMKES_TOOL_ENVIRONMENT "${local_env}" PARENT_SCOPE)
-endfunction(camkes_append_env_if)
-
 function(camkes_append_flags)
     math(EXPR limit "${ARGC} - 1")
     set(local_flags "${CAMKES_FLAGS}")
@@ -464,25 +377,9 @@ function(GenerateCAmkESRootserver)
     get_property(adl GLOBAL PROPERTY CAMKES_ROOT_ADL)
     get_property(CAMKES_ROOT_CPP_FLAGS GLOBAL PROPERTY CAMKES_ROOT_CPP_FLAGS)
     get_property(dts_file GLOBAL PROPERTY CAMKES_ROOT_DTS_FILE_PATH)
-    set(CAMKES_TOOL_ENVIRONMENT "")
     set(CAMKES_TOOL_DEPENDENCIES "")
     # Build the environment expected by camkes, as well as the camkes.sh wrapper script
-    list(APPEND CAMKES_TOOL_ENVIRONMENT "PYTHONPATH=$ENV{PYTHONPATH}:${PYTHON_CAPDL_PATH}")
-    # List of 'if condition' 'definition to add' for building the environment exports
-    camkes_append_env_if(
-        "${CAmkESObjdumpMethod} STREQUAL on" CONFIG_CAMKES_USE_OBJDUMP_ON
-        "${CAmkESObjdumpMethod} STREQUAL auto" CONFIG_CAMKES_USE_OBJDUMP_AUTO
-        "${CAmkESPythonOptimisation} STREQUAL -O" CONFIG_CAMKES_PYTHON_OPTIMISE_BASIC
-        "${CAmkESPythonOptimisation} STREQUAL -OO" CONFIG_CAMKES_PYTHON_OPTIMISE_MORE
-        "${CAmkESPythonInterpreter} STREQUAL cpython" CONFIG_CAMKES_PYTHON_INTERPRETER_CPYTHON
-        "${CAmkESPythonInterpreter} STREQUAL cpython2" CONFIG_CAMKES_PYTHON_INTERPRETER_CPYTHON2
-        "${CAmkESPythonInterpreter} STREQUAL cpython3" CONFIG_CAMKES_PYTHON_INTERPRETER_CPYTHON3
-        "${CAmkESPythonInterpreter} STREQUAL pypy" CONFIG_CAMKES_PYTHON_INTERPRETER_PYPY
-        "${CAmkESPythonInterpreter} STREQUAL figleaf" CONFIG_CAMKES_PYTHON_INTERPRETER_FIGLEAF
-        "${CAmkESPythonInterpreter} STREQUAL coverage" CONFIG_CAMKES_PYTHON_INTERPRETER_COVERAGE
-    )
-    # Use the path as constructed at generation time
-    list(APPEND CAMKES_TOOL_ENVIRONMENT "PATH=$ENV{PATH}")
+    list(APPEND CAMKES_TOOL_ENVIRONMENT "PYTHONPATH=${PYTHON_CAPDL_PATH}")
     get_filename_component(CAMKES_CDL_TARGET "${adl}" NAME_WE)
     set(CAMKES_CDL_TARGET "${CMAKE_CURRENT_BINARY_DIR}/${CAMKES_CDL_TARGET}.cdl")
     # Get an absolute reference to the ADL source
