@@ -14,100 +14,30 @@ cmake_minimum_required(VERSION 3.7.2)
 
 include(${KERNEL_HELPERS_PATH})
 
-set(configure_string "")
-
-config_string(CAmkESDefaultStackSize CAMKES_DEFAULT_STACK_SIZE
+set(CAmkESDefaultStackSize 16384 CACHE STRING
     "Stack size to allocate per-component, in bytes. Note that this value
     should be page-aligned. If not, it will be rounded up."
-    DEFAULT 16384
-    UNQUOTE
 )
 
-config_string(CAmkESDefaultHeapSize CAMKES_DEFAULT_HEAP_SIZE
-    "Heap size to allocate per-component, in bytes."
-    DEFAULT 1048576
-    UNQUOTE
-)
 
-config_choice(CAmkESErrorHandlingMode CAMKES_ERROR_HANDLING_MODE
-    "Select the mode of error handling used in the glue code. It should only
-    be necessary to adjust this setting if you are doing verification.
-    Otherwise, the default error handling mechanism allows for
-    configuration at runtime.
-
-    Standard -> Standard error handling mechanism, that is configurable by the user at
-    runtime. See the documentation for details of the API for this.
-
-    Guards -> Use verification-visible guards at the site of each potential error.
-    Note that this assumes that none of the error conditions are possible.
-    If you are trying to verify code, you will be forced to prove that none
-    of the error conditions can ever actually occur.
-
-    Abort -> Call 'abort' inline when an error occurs. For debugging purposes, this
-    is probably not the behaviour you want as it will give you no
-    information about the error. The standard error handling mechanism has
-    a nicer default for debugging. This mode is primarily useful when you
-    want to verify code whose error handlers are unreachable for
-    non-trivial reasons.
-
-    Discard -> Perform the 'discard' action on any error that occurs. The advantage of
-    this over simply configuring this behaviour via the standard mechanism
-    is that you will not need to reason about any of the complicated error
-    handling structures or control flow. This has no implementation
-    advantages over the standard mechanism."
-    "Standard;CAmkESErrorHandlingConfigurable;CAMKES_ERROR_HANDLER_CONFIGURABLE"
-    "Guards;CAmkESErrorHandlingGuard;CAMKES_ERROR_HANDLER_GUARD"
-    "Abort;CAmkESErrorHandlingAbort;CAMKES_ERROR_HANDLER_ABORT"
-    "Discard;CAmkESErrorHandlingDiscard;CAMKES_ERROR_HANDLER_DISCARD"
-)
-
-config_option(CAmkESConnectorTiming CAMKES_CONNECTOR_TIMING
-    "Enable timing points within connector templates that take cycle counter
-    values as they are passed. This timing data can then be retrieved after
-    execution."
-    DEFAULT OFF
-)
-
-config_option(CAmkESProvideTCBCaps CAMKES_PROVIDE_TCB_CAPS
+set(CAmkESProvideTCBCaps ON CACHE BOOL
     "Hand out TCB caps to components. These caps are used by the component
     to exit cleanly by suspending. Disabling this option leaves components
     with an empty slot in place of their TCB cap. This means they will cap
     fault when attempting to exit. The advantage is that your resulting
     CapDL specification contains no TCB caps and is thus easier to reason
     about."
-    DEFAULT ON
 )
 
-config_choice(CAmkESTLSModel CAMKES_TLS_MODEL
-    "The CAmkES glue code uses thread-local variables for marshalling and
-    unmarshalling of RPC parameters. This setting controls how this thread-
-    local storage is implemented.
-
-    standard -> Allocate thread-local variables on the stack or the heap as appropriate.
-    This is the default and will hold the fewest surprises for C
-    programmers.
-
-    per-thread -> Allocate per-thread global variables for use as thread-local storage.
-    The main purpose of this implementation is to avoid taking the address
-    of local variables, an idiom that cannot be handled by the verification
-    C parser."
-    "standard;CAmkESTLSStandard;CAMKES_TLS_STANDARD"
-    "per-thread;CAmkESTLSPerThreadGlobal;CAMKES_TLS_PTG"
-)
-
-config_string(CAmkESDefaultPriority CAMKES_DEFAULT_PRIORITY
+set(CAmkESDefaultPriority 254 CACHE STRING
     "Default priority for component threads if this is not overridden via an
     attribute. Generally you want to set this as high as possible due to
-    the suboptimal seL4 scheduler."
-    # Default to one less than max prio to avoid interleaving with the CapDL intialiser
-    DEFAULT 254
-    UNQUOTE
+    the suboptimal seL4 scheduler.
+    Default to one less than max prio to avoid interleaving with the CapDL intialiser"
 )
 if ((${CAmkESDefaultPriority} LESS 0) OR (${CAmkESDefaultPriority} GREATER 255))
     message(FATAL_ERROR "CAmkESDefaultPriority must be [0, 255]")
 endif()
-
-add_config_library(camkes_config "${configure_string}")
 
 # These options are not declared with the config_* system because they only need to exist
 # in the build system, and not appear in a configuration library

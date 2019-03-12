@@ -846,14 +846,15 @@ int post_init_interface_sync() {
 }
 
 static int post_main(int thread_id) {
-#if defined(CONFIG_DEBUG_BUILD) && defined(CONFIG_CAMKES_PROVIDE_TCB_CAPS)
+/*- if options.fprovide_tcb_caps -*/
+#if defined(CONFIG_DEBUG_BUILD)
    char thread_name[seL4_MsgMaxLength * sizeof(seL4_Word)];
    snprintf(thread_name, sizeof(thread_name), "%s:%s",
        get_instance_name(), get_thread_name(thread_id));
    thread_name[sizeof(thread_name) - 1] = '\0';
    seL4_DebugNameThread(camkes_get_tls()->tcb_cap, thread_name);
 #endif
-
+/*- endif -*/
     switch (thread_id) {
 
         case 0:
