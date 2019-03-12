@@ -45,7 +45,7 @@ def ipc_buffer(sym):
            '    ALIGN(PAGE_SIZE_4K);\n' % sym
 
 def ipc_buffer_address(sym):
-    return '((seL4_Word)%s + 2 * PAGE_SIZE_4K - sizeof(seL4_IPCBuffer));\n' % sym
+    return '((seL4_Word)%s + PAGE_SIZE_4K);\n' % sym
 
 def next_page_multiple(size, arch):
     '''
@@ -218,7 +218,7 @@ def threads(composition, instance, configuration, options):
             self.stack_size = stack_size
             self.ipc_symbol = "_camkes_ipc_buffer_%s" % name
             self.sp = "get_vaddr(\'%s\') + %d" % (self.stack_symbol, self.stack_size + PAGE_SIZE)
-            self.addr = "get_vaddr(\'%s\') + %d" % (self.ipc_symbol, 2 * PAGE_SIZE - lookup_architecture(options.architecture).ipc_buffer_size())
+            self.addr = "get_vaddr(\'%s\') + %d" % (self.ipc_symbol, PAGE_SIZE)
 
     instance_name = re.sub(r'[^A-Za-z0-9]', '_', instance.name)
     # First thread is control thread
