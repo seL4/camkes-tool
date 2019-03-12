@@ -47,12 +47,6 @@ set(CAmkESCPP OFF CACHE BOOL
     complex system"
 )
 
-set(CAmkESImportPath "" CACHE STRING
-    "CAmkES can include components and interfaces stored outside the current application
-    directory. This option is a space delimited list of absolute paths to directories
-    to be searched for components or interfaces included with angle brackets."
-)
-
 set(CAmkESDefaultAffinity 0 CACHE STRING
     # Default to 0 as this is the index assigned to the BSP (Boot Strap Processor) by seL4
     "Default affinity for component threads if this is not overridden via an
