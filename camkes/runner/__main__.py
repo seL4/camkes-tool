@@ -178,8 +178,6 @@ def parse_args(argv, out, err):
         help='Default scheduling context size bits.')
     parser.add_argument('--default-stack-size', type=int, default=16384,
         help='Default stack size of each thread.')
-    parser.add_argument('--prune', action='store_true',
-        help='Minimise the number of functions in generated C files.')
     parser.add_argument('--largeframe', action='store_true',
         help='Use large frames (for non-DMA pools) when possible.')
     parser.add_argument('--architecture', '--arch', default='aarch32',

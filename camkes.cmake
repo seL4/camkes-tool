@@ -123,39 +123,6 @@ set(CAmkESDTS OFF CACHE BOOL
     matching the platform will be found in seL4/tools."
 )
 
-# TODO: The following options are not yet supported in cmake build template, as a result
-# these are currently commented out to as not to confuse users. They should be uncommented
-# as support is added
-#set(CAmkESPruneGenerated OFF CACHE BOOL
-#    "Prune generated C files
-#    When selected, this option minimises the number of C functions in a
-#    given generated file. This can be done because the CAmkES generation
-#    logic knows which functions are required by the user's components and
-#    which are not. This option implies a separate pre-process step on the
-#    generated files prior to pruning/compilation, otherwise the generated
-#    C files are already minimal. Note, you will need libclang-dev installed
-#    to enable this option."
-#)
-
-#set(CAmkESThys OFF CACHE BOOL
-#    "Generate correctness proofs
-#    Generate AutoCorres-based theories of connector correctness during
-#    compilation."
-#)
-
-#set(CAmkESUnifiedThy OFF CACHE BOOL
-#    "Generate unified correctness proof
-#    Generate an AutoCorred-based theory combining the two glue code halves
-#    of a connector, resulting in a final correctness statement."
-#    DEPENDS CAmkESPruneGenerated
-#)
-
-#set(CAmkESCImpThy OFF CACHE BOOL
-#    "Generate dynamic behavioural specification
-#    Generate an Isabelle theory specifying the dynamic behaviour of the
-#    system. This theory builds on top of the CIMP formalisation."
-#)
-
 set(CAmkESCapDLVerification OFF CACHE BOOL
     "Generate CapDL refinement proofs
     Generate Isabelle definitions and proofs for CapDL refinement.
