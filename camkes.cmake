@@ -12,8 +12,6 @@
 
 cmake_minimum_required(VERSION 3.7.2)
 
-include(ExternalProject)
-
 include(${KERNEL_HELPERS_PATH})
 
 set(configure_string "")
@@ -316,11 +314,7 @@ if (NOT PYTHON_CAPDL_PATH)
 endif()
 
 # Require the CapDL tool
-find_file(CAPDL_TOOL_HELPERS capDL-tool.cmake PATHS "${CMAKE_SOURCE_DIR}/projects/capdl/capDL-tool" CMAKE_FIND_ROOT_PATH_BOTH)
-mark_as_advanced(FORCE CAPDL_TOOL_HELPERS)
-if("${CAPDL_TOOL_HELPERS}" STREQUAL "CAPDL_TOOL_HELPERS-NOTFOUND")
-    message(FATAL_ERROR "Failed to find capDL-tool. Consider cmake -DCAPDL_TOOL_HELPERS=/path/to/capDL-tool")
-endif()
+RequireFile(CAPDL_TOOL_HELPERS capDL-tool.cmake PATHS "${CMAKE_SOURCE_DIR}/projects/capdl/capDL-tool")
 include(${CAPDL_TOOL_HELPERS})
 CapDLToolInstall(install_capdl_tool CAPDL_TOOL_BINARY)
 

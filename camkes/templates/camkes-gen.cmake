@@ -15,11 +15,7 @@ cmake_minimum_required(VERSION 3.8.2)
 # /*? macros.generated_file_notice() ?*/
 
 # Include the CapDL tools build helpers, we will need this later one when generating capDL targets
-find_file(CAPDL_LOADER_BUILD_HELPERS helpers.cmake PATHS ${CMAKE_SOURCE_DIR}/projects/capdl/capdl-loader-app CMAKE_FIND_ROOT_PATH_BOTH)
-mark_as_advanced(FORCE CAPDL_LOADER_BUILD_HELPERS)
-if("${CAPDL_LOADER_BUILD_HELPERS}" STREQUAL "CAPDL_LOADER_BUILD_HELPERS-NOTFOUND")
-    message(FATAL_ERROR "Failed to find helpers.cmake. Consider cmake -DCAPDL_LOADER_BUILD_HELPERS=/path/to/helpers.cmake")
-endif()
+RequireFile(CAPDL_LOADER_BUILD_HELPERS helpers.cmake PATHS ${CMAKE_SOURCE_DIR}/projects/capdl/capdl-loader-app)
 include("${CAPDL_LOADER_BUILD_HELPERS}")
 
 # Define names for tools we will use
