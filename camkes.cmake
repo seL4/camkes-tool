@@ -237,6 +237,8 @@ RequireFile(
 include(${CAPDL_TOOL_HELPERS})
 CapDLToolInstall(install_capdl_tool CAPDL_TOOL_BINARY)
 
+RequireFile(TLS_LINKER_LDS tls.lds PATHS "${CMAKE_CURRENT_LIST_DIR}/libsel4camkes/src")
+
 # Use the camkes script to determine the location of other things
 set(CAMKES_TOOL_DIR "${CMAKE_CURRENT_LIST_DIR}")
 set(CAMKES_TOOL_BUILTIN_DIR "${CAMKES_TOOL_DIR}/include/builtin")

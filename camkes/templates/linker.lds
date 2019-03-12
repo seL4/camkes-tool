@@ -42,7 +42,7 @@ SECTIONS {
     }
 
 }
-INSERT AFTER .tbss
+INSERT AFTER .bss
 /*- endif -*/
 
 SECTIONS {
@@ -59,6 +59,7 @@ SECTIONS {
   /*- endfor -*/
 }
 INSERT AFTER .bss;
+/*- if not grouped[0] -*/
 SECTIONS {
     .tdata :
     {
@@ -74,3 +75,4 @@ SECTIONS {
     }
 }
 INSERT AFTER .rodata;
+/*- endif -*/

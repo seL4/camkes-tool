@@ -419,7 +419,7 @@ set(CMAKE_INSTANCE_GROUP_LINK_EXECUTABLE "<CMAKE_C_COMPILER> <FLAGS> <CMAKE_C_LI
         # Note that we deliberately give groups a
         # broken entry point so that, if they are incorrectly loaded without correct
         # initial instruction pointers, threads will immediately fault
-        set_property(TARGET /*? elf_name ?*/ APPEND PROPERTY LINK_FLAGS " -static -nostdlib --entry=0x0 -Wl,--build-id=none")
+        set_property(TARGET /*? elf_name ?*/ APPEND PROPERTY LINK_FLAGS " -static -nostdlib --entry=0x0 -Wl,--build-id=none -T${TLS_LINKER_LDS}")
     else()
         add_custom_command(
             OUTPUT ${target}
