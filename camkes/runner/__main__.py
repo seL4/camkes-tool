@@ -50,19 +50,6 @@ import argparse, functools, jinja2, locale, numbers, os, re, \
 from capdl import ObjectType, ObjectAllocator, CSpaceAllocator, \
     ELF, lookup_architecture, AddressSpaceAllocator, TCB
 
-from camkes.parser import parse_file, ParseError, parse_query_parser_args, print_query_parser_help
-
-CAPDL_STATE_PICKLE = 'capdl_state.p'
-
-class ParserOptions():
-    def __init__(self, cpp, cpp_flag, import_path, verbosity, allow_forward_references, queries):
-        self.cpp = cpp
-        self.cpp_flag = cpp_flag
-        self.import_path = import_path
-        self.verbosity = verbosity
-        self.allow_forward_references = allow_forward_references
-        self.queries = queries
-
 class RenderState():
     def __init__(self, obj_space, cspaces={}, pds={}, addr_spaces={}):
         self.obj_space = obj_space
@@ -71,12 +58,11 @@ class RenderState():
         self.addr_spaces = addr_spaces
 
 class RenderOptions():
-    def __init__(self, file, verbosity, frpc_lock_elision, fspecialise_syscall_stubs,
+    def __init__(self, verbosity, frpc_lock_elision, fspecialise_syscall_stubs,
             fprovide_tcb_caps, largeframe, largeframe_dma, architecture,
             debug_fault_handlers, default_priority, default_max_priority, default_affinity,
             default_period, default_budget, default_data, default_size_bits, default_stack_size, realtime, verification_base_name,
             render_state):
-        self.file = file
         self.verbosity = verbosity
         self.frpc_lock_elision = frpc_lock_elision
         self.fspecialise_syscall_stubs = fspecialise_syscall_stubs
@@ -113,17 +99,6 @@ def _die(options, message):
 def parse_args(argv, out, err):
     parser = argparse.ArgumentParser(prog='python -m camkes.runner',
         description='instantiate templates based on a CAmkES specification')
-    parser.add_argument('--cpp', action='store_true',
-        help='Pre-process the source with CPP.')
-    parser.add_argument('--nocpp', action='store_false', dest='cpp',
-        help='Do not pre-process the source with CPP.')
-    parser.add_argument('--cpp-flag', action='append', default=[],
-        help='Specify a flag to pass to CPP.')
-    parser.add_argument('--import-path', '-I', help='Add this path to the list '
-        'of paths to search for built-in imports. That is, add it to the list '
-        'of directories that are searched to find the file "foo" when '
-        'encountering an expression "import <foo>;".', action='append',
-        default=[])
     parser.add_argument('--quiet', '-q', help='No diagnostics.', dest='verbosity',
         default=1, action='store_const', const=0)
     parser.add_argument('--verbose', '-v', help='Verbose diagnostics.',
@@ -187,12 +162,6 @@ def parse_args(argv, out, err):
     parser.add_argument('--makefile-dependencies', '-MD',
         type=argparse.FileType('w'), help='Write Makefile dependency rule to '
         'FILE')
-    parser.add_argument('--allow-forward-references', action='store_true',
-        help='Allow referring to objects in your specification that are '
-        'defined after the point at which they are referenced.')
-    parser.add_argument('--disallow-forward-references', action='store_false',
-        dest='allow_forward_references', help='Only permit references in '
-        'specifications to objects that have been defined before that point.')
     parser.add_argument('--debug-fault-handlers', action='store_true',
         help='Provide fault handlers to decode cap and VM faults for '
         'debugging purposes.')
@@ -210,14 +179,9 @@ def parse_args(argv, out, err):
     object_state_group.add_argument('--save-object-state', type=argparse.FileType('wb'),
         help='Save generated cap and object state to this file.')
 
-    parser.add_argument('--save-ast', type=argparse.FileType('wb'),
-        help='Cache the AST for the specification to this file.')
     # To get the AST, there should be either a pickled AST or a file to parse
-    adl_group = parser.add_mutually_exclusive_group(required=True)
-    adl_group.add_argument('--load-ast', type=argparse.FileType('rb'),
-        help='Load specification AST from this file.')
-    adl_group.add_argument('--file', '-f', type=argparse.FileType('r'),
-        help='Load specification from this file.')
+    parser.add_argument('--load-ast', type=argparse.FileType('rb'),
+        help='Load specification AST from this file.', required=True)
 
     # Juggle the standard streams either side of parsing command-line arguments
     # because argparse provides no mechanism to control this.
@@ -225,17 +189,10 @@ def parse_args(argv, out, err):
     old_err = sys.stderr
     sys.stdout = out
     sys.stderr = err
-    options, argv = parser.parse_known_args(argv[1:])
-    queries, argv = parse_query_parser_args(argv)
+    options = parser.parse_args(argv[1:])
 
     sys.stdout = old_out
     sys.stderr = old_err
-
-    if argv:
-        print("Unparsed arguments present:\n{0}".format(argv))
-        parser.print_help()
-        print_query_parser_help()
-        exit(1)
 
     # Check that verification_base_name would be a valid identifer before
     # our templates try to use it
@@ -244,7 +201,7 @@ def parse_args(argv, out, err):
             parser.error('Not a valid identifer for --verification-base-name: %r' %
                          options.verification_base_name)
 
-    return options, queries
+    return options
 
 def rendering_error(item, exn):
     """Helper to format an error message for template rendering errors."""
@@ -265,7 +222,7 @@ def main(argv, out, err):
             'environment variable.\n' % encoding)
         return -1
 
-    options, queries = parse_args(argv, out, err)
+    options = parse_args(argv, out, err)
 
     # register object sizes with loader
     if options.object_sizes:
@@ -315,24 +272,8 @@ def main(argv, out, err):
 
             sys.exit(ret)
 
-    try:
-        if options.load_ast is not None:
-            ast = pickle.load(options.load_ast)
-            read = set()
-        else:
-            if options.file is not None:
-                filename = os.path.abspath(options.file.name)
-            else:
-                die("Need file to load ast from")
-
-            # Build the parser options
-            parse_options = ParserOptions(options.cpp, options.cpp_flag, options.import_path, options.verbosity, options.allow_forward_references, queries)
-            ast, read = parse_file(filename, parse_options)
-            if options.save_ast is not None:
-                pickle.dump(ast,options.save_ast)
-
-    except (ASTError, ParseError) as e:
-        die(e.args)
+    ast = pickle.load(options.load_ast)
+    read = set()
 
     # Locate the assembly.
     assembly = ast.assembly
@@ -427,7 +368,7 @@ def main(argv, out, err):
                     del space.cnode[slot]
             space.cnode.finalise_size(arch=lookup_architecture(options.architecture))
 
-    renderoptions = RenderOptions(options.file, options.verbosity, options.frpc_lock_elision,
+    renderoptions = RenderOptions(options.verbosity, options.frpc_lock_elision,
         options.fspecialise_syscall_stubs, options.fprovide_tcb_caps,
         options.largeframe, options.largeframe_dma, options.architecture, options.debug_fault_handlers,
         options.default_priority, options.default_max_priority, options.default_affinity,

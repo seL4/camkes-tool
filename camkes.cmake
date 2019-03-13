@@ -209,8 +209,10 @@ set(CAMKES_TOOL_BUILTIN_DIR "${CAMKES_TOOL_DIR}/include/builtin")
 # Build the environment expected by camkes
 set(CAMKES_TOOL_ENVIRONMENT "PYTHONPATH=${CAMKES_TOOL_DIR}:${PYTHON_CAPDL_PATH}")
 
-# Save camkes tool command
-set(CAMKES_TOOL ${CMAKE_COMMAND} -E env "${CAMKES_TOOL_ENVIRONMENT}" ${PYTHON} -m camkes.runner)
+# Save camkes tool commands
+set(CAMKES_PYTHON_COMMAND ${CMAKE_COMMAND} -E env "${CAMKES_TOOL_ENVIRONMENT}" ${PYTHON})
+set(CAMKES_TOOL ${CAMKES_PYTHON_COMMAND} -m camkes.runner)
+set(CAMKES_PARSER_TOOL ${CAMKES_PYTHON_COMMAND} -m camkes.parser)
 
 # Search for a FMT tool for reformatting generated CAmkES C files
 find_program(CLANG_FORMAT_TOOL clang-format)
@@ -334,32 +336,44 @@ function(GenerateCAmkESRootserver)
     foreach(template IN LISTS templates)
         list(APPEND CAMKES_RENDER_FLAGS --templates "${template}")
     endforeach()
-    # Need to ensure our camkes_gen folder exists as camkes will not create the directory
-    file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/camkes_gen")
-    set(deps_file "${CMAKE_CURRENT_BINARY_DIR}/camkes_gen/deps")
-    set(invoc_file "${CMAKE_CURRENT_BINARY_DIR}/camkes_gen/last_invocation")
+
+    set(ast_outfile "${CMAKE_CURRENT_BINARY_DIR}/ast.pickle")
     set(gen_outfile "${CMAKE_CURRENT_BINARY_DIR}/camkes-gen.cmake")
-    set(camkes_invocation
-            ${CAMKES_TOOL}
-                --file "${CAMKES_ADL_SOURCE}"
-                --item camkes-gen.cmake
-                "--save-ast=${CMAKE_CURRENT_BINARY_DIR}/ast.pickle"
-                --outfile "${gen_outfile}"
-                --makefile-dependencies "${deps_file}"
-                ${CAMKES_FLAGS} ${CAMKES_PARSER_FLAGS} ${CAMKES_RENDER_FLAGS}
-    )
-    set(extra_dependencies ${CAMKES_TOOL_FILES} ${PYTHON_CAPDL_FILES})
-    execute_process_with_stale_check("${invoc_file}" "${deps_file}" "${gen_outfile}" "${extra_dependencies}"
-            COMMAND ${camkes_invocation}
-            INPUT_FILE /dev/stdin
-            OUTPUT_FILE /dev/stdout
-            ERROR_FILE /dev/stderr
-            RESULT_VARIABLE camkes_gen_error
-        )
-    if (camkes_gen_error)
-        file(REMOVE ${gen_outfile})
-        message(FATAL_ERROR "Failed to generate camkes-gen.cmake")
-    endif()
+
+    set(camkes_parse_command ${CAMKES_PARSER_TOOL}
+            --file "${CAMKES_ADL_SOURCE}"
+            "--save-ast=${ast_outfile}"
+            ${CAMKES_FLAGS} ${CAMKES_PARSER_FLAGS})
+
+    set(camkes_render_command ${CAMKES_TOOL}
+            --load-ast "${CMAKE_CURRENT_BINARY_DIR}/ast.pickle"
+            --item camkes-gen.cmake
+            --outfile "${gen_outfile}"
+            ${CAMKES_FLAGS} ${CAMKES_RENDER_FLAGS})
+    set(commands camkes_parse_command camkes_render_command)
+    set(outfiles "${ast_outfile}" "${gen_outfile}")
+    file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/camkes_gen")
+    foreach(index RANGE 0 1)
+        set(deps_file "${CMAKE_CURRENT_BINARY_DIR}/camkes_gen/deps_${index}")
+        set(invoc_file "${CMAKE_CURRENT_BINARY_DIR}/camkes_gen/last_invocation${index}")
+        list(GET outfiles ${index} outfile)
+        list(GET commands ${index} command)
+        if (index EQUAL 1)
+            list(GET outfiles 0 last_outfile)
+        endif()
+        set(extra_dependencies ${last_outfile} ${CAMKES_TOOL_FILES} ${PYTHON_CAPDL_FILES})
+        execute_process_with_stale_check("${invoc_file}" "${deps_file}" "${outfile}" "${extra_dependencies}"
+                COMMAND ${${command}} --makefile-dependencies "${deps_file}"
+                INPUT_FILE /dev/stdin
+                OUTPUT_FILE /dev/stdout
+                ERROR_FILE /dev/stderr
+                RESULT_VARIABLE camkes_gen_error
+            )
+        if (camkes_gen_error)
+            file(REMOVE ${outfile})
+            message(FATAL_ERROR "Failed to generate ${outfile}")
+        endif()
+    endforeach()
     # We set a property to indicate that we have done execute_process (which happens during the
     # generation phase. This just allows us to do some debugging and detect cases where options
     # are changed *after* this point that would have affected the execute_process

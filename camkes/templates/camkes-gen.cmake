@@ -126,7 +126,7 @@ function(CAmkESOutputGenCommand object_state_op)
                 "$<$<BOOL:${elfs_list}>:--elf$<SEMICOLON>>$<JOIN:${elfs_list},$<SEMICOLON>--elf$<SEMICOLON>>"
                 --makefile-dependencies "${depfile}"
                 ${camkes_ver_opts}
-                ${CAMKES_FLAGS}
+                ${CAMKES_FLAGS} ${CAMKES_RENDER_FLAGS}
         # For some reason, ninja only accepts relative targets.
         # We truncate the first `strlen` chars which takes off the CMAKE_BINARY_DIR from the depfile.
         COMMAND sh -c "dd if=${depfile} of=${depfile}.truncated bs=${strlen} skip=1 2> /dev/null && mv ${depfile}.truncated ${depfile}"
