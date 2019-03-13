@@ -528,7 +528,6 @@ static void init(void) {
     /*- do _tcb.__setattr__('ip', "get_vaddr(\'%s\')" % ("camkes %s _camkes_start" % me.name) ) -*/
     /*- do _tcb.__setattr__('sp', t.sp) -*/
     /*- do _tcb.__setattr__('addr', t.addr) -*/
-    /*- do _tcb.__setattr__('elf', "%s_group_bin" % me.address_space) -*/
     /*- do _tcb.init.append(tcb) -*/
 
     /*- if options.realtime -*/

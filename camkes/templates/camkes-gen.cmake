@@ -43,7 +43,6 @@ set(item_list "")
 set(outfile_list "")
 set(reflow_commands "")
 set(deps_list "")
-set(elfs_list "")
 set(camkes_ver_opts "")
 
 macro(ParentListAppend list)
@@ -54,7 +53,7 @@ endmacro(ParentListAppend list)
 
 # Helper function for declaring a generated file
 function(CAmkESGen output item)
-    cmake_parse_arguments(PARSE_ARGV 2 CAMKES_GEN "SOURCE;C_STYLE;THY_STYLE" "SOURCES_VAR;VER_BASE_NAME" "DEPENDS;ELFS")
+    cmake_parse_arguments(PARSE_ARGV 2 CAMKES_GEN "SOURCE;C_STYLE;THY_STYLE" "SOURCES_VAR;VER_BASE_NAME" "DEPENDS")
     if (NOT "${CAMKES_GEN_UNPARSED_ARGUMENTS}" STREQUAL "")
         message(FATAL_ERROR "Unknown arguments to CAmkESGen: ${CAMKES_GEN_UNPARSED_ARGUMENTS}")
     endif()
@@ -72,8 +71,6 @@ function(CAmkESGen output item)
     ParentListAppend(item_list "${item}")
     ParentListAppend(outfile_list "${output}")
     ParentListAppend(deps_list "${CAMKES_GEN_DEPENDS}")
-    ParentListAppend(elfs_list "${CAMKES_GEN_ELFS}")
-    ParentListAppend(deps_list "${CAMKES_GEN_ELFS}")
     # Pass along base name for verification templates
     if (NOT "${CAMKES_GEN_VER_BASE_NAME}" STREQUAL "")
         ParentListAppend(camkes_ver_opts "--verification-base-name=${CAMKES_GEN_VER_BASE_NAME}")
@@ -93,7 +90,7 @@ endfunction(CAmkESGen)
 # Generate all the files declared previously. object_state_op is either
 # load- or save-object-state, depending on whether the object state has
 # already been built.
-function(CAmkESOutputGenCommand object_state_op)
+function(CAmkESOutputGenCommand object_state_op object_state_file)
     if ("${item_list}" STREQUAL "")
         return()
     endif()
@@ -110,9 +107,9 @@ function(CAmkESOutputGenCommand object_state_op)
     set(object_file_depends)
     set(object_file_output)
     if(load_object_state)
-        set(object_file_depends ${CMAKE_CURRENT_BINARY_DIR}/object.pickle)
+        set(object_file_depends ${object_state_file})
     else()
-        set(object_file_output ${CMAKE_CURRENT_BINARY_DIR}/object.pickle)
+        set(object_file_output ${object_state_file})
     endif()
     add_custom_command(
         OUTPUT ${outfile_list} ${object_file_output}
@@ -121,9 +118,8 @@ function(CAmkESOutputGenCommand object_state_op)
                 "--item;$<JOIN:${item_list},;--item;>"
                 "--outfile;$<JOIN:${outfile_list},;--outfile;>"
                 "--load-ast=${CMAKE_CURRENT_BINARY_DIR}/ast.pickle"
-                "--${object_state_op}=${CMAKE_CURRENT_BINARY_DIR}/object.pickle"
+                "--${object_state_op}=${object_state_file}"
                 "--object-sizes=$<TARGET_PROPERTY:object_sizes,FILE_PATH>"
-                "$<$<BOOL:${elfs_list}>:--elf$<SEMICOLON>>$<JOIN:${elfs_list},$<SEMICOLON>--elf$<SEMICOLON>>"
                 --makefile-dependencies "${depfile}"
                 ${camkes_ver_opts}
                 ${CAMKES_FLAGS} ${CAMKES_RENDER_FLAGS}
@@ -150,7 +146,6 @@ function(CAmkESOutputGenCommand object_state_op)
     set(item_list "" PARENT_SCOPE)
     set(deps_list "" PARENT_SCOPE)
     set(outfile_list "" PARENT_SCOPE)
-    set(elfs_list "" PARENT_SCOPE)
     set(camkes_ver_opts "" PARENT_SCOPE)
 endfunction(CAmkESOutputGenCommand)
 
@@ -399,6 +394,7 @@ set(CMAKE_INSTANCE_GROUP_LINK_EXECUTABLE "<CMAKE_C_COMPILER> <FLAGS> <CMAKE_C_LI
 # Finally link together the instances in the different groups */
 /*- for g in groups -*/
     /*- set elf_name = "%s_group_bin" % g -*/
+    list(APPEND key_names /*? g ?*/)
     # Find all the instances that are part of this group */
     set(instances "")
     set(instance_targets "")
@@ -437,7 +433,7 @@ set(CMAKE_INSTANCE_GROUP_LINK_EXECUTABLE "<CMAKE_C_COMPILER> <FLAGS> <CMAKE_C_LI
 /*- endfor -*/
 
 # Generate our targets up to this point
-CAmkESOutputGenCommand(save-object-state)
+CAmkESOutputGenCommand(save-object-state ${CMAKE_CURRENT_BINARY_DIR}/object.pickle)
 
 set(capdl_elf_depends "")
 set(capdl_elf_targets "")
@@ -449,9 +445,35 @@ set(capdl_elf_targets "")
 # CapDL generation. Aside from depending upon the CAmkES specifications themselves, it
 # depends upon the copied instance binaries
 # First define the capDL spec generation from CAmkES
-CAmkESGen("${CAMKES_CDL_TARGET}" capdl DEPENDS "${capdl_elf_targets}" ELFS "${capdl_elfs}")
-CAmkESOutputGenCommand(load-object-state)
-add_custom_target(camkes_capdl_target DEPENDS "${CAMKES_CDL_TARGET}")
+add_custom_command(
+    OUTPUT ${CAMKES_CDL_TARGET} ${CMAKE_CURRENT_BINARY_DIR}/object-final.pickle
+    COMMAND
+        ${CAPDL_LINKER}
+            "--object-sizes=$<TARGET_PROPERTY:object_sizes,FILE_PATH>"
+            --architecture ${KernelSel4Arch}
+            gen_cdl
+            "--manifest-in=${CMAKE_CURRENT_BINARY_DIR}/object.pickle"
+            "--save-object-state=${CMAKE_CURRENT_BINARY_DIR}/object-final.pickle"
+            "$<$<BOOL:${capdl_elfs}>:--elffile$<SEMICOLON>>$<JOIN:${capdl_elfs},$<SEMICOLON>--elffile$<SEMICOLON>>"
+            "$<$<BOOL:${key_names}>:--key$<SEMICOLON>>$<JOIN:${key_names},$<SEMICOLON>--key$<SEMICOLON>>"
+            --outfile ${CAMKES_CDL_TARGET}
+    DEPENDS
+        ${CMAKE_CURRENT_BINARY_DIR}/ast.pickle
+        # This pulls in miscellaneous dependencies
+        # which is used by the camkes tool
+        ${CAPDL_LINKER_DEPENDENCIES}
+        # Any additional dependencies from the files
+        ${CMAKE_CURRENT_BINARY_DIR}/object.pickle
+        object_sizes
+        ${capdl_elfs}
+        ${capdl_elf_targets}
+    VERBATIM
+    USES_TERMINAL
+    COMMAND_EXPAND_LISTS
+    COMMENT "Generating final \"${CAMKES_CDL_TARGET}\" file"
+)
+add_custom_target(camkes_capdl_target DEPENDS "${CAMKES_CDL_TARGET}" "${CMAKE_CURRENT_BINARY_DIR}/object-final.pickle")
+add_dependencies(camkes_capdl_target object_sizes ${capdl_elf_targets})
 
 # Invoke the parse-capDL tool to turn the CDL spec into a C spec
 CapDLToolCFileGen(capdl_c_spec_target capdl_spec.c "${CAMKES_CDL_TARGET}" "${CAPDL_TOOL_BINARY}"
@@ -514,11 +536,11 @@ if (${CAmkESCapDLVerification})
 
     # CDL refinement proof
     CAmkESGen("${CAMKES_CDL_REFINE_THY}" "cdl-refine" THY_STYLE VER_BASE_NAME ${VER_BASE_NAME}
-              DEPENDS "${capdl_elf_targets}" ELFS "${capdl_elfs}")
+              DEPENDS camkes_capdl_target)
     add_custom_target(camkes_cdl_refine_thy DEPENDS "${CAMKES_CDL_REFINE_THY}")
     add_dependencies(isabelle_root camkes_cdl_refine_thy)
 
-    CAmkESOutputGenCommand(load-object-state)
+    CAmkESOutputGenCommand(load-object-state ${CMAKE_CURRENT_BINARY_DIR}/object-final.pickle)
 endif()
 
 # Ensure we generated all the files we intended to, this is just sanity checking

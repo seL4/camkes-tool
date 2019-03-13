@@ -220,6 +220,7 @@ set(CAMKES_TOOL_ENVIRONMENT "PYTHONPATH=${CAMKES_TOOL_DIR}:${PYTHON_CAPDL_PATH}"
 set(CAMKES_PYTHON_COMMAND ${CMAKE_COMMAND} -E env "${CAMKES_TOOL_ENVIRONMENT}" ${PYTHON})
 set(CAMKES_TOOL ${CAMKES_PYTHON_COMMAND} -m camkes.runner)
 set(CAMKES_PARSER_TOOL ${CAMKES_PYTHON_COMMAND} -m camkes.parser)
+set(CAPDL_LINKER ${CMAKE_COMMAND} -E env "PYTHONPATH=${PYTHON_CAPDL_PATH}" ${PYTHON} ${PYTHON_CAPDL_PATH}/../cdl_utils/capdl_linker.py)
 
 # Search for a FMT tool for reformatting generated CAmkES C files
 find_program(CLANG_FORMAT_TOOL clang-format)

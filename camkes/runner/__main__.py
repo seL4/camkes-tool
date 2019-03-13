@@ -48,41 +48,8 @@ from camkes.runner.Renderer import Renderer
 import argparse, functools, jinja2, locale, numbers, os, re, \
     six, string, sys, traceback, pickle
 from capdl import ObjectType, ObjectAllocator, CSpaceAllocator, \
-    ELF, lookup_architecture, AddressSpaceAllocator, TCB
+    lookup_architecture, AddressSpaceAllocator, AllocatorState
 
-class RenderState():
-    def __init__(self, obj_space, cspaces={}, pds={}, addr_spaces={}):
-        self.obj_space = obj_space
-        self.cspaces = cspaces
-        self.pds = pds
-        self.addr_spaces = addr_spaces
-
-class RenderOptions():
-    def __init__(self, verbosity, frpc_lock_elision, fspecialise_syscall_stubs,
-            fprovide_tcb_caps, largeframe, largeframe_dma, architecture,
-            debug_fault_handlers, default_priority, default_max_priority, default_affinity,
-            default_period, default_budget, default_data, default_size_bits, default_stack_size, realtime, verification_base_name,
-            render_state):
-        self.verbosity = verbosity
-        self.frpc_lock_elision = frpc_lock_elision
-        self.fspecialise_syscall_stubs = fspecialise_syscall_stubs
-        self.fprovide_tcb_caps = fprovide_tcb_caps
-        self.largeframe = largeframe
-        self.largeframe_dma = largeframe_dma
-        self.architecture = architecture
-        self.debug_fault_handlers = debug_fault_handlers
-        self.default_priority = default_priority
-        self.default_max_priority = default_max_priority
-        self.default_affinity = default_affinity
-        self.default_period = default_period
-        self.default_budget = default_budget
-        self.default_data = default_data
-        self.default_size_bits = default_size_bits
-
-        self.default_stack_size = default_stack_size
-        self.realtime = realtime
-        self.verification_base_name = verification_base_name
-        self.render_state = render_state
 
 def _die(options, message):
 
@@ -109,8 +76,6 @@ def parse_args(argv, out, err):
         type=argparse.FileType('w'), required=True, action='append', default=[])
     parser.add_argument('--verification-base-name', type=str,
         help='Prefix to use when generating Isabelle theory files.')
-    parser.add_argument('--elf', '-E', help='ELF files to contribute to a '
-        'CapDL specification.', action='append', default=[])
     parser.add_argument('--item', '-T', help='AST entity to produce code for.',
         required=True, action='append', default=[])
     parser.add_argument('--platform', '-p', help='Platform to produce code '
@@ -268,7 +233,7 @@ def main(argv, out, err):
 
             if options.save_object_state is not None:
                 # Write the render_state to the supplied outfile
-                pickle.dump(renderoptions.render_state, options.save_object_state)
+                pickle.dump(render_state, options.save_object_state)
 
             sys.exit(ret)
 
@@ -305,7 +270,7 @@ def main(argv, out, err):
                                 a.name))
     obj_space = ObjectAllocator()
     obj_space.spec.arch = options.architecture
-    render_state = RenderState(obj_space=obj_space)
+    render_state = AllocatorState(obj_space=obj_space)
 
     templates = Templates(options.platform)
     [templates.add_root(t) for t in options.templates]
@@ -337,67 +302,27 @@ def main(argv, out, err):
             # template lookup dictionary.
             pass
 
-    def apply_capdl_filters(renderoptions):
-        # Derive a set of usable ELF objects from the filenames we were passed.
-        render_state = renderoptions.render_state
-        elfs = {}
-        for e in options.elf:
-            try:
-                name = os.path.basename(e)
-                if name in elfs:
-                    raise Exception('duplicate ELF files of name \'%s\' encountered' % name)
-                elf = ELF(e, name, options.architecture)
-                group = name.replace("_group_bin","")
-                # Avoid inferring a TCB as we've already created our own.
-                elf_spec = elf.get_spec(infer_tcb=False, infer_asid=False,
-                    pd=render_state.pds[group], use_large_frames=options.largeframe,
-                    addr_space=render_state.addr_spaces[group])
-                render_state.obj_space.merge(elf_spec, label=group)
-                elfs[name] = (e, elf)
-            except Exception as inst:
-                die('While opening \'%s\': %s' % (e, inst))
-        for space in render_state.cspaces.values():
-            for (slot, tcb) in [(v, v.referent) for (k, v) in space.cnode.slots.items()
-                    if v is not None and isinstance(v.referent, TCB)]:
-                elf = elfs.get(tcb.elf)
-                funcs = {"get_vaddr": lambda x: elf[1].get_symbol_vaddr(x)}
-                tcb.ip = simple_eval(str(tcb.ip), functions=funcs)
-                tcb.sp = simple_eval(str(tcb.sp), functions=funcs)
-                tcb.addr = simple_eval(str(tcb.addr), functions=funcs)
-                if not options.fprovide_tcb_caps:
-                    del space.cnode[slot]
-            space.cnode.finalise_size(arch=lookup_architecture(options.architecture))
-
-    renderoptions = RenderOptions(options.verbosity, options.frpc_lock_elision,
-        options.fspecialise_syscall_stubs, options.fprovide_tcb_caps,
-        options.largeframe, options.largeframe_dma, options.architecture, options.debug_fault_handlers,
-        options.default_priority, options.default_max_priority, options.default_affinity,
-        options.default_period, options.default_budget, options.default_data, options.default_size_bits,
-        options.default_stack_size, options.realtime,
-        options.verification_base_name, render_state)
-
-    def instantiate_misc_templates(renderoptions):
+    def instantiate_misc_templates(options, render_state):
         for (item, outfile) in (all_items - done_items):
             try:
                 template = templates.lookup(item)
                 if template:
                     g = r.render(
-                        assembly, assembly, template, renderoptions.render_state, None,
-                        outfile_name=outfile.name, options=renderoptions)
+                        assembly, assembly, template, render_state, None,
+                        outfile_name=outfile.name, options=options)
                     done(g, outfile, item, r, read)
             except TemplateError as inst:
                 die(rendering_error(item, inst))
 
     if "camkes-gen.cmake" in options.item:
-        instantiate_misc_templates(renderoptions)
+        instantiate_misc_templates(options, render_state)
 
     if options.load_object_state is not None:
         # There is an assumption that if load_object_state is set, we
         # skip all of the component and connector logic below.
         # FIXME: refactor to clarify control flow
-        renderoptions.render_state = pickle.load(options.load_object_state)
-        apply_capdl_filters(renderoptions)
-        instantiate_misc_templates(renderoptions)
+        render_state = pickle.load(options.load_object_state)
+        instantiate_misc_templates(options, render_state)
 
         # If a template wasn't instantiated, something went wrong, and we can't recover
         raise CAmkESError("No template instantiated on capdl generation path")
@@ -422,15 +347,15 @@ def main(argv, out, err):
         if i.type.hardware:
             continue
 
-        if i.address_space not in renderoptions.render_state.cspaces:
-            cnode = renderoptions.render_state.obj_space.alloc(ObjectType.seL4_CapTableObject,
+        if i.address_space not in render_state.cspaces:
+            cnode = render_state.obj_space.alloc(ObjectType.seL4_CapTableObject,
                 name="%s_cnode" % i.address_space, label=i.address_space)
-            renderoptions.render_state.cspaces[i.address_space] = CSpaceAllocator(cnode)
+            render_state.cspaces[i.address_space] = CSpaceAllocator(cnode)
             pd = obj_space.alloc(lookup_architecture(options.architecture).vspace().object, name="%s_group_bin_pd" % i.address_space,
                 label=i.address_space)
             addr_space = AddressSpaceAllocator(re.sub(r'[^A-Za-z0-9]', '_', "%s_group_bin" % i.address_space), pd)
-            renderoptions.render_state.pds[i.address_space] = pd
-            renderoptions.render_state.addr_spaces[i.address_space] = addr_space
+            render_state.pds[i.address_space] = pd
+            render_state.addr_spaces[i.address_space] = addr_space
 
         for t in ('%s/source' % i.name, '%s/header' % i.name,
                 '%s/c_environment_source' % i.name,
@@ -440,8 +365,8 @@ def main(argv, out, err):
                 template = templates.lookup(t, i)
                 g = ''
                 if template:
-                    g = r.render(i, assembly, template, renderoptions.render_state, i.address_space,
-                        outfile_name=None, options=renderoptions, my_pd=renderoptions.render_state.pds[i.address_space])
+                    g = r.render(i, assembly, template, render_state, i.address_space,
+                        outfile_name=None, options=options, my_pd=render_state.pds[i.address_space])
                 for (item, outfile) in (all_items - done_items):
                     if item == t:
                         if not template:
@@ -467,9 +392,9 @@ def main(argv, out, err):
                     item = '%s/%d' % (t[0], id)
                     g = ''
                     try:
-                        g = r.render(e, assembly, template, renderoptions.render_state,
+                        g = r.render(e, assembly, template, render_state,
                             e.instance.address_space, outfile_name=None,
-                            options=renderoptions, my_pd=renderoptions.render_state.pds[e.instance.address_space])
+                            options=options, my_pd=render_state.pds[e.instance.address_space])
                     except TemplateError as inst:
                         die(rendering_error(item, inst))
                     except jinja2.exceptions.TemplateNotFound:
@@ -508,9 +433,9 @@ def main(argv, out, err):
 
                 for e in t[1]:
                     try:
-                        g = r.render(e, assembly, template, renderoptions.render_state,
+                        g = r.render(e, assembly, template, render_state,
                             e.instance.address_space, outfile_name=None,
-                            options=renderoptions, my_pd=renderoptions.render_state.pds[e.instance.address_space])
+                            options=options, my_pd=render_state.pds[e.instance.address_space])
                         done(g, outfile, item, r, read)
                     except TemplateError as inst:
                         die(rendering_error(item, inst))
@@ -522,7 +447,7 @@ def main(argv, out, err):
         # Don't generate any code for hardware components.
         if i.type.hardware:
             continue
-        assert i.address_space in renderoptions.render_state.cspaces
+        assert i.address_space in render_state.cspaces
         SPECIAL_TEMPLATES = [('debug', 'debug'), ('simple', 'simple'), ('rump_config', 'rumprun')]
         for special in [bl for bl in SPECIAL_TEMPLATES if assembly.configuration[i.name].get(bl[0])]:
             for t in ('%s/%s' % (i.name, special[1]),):
@@ -530,9 +455,9 @@ def main(argv, out, err):
                     template = templates.lookup(t, i)
                     g = ''
                     if template:
-                        g = r.render(i, assembly, template, renderoptions.render_state,
+                        g = r.render(i, assembly, template, render_state,
                             i.address_space, outfile_name=None,
-                            options=renderoptions, my_pd=renderoptions.render_state.pds[i.address_space])
+                            options=options, my_pd=render_state.pds[i.address_space])
                     for (item, outfile) in (all_items - done_items):
                         if item == t:
                             if not template:
