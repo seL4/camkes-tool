@@ -194,20 +194,12 @@ endfunction(GeneratorValueOrDefault)
     # Retrieve the static headers for the component. Ensure instance headers are placed first
     set(includes "$<TARGET_PROPERTY:${instance_target},COMPONENT_INCLUDES>")
     AppendGenerator(includes "$<TARGET_PROPERTY:CAmkESComponent_/*? i.type.name ?*/,COMPONENT_INCLUDES>")
-    # Generate camkes header
     set(generated_dir "${CMAKE_CURRENT_BINARY_DIR}//*? i.name ?*/")
-    CAmkESGen("${generated_dir}/include/camkes.h" "/*? i.name ?*//header" C_STYLE)
     # Generated different entry points for the instance
     CAmkESGen("${generated_dir}/camkes.c" /*? i.name ?*//source SOURCE C_STYLE)
-    /*- if configuration[i.name].get('debug') -*/
-        CAmkESGen("${generated_dir}/camkes.debug.c" /*? i.name ?*//debug SOURCE C_STYLE)
-    /*- endif -*/
-    /*- if configuration[i.name].get('simple') -*/
-        CAmkESGen("${generated_dir}/camkes.simple.c" /*? i.name ?*//simple SOURCE C_STYLE)
-    /*- endif -*/
-    /*- if configuration[i.name].get('rump_config') -*/
-        CAmkESGen("${generated_dir}/camkes.rumprun.c" /*? i.name ?*//rumprun SOURCE C_STYLE)
-    /*- endif -*/
+    # Generate camkes header
+    CAmkESGen("${generated_dir}/include/camkes.h" "/*? i.name ?*//header" C_STYLE)
+
     /*- if configuration[i.name].get('environment', 'c').lower() == 'c' -*/
         CAmkESGen("${generated_dir}/camkes.environment.c" /*? i.name ?*//c_environment_source SOURCE C_STYLE)
     /*- elif configuration[i.name].get('environment').lower() == 'cakeml' -*/
@@ -218,6 +210,11 @@ endfunction(GeneratorValueOrDefault)
     /*- else -*/
         /*? raise(TemplateError('Unknown environment')) ?*/
     /*- endif -*/
+
+    # Generate our linker script
+    set(linker_file "${generated_dir}/linker.lds")
+    CAmkESGen("${linker_file}" /*? i.name ?*//linker)
+
     # Generate connectors for this instance
     /*- for c in connections -*/
         /*- for id, e in enumerate(c.from_ends) -*/
@@ -237,9 +234,16 @@ endfunction(GeneratorValueOrDefault)
             /*- endif -*/
         /*- endfor -*/
     /*- endfor -*/
-    # Generate our linker script
-    set(linker_file "${generated_dir}/linker.lds")
-    CAmkESGen("${linker_file}" /*? i.name ?*//linker)
+    /*- if configuration[i.name].get('debug') -*/
+        CAmkESGen("${generated_dir}/camkes.debug.c" /*? i.name ?*//debug SOURCE C_STYLE)
+    /*- endif -*/
+    /*- if configuration[i.name].get('simple') -*/
+        CAmkESGen("${generated_dir}/camkes.simple.c" /*? i.name ?*//simple SOURCE C_STYLE)
+    /*- endif -*/
+    /*- if configuration[i.name].get('rump_config') -*/
+        CAmkESGen("${generated_dir}/camkes.rumprun.c" /*? i.name ?*//rumprun SOURCE C_STYLE)
+    /*- endif -*/
+
     # Create a target for all our generated files
     set(gen_target /*? i.name ?*/_generated)
     add_custom_target(${gen_target} DEPENDS ${gen_files})
