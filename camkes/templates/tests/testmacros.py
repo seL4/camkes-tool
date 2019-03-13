@@ -145,7 +145,7 @@ class TestMacros(CAmkESTest):
         # HACK: This exceptions list is a temporary hack for some macros that
         # are used in a future iteration of the Isabelle label mapping theory.
         # It should be removed when the label mapping theory is updated.
-        EXCEPTIONS = set(['capdl_sorter', 'to_isabelle_set'])
+        EXCEPTIONS = set(['capdl_sorter', 'to_isabelle_set', 'maybe_set_property_from_configuration'])
 
         unused = macros - used - EXCEPTIONS
         if len(unused) > 0:
