@@ -71,11 +71,9 @@ TEMPLATES = {
         Guard(lambda x: isinstance(x, Connection) and x.type.name == 'seL4SharedData'):{
             'from':{
                 'source':'seL4SharedData-from.template.c',
-                'header':'seL4SharedData-common.template.h',
             },
             'to':{
                 'source':'seL4SharedData-to.template.c',
-                'header':'seL4SharedData-common.template.h',
             },
         },
         Guard(lambda x: isinstance(x, Connection) and x.type.name == 'seL4Notification'):{
