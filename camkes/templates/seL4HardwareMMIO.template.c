@@ -112,6 +112,16 @@ static const seL4_CPtr /*? frame_caps_symbol ?*/[] = {
         /*- endfor -*/
 };
 
+/*- for cap in frame_caps -*/
+__attribute__((used)) __attribute__((section("_dataport_frames")))
+dataport_frame_t /*? me.interface.name ?*//*? loop.index0 ?*/ = {
+    .paddr = /*? paddr + loop.index0 * page_size ?*/,
+    .cap = /*? cap ?*/,
+    .size = /*? page_size ?*/,
+    .vaddr = &/*? dataport_symbol_name ?*/.content + /*? loop.index0 * page_size ?*/,
+};
+/*- endfor -*/
+
 /*# We only pull frame_caps from the stash. This is because only one caller of register_shared_variable
     should pass a frames parameter. By not stashing the frame_objs we ensure that only the original
     creator passed the frames, and everyone else will still have a None here #*/
