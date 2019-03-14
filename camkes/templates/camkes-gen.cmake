@@ -151,14 +151,6 @@ function(CAmkESOutputGenCommand object_state_op object_state_file)
     set(camkes_ver_opts "" PARENT_SCOPE)
 endfunction(CAmkESOutputGenCommand)
 
-# helper for appending lists of generator expressions
-function(AppendGenerator output new_list_value)
-    # determine if there is anything in the original list OR the new list, and use that to deteremine
-    # whether or not to put a semicolon between the two
-    set(prop "${${output}}")
-    set(new_list "${prop}$<$<OR:$<BOOL:${prop}>,$<BOOL:${new_list_value}>>:$<SEMICOLON>>${new_list_value}")
-    set(${output} "${new_list}" PARENT_SCOPE)
-endfunction(AppendGenerator)
 
 # Helper for constructing a generator expression that evalutes to the provided value if it exists,
 # or to a default value.
@@ -193,16 +185,16 @@ RequireFile(CONFIGURE_FILE_SCRIPT configure_file.cmake PATHS ${CMAKE_MODULE_PATH
     endif()
     # Retrieve the static sources for the component
     set(static_sources "$<TARGET_PROPERTY:CAmkESComponent_/*? i.type.name ?*/,COMPONENT_SOURCES>")
-    AppendGenerator(static_sources "$<TARGET_PROPERTY:${instance_target},COMPONENT_SOURCES>")
+    list(APPEND static_sources "$<TARGET_PROPERTY:${instance_target},COMPONENT_SOURCES>")
     set(extra_c_flags "$<TARGET_PROPERTY:CAmkESComponent_/*? i.type.name ?*/,COMPONENT_C_FLAGS>")
-    AppendGenerator(extra_c_flags "$<TARGET_PROPERTY:${instance_target},COMPONENT_C_FLAGS>")
+    list(APPEND extra_c_flags "$<TARGET_PROPERTY:${instance_target},COMPONENT_C_FLAGS>")
     set(extra_ld_flags "$<TARGET_PROPERTY:CAmkESComponent_/*? i.type.name ?*/,COMPONENT_LD_FLAGS>")
-    AppendGenerator(extra_ld_flags "$<TARGET_PROPERTY:${instance_target},COMPONENT_LD_FLAGS>")
+    list(APPEND extra_ld_flags "$<TARGET_PROPERTY:${instance_target},COMPONENT_LD_FLAGS>")
     set(extra_libs "$<TARGET_PROPERTY:CAmkESComponent_/*? i.type.name ?*/,COMPONENT_LIBS>")
-    AppendGenerator(extra_libs "$<TARGET_PROPERTY:${instance_target},COMPONENT_LIBS>")
+    list(APPEND extra_libs "$<TARGET_PROPERTY:${instance_target},COMPONENT_LIBS>")
     # Retrieve the static headers for the component. Ensure instance headers are placed first
     set(includes "$<TARGET_PROPERTY:${instance_target},COMPONENT_INCLUDES>")
-    AppendGenerator(includes "$<TARGET_PROPERTY:CAmkESComponent_/*? i.type.name ?*/,COMPONENT_INCLUDES>")
+    list(APPEND includes "$<TARGET_PROPERTY:CAmkESComponent_/*? i.type.name ?*/,COMPONENT_INCLUDES>")
     set(generated_dir "${CMAKE_CURRENT_BINARY_DIR}//*? i.name ?*/")
     # Generated different entry points for the instance
     CAmkESGen("${generated_dir}/camkes.c" component//*? i.name ?*/ component.common.c SOURCE C_STYLE)
