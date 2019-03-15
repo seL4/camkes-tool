@@ -29,7 +29,6 @@ include("${CMAKE_CURRENT_LIST_DIR}/tools/camkes/camkes.cmake")
 # Include all the other projects
 add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/tools/camkes/libsel4camkes")
 add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/tools/camkes/libcamkescakeml")
-add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/tools/camkes/object_sizes")
 include("${CMAKE_CURRENT_LIST_DIR}/projects/seL4_tools/cmake-tool/projects.cmake")
 
 # Should be done adding targets, can now generate the root server and the global configuration
