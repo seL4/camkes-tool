@@ -54,6 +54,18 @@ def save_ipc_buffer_address(sym):
            '    seL4_SetUserData((seL4_Word)%s + 2 * PAGE_SIZE_4K - sizeof(seL4_IPCBuffer));\n' \
            '#endif\n' % sym
 
+def next_page_multiple(size, arch):
+    '''
+    Finds the smallest multiple of 4K that can comfortably be used to create
+    a mapping for the provided size on a given architecture.
+    '''
+    multiple = page_sizes(arch)[0]
+    while size > multiple:
+        multiple *= 2
+    return multiple
+# Python 2 type annotations
+next_page_multiple.__annotations__ = {'size': int, 'arch': str, 'return': int}
+
 def get_page_size(size, arch):
     '''
     Returns the largest frame_size that can be used to create
