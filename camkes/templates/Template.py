@@ -134,6 +134,14 @@ TEMPLATES = {
             },
             # IO port connection does NOT need a "to" template.
         },
+        Guard(lambda x: isinstance(x, Connection) and x.type.name == 'seL4DTBHardware'):{
+            'from':{
+                'source':'seL4DTBHardware-from.template.c',
+            },
+            'to':{
+                'source':'seL4DTBHardware-to.template.c',
+            },
+        },
         Guard(lambda x: isinstance(x, Connection) and x.type.name == 'seL4DirectCall'):{
             'from':{
                 'source':'seL4DirectCall-from.template.c',
