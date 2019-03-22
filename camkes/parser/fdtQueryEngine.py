@@ -384,6 +384,9 @@ class DtbMatchQuery(Query):
         node = result[0]
         resolved = {}
 
+        address_cells_key = 'this-address-cells'
+        size_cells_key = 'this-size-cells'
+
         # convert the properties we retrieved to a dictionary
         # of property-name: values. If there is more than one
         # value, use a list, otherwise the raw type.
@@ -396,6 +399,22 @@ class DtbMatchQuery(Query):
                 resolved[key] = []
             else:
                 resolved[key] = list(values)
+        # retrieve the #address-cells and #size-cells property
+        # from the parent
+        for p in node.parent.walk():
+            key = p[0][1:]
+            values = p[1]
+            if key == '#address-cells':
+                resolved[address_cells_key] = list(values)
+            elif key == '#size-cells':
+                resolved[size_cells_key] = list(values)
+        # if the parent does have the #address-cells and 
+        # #size-cells property, default to 2 and 1 respectively
+        # as according to the Devicetree spec
+        if address_cells_key not in resolved:
+            resolved[address_cells_key] = [2]
+        if size_cells_key not in resolved:
+            resolved[size_cells_key] = [1]
         return resolved
 
     @staticmethod
