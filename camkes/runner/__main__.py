@@ -229,7 +229,7 @@ def main(argv, out, err):
             # Write a Makefile dependency rule if requested.
             if options.makefile_dependencies is not None:
                 options.makefile_dependencies.write('%s: \\\n  %s\n' %
-                    (options.outfile[0].name, ' \\\n  '.join(sorted(read))))
+                    (os.path.abspath(options.outfile[0].name), ' \\\n  '.join(sorted(read))))
 
             if options.save_object_state is not None:
                 # Write the render_state to the supplied outfile
