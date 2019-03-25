@@ -138,7 +138,7 @@ class Reference(ASTObject):
     def freeze(self):
         raise ASTError('reference remaining in frozen AST tree', self)
 
-@ast_property("name", six.string_types)
+@ast_property("name", lambda x: x is None or isinstance(x, six.string_types))
 @ast_property("composition", lambda x: isinstance(x, Reference) or isinstance_fallback(x, "Composition"))
 @ast_property("configuration", lambda x: isinstance(x, Reference) or isinstance_fallback(x, "Configuration"))
 class Assembly(ASTObject):
@@ -146,8 +146,7 @@ class Assembly(ASTObject):
 
     def __init__(self, name=None, composition=None, configuration=None, location=None):
         super(Assembly, self).__init__(location)
-        if name is not None:
-            self.name = name
+        self.name = name
         if composition is not None:
             self.composition = composition
         if configuration is None:
@@ -204,7 +203,7 @@ class Assembly(ASTObject):
     def settings(self):
         return self.configuration.settings
 
-@ast_property("name", six.string_types)
+@ast_property("name", lambda x: x is None or isinstance(x, six.string_types))
 @ast_property("instances", lambda i: isinstance(i, (list, tuple)) and
             all(isinstance(x, (Reference)) or isinstance_fallback(x, "Instance") for x in i))
 @ast_property("connections", lambda c: isinstance(c, (list, tuple)) and
@@ -223,8 +222,7 @@ class Composition(MapLike):
     def __init__(self, name=None, instances=None, connections=None,
             groups=None, exports=None, location=None):
         super(Composition, self).__init__(location)
-        if name:
-            self.name = name
+        self.name = name
         self.instances = list(instances or [])
         self.connections = list(connections or [])
         self.groups = list(groups or [])
@@ -281,15 +279,14 @@ class Composition(MapLike):
         self.exports = tuple(self.exports)
         super(Composition, self).freeze()
 
-@ast_property("name", six.string_types)
+@ast_property("name", lambda x: x is None or isinstance(x, six.string_types))
 @ast_property("settings", (list, tuple))
 class Configuration(MapLike):
     child_fields = ('settings',)
 
     def __init__(self, name=None, settings=None, location=None):
         super(Configuration, self).__init__(location)
-        if name:
-            self.name = name
+        self.name = name
         self.settings = list(settings or [])
         self.settings_dict = {}
         self.claim_children()
@@ -562,7 +559,7 @@ class Struct(ASTObject):
         self.attributes = tuple(self.attributes)
         super(Struct, self).freeze()
 
-@ast_property("name", six.string_types)
+@ast_property("name", lambda x: x is None or isinstance(x, six.string_types))
 @ast_property("control", bool)
 @ast_property("hardware", bool)
 @ast_property("includes", lambda i: isinstance(i, (list, tuple)) and
@@ -597,10 +594,7 @@ class Component(MapLike):
             attributes=None, mutexes=None, semaphores=None, binary_semaphores=None, composition=None,
             configuration=None, location=None):
         super(Component, self).__init__(location)
-        if name:
-            self.name = name
-        else:
-            self._name = None
+        self.name = name
         self.includes = list(includes or [])
         self.control = control
         self.hardware = hardware
