@@ -27,6 +27,13 @@ from camkes.internal.tests.utils import CAmkESTest
 from camkes.parser import ParseError, DtbMatchQuery
 
 class TestDTBMatchQuery(CAmkESTest):
+    '''
+    As part of the changes brought by the new seL4DTBHardware connector,
+    the DTB dictionary now includes keys 'this-address-cells' and 'this-size-cells'.
+    The keys describe the number of cells required to express those particular fields in
+    the 'reg' property of the DTB.
+    '''
+
     def setUp(self):
         super(TestDTBMatchQuery, self).setUp()
         self.dtbQuery = DtbMatchQuery()
@@ -43,7 +50,9 @@ class TestDTBMatchQuery(CAmkESTest):
             'interrupts' : [0x0, 0x2c, 0x4],
             'clocks' : [0x4, 0xb6],
             'fsl,anatop' : [0x2],
-            'phandle' : [0x2c]
+            'phandle' : [0x2c],
+            'this-address-cells' : [0x1],
+            'this-size-cells' : [0x1]
         }
         self.assertEquals(node, expected)
 
@@ -58,7 +67,9 @@ class TestDTBMatchQuery(CAmkESTest):
             'clock-names' : ["ipg", "per"],
             'dmas' : [0x17, 0xb, 0x8, 0x1, 0x17, 0xc, 0x8, 0x2],
             'dma-names' : ["rx", "tx"],
-            'status' : ["disabled"]
+            'status' : ["disabled"],
+            'this-address-cells' : [0x1],
+            'this-size-cells' : [0x1]
         };
 
         self.assertEquals(node, expected)
@@ -71,7 +82,9 @@ class TestDTBMatchQuery(CAmkESTest):
             'interrupts' : [0x0, 0x31, 0x4],
             'fsl,tempmon' : [0x2],
             'fsl,tempmon-data' : [0x3],
-            'clocks' : [0x4, 0xac]
+            'clocks' : [0x4, 0xac],
+            'this-address-cells' : [0x1],
+            'this-size-cells' : [0x1]
         }
         self.assertEquals(node, expected)
 
@@ -86,7 +99,9 @@ class TestDTBMatchQuery(CAmkESTest):
             'dma-names' : ["rx", "tx"],
             'status' : ["okay"],
             'pinctrl-names' : ["default"],
-            'pinctrl-0' : [0x1a]
+            'pinctrl-0' : [0x1a],
+            'this-address-cells' : [0x1],
+            'this-size-cells' : [0x1]
         }
         self.assertEquals(node, expected)
 
@@ -104,7 +119,10 @@ class TestDTBMatchQuery(CAmkESTest):
             'compatible': ['fsl,imx6q-uart', 'fsl,imx21-uart'],
             'dmas': [23, 25, 4, 0, 23, 26, 4, 0],
             'clocks': [4, 160, 4, 161],
-            'pinctrl-0': [26], 'reg': [33685504, 16384]
+            'pinctrl-0': [26],
+            'reg': [33685504, 16384],
+            'this-address-cells' : [0x1],
+            'this-size-cells' : [0x1]
         }
         self.assertEquals(node, expected)
 
@@ -119,7 +137,9 @@ class TestDTBMatchQuery(CAmkESTest):
             'compatible': ['fsl,imx6q-pwm', 'fsl,imx27-pwm'],
             'clocks': [4, 62, 4, 145],
             'phandle': [121],
-            'reg': [34078720, 16384]
+            'reg': [34078720, 16384],
+            'this-address-cells' : [0x1],
+            'this-size-cells' : [0x1]
         }
         self.assertEquals(node, expected)
 
@@ -153,6 +173,12 @@ class TestDTBMatchQuery(CAmkESTest):
         self.assertEquals(node['clock-names'], ["di0_pll", "di1_pll", "di0_sel", "di1_sel", "di2_sel", "di3_sel",
                                                 "di0", "di1"])
 
+        self.assertIn('this-address-cells', node)
+        self.assertEquals(node['this-address-cells'], [0x1])
+
+        self.assertIn('this-size-cells', node)
+        self.assertEquals(node['this-size-cells'], [0x1])
+
         node = self.dtbQuery.resolve({
             'properties': {
                 "interrupt-names[*]": ["gpmi0", "gpmi1", "gpmi2", "gpmi3"]
@@ -167,7 +193,9 @@ class TestDTBMatchQuery(CAmkESTest):
             '#dma-cells': [0x1],
             'dma-channels': [0x4],
             'clocks': [0x4, 0x6a],
-            'phandle': [0xf]
+            'phandle': [0xf],
+            'this-address-cells' : [0x1],
+            'this-size-cells' : [0x1]
         };
         self.assertEquals(node, expected)
 
@@ -195,7 +223,9 @@ class TestDTBMatchQuery(CAmkESTest):
                               0x0, 0x0, 0x3, 0x1, 0x0, 0x79, 0x4, 0x0, 0x0, 0x0, 0x4, 0x1, 0x0, 0x78, 0x4],
             'clocks': [0x4, 0x90, 0x4, 0xce, 0x4, 0xbd],
             'clock-names': ["pcie", "pcie_bus", "pcie_phy"],
-            'status': ["okay"]
+            'status': ["okay"],
+            'this-address-cells' : [0x1],
+            'this-size-cells' : [0x1]
         };
         self.assertEquals(node, expected)
 
@@ -218,7 +248,9 @@ class TestDTBMatchQuery(CAmkESTest):
             'clock-names': ["gpmi_io", "gpmi_apb", "gpmi_bch", "gpmi_bch_apb", "per1_bch"],
             'dmas': [0xf, 0x0],
             'dma-names': ["rx-tx"],
-            'status': ["disabled"]
+            'status': ["disabled"],
+            'this-address-cells' : [0x1],
+            'this-size-cells' : [0x1]
         }
         self.assertEquals(node, expected)
 
