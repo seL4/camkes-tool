@@ -105,6 +105,19 @@ class TestDTBMatchQuery(CAmkESTest):
         }
         self.assertEquals(node, expected)
 
+        node = self.dtbQuery.resolve({'path' : '.*sgtl5000.*'})
+        expected = {
+            'compatible' : ["fsl,sgtl5000"],
+            'reg' : [0x0a],
+            'clocks' : [0x04, 0xc9],
+            'VDDA-supply' : [0x39],
+            'VDDIO-supply' : [0x35],
+            'phandle' : [0x78],
+            'this-address-cells' : [0x01],
+            'this-size-cells' : [0x00]
+        }
+        self.assertEquals(node, expected)
+
     def test_blank(self):
         self.assertRaises(ParseError, self.dtbQuery.resolve, {})
 
@@ -142,6 +155,16 @@ class TestDTBMatchQuery(CAmkESTest):
             'this-size-cells' : [0x1]
         }
         self.assertEquals(node, expected)
+
+        node = self.dtbQuery.resolve({'properties': {'compatible[0]' : 'fsl,sec-v4.0-mon-rtc-lp'}})
+        expected = {
+            'compatible' : ['fsl,sec-v4.0,mon-rtc-lp'],
+            'regmap' : [0x23],
+            'offset' : [0x34],
+            'interrupts' : [0x00, 0x13, 0x04, 0x00, 0x14, 0x04],
+            'this-address-cells' : [0x02],
+            'this-size-cells' : [0x01]
+        }
 
     def test_properties_star_string(self):
         node = self.dtbQuery.resolve({
