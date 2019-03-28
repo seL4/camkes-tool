@@ -240,7 +240,7 @@
         /*- if (isinstance(_irq_spi, numbers.Integral)) and (_irq_spi == 0) -*/
             /*- set _irq = _irq + 32 -*/
         /*- endif -*/
-        /*- set irq = alloc('irq_%d' % i, seL4_IRQHandler, number=_irq) -*/
+        /*- set irq = alloc('%s_irq_%d' % (me.interface.name, i), seL4_IRQHandler, number=_irq) -*/
 
         /*# Add the interrupt notification and IRQ handler to the list for later #*/
         /*- do irq_ntfn_pairs.append((interrupt_ntfn, irq)) -*/
