@@ -37,12 +37,11 @@ class Parser(BaseParser):
 
         # Build the file reader.
         if hasattr(options, 'cpp') and options.cpp:
-            toolprefix = os.environ.get('TOOLPREFIX', '')
             if hasattr(options, 'cpp_flag'):
                 flags = options.cpp_flag
             else:
                 flags = []
-            s0 = CPP(toolprefix, flags)
+            s0 = CPP(options.cpp_bin, flags)
         else:
             s0 = Reader()
 

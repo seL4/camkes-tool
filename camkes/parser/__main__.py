@@ -46,6 +46,8 @@ def parse_args(argv, out, err):
         help='Pre-process the source with CPP.', default=True)
     parser.add_argument('--nocpp', action='store_false', dest='cpp',
         help='Do not pre-process the source with CPP.')
+    parser.add_argument('--cpp-bin', default='cpp',
+        help='CPP binary to use.')
     parser.add_argument('--cpp-flag', action='append', default=[],
         help='Specify a flag to pass to CPP.')
     parser.add_argument('--import-path', '-I', help='Add this path to the list '

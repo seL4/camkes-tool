@@ -70,6 +70,13 @@ function(set_camkes_parser_flags_from_config list)
         "CAmkESAllowForwardReferences;--allow-forward-references"
         "CAmkESCPP;--cpp;--nocpp"
     )
+    if(CAmkESCPP)
+        find_program(C_PREPROCESSOR cpp)
+        if("${C_PREPROCESSOR}" STREQUAL "C_PREPROCESSOR-NOTFOUND")
+            message(FATAL_ERROR "Could not find cpp. Override with -DC_PREPROCESSOR=path/to/cpp")
+        endif()
+        list(APPEND local_flags --cpp-bin "${C_PREPROCESSOR}")
+    endif()
     set(${list} "${local_flags}" PARENT_SCOPE)
 
 endfunction(set_camkes_parser_flags_from_config)

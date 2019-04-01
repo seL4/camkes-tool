@@ -35,8 +35,8 @@ class CPP(Parser):
     pre-processor.
     '''
 
-    def __init__(self, toolprefix='', flags=None):
-        self.toolprefix = toolprefix
+    def __init__(self, cpp_bin='cpp', flags=None):
+        self.cpp_bin = cpp_bin
         self.flags = flags or []
 
     def parse_file(self, filename):
@@ -45,7 +45,7 @@ class CPP(Parser):
             # track what files it read.
             output = os.path.join(d.path, 'output.camkes')
             deps = os.path.join(d.path, 'output.d')
-            p = subprocess.Popen(['%scpp' % self.toolprefix, '-MD', '-o',
+            p = subprocess.Popen([self.cpp_bin, '-MD', '-o',
                 output] + self.flags + [filename], stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE, universal_newlines=True)
             _, stderr = p.communicate()
@@ -61,7 +61,7 @@ class CPP(Parser):
         with TemporaryDirectory() as d:
             output = os.path.join(d.path, 'output.camkes')
             deps = os.path.join(d.path, 'output.d')
-            p = subprocess.Popen(['%scpp' % self.toolprefix, '-MD', '-o',
+            p = subprocess.Popen([self.cpp_bin, '-MD', '-o',
                 output] + self.flags, stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                 universal_newlines=True)
