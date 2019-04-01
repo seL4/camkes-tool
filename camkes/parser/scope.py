@@ -17,7 +17,7 @@ from __future__ import absolute_import, division, print_function, \
     unicode_literals
 from camkes.internal.seven import cmp, filter, map, zip
 
-from camkes.ast import ASTObject, Instance, Reference, SimpleTraversalContext
+from camkes.ast import ASTObject, Instance, Reference, SimpleTraversalContext, Group, Instance
 from .exception import ParseError
 import collections, six
 
@@ -59,13 +59,18 @@ class ScopingContext(SimpleTraversalContext):
         assert len(self.scopes) > 0
         if not hasattr(obj, 'name') or obj.name is None:
             return
-        duplicate = self.scopes[-1][obj.name].get(type(obj))
+        scope_type = type(obj)
+        if scope_type in [Group, Instance]:
+            scope_type = "group/component"
+        else:
+            scope_type = type(obj).__name__
+        duplicate = self.scopes[-1][obj.name].get(scope_type)
         if duplicate is not None:
             raise ParseError('duplicate definition of %s \'%s\'; previous '
-                'definition was at %s:%s' % (type(obj).__name__, obj.name,
+                'definition was at %s:%s' % (scope_type, obj.name,
                 duplicate.filename or '<unnamed>', duplicate.lineno),
                 obj.location)
-        self.scopes[-1][obj.name][type(obj)] = obj
+        self.scopes[-1][obj.name][scope_type] = obj
 
     def lookup(self, ref, type=None):
         '''
