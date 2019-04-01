@@ -68,7 +68,7 @@ function(set_camkes_parser_flags_from_config list)
     set(local_flags "${${list}}")
     append_flags(local_flags
         "CAmkESAllowForwardReferences;--allow-forward-references"
-        "CAmkESCPP;--cpp"
+        "CAmkESCPP;--cpp;--nocpp"
     )
     set(${list} "${local_flags}" PARENT_SCOPE)
 
