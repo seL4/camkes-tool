@@ -149,6 +149,20 @@ class TestStage4(CAmkESTest):
                 component foo { }
                 ''')
 
+    def test_colliding_names_and_groups(self):
+        with six.assertRaisesRegex(self, ParseError,
+                r'6:31: duplicate definition of scope_type \'b\'; previous definition was at <unnamed>:5'):
+            self.parser.parse_string('''
+                component bar {}
+                assembly {
+                    composition {
+                        component bar b;
+                        group b {
+                            component bar c;
+                        }
+                    }
+                }                ''')
+
     def test_unresolved_reference(self):
         with six.assertRaisesRegex(self, ParseError,
                 r'unknown reference to \'Foo\''):
