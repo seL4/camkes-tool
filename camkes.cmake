@@ -52,7 +52,7 @@ function(set_camkes_parser_flags_from_config list)
 
     # These options are not declared with the config_* system because they only need to exist
     # in the build system, and not appear in a configuration library
-    set(CAmkESCPP OFF CACHE BOOL
+    set(CAmkESCPP ON CACHE BOOL
         "Run CPP on the input specification(s) before parsing them into an AST.
         This can allow you to write parameterised specs in the case of more
         complex system"

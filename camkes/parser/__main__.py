@@ -43,7 +43,7 @@ def parse_args(argv, out, err):
     parser = argparse.ArgumentParser(prog='python -m camkes.parser',
         description='parse AST based on a CAmkES specification')
     parser.add_argument('--cpp', action='store_true',
-        help='Pre-process the source with CPP.')
+        help='Pre-process the source with CPP.', default=True)
     parser.add_argument('--nocpp', action='store_false', dest='cpp',
         help='Do not pre-process the source with CPP.')
     parser.add_argument('--cpp-flag', action='append', default=[],
