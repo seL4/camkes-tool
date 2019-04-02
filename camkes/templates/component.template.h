@@ -18,6 +18,7 @@
 #include <stdlib.h>
 #include <utils/util.h>
 #include <platsupport/io.h>
+#include <platsupport/irq.h>
 
 /*? macros.show_includes(me.type.includes) ?*/
 /*- for i in me.type.uses -*/
@@ -117,31 +118,61 @@ const char *get_instance_name(void);
      *# implemented.
      #*/
     /*- set irq = [False] -*/
+    /*- set dtb_connector = [False] -*/
     /*- for conn in composition.connections -*/
       /*- if conn.type.name == 'seL4HardwareInterrupt' and id(conn.to_ends[0].interface) == id(c) -*/
         /*- do irq.__setitem__(0, True) -*/
         /*- break -*/
       /*- endif -*/
+      /*- if conn.type.name == 'seL4DTBHardware' -*/
+        /*# We need to loop over ends as there may be multiple 'consumes' devices connected to
+         *# the same dummy source, e.g.
+         *#     emits Dummy dummy_source;
+         *#     consumes Dummy pwm_timer_1;
+         *#     consumes Dummy pwm_timer_2;
+         *#     ...
+         *#     connection seL4DTBHardware pwm_conn_1(from dummy_source, to pwm_timer_1);
+         *#     connection seL4DTBHardware pwm_conn_2(from dummy_source, to pwm_timer_2);
+         *# the whole connection becomes:
+         *#     component.pwm_conn_1.component.pwm_conn_2
+         #*/
+        /*- for end in conn.to_ends -*/
+            /*- if id(end.interface) == id(c) -*/
+                /*- do irq.__setitem__(0, True) -*/
+                /*- do dtb_connector.__setitem__(0, True) -*/
+                /*- break -*/
+            /*- endif -*/
+        /*- endfor -*/
+        /*- if irq[0] -*/
+            /*- break -*/
+        /*- endif -*/
+      /*- endif -*/
     /*- endfor -*/
     void /*? c.name ?*/_wait(void)
         /*- if c.optional -*/ WEAK /*- endif -*/
         /*- if irq[0] -*/ WARNING("/*? c.name ?*/_wait is not provided by "
-            "seL4HardwareInterrupt") /*- endif -*/
+            "seL4HardwareInterrupt or seL4DTBHardware") /*- endif -*/
         ;
     int /*? c.name ?*/_poll(void) WARN_UNUSED_RESULT
         /*- if c.optional -*/ WEAK /*- endif -*/
         /*- if irq[0] -*/ WARNING("/*? c.name ?*/_poll is not provided by "
-            "seL4HardwareInterrupt") /*- endif -*/
+            "seL4HardwareInterrupt or seL4DTBHardware") /*- endif -*/
         ;
     int /*? c.name ?*/_reg_callback(void (*callback)(void*), void *arg) WARN_UNUSED_RESULT
         /*- if c.optional -*/ WEAK /*- endif -*/
         /*- if irq[0] -*/ WARNING("/*? c.name ?*/_reg_callback is not provided "
-            "by seL4HardwareInterrupt") /*- endif -*/
+            "by seL4HardwareInterrupt or seL4DTBHardware") /*- endif -*/
         ;
-    int /*? c.name ?*/_acknowledge(void) WARN_UNUSED_RESULT
+    /*- if irq[0] and dtb_connector[0] -*/
+        int /*? c.name ?*/_irq_acknowledge(ps_irq_t *irq) WARN_UNUSED_RESULT;
+        /* Implemented by user code. */
+        void /*? c.name ?*/_irq_handle(ps_irq_t *irq);
+    /*- else -*/
+        int /*? c.name ?*/_acknowledge(void) WARN_UNUSED_RESULT
         /*- if c.optional -*/ WEAK /*- endif -*/;
-    /* Implemented by user code. */
-    void /*? c.name ?*/_handle(void);
+        /* Implemented by user code. */
+        void /*? c.name ?*/_handle(void);
+    /*- endif -*/
 /*- endfor -*/
 
 /*- for e in me.type.emits -*/
