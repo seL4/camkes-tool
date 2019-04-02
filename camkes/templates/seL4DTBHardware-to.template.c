@@ -16,6 +16,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <platsupport/io.h>
+#include <platsupport/irq.h>
 #include <utils/util.h>
 #include <sel4/sel4.h>
 
@@ -207,24 +208,9 @@
     /*- set ntfn_obj = alloc_obj('%s_ntfn' % me.interface.name, seL4_NotificationObject) -*/
     /*- set root_ntfn = alloc_cap('%s_root_ntfn' % me.interface.name, ntfn_obj, read=True, write=True) -*/
 
-    int /*? me.interface.name ?*/__run(void) {
-        while (true) {
-            seL4_Word badge = 0;
-            seL4_Wait(/*? root_ntfn ?*/, &badge);
-
-            /*# Generate the calls to the IRQ handling functions #*/
-            /*- for i in range(0, num_interrupts) -*/
-                /*- set bit = pow(2, i) -*/
-                if (badge & /*? bit ?*/) {
-                    /*? '%s_%d' % (me.interface.name, i) ?*/_handle();
-                }
-            /*- endfor -*/
-        }
-
-        UNREACHABLE();
-    }
-
     /*- set irq_ntfn_pairs = [] -*/
+
+    /*- set irq_handler_pairs = [] -*/
 
     /*- for i in range(0, num_interrupts) -*/
 
@@ -242,14 +228,13 @@
         /*- endif -*/
         /*- set irq = alloc('%s_irq_%d' % (me.interface.name, i), seL4_IRQHandler, number=_irq) -*/
 
+        /*# Add the interrupt number to the IRQ num list for later #*/
+        /*- do irq_handler_pairs.append((_irq, irq)) -*/
+
         /*# Add the interrupt notification and IRQ handler to the list for later #*/
         /*- do irq_ntfn_pairs.append((interrupt_ntfn, irq)) -*/
 
         /*- set interrupt_interface_name = '%s_%d' % (me.interface.name, i) -*/
-
-        int /*? interrupt_interface_name ?*/_acknowledge(void) {
-            return seL4_IRQHandler_Ack(/*? irq ?*/);
-        }
 
     /*- endfor -*/
 
@@ -263,6 +248,43 @@
                 assert(!"Failed to pair IRQ handler with notification");
             }
         /*- endfor -*/
+    }
+
+    /*# Generate IRQ acknowledgement code #*/
+    int /*? me.interface.name ?*/_irq_acknowledge(ps_irq_t *irq) {
+        /* Sanity checking */
+        if (!irq) {
+            return -1;
+        }
+        assert(irq->type == PS_INTERRUPT);
+        switch (irq->irq.number) {
+        /*- for (irq_num, handler) in irq_handler_pairs -*/
+            case /*? irq_num ?*/:
+                return seL4_IRQHandler_Ack(/*? handler ?*/);
+        /*- endfor -*/
+            default:
+                /* Passed in an invalid IRQ number */
+                return -1;
+        }
+    }
+
+    int /*? me.interface.name ?*/__run(void) {
+        while (true) {
+            seL4_Word badge = 0;
+            seL4_Wait(/*? root_ntfn ?*/, &badge);
+
+            /*# Generate the calls to the IRQ handling functions #*/
+            /*- for i in range(0, num_interrupts) -*/
+                /*- set bit = pow(2, i) -*/
+                if (badge & /*? bit ?*/) {
+                    /*# Pass the interrupt number of the device that had an interrupt #*/
+                    ps_irq_t irq = { .type = PS_INTERRUPT, .irq = { .number = /*? irq_handler_pairs[i][0] ?*/}};
+                    /*? me.interface.name ?*/_irq_handle(&irq);
+                }
+            /*- endfor -*/
+        }
+
+        UNREACHABLE();
     }
 
 /*- endif -*/
