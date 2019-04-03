@@ -66,13 +66,13 @@
         /*- for j in range(0, num_address_cells) -*/ 
             /*# Extract the paddr and size, read back to front, the register address and size #*/
             /*# is written in big endian, __rshift__ because Jinja2 doesn't like '<<' #*/
-            /*- set paddr_part = regs[i * reg_entry_size + j * (num_address_cells - 1)].__rshift__(j * 32) -*/ 
+            /*- set paddr_part = regs[i * reg_entry_size + (num_address_cells - 1 - j)].__rshift__(j * 32) -*/
             /*- set temp_ns.paddr = temp_ns.paddr + paddr_part -*/
         /*- endfor -*/
 
         /*- for j in range(0, num_size_cells) -*/ 
             /*# Same idea as above #*/
-            /*- set size_part = regs[i * reg_entry_size + j * (num_size_cells - 1) + num_address_cells].__rshift__(j * 32) -*/
+            /*- set size_part = regs[i * reg_entry_size + (num_size_cells - 1 - j) + num_address_cells].__rshift__(j * 32) -*/
             /*- set temp_ns.size = temp_ns.size + size_part -*/
         /*- endfor -*/
 
