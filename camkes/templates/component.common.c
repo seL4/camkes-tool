@@ -210,7 +210,7 @@ void *camkes_io_map(void *cookie UNUSED, uintptr_t paddr UNUSED,
                 size_counter = 0;
             }
         } else {
-            if (paddr >= frame->paddr && (frame->paddr + frame->size) >= paddr) {
+            if (paddr >= frame->paddr && (frame->paddr + frame->size) > paddr) {
                 /* We've found the first frame of the mapped region,
                    start counting from here */
                 counting_frames = true;
