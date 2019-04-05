@@ -151,7 +151,7 @@ class TestStage4(CAmkESTest):
 
     def test_colliding_names_and_groups(self):
         with six.assertRaisesRegex(self, ParseError,
-                r'6:31: duplicate definition of scope_type \'b\'; previous definition was at <unnamed>:5'):
+                r'6:31: duplicate definition of group/component \'b\'; previous definition was at <unnamed>:5'):
             self.parser.parse_string('''
                 component bar {}
                 assembly {
