@@ -126,47 +126,8 @@ dataport_frame_t /*? me.interface.name ?*//*? loop.index0 ?*/ = {
     should pass a frames parameter. By not stashing the frame_objs we ensure that only the original
     creator passed the frames, and everyone else will still have a None here #*/
 
-/*- if options.architecture in ('aarch32', 'arm_hyp', 'aarch64') -*/
-    static int sel4_cache_op(seL4_CPtr frame_cap, seL4_Word start, seL4_Word end, dma_cache_op_t cache_op) {
-        switch (cache_op) {
-        case DMA_CACHE_OP_CLEAN:
-            return seL4_ARM_Page_Clean_Data(frame_cap, start, end);
-        case DMA_CACHE_OP_INVALIDATE:
-            return seL4_ARM_Page_Invalidate_Data(frame_cap, start, end);
-        case DMA_CACHE_OP_CLEAN_INVALIDATE:
-            return seL4_ARM_Page_CleanInvalidate_Data(frame_cap, start, end);
-        default:
-            ZF_LOGF("Invalid cache_op %d", cache_op);
-            return -1;
-        }
-    }
-/*- endif -*/
-
 /* Flush data corresponding to the dataport-relative address range from the CPU cache */
 int /*? me.interface.name ?*/_flush_cache(size_t start_offset UNUSED, size_t size UNUSED, dma_cache_op_t cache_op UNUSED) {
-    /*- if options.architecture in ('aarch32', 'arm_hyp', 'aarch64') -*/
-
-    if (start_offset >= /*? size ?*/ || size > /*? size ?*/ || /*? size ?*/ - size < start_offset) {
-        ZF_LOGE("Specified range is outside the bounds of the dataport");
-        return -1;
-    }
-
-    size_t current_offset = start_offset;
-    size_t end_offset = start_offset + size;
-
-    while (current_offset < end_offset) {
-        size_t frame_top = MIN(ROUND_UP(current_offset + 1, /*? macros.PAGE_SIZE ?*/), end_offset);
-        seL4_CPtr frame_cap = /*? frame_caps_symbol ?*/[current_offset / /*? macros.PAGE_SIZE ?*/];
-        size_t frame_start_offset = current_offset % /*? macros.PAGE_SIZE ?*/;
-        size_t frame_end_offset = ((frame_top - 1) % /*? macros.PAGE_SIZE ?*/) + 1;
-        int error = sel4_cache_op(frame_cap, frame_start_offset,  frame_end_offset, cache_op);
-        if (error) {
-            ZF_LOGE("Cache flush syscall returned with error: %d", error);
-            return error;
-        }
-        current_offset = frame_top;
-    }
-
-    /*- endif -*/
-    return 0;
+    return camkes_dataport_flush_cache(start_offset, size, (uintptr_t) &/*? dataport_symbol_name ?*/.content,
+                                       /*? size ?*/, cache_op);
 }
