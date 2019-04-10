@@ -13,6 +13,7 @@
 #ifndef _CAMKES_DATAPORT_H_
 #define _CAMKES_DATAPORT_H_
 
+#include <platsupport/io.h>
 #include <stdint.h>
 #include <sys/types.h>
 #include <utils/util.h>
@@ -57,5 +58,9 @@ extern dataport_frame_t __stop__dataport_frames[];
  */
 dataport_ptr_t dataport_wrap_ptr(void *ptr);
 void *dataport_unwrap_ptr(dataport_ptr_t ptr);
+
+int camkes_dataport_flush_cache(size_t start_offset, size_t size,
+                                uintptr_t dataport_start, size_t dataport_size,
+                                dma_cache_op_t cache_op);
 
 #endif
