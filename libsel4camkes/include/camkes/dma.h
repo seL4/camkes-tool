@@ -18,6 +18,7 @@
 #include <stdint.h>
 #include <utils/util.h>
 #include <sel4/sel4.h>
+#include <utils/attribute.h>
 
 /* Initialise the DMA allocator. This function must be called before using any
  * of the functions below. Pass in the pool to allocate from, the size of this
@@ -147,5 +148,21 @@ void *camkes_dma_alloc_page(void)
     DEPRECATED("use camkes_dma_alloc(PAGE_SIZE_4K, PAGE_SIZE_4K) instead");
 void camkes_dma_free_page(void *ptr)
     DEPRECATED("use camkes_dma_free(ptr, PAGE_SIZE_4K) instead");
+
+/*
+ * This struct describes the information about a frame in a component's DMA pool.
+ */
+struct dma_frame {
+    seL4_CPtr cap;
+    size_t size;
+    uintptr_t vaddr;
+};
+typedef struct dma_frame dma_frame_t;
+
+/* Force the _dma_frames  section to be created even if no modules are defined. */
+static USED SECTION("_dma_frames") struct {} dummy_dma_frame;
+/* Definitions so that we can find the exposed DMA frames */
+extern dma_frame_t *__start__dma_frames[];
+extern dma_frame_t *__stop__dma_frames[];
 
 #endif
