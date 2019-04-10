@@ -15,6 +15,7 @@
  */
 
 #include <assert.h>
+#include <camkes/dataport.h>
 #include <camkes/dma.h>
 #include <camkes/io.h>
 #include <platsupport/io.h>
@@ -22,9 +23,6 @@
 #include <stdlib.h>
 #include <utils/util.h>
 
-/* The following functions are generated in the component-wide template. */
-extern void *camkes_io_map(void *cookie, uintptr_t paddr, size_t size,
-    int cached, ps_mem_flags_t flags);
 extern int camkes_io_port_in(void *cookie, uint32_t port, int io_size,
     uint32_t *result);
 extern int camkes_io_port_out(void *cookie, uint32_t port, int io_size,
@@ -98,6 +96,50 @@ static int UNUSED pointer_compare(void *a, void *b) {
     } else {
         return 0;
     }
+}
+
+static void *camkes_io_map(void *cookie UNUSED, uintptr_t paddr,
+        size_t size, int cached UNUSED, ps_mem_flags_t flags UNUSED) {
+    if (paddr % PAGE_SIZE_4K != 0 && size % PAGE_SIZE_4K != 0) {
+        ZF_LOGE("paddr or size has incorrect alignment: (%p, 0x%zx)", paddr, size);
+        return NULL;
+    }
+
+    /* Given a base paddr and size, we try to find a region of mapped memory that
+     * is a superset of the given parameters. */
+    size_t size_counter = 0;
+    bool counting_frames = false;
+    uintptr_t base_vaddr = 0;
+    for (dataport_frame_t *frame = __start__dataport_frames;
+         frame < __stop__dataport_frames; frame++) {
+        if (counting_frames) {
+            if (paddr == (frame->paddr - size_counter)) {
+                size_counter += frame->size;
+            } else {
+                /* We've encountered a different region of physical memory that does
+                   not match what we want, reset the counters */
+                counting_frames = false;
+                base_vaddr = 0;
+                size_counter = 0;
+            }
+        } else {
+            if (paddr >= frame->paddr && (frame->paddr + frame->size) > paddr) {
+                /* We've found the first frame of the mapped region,
+                   start counting from here */
+                counting_frames = true;
+                base_vaddr = frame->vaddr + (paddr - frame->paddr);
+                size_counter += (frame->vaddr + frame->size) - base_vaddr;
+            }
+        }
+
+        if (size_counter >= size) {
+            /* We've found all the frames that cover the desired region */
+            return (void *)base_vaddr;
+        }
+    }
+
+    /* Not found. */
+    return NULL;
 }
 
 /* We never unmap anything. */
