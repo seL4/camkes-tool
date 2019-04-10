@@ -283,7 +283,7 @@ static void init(void) {
      * this point, so any error triggered below will certainly be fatal.
      */
     int res = camkes_dma_init(dma_pool_symbol, /*? dma_pool ?*/,
-        /*? page_size[0] ?*/, dma_get_paddr, get_cptr);
+        /*? page_size[0] ?*/);
     ERR_IF(res != 0, camkes_error, ((camkes_error_t){
             .type = CE_ALLOCATION_FAILURE,
             .instance = "/*? me.name ?*/",
