@@ -150,6 +150,17 @@ static uintptr_t dma_get_paddr(void *ptr) {
     return (uintptr_t)NULL;
 }
 
+/*# Expose the frames backing the DMA pool #*/
+/*- for cap in dma_frames -*/
+    static dma_frame_t /*? me.instance.name ?*/_dma_/*? loop.index0 ?*/ = {
+        .cap = /*? cap ?*/,
+        .size = /*? page_size[0] ?*/,
+        .vaddr = (uintptr_t) &dma_pool_symbol[/*? loop.index0 * page_size[0] ?*/],
+    };
+    USED SECTION("_dma_frames")
+    dma_frame_t * /*? me.instance.name ?*/_dma_/*? loop.index0 ?*/_ptr = &/*? me.instance.name ?*/_dma_/*? loop.index0 ?*/;
+/*- endfor -*/
+
 static seL4_CPtr get_cptr(void *ptr) {
     uintptr_t base UNUSED = (uintptr_t)ptr & ~MASK(ffs(/*? page_size[0] ?*/) - 1);
     uintptr_t offset UNUSED = (uintptr_t)ptr & MASK(ffs(/*? page_size[0] ?*/) - 1);
