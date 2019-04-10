@@ -99,4 +99,5 @@ list(SORT deps)
 
 add_library(sel4camkes STATIC EXCLUDE_FROM_ALL ${deps})
 target_include_directories(sel4camkes PUBLIC include)
+target_include_directories(sel4camkes PRIVATE src/arch_include)
 target_link_libraries(sel4camkes muslc sel4 sel4debug platsupport Configuration sel4muslcsys sel4sync virtqueue)
