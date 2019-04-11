@@ -91,6 +91,7 @@ file(GLOB deps
     src/sel4_arch/${adjusted_seL4_arch}/*.c
     src/sel4_arch/${adjusted_seL4_arch}/gdb_server/*.c
     src/arch/${KernelArch}/*.S
+    src/arch/${KernelArch}/*.c
     src/sel4_arch/${adjusted_seL4_arch}/*.S
 )
 
