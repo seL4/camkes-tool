@@ -157,7 +157,7 @@ def parse_args(argv, out, err):
         help='Use large frames (for non-DMA pools) when possible.')
     parser.add_argument('--architecture', '--arch', default='aarch32',
         type=lambda x: type('')(x).lower(),
-        choices=('aarch32', 'arm_hyp', 'ia32', 'x86_64', 'aarch64'),
+        choices=('aarch32', 'arm_hyp', 'ia32', 'x86_64', 'aarch64', 'riscv32', 'riscv64'),
         help='Target architecture.')
     parser.add_argument('--makefile-dependencies', '-MD',
         type=argparse.FileType('w'), help='Write Makefile dependency rule to '
