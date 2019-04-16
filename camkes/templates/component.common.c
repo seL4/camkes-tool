@@ -131,52 +131,6 @@ static char dma_pool_symbol[/*? dma_pool ?*/]
     dma_frame_t * /*? me.instance.name ?*/_dma_/*? loop.index0 ?*/_ptr = &/*? me.instance.name ?*/_dma_/*? loop.index0 ?*/;
 /*- endfor -*/
 
-/* IO port related functionality for interaction with libplatsupport. */
-int camkes_io_port_in(void *cookie UNUSED, uint32_t port UNUSED,
-        int io_size UNUSED, uint32_t *result UNUSED) {
-    /*- for u in me.type.uses -*/
-        /*- if u.type.name == 'IOPort' -*/ /*# XXX: awkward hardcoding of connector type name #*/
-            if (/*? u.name ?*/_in_range(port)) {
-                switch (io_size) {
-                    case 1:
-                        *result = /*? u.name ?*/_in8(port);
-                        return 0;
-                    case 2:
-                        *result = /*? u.name ?*/_in16(port);
-                        return 0;
-                    case 4:
-                        *result = /*? u.name ?*/_in32(port);
-                        return 0;
-                }
-                return -1;
-            }
-        /*- endif -*/
-    /*- endfor -*/
-    return -1;
-}
-int camkes_io_port_out(void *cookie UNUSED, uint32_t port UNUSED,
-        int io_size UNUSED, uint32_t val UNUSED) {
-    /*- for u in me.type.uses -*/
-        /*- if u.type.name == 'IOPort' -*/ /*# XXX: awkward hardcoding of connector type name #*/
-            if (/*? u.name ?*/_in_range(port)) {
-                switch (io_size) {
-                    case 1:
-                        /*? u.name ?*/_out8(port, val);
-                        return 0;
-                    case 2:
-                        /*? u.name ?*/_out16(port, val);
-                        return 0;
-                    case 4:
-                        /*? u.name ?*/_out32(port, val);
-                        return 0;
-                }
-                return -1;
-            }
-        /*- endif -*/
-    /*- endfor -*/
-    return -1;
-}
-
 /* Mutex functionality. */
 /*- for m in me.type.mutexes -*/
 
