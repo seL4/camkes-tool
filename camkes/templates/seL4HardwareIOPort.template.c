@@ -18,6 +18,8 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <sel4/sel4.h>
+#include <camkes/io.h>
+#include <utils/attribute.h>
 
 /*? macros.show_includes(me.instance.type.includes) ?*/
 
@@ -38,6 +40,19 @@
 /* Interface-specific error handling */
 /*- set error_handler = '%s_error_handler' % me.parent.to_interface.name -*/
 /*? error.make_error_handler(me.interface.name, error_handler) ?*/
+
+static char *interface_name = "/*? me.parent.to_interface ?*/";
+
+/* Expose the IO port region */
+static ioport_region_t /*? me.interface.name ?*/_region = {
+    .start = /*? start ?*/,
+    .end = /*? end ?*/,
+    .cap = /*? ioport[0] ?*/,
+    .error_handler = /*? error_handler ?*/,
+    .interface_name = &interface_name,
+};
+USED SECTION("_ioport_regions")
+ioport_region_t * /*? me.interface.name ?*/_region_ptr = &/*? me.interface.name ?*/_region;
 
 uint8_t /*? me.interface.name ?*/_in8(uint16_t port)
 {
