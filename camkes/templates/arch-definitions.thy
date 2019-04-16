@@ -80,19 +80,19 @@ qualify /*? options.verification_base_name ?*/_Arch_Spec
     /*? '))' if param.array else '' ?*/
 /*- endmacro -*/
 
-/*- if me.name is not none -*/
+/*- if hasattr(me, 'name') and me.name is not none -*/
     /*- set assembly = me.name -*/
 /*- else -*/
     /*- set assembly = 'assembly\'' -*/
 /*- endif -*/
 
-/*- if me.composition.name is not none -*/
+/*- if hasattr(me.composition, 'name') and me.composition.name is not none -*/
     /*- set composition = me.composition.name -*/
 /*- else -*/
     /*- set composition = 'composition\'' -*/
 /*- endif -*/
 
-/*- if me.configuration is not none and me.configuration.name is not none -*/
+/*- if me.configuration is not none and hasattr(me.configuration, 'name') and me.configuration.name is not none -*/
     /*- set configuration = me.configuration.name -*/
 /*- else -*/
     /*- set configuration = 'configuration\'' -*/
