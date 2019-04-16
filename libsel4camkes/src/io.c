@@ -18,15 +18,11 @@
 #include <camkes/dataport.h>
 #include <camkes/dma.h>
 #include <camkes/io.h>
+#include <camkes/arch/io.h>
 #include <platsupport/io.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <utils/util.h>
-
-extern int camkes_io_port_in(void *cookie, uint32_t port, int io_size,
-    uint32_t *result);
-extern int camkes_io_port_out(void *cookie, uint32_t port, int io_size,
-    uint32_t val);
 
 /* Basic linked-list implementation. */
 typedef struct ll_ {
@@ -171,6 +167,14 @@ int camkes_io_mapper(ps_io_mapper_t *mapper) {
 #endif
     mapper->io_unmap_fn = io_unmap;
     return 0;
+}
+
+static int camkes_io_port_in(void *cookie UNUSED, uint32_t port, int io_size, uint32_t *result) {
+    return camkes_arch_io_port_in(port, io_size, result);
+}
+
+static int camkes_io_port_out(void *cookie UNUSED, uint32_t port, int io_size, uint32_t val) {
+    return camkes_arch_io_port_out(port, io_size, val);
 }
 
 int camkes_io_port_ops(ps_io_port_ops_t *ops) {
