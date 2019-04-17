@@ -20,6 +20,7 @@
 #include <sel4/sel4.h>
 #include <camkes/io.h>
 #include <utils/attribute.h>
+#include <platsupport/io.h>
 
 /*? macros.show_includes(me.instance.type.includes) ?*/
 
@@ -54,140 +55,93 @@ static ioport_region_t /*? me.interface.name ?*/_region = {
 USED SECTION("_ioport_regions")
 ioport_region_t * /*? me.interface.name ?*/_region_ptr = &/*? me.interface.name ?*/_region;
 
-uint8_t /*? me.interface.name ?*/_in8(uint16_t port)
+static ps_io_port_ops_t ops;
+
+static bool ops_inited = false;
+
+static inline int init_io_port_ops(void)
 {
-    assert(/*? me.interface.name ?*/_in_range(port));
-    seL4_X86_IOPort_In8_t reply = seL4_X86_IOPort_In8(/*? ioport[0] ?*/, port);
-
-    ERR_IF(reply.error != 0, /*? error_handler ?*/, ((camkes_error_t){
-            .type = CE_SYSCALL_FAILED,
-            .instance = "/*? me.parent.to_instance.name ?*/",
-            .interface = "/*? me.parent.to_interface.name ?*/",
-            .description = "failed to read from IO port",
-            .syscall = X86IOPortIn8,
-            .error = reply.error,
-        }), ({
-            return 0;
-        }));
-
-    return reply.result;
+    assert(camkes_io_port_ops(&ops) == 0);
+    ops_inited = true;
 }
 
 uint8_t /*? me.interface.name ?*/_in8_offset(uint16_t offset)
 {
-    return /*? me.interface.name ?*/_in8(/*? port_range[0] ?*/ + offset);
-}
+    if (!ops_inited) {
+        init_io_port_ops();
+    }
 
-uint16_t /*? me.interface.name ?*/_in16(uint16_t port)
-{
-    assert(/*? me.interface.name ?*/_in_range(port));
-    seL4_X86_IOPort_In16_t reply = seL4_X86_IOPort_In16(/*? ioport[0] ?*/, port);
+    assert(/*? me.interface.name ?*/_in_range(/*? port_range[0] ?*/ + offset));
+    uint32_t result = 0;
+    int ret = ps_io_port_in(&ops, /*? port_range[0] ?*/ + offset, IOSIZE_8, &result);
+    if (ret) {
+        return 0;
+    }
 
-    ERR_IF(reply.error != 0, /*? error_handler ?*/, ((camkes_error_t){
-            .type = CE_SYSCALL_FAILED,
-            .instance = "/*? me.parent.to_instance.name ?*/",
-            .interface = "/*? me.parent.to_interface.name ?*/",
-            .description = "failed to read from IO port",
-            .syscall = X86IOPortIn16,
-            .error = reply.error,
-        }), ({
-            return 0;
-        }));
-
-    return reply.result;
+    return (uint8_t) result;
 }
 
 uint16_t /*? me.interface.name ?*/_in16_offset(uint16_t offset)
 {
-    return /*? me.interface.name ?*/_in16(/*? port_range[0] ?*/ + offset);
-}
+    if (!ops_inited) {
+        init_io_port_ops();
+    }
 
-uint32_t /*? me.interface.name ?*/_in32(uint16_t port)
-{
-    assert(/*? me.interface.name ?*/_in_range(port));
-    seL4_X86_IOPort_In32_t reply = seL4_X86_IOPort_In32(/*? ioport[0] ?*/, port);
+    assert(/*? me.interface.name ?*/_in_range(/*? port_range[0] ?*/ + offset));
+    uint32_t result = 0;
+    int ret = ps_io_port_in(&ops, /*? port_range[0] ?*/ + offset, IOSIZE_16, &result);
+    if (ret) {
+        return 0;
+    }
 
-    ERR_IF(reply.error != 0, /*? error_handler ?*/, ((camkes_error_t){
-            .type = CE_SYSCALL_FAILED,
-            .instance = "/*? me.parent.to_instance.name ?*/",
-            .interface = "/*? me.parent.to_interface.name ?*/",
-            .description = "failed to read from IO port",
-            .syscall = X86IOPortIn32,
-            .error = reply.error,
-        }), ({
-            return 0;
-        }));
-
-    return reply.result;
+    return (uint16_t) result;
 }
 
 uint32_t /*? me.interface.name ?*/_in32_offset(uint16_t offset)
 {
-    return /*? me.interface.name ?*/_in32(/*? port_range[0] ?*/ + offset);
-}
+    if (!ops_inited) {
+        init_io_port_ops();
+    }
 
-void /*? me.interface.name ?*/_out8(uint16_t port, uint8_t value)
-{
-    assert(/*? me.interface.name ?*/_in_range(port));
-    int reply = seL4_X86_IOPort_Out8(/*? ioport[0] ?*/, port, value);
+    assert(/*? me.interface.name ?*/_in_range(/*? port_range[0] ?*/ + offset));
+    uint32_t result = 0;
+    int ret = ps_io_port_in(&ops, /*? port_range[0] ?*/ + offset, IOSIZE_32, &result);
+    if (ret) {
+        return 0;
+    }
 
-    ERR_IF(reply != 0, /*? error_handler ?*/, ((camkes_error_t){
-            .type = CE_SYSCALL_FAILED,
-            .instance = "/*? me.parent.to_instance.name ?*/",
-            .interface = "/*? me.parent.to_interface.name ?*/",
-            .description = "failed to write to IO port",
-            .syscall = X86IOPortOut8,
-            .error = reply,
-        }), ({
-            return;
-        }));
+    return (uint32_t) result;
 }
 
 void /*? me.interface.name ?*/_out8_offset(uint16_t offset, uint8_t value)
 {
-    /*? me.interface.name ?*/_out8(/*? port_range[0] ?*/ + offset, value);
-}
+    if (!ops_inited) {
+        init_io_port_ops();
+    }
 
-void /*? me.interface.name ?*/_out16(uint16_t port, uint16_t value)
-{
-    assert(/*? me.interface.name ?*/_in_range(port));
-    int reply = seL4_X86_IOPort_Out16(/*? ioport[0] ?*/, port, value);
-
-    ERR_IF(reply != 0, /*? error_handler ?*/, ((camkes_error_t){
-            .type = CE_SYSCALL_FAILED,
-            .instance = "/*? me.parent.to_instance.name ?*/",
-            .interface = "/*? me.parent.to_interface.name ?*/",
-            .description = "failed to write to IO port",
-            .syscall = X86IOPortOut16,
-            .error = reply,
-        }), ({
-            return;
-        }));
+    assert(/*? me.interface.name ?*/_in_range(/*? port_range[0] ?*/ + offset));
+    /* Ignore the return value */
+    ps_io_port_out(&ops, /*? port_range[0] ?*/ + offset, IOSIZE_8, value);
 }
 
 void /*? me.interface.name ?*/_out16_offset(uint16_t offset, uint16_t value)
 {
-    /*? me.interface.name ?*/_out16(/*? port_range[0] ?*/ + offset, value);
-}
+    if (!ops_inited) {
+        init_io_port_ops();
+    }
 
-void /*? me.interface.name ?*/_out32(uint16_t port, uint32_t value)
-{
-    assert(/*? me.interface.name ?*/_in_range(port));
-    int reply = seL4_X86_IOPort_Out32(/*? ioport[0] ?*/, port, value);
-
-    ERR_IF(reply != 0, /*? error_handler ?*/, ((camkes_error_t){
-            .type = CE_SYSCALL_FAILED,
-            .instance = "/*? me.parent.to_instance.name ?*/",
-            .interface = "/*? me.parent.to_interface.name ?*/",
-            .description = "failed to write to IO port",
-            .syscall = X86IOPortOut32,
-            .error = reply,
-        }), ({
-            return;
-        }));
+    assert(/*? me.interface.name ?*/_in_range(/*? port_range[0] ?*/ + offset));
+    /* Ignore the return value */
+    ps_io_port_out(&ops, /*? port_range[0] ?*/ + offset, IOSIZE_16, value);
 }
 
 void /*? me.interface.name ?*/_out32_offset(uint16_t offset, uint32_t value)
 {
-    /*? me.interface.name ?*/_out32(/*? port_range[0] ?*/ + offset, value);
+    if (!ops_inited) {
+        init_io_port_ops();
+    }
+
+    assert(/*? me.interface.name ?*/_in_range(/*? port_range[0] ?*/ + offset));
+    /* Ignore the return value */
+    ps_io_port_out(&ops, /*? port_range[0] ?*/ + offset, IOSIZE_32, value);
 }
