@@ -120,36 +120,6 @@ static char dma_pool_symbol[/*? dma_pool ?*/]
 /*- endfor -*/
 /*- do register_dma_pool('dma_pool_symbol', page_size[0], dma_frames) -*/
 
-static uintptr_t dma_get_paddr(void *ptr) {
-    uintptr_t base UNUSED = (uintptr_t)ptr & ~MASK(ffs(/*? page_size[0] ?*/) - 1);
-    uintptr_t offset UNUSED = (uintptr_t)ptr & MASK(ffs(/*? page_size[0] ?*/) - 1);
-    /*- for i in six.moves.range(num_dma_frames) -*/
-        /*- if not loop.first -*/
-            else
-        /*- endif -*/
-        if (base == (uintptr_t)dma_pool_symbol + /*? i ?*/ * /*? page_size[0] ?*/) {
-            /*- set frame = dma_frames[i] -*/
-            /*- set paddr_sym = c_symbol('paddr') -*/
-            static uintptr_t /*? paddr_sym ?*/;
-            if (/*? paddr_sym ?*/ == 0) {
-                seL4_ARCH_Page_GetAddress_t res = seL4_ARCH_Page_GetAddress(/*? frame ?*/);
-                ERR_IF(res.error != 0, camkes_error, ((camkes_error_t){
-                        .type = CE_SYSCALL_FAILED,
-                        .instance = "/*? me.name ?*/",
-                        .description = "failed to reverse virtual mapping to a DMA frame",
-                        .syscall = ARCHPageGetAddress,
-                        .error = res.error,
-                    }), ({
-                        return (uintptr_t)NULL;
-                    }));
-                /*? paddr_sym ?*/ = res.paddr;
-            }
-            return /*? paddr_sym ?*/ + offset;
-        }
-    /*- endfor -*/
-    return (uintptr_t)NULL;
-}
-
 /*# Expose the frames backing the DMA pool #*/
 /*- for cap in dma_frames -*/
     static dma_frame_t /*? me.instance.name ?*/_dma_/*? loop.index0 ?*/ = {
@@ -160,22 +130,6 @@ static uintptr_t dma_get_paddr(void *ptr) {
     USED SECTION("_dma_frames")
     dma_frame_t * /*? me.instance.name ?*/_dma_/*? loop.index0 ?*/_ptr = &/*? me.instance.name ?*/_dma_/*? loop.index0 ?*/;
 /*- endfor -*/
-
-static seL4_CPtr get_cptr(void *ptr) {
-    uintptr_t base UNUSED = (uintptr_t)ptr & ~MASK(ffs(/*? page_size[0] ?*/) - 1);
-    uintptr_t offset UNUSED = (uintptr_t)ptr & MASK(ffs(/*? page_size[0] ?*/) - 1);
-    /*- for i in six.moves.range(num_dma_frames) -*/
-        /*- if not loop.first -*/
-            else
-        /*- endif -*/
-        if (base == (uintptr_t)dma_pool_symbol + /*? i ?*/ * /*? page_size[0] ?*/) {
-            /*- set frame = dma_frames[i] -*/
-            return /*? frame ?*/;
-        }
-    /*- endfor -*/
-    return seL4_CapNull;
-}
-
 
 /* IO port related functionality for interaction with libplatsupport. */
 int camkes_io_port_in(void *cookie UNUSED, uint32_t port UNUSED,

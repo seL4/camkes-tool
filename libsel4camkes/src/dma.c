@@ -23,8 +23,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <camkes/dma.h>
+#include <camkes/error.h>
 #include <utils/util.h>
 #include <sel4/sel4.h>
+#include <vspace/page.h>
 
 /* NOT THREAD SAFE. The code could be made thread safe relatively easily by
  * operating atomically on the free list.
@@ -38,6 +40,9 @@ static void *head;
 /* This function will be supplied to us at initialisation of the DMA pool. */
 static uintptr_t (*to_paddr)(void *ptr);
 static seL4_CPtr (*to_cptr)(void *ptr);
+
+/* This is a helper function to query the name of the current instance */
+extern const char *get_instance_name(void);
 
 /* A node in the free list. Note that the free list is stored as a linked-list
  * of such nodes *within* the DMA pages themselves. This struct is deliberately
@@ -425,14 +430,40 @@ int camkes_dma_init(void *dma_pool, size_t dma_pool_sz, size_t page_size,
     return 0;
 }
 
-uintptr_t camkes_dma_get_paddr(void *ptr) {
-    assert(to_paddr != NULL);
-    return to_paddr(ptr);
+uintptr_t camkes_dma_get_paddr(void *ptr)
+{
+    for (dma_frame_t **frame = __start__dma_frames;
+         frame < __stop__dma_frames; frame++) {
+        uintptr_t base = (uintptr_t)ptr & ~MASK(ffs((*frame)->size) - 1);
+        uintptr_t offset = (uintptr_t)ptr & MASK(ffs((*frame)->size) - 1);
+        if (base == (*frame)->vaddr) {
+            seL4_ARCH_Page_GetAddress_t res = seL4_ARCH_Page_GetAddress((*frame)->cap);
+            ERR_IF(res.error != 0, camkes_error, ((camkes_error_t) {
+                .type = CE_SYSCALL_FAILED,
+                .instance = get_instance_name(),
+                .description = "failed to reverse virtual mapping to a DMA frame",
+                .syscall = ARCHPageGetAddress,
+                .error = res.error,
+            }), ({
+                return (uintptr_t)NULL;
+            }));
+            return res.paddr + offset;
+        }
+    }
+    return (uintptr_t)NULL;
 }
 
-seL4_CPtr camkes_dma_get_cptr(void *ptr) {
-    assert(to_cptr != NULL);
-    return to_cptr(ptr);
+seL4_CPtr camkes_dma_get_cptr(void *ptr)
+{
+    for (dma_frame_t **frame = __start__dma_frames;
+         frame < __stop__dma_frames; frame++) {
+        uintptr_t base = (uintptr_t)ptr & ~MASK(ffs((*frame)->size) - 1);
+        uintptr_t offset = (uintptr_t)ptr & MASK(ffs((*frame)->size) - 1);
+        if (base == (*frame)->vaddr) {
+            return (*frame)->cap;
+        }
+    }
+    return seL4_CapNull;
 }
 
 /* Allocate a DMA region. This is refactored out of camkes_dma_alloc simply so
