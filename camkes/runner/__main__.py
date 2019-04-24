@@ -359,7 +359,7 @@ def main(argv, out, err):
 
         for t in ('%s/source' % i.name, '%s/header' % i.name,
                 '%s/c_environment_source' % i.name,
-                '%s/cakeml_start_source' % i.name, '%s/cakeml_end_source' % i.name,
+                '%s/cakeml_start_source' % i.name, '%s/cakeml_end_source' % i.name, '%s/camkesConstants' % i.name,
                 '%s/linker' % i.name):
             try:
                 template = templates.lookup(t, i)

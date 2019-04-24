@@ -213,6 +213,7 @@ endfunction(GeneratorValueOrDefault)
     /*- elif configuration[i.name].get('environment').lower() == 'cakeml' -*/
         set(cakeml_sources "$<TARGET_PROPERTY:CAmkESComponent_/*? i.type.name ?*/,COMPONENT_CAKEML_SOURCES>")
         CAmkESGen("${generated_dir}/camkesStartScript.sml" /*? i.name ?*//cakeml_start_source SOURCE SOURCES_VAR cakeml_sources)
+        CAmkESGen("${generated_dir}/camkesConstants.sml" /*? i.name ?*//camkesConstants SOURCE SOURCES_VAR cakeml_sources)
         CAmkESGen("${generated_dir}/camkesEndScript.sml" /*? i.name ?*//cakeml_end_source SOURCE SOURCES_VAR cakeml_sources)
     /*- else -*/
         /*? raise(TemplateError('Unknown environment')) ?*/

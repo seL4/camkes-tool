@@ -34,6 +34,7 @@ TEMPLATES = {
             'source':'component.common.c',
             'c_environment_source':'component.environment.c',
             'cakeml_start_source':'component.environment.start.cakeml',
+            'camkesConstants':'camkesConstants.sml',
             'cakeml_end_source':'component.environment.end.cakeml',
             'header':'component.template.h',
             'simple':'component.simple.c',
