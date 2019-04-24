@@ -29,7 +29,7 @@ test_apps = [
     'adder',
     #'aeroplage', # x86 only
     #'alignment', # x86 only
-    #'attributes', # hierarchical components not supported
+    'attributes',
     'binary-semaphore',
     #'cakeml_hello', # FIXME: OK modulo rebranded connector (seL4RPCNoType)
     'cakeml_regex',
@@ -48,8 +48,8 @@ test_apps = [
     'filter',
     'global-imports',
     #'hellorust', # x86 only
-    #'hierarchical-attributes', # hierarchical components not supported
-    #'hierarchical-components', # hierarchical components not supported
+    'hierarchical-attributes',
+    'hierarchical-components',
     #'keyboard', # x86 only
     'lockserver',
     'mcs-donate',
@@ -90,7 +90,7 @@ test_apps = [
     #'testhwdataportlrgpages', # hardware component not supported
     #'testnto1mmio', # hardware component not supported
     'testnto1overload',
-    #'testrefin', # "Primitive" shadows CamkesAdlSpec identifier
+    'testrefin',
     'testreplycapprotection',
     'testsel4notification',
     #'testsingleaddressspaceheap', # grouped components not supported
