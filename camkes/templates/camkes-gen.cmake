@@ -545,9 +545,10 @@ DeclareRootserver("capdl-loader")
 
 # Generate Isabelle theory scripts if needed
 if (CAmkESCapDLVerification)
-    # Base name for Isabelle theories. We derive this from the app name,
+    # Base name for Isabelle theories. We derive this from the top-level ADL name,
     # but mangled to ensure that it is a valid identifier.
-    string(MAKE_C_IDENTIFIER ${CAMKES_APP} VER_BASE_NAME)
+    get_filename_component(VER_BASE_NAME "${adl}" NAME_WE)
+    string(MAKE_C_IDENTIFIER "${VER_BASE_NAME}" VER_BASE_NAME)
 
     # Generated theory names. These must be consistent with the templates.
     set(CAMKES_CDL_THY "${VER_BASE_NAME}_CDL.thy")
