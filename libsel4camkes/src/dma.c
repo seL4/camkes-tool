@@ -37,10 +37,6 @@
  */
 static void *head;
 
-/* This function will be supplied to us at initialisation of the DMA pool. */
-static uintptr_t (*to_paddr)(void *ptr);
-static seL4_CPtr (*to_cptr)(void *ptr);
-
 /* This is a helper function to query the name of the current instance */
 extern const char *get_instance_name(void);
 
@@ -326,8 +322,8 @@ static void defrag(void) {
     check_consistency();
 }
 
-int camkes_dma_init(void *dma_pool, size_t dma_pool_sz, size_t page_size,
-        uintptr_t (*get_paddr)(void *ptr), seL4_CPtr (*get_cptr)(void *ptr)) {
+int camkes_dma_init(void *dma_pool, size_t dma_pool_sz, size_t page_size)
+{
     /* We should not have already initialised our bookkeeping. */
     assert(head == NULL);
 
@@ -357,9 +353,6 @@ int camkes_dma_init(void *dma_pool, size_t dma_pool_sz, size_t page_size,
         return -1;
     }
 
-    to_paddr = get_paddr;
-    to_cptr = get_cptr;
-
     STATS(stats.heap_size = dma_pool_sz);
     STATS(stats.minimum_heap_size = dma_pool_sz);
     STATS(stats.minimum_allocation = SIZE_MAX);
@@ -381,7 +374,7 @@ int camkes_dma_init(void *dma_pool, size_t dma_pool_sz, size_t page_size,
          * for breaks in physical contiguity.
          */
         for (void *base = dma_pool; base < dma_pool + dma_pool_sz;) {
-            uintptr_t base_paddr = get_paddr(base);
+            uintptr_t base_paddr = camkes_dma_get_paddr(base);
             if (base_paddr == 0) {
                 /* The caller gave us a region backed by non-reversible frames. */
                 return -1;
@@ -393,7 +386,7 @@ int camkes_dma_init(void *dma_pool, size_t dma_pool_sz, size_t page_size,
                     /* The user gave us a region that wraps virtual memory. */
                     return -1;
                 }
-                uintptr_t limit_paddr = get_paddr(limit);
+                uintptr_t limit_paddr = camkes_dma_get_paddr(limit);
                 if (limit_paddr == 0) {
                     /* The user gave us a region that wraps physical memory. */
                     return -1;
