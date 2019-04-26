@@ -10,8 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef _CAMKES_DATAPORT_H_
-#define _CAMKES_DATAPORT_H_
+#pragma once
 
 #include <platsupport/io.h>
 #include <stdint.h>
@@ -40,10 +39,10 @@ typedef struct dataport_ptr_ {
 } dataport_ptr_t;
 
 struct dataport_frame {
-     uintptr_t paddr;
-     uintptr_t cap;
-     uintptr_t size;
-     uintptr_t vaddr;
+    uintptr_t paddr;
+    uintptr_t cap;
+    uintptr_t size;
+    uintptr_t vaddr;
 };
 typedef struct dataport_frame dataport_frame_t;
 
@@ -62,5 +61,3 @@ void *dataport_unwrap_ptr(dataport_ptr_t ptr);
 int camkes_dataport_flush_cache(size_t start_offset, size_t size,
                                 uintptr_t dataport_start, size_t dataport_size,
                                 dma_cache_op_t cache_op);
-
-#endif

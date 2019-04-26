@@ -10,8 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef _CAMKES_DMA_H_
-#define _CAMKES_DMA_H_
+#pragma once
 
 #include <platsupport/io.h>
 #include <stddef.h>
@@ -29,7 +28,7 @@
  * This function is intended to be called by the CAmkES backend and not by a user.
  */
 int camkes_dma_init(void *dma_pool, size_t dma_pool_sz, size_t page_size)
-    NONNULL(1) WARN_UNUSED_RESULT;
+NONNULL(1) WARN_UNUSED_RESULT;
 
 /**
  * Allocate memory to be used for DMA.
@@ -40,7 +39,7 @@ int camkes_dma_init(void *dma_pool, size_t dma_pool_sz, size_t page_size)
  * @return Virtual address of allocation or NULL on failure
  */
 void *camkes_dma_alloc(size_t size, int align) ALLOC_SIZE(1) ALLOC_ALIGN(2)
-    MALLOC WARN_UNUSED_RESULT;
+MALLOC WARN_UNUSED_RESULT;
 
 /**
  * Free previously allocated DMA memory.
@@ -146,9 +145,9 @@ const camkes_dma_stats_t *camkes_dma_stats(void) RETURNS_NONNULL;
  * preference to these.
  */
 void *camkes_dma_alloc_page(void)
-    DEPRECATED("use camkes_dma_alloc(PAGE_SIZE_4K, PAGE_SIZE_4K) instead");
+DEPRECATED("use camkes_dma_alloc(PAGE_SIZE_4K, PAGE_SIZE_4K) instead");
 void camkes_dma_free_page(void *ptr)
-    DEPRECATED("use camkes_dma_free(ptr, PAGE_SIZE_4K) instead");
+DEPRECATED("use camkes_dma_free(ptr, PAGE_SIZE_4K) instead");
 
 /*
  * This struct describes the information about a frame in a component's DMA pool.
@@ -165,5 +164,3 @@ static USED SECTION("_dma_frames") struct {} dummy_dma_frame;
 /* Definitions so that we can find the exposed DMA frames */
 extern dma_frame_t *__start__dma_frames[];
 extern dma_frame_t *__stop__dma_frames[];
-
-#endif

@@ -10,8 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef _CAMKES_IO_H_
-#define _CAMKES_IO_H_
+#pragma once
 
 #include <platsupport/io.h>
 #include <stdint.h>
@@ -61,5 +60,3 @@ static USED SECTION("_ioport_regions") struct {} dummy_ioport_region;
 /* Definitions so that we can find the exposed IO port regions */
 extern ioport_region_t *__start__ioport_regions[];
 extern ioport_region_t *__stop__ioport_regions[];
-
-#endif

@@ -71,15 +71,18 @@ typedef struct {
      * reconstruct these from the offset into the page, obtainable as described
      * above. See `extract_paddr` below.
      */
-    uintptr_t paddr_upper:sizeof(uintptr_t) * 8 - PAGE_BITS_4K;
+uintptr_t paddr_upper:
+    sizeof(uintptr_t) * 8 - PAGE_BITS_4K;
 
 } region_t;
 
-static void save_paddr(region_t *r, uintptr_t paddr) {
+static void save_paddr(region_t *r, uintptr_t paddr)
+{
     assert(r != NULL);
     r->paddr_upper = paddr >> PAGE_BITS_4K;
 }
-static uintptr_t PURE try_extract_paddr(region_t *r) {
+static uintptr_t PURE try_extract_paddr(region_t *r)
+{
     assert(r != NULL);
     uintptr_t paddr = r->paddr_upper;
     if (paddr != 0) {
@@ -88,7 +91,8 @@ static uintptr_t PURE try_extract_paddr(region_t *r) {
     }
     return paddr;
 }
-static uintptr_t extract_paddr(region_t *r) {
+static uintptr_t extract_paddr(region_t *r)
+{
     uintptr_t paddr = try_extract_paddr(r);
     if (paddr == 0) {
         /* We've never looked up the physical address of this region. Look it
@@ -104,12 +108,14 @@ static uintptr_t extract_paddr(region_t *r) {
 }
 
 /* Various helpers for dealing with the above data structure layout. */
-static void prepend_node(region_t *node) {
+static void prepend_node(region_t *node)
+{
     assert(node != NULL);
     node->next = head;
     head = node;
 }
-static void remove_node(region_t *previous, region_t *node) {
+static void remove_node(region_t *previous, region_t *node)
+{
     assert(node != NULL);
     if (previous == NULL) {
         head = node->next;
@@ -117,7 +123,8 @@ static void remove_node(region_t *previous, region_t *node) {
         previous->next = node->next;
     }
 }
-static void replace_node(region_t *previous, region_t *old, region_t *new) {
+static void replace_node(region_t *previous, region_t *old, region_t *new)
+{
     assert(old != NULL);
     assert(new != NULL);
     new->next = old->next;
@@ -127,12 +134,14 @@ static void replace_node(region_t *previous, region_t *old, region_t *new) {
         previous->next = new;
     }
 }
-static void shrink_node(region_t *node, size_t by) {
+static void shrink_node(region_t *node, size_t by)
+{
     assert(node != NULL);
     assert(by > 0 && node->size > by);
     node->size -= by;
 }
-static void grow_node(region_t *node, size_t by) {
+static void grow_node(region_t *node, size_t by)
+{
     assert(node != NULL);
     assert(by > 0);
     node->size += by;
@@ -141,7 +150,8 @@ static void grow_node(region_t *node, size_t by) {
 /* Check certain assumptions hold on the free list. This function is intended
  * to be a no-op when NDEBUG is defined.
  */
-static void check_consistency(void) {
+static void check_consistency(void)
+{
     if (head == NULL) {
         /* Empty free list. */
         return;
@@ -173,10 +183,10 @@ static void check_consistency(void) {
         assert(r->size >= sizeof(region_t) && "a region has an invalid size");
 
         assert(UINTPTR_MAX - (uintptr_t)r >= r->size &&
-            "a region overflows in virtual address space");
+               "a region overflows in virtual address space");
 
         assert(UINTPTR_MAX - extract_paddr(r) >= r->size &&
-            "a region overflows in physical address space");
+               "a region overflows in physical address space");
     }
 
     /* Ensure no regions overlap. */
@@ -184,40 +194,41 @@ static void check_consistency(void) {
         for (region_t *p = head; p != r; p = p->next) {
 
             uintptr_t r_vaddr UNUSED = (uintptr_t)r,
-                      p_vaddr UNUSED = (uintptr_t)p,
-                      r_paddr UNUSED = extract_paddr(r),
-                      p_paddr UNUSED = extract_paddr(p);
+                              p_vaddr UNUSED = (uintptr_t)p,
+                                      r_paddr UNUSED = extract_paddr(r),
+                                              p_paddr UNUSED = extract_paddr(p);
 
             assert(!((r_vaddr >= p_vaddr && r_vaddr < p_vaddr + p->size) ||
                      (p_vaddr >= r_vaddr && p_vaddr < r_vaddr + r->size)) &&
-                "two regions overlap in virtual address space");
+                   "two regions overlap in virtual address space");
 
             assert(!((r_paddr >= p_paddr && r_paddr < p_paddr + p->size) ||
                      (p_paddr >= r_paddr && p_paddr < r_paddr + r->size)) &&
-                "two regions overlap in physical address space");
+                   "two regions overlap in physical address space");
         }
     }
 }
 
 #ifdef NDEBUG
-    #define STATS(arg) do { } while (0)
+#define STATS(arg) do { } while (0)
 #else
-    /* Statistics functionality. */
+/* Statistics functionality. */
 
-    #define STATS(arg) do { arg; } while (0)
+#define STATS(arg) do { arg; } while (0)
 
-    static camkes_dma_stats_t stats;
+static camkes_dma_stats_t stats;
 
-    static size_t total_allocation_bytes;
+static size_t total_allocation_bytes;
 
-    const camkes_dma_stats_t *camkes_dma_stats(void) {
-        if (stats.total_allocations > 0) {
-            stats.average_allocation = total_allocation_bytes / stats.total_allocations;
-        } else {
-            stats.average_allocation = 0;
-        }
-        return (const camkes_dma_stats_t*)&stats;
+const camkes_dma_stats_t *camkes_dma_stats(void)
+{
+    if (stats.total_allocations > 0) {
+        stats.average_allocation = total_allocation_bytes / stats.total_allocations;
+    } else {
+        stats.average_allocation = 0;
     }
+    return (const camkes_dma_stats_t *)&stats;
+}
 #endif
 
 /* Defragment the free list. Can safely be called at any time. The complexity
@@ -244,9 +255,10 @@ static void check_consistency(void) {
  *  │paddr: 0x4000│   │paddr: 0x8000│
  *  └─────────────┘   └─────────────┘
  */
-static void defrag(void) {
+static void defrag(void)
+{
     assert(head != NULL &&
-        "attempted defragmentation of DMA free list before initialisation");
+           "attempted defragmentation of DMA free list before initialisation");
 
     check_consistency();
 
@@ -343,7 +355,7 @@ int camkes_dma_init(void *dma_pool, size_t dma_pool_sz, size_t page_size)
      * power-of-2-aligned. Your compiler should always guarantee this.
      */
     static_assert(IS_POWER_OF_2(alignof(region_t)),
-        "region_t is not power-of-2-aligned");
+                  "region_t is not power-of-2-aligned");
 
     /* The page size the caller has given us should be a power of 2 and at least
      * the alignment of `region_t`.
@@ -363,10 +375,10 @@ int camkes_dma_init(void *dma_pool, size_t dma_pool_sz, size_t page_size)
          * it out for ourselves.
          */
         for (void *base = dma_pool; base < dma_pool + dma_pool_sz;
-                base += page_size) {
+             base += page_size) {
             assert((uintptr_t)base % alignof(region_t) == 0 &&
-                "we misaligned the DMA pool base address during "
-                "initialisation");
+                   "we misaligned the DMA pool base address during "
+                   "initialisation");
             camkes_dma_free(base, page_size);
         }
     } else {
@@ -405,8 +417,8 @@ int camkes_dma_init(void *dma_pool, size_t dma_pool_sz, size_t page_size)
              */
             if (base + sizeof(region_t) >= limit) {
                 assert((uintptr_t)base % alignof(region_t) == 0 &&
-                    "we misaligned the DMA pool base address during "
-                    "initialisation");
+                       "we misaligned the DMA pool base address during "
+                       "initialisation");
                 camkes_dma_free(base, limit - base);
             }
 
@@ -414,7 +426,7 @@ int camkes_dma_init(void *dma_pool, size_t dma_pool_sz, size_t page_size)
              * region aligned for bookkeeping, so bump the address up if
              * necessary.
              */
-            base = (void*)ALIGN_UP((uintptr_t)limit, alignof(region_t));
+            base = (void *)ALIGN_UP((uintptr_t)limit, alignof(region_t));
         }
     }
 
@@ -462,7 +474,8 @@ seL4_CPtr camkes_dma_get_cptr(void *ptr)
 /* Allocate a DMA region. This is refactored out of camkes_dma_alloc simply so
  * we can more eloquently express reattempting allocations.
  */
-static void *alloc(size_t size, int align) {
+static void *alloc(size_t size, int align)
+{
 
     /* Our caller should have rounded 'size' up. */
     assert(size >= sizeof(region_t));
@@ -491,12 +504,12 @@ static void *alloc(size_t size, int align) {
              * satisfying allocation that doesn't involve the initial
              * sizeof(region_t) bytes.
              */
-            for (void *q = (void*)ROUND_DOWN((uintptr_t)p + p->size - size, align);
-                    q == (void*)p || q >= (void*)p + sizeof(region_t);
-                    q -= align) {
+            for (void *q = (void *)ROUND_DOWN((uintptr_t)p + p->size - size, align);
+                 q == (void *)p || q >= (void *)p + sizeof(region_t);
+                 q -= align) {
 
-                if (q + size == (void*)p + p->size ||
-                        q + size + sizeof(region_t) <= (void*)p + p->size) {
+                if (q + size == (void *)p + p->size ||
+                    q + size + sizeof(region_t) <= (void *)p + p->size) {
                     /* Found something that satisfies the caller's
                      * requirements and leaves us enough room to turn the cut
                      * off suffix into a new chunk.
@@ -516,7 +529,7 @@ static void *alloc(size_t size, int align) {
                             /* 2. We're giving them the start of the chunk. We
                              * need to extract the end as a new node.
                              */
-                            region_t *r = (void*)p + size;
+                            region_t *r = (void *)p + size;
                             if (base_paddr != 0) {
                                 /* PERF: The original chunk had a physical
                                  * address. Save the overhead of a future
@@ -529,7 +542,7 @@ static void *alloc(size_t size, int align) {
                             r->size = p->size - size;
                             replace_node(prev, p, r);
                         }
-                    } else if (q + size == (void*)p + p->size) {
+                    } else if (q + size == (void *)p + p->size) {
                         /* 3. We're giving them the end of the chunk. We need
                          * to shrink the existing node.
                          */
@@ -562,20 +575,25 @@ static void *alloc(size_t size, int align) {
     return NULL;
 }
 
-void *camkes_dma_alloc(size_t size, int align) {
+void *camkes_dma_alloc(size_t size, int align)
+{
 
     STATS(({
         stats.total_allocations++;
-        if (size < stats.minimum_allocation) {
+        if (size < stats.minimum_allocation)
+        {
             stats.minimum_allocation = size;
         }
-        if (size > stats.maximum_allocation) {
+        if (size > stats.maximum_allocation)
+        {
             stats.maximum_allocation = size;
         }
-        if (align < stats.minimum_alignment) {
+        if (align < stats.minimum_alignment)
+        {
             stats.minimum_alignment = align;
         }
-        if (align > stats.maximum_alignment) {
+        if (align > stats.maximum_alignment)
+        {
             stats.maximum_alignment = align;
         }
         total_allocation_bytes += size;
@@ -638,7 +656,8 @@ void *camkes_dma_alloc(size_t size, int align) {
     } else {
         STATS(({
             stats.current_outstanding += size;
-            if (stats.heap_size - stats.current_outstanding < stats.minimum_heap_size) {
+            if (stats.heap_size - stats.current_outstanding < stats.minimum_heap_size)
+            {
                 stats.minimum_heap_size = stats.heap_size - stats.current_outstanding;
             }
         }));
@@ -647,7 +666,8 @@ void *camkes_dma_alloc(size_t size, int align) {
     return p;
 }
 
-void camkes_dma_free(void *ptr, size_t size) {
+void camkes_dma_free(void *ptr, size_t size)
+{
 
     /* Allow the user to free NULL. */
     if (ptr == NULL) {
@@ -674,12 +694,14 @@ void camkes_dma_free(void *ptr, size_t size) {
     assert((uintptr_t)ptr % alignof(region_t) == 0);
 
     STATS(({
-            if (size >= stats.current_outstanding) {
-                stats.current_outstanding = 0;
-            } else {
-                stats.current_outstanding -= size;
-            }
-        }));
+        if (size >= stats.current_outstanding)
+        {
+            stats.current_outstanding = 0;
+        } else
+        {
+            stats.current_outstanding -= size;
+        }
+    }));
 
     region_t *p = ptr;
     p->paddr_upper = 0;
@@ -695,7 +717,8 @@ void camkes_dma_free(void *ptr, size_t size) {
  */
 
 static void *dma_alloc(void *cookie UNUSED, size_t size, int align, int cached,
-        ps_mem_flags_t flags UNUSED) {
+                       ps_mem_flags_t flags UNUSED)
+{
 
     /* Ignore the cached argument and allocate an uncached page. The assumption
      * here is that any caller that wants a cached page only wants it so as an
@@ -709,27 +732,32 @@ static void *dma_alloc(void *cookie UNUSED, size_t size, int align, int cached,
     return camkes_dma_alloc(size, align);
 }
 
-static void dma_free(void *cookie UNUSED, void *addr, size_t size) {
+static void dma_free(void *cookie UNUSED, void *addr, size_t size)
+{
     camkes_dma_free(addr, size);
 }
 
 /* All CAmkES DMA pages are pinned for the duration of execution, so this is
  * effectively a no-op.
  */
-static uintptr_t dma_pin(void *cookie UNUSED, void *addr, size_t size UNUSED) {
+static uintptr_t dma_pin(void *cookie UNUSED, void *addr, size_t size UNUSED)
+{
     return camkes_dma_get_paddr(addr);
 }
 
 /* As above, all pages are pinned so this is also a no-op. */
-static void dma_unpin(void *cookie UNUSED, void *addr UNUSED, size_t size UNUSED) {
+static void dma_unpin(void *cookie UNUSED, void *addr UNUSED, size_t size UNUSED)
+{
 }
 
 /* Our whole pool is mapped uncached, so cache ops are irrelevant. */
 static void dma_cache_op(void *cookie UNUSED, void *addr UNUSED,
-        size_t size UNUSED, dma_cache_op_t op UNUSED) {
+                         size_t size UNUSED, dma_cache_op_t op UNUSED)
+{
 }
 
-int camkes_dma_manager(ps_dma_man_t *man) {
+int camkes_dma_manager(ps_dma_man_t *man)
+{
     assert(man != NULL);
     man->dma_alloc_fn = dma_alloc;
     man->dma_free_fn = dma_free;
@@ -740,9 +768,11 @@ int camkes_dma_manager(ps_dma_man_t *man) {
 }
 
 /* Legacy functions */
-void *camkes_dma_alloc_page(void) {
+void *camkes_dma_alloc_page(void)
+{
     return camkes_dma_alloc(PAGE_SIZE_4K, PAGE_SIZE_4K);
 }
-void camkes_dma_free_page(void *ptr) {
+void camkes_dma_free_page(void *ptr)
+{
     return camkes_dma_free(ptr, PAGE_SIZE_4K);
 }

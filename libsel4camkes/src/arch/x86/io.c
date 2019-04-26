@@ -18,8 +18,9 @@
 extern const char *get_instance_name(void);
 
 /* Iterates through all the allocated IO port regions and tries to find one that fits */
-static ioport_region_t *find_io_port_region(uint16_t port) {
-    for (ioport_region_t **region= __start__ioport_regions;
+static ioport_region_t *find_io_port_region(uint16_t port)
+{
+    for (ioport_region_t **region = __start__ioport_regions;
          region < __stop__ioport_regions; region++) {
         if (port >= (*region)->start && port <= (*region)->end) {
             return *region;
@@ -45,7 +46,8 @@ static int syscall_error_handler(int error, int syscall_label, ioport_region_t *
     return 0;
 }
 
-static int camkes_arch_io_port_in8(ioport_region_t *region, uint16_t port, uint32_t *result) {
+static int camkes_arch_io_port_in8(ioport_region_t *region, uint16_t port, uint32_t *result)
+{
     seL4_X86_IOPort_In8_t reply = seL4_X86_IOPort_In8(region->cap, port);
 
     int ret = syscall_error_handler(reply.error, X86IOPortIn8, region);
@@ -58,7 +60,8 @@ static int camkes_arch_io_port_in8(ioport_region_t *region, uint16_t port, uint3
     return 0;
 }
 
-static int camkes_arch_io_port_in16(ioport_region_t *region, uint16_t port, uint32_t *result) {
+static int camkes_arch_io_port_in16(ioport_region_t *region, uint16_t port, uint32_t *result)
+{
     seL4_X86_IOPort_In16_t reply = seL4_X86_IOPort_In16(region->cap, port);
 
     int ret = syscall_error_handler(reply.error, X86IOPortIn16, region);
@@ -71,7 +74,8 @@ static int camkes_arch_io_port_in16(ioport_region_t *region, uint16_t port, uint
     return 0;
 }
 
-static int camkes_arch_io_port_in32(ioport_region_t *region, uint16_t port, uint32_t *result) {
+static int camkes_arch_io_port_in32(ioport_region_t *region, uint16_t port, uint32_t *result)
+{
     seL4_X86_IOPort_In32_t reply = seL4_X86_IOPort_In32(region->cap, port);
 
     int ret = syscall_error_handler(reply.error, X86IOPortIn32, region);
@@ -84,7 +88,8 @@ static int camkes_arch_io_port_in32(ioport_region_t *region, uint16_t port, uint
     return 0;
 }
 
-static int camkes_arch_io_port_out8(ioport_region_t *region, uint16_t port, uint32_t value) {
+static int camkes_arch_io_port_out8(ioport_region_t *region, uint16_t port, uint32_t value)
+{
     uint8_t val = (uint8_t) value;
     int reply = seL4_X86_IOPort_Out8(region->cap, port, val);
 
@@ -96,7 +101,8 @@ static int camkes_arch_io_port_out8(ioport_region_t *region, uint16_t port, uint
     return 0;
 }
 
-static int camkes_arch_io_port_out16(ioport_region_t *region, uint16_t port, uint32_t value) {
+static int camkes_arch_io_port_out16(ioport_region_t *region, uint16_t port, uint32_t value)
+{
     uint16_t val = (uint16_t) value;
     int reply = seL4_X86_IOPort_Out16(region->cap, port, val);
 
@@ -108,7 +114,8 @@ static int camkes_arch_io_port_out16(ioport_region_t *region, uint16_t port, uin
     return 0;
 }
 
-static int camkes_arch_io_port_out32(ioport_region_t *region, uint16_t port, uint32_t value) {
+static int camkes_arch_io_port_out32(ioport_region_t *region, uint16_t port, uint32_t value)
+{
     uint32_t val = (uint32_t) value;
     int reply = seL4_X86_IOPort_Out32(region->cap, port, value);
 
@@ -120,38 +127,40 @@ static int camkes_arch_io_port_out32(ioport_region_t *region, uint16_t port, uin
     return 0;
 }
 
-int camkes_arch_io_port_in(uint32_t port, int io_size, uint32_t *result) {
+int camkes_arch_io_port_in(uint32_t port, int io_size, uint32_t *result)
+{
     ioport_region_t *region = find_io_port_region((uint16_t) port);
     if (!region) {
         return -1;
     }
 
     switch (io_size) {
-        case IOSIZE_8:
-            return camkes_arch_io_port_in8(region, port, result);
-        case IOSIZE_16:
-            return camkes_arch_io_port_in16(region, port, result);
-        case IOSIZE_32:
-            return camkes_arch_io_port_in32(region, port, result);
-        default:
-            return -1;
+    case IOSIZE_8:
+        return camkes_arch_io_port_in8(region, port, result);
+    case IOSIZE_16:
+        return camkes_arch_io_port_in16(region, port, result);
+    case IOSIZE_32:
+        return camkes_arch_io_port_in32(region, port, result);
+    default:
+        return -1;
     }
 }
 
-int camkes_arch_io_port_out(uint32_t port, int io_size, uint32_t value) {
+int camkes_arch_io_port_out(uint32_t port, int io_size, uint32_t value)
+{
     ioport_region_t *region = find_io_port_region((uint16_t) port);
     if (!region) {
         return -1;
     }
 
     switch (io_size) {
-        case IOSIZE_8:
-            return camkes_arch_io_port_out8(region, port, value);
-        case IOSIZE_16:
-            return camkes_arch_io_port_out16(region, port, value);
-        case IOSIZE_32:
-            return camkes_arch_io_port_out32(region, port, value);
-        default:
-            return -1;
+    case IOSIZE_8:
+        return camkes_arch_io_port_out8(region, port, value);
+    case IOSIZE_16:
+        return camkes_arch_io_port_out16(region, port, value);
+    case IOSIZE_32:
+        return camkes_arch_io_port_out32(region, port, value);
+    default:
+        return -1;
     }
 }

@@ -30,18 +30,20 @@ typedef struct ll_ {
     struct ll_ *next;
 } ll_t;
 
-static UNUSED int ll_prepend(ll_t **list, const void *data) {
-    ll_t *node = malloc(sizeof *node);
+static UNUSED int ll_prepend(ll_t **list, const void *data)
+{
+    ll_t *node = malloc(sizeof * node);
     if (node == NULL) {
         return -1;
     }
-    node->data = (void*)data;
+    node->data = (void *)data;
     node->next = *list;
     *list = node;
     return 0;
 }
 
-static UNUSED int ll_remove(ll_t **list, const void *data) {
+static UNUSED int ll_remove(ll_t **list, const void *data)
+{
     for (ll_t **l = list; *l != NULL; l = &(*l)->next) {
         if ((*l)->data == data) {
             /* found it */
@@ -63,8 +65,9 @@ typedef struct {
  * and tracks results for the purpose of catching illegal unmapping operations.
  * Note that this function is unused when NDEBUG is defined.
  */
-static UNUSED void * io_map(void *cookie, uintptr_t paddr, size_t size,
-        int cached, ps_mem_flags_t flags) {
+static UNUSED void *io_map(void *cookie, uintptr_t paddr, size_t size,
+                           int cached, ps_mem_flags_t flags)
+{
 
     /* Call the real IO map function. */
     cookie_t *c = cookie;
@@ -82,7 +85,8 @@ static UNUSED void * io_map(void *cookie, uintptr_t paddr, size_t size,
     return p;
 }
 
-static int UNUSED pointer_compare(void *a, void *b) {
+static int UNUSED pointer_compare(void *a, void *b)
+{
     uintptr_t p = (uintptr_t)a;
     uintptr_t q = (uintptr_t)b;
     if (p > q) {
@@ -95,7 +99,8 @@ static int UNUSED pointer_compare(void *a, void *b) {
 }
 
 static void *camkes_io_map(void *cookie UNUSED, uintptr_t paddr,
-        size_t size, int cached UNUSED, ps_mem_flags_t flags UNUSED) {
+                           size_t size, int cached UNUSED, ps_mem_flags_t flags UNUSED)
+{
     if (paddr % PAGE_SIZE_4K != 0 && size % PAGE_SIZE_4K != 0) {
         ZF_LOGE("paddr or size has incorrect alignment: (%p, 0x%zx)", paddr, size);
         return NULL;
@@ -139,18 +144,20 @@ static void *camkes_io_map(void *cookie UNUSED, uintptr_t paddr,
 }
 
 /* We never unmap anything. */
-static void io_unmap(void *cookie UNUSED, void *vaddr UNUSED, size_t size UNUSED) {
+static void io_unmap(void *cookie UNUSED, void *vaddr UNUSED, size_t size UNUSED)
+{
 #ifndef NDEBUG
     cookie_t *c = cookie;
     /* Make sure we previously mapped the pointer the caller gave us. */
     if (ll_remove(&c->mapped, vaddr) != 0) {
         LOG_ERROR("unmapping an IO pointer that was not previously mapped: %p\n",
-            vaddr);
+                  vaddr);
     }
 #endif
 }
 
-int camkes_io_mapper(ps_io_mapper_t *mapper) {
+int camkes_io_mapper(ps_io_mapper_t *mapper)
+{
     assert(mapper != NULL);
 #ifdef NDEBUG
     mapper->cookie = NULL;
@@ -169,30 +176,33 @@ int camkes_io_mapper(ps_io_mapper_t *mapper) {
     return 0;
 }
 
-static int camkes_io_port_in(void *cookie UNUSED, uint32_t port, int io_size, uint32_t *result) {
+static int camkes_io_port_in(void *cookie UNUSED, uint32_t port, int io_size, uint32_t *result)
+{
     return camkes_arch_io_port_in(port, io_size, result);
 }
 
-static int camkes_io_port_out(void *cookie UNUSED, uint32_t port, int io_size, uint32_t val) {
+static int camkes_io_port_out(void *cookie UNUSED, uint32_t port, int io_size, uint32_t val)
+{
     return camkes_arch_io_port_out(port, io_size, val);
 }
 
-int camkes_io_port_ops(ps_io_port_ops_t *ops) {
+int camkes_io_port_ops(ps_io_port_ops_t *ops)
+{
     assert(ops != NULL);
     ops->io_port_in_fn = camkes_io_port_in;
     ops->io_port_out_fn = camkes_io_port_out;
     return 0;
 }
 
-int
-camkes_ps_malloc_ops(ps_malloc_ops_t *ops)
+int camkes_ps_malloc_ops(ps_malloc_ops_t *ops)
 {
     assert(ops != NULL);
 
     return ps_new_stdlib_malloc_ops(ops);
 }
 
-int camkes_io_ops(ps_io_ops_t *ops) {
+int camkes_io_ops(ps_io_ops_t *ops)
+{
     assert(ops != NULL);
     return camkes_io_mapper(&ops->io_mapper) ||
            camkes_io_port_ops(&ops->io_port_ops) ||

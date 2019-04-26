@@ -16,23 +16,25 @@
 #include <sel4/sel4.h>
 #include <utils/util.h>
 
-static int sel4_cache_op(seL4_CPtr frame_cap, seL4_Word start, seL4_Word end, dma_cache_op_t cache_op) {
+static int sel4_cache_op(seL4_CPtr frame_cap, seL4_Word start, seL4_Word end, dma_cache_op_t cache_op)
+{
     switch (cache_op) {
-        case DMA_CACHE_OP_CLEAN:
-            return seL4_ARM_Page_Clean_Data(frame_cap, start, end);
-        case DMA_CACHE_OP_INVALIDATE:
-            return seL4_ARM_Page_Invalidate_Data(frame_cap, start, end);
-        case DMA_CACHE_OP_CLEAN_INVALIDATE:
-            return seL4_ARM_Page_CleanInvalidate_Data(frame_cap, start, end);
-        default:
-            ZF_LOGF("Invalid cache_op %d", cache_op);
-            return -1;
+    case DMA_CACHE_OP_CLEAN:
+        return seL4_ARM_Page_Clean_Data(frame_cap, start, end);
+    case DMA_CACHE_OP_INVALIDATE:
+        return seL4_ARM_Page_Invalidate_Data(frame_cap, start, end);
+    case DMA_CACHE_OP_CLEAN_INVALIDATE:
+        return seL4_ARM_Page_CleanInvalidate_Data(frame_cap, start, end);
+    default:
+        ZF_LOGF("Invalid cache_op %d", cache_op);
+        return -1;
     }
 }
 
 int camkes_dataport_arch_flush_cache(size_t start_offset, size_t size,
                                      uintptr_t dataport_start, size_t dataport_size,
-                                     dma_cache_op_t cache_op) {
+                                     dma_cache_op_t cache_op)
+{
     if (start_offset >= dataport_size || size > dataport_size || dataport_size - size < start_offset) {
         ZF_LOGE("Specified range is outside the bounds of the dataport");
         return -1;

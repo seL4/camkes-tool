@@ -16,7 +16,8 @@
 
 int camkes_dataport_flush_cache(size_t start_offset, size_t size,
                                 uintptr_t dataport_start, size_t dataport_size,
-                                dma_cache_op_t cache_op) {
+                                dma_cache_op_t cache_op)
+{
     /* x86 doesn't have page flushing operations */
     return 0;
 }
