@@ -25,10 +25,11 @@
  * pool in bytes, the page size of the associated mappings and a function to
  * reverse mappings. Callers may pass 0 as the page_size to force the allocator
  * itself to determine it automatically. Returns 0 on success.
+ *
+ * This function is intended to be called by the CAmkES backend and not by a user.
  */
-int camkes_dma_init(void *dma_pool, size_t dma_pool_sz, size_t page_size,
-    uintptr_t (*get_paddr)(void *ptr), seL4_CPtr (*get_cptr)(void *ptr))
-    NONNULL(1, 4) WARN_UNUSED_RESULT;
+int camkes_dma_init(void *dma_pool, size_t dma_pool_sz, size_t page_size)
+    NONNULL(1) WARN_UNUSED_RESULT;
 
 /**
  * Allocate memory to be used for DMA.
