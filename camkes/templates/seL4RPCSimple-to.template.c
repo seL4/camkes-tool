@@ -55,7 +55,7 @@
     );
 /*- endfor -*/
 
-/*- set ep = alloc('ep', seL4_EndpointObject, read=True, write=True) -*/
+/*- set ep = alloc('ep', seL4_EndpointObject, read=True) -*/
 
 /*# We may need a slot to save reply caps in. #*/
 /*- if not options.realtime -*/
