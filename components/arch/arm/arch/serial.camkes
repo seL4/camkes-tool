@@ -1,5 +1,5 @@
 /*
- * Copyright 2018, Data61
+ * Copyright 2019, Data61
  * Commonwealth Scientific and Industrial Research Organisation (CSIRO)
  * ABN 41 687 119 230.
  *
@@ -10,4 +10,5 @@
  * @TAG(DATA61_BSD)
  */
 
-import <mach/serial.camkes>;
+/* Left intentionally empty, there are no ARM serial hardware components,
+ * the seL4DTBHardware connector initialises the hardware resources for us instead. */
