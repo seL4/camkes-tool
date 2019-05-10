@@ -266,7 +266,7 @@ endfunction(GeneratorValueOrDefault)
         # Additional directories for the HOL build to depend on
         get_property(cakeml_includes TARGET CAmkESComponent_/*? i.type.name ?*/ PROPERTY COMPONENT_CAKEML_INCLUDES)
         get_property(cakeml_depends TARGET CAmkESComponent_/*? i.type.name ?*/ PROPERTY COMPONENT_CAKEML_DEPENDS)
-        DeclareCakeMLLib(camkescakeml_contents
+        DeclareCakeMLLib(/*? i.name ?*/_camkescakeml_contents
             SOURCES "${cakeml_sources}"
             TRANSLATION_THEORY "camkesEnd"
             HEAP_SIZE "${heap}"
@@ -276,7 +276,7 @@ endfunction(GeneratorValueOrDefault)
             INCLUDES ${cakeml_includes}
             DEPENDS "${gen_target}" "${cakeml_depends}"
         )
-        target_link_libraries(${target} camkescakeml camkescakeml_contents)
+        target_link_libraries(${target} camkescakeml /*? i.name ?*/_camkescakeml_contents)
     endif()
     target_include_directories(${target} PRIVATE ${includes} "${generated_dir}/include")
     # Depend upon core camkes libraries
