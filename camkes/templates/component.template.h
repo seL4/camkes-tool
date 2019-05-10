@@ -149,6 +149,21 @@ const char *get_instance_name(void);
         /*- if irq[0] -*/ WARNING("/*? c.name ?*/_reg_callback is not provided "
             "by seL4HardwareInterrupt or seL4DTBHardware") /*- endif -*/
         ;
+    /*- if dtb_connector[0] -*/
+        /*# Since the interfaces of the seL4DTBHardware connector are 'consumes', we
+         *# have to declare the buffers here, and not inside the dataport block
+         #*/
+        /*- set config_name = '%s.%s' % (me.name, c) -*/
+        /*- set dtb = configuration[config_name]['dtb'] -*/
+        /*- if dtb is none -*/
+            /*? raise(TemplateError('Couldn\'t grab the DTB for the %s seL4DTBHardware connection.' % config_name)) ?*/
+        /*- endif -*/
+        /*- set num_registers = len(dtb['reg']) // (dtb['this_address_cells'][0] + dtb['this_size_cells'][0]) -*/
+        /*# Declare all the initialised buffers #*/
+        /*- for i in range(0, num_registers) -*/
+            extern void * /*? c ?*/_/*? i ?*/;
+        /*- endfor -*/
+    /*- endif -*/
     /*- if irq[0] and dtb_connector[0] -*/
         int /*? c.name ?*/_irq_acknowledge(ps_irq_t *irq) WARN_UNUSED_RESULT;
         /* Implemented by user code. */
