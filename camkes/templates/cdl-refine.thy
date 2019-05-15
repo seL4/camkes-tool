@@ -93,10 +93,6 @@ schematic_goal /*? options.verification_base_name ?*/_policy_gen_cases_:
   apply (clarsimp simp only: /*? options.verification_base_name ?*/_policy_def' mem_Collect_eq)
   by assign_schematic_dnf
 
-lemma subst_eqn_helper:
-  "(\<And>s. s = t \<longrightarrow> P s) \<Longrightarrow> P t"
-  by simp
-
 local_setup {* fn ctxt => let
     fun try_repeat f x = case try f x of SOME x' => try_repeat f x' | NONE => x;
     (* convert "(a = x \<and> b = y \<and> \<dots>) \<longrightarrow> foo a b \<dots>" to "foo x y \<dots>" *)
@@ -109,7 +105,9 @@ local_setup {* fn ctxt => let
           case try subst_values thm of
               SOME eqn => [eqn]
             | NONE => process (@{thm disjI1} RS thm) @ process (@{thm disjI2} RS thm);
-    val /*? options.verification_base_name ?*/_policy_intros = process @{thm /*? options.verification_base_name ?*/_policy_gen_cases_[THEN iffD2]};
+    val /*? options.verification_base_name ?*/_policy_intros =
+          process @{thm /*? options.verification_base_name ?*/_policy_gen_cases_[THEN iffD2]}
+          |> distinct Thm.eq_thm_prop; (* remove dups *)
   in
     ctxt
     |> Local_Theory.notes [((Binding.name "/*? options.verification_base_name ?*/_policy_intros", []),
@@ -327,49 +325,74 @@ lemma /*? options.verification_base_name ?*/_policy_wellformed:
    \<rbrakk> \<Longrightarrow> pas_wellformed aag"
   apply clarsimp
   apply (rule camkes_policy_wellformedI)
-             (* IRQs disabled *)
-             apply blast
+             (* Components may not send IRQs *)
+             subgoal
+               apply blast
+               done
             (* Components are agents *)
-            apply (fastforce simp: /*? options.verification_base_name ?*/_connections /*? options.verification_base_name ?*/_component_names
-                            intro: /*? options.verification_base_name ?*/_policy_intros)
+            subgoal
+              apply (fastforce simp: /*? options.verification_base_name ?*/_connections /*? options.verification_base_name ?*/_component_names
+                               intro: /*? options.verification_base_name ?*/_policy_intros)
+              done
            (* All subjects have self Control *)
-           apply (drule /*? options.verification_base_name ?*/_policy_gen_cases_[THEN iffD1])
-           apply (fast intro: /*? options.verification_base_name ?*/_policy_intros)
+           subgoal
+             apply (drule /*? options.verification_base_name ?*/_policy_gen_cases_[THEN iffD1])
+             apply (fast intro: /*? options.verification_base_name ?*/_policy_intros)
+             done
           (* Grant confinement *)
-          apply (fastforce dest: /*? options.verification_base_name ?*/_policy_cases_Grant[THEN iffD1]
-                          intro: /*? options.verification_base_name ?*/_policy_intros)
+          subgoal
+            apply (fastforce dest: /*? options.verification_base_name ?*/_policy_cases_Grant[THEN iffD1]
+                             intro: /*? options.verification_base_name ?*/_policy_intros)
+            done
          (* Control confinement *)
-         apply (fastforce dest: /*? options.verification_base_name ?*/_policy_cases_Control[THEN iffD1]
-                         intro: /*? options.verification_base_name ?*/_policy_intros)
+         subgoal
+           apply (fastforce dest: /*? options.verification_base_name ?*/_policy_cases_Control[THEN iffD1]
+                            intro: /*? options.verification_base_name ?*/_policy_intros)
+           done
         (* Control implies all rights *)
-        apply (fastforce dest: /*? options.verification_base_name ?*/_policy_cases_Control[THEN iffD1]
-                        intro: /*? options.verification_base_name ?*/_policy_intros)
+        subgoal
+          apply (fastforce dest: /*? options.verification_base_name ?*/_policy_cases_Control[THEN iffD1]
+                           intro: /*? options.verification_base_name ?*/_policy_intros)
+          done
        (* Components are not Receive targets *)
-       apply (fastforce dest: /*? options.verification_base_name ?*/_policy_cases_Receive[THEN iffD1]
-                              /*? options.verification_base_name ?*/_policy_cases_Control[THEN iffD1]
-                       intro: /*? options.verification_base_name ?*/_policy_intros)
+       subgoal
+         apply (fastforce dest: /*? options.verification_base_name ?*/_policy_cases_Receive[THEN iffD1]
+                                /*? options.verification_base_name ?*/_policy_cases_Control[THEN iffD1]
+                         intro: /*? options.verification_base_name ?*/_policy_intros)
+         done
       (* Components are not Call targets *)
-      apply (fastforce dest: /*? options.verification_base_name ?*/_policy_cases_Call[THEN iffD1]
-                             /*? options.verification_base_name ?*/_policy_cases_Control[THEN iffD1]
-                      intro: /*? options.verification_base_name ?*/_policy_intros)
+      subgoal
+        apply (fastforce dest: /*? options.verification_base_name ?*/_policy_cases_Call[THEN iffD1]
+                               /*? options.verification_base_name ?*/_policy_cases_Control[THEN iffD1]
+                         intro: /*? options.verification_base_name ?*/_policy_intros)
+        done
      (* Call implies SyncSend *)
-     apply (fastforce dest: /*? options.verification_base_name ?*/_policy_cases_Call[THEN iffD1]
-                     intro: /*? options.verification_base_name ?*/_policy_intros)
+     subgoal
+       apply (fastforce dest: /*? options.verification_base_name ?*/_policy_cases_Call[THEN iffD1]
+                        intro: /*? options.verification_base_name ?*/_policy_intros)
+       done
     (* Reply implies DeleteDerived *)
-    apply (fastforce dest: /*? options.verification_base_name ?*/_policy_cases_Reply[THEN iffD1]
-                    intro: /*? options.verification_base_name ?*/_policy_intros)
+    subgoal
+      apply (fastforce dest: /*? options.verification_base_name ?*/_policy_cases_Reply[THEN iffD1]
+                       intro: /*? options.verification_base_name ?*/_policy_intros)
+      done
    (* Call + Receive implies Reply *)
-   apply (fast dest: /*? options.verification_base_name ?*/_policy_cases_Call[THEN iffD1]
-                     /*? options.verification_base_name ?*/_policy_cases_Receive[THEN iffD1]
-              intro: /*? options.verification_base_name ?*/_policy_intros)
-  (* DeleteDerived is transitive *)
-  apply (drule /*? options.verification_base_name ?*/_policy_cases_DeleteDerived[THEN iffD1];
-         elim conjE disjE;
-         (simp only: simp_thms cong: disj_cong)?;
-         drule /*? options.verification_base_name ?*/_policy_cases_DeleteDerived2[THEN iffD1];
-         (simp only: simp_thms cong: disj_cong)?;
-         elim conjE disjE;
-         simp only: /*? options.verification_base_name ?*/_policy_intros)
+   subgoal
+     apply (fast dest: /*? options.verification_base_name ?*/_policy_cases_Call[THEN iffD1]
+                       /*? options.verification_base_name ?*/_policy_cases_Receive[THEN iffD1]
+                 intro: /*? options.verification_base_name ?*/_policy_intros)
+     done
+  (* DeleteDerived is transitive (see also VER-1030) *)
+  subgoal
+    apply (drule /*? options.verification_base_name ?*/_policy_cases_DeleteDerived[THEN iffD1];
+           elim conjE disjE;
+           (simp only: simp_thms cong: disj_cong)?;
+           drule /*? options.verification_base_name ?*/_policy_cases_DeleteDerived2[THEN iffD1];
+           (simp only: simp_thms cong: disj_cong)?;
+           elim conjE disjE;
+           (simp only:)?;
+           (rule /*? options.verification_base_name ?*/_policy_intros)?)
+    done
   done
 
 
