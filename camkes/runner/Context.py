@@ -430,7 +430,7 @@ def register_shared_variable(addr_space, obj_space, global_name, symbol, size,
     '''
     assert addr_space
     size = int(size)
-    frame_size = calc_frame_size(size, frame_size, obj_space.spec.arch.capdl_name())
+    frame_size = calc_frame_size(size, frame_size, obj_space.spec.arch)
     num_frames = size//frame_size
 
     # If these frames have been allocated already then the allocator will return them.
@@ -472,7 +472,7 @@ def get_shared_variable_backing_frames(obj_space, global_name, size, frame_size=
     doesn't want a mapping itself, but requires caps for its cspace.
     '''
     size = int(size)
-    frame_size = calc_frame_size(size, frame_size, obj_space.spec.arch.capdl_name())
+    frame_size = calc_frame_size(size, frame_size, obj_space.spec.arch)
     num_frames = size//frame_size
     return [obj_space.alloc(ObjectType.seL4_FrameObject,
                             name='%s_%d_obj' % (global_name, i),
