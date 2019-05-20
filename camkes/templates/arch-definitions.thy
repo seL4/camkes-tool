@@ -22,6 +22,8 @@ theory "/*? options.verification_base_name ?*/_Arch_Spec" imports
   "Lib.Qualify"
 begin
 
+/*- set group_labels = macros.integrity_group_labels(me.composition, me.configuration) -*/
+
 (*
  * We restrict the scope of all names to a locale with the same name
  * as our theory. This ensures that entity names from the CAmkES
@@ -302,6 +304,11 @@ where[wellformed_CAMKES_simps]:
         connections =
         /*- for c in me.composition.connections -*/
             (''/*? c.name ?*/'', /*? isabelle_connection(c.name) ?*/) #
+        /*- endfor -*/
+        [],
+        group_labels =
+        /*- for l, g in sorted(group_labels.items()) -*/
+            (''/*? l ?*/'', ''/*? g ?*/'') #
         /*- endfor -*/
         []
     \<rparr>"

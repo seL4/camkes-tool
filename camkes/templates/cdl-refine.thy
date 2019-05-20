@@ -17,6 +17,8 @@
 /*- set cdl_thy = '%s_CDL' % options.verification_base_name -*/
 /*- set arch_spec_thy = '%s_Arch_Spec' % options.verification_base_name -*/
 
+/*- set group_labels = macros.integrity_group_labels(me.composition, me.configuration) -*/
+
 theory "/*? options.verification_base_name ?*/_CDL_Refine"
 imports
   /*? arch_spec_thy ?*/ (* generated arch spec *)
@@ -85,6 +87,27 @@ schematic_goal /*? options.verification_base_name ?*/_connections:
   apply (rule refl)
   done
 
+schematic_goal /*? options.verification_base_name ?*/_groups:
+  "group_labels (composition /*? assembly_name ?*/) = ?map"
+  apply (clarsimp simp: /*? assembly_name ?*/_def
+                        /*? composition_name ?*/_def
+/*- for c in me.composition.connections -*/
+                        /*? arch_spec_thy ?*/./*? isabelle_connection(c.name) ?*/_def
+/*- endfor -*/
+/*- for c in uniq(map(lambda('x: x.type.name'), me.composition.connections)) -*/
+                        /*? arch_spec_thy ?*/./*? isabelle_connector(c) ?*/_def
+/*- endfor -*/
+        )
+  apply (rule refl)
+  done
+
+(* Optimise group label lookups *)
+lemma /*? options.verification_base_name ?*/_group_label_lookups:
+/*- for x in me.composition.instances + me.composition.connections: -*/
+  "get_group_label (composition /*? assembly_name ?*/) ''/*? x.name ?*/'' = ''/*? group_labels.get(x.name, x.name) ?*/''"
+/*- endfor -*/
+  by (simp add: get_group_label_def /*? options.verification_base_name ?*/_groups)+
+
 schematic_goal /*? options.verification_base_name ?*/_policy_def':
   "/*? options.verification_base_name ?*/_policy = ?PAS"
   (* FIXME: this should be more systematic *)
@@ -93,6 +116,7 @@ schematic_goal /*? options.verification_base_name ?*/_policy_def':
                   /*? options.verification_base_name ?*/_policy_def
                   /*? options.verification_base_name ?*/_component_names
                   /*? options.verification_base_name ?*/_connections
+                  /*? options.verification_base_name ?*/_group_label_lookups
                   Collect_Int_pred_eq Collect_union
             simp del: Collect_case_prod
         )
@@ -157,7 +181,7 @@ val /*? options.verification_base_name ?*/_obj_labels =
     /*- set delim = namespace(value='[') -*//*# need this nonsense to modify variable -- see jinja2 docs #*/
     /*- for (obj, label) in sorted(object_label_mapping(), key=lambda('x: x[0].name')) -*/
       /*- if not obj.name.startswith('root_untyped_') -*//*# Exclude root untypeds because they overlap other objects and have no policy. FIXME: better way to detect these #*/
-        /*? delim.value ?*/ ("/*? isabelle_capdl_identifier (obj.name) ?*/", /*? obj.get_size_bits() ?*/, "/*? label ?*/")
+        /*? delim.value ?*/ ("/*? isabelle_capdl_identifier(obj.name) ?*/", /*? obj.get_size_bits() ?*/, "/*? group_labels.get(label, label) ?*/")
         /*- set delim.value = ',' -*/
       /*- endif -*/
     /*- endfor -*/
@@ -236,13 +260,18 @@ text \<open>
 lemma /*? options.verification_base_name ?*/_admissible_labelling__tcbs_correct:
   "/*? options.verification_base_name ?*/_admissible_labelling label_of \<Longrightarrow>
       (
-/*- for not_first, c in enumerate(me.composition.instances) -*/
-      /*? '\\<and>' if not_first else ' ' ?*/ label_of /*? isabelle_capdl_identifier(c.name) ?*/_cnode_id = ''/*? c.name ?*/''
-      \<and> label_of /*? isabelle_capdl_identifier('%s_%s_0_control_tcb_id' % (c.name, c.name.replace('.', '_'))) ?*/ = ''/*? c.name ?*/''/*#
+/*- set delim = namespace(value=' ') -*//*# need this nonsense to modify variable -- see jinja2 docs #*/
+/*- for c in me.composition.instances -*/
+  /*- if c.type.control -*/
+    /*- set group = group_labels.get(c.name, c.name) -*/
+      /*? delim.value ?*/ label_of /*? isabelle_capdl_identifier(group) ?*/_cnode_id = ''/*? group ?*/''
+      \<and> label_of /*? isabelle_capdl_identifier('%s_%s_0_control_tcb_id' % (c.name, c.name.replace('.', '_'))) ?*/ = ''/*? group ?*/''/*#
   XXX: the extra 'replace' in the second name component duplicates what the camkes tool does internally #*/
-      \<and> label_of /*? isabelle_capdl_identifier('%s_group_bin_pd_id' % c.name) ?*/ = ''/*? c.name ?*/''
-      \<and> (\<forall>cap \<in> ran /*? isabelle_capdl_identifier('%s_%s_0_control_tcb_caps' % (c.name, c.name.replace('.', '_'))) ?*/. \<forall>i \<in> cap_objects cap. label_of i = ''/*? c.name ?*/'')/*# XXX: ditto here #*/
-      \<and> (\<forall>pt_i \<in> mapped_pts_of /*? cdl_thy ?*/.objects /*? isabelle_capdl_identifier('%s_group_bin_pd_caps' % c.name) ?*/. label_of pt_i = ''/*? c.name ?*/'')
+      \<and> label_of /*? isabelle_capdl_identifier('%s_group_bin_pd_id' % group) ?*/ = ''/*? group ?*/''
+      \<and> (\<forall>cap \<in> ran /*? isabelle_capdl_identifier('%s_%s_0_control_tcb_caps' % (c.name, c.name.replace('.', '_'))) ?*/. \<forall>i \<in> cap_objects cap. label_of i = ''/*? group ?*/'')/*# XXX: ditto here #*/
+      \<and> (\<forall>pt_i \<in> mapped_pts_of /*? cdl_thy ?*/.objects /*? isabelle_capdl_identifier('%s_group_bin_pd_caps' % group) ?*/. label_of pt_i = ''/*? group ?*/'')
+    /*- set delim.value = '\\<and>' -*/
+  /*- endif -*/
 /*- endfor -*/
       )"
   (* FIXME: cleanup *)
@@ -267,8 +296,15 @@ text \<open>
 \<close>
 lemma /*? options.verification_base_name ?*/_admissible_labelling__all_labels_inhabited:
   "/*? options.verification_base_name ?*/_admissible_labelling label_of \<Longrightarrow>
-/*- for not_first, c in enumerate(me.composition.instances + me.composition.connections) -*/
-     /*? '\\<and>' if not_first else ' ' ?*/ (\<exists>obj. label_of obj = ''/*? c.name ?*/'')
+/*- set delim = namespace(value=' ') -*//*# need this nonsense to modify variable -- see jinja2 docs #*/
+/*- set seen = set() -*/
+/*- for c in composition.instances + me.composition.connections -*/
+  /*- set name = group_labels.get(c.name, c.name) -*/
+  /*- if name not in seen -*/
+    /*? delim.value ?*/ (\<exists>obj. label_of obj = ''/*? name ?*/'')
+    /*- do seen.add(name) -*/
+    /*- set delim.value = '\\<and>' -*/
+  /*- endif -*/
 /*- endfor -*/
   "
   apply (simp add: /*? options.verification_base_name ?*/_admissible_labelling_def
@@ -332,7 +368,7 @@ lemmas /*? options.verification_base_name ?*/_policy_cases_DeleteDerived =
 lemmas /*? options.verification_base_name ?*/_policy_cases_DeleteDerived2 =
 /*- for c in me.composition.instances -*/
   /*? options.verification_base_name ?*/_policy_cases_DeleteDerived[
-        where subj = "''/*? c.name ?*/''", simplified simp_thms list.distinct list.inject char.inject]
+        where subj = "''/*? group_labels.get(c.name, c.name) ?*/''", simplified simp_thms list.distinct list.inject char.inject]
 /*- endfor -*/
 
 text \<open>
@@ -350,7 +386,8 @@ method unfold_policy uses expand =
 
 lemma /*? options.verification_base_name ?*/_policy_wellformed:
   "\<lbrakk> pasPolicy aag = /*? options.verification_base_name ?*/_policy;
-     pasSubject aag \<in> fst ` set (components (composition /*? assembly_name ?*/));
+     pasSubject aag \<in> get_group_label (composition /*? assembly_name ?*/)
+                      ` fst ` set (components (composition /*? assembly_name ?*/));
      \<not> pasMaySendIrqs aag \<comment> \<open>ignore IRQs for now\<close>
    \<rbrakk> \<Longrightarrow> pas_wellformed aag"
   apply clarsimp
@@ -361,7 +398,9 @@ lemma /*? options.verification_base_name ?*/_policy_wellformed:
                done
             (* Components are agents *)
             subgoal
-              apply (fastforce simp: /*? options.verification_base_name ?*/_connections /*? options.verification_base_name ?*/_component_names
+              apply (fastforce simp: /*? options.verification_base_name ?*/_connections
+                                     /*? options.verification_base_name ?*/_component_names
+                                     /*? options.verification_base_name ?*/_group_label_lookups
                                intro: /*? options.verification_base_name ?*/_policy_intros)
               done
            (* All subjects have self Control *)

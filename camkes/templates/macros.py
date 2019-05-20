@@ -443,3 +443,58 @@ def isabelle_ADL_ident(type):
 # This macro is only used as a base to define other functions (see Context)
 NO_CHECK_UNUSED.add('isabelle_ADL_ident')
 
+
+def integrity_group_labels(composition, configuration):
+    '''Given a CAmkES composition, return a dictionary that maps
+       each non-independent instance and connection label to a
+       canonical group label.
+
+       In detail, this function maps:
+       1. Grouped instances to the label of the group's composition.
+       2. Components that have `integrity_label` configurations;
+          the values are the group labels.
+       3. Internal connections (from an instance label to itself) to
+          their connected instances' labels.
+
+       These instances and connections usually share cap rights in
+       practice, and so cannot be proven to belong to separate
+       integrity domains.
+    '''
+    group_labels = {}
+
+    # Helper to compute transitive closure
+    def get_canonical_label(l):
+        group = l
+        seen = [l]
+        while group in group_labels:
+            group = group_labels[group]
+            if group in seen:
+                raise TemplateError('cycle in group labelling: %s' %
+                                    ', '.join(seen))
+            seen.append(group)
+        return group
+
+    # 1. Groups
+    # NB: the stage5 parser moves group information from composition.groups
+    # into address space identifiers, so we need to look there instead.
+    for c in composition.instances:
+        if c.address_space != c.name:
+            group_labels[c.name] = get_canonical_label(c.address_space)
+
+    # 2. Direct configuration
+    for c in composition.instances:
+        l = configuration[c.name].get('integrity_label')
+        if l is not None:
+            group_labels[c.name] = get_canonical_label(l)
+
+    # 3. Internal connections
+    for conn in composition.connections:
+        groups = set(get_canonical_label(end.instance.name)
+                     for end in conn.from_ends + conn.to_ends)
+        if len(groups) == 1:
+            group_labels[conn.name] = list(groups)[0]
+
+    return {
+        c: get_canonical_label(group)
+        for c, group in group_labels.items()
+    }
