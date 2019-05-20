@@ -100,18 +100,30 @@ qualify /*? options.verification_base_name ?*/_Arch_Spec
 
 (* Connector types *)
 /*- for i in uniq(map(lambda('x: x.type'), me.composition.connections)) -*/
-  /*- if i.name in ('seL4RPC', 'seL4RPCSimple', 'seL4RPCCall', 'seL4SharedData', 'seL4Notification', 'seL4HardwareInterrupt', 'seL4HardwareMMIO') -*/
-/*# FIXME: maybe remove magic builtin connectors. For now, just pretend they're defined here #*/
-abbreviation "/*? isabelle_connector(i.name) ?*/ \<equiv> Library_CAMKES./*? i.name ?*/"
-lemmas /*? isabelle_connector(i.name) ?*/_def = Library_CAMKES./*? i.name ?*/_def
-  /*- else -*/
 definition
     /*? isabelle_connector(i.name) ?*/ :: connector
 where
-    "/*? isabelle_connector(i.name) ?*/ \<equiv> undefined ''TODO /*? isabelle_connector(i.name) ?*/''"
-lemma[wellformed_CAMKES_simps]: "wellformed_connector /*? i.name ?*/"
+    "/*? isabelle_connector(i.name) ?*/ \<equiv> /*-
+  if i.get_attribute('isabelle_connector_spec') -*//*? i.get_attribute('isabelle_connector_spec').default ?*//*-
+  else -*/\<lparr>
+        connector_type = /*? 'HardwareConnector' if i.from_hardware or i.to_hardware else 'NativeConnector' ?*/,
+        connector_interface =
+          /*- if i.from_type == 'Dataport' -*/
+            DataportInterface,
+          /*- elif i.from_type == 'Event' -*/
+            EventInterface,
+          /*- elif i.from_type == 'Procedure' -*/
+            RPCInterface,
+          /*- endif -*/
+        connector_access = \<lparr>
+            access_from_to   = undefined ''TODO /*? isabelle_connector(i.name) ?*/.access_from_to'',
+            access_to_from   = undefined ''TODO /*? isabelle_connector(i.name) ?*/.access_to_from'',
+            access_from_conn = undefined ''TODO /*? isabelle_connector(i.name) ?*/.access_from_conn'',
+            access_to_conn   = undefined ''TODO /*? isabelle_connector(i.name) ?*/.access_to_conn''
+        \<rparr> \<rparr>/*-
+  endif -*/"
+lemma[wellformed_CAMKES_simps]: "wellformed_connector /*? isabelle_connector(i.name) ?*/"
   by (auto simp: wellformed_CAMKES_simps /*? isabelle_connector(i.name) ?*/_def)
-  /*- endif -*/
 /*- endfor -*/
 
 (* Procedure interfaces *)

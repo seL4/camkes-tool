@@ -71,19 +71,35 @@ schematic_goal /*? options.verification_base_name ?*/_connections:
 /*- for c in me.composition.connections -*/
                         /*? arch_spec_thy ?*/./*? isabelle_connection(c.name) ?*/_def
 /*- endfor -*/
+/*- for c in uniq(map(lambda('x: x.type.name'), me.composition.connections)) -*/
+                        /*? arch_spec_thy ?*/./*? isabelle_connector(c) ?*/_def
+/*- endfor -*/
+
+                        \<comment> \<open>Built-in connector defs\<close>
+                        seL4RPC_def
+                        seL4Notification_def
+                        seL4SharedData_def
+                        seL4HardwareMMIO_def
+                        seL4HardwareInterrupt_def
         )
   apply (rule refl)
   done
 
 schematic_goal /*? options.verification_base_name ?*/_policy_def':
   "/*? options.verification_base_name ?*/_policy = ?PAS"
-  apply (clarsimp simp:
-            policy_of_def connector_simps
-            /*? options.verification_base_name ?*/_policy_def /*? options.verification_base_name ?*/_component_names /*? options.verification_base_name ?*/_connections
-            Collect_Int_pred_eq Collect_union)
+  (* FIXME: this should be more systematic *)
+  apply (clarsimp
+            simp: policy_of_def
+                  /*? options.verification_base_name ?*/_policy_def
+                  /*? options.verification_base_name ?*/_component_names
+                  /*? options.verification_base_name ?*/_connections
+                  Collect_Int_pred_eq Collect_union
+            simp del: Collect_case_prod
+        )
   apply (subst split_Collect_graph_edge)
   apply (rule Collect_graph_cong_helper)
-  apply (clarsimp simp: Groebner_Basis.dnf cong: conj_cong rev_conj_cong)
+  apply (clarsimp simp: Groebner_Basis.dnf) \<comment> \<open>normalise\<close>
+  apply ((clarsimp cong: conj_cong)?, (clarsimp cong: rev_conj_cong)?) \<comment> \<open>normalise some more\<close>
   apply assign_schematic_dnf
   done
 

@@ -51,6 +51,7 @@ import "gdb-delegate.camkes";
 connector seL4Notification {
     from Event with 0 threads;
     to Events;
+    attribute string isabelle_connector_spec = "seL4Notification"; /* builtin connector */
 }
 connector seL4NotificationBind {
     from Events with 0 threads;
@@ -89,11 +90,13 @@ connector seL4RPCEvent {
 connector seL4RPC {
     from Procedure with 0 threads;
     to Procedure;
+    attribute string isabelle_connector_spec = "seL4RPC"; /* builtin connector */
 }
 
 connector seL4RPCCall {
     from Procedures with 0 threads;
     to Procedure;
+    attribute string isabelle_connector_spec = "seL4RPC"; /* builtin connector */
 }
 
 /* Same as seL4RPCCall, except has relaxed type checking */
@@ -101,6 +104,7 @@ connector seL4RPCCallNoType {
     from Procedures with 0 threads;
     to Procedure;
     attribute bool disable_interface_type_checking = true;
+    attribute string isabelle_connector_spec = "seL4RPC"; /* builtin connector */
 }
 
 /**
@@ -125,6 +129,7 @@ connector seL4DirectCall {
 connector seL4SharedData {
     from Dataports with 0 threads;
     to Dataports with 0 threads;
+    attribute string isabelle_connector_spec = "seL4SharedData"; /* builtin connector */
 }
 
 /**
@@ -143,6 +148,7 @@ connector seL4SharedData {
 connector seL4HardwareMMIO {
     from Dataports with 0 threads;
     to hardware Dataport;
+    attribute string isabelle_connector_spec = "seL4HardwareMMIO"; /* builtin connector */
 }
 
 /**
@@ -159,6 +165,7 @@ connector seL4HardwareMMIO {
 connector seL4HardwareInterrupt {
     from hardware Event;
     to Event;
+    attribute string isabelle_connector_spec = "seL4HardwareInterrupt"; /* builtin connector */
 }
 connector seL4IOAPICHardwareInterrupt {
     from hardware Event;
@@ -242,4 +249,5 @@ connector seL4DTBHardware {
 connector seL4RPCSimple {
     from Procedure with 0 threads;
     to Procedure;
+    attribute string isabelle_connector_spec = "seL4RPC"; /* builtin connector */
 }
