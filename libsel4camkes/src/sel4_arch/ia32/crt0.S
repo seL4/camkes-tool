@@ -19,6 +19,7 @@
 #include <sel4/sel4_arch/constants.h>
 
 #include <autoconf.h>
+#include <sel4camkes/gen_config.h>
 
     .global _camkes_start
     .extern _camkes_start_c

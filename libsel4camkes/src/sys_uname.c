@@ -11,6 +11,7 @@
  */
 
 #include <autoconf.h>
+#include <sel4camkes/gen_config.h>
 #include <errno.h>
 #include <stdarg.h>
 #include <stddef.h>

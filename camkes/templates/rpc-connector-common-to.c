@@ -18,6 +18,7 @@
 /*? assert(isinstance(connector, namespace)) ?*/
 
 #include <autoconf.h>
+#include <sel4camkes/gen_config.h>
 #include <assert.h>
 #include <limits.h>
 #include <stddef.h>

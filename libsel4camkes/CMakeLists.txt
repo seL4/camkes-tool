@@ -118,8 +118,10 @@ target_link_libraries(
     sel4
     sel4debug
     platsupport
-    Configuration
     sel4muslcsys
     sel4sync
     virtqueue
+    sel4camkes_Config
+    sel4runtime_Config
+    kernel_autoconf
 )

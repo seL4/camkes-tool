@@ -14,6 +14,7 @@
 #define _LIBSEL4CAMKES_TIMING_H_
 
 #include <autoconf.h>
+#include <sel4camkes/gen_config.h>
 #ifdef CONFIG_CAMKES_CONNECTOR_TIMING
 
 #include <assert.h>

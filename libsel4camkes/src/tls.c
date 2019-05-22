@@ -11,6 +11,7 @@
  */
 
 #include <autoconf.h>
+#include <sel4camkes/gen_config.h>
 #include <assert.h>
 #include <camkes/tls.h>
 #include <sel4/sel4.h>

@@ -17,6 +17,7 @@
 #include <utils/util.h>
 #include <errno.h>
 #include <autoconf.h>
+#include <sel4camkes/gen_config.h>
 
 long camkes_sys_sched_yield(va_list ap UNUSED)
 {

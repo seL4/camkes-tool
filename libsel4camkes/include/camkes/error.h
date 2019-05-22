@@ -16,6 +16,7 @@
 #define _CAMKES_ERROR_H_
 
 #include <autoconf.h>
+#include <sel4camkes/gen_config.h>
 #include <sel4/sel4.h>
 #include <stdbool.h>
 #include <stdint.h>

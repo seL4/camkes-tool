@@ -12,6 +12,8 @@
 
 /*- from 'helpers/tls.c' import make_tls_symbols -*/
 
+#include <sel4camkes/gen_config.h>
+#include <autoconf.h>
 #include <assert.h>
 #include <camkes/tls.h>
 #include <stddef.h>

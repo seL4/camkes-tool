@@ -19,6 +19,7 @@
 /*- if configuration[me.name].get('simple') -*/
 
 #include <autoconf.h>
+#include <sel4camkes/gen_config.h>
 #include <assert.h>
 #include <sel4/types.h>
 #include <sel4/sel4.h>

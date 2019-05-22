@@ -11,6 +11,8 @@
  #*/
 
 #include <autoconf.h>
+#include <sel4camkes/gen_config.h>
+#include <sel4runtime/gen_config.h>
 #include <assert.h>
 #include <camkes.h> /* generated header */
 #include <platsupport/io.h>
