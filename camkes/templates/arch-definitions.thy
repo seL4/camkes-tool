@@ -186,28 +186,48 @@ where
         /*- endif -*/
         ,
         requires =
-        /*- for i in c.uses -*/
-            (''/*? i.name ?*/'', /*? isabelle_procedure(i.type.name) ?*/) #
+        /*- for i in c.uses -*//*-
+                if c.interface_is_exported(i.name) -*/
+            \<comment> \<open>Exported interface/*- endif -*/
+            (''/*? i.name ?*/'', /*? isabelle_procedure(i.type.name) ?*/) #/*-
+                if c.interface_is_exported(i.name) -*/
+            \<close>/*- endif -*/
         /*- endfor -*/
         [],
         provides =
-        /*- for i in c.provides -*/
-            (''/*? i.name ?*/'', /*? isabelle_procedure(i.type.name) ?*/) #
+        /*- for i in c.provides -*//*-
+                if c.interface_is_exported(i.name) -*/
+            \<comment> \<open>Exported interface/*- endif -*/
+            (''/*? i.name ?*/'', /*? isabelle_procedure(i.type.name) ?*/) #/*-
+                if c.interface_is_exported(i.name) -*/
+            \<close>/*- endif -*/
         /*- endfor -*/
         [],
         dataports =
-        /*- for i in c.dataports -*/
-            (''/*? i ?*/'', /*? isabelle_dataport(i.type) ?*/) #
+        /*- for i in c.dataports -*//*-
+                if c.interface_is_exported(i) -*/
+            \<comment> \<open>Exported interface/*- endif -*/
+            (''/*? i ?*/'', /*? isabelle_dataport(i.type) ?*/) #/*-
+                if c.interface_is_exported(i) -*/
+            \<close>/*- endif -*/
         /*- endfor -*/
         [],
         emits =
-        /*- for i in c.emits -*/
-            (''/*? i ?*/'', /*? isabelle_event(i.type) ?*/) #
+        /*- for i in c.emits -*//*-
+                if c.interface_is_exported(i) -*/
+            \<comment> \<open>Exported interface/*- endif -*/
+            (''/*? i ?*/'', /*? isabelle_event(i.type) ?*/) #/*-
+                if c.interface_is_exported(i) -*/
+            \<close>/*- endif -*/
         /*- endfor -*/
         [],
         consumes =
-        /*- for i in c.consumes -*/
-            (''/*? i ?*/'', /*? isabelle_event(i.type) ?*/) #
+        /*- for i in c.consumes -*//*-
+                if c.interface_is_exported(i) -*/
+            \<comment> \<open>Exported interface/*- endif -*/
+            (''/*? i ?*/'', /*? isabelle_event(i.type) ?*/) #/*-
+                if c.interface_is_exported(i) -*/
+            \<close>/*- endif -*/
         /*- endfor -*/
         [],
         attributes =

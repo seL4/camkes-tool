@@ -685,6 +685,11 @@ class Component(MapLike):
         self.semaphores = tuple(self.semaphores)
         super(Component, self).freeze()
 
+    def interface_is_exported(self, interface):
+        '''Check whether the given interface is an `export` endpoint.
+           This is used to remove virtual interfaces in the generated Isabelle model.'''
+        return (self.composition is not None and
+                any(interface == ex.destination.name for ex in self.composition.exports))
 
 class Interface(six.with_metaclass(abc.ABCMeta, ASTObject)):
 
