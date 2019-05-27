@@ -65,8 +65,11 @@ schematic_goal /*? options.verification_base_name ?*/_connections:
   "connections (composition /*? arch_spec_thy ?*/.assembly') = ?spec"
   apply (clarsimp simp: /*? arch_spec_thy ?*/./*? assembly_name ?*/_def
                         /*? arch_spec_thy ?*/./*? composition_name ?*/_def
-/*- for c in me.composition.instances + me.composition.connections -*/
-                        /*? arch_spec_thy ?*/./*? c.name ?*/_def
+/*- for c in me.composition.instances -*/
+                        /*? arch_spec_thy ?*/./*? isabelle_component(c.name) ?*/_def
+/*- endfor -*/
+/*- for c in me.composition.connections -*/
+                        /*? arch_spec_thy ?*/./*? isabelle_connection(c.name) ?*/_def
 /*- endfor -*/
         )
   apply (rule refl)
@@ -134,16 +137,16 @@ fun /*? options.verification_base_name ?*/_id_value ctxt obj_name =
     |> HOLogic.dest_number |> snd;
 
 val /*? options.verification_base_name ?*/_obj_labels =
-  sort (apply2 (#1 #> /*? options.verification_base_name ?*/_id_value @{context}) #> int_ord)
       (* object name, size bits, policy label *)
     /*- set delim = namespace(value='[') -*//*# need this nonsense to modify variable -- see jinja2 docs #*/
     /*- for (obj, label) in sorted(object_label_mapping(), key=lambda('x: x[0].name')) -*/
       /*- if not obj.name.startswith('root_untyped_') -*//*# Exclude root untypeds because they overlap other objects and have no policy. FIXME: better way to detect these #*/
-        /*? delim.value ?*/ ("/*? obj.name ?*/", /*? obj.get_size_bits() ?*/, "/*? label ?*/")
+        /*? delim.value ?*/ ("/*? isabelle_capdl_ident(obj.name) ?*/", /*? obj.get_size_bits() ?*/, "/*? label ?*/")
         /*- set delim.value = ',' -*/
       /*- endif -*/
     /*- endfor -*/
-    ];
+    ]
+    |> sort (apply2 (#1 #> /*? options.verification_base_name ?*/_id_value @{context}) #> int_ord);
 
 val id_value : string -> int =
   fn id =>
@@ -218,11 +221,12 @@ lemma /*? options.verification_base_name ?*/_admissible_labelling__tcbs_correct:
   "/*? options.verification_base_name ?*/_admissible_labelling label_of \<Longrightarrow>
       (
 /*- for not_first, c in enumerate(me.composition.instances) -*/
-      /*? '\\<and>' if not_first else ' ' ?*/ label_of /*? c.name ?*/_cnode_id = ''/*? c.name ?*/''
-      \<and> label_of /*? '%s_%s' % (c.name, c.name) ?*/_0_control_tcb_id = ''/*? c.name ?*/''
-      \<and> label_of /*? c.name ?*/_group_bin_pd_id = ''/*? c.name ?*/''
-      \<and> (\<forall>cap \<in> ran /*? '%s_%s' % (c.name, c.name) ?*/_0_control_tcb_caps. \<forall>i \<in> cap_objects cap. label_of i = ''/*? c.name ?*/'')
-      \<and> (\<forall>pt_i \<in> mapped_pts_of /*? cdl_thy ?*/.objects /*? c.name ?*/_group_bin_pd_caps. label_of pt_i = ''/*? c.name ?*/'')
+      /*? '\\<and>' if not_first else ' ' ?*/ label_of /*? isabelle_capdl_identifier(c.name) ?*/_cnode_id = ''/*? c.name ?*/''
+      \<and> label_of /*? isabelle_capdl_identifier('%s_%s_0_control_tcb_id' % (c.name, c.name.replace('.', '_'))) ?*/ = ''/*? c.name ?*/''/*#
+  XXX: the extra 'replace' in the second name component duplicates what the camkes tool does internally #*/
+      \<and> label_of /*? isabelle_capdl_identifier('%s_group_bin_pd_id' % c.name) ?*/ = ''/*? c.name ?*/''
+      \<and> (\<forall>cap \<in> ran /*? isabelle_capdl_identifier('%s_%s_0_control_tcb_caps' % (c.name, c.name.replace('.', '_'))) ?*/. \<forall>i \<in> cap_objects cap. label_of i = ''/*? c.name ?*/'')/*# XXX: ditto here #*/
+      \<and> (\<forall>pt_i \<in> mapped_pts_of /*? cdl_thy ?*/.objects /*? isabelle_capdl_identifier('%s_group_bin_pd_caps' % c.name) ?*/. label_of pt_i = ''/*? c.name ?*/'')
 /*- endfor -*/
       )"
   (* FIXME: cleanup *)

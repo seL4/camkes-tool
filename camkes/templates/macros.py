@@ -420,6 +420,16 @@ def check_isabelle_outfile(thy_name, outfile_name):
     assert thy_name == outfile_base
     return ''
 
+def isabelle_ident(n):
+    '''Mangle the '.' in hierarchical object names.
+       This should match the mangling performed by capDL-tool.'''
+    assert re.match('^[a-zA-Z_](?:[a-zA-Z0-9_.]*[a-zA-Z0-9])?', n)
+    return n.replace('.', '\'')
+
+def isabelle_ADL_ident(type):
+    '''Add a prefix for each object type. This helps to avoid name
+       collisions for definitions generated from `arch-definitions.thy`.'''
+    return lambda n: '{}__{}'.format(type, isabelle_ident(n))
 
 def capdl_sorter(arch, a, b):
     '''

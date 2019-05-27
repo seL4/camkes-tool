@@ -205,6 +205,21 @@ def new_context(entity, assembly, render_state, state_key, outfile_name,
                 # Macros for common operations.
                 'macros': macros,
 
+                # Macro shorthands for mangling Isabelle identifiers.
+                'isabelle_identifier': macros.isabelle_ident,
+                'isabelle_component':  macros.isabelle_ADL_ident('component'),
+                'isabelle_instance':   macros.isabelle_ADL_ident('instance'),
+                'isabelle_connector':  macros.isabelle_ADL_ident('connector'),
+                'isabelle_connection': macros.isabelle_ADL_ident('connection'),
+                'isabelle_procedure':  macros.isabelle_ADL_ident('procedure'),
+                'isabelle_event':      macros.isabelle_ADL_ident('event'),
+                'isabelle_dataport':
+                    lambda name: macros.isabelle_ADL_ident('dataport')(
+                    # hack to fix up names for sized buffer types e.g. 'Buf(4096)' -> 'Buf_4096'
+                                     re.sub(r'\((.*)\)', r'_\1', name)),
+
+                'isabelle_capdl_identifier': macros.isabelle_ident,
+
                 # This function abstracts away the differences between the RT kernel's
                 # seL4_Recv and the master kernel's seL4_Recv. Namely, the RT kernel's
                 # seL4_Recv takes an extra reply object cap.
@@ -251,6 +266,7 @@ def new_context(entity, assembly, render_state, state_key, outfile_name,
                 # Currently only supported for misc templates.
                 'outfile_name': outfile_name,
                 }.items()) + list(kwargs.items()))
+
 
 # For all three of these functions below, for the 'badge_var_name' variable,
 # be sure that you pass in an ampersand character prefixed to the argument if

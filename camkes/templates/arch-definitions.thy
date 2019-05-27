@@ -98,12 +98,28 @@ qualify /*? options.verification_base_name ?*/_Arch_Spec
     /*- set configuration = 'configuration\'' -*/
 /*- endif -*/
 
+(* Connector types *)
+/*- for i in uniq(map(lambda('x: x.type'), me.composition.connections)) -*/
+  /*- if i.name in ('seL4RPC', 'seL4RPCSimple', 'seL4RPCCall', 'seL4SharedData', 'seL4Notification', 'seL4HardwareInterrupt', 'seL4HardwareMMIO') -*/
+/*# FIXME: maybe remove magic builtin connectors. For now, just pretend they're defined here #*/
+abbreviation "/*? isabelle_connector(i.name) ?*/ \<equiv> Library_CAMKES./*? i.name ?*/"
+lemmas /*? isabelle_connector(i.name) ?*/_def = Library_CAMKES./*? i.name ?*/_def
+  /*- else -*/
+definition
+    /*? isabelle_connector(i.name) ?*/ :: connector
+where
+    "/*? isabelle_connector(i.name) ?*/ \<equiv> undefined ''TODO /*? isabelle_connector(i.name) ?*/''"
+lemma[wellformed_CAMKES_simps]: "wellformed_connector /*? i.name ?*/"
+  by (auto simp: wellformed_CAMKES_simps /*? isabelle_connector(i.name) ?*/_def)
+  /*- endif -*/
+/*- endfor -*/
+
 (* Procedure interfaces *)
 /*- for i in uniq(map(lambda('x: x.type'), flatMap(lambda('x: x.type.uses + x.type.provides'), me.composition.instances))) -*/
 definition
-    /*? i.name ?*/ :: procedure
+    /*? isabelle_procedure(i.name) ?*/ :: procedure
 where
-    "/*? i.name ?*/ \<equiv>
+    "/*? isabelle_procedure(i.name) ?*/ \<equiv>
     /*- for m in i.methods -*/
         \<lparr> m_return_type =
         /*- if m.return_type -*/
@@ -130,40 +146,38 @@ where
     /*- endfor -*/
     []"
 
-lemma wf_/*? i.name ?*/: "wellformed_procedure /*? i.name ?*/"
+lemma wf_/*? isabelle_procedure(i.name) ?*/: "wellformed_procedure /*? isabelle_procedure(i.name) ?*/"
   by code_simp
 /*- endfor -*/
 
 (* Event interfaces *)
 /*- for index, i in enumerate(uniq(map(lambda('x: x.type'), flatMap(lambda('x: x.type.emits + x.type.consumes'), me.composition.instances)))) -*/
 definition
-    /*? i ?*/ :: event
+    /*? isabelle_event(i) ?*/ :: event
 where
-    "/*? i ?*/ \<equiv> /*? index ?*/"
+    "/*? isabelle_event(i) ?*/ \<equiv> /*? index ?*/"
 
-lemma wf_/*? i ?*/: "wellformed_event /*? i ?*/"
+lemma wf_/*? isabelle_event(i) ?*/: "wellformed_event /*? isabelle_event(i) ?*/"
   by code_simp
 /*- endfor -*/
 
 (* Dataport interfaces *)
 
 /*- for i in uniq(map(lambda('x: x.type'), flatMap(lambda('x: x.type.dataports'), me.composition.instances))) -*/
-/*# hack to fix up names for sized buffer types e.g. 'Buf(4096)' -> 'Buf_4096' #*/
-/*- set dp_name = re.sub('\\((.*)\\)', '_\\1', i) -*/
 definition
-    /*? dp_name ?*/ :: dataport
+    /*? isabelle_dataport(i) ?*/ :: dataport
 where
-    "/*? dp_name ?*/ \<equiv> Some ''/*? i ?*/''"
+    "/*? isabelle_dataport(i) ?*/ \<equiv> Some ''/*? i ?*/''"
 
-lemma wf_/*? dp_name ?*/: "wellformed_dataport /*? dp_name ?*/"
+lemma wf_/*? isabelle_dataport(i) ?*/: "wellformed_dataport /*? isabelle_dataport(i) ?*/"
   by code_simp
 /*- endfor -*/
 
 /*- for c in uniq(map(lambda('x: x.type'), me.composition.instances)) -*/
 definition
-    /*? c.name ?*/ :: component
+    /*? isabelle_instance(c.name) ?*/ :: component
 where
-    "/*? c.name ?*/ \<equiv> \<lparr>
+    "/*? isabelle_instance(c.name) ?*/ \<equiv> \<lparr>
         control =
         /*- if c.control -*/
             True
@@ -173,27 +187,27 @@ where
         ,
         requires =
         /*- for i in c.uses -*/
-            (''/*? i.name ?*/'', /*? i.type.name ?*/) #
+            (''/*? i.name ?*/'', /*? isabelle_procedure(i.type.name) ?*/) #
         /*- endfor -*/
         [],
         provides =
         /*- for i in c.provides -*/
-            (''/*? i.name ?*/'', /*? i.type.name ?*/) #
+            (''/*? i.name ?*/'', /*? isabelle_procedure(i.type.name) ?*/) #
         /*- endfor -*/
         [],
         dataports =
         /*- for i in c.dataports -*/
-            (''/*? i.name ?*/'', /*? re.sub('\\((.*)\\)', '_\\1', i.type) ?*/) #
+            (''/*? i ?*/'', /*? isabelle_dataport(i.type) ?*/) #
         /*- endfor -*/
         [],
         emits =
         /*- for i in c.emits -*/
-            (''/*? i.name ?*/'', /*? i.type ?*/) #
+            (''/*? i ?*/'', /*? isabelle_event(i.type) ?*/) #
         /*- endfor -*/
         [],
         consumes =
         /*- for i in c.consumes -*/
-            (''/*? i.name ?*/'', /*? i.type ?*/) #
+            (''/*? i ?*/'', /*? isabelle_event(i.type) ?*/) #
         /*- endfor -*/
         [],
         attributes =
@@ -203,26 +217,26 @@ where
         []
     \<rparr>"
 
-lemma wf_/*? c.name ?*/: "wellformed_component /*? c.name ?*/"
+lemma wf_/*? isabelle_instance(c.name) ?*/: "wellformed_component /*? isabelle_instance(c.name) ?*/"
   by code_simp
 /*- endfor -*/
 
 /*- for i in me.composition.instances -*/
 definition
-    /*? i.name ?*/ :: component
+    /*? isabelle_component(i.name) ?*/ :: component
 where
-    "/*? i.name ?*/ \<equiv> /*? i.type.name ?*/"
+    "/*? isabelle_component(i.name) ?*/ \<equiv> /*? isabelle_instance(i.type.name) ?*/"
 
-lemma wf_/*? i.name ?*/: "wellformed_component /*? i.name ?*/"
+lemma wf_/*? isabelle_component(i.name) ?*/: "wellformed_component /*? isabelle_component(i.name) ?*/"
   by code_simp
 /*- endfor -*/
 
 /*- for c in me.composition.connections -*/
 definition
-    /*? c.name ?*/ :: connection
+    /*? isabelle_connection(c.name) ?*/ :: connection
 where
-    "/*? c.name ?*/ \<equiv> \<lparr>
-        conn_type = /*? c.type.name ?*/,
+    "/*? isabelle_connection(c.name) ?*/ \<equiv> \<lparr>
+        conn_type = /*? isabelle_connector(c.type.name) ?*/,
         conn_from =
         /*- for i, from_end in enumerate(c.from_ends) -*/
           (''/*? from_end.instance.name ?*/'', ''/*? from_end.interface.name ?*/'') #
@@ -235,7 +249,7 @@ where
           []
     \<rparr>"
 
-lemma wf_/*? c.name ?*/: "wellformed_connection /*? c.name ?*/"
+lemma wf_/*? isabelle_connection(c.name) ?*/: "wellformed_connection /*? isabelle_connection(c.name) ?*/"
   by code_simp
 /*- endfor -*/
 
@@ -245,12 +259,12 @@ where
     "/*? composition ?*/ \<equiv> \<lparr>
         components =
         /*- for c in me.composition.instances -*/
-            (''/*? c.name ?*/'', /*? c.name ?*/) #
+            (''/*? c.name ?*/'', /*? isabelle_component(c.name) ?*/) #
         /*- endfor -*/
         [],
         connections =
         /*- for c in me.composition.connections -*/
-            (''/*? c.name ?*/'', /*? c.name ?*/) #
+            (''/*? c.name ?*/'', /*? isabelle_connection(c.name) ?*/) #
         /*- endfor -*/
         []
     \<rparr>"
@@ -278,7 +292,7 @@ lemma wf_/*? configuration ?*/:
     "wellformed_configuration (the /*? configuration ?*/)"
     by code_simp
 /*- else -*/
-    /*# If there is no configuration it is trivially wellformed. #*/
+    (* No configuration *)/*# If there is no configuration it is trivially wellformed. #*/
     "True"
     by simp
 /*- endif -*/
