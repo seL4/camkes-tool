@@ -202,7 +202,7 @@ def main(argv, out, err):
 
     # register object sizes with loader
     if options.object_sizes:
-        register_object_sizes(yaml.load(options.object_sizes))
+        register_object_sizes(yaml.load(options.object_sizes, Loader=yaml.FullLoader))
 
     # Ensure we were supplied equal items and outfiles
     if len(options.outfile) != len(options.item):
