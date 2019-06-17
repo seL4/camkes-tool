@@ -87,6 +87,17 @@ const char *get_instance_name(void) {
     /*- do my_cnode.__setattr__('size_bits', size) -*/
 /*- endif -*/
 
+/* DTB passthrough */
+
+/*- set dtb = configuration[me.name].get('dtb') -*/
+/*- if dtb -*/
+    /*- set dtb_size = dtb['dtb_size'][0] -*/
+    /*# Calculate the multiple of 4K pages that can fit the DTB, add an extra for the bootinfo header #*/
+    /*- set rounded_size = macros.next_page_multiple(dtb_size, options.architecture) + 4096 -*/
+    char dtb_symbol[/*? rounded_size ?*/]
+    ALIGN(PAGE_SIZE_4K) SECTION("align_12bit");
+    /*- do register_fill_frame('dtb_symbol', 'CDL_FrameFill_BootInfo 0 CDL_FrameFill_BootInfo_FDT', rounded_size) -*/
+/*- endif -*/
 
 /* DMA functionality. */
 
