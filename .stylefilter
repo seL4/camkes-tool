@@ -12,5 +12,6 @@
 
 # Don't style CAmkES template files
 camkes/templates/component.common.c
+camkes/templates/component.simple.c
 camkes/templates/*.template.c
 camkes/templates/*.template.h
