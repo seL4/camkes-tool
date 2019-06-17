@@ -41,6 +41,11 @@ int camkes_io_ops(ps_io_ops_t *ops);
  */
 int camkes_ps_malloc_ops(ps_malloc_ops_t *ops);
 
+/* Initialise a FDT interface object for use with libplatsupport. Returns 0
+ * on success.
+ */
+int camkes_io_fdt(ps_io_fdt_t *io_fdt);
+
 /*
  * This struct describes an IO port region that is allocated by CAmkES.
  *

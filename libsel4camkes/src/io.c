@@ -201,11 +201,38 @@ int camkes_ps_malloc_ops(ps_malloc_ops_t *ops)
     return ps_new_stdlib_malloc_ops(ops);
 }
 
+static char *camkes_io_fdt_get(void *cookie)
+{
+    return (char *)(cookie ? cookie : NULL);
+}
+
+int camkes_io_fdt(ps_io_fdt_t *io_fdt)
+{
+    if (io_fdt == NULL) {
+        ZF_LOGE("io_fdt is NULL");
+        return -1;
+    }
+
+    extern char *dtb_symbol WEAK;
+
+    if (!&dtb_symbol) {
+        io_fdt->cookie = NULL;
+    } else {
+        /* the buffer contains the bootinfo header, so we skip it */
+        io_fdt->cookie = (void *) &dtb_symbol + sizeof(seL4_BootInfoHeader);
+    }
+
+    io_fdt->get_fn = camkes_io_fdt_get;
+
+    return 0;
+}
+
 int camkes_io_ops(ps_io_ops_t *ops)
 {
     assert(ops != NULL);
     return camkes_io_mapper(&ops->io_mapper) ||
            camkes_io_port_ops(&ops->io_port_ops) ||
            camkes_dma_manager(&ops->dma_manager) ||
-           camkes_ps_malloc_ops(&ops->malloc_ops);
+           camkes_ps_malloc_ops(&ops->malloc_ops) ||
+           camkes_io_fdt(&ops->io_fdt);
 }
