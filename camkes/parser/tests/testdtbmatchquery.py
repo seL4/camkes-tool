@@ -13,18 +13,19 @@
 # @TAG(DATA61_BSD)
 #
 
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
+from __future__ import absolute_import, division, print_function, unicode_literals
 
-import os, sys, unittest
+from camkes.parser import ParseError, DtbMatchQuery
+from camkes.internal.tests.utils import CAmkESTest
+import os
+import sys
+import unittest
 
 ME = os.path.abspath(__file__)
 
 # Make CAmkES importable
 sys.path.append(os.path.join(os.path.dirname(ME), '../../..'))
 
-from camkes.internal.tests.utils import CAmkESTest
-from camkes.parser import ParseError, DtbMatchQuery
 
 class TestDTBMatchQuery(CAmkESTest):
     '''
@@ -45,86 +46,85 @@ class TestDTBMatchQuery(CAmkESTest):
         self.dtbSize = os.path.getsize(os.path.join(os.path.dirname(ME), "test.dtb"))
 
     def test_aliases(self):
-        node = self.dtbQuery.resolve({'aliases':'usbphy0'})
+        node = self.dtbQuery.resolve({'aliases': 'usbphy0'})
         self.assertIsInstance(node, dict)
 
         expected = {
-            'compatible' : ["fsl,imx6q-usbphy", "fsl,imx23-usbphy"],
-            'reg' : [0x20c9000, 0x1000],
-            'interrupts' : [0x0, 0x2c, 0x4],
-            'clocks' : [0x4, 0xb6],
-            'fsl,anatop' : [0x2],
-            'phandle' : [0x2c],
-            'this-address-cells' : [0x1],
-            'this-size-cells' : [0x1],
-            'dtb-size' : [self.dtbSize],
+            'compatible': ["fsl,imx6q-usbphy", "fsl,imx23-usbphy"],
+            'reg': [0x20c9000, 0x1000],
+            'interrupts': [0x0, 0x2c, 0x4],
+            'clocks': [0x4, 0xb6],
+            'fsl,anatop': [0x2],
+            'phandle': [0x2c],
+            'this-address-cells': [0x1],
+            'this-size-cells': [0x1],
+            'dtb-size': [self.dtbSize]
         }
         self.assertEquals(node, expected)
 
-        node = self.dtbQuery.resolve({'aliases':'spi4'})
+        node = self.dtbQuery.resolve({'aliases': 'spi4'})
         expected = {
-            '#address-cells' : [0x1],
-            '#size-cells' : [0x0],
-            'compatible' : ["fsl,imx6q-ecspi", "fsl,imx51-ecspi"],
-            'reg' : [0x2018000, 0x4000],
-            'interrupts' : [0x0, 0x23, 0x4],
-            'clocks' : [0x4, 0x74, 0x4, 0x74],
-            'clock-names' : ["ipg", "per"],
-            'dmas' : [0x17, 0xb, 0x8, 0x1, 0x17, 0xc, 0x8, 0x2],
-            'dma-names' : ["rx", "tx"],
-            'status' : ["disabled"],
-            'this-address-cells' : [0x1],
-            'this-size-cells' : [0x1],
-            'dtb-size' : [self.dtbSize],
-        };
+            '#address-cells': [0x1],
+            '#size-cells': [0x0],
+            'compatible': ["fsl,imx6q-ecspi", "fsl,imx51-ecspi"],
+            'reg': [0x2018000, 0x4000],
+            'interrupts': [0x0, 0x23, 0x4],
+            'clocks': [0x4, 0x74, 0x4, 0x74],
+            'clock-names': ["ipg", "per"],
+            'dmas': [0x17, 0xb, 0x8, 0x1, 0x17, 0xc, 0x8, 0x2],
+            'dma-names': ["rx", "tx"],
+            'status': ["disabled"],
+            'this-address-cells': [0x1],
+            'this-size-cells': [0x1],
+            'dtb-size': [self.dtbSize]
+        }
 
         self.assertEquals(node, expected)
 
     def test_paths(self):
-        node = self.dtbQuery.resolve({'path':"temp"})
+        node = self.dtbQuery.resolve({'path': "temp"})
         expected = {
-            'compatible' : ["fsl,imx6q-tempmon"],
-            'interrupt-parent' : [0x1],
-            'interrupts' : [0x0, 0x31, 0x4],
-            'fsl,tempmon' : [0x2],
-            'fsl,tempmon-data' : [0x3],
-            'clocks' : [0x4, 0xac],
-            'this-address-cells' : [0x1],
-            'this-size-cells' : [0x1],
-            'dtb-size' : [self.dtbSize],
-            'dtb-size' : [self.dtbSize],
+            'compatible': ["fsl,imx6q-tempmon"],
+            'interrupt-parent': [0x1],
+            'interrupts': [0x0, 0x31, 0x4],
+            'fsl,tempmon': [0x2],
+            'fsl,tempmon-data': [0x3],
+            'clocks': [0x4, 0xac],
+            'this-address-cells': [0x1],
+            'this-size-cells': [0x1],
+            'dtb-size': [self.dtbSize]
         }
         self.assertEquals(node, expected)
 
         node = self.dtbQuery.resolve({'path': '.*serial.*'})
         expected = {
-            'compatible' : ["fsl,imx6q-uart", "fsl,imx21-uart"],
-            'reg' : [0x2020000, 0x4000],
-            'interrupts' : [0x0, 0x1a, 0x4],
-            'clocks' : [0x4, 0xa0, 0x4, 0xa1],
-            'clock-names' : ["ipg", "per"],
-            'dmas' : [0x17, 0x19, 0x4, 0x0, 0x17, 0x1a, 0x4, 0x0],
-            'dma-names' : ["rx", "tx"],
-            'status' : ["okay"],
-            'pinctrl-names' : ["default"],
-            'pinctrl-0' : [0x1a],
-            'this-address-cells' : [0x1],
-            'this-size-cells' : [0x1],
-            'dtb-size' : [self.dtbSize],
+            'compatible': ["fsl,imx6q-uart", "fsl,imx21-uart"],
+            'reg': [0x2020000, 0x4000],
+            'interrupts': [0x0, 0x1a, 0x4],
+            'clocks': [0x4, 0xa0, 0x4, 0xa1],
+            'clock-names': ["ipg", "per"],
+            'dmas': [0x17, 0x19, 0x4, 0x0, 0x17, 0x1a, 0x4, 0x0],
+            'dma-names': ["rx", "tx"],
+            'status': ["okay"],
+            'pinctrl-names': ["default"],
+            'pinctrl-0': [0x1a],
+            'this-address-cells': [0x1],
+            'this-size-cells': [0x1],
+            'dtb-size': [self.dtbSize]
         }
         self.assertEquals(node, expected)
 
-        node = self.dtbQuery.resolve({'path' : '.*sgtl5000.*'})
+        node = self.dtbQuery.resolve({'path': '.*sgtl5000.*'})
         expected = {
-            'compatible' : ["fsl,sgtl5000"],
-            'reg' : [0x0a],
-            'clocks' : [0x04, 0xc9],
-            'VDDA-supply' : [0x39],
-            'VDDIO-supply' : [0x35],
-            'phandle' : [0x78],
-            'this-address-cells' : [0x01],
-            'this-size-cells' : [0x00],
-            'dtb-size' : [self.dtbSize],
+            'compatible': ["fsl,sgtl5000"],
+            'reg': [0x0a],
+            'clocks': [0x04, 0xc9],
+            'VDDA-supply': [0x39],
+            'VDDIO-supply': [0x35],
+            'phandle': [0x78],
+            'this-address-cells': [0x01],
+            'this-size-cells': [0x00],
+            'dtb-size': [self.dtbSize]
         }
         self.assertEquals(node, expected)
 
@@ -144,9 +144,9 @@ class TestDTBMatchQuery(CAmkESTest):
             'clocks': [4, 160, 4, 161],
             'pinctrl-0': [26],
             'reg': [33685504, 16384],
-            'this-address-cells' : [0x1],
-            'this-size-cells' : [0x1],
-            'dtb-size' : [self.dtbSize],
+            'this-address-cells': [0x1],
+            'this-size-cells': [0x1],
+            'dtb-size': [self.dtbSize]
         }
         self.assertEquals(node, expected)
 
@@ -162,21 +162,21 @@ class TestDTBMatchQuery(CAmkESTest):
             'clocks': [4, 62, 4, 145],
             'phandle': [121],
             'reg': [34078720, 16384],
-            'this-address-cells' : [0x1],
-            'this-size-cells' : [0x1],
-            'dtb-size' : [self.dtbSize],
+            'this-address-cells': [0x1],
+            'this-size-cells': [0x1],
+            'dtb-size': [self.dtbSize]
         }
         self.assertEquals(node, expected)
 
-        node = self.dtbQuery.resolve({'properties': {'compatible[0]' : 'fsl,sec-v4.0-mon-rtc-lp'}})
+        node = self.dtbQuery.resolve({'properties': {'compatible[0]': 'fsl,sec-v4.0-mon-rtc-lp'}})
         expected = {
-            'compatible' : ['fsl,sec-v4.0,mon-rtc-lp'],
-            'regmap' : [0x23],
-            'offset' : [0x34],
-            'interrupts' : [0x00, 0x13, 0x04, 0x00, 0x14, 0x04],
-            'this-address-cells' : [0x02],
-            'this-size-cells' : [0x01],
-            'dtb-size' : [self.dtbSize],
+            'compatible': ['fsl,sec-v4.0,mon-rtc-lp'],
+            'regmap': [0x23],
+            'offset': [0x34],
+            'interrupts': [0x00, 0x13, 0x04, 0x00, 0x14, 0x04],
+            'this-address-cells': [0x02],
+            'this-size-cells': [0x01],
+            'dtb-size': [self.dtbSize]
         }
 
     def test_properties_star_string(self):
@@ -233,10 +233,10 @@ class TestDTBMatchQuery(CAmkESTest):
             'dma-channels': [0x4],
             'clocks': [0x4, 0x6a],
             'phandle': [0xf],
-            'this-address-cells' : [0x1],
-            'this-size-cells' : [0x1],
-            'dtb-size' : [self.dtbSize],
-        };
+            'this-address-cells': [0x1],
+            'this-size-cells': [0x1],
+            'dtb-size': [self.dtbSize]
+        }
         self.assertEquals(node, expected)
 
         node = self.dtbQuery.resolve({
@@ -264,10 +264,10 @@ class TestDTBMatchQuery(CAmkESTest):
             'clocks': [0x4, 0x90, 0x4, 0xce, 0x4, 0xbd],
             'clock-names': ["pcie", "pcie_bus", "pcie_phy"],
             'status': ["okay"],
-            'this-address-cells' : [0x1],
-            'this-size-cells' : [0x1],
-            'dtb-size' : [self.dtbSize],
-        };
+            'this-address-cells': [0x1],
+            'this-size-cells': [0x1],
+            'dtb-size': [self.dtbSize]
+        }
         self.assertEquals(node, expected)
 
     def test_properties_star_word_and_byte(self):
@@ -290,11 +290,12 @@ class TestDTBMatchQuery(CAmkESTest):
             'dmas': [0xf, 0x0],
             'dma-names': ["rx-tx"],
             'status': ["disabled"],
-            'this-address-cells' : [0x1],
-            'this-size-cells' : [0x1],
-            'dtb-size' : [self.dtbSize],
+            'this-address-cells': [0x1],
+            'this-size-cells': [0x1],
+            'dtb-size': [self.dtbSize]
         }
         self.assertEquals(node, expected)
+
 
 if __name__ == '__main__':
     unittest.main()

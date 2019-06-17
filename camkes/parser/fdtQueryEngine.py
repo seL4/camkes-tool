@@ -44,7 +44,7 @@ class FdtQueryEngine:
         """
         if not parsed_fdt or not isinstance(parsed_fdt, pyfdt.pyfdt.Fdt):
             raise DtbBindingTypeError("fdt_parser expects an instance of class "
-                                      "pyfdt.Fdt");
+                                      "pyfdt.Fdt")
 
         self.parsed_fdt = parsed_fdt
 
@@ -69,8 +69,8 @@ class FdtQueryEngine:
             ret_idx = aliases.index(alias)
         except ValueError:
             raise DtbBindingNodeLookupError("DTB does not contain an alias "
-                                             "named %s!"
-                                             % alias)
+                                            "named %s!"
+                                            % alias)
 
         prop = aliases.subdata[ret_idx]
         # An alias property must be a path string to another node.
@@ -78,7 +78,7 @@ class FdtQueryEngine:
         # An alias shouldn't be a multi-string
         assert len(prop.strings) == 1
         # From here we have the path to the node the user wanted. Look it up.
-        ret = self._match_nodes_by_path(re.escape(prop.strings[0]));
+        ret = self._match_nodes_by_path(re.escape(prop.strings[0]))
         if not len(ret):
             raise DtbBindingNodeLookupError("Alias %s maps to path %s, but "
                                             "that path resolves to nothing."
@@ -111,7 +111,7 @@ class FdtQueryEngine:
             # Rethrow with a more user friendly message to help the dev debug
             raise DtbBindingQueryFormatError("Input query string \"%s\" is not "
                                              "a valid regex."
-                                              % qstring)
+                                             % qstring)
 
         # Try the regex against each path from the DTB and build a list of those
         # node paths which match.
@@ -251,7 +251,7 @@ class FdtQueryEngine:
     @staticmethod
     def _get_matching_prop_from_node(node_props, parsed_key):
         matching_props = [prop for prop in node_props
-            if prop.get_name() == parsed_key["key"]]
+                          if prop.get_name() == parsed_key["key"]]
 
         if len(matching_props) == 0:
             return None
@@ -274,7 +274,7 @@ class FdtQueryEngine:
             (ALL values in "attr_dict" match their homologues in "node").
         """
         node_props = [sub for sub in node.subdata
-            if isinstance(sub, pyfdt.pyfdt.FdtProperty)]
+                      if isinstance(sub, pyfdt.pyfdt.FdtProperty)]
 
         for key, val in attr_dict.items():
             """ We allow things like indexing in the lvalue key
@@ -373,6 +373,7 @@ class FdtQueryEngine:
 
 class DtbMatchQuery(Query):
     """Convert a dtb query into a dictionary of results from the device tree"""
+
     def __init__(self):
         self.engine = None
 
@@ -409,7 +410,7 @@ class DtbMatchQuery(Query):
                 resolved[address_cells_key] = list(values)
             elif key == '#size-cells':
                 resolved[size_cells_key] = list(values)
-        # if the parent does have the #address-cells and 
+        # if the parent does have the #address-cells and
         # #size-cells property, default to 2 and 1 respectively
         # as according to the Devicetree spec
         if address_cells_key not in resolved:
