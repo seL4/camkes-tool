@@ -110,8 +110,8 @@ def new_context(entity, assembly, render_state, state_key, outfile_name,
         # an arbitrary string that will be set as the 'fill' parameter on the
         # capDL frame object. The meaning of fill is completely dependent
         # on the underlying loader
-        'register_fill_frame':(lambda symbol, fill:
-            register_fill_frame(addr_space, symbol, fill, obj_space, entity.label())),
+        'register_fill_frame':(lambda symbol, fill, size=4096:
+            register_fill_frame(addr_space, symbol, fill, size, obj_space, entity.label())),
 
         'register_stack_symbol':(lambda symbol, size:
             register_stack_symbol(addr_space, symbol, size, obj_space, entity.label())),
@@ -480,19 +480,23 @@ def get_shared_variable_backing_frames(obj_space, global_name, size, frame_size=
                             label=label)
             for i in range(num_frames)]
 
-def register_fill_frame(addr_space, symbol, fill, obj_space, label):
+def register_fill_frame(addr_space, symbol, fill, size, obj_space, label):
     '''
-    Take a 4K sized symbol and create a 4k Frame with fill data to be added by the
-    loader.
+    Take a symbol and create a collection of 4K frames that can comfortably store 
+    a region in the bootinfo.
 
     Return a static_assert checking that the symbol is of the correct size
     '''
     assert addr_space
-    frame = obj_space.alloc(ObjectType.seL4_FrameObject, name='%s_%s_obj' % (symbol, label), label=label, fill=fill, size=4096)
-    addr_space.add_symbol_with_caps(symbol, [4096], [Cap(frame, read=True, write=False, grant=False)])
-    return 'static_assert(sizeof(%(sym)s) == PAGE_SIZE_4K,\n'           \
+    number_frames = size//4096
+    frames = [obj_space.alloc(ObjectType.seL4_FrameObject, name='%s_%s_%d_obj' % (symbol, label, i), label=label, fill='%s %d' % (fill, i * 4096), size=4096)
+              for i in range(number_frames)]
+    caps = [Cap(frame, read=True, write=False, grant=False) for frame in frames]
+    sizes = [4096] * number_frames
+    addr_space.add_symbol_with_caps(symbol, sizes, caps)
+    return 'static_assert(sizeof(%(sym)s) == %(size)s,\n'           \
            ' "%(sym)s not page sized. Templage bug in its declaration?");'  \
-           % {'sym':symbol}
+           % {'sym': symbol, 'size': size}
 
 def register_stack_symbol(addr_space, symbol, size, obj_space, label):
     '''
