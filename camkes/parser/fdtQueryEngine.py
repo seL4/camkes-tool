@@ -14,6 +14,7 @@
 #
 import argparse
 
+import os
 import six
 import re
 import logging
@@ -415,6 +416,8 @@ class DtbMatchQuery(Query):
             resolved[address_cells_key] = [2]
         if size_cells_key not in resolved:
             resolved[size_cells_key] = [1]
+        # inject the size of the dtb into into the dictionary
+        resolved['dtb-size'] = [self.dtb_file_size]
         return resolved
 
     @staticmethod
@@ -428,6 +431,7 @@ class DtbMatchQuery(Query):
     def check_options(self):
         if self.options.dtb:
             try:
+                self.dtb_file_size = os.path.getsize(self.options.dtb)
                 with open(self.options.dtb, 'rb') as dtb_file:
                     self.engine = FdtQueryEngine(pyfdt.pyfdt.FdtBlobParse(dtb_file).to_fdt())
             except:
