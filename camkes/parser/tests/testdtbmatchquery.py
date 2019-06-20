@@ -32,6 +32,9 @@ class TestDTBMatchQuery(CAmkESTest):
     the DTB dictionary now includes keys 'this-address-cells' and 'this-size-cells'.
     The keys describe the number of cells required to express those particular fields in
     the 'reg' property of the DTB.
+
+    As part of the changes brought by exposing the DTB to CAmkES userland, the DTB dictionary
+    now includes a 'dtb_size' key. This key-value pair describes the size of the DTB, in bytes.
     '''
 
     def setUp(self):
@@ -39,6 +42,7 @@ class TestDTBMatchQuery(CAmkESTest):
         self.dtbQuery = DtbMatchQuery()
         self.dtbQuery.parse_args(['--dtb', os.path.join(os.path.dirname(ME), "test.dtb")])
         self.dtbQuery.check_options()
+        self.dtbSize = os.path.getsize(os.path.join(os.path.dirname(ME), "test.dtb"))
 
     def test_aliases(self):
         node = self.dtbQuery.resolve({'aliases':'usbphy0'})
@@ -52,7 +56,8 @@ class TestDTBMatchQuery(CAmkESTest):
             'fsl,anatop' : [0x2],
             'phandle' : [0x2c],
             'this-address-cells' : [0x1],
-            'this-size-cells' : [0x1]
+            'this-size-cells' : [0x1],
+            'dtb-size' : [self.dtbSize],
         }
         self.assertEquals(node, expected)
 
@@ -69,7 +74,8 @@ class TestDTBMatchQuery(CAmkESTest):
             'dma-names' : ["rx", "tx"],
             'status' : ["disabled"],
             'this-address-cells' : [0x1],
-            'this-size-cells' : [0x1]
+            'this-size-cells' : [0x1],
+            'dtb-size' : [self.dtbSize],
         };
 
         self.assertEquals(node, expected)
@@ -84,7 +90,9 @@ class TestDTBMatchQuery(CAmkESTest):
             'fsl,tempmon-data' : [0x3],
             'clocks' : [0x4, 0xac],
             'this-address-cells' : [0x1],
-            'this-size-cells' : [0x1]
+            'this-size-cells' : [0x1],
+            'dtb-size' : [self.dtbSize],
+            'dtb-size' : [self.dtbSize],
         }
         self.assertEquals(node, expected)
 
@@ -101,7 +109,8 @@ class TestDTBMatchQuery(CAmkESTest):
             'pinctrl-names' : ["default"],
             'pinctrl-0' : [0x1a],
             'this-address-cells' : [0x1],
-            'this-size-cells' : [0x1]
+            'this-size-cells' : [0x1],
+            'dtb-size' : [self.dtbSize],
         }
         self.assertEquals(node, expected)
 
@@ -114,7 +123,8 @@ class TestDTBMatchQuery(CAmkESTest):
             'VDDIO-supply' : [0x35],
             'phandle' : [0x78],
             'this-address-cells' : [0x01],
-            'this-size-cells' : [0x00]
+            'this-size-cells' : [0x00],
+            'dtb-size' : [self.dtbSize],
         }
         self.assertEquals(node, expected)
 
@@ -135,7 +145,8 @@ class TestDTBMatchQuery(CAmkESTest):
             'pinctrl-0': [26],
             'reg': [33685504, 16384],
             'this-address-cells' : [0x1],
-            'this-size-cells' : [0x1]
+            'this-size-cells' : [0x1],
+            'dtb-size' : [self.dtbSize],
         }
         self.assertEquals(node, expected)
 
@@ -152,7 +163,8 @@ class TestDTBMatchQuery(CAmkESTest):
             'phandle': [121],
             'reg': [34078720, 16384],
             'this-address-cells' : [0x1],
-            'this-size-cells' : [0x1]
+            'this-size-cells' : [0x1],
+            'dtb-size' : [self.dtbSize],
         }
         self.assertEquals(node, expected)
 
@@ -163,7 +175,8 @@ class TestDTBMatchQuery(CAmkESTest):
             'offset' : [0x34],
             'interrupts' : [0x00, 0x13, 0x04, 0x00, 0x14, 0x04],
             'this-address-cells' : [0x02],
-            'this-size-cells' : [0x01]
+            'this-size-cells' : [0x01],
+            'dtb-size' : [self.dtbSize],
         }
 
     def test_properties_star_string(self):
@@ -202,6 +215,9 @@ class TestDTBMatchQuery(CAmkESTest):
         self.assertIn('this-size-cells', node)
         self.assertEquals(node['this-size-cells'], [0x1])
 
+        self.assertIn('dtb-size', node)
+        self.assertEquals(node['dtb-size'], [self.dtbSize])
+
         node = self.dtbQuery.resolve({
             'properties': {
                 "interrupt-names[*]": ["gpmi0", "gpmi1", "gpmi2", "gpmi3"]
@@ -218,7 +234,8 @@ class TestDTBMatchQuery(CAmkESTest):
             'clocks': [0x4, 0x6a],
             'phandle': [0xf],
             'this-address-cells' : [0x1],
-            'this-size-cells' : [0x1]
+            'this-size-cells' : [0x1],
+            'dtb-size' : [self.dtbSize],
         };
         self.assertEquals(node, expected)
 
@@ -248,7 +265,8 @@ class TestDTBMatchQuery(CAmkESTest):
             'clock-names': ["pcie", "pcie_bus", "pcie_phy"],
             'status': ["okay"],
             'this-address-cells' : [0x1],
-            'this-size-cells' : [0x1]
+            'this-size-cells' : [0x1],
+            'dtb-size' : [self.dtbSize],
         };
         self.assertEquals(node, expected)
 
@@ -273,7 +291,8 @@ class TestDTBMatchQuery(CAmkESTest):
             'dma-names': ["rx-tx"],
             'status': ["disabled"],
             'this-address-cells' : [0x1],
-            'this-size-cells' : [0x1]
+            'this-size-cells' : [0x1],
+            'dtb-size' : [self.dtbSize],
         }
         self.assertEquals(node, expected)
 
