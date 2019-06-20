@@ -16,6 +16,8 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <utils/util.h>
+#include <platsupport/irq.h>
+#include <camkes/irq.h>
 
 /*? macros.show_includes(me.instance.type.includes) ?*/
 /*- set ntfn_obj = alloc_obj('ntfn', seL4_NotificationObject) -*/
@@ -135,14 +137,27 @@
     /*? raise(TemplateError('Unknown irq type specified by %s.%s' % (me.parent.from_instance.name, type_attr))) ?*/
 /*- endif -*/
 
-int /*? me.interface.name ?*/__run(void) {
-    while (true) {
-        seL4_Wait(/*? ntfn ?*/, NULL);
-        /*? me.interface.name ?*/_handle();
-    }
-
-    UNREACHABLE();
-}
+/*# Add an entry to the allocated_irqs ELF section #*/
+/*- set irq_struct_name = '%s_irq' % me.interface.name -*/
+static allocated_irq_t /*? irq_struct_name ?*/ = {
+    .irq_handler = /*? irq ?*/,
+/*- if type == 'simple' -*/
+    .irq = { .type = PS_INTERRUPT, .irq = { .number = /*? _irq ?*/ }},
+/*- elif type in ['ioapic','isa','pci'] -*/
+    .irq = { .type = PS_IOAPIC, .ioapic = { .ioapic = /*? ioapic ?*/, .pin = /*? ioapic_pin ?*/,
+                                            .level = /*? level ?*/, .polarity = /*? polarity ?*/,
+                                            .vector = /*? vector ?*/ }},
+/*- elif type == 'msi' -*/
+    .irq = { .type = PS_MSI, .msi = { .pci_bus = /*? pci_bus ?*/, .pci_dev = /*? pci_dev ?*/,
+                                      .pci_func = /*? pci_func ?*/, .handle = /*? handler ?*/,
+                                      .vector = /*? vector ?*/ }},
+/*- endif -*/
+    .is_allocated = false,
+    .callback_fn = NULL,
+    .callback_data = NULL
+};
+USED SECTION("_allocated_irqs")
+allocated_irq_t * /*? irq_struct_name ?*/_ptr = &/*? irq_struct_name ?*/;
 
 int /*? me.interface.name ?*/_poll(void) {
     assert(!"not implemented for this connector");
@@ -162,4 +177,24 @@ int /*? me.interface.name ?*/_reg_callback(void (*callback)(void*) UNUSED,
 
 int /*? me.interface.name ?*/_acknowledge(void) {
     return seL4_IRQHandler_Ack(/*? irq ?*/);
+}
+
+int /*? me.interface.name ?*/__run(void) {
+    while (true) {
+        seL4_Wait(/*? ntfn ?*/, NULL);
+        if (/*? me.interface.name ?*/_handle && /*? irq_struct_name ?*/.is_allocated) {
+            ZF_LOGF("Both IRQ interface and 'handle' function is in use! "
+                    "These are mutually exclusive, use one or the other.");
+        } else if (/*? me.interface.name ?*/_handle) {
+            /*? me.interface.name ?*/_handle();
+        } else if (/*? irq_struct_name ?*/.is_allocated) {
+            /*? irq_struct_name ?*/.callback_fn(/*? irq_struct_name ?*/.callback_data, 
+                                                /*? me.interface.name ?*/_acknowledge,
+                                                NULL);
+        } else {
+            ZF_LOGE("No mechanism exists to handle this interrupt, this interrupt will be ignored");
+        }
+    }
+
+    UNREACHABLE();
 }
