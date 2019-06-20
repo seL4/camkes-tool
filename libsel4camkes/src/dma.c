@@ -758,7 +758,10 @@ static void dma_cache_op(void *cookie UNUSED, void *addr UNUSED,
 
 int camkes_dma_manager(ps_dma_man_t *man)
 {
-    assert(man != NULL);
+    if (man == NULL) {
+        ZF_LOGE("man is NULL");
+        return -1;
+    }
     man->dma_alloc_fn = dma_alloc;
     man->dma_free_fn = dma_free;
     man->dma_pin_fn = dma_pin;

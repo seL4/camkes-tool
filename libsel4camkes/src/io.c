@@ -158,7 +158,10 @@ static void io_unmap(void *cookie UNUSED, void *vaddr UNUSED, size_t size UNUSED
 
 int camkes_io_mapper(ps_io_mapper_t *mapper)
 {
-    assert(mapper != NULL);
+    if (mapper == NULL) {
+        ZF_LOGE("mapper is NULL");
+        return -1;
+    }
 #ifdef NDEBUG
     mapper->cookie = NULL;
     mapper->io_map_fn = camkes_io_map;
@@ -188,7 +191,10 @@ static int camkes_io_port_out(void *cookie UNUSED, uint32_t port, int io_size, u
 
 int camkes_io_port_ops(ps_io_port_ops_t *ops)
 {
-    assert(ops != NULL);
+    if (ops == NULL) {
+        ZF_LOGE("ops is NULL");
+        return -1;
+    }
     ops->io_port_in_fn = camkes_io_port_in;
     ops->io_port_out_fn = camkes_io_port_out;
     return 0;
@@ -196,7 +202,10 @@ int camkes_io_port_ops(ps_io_port_ops_t *ops)
 
 int camkes_ps_malloc_ops(ps_malloc_ops_t *ops)
 {
-    assert(ops != NULL);
+    if (ops == NULL) {
+        ZF_LOGE("ops is NULL");
+        return -1;
+    }
 
     return ps_new_stdlib_malloc_ops(ops);
 }
@@ -229,7 +238,10 @@ int camkes_io_fdt(ps_io_fdt_t *io_fdt)
 
 int camkes_io_ops(ps_io_ops_t *ops)
 {
-    assert(ops != NULL);
+    if (ops == NULL) {
+        ZF_LOGE("ops is NULL");
+        return -1;
+    }
     return camkes_io_mapper(&ops->io_mapper) ||
            camkes_io_port_ops(&ops->io_port_ops) ||
            camkes_dma_manager(&ops->dma_manager) ||
