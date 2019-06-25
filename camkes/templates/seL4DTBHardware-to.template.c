@@ -12,6 +12,7 @@
 
 #include <assert.h>
 #include <camkes/dataport.h>
+#include <camkes/irq.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
@@ -175,6 +176,8 @@
 
     /*- set irq_handler_pairs = [] -*/
 
+    /*- set interrupt_struct_prefix = '%s_irq' % (me.interface.name) -*/
+
     /*- for i in range(0, num_interrupts) -*/
 
         /*- set interrupt_ntfn = alloc_cap('%s_ntfn_%d' % (me.interface.name, i), ntfn_obj, read=True, write=True, badge=pow(2, i)) -*/
@@ -198,6 +201,17 @@
         /*- do irq_ntfn_pairs.append((interrupt_ntfn, irq)) -*/
 
         /*- set interrupt_interface_name = '%s_%d' % (me.interface.name, i) -*/
+
+        /*# Add an entry to the allocated_irqs ELF section #*/
+        static allocated_irq_t /*? interrupt_struct_prefix ?*/_/*? i ?*/ = {
+            .irq_handler = /*? irq ?*/,
+            .irq = { .type = PS_INTERRUPT, .irq = { .number = /*? _irq ?*/ }},
+            .is_allocated = false,
+            .callback_fn = NULL,
+            .callback_data = NULL
+        };
+        USED SECTION("_allocated_irqs")
+        allocated_irq_t * /*? interrupt_struct_prefix ?*/_/*? i ?*/_ptr = &/*? interrupt_struct_prefix ?*/_/*? i ?*/;
 
     /*- endfor -*/
 
@@ -231,6 +245,11 @@
         }
     }
 
+    static int /*? me.interface.name ?*/_irq_acknowledge_wrapper(void *ack_data) {
+        ps_irq_t *irq = (ps_irq_t *) ack_data;
+        return /*? me.interface.name ?*/_irq_acknowledge(irq);
+    }
+
     int /*? me.interface.name ?*/__run(void) {
         while (true) {
             seL4_Word badge = 0;
@@ -240,9 +259,22 @@
             /*- for i in range(0, num_interrupts) -*/
                 /*- set bit = pow(2, i) -*/
                 if (badge & /*? bit ?*/) {
-                    /*# Pass the interrupt number of the device that had an interrupt #*/
+                    void /*? me.interface.name ?*/_irq_handle(ps_irq_t *irq) WEAK;
                     ps_irq_t irq = { .type = PS_INTERRUPT, .irq = { .number = /*? irq_handler_pairs[i][0] ?*/}};
-                    /*? me.interface.name ?*/_irq_handle(&irq);
+                    if (/*? me.interface.name ?*/_irq_handle && /*? interrupt_struct_prefix ?*/_/*? i ?*/.is_allocated) {
+                        ZF_LOGF("Both IRQ interface and 'handle' function is in use for interrupt /*? i ?*/! "
+                                "These are mutually exclusive, use one or the other.");
+                    } else if (/*? me.interface.name ?*/_irq_handle) {
+                        /*? me.interface.name ?*/_irq_handle(&irq);
+                    } else if (/*? interrupt_struct_prefix ?*/_/*? i ?*/.is_allocated) {
+                        /*? interrupt_struct_prefix ?*/_/*? i ?*/.callback_fn(/*? interrupt_struct_prefix ?*/_/*? i ?*/.callback_data, 
+
+                                                                              /*? me.interface.name ?*/_irq_acknowledge_wrapper,
+
+                                                                              &irq);
+                    } else {
+                        ZF_LOGE("No mechanism exists to handle this interrupt, this interrupt will be ignored");
+                    }
                 }
             /*- endfor -*/
         }
