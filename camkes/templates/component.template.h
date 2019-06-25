@@ -166,13 +166,13 @@ const char *get_instance_name(void);
     /*- endif -*/
     /*- if irq[0] and dtb_connector[0] -*/
         int /*? c.name ?*/_irq_acknowledge(ps_irq_t *irq) WARN_UNUSED_RESULT;
-        /* Implemented by user code. */
-        void /*? c.name ?*/_irq_handle(ps_irq_t *irq);
+        /* Implemented by user code or substituted for the IRQ interface. */
+        void /*? c.name ?*/_irq_handle(ps_irq_t *irq) WEAK;
     /*- else -*/
         int /*? c.name ?*/_acknowledge(void) WARN_UNUSED_RESULT
         /*- if c.optional -*/ WEAK /*- endif -*/;
-        /* Implemented by user code. */
-        void /*? c.name ?*/_handle(void);
+        /* Implemented by user code or substituted for the IRQ interface. */
+        void /*? c.name ?*/_handle(void) WEAK;
     /*- endif -*/
 /*- endfor -*/
 
