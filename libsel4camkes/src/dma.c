@@ -28,6 +28,12 @@
 #include <sel4/sel4.h>
 #include <vspace/page.h>
 
+/* Force the _dma_frames  section to be created even if no modules are defined. */
+static USED SECTION("_dma_frames") struct {} dummy_dma_frame;
+/* Definitions so that we can find the exposed DMA frames */
+extern dma_frame_t *__start__dma_frames[];
+extern dma_frame_t *__stop__dma_frames[];
+
 /* NOT THREAD SAFE. The code could be made thread safe relatively easily by
  * operating atomically on the free list.
  */

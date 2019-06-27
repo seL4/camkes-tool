@@ -20,6 +20,12 @@
 
 #define CHECK_MEMBER_EQUAL(a, b, member) a->member == b->member
 
+/* Force the _allocated_irqs section to be created even if no modules are defined. */
+static USED SECTION("_allocated_irqs") struct {} dummy_allocated_irq;
+/* Definitions so that we can find the exposed IRQ information */
+extern allocated_irq_t *__start__allocated_irqs[];
+extern allocated_irq_t *__stop__allocated_irqs[];
+
 static bool check_irq_info_is_equal(ps_irq_t *a, ps_irq_t *b)
 {
     if (a->type == b->type) {

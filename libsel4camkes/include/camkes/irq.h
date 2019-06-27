@@ -34,12 +34,6 @@ struct allocated_irq {
 };
 typedef struct allocated_irq allocated_irq_t;
 
-/* Force the _allocated_irqs section to be created even if no modules are defined. */
-static USED SECTION("_allocated_irqs") struct {} dummy_allocated_irq;
-/* Definitions so that we can find the exposed IRQ information */
-extern allocated_irq_t *__start__allocated_irqs[];
-extern allocated_irq_t *__stop__allocated_irqs[];
-
 /*
  * NOTE: This implementation of the platsuport IRQ interface is not thread-safe.
  */

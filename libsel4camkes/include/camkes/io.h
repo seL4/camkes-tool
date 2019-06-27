@@ -59,9 +59,3 @@ struct ioport_region {
     char **interface_name;
 };
 typedef struct ioport_region ioport_region_t;
-
-/* Force the _ioport_region section to be created even if no modules are defined. */
-static USED SECTION("_ioport_regions") struct {} dummy_ioport_region;
-/* Definitions so that we can find the exposed IO port regions */
-extern ioport_region_t *__start__ioport_regions[];
-extern ioport_region_t *__stop__ioport_regions[];

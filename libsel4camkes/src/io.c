@@ -24,6 +24,12 @@
 #include <stdlib.h>
 #include <utils/util.h>
 
+/* Force the _dataport_frames  section to be created even if no modules are defined. */
+static USED SECTION("_dataport_frames") struct {} dummy_dataport_frame;
+/* Definitions so that we can find the exposed dataport frames */
+extern dataport_frame_t __start__dataport_frames[];
+extern dataport_frame_t __stop__dataport_frames[];
+
 /* Basic linked-list implementation. */
 typedef struct ll_ {
     void *data;

@@ -158,9 +158,3 @@ struct dma_frame {
     uintptr_t vaddr;
 };
 typedef struct dma_frame dma_frame_t;
-
-/* Force the _dma_frames  section to be created even if no modules are defined. */
-static USED SECTION("_dma_frames") struct {} dummy_dma_frame;
-/* Definitions so that we can find the exposed DMA frames */
-extern dma_frame_t *__start__dma_frames[];
-extern dma_frame_t *__stop__dma_frames[];
