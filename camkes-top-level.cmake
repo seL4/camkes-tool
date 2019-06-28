@@ -17,7 +17,9 @@ cmake_minimum_required(VERSION 3.7.2)
 # may need to define their own root CMakeLists file. Hopefully the comments here provide
 # enough guidance for how to do this.
 
-include("${CMAKE_CURRENT_LIST_DIR}/projects/seL4_tools/cmake-tool/settings.cmake")
+project(camkes-application NONE)
+
+include(settings.cmake)
 
 # Include the base. As per the comment above, we expect to be in the root directory and
 # so we do not need to declare a specific kernel directory
