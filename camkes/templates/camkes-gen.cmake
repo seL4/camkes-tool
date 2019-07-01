@@ -544,7 +544,7 @@ BuildCapDLApplication(
 DeclareRootserver("capdl-loader")
 
 # Generate Isabelle theory scripts if needed
-if (${CAmkESCapDLVerification})
+if (CAmkESCapDLVerification)
     # Base name for Isabelle theories. We derive this from the app name,
     # but mangled to ensure that it is a valid identifier.
     string(MAKE_C_IDENTIFIER ${CAMKES_APP} VER_BASE_NAME)
