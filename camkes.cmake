@@ -259,6 +259,9 @@ set(
     ${PYTHON}
     ${PYTHON_CAPDL_PATH}/../cdl_utils/capdl_linker.py
 )
+set(CAPDL_LINKER_DEPENDENCIES "${PYTHON_CAPDL_PATH}/../cdl_utils/capdl_linker.py")
+set(CAPDL_UNTYPED_GEN ${CMAKE_COMMAND} -E env "PYTHONPATH=${PYTHON_CAPDL_PATH}" ${PYTHON} ${PYTHON_CAPDL_PATH}/../cdl_utils/untyped_gen.py)
+set(CAPDL_UNTYPED_GEN_DEPENDENCIES "${PYTHON_CAPDL_PATH}/../cdl_utils/untyped_gen.py")
 
 # Search for a FMT tool for reformatting generated CAmkES C files
 find_program(CLANG_FORMAT_TOOL clang-format)

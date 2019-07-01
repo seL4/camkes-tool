@@ -436,6 +436,10 @@ set(CMAKE_INSTANCE_GROUP_LINK_EXECUTABLE "<CMAKE_C_COMPILER> <FLAGS> <CMAKE_C_LI
 # Generate our targets up to this point
 CAmkESOutputGenCommand(save-object-state ${CMAKE_CURRENT_BINARY_DIR}/object.pickle)
 
+# CapDL generation. Aside from depending upon the CAmkES specifications themselves, it
+# depends upon the copied instance binaries and (optionally) the bootinfo untyped list.
+
+# First, find all instance binaries
 set(capdl_elf_depends "")
 set(capdl_elf_targets "")
 /*- for g in groups -*/
@@ -443,9 +447,48 @@ set(capdl_elf_targets "")
     list(APPEND capdl_elfs "${CMAKE_CURRENT_BINARY_DIR}//*? elf_name ?*/")
     list(APPEND capdl_elf_targets "/*? elf_name ?*/_group_target")
 /*- endfor -*/
-# CapDL generation. Aside from depending upon the CAmkES specifications themselves, it
-# depends upon the copied instance binaries
-# First define the capDL spec generation from CAmkES
+
+# Generate boot untyped info for capDL allocator (if applicable)
+if(CAmkESCapDLStaticAlloc)
+    add_custom_command(
+        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/untyped.yaml
+        COMMAND
+            ${CAPDL_UNTYPED_GEN}
+                "--input=${platform_yaml}"
+                "--output=${CMAKE_CURRENT_BINARY_DIR}/untyped.yaml"
+                "--linker=${CMAKE_CURRENT_BINARY_DIR}/linker.lds"
+                --architecture ${KernelSel4Arch}
+                "--object-sizes=$<TARGET_PROPERTY:object_sizes,FILE_PATH>"
+                --dtb-size ${KernelDTBSize}
+                --kernel-elf "$<TARGET_FILE:kernel.elf>"
+                "$<$<BOOL:${capdl_elfs}>:--elffile$<SEMICOLON>>$<JOIN:${capdl_elfs},$<SEMICOLON>--elffile$<SEMICOLON>>"
+        DEPENDS
+            # This pulls in miscellaneous dependencies
+            # which is used by the camkes tool
+            ${CAPDL_UNTYPED_GEN_DEPENDENCIES}
+            object_sizes
+            ${platform_yaml}
+            ${capdl_elfs}
+        VERBATIM
+        USES_TERMINAL
+        COMMAND_EXPAND_LISTS
+        COMMENT "Generating untyped list"
+    )
+    add_custom_target(untyped_capdl_target DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/untyped.yaml")
+    set(CAPDL_UNTYPED_YAML_FILE "${CMAKE_CURRENT_BINARY_DIR}/untyped.yaml")
+else()
+    add_custom_target(untyped_capdl_target)
+    set(CAPDL_UNTYPED_YAML_FILE "")
+endif()
+
+# Now, define the capDL spec generation from CAmkES
+if(CAmkESCapDLStaticAlloc)
+    set(CAPDL_LINKER_ALLOC_OPT "--static-alloc")
+    set(CAPDL_LINKER_UNTYPED_OPT "--untyped=${CAPDL_UNTYPED_YAML_FILE}")
+else()
+    set(CAPDL_LINKER_ALLOC_OPT "--dynamic-alloc")
+    set(CAPDL_LINKER_UNTYPED_OPT "")
+endif()
 add_custom_command(
     OUTPUT ${CAMKES_CDL_TARGET} ${CMAKE_CURRENT_BINARY_DIR}/object-final.pickle
     COMMAND
@@ -455,6 +498,8 @@ add_custom_command(
             gen_cdl
             "--manifest-in=${CMAKE_CURRENT_BINARY_DIR}/object.pickle"
             "--save-object-state=${CMAKE_CURRENT_BINARY_DIR}/object-final.pickle"
+            ${CAPDL_LINKER_ALLOC_OPT}
+            ${CAPDL_LINKER_UNTYPED_OPT}
             "$<$<BOOL:${capdl_elfs}>:--elffile$<SEMICOLON>>$<JOIN:${capdl_elfs},$<SEMICOLON>--elffile$<SEMICOLON>>"
             "$<$<BOOL:${key_names}>:--key$<SEMICOLON>>$<JOIN:${key_names},$<SEMICOLON>--key$<SEMICOLON>>"
             --outfile ${CAMKES_CDL_TARGET}
@@ -466,6 +511,8 @@ add_custom_command(
         # Any additional dependencies from the files
         ${CMAKE_CURRENT_BINARY_DIR}/object.pickle
         object_sizes
+        untyped_capdl_target
+        ${CAPDL_UNTYPED_YAML_FILE}
         ${capdl_elfs}
         ${capdl_elf_targets}
     VERBATIM
