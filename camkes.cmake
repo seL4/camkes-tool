@@ -222,6 +222,25 @@ set(CAmkESCapDLVerification OFF CACHE BOOL "Generate CapDL refinement proofs
     This verifies that the system's capability distribution conforms to
     the expected integrity policy of the component assembly.")
 
+set(CAmkESCapDLStaticAlloc OFF CACHE BOOL
+    "Statically allocate all capDL objects. This requires the target
+     platform to have a DTS file, and also requires a certain amount of
+     cooperation from kernel boot (currently available on ARM).")
+
+if((NOT CAmkESCapDLStaticAlloc) AND CAmkESCapDLVerification)
+    message(FATAL_ERROR "CAmkESCapDLVerification requires CAmkESCapDLStaticAlloc to be enabled")
+endif()
+
+# Options required for static allocation
+# FIXME: propagate these as some kind of constraints, instead of cached values
+#        (which would become stale if we toggle the parent option)
+if(CAmkESCapDLStaticAlloc)
+    # Need to compile the capDL loader for static alloc
+    set(CapDLLoaderStaticAlloc ON CACHE BOOL "" FORCE)
+    # Need to place the capDL loader ELF at the end of memory
+    set(ElfloaderRootserversLast ON CACHE BOOL "" FORCE)
+endif()
+
 # Save the path to to python-capdl whilst we know it (unless it was already specified)
 if(NOT PYTHON_CAPDL_PATH)
     set(PYTHON_CAPDL_PATH "${CMAKE_SOURCE_DIR}/projects/capdl/python-capdl-tool")

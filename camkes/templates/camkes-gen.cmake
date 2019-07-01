@@ -524,7 +524,7 @@ add_custom_target(camkes_capdl_target DEPENDS "${CAMKES_CDL_TARGET}" "${CMAKE_CU
 add_dependencies(camkes_capdl_target object_sizes ${capdl_elf_targets})
 
 # Invoke the parse-capDL tool to turn the CDL spec into a C spec
-CapDLToolCFileGen(capdl_c_spec_target capdl_spec.c "${CAMKES_CDL_TARGET}" "${CAPDL_TOOL_BINARY}"
+CapDLToolCFileGen(capdl_c_spec_target capdl_spec.c ${CAmkESCapDLStaticAlloc} "$<TARGET_PROPERTY:object_sizes,FILE_PATH>" "${CAMKES_CDL_TARGET}" "${CAPDL_TOOL_BINARY}"
     MAX_IRQS ${CapDLLoaderMaxIRQs}
     DEPENDS camkes_capdl_target install_capdl_tool "${CAPDL_TOOL_BINARY}")
 
