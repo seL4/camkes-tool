@@ -231,14 +231,14 @@ if((NOT CAmkESCapDLStaticAlloc) AND CAmkESCapDLVerification)
     message(FATAL_ERROR "CAmkESCapDLVerification requires CAmkESCapDLStaticAlloc to be enabled")
 endif()
 
-# Options required for static allocation
-# FIXME: propagate these as some kind of constraints, instead of cached values
-#        (which would become stale if we toggle the parent option)
+# Check static allocation options. These should have been propagated correctly by settings.cmake
 if(CAmkESCapDLStaticAlloc)
-    # Need to compile the capDL loader for static alloc
-    set(CapDLLoaderStaticAlloc ON CACHE BOOL "" FORCE)
-    # Need to place the capDL loader ELF at the end of memory
-    set(ElfloaderRootserversLast ON CACHE BOOL "" FORCE)
+    if(NOT CapDLLoaderStaticAlloc)
+        message(FATAL_ERROR "CAmkESCapDLStaticAlloc requires CapDLLoaderStaticAlloc to be enabled")
+    endif()
+    if(NOT ElfloaderRootserversLast)
+        message(FATAL_ERROR "CAmkESCapDLStaticAlloc requires ElfloaderRootserversLast to be enabled")
+    endif()
 endif()
 
 # Save the path to to python-capdl whilst we know it (unless it was already specified)
