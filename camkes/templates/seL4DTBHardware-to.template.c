@@ -78,7 +78,7 @@
             /*- set temp_ns.size = temp_ns.size + size_part -*/
         /*- endfor -*/
 
-        /*- set paddr = temp_ns.paddr -*/
+        /*- set paddr = macros.align_page_address(temp_ns.paddr, options.architecture) -*/
         /*- set size = temp_ns.size -*/
 
         /*# Get the next multiple of 4K that can fit the register #*/
