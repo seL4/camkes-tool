@@ -59,6 +59,10 @@ def next_page_multiple(size, arch):
 # Python 2 type annotations
 next_page_multiple.__annotations__ = {'size': int, 'arch': str, 'return': int}
 
+def align_page_address(address, arch):
+    page_size = page_sizes(arch)[0]
+    return address & ~(page_size-1)
+
 def get_page_size(size, arch):
     '''
     Returns the largest frame_size that can be used to create
