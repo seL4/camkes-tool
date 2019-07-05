@@ -18,7 +18,7 @@
 #include <camkes/dataport.h>
 #include <camkes/dma.h>
 #include <camkes/io.h>
-#include <camkse/irq.h>
+#include <camkes/irq.h>
 #include <camkes/arch/io.h>
 #include <platsupport/io.h>
 #include <stdint.h>
