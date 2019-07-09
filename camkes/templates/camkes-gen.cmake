@@ -567,12 +567,16 @@ if (CAmkESCapDLVerification)
     add_custom_command(
         OUTPUT "${CAMKES_CDL_THY}"
         COMMAND
-            ${CAPDL_TOOL_BINARY} --isabelle "${CAMKES_CDL_THY}" "${CAMKES_CDL_TARGET}"
+            ${CAPDL_TOOL_BINARY}
+                --isabelle "${CAMKES_CDL_THY}"
+                --object-sizes "$<TARGET_PROPERTY:object_sizes,FILE_PATH>"
+                "${CAMKES_CDL_TARGET}"
         DEPENDS
             "${CAMKES_CDL_TARGET}"
             camkes_capdl_target
             "${CAPDL_TOOL_BINARY}"
             install_capdl_tool
+            "$<TARGET_PROPERTY:object_sizes,FILE_PATH>"
     )
     add_custom_target(camkes_cdl_thy DEPENDS "${CAMKES_CDL_THY}")
     add_dependencies(isabelle_root camkes_cdl_thy)
