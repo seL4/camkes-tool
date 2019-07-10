@@ -32,7 +32,26 @@ imports
   "Lib.TermPatternAntiquote"
 begin
 
+(* FIXME: MOVE *)
+setup \<open>
+let
+  fun check thm = let
+    val eta_thm = Conv.fconv_rule Thm.eta_conversion thm;
+    fun which_thm thm = if Thm.derivation_name thm <> "" then Thm.derivation_name thm
+                       else "\n" ^ @{make_string} thm;
+    in if Thm.eq_thm_prop (thm, eta_thm) then thm
+       else (warning ("check_eta_norm: fixing thm: " ^ which_thm thm);
+             eta_thm)
+    end
+in
+   Attrib.setup \<^binding>\<open>check_eta_norm\<close>
+                (pair (fn (_, t) => (NONE, SOME (check t))))
+                "eta normalise theorems, and emit warnings"
+end
+\<close>
+
 context begin interpretation Arch . (* FIXME: needed to talk about ASIDs *)
+
 section \<open>System-specific policy definitions\<close>
 text \<open>
   We need to label objects in a way that matches the architecture spec
@@ -608,7 +627,10 @@ proof -
         /*? options.verification_base_name ?*/_CDL.cap_defs[simplified fun_upds_to_map_of]
         /*? options.verification_base_name ?*/_label_over_ptr_range_cases
 
-        Collect_asid_high__eval_helper[simplified asid_high_bits_def, simplified]
+        \<comment> \<open>FIXME: Isabelle2019 simplifier doesn't eta-normalise??\<close>
+        Collect_asid_high__eval_helper
+            [simplified asid_high_bits_def, simplified, check_eta_norm]
+
         /*? options.verification_base_name ?*/_asids_def[simplified fun_upds_to_map_of] map_of_Cons_code
         /*? options.verification_base_name ?*/_CDL.asid_table_def[simplified fun_upds_to_map_of]
 
