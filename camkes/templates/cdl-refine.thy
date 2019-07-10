@@ -93,7 +93,7 @@ schematic_goal /*? options.verification_base_name ?*/_policy_gen_cases_:
   apply (clarsimp simp only: /*? options.verification_base_name ?*/_policy_def' mem_Collect_eq)
   by assign_schematic_dnf
 
-local_setup {* fn ctxt => let
+local_setup \<open>fn ctxt => let
     fun try_repeat f x = case try f x of SOME x' => try_repeat f x' | NONE => x;
     (* convert "(a = x \<and> b = y \<and> \<dots>) \<longrightarrow> foo a b \<dots>" to "foo x y \<dots>" *)
     val subst_values =
@@ -114,7 +114,7 @@ local_setup {* fn ctxt => let
                             [(/*? options.verification_base_name ?*/_policy_intros, [])])]
     |> snd
   end
-*}
+\<close>
 thm /*? options.verification_base_name ?*/_policy_intros
 
 
