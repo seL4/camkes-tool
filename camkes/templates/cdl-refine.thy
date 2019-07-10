@@ -201,7 +201,7 @@ val /*? options.verification_base_name ?*/_obj_labels =
     /*- set delim = namespace(value='[') -*//*# need this nonsense to modify variable -- see jinja2 docs #*/
     /*- for (obj, label) in sorted(object_label_mapping(), key=lambda('x: x[0].name')) -*/
       /*- if not obj.name.startswith('root_untyped_') -*//*# Exclude root untypeds because they overlap other objects and have no policy. FIXME: better way to detect these #*/
-        /*? delim.value ?*/ ("/*? isabelle_capdl_identifier(obj.name) ?*/", /*? obj.get_size_bits() ?*/, "/*? group_labels.get(label, label) ?*/")
+        /*? delim.value ?*/ ("/*? isabelle_capdl_identifier(obj.name) ?*/", /*? obj.get_size_bits() if obj.get_size_bits() != None else '0' ?*/, "/*? group_labels.get(label, label) ?*/")
         /*- set delim.value = ',' -*/
       /*- endif -*/
     /*- endfor -*/
