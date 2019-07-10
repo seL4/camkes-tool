@@ -82,8 +82,10 @@ test_options = {
 # This builds for the current verified ARM platform, sabre (on QEMU).
 standard_build_config = {
     'PLATFORM': 'sabre',
+    'ARM': '1',
     'CROSS_COMPILER_PREFIX': 'arm-none-eabi-',
     'CAmkESCapDLVerification': '1',
+    'CAmkESCapDLStaticAlloc': '1',
     'SIMULATION': '1',
 }
 # TODO: accept extra config on command line
