@@ -430,6 +430,9 @@ def _lift_dataport_type(location, arg):
 def _lift_dict(location, *args):
     return {strip_quotes(k): strip_quotes(v) for k, v in pairwise(args)}
 
+def _lift_dict_list(location, *args):
+    return list(args)
+
 def _lift_emits(location, id, id2):
     return Emits(id, id2, location)
 
@@ -677,9 +680,8 @@ def _lift_dict_lookup(location, *args):
     return DictLookup(new_args, location)
 
 def _lift_query(location, query_type, query_args, dict_lookup=None):
-    assert(isinstance(query_args, dict))
+    assert(isinstance(query_args, dict) or isinstance(query_args, list))
     assert(not dict_lookup or isinstance(dict_lookup, DictLookup))
-
     return QueryObject(query_type, query_args, dict_lookup, location)
 
 def _collapse(location, content):
@@ -719,6 +721,7 @@ LIFT = {
     'dataport_type':_lift_dataport_type,
     'dict':_lift_dict,
     'dict_lookup' : _lift_dict_lookup,
+    'dict_list' : _lift_dict_list,
     'direction':_collapse,
     'emits':_lift_emits,
     'export':_lift_export,

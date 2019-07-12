@@ -326,7 +326,7 @@ class FdtQueryEngine:
 
         return matches
 
-    def query(self, attr_dict):
+    def _match_attr_dict(self, attr_dict):
         assert isinstance(attr_dict, dict)
 
         """ If there is an alias binding query which we can use, then try that
@@ -370,6 +370,12 @@ class FdtQueryEngine:
         """
         return self._match_nodes_by_attrs(properties, path_matches)
 
+    def query(self, attr):
+        if isinstance(attr, dict):
+            return self._match_attr_dict(attr)
+        else:
+            assert isinstance(attr, list)
+            return [self._match_attr_dict(attr_dict) for attr_dict in attr]
 
 class DtbMatchQuery(Query):
     """Convert a dtb query into a dictionary of results from the device tree"""
@@ -377,13 +383,8 @@ class DtbMatchQuery(Query):
     def __init__(self):
         self.engine = None
 
-    def resolve(self, args):
-        result = self.engine.query(args)
-
-        if not len(result):
-            raise ParseError("DTB query has no results.")
-
-        node = result[0]
+    @staticmethod
+    def resolve_fdt_node(node):
         resolved = {}
 
         address_cells_key = 'this-address-cells'
@@ -417,7 +418,26 @@ class DtbMatchQuery(Query):
             resolved[address_cells_key] = [2]
         if size_cells_key not in resolved:
             resolved[size_cells_key] = [1]
-        # inject the size of the dtb into into the dictionary
+        return resolved
+
+    def resolve(self, args):
+        result = self.engine.query(args)
+
+        resolved = {}
+        if not len(result):
+            raise ParseError("DTB query has no results.")
+
+        query_results = []
+        for entry in result:
+            if(isinstance(entry, list)):
+                node = entry[0]
+            else:
+                node = entry
+            node_resolved = self.resolve_fdt_node(node)
+            query_results.append(node_resolved)
+        #place the results under the 'dtb' key
+        resolved['query'] = query_results
+        #inject the size of the dtb into into the dictionary
         resolved['dtb-size'] = [self.dtb_file_size]
         return resolved
 

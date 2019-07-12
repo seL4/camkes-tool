@@ -97,6 +97,14 @@ def postcondition(ast_lifted):
     return all(not isinstance(x.value, QueryObject) for x in
                ast_lifted.assembly.configuration.settings)
 
+def update_dict_keys(query_dict):
+    key_regexp = re.compile(r'^\w+$')
+    for (key, value) in query_dict.items():
+        del query_dict[key]
+        if not key_regexp.match(key):
+            key = re.sub('\W', '_', key)
+        query_dict[key] = value
+
 def resolve(ast_lifted, read, queries):
     '''
     Resolve all Queries to their return values.
@@ -119,16 +127,17 @@ def resolve(ast_lifted, read, queries):
                 # that cannot be used in C structs - so convert those characters in keys
                 # to '_'
                 if not query_obj.dict_lookup:
-                    for (key, value) in result.items():
-                        del result[key]
-                        if not key_regexp.match(key):
-                            key = re.sub('\W', '_', key)
-                        result[key] = value
+                    update_dict_keys(result)
+                    for item in result['query']:
+                        update_dict_keys(item)
                     s.value = result
                 else:
-                    s.value = result
-                    for key in query_obj.dict_lookup.lookup:
-                        s.value = s.value[key]
+                    s.value = result['query']
+                    for i in range(0, len(s.value)):
+                        item = s.value[i]
+                        for key in query_obj.dict_lookup.lookup:
+                            item = item[key]
+                        s.value[i] = item
                 used_queries.add(query)
             else:
                 raise ParseError("unknown query {0}".format(query_obj.type))
