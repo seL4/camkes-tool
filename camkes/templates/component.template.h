@@ -154,10 +154,21 @@ const char *get_instance_name(void);
          *# have to declare the buffers here, and not inside the dataport block
          #*/
         /*- set config_name = '%s.%s' % (me.name, c) -*/
-        /*- set dtb = configuration[config_name]['dtb'] -*/
-        /*- if dtb is none -*/
+        /*- set dtb_config = configuration[config_name]['dtb'] -*/
+        /*- if dtb_config is none -*/
             /*? raise(TemplateError('Couldn\'t grab the DTB for the %s seL4DTBHardware connection.' % config_name)) ?*/
         /*- endif -*/
+        /*- set dtb_query = dtb_config.get('query') -*/
+        /*- if dtb_query is none -*/
+            /*? raise(TemplateError('Couldn\'t grab the DTB query for the %s seL4DTBHardware connection.' % config_name)) ?*/
+        /*- endif -*/
+        /*- if len(dtb_query) != 1 -*/
+            /*? raise(TemplateError('Invalid number of DTB paths for the %s seL4DTBHardware connection.' % config_name)) ?*/
+        /*- endif -*/
+        /*- if dtb_query[0] is none -*/
+            /*? raise(TemplateError('Missing DTB path for the %s seL4DTBHardware connection.' % config_name)) ?*/
+        /*- endif -*/
+        /*- set dtb = dtb_query[0] -*/
         /*- set num_registers = len(dtb['reg']) // (dtb['this_address_cells'][0] + dtb['this_size_cells'][0]) -*/
         /*# Declare all the initialised buffers #*/
         /*- for i in range(0, num_registers) -*/

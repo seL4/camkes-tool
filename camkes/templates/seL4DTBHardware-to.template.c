@@ -23,11 +23,23 @@
 
 /*# Grab the DTB object made from the previous stages of the parsing #*/
 /*- set configuration_name = '%s.%s' % (me.instance.name, me.interface.name) -*/
-/*- set dtb = configuration[configuration_name].get('dtb') -*/
-/*- if dtb is none -*/
-    /*# DTB path hasn't been passed, raise a fault #*/
-    /*? raise(TemplateError('Missing DTB path, assign a DTB path to attribute %s.dtb.' % (me.interface.name))) ?*/
+/*- set dtb_config = configuration[configuration_name].get('dtb') -*/
+/*- if dtb_config is none -*/
+    /*# DTB query hasn't been made, raise a fault #*/
+    /*? raise(TemplateError('Missing DTB attribute, create a DTB query to attribute %s.dtb.' % (me.interface.name))) ?*/
 /*- endif -*/
+/*- set dtb_query = dtb_config.get('query')  -*/
+/*- if dtb_query is none -*/
+    /*# DTB path hasn't been passed, raise a fault #*/
+    /*? raise(TemplateError('Missing DTB query, assign a DTB path to attribute %s.dtb.' % (me.interface.name))) ?*/
+/*- endif -*/
+/*- if len(dtb_query) != 1 -*/
+    /*? raise(TemplateError('Invalid number of DTB paths, assign a single DTB path to attribute %s.dtb.' % (me.interface.name))) ?*/
+/*- endif -*/
+/*- if dtb_query[0] is none -*/
+    /*? raise(TemplateError('Missing DTB path, assign a single DTB path to attribute %s.dtb.' % (me.interface.name))) ?*/
+/*- endif -*/
+/*- set dtb = dtb_query[0]  -*/
 
 /*# Check if we want interrupts #*/
 /*- set generate_interrupts = configuration[configuration_name].get('generate_interrupts', none) -*/
