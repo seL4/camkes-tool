@@ -70,7 +70,6 @@ class Query(six.with_metaclass(abc.ABCMeta, object)):
         return []
 
 
-
 def print_query_parser_help():
     """Print a help string from all query parsers"""
 
@@ -97,6 +96,7 @@ def postcondition(ast_lifted):
     return all(not isinstance(x.value, QueryObject) for x in
                ast_lifted.assembly.configuration.settings)
 
+
 def update_dict_keys(query_dict):
     key_regexp = re.compile(r'^\w+$')
     for (key, value) in query_dict.items():
@@ -104,6 +104,7 @@ def update_dict_keys(query_dict):
         if not key_regexp.match(key):
             key = re.sub('\W', '_', key)
         query_dict[key] = value
+
 
 def resolve(ast_lifted, read, queries):
     '''
@@ -164,4 +165,3 @@ class QueryParseStage(Transformer):
     def transform(self, ast_lifted, read):
         resolve(ast_lifted, read, self.queries)
         return ast_lifted, read
-

@@ -377,6 +377,7 @@ class FdtQueryEngine:
             assert isinstance(attr, list)
             return [self._match_attr_dict(attr_dict) for attr_dict in attr]
 
+
 class DtbMatchQuery(Query):
     """Convert a dtb query into a dictionary of results from the device tree"""
 
@@ -435,9 +436,9 @@ class DtbMatchQuery(Query):
                 node = entry
             node_resolved = self.resolve_fdt_node(node)
             query_results.append(node_resolved)
-        #place the results under the 'dtb' key
+        # place the results under the 'dtb' key
         resolved['query'] = query_results
-        #inject the size of the dtb into into the dictionary
+        # inject the size of the dtb into into the dictionary
         resolved['dtb-size'] = [self.dtb_file_size]
         return resolved
 
