@@ -21,6 +21,8 @@
 #include <utils/util.h>
 #include <sel4/sel4.h>
 
+/*- import 'dtb-query-common.template.c' as dtb_macros with context -*/
+
 /*# Grab the DTB object made from the previous stages of the parsing #*/
 /*- set configuration_name = '%s.%s' % (me.instance.name, me.interface.name) -*/
 /*- set dtb_config = configuration[configuration_name].get('dtb') -*/
@@ -44,61 +46,23 @@
 /*# Check if we want interrupts #*/
 /*- set generate_interrupts = configuration[configuration_name].get('generate_interrupts', none) -*/
 
-/*# Extract the relevant fields from the DTB (regs, interrupts, etc) #*/
-/*- set regs = dtb.get('reg') -*/
-/*- set is_extended_interrupts = False -*/
-/*- if generate_interrupts -*/
-    /*- set interrupts = dtb.get('interrupts') -*/
-    /*- if interrupts is none -*/
-        /*- set interrupts = dtb.get('interrupts_extended') -*/
-        /*- set is_extended_interrupts = True -*/
-    /*- endif -*/
-/*- else -*/
-    /*- set interrupts = none -*/
-/*- endif -*/
-
 /*# ================ #*/
 /*# Register section #*/
 /*# ================ #*/
 
-/*- if regs is not none -*/
-    /*- if dtb.get('this_size_cells')[0] == 0 -*/
-        /*? raise(TemplateError('This hardware device has a value of 0 for #size-cells, we do not support mapping in a block of 0 bytes')) ?*/
-    /*- endif -*/
+/*? dtb_macros.parse_dtb_node_reg(dtb) ?*/
+/*- set reg_set = pop('reg_set') -*/
+/*- set cached = configuration[configuration_name].get('hardware_cached', False) -*/
 
-    /*- set num_address_cells = dtb.get('this_address_cells')[0] -*/
-    /*- set num_size_cells = dtb.get('this_size_cells')[0] -*/
-
-    /*- set reg_entry_size = num_address_cells + num_size_cells -*/
-    /*- set num_regs = len(regs) // reg_entry_size -*/
-    /*- for i in range(0, num_regs) -*/
-
-        /*- set index = i -*/
-
-        /*# Set a temporary namespace to bypass scoping #*/
-        /*- set temp_ns = namespace(paddr=0, size=0) -*/
-        /*- for j in range(0, num_address_cells) -*/ 
-            /*# Extract the paddr and size, read back to front, the register address and size #*/
-            /*# is written in big endian, __rshift__ because Jinja2 doesn't like '<<' #*/
-            /*- set paddr_part = regs[i * reg_entry_size + (num_address_cells - 1 - j)].__rshift__(j * 32) -*/
-            /*- set temp_ns.paddr = temp_ns.paddr + paddr_part -*/
-        /*- endfor -*/
-
-        /*- for j in range(0, num_size_cells) -*/ 
-            /*# Same idea as above #*/
-            /*- set size_part = regs[i * reg_entry_size + (num_size_cells - 1 - j) + num_address_cells].__rshift__(j * 32) -*/
-            /*- set temp_ns.size = temp_ns.size + size_part -*/
-        /*- endfor -*/
-
-        /*- set paddr = macros.align_page_address(temp_ns.paddr, options.architecture) -*/
-        /*- set size = temp_ns.size -*/
+/*- set index = 0 -*/
+/*- for (paddr, size) in reg_set -*/
 
         /*# Get the next multiple of 4K that can fit the register #*/
         /*- set size = macros.next_page_multiple(size, options.architecture) -*/
         /*- set page_size = macros.get_page_size(size, options.architecture) -*/
         /*- set page_size_bits = int(math.log(page_size, 2)) -*/
 
-        /*- set cached = configuration[configuration_name].get('hardware_cached', False) -*/
+        /*- set index = index + 1 -*/
 
         /*- set dataport_symbol_name = "from_%d_%s_data" % (index, me.interface.name) -*/
         struct {
@@ -159,28 +123,14 @@
                                                /*? size ?*/, cache_op);
         }
 
-    /*- endfor -*/
-
-/*- endif -*/
+/*- endfor -*/
 
 /*# ================== #*/
 /*# Interrupts section #*/
 /*# ================== #*/
 
-/*# This section assumes that the `interrupts` binding's format follow those of the #*/
-/*# ARM GIC (not v3), i.e. cell 1 = SPI, cell 2 = interrupt number and cell 3 the flag. #*/
+/*- if generate_interrupts -*/
 
-/*- if interrupts is not none -*/
-    /*- if is_extended_interrupts -*/
-        /*- set num_interrupts = len(interrupts) // 4 -*/
-    /*- else -*/
-        /*- set num_interrupts = len(interrupts) // 3 -*/
-    /*- endif -*/
-    /*- if num_interrupts > 28 -*/
-        /*# CAmkES has a maximum limit of 28 bits for badges, #*/
-        /*# highly unlikely a device has greater than 28 #*/
-        /*? raise(TemplateError('Device %s has more than 28 interrupts, this is more than we can support.') % (me.interface.name)) ?*/
-    /*- endif -*/
     /*- set ntfn_obj = alloc_obj('%s_ntfn' % me.interface.name, seL4_NotificationObject) -*/
     /*- set root_ntfn = alloc_cap('%s_root_ntfn' % me.interface.name, ntfn_obj, read=True, write=True) -*/
 
@@ -190,20 +140,13 @@
 
     /*- set interrupt_struct_prefix = '%s_irq' % (me.interface.name) -*/
 
-    /*- for i in range(0, num_interrupts) -*/
+    /*? dtb_macros.parse_dtb_node_interrupts(dtb) ?*/
+    /*- set irq_set = pop('irq_set') -*/
+
+    /*- for (_irq, i) in zip(irq_set, range(0, len(irq_set)))  -*/
 
         /*- set interrupt_ntfn = alloc_cap('%s_ntfn_%d' % (me.interface.name, i), ntfn_obj, read=True, write=True, badge=pow(2, i)) -*/
 
-        /*- if is_extended_interrupts -*/
-            /*- set _irq = interrupts[i * 3 + 2] -*/
-            /*- set _irq_spi = interrupts[i * 3 + 1] -*/
-        /*- else -*/
-            /*- set _irq = interrupts[i * 3 + 1] -*/
-            /*- set _irq_spi = interrupts[i * 3 + 0] -*/
-        /*- endif -*/
-        /*- if (isinstance(_irq_spi, numbers.Integral)) and (_irq_spi == 0) -*/
-            /*- set _irq = _irq + 32 -*/
-        /*- endif -*/
         /*- set irq = alloc('%s_irq_%d' % (me.interface.name, i), seL4_IRQHandler, number=_irq) -*/
 
         /*# Add the interrupt number to the IRQ num list for later #*/
@@ -268,7 +211,7 @@
             seL4_Wait(/*? root_ntfn ?*/, &badge);
 
             /*# Generate the calls to the IRQ handling functions #*/
-            /*- for i in range(0, num_interrupts) -*/
+            /*- for i in range(0, len(irq_set)) -*/
                 /*- set bit = pow(2, i) -*/
                 if (badge & /*? bit ?*/) {
                     void /*? me.interface.name ?*/_irq_handle(ps_irq_t *irq) WEAK;
