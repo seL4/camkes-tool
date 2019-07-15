@@ -982,8 +982,9 @@ class DictLookup(ASTObject):
         super(DictLookup, self).__init__(location)
         self.lookup = lookup
 
-@ast_property("query_name", six.string_types)
-@ast_property("query_args", dict)
+@ast_property("type", six.string_types)
+@ast_property("args", lambda i: isinstance(i, list) and
+            all(isinstance(x, dict) for x in i))
 @ast_property("dict_lookup", lambda x: x is None or isinstance(x, DictLookup))
 class QueryObject(ASTObject):
     def __init__(self, query_name, query_args, dict_lookup, location):
