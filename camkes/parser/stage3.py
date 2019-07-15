@@ -757,9 +757,14 @@ def _lift_dict_lookup(location, *args):
 
 
 def _lift_query(location, query_type, query_args, dict_lookup=None):
-    assert(isinstance(query_args, dict) or isinstance(query_args, list))
+    if isinstance(query_args, dict):
+        new_query_args = [query_args]
+    else:
+        assert(isinstance(query_args, list) and
+               all(isinstance(x, dict) for x in query_args))
+        new_query_args = query_args
     assert(not dict_lookup or isinstance(dict_lookup, DictLookup))
-    return QueryObject(query_type, query_args, dict_lookup, location)
+    return QueryObject(query_type, new_query_args, dict_lookup, location)
 
 
 def _collapse(location, content):

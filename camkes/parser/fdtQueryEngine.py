@@ -371,11 +371,8 @@ class FdtQueryEngine:
         return self._match_nodes_by_attrs(properties, path_matches)
 
     def query(self, attr):
-        if isinstance(attr, dict):
-            return self._match_attr_dict(attr)
-        else:
-            assert isinstance(attr, list)
-            return [self._match_attr_dict(attr_dict) for attr_dict in attr]
+        assert isinstance(attr, list)
+        return [self._match_attr_dict(attr_dict) for attr_dict in attr]
 
 
 class DtbMatchQuery(Query):
@@ -430,10 +427,9 @@ class DtbMatchQuery(Query):
 
         query_results = []
         for entry in result:
-            if(isinstance(entry, list)):
-                node = entry[0]
-            else:
-                node = entry
+            if not len(entry):
+                raise ParseError("DTB node query has no results.")
+            node = entry[0]
             node_resolved = self.resolve_fdt_node(node)
             query_results.append(node_resolved)
         # place the results under the 'dtb' key
