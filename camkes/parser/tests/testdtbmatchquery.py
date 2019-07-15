@@ -138,6 +138,74 @@ class TestDTBMatchQuery(CAmkESTest):
         self.assertEquals(node['query'][0], expected)
         self.assertEquals(node['dtb-size'], [self.dtbSize])
 
+    def test_multiple_queries(self):
+        node = self.dtbQuery.resolve([{'path': "temp"}, {'aliases': 'spi4'}])
+        expected = [
+            {
+                'compatible': ["fsl,imx6q-tempmon"],
+                'interrupt-parent': [0x1],
+                'interrupts': [0x0, 0x31, 0x4],
+                'fsl,tempmon': [0x2],
+                'fsl,tempmon-data': [0x3],
+                'clocks': [0x4, 0xac],
+                'this-address-cells': [0x1],
+                'this-size-cells': [0x1],
+            },
+            {
+                '#address-cells': [0x1],
+                '#size-cells': [0x0],
+                'compatible': ["fsl,imx6q-ecspi", "fsl,imx51-ecspi"],
+                'reg': [0x2018000, 0x4000],
+                'interrupts': [0x0, 0x23, 0x4],
+                'clocks': [0x4, 0x74, 0x4, 0x74],
+                'clock-names': ["ipg", "per"],
+                'dmas': [0x17, 0xb, 0x8, 0x1, 0x17, 0xc, 0x8, 0x2],
+                'dma-names': ["rx", "tx"],
+                'status': ["disabled"],
+                'this-address-cells': [0x1],
+                'this-size-cells': [0x1],
+
+            }
+        ]
+        self.assertIn('query', node)
+        self.assertEquals(len(node['query']), 2)
+        self.assertEquals(node['query'][0], expected[0])
+        self.assertEquals(node['query'][1], expected[1])
+
+        node = self.dtbQuery.resolve(
+            [{'path': '.*sgtl5000.*'}, {'properties': {'reg[0]': 0x2020000}}])
+        expected = [
+            {
+                'compatible': ["fsl,sgtl5000"],
+                'reg': [0x0a],
+                'clocks': [0x04, 0xc9],
+                'VDDA-supply': [0x39],
+                'VDDIO-supply': [0x35],
+                'phandle': [0x78],
+                'this-address-cells': [0x01],
+                'this-size-cells': [0x00],
+            },
+            {
+                'dma-names': ['rx', 'tx'],
+                'status': ['okay'],
+                'clock-names': ['ipg', 'per'],
+                'interrupts': [0, 26, 4],
+                'pinctrl-names': ['default'],
+                'compatible': ['fsl,imx6q-uart', 'fsl,imx21-uart'],
+                'dmas': [23, 25, 4, 0, 23, 26, 4, 0],
+                'clocks': [4, 160, 4, 161],
+                'pinctrl-0': [26],
+                'reg': [33685504, 16384],
+                'this-address-cells': [0x1],
+                'this-size-cells': [0x1],
+            }
+        ]
+        self.assertIn('query', node)
+        self.assertEquals(len(node['query']), 2)
+        self.assertEquals(node['query'][0], expected[0])
+        self.assertEquals(node['query'][1], expected[1])
+        self.assertEquals(node['dtb-size'], [self.dtbSize])
+
     def test_blank(self):
         self.assertRaises(ParseError, self.dtbQuery.resolve, [{}])
 
