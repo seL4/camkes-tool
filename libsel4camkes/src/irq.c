@@ -160,7 +160,7 @@ int camkes_irq_ops(ps_irq_ops_t *irq_ops)
     }
 
     /* The cookie can't be NULL, otherwise the wrappers in libplatsupport will return errors */
-    irq_ops->cookie = 0xDEADBEEF;
+    irq_ops->cookie = (void *)0xDEADBEEF;
     irq_ops->irq_register_fn = camkes_irq_register;
     irq_ops->irq_unregister_fn = camkes_irq_unregister;
 
