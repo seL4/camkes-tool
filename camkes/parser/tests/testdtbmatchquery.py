@@ -196,8 +196,6 @@ class TestDTBMatchQuery(CAmkESTest):
         self.assertEquals(node['query'][0], expected)
         self.assertEquals(node['dtb-size'], [self.dtbSize])
 
-
-
     def test_properties_star_string(self):
         node = self.dtbQuery.resolve([{
             'properties':  {
@@ -206,7 +204,7 @@ class TestDTBMatchQuery(CAmkESTest):
         }])
         self.assertIn('query', node)
         self.assertEquals(len(node['query']), 1)
-        query = node['query'][0];
+        query = node['query'][0]
 
         self.assertIn('#address-cells', query)
         self.assertEquals(query['#address-cells'], [0x1])
@@ -225,11 +223,11 @@ class TestDTBMatchQuery(CAmkESTest):
 
         self.assertIn('clocks', query)
         self.assertEquals(query['clocks'], [0x4, 0x21, 0x4, 0x22, 0x4, 0x27, 0x4, 0x28, 0x4, 0x29, 0x4, 0x2a, 0x4, 0x87,
-                                           0x4, 0x88])
+                                            0x4, 0x88])
 
         self.assertIn('clock-names', query)
         self.assertEquals(query['clock-names'], ["di0_pll", "di1_pll", "di0_sel", "di1_sel", "di2_sel", "di3_sel",
-                                                "di0", "di1"])
+                                                 "di0", "di1"])
 
         self.assertIn('this-address-cells', query)
         self.assertEquals(query['this-address-cells'], [0x1])
@@ -247,7 +245,7 @@ class TestDTBMatchQuery(CAmkESTest):
         }])
         self.assertIn('query', node)
         self.assertEquals(len(node['query']), 1)
-        query = node['query'][0];
+        query = node['query'][0]
 
         expected = {
             'compatible': ["fsl,imx6q-dma-apbh", "fsl,imx28-dma-apbh"],
@@ -273,7 +271,7 @@ class TestDTBMatchQuery(CAmkESTest):
 
         self.assertIn('query', node)
         self.assertEquals(len(node['query']), 1)
-        query = node['query'][0];
+        query = node['query'][0]
         expected = {
             'compatible': ["fsl,imx6q-pcie", "snps,dw-pcie"],
             'reg': [0x1ffc000, 0x4000, 0x1f00000, 0x80000],
@@ -310,7 +308,7 @@ class TestDTBMatchQuery(CAmkESTest):
 
         self.assertIn('query', node)
         self.assertEquals(len(node['query']), 1)
-        query = node['query'][0];
+        query = node['query'][0]
         expected = {
             'compatible': ["fsl,imx6q-gpmi-nand"],
             '#address-cells': [0x1],
@@ -330,6 +328,7 @@ class TestDTBMatchQuery(CAmkESTest):
         self.assertEquals(query, expected)
         self.assertIn('dtb-size', node)
         self.assertEquals(node['dtb-size'], [self.dtbSize])
+
 
 if __name__ == '__main__':
     unittest.main()
