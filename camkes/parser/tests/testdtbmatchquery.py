@@ -46,7 +46,7 @@ class TestDTBMatchQuery(CAmkESTest):
         self.dtbSize = os.path.getsize(os.path.join(os.path.dirname(ME), "test.dtb"))
 
     def test_aliases(self):
-        node = self.dtbQuery.resolve({'aliases': 'usbphy0'})
+        node = self.dtbQuery.resolve([{'aliases': 'usbphy0'}])
         self.assertIsInstance(node, dict)
 
         expected = {
@@ -58,11 +58,14 @@ class TestDTBMatchQuery(CAmkESTest):
             'phandle': [0x2c],
             'this-address-cells': [0x1],
             'this-size-cells': [0x1],
-            'dtb-size': [self.dtbSize]
         }
-        self.assertEquals(node, expected)
+        self.assertIn('query', node)
+        self.assertIn('dtb-size', node)
+        self.assertEquals(len(node['query']), 1)
+        self.assertEquals(node['query'][0], expected)
+        self.assertEquals(node['dtb-size'], [self.dtbSize])
 
-        node = self.dtbQuery.resolve({'aliases': 'spi4'})
+        node = self.dtbQuery.resolve([{'aliases': 'spi4'}])
         expected = {
             '#address-cells': [0x1],
             '#size-cells': [0x0],
@@ -76,13 +79,15 @@ class TestDTBMatchQuery(CAmkESTest):
             'status': ["disabled"],
             'this-address-cells': [0x1],
             'this-size-cells': [0x1],
-            'dtb-size': [self.dtbSize]
         }
 
-        self.assertEquals(node, expected)
+        self.assertIn('query', node)
+        self.assertEquals(node['query'][0], expected)
+        self.assertEquals(len(node['query']), 1)
+        self.assertEquals(node['dtb-size'], [self.dtbSize])
 
     def test_paths(self):
-        node = self.dtbQuery.resolve({'path': "temp"})
+        node = self.dtbQuery.resolve([{'path': "temp"}])
         expected = {
             'compatible': ["fsl,imx6q-tempmon"],
             'interrupt-parent': [0x1],
@@ -92,11 +97,12 @@ class TestDTBMatchQuery(CAmkESTest):
             'clocks': [0x4, 0xac],
             'this-address-cells': [0x1],
             'this-size-cells': [0x1],
-            'dtb-size': [self.dtbSize]
         }
-        self.assertEquals(node, expected)
+        self.assertIn('query', node)
+        self.assertEquals(len(node['query']), 1)
+        self.assertEquals(node['query'][0], expected)
 
-        node = self.dtbQuery.resolve({'path': '.*serial.*'})
+        node = self.dtbQuery.resolve([{'path': '.*serial.*'}])
         expected = {
             'compatible': ["fsl,imx6q-uart", "fsl,imx21-uart"],
             'reg': [0x2020000, 0x4000],
@@ -110,11 +116,13 @@ class TestDTBMatchQuery(CAmkESTest):
             'pinctrl-0': [0x1a],
             'this-address-cells': [0x1],
             'this-size-cells': [0x1],
-            'dtb-size': [self.dtbSize]
         }
-        self.assertEquals(node, expected)
+        self.assertIn('query', node)
+        self.assertEquals(len(node['query']), 1)
+        self.assertEquals(node['query'][0], expected)
+        self.assertEquals(node['dtb-size'], [self.dtbSize])
 
-        node = self.dtbQuery.resolve({'path': '.*sgtl5000.*'})
+        node = self.dtbQuery.resolve([{'path': '.*sgtl5000.*'}])
         expected = {
             'compatible': ["fsl,sgtl5000"],
             'reg': [0x0a],
@@ -124,15 +132,17 @@ class TestDTBMatchQuery(CAmkESTest):
             'phandle': [0x78],
             'this-address-cells': [0x01],
             'this-size-cells': [0x00],
-            'dtb-size': [self.dtbSize]
         }
-        self.assertEquals(node, expected)
+        self.assertIn('query', node)
+        self.assertEquals(len(node['query']), 1)
+        self.assertEquals(node['query'][0], expected)
+        self.assertEquals(node['dtb-size'], [self.dtbSize])
 
     def test_blank(self):
-        self.assertRaises(ParseError, self.dtbQuery.resolve, {})
+        self.assertRaises(ParseError, self.dtbQuery.resolve, [{}])
 
     def test_properties_lvalue_index(self):
-        node = self.dtbQuery.resolve({'properties': {'reg[0]': 0x2020000}})
+        node = self.dtbQuery.resolve([{'properties': {'reg[0]': 0x2020000}}])
         expected = {
             'dma-names': ['rx', 'tx'],
             'status': ['okay'],
@@ -146,11 +156,13 @@ class TestDTBMatchQuery(CAmkESTest):
             'reg': [33685504, 16384],
             'this-address-cells': [0x1],
             'this-size-cells': [0x1],
-            'dtb-size': [self.dtbSize]
         }
-        self.assertEquals(node, expected)
+        self.assertIn('query', node)
+        self.assertEquals(len(node['query']), 1)
+        self.assertEquals(node['query'][0], expected)
+        self.assertEquals(node['dtb-size'], [self.dtbSize])
 
-        node = self.dtbQuery.resolve({'properties': {'compatible[0]': 'fsl,imx6q-pwm'}})
+        node = self.dtbQuery.resolve([{'properties': {'compatible[0]': 'fsl,imx6q-pwm'}}])
         expected = {
             'status': ['okay'],
             'pinctrl-0': [29],
@@ -164,65 +176,78 @@ class TestDTBMatchQuery(CAmkESTest):
             'reg': [34078720, 16384],
             'this-address-cells': [0x1],
             'this-size-cells': [0x1],
-            'dtb-size': [self.dtbSize]
         }
-        self.assertEquals(node, expected)
+        self.assertIn('query', node)
+        self.assertEquals(len(node['query']), 1)
+        self.assertEquals(node['query'][0], expected)
+        self.assertEquals(node['dtb-size'], [self.dtbSize])
 
-        node = self.dtbQuery.resolve({'properties': {'compatible[0]': 'fsl,sec-v4.0-mon-rtc-lp'}})
+        node = self.dtbQuery.resolve([{'properties': {'compatible[0]': 'fsl,sec-v4.0-mon-rtc-lp'}}])
         expected = {
-            'compatible': ['fsl,sec-v4.0,mon-rtc-lp'],
+            'compatible': ['fsl,sec-v4.0-mon-rtc-lp'],
             'regmap': [0x23],
             'offset': [0x34],
             'interrupts': [0x00, 0x13, 0x04, 0x00, 0x14, 0x04],
             'this-address-cells': [0x02],
             'this-size-cells': [0x01],
-            'dtb-size': [self.dtbSize]
         }
+        self.assertIn('query', node)
+        self.assertEquals(len(node['query']), 1)
+        self.assertEquals(node['query'][0], expected)
+        self.assertEquals(node['dtb-size'], [self.dtbSize])
+
+
 
     def test_properties_star_string(self):
-        node = self.dtbQuery.resolve({
+        node = self.dtbQuery.resolve([{
             'properties':  {
                 "clock-names[*]": ["di0_pll", "di1_pll", "di0_sel", "di1_sel", "di2_sel", "di3_sel", "di0", "di1"]
             }
-        })
+        }])
+        self.assertIn('query', node)
+        self.assertEquals(len(node['query']), 1)
+        query = node['query'][0];
 
-        self.assertIn('#address-cells', node)
-        self.assertEquals(node['#address-cells'], [0x1])
+        self.assertIn('#address-cells', query)
+        self.assertEquals(query['#address-cells'], [0x1])
 
-        self.assertIn('#size-cells', node)
-        self.assertEquals(node['#size-cells'], [0x0])
+        self.assertIn('#size-cells', query)
+        self.assertEquals(query['#size-cells'], [0x0])
 
-        self.assertIn('compatible', node)
-        self.assertEquals(node['compatible'], ["fsl,imx6q-ldb", "fsl,imx53-ldb"])
+        self.assertIn('compatible', query)
+        self.assertEquals(query['compatible'], ["fsl,imx6q-ldb", "fsl,imx53-ldb"])
 
-        self.assertIn('gpr', node)
-        self.assertEquals(node['gpr'], [0x5])
+        self.assertIn('gpr', query)
+        self.assertEquals(query['gpr'], [0x5])
 
-        self.assertIn('status', node)
-        self.assertEquals(node['status'], ["okay"])
+        self.assertIn('status', query)
+        self.assertEquals(query['status'], ["okay"])
 
-        self.assertIn('clocks', node)
-        self.assertEquals(node['clocks'], [0x4, 0x21, 0x4, 0x22, 0x4, 0x27, 0x4, 0x28, 0x4, 0x29, 0x4, 0x2a, 0x4, 0x87,
+        self.assertIn('clocks', query)
+        self.assertEquals(query['clocks'], [0x4, 0x21, 0x4, 0x22, 0x4, 0x27, 0x4, 0x28, 0x4, 0x29, 0x4, 0x2a, 0x4, 0x87,
                                            0x4, 0x88])
 
-        self.assertIn('clock-names', node)
-        self.assertEquals(node['clock-names'], ["di0_pll", "di1_pll", "di0_sel", "di1_sel", "di2_sel", "di3_sel",
+        self.assertIn('clock-names', query)
+        self.assertEquals(query['clock-names'], ["di0_pll", "di1_pll", "di0_sel", "di1_sel", "di2_sel", "di3_sel",
                                                 "di0", "di1"])
 
-        self.assertIn('this-address-cells', node)
-        self.assertEquals(node['this-address-cells'], [0x1])
+        self.assertIn('this-address-cells', query)
+        self.assertEquals(query['this-address-cells'], [0x1])
 
-        self.assertIn('this-size-cells', node)
-        self.assertEquals(node['this-size-cells'], [0x1])
+        self.assertIn('this-size-cells', query)
+        self.assertEquals(query['this-size-cells'], [0x1])
 
         self.assertIn('dtb-size', node)
         self.assertEquals(node['dtb-size'], [self.dtbSize])
 
-        node = self.dtbQuery.resolve({
+        node = self.dtbQuery.resolve([{
             'properties': {
                 "interrupt-names[*]": ["gpmi0", "gpmi1", "gpmi2", "gpmi3"]
             }
-        })
+        }])
+        self.assertIn('query', node)
+        self.assertEquals(len(node['query']), 1)
+        query = node['query'][0];
 
         expected = {
             'compatible': ["fsl,imx6q-dma-apbh", "fsl,imx28-dma-apbh"],
@@ -235,15 +260,20 @@ class TestDTBMatchQuery(CAmkESTest):
             'phandle': [0xf],
             'this-address-cells': [0x1],
             'this-size-cells': [0x1],
-            'dtb-size': [self.dtbSize]
         }
-        self.assertEquals(node, expected)
+        self.assertEquals(query, expected)
+        self.assertIn('dtb-size', node)
+        self.assertEquals(node['dtb-size'], [self.dtbSize])
 
-        node = self.dtbQuery.resolve({
+        node = self.dtbQuery.resolve([{
             'properties': {
                 "compatible[*]": ["fsl,imx6q-pcie", "snps,dw-pcie"]
             }
-        })
+        }])
+
+        self.assertIn('query', node)
+        self.assertEquals(len(node['query']), 1)
+        query = node['query'][0];
         expected = {
             'compatible': ["fsl,imx6q-pcie", "snps,dw-pcie"],
             'reg': [0x1ffc000, 0x4000, 0x1f00000, 0x80000],
@@ -266,17 +296,21 @@ class TestDTBMatchQuery(CAmkESTest):
             'status': ["okay"],
             'this-address-cells': [0x1],
             'this-size-cells': [0x1],
-            'dtb-size': [self.dtbSize]
         }
-        self.assertEquals(node, expected)
+        self.assertEquals(query, expected)
+        self.assertIn('dtb-size', node)
+        self.assertEquals(node['dtb-size'], [self.dtbSize])
 
     def test_properties_star_word_and_byte(self):
-        node = self.dtbQuery.resolve({
+        node = self.dtbQuery.resolve([{
             'properties': {
                 "clocks[*]": [0x4, 0x98, 0x4, 0x99, 0x4, 0x97, 0x4, 0x96, 0x4, 0x95]
             }
-        })
+        }])
 
+        self.assertIn('query', node)
+        self.assertEquals(len(node['query']), 1)
+        query = node['query'][0];
         expected = {
             'compatible': ["fsl,imx6q-gpmi-nand"],
             '#address-cells': [0x1],
@@ -292,10 +326,10 @@ class TestDTBMatchQuery(CAmkESTest):
             'status': ["disabled"],
             'this-address-cells': [0x1],
             'this-size-cells': [0x1],
-            'dtb-size': [self.dtbSize]
         }
-        self.assertEquals(node, expected)
-
+        self.assertEquals(query, expected)
+        self.assertIn('dtb-size', node)
+        self.assertEquals(node['dtb-size'], [self.dtbSize])
 
 if __name__ == '__main__':
     unittest.main()
