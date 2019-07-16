@@ -51,7 +51,7 @@
     /*- do stash('reg_set', reg_set) -*/
 /*- endmacro -*/
 
-/*- macro parse_dtb_node_interrupts(node) -*/
+/*- macro parse_dtb_node_interrupts(node, max_num_interrupts) -*/
     /*# This section assumes that the `interrupts` binding's format follow those of the #*/
     /*# ARM GIC (not v3), i.e. cell 1 = SPI, cell 2 = interrupt number and cell 3 the flag. #*/
     /*- set interrupts = node.get('interrupts') -*/
@@ -67,10 +67,8 @@
         /*- else -*/
             /*- set num_interrupts = len(interrupts) // 3 -*/
         /*- endif -*/
-        /*- if num_interrupts > 28 -*/
-            /*# CAmkES has a maximum limit of 28 bits for badges, #*/
-            /*# highly unlikely a device has greater than 28 #*/
-            /*? raise(TemplateError('Device %s has more than 28 interrupts, this is more than we can support.') % (me.interface.name)) ?*/
+        /*- if max_num_interrupts != -1 and num_interrupts > max_num_interrupts -*/
+            /*? raise(TemplateError('Device %s has more than %d interrupts, this is more than we can support.') % (me.interface.name, max_num_interrupts)) ?*/
         /*- endif -*/
 
         /*- for i in range(0, num_interrupts) -*/
