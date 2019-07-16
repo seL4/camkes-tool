@@ -68,7 +68,7 @@ void camkes_virtqueue_buffer_free(virtqueue_driver_t *virtqueue, volatile void *
     channel->buffer_allocated = 0;
 }
 
-static camkes_virtqueue_channel_t * get_virtqueue_channel(virtqueue_role_t role, unsigned int camkes_virtqueue_id)
+static camkes_virtqueue_channel_t *get_virtqueue_channel(virtqueue_role_t role, unsigned int camkes_virtqueue_id)
 {
     /* Check that the virtqueue id is in a valid range */
     if (camkes_virtqueue_id > MAX_CAMKES_VIRTQUEUE_ID) {

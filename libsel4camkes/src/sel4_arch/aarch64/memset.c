@@ -18,7 +18,8 @@
  * the command line arguments we are passing it, but just squash the issue here
  * for now, by redirecting such calls back to `memset`.
  */
-void *camkes_memset(void *s, int c, size_t n) {
+void *camkes_memset(void *s, int c, size_t n)
+{
     return memset(s, c, n);
 }
 void *__aeabi_memset(void *s, int c, size_t n) WEAK ALIAS(camkes_memset);

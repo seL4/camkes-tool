@@ -31,7 +31,8 @@ typedef struct _node {
 static node_t *resources;
 
 int camkes_provide(seL4_ObjectType type, seL4_CPtr ptr, size_t size,
-        unsigned attributes) {
+                   unsigned attributes)
+{
     node_t *n = calloc(1, sizeof(*n));
     if (n == NULL) {
         return -1;
@@ -46,10 +47,11 @@ int camkes_provide(seL4_ObjectType type, seL4_CPtr ptr, size_t size,
     return 0;
 }
 
-seL4_CPtr camkes_alloc(seL4_ObjectType type, size_t size, unsigned flags) {
+seL4_CPtr camkes_alloc(seL4_ObjectType type, size_t size, unsigned flags)
+{
     for (node_t *n = resources; n != NULL; n = n->next) {
         if (n->type == type && !n->used && (n->attributes & flags) == flags &&
-                (size == 0 || size == n->size)) {
+            (size == 0 || size == n->size)) {
             n->used = true;
             return n->ptr;
         }
@@ -57,7 +59,8 @@ seL4_CPtr camkes_alloc(seL4_ObjectType type, size_t size, unsigned flags) {
     return seL4_CapNull;
 }
 
-void camkes_free(seL4_CPtr ptr) {
+void camkes_free(seL4_CPtr ptr)
+{
     for (node_t *n = resources; n != NULL; n = n->next) {
         if (n->ptr == ptr) {
             assert(n->used && "double free of a cap pointer");

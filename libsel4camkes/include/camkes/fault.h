@@ -10,8 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef _CAMKES_FAULT_H_
-#define _CAMKES_FAULT_H_
+#pragma once
 
 #include <sel4/sel4.h>
 #include <stdbool.h>
@@ -39,7 +38,5 @@ typedef struct {
  * be a sentinel region with `start == end == 0`.
  */
 void camkes_show_fault(seL4_MessageInfo_t info, seL4_CPtr thread_id,
-    const char *name, bool tcb_caps_available,
-    const camkes_memory_region_t *memory_map);
-
-#endif
+                       const char *name, bool tcb_caps_available,
+                       const camkes_memory_region_t *memory_map);

@@ -18,12 +18,12 @@
 
 long camkes_sys_sigaction(va_list ap UNUSED)
 {
-	LOG_INFO("Warning: %s ignored.\n", __func__);
-	return 0;
+    LOG_INFO("Warning: %s ignored.\n", __func__);
+    return 0;
 }
 
 long camkes_sys_rt_sigaction(va_list ap UNUSED)
 {
-	LOG_INFO("Warning: %s ignored.\n", __func__);
-	return 0;
+    LOG_INFO("Warning: %s ignored.\n", __func__);
+    return 0;
 }

@@ -16,7 +16,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
-void show_unknown_syscall_fault(seL4_CPtr thread_id, const char *name) {
+void show_unknown_syscall_fault(seL4_CPtr thread_id, const char *name)
+{
     assert(name != NULL);
 
     uintptr_t r0 = seL4_GetMR(0);
@@ -44,7 +45,7 @@ void show_unknown_syscall_fault(seL4_CPtr thread_id, const char *name) {
          "     sp = %p\n"
          "     lr = %p\n"
          "   cpsr = %p\n",
-        syscall, name, thread_id, (void*)pc, (void*)r0, (void*)r1, (void*)r2,
-        (void*)r3, (void*)r4, (void*)r5, (void*)r6, (void*)r7, (void*)sp,
-        (void*)lr, (void*)cpsr);
+         syscall, name, thread_id, (void *)pc, (void *)r0, (void *)r1, (void *)r2,
+         (void *)r3, (void *)r4, (void *)r5, (void *)r6, (void *)r7, (void *)sp,
+         (void *)lr, (void *)cpsr);
 }

@@ -21,8 +21,9 @@ extern unsigned int _tdata_end[];
 extern unsigned int _tbss_end[];
 long sel4_vsyscall(long sysnum, ...);
 
-void camkes_start_control(int thread_id, void *ipc_buffer_ptr) {
-	uintptr_t tdata_start = (uintptr_t) &_tdata_start[0];
+void camkes_start_control(int thread_id, void *ipc_buffer_ptr)
+{
+    uintptr_t tdata_start = (uintptr_t) &_tdata_start[0];
     uintptr_t tdata_end = (uintptr_t) &_tdata_end[0];
     uintptr_t tbss_end = (uintptr_t) &_tbss_end[0];
 
@@ -35,7 +36,7 @@ void camkes_start_control(int thread_id, void *ipc_buffer_ptr) {
         .p_memsz  = tbss_end - tdata_start,
         .p_align = sizeof(long),
     };
-	auxv_t auxv[] = {
+    auxv_t auxv[] = {
         {
             .a_type = AT_PHENT,
             .a_un.a_val = sizeof(Elf32_Phdr),
@@ -48,22 +49,22 @@ void camkes_start_control(int thread_id, void *ipc_buffer_ptr) {
         }, {
             .a_type = AT_SYSINFO,
             .a_un.a_ptr = &sel4_vsyscall,
-        },{
+        }, {
             .a_type = AT_SEL4_IPC_BUFFER_PTR,
             .a_un.a_ptr = ipc_buffer_ptr,
-        },{
+        }, {
             // Null terminating entry
             .a_type = AT_NULL,
             .a_un.a_val = 0
         },
     };
 
-    char const * const envp[] = {
+    char const *const envp[] = {
         "seL4=1",
         NULL,
     };
 
-    char const * const argv[] = {
+    char const *const argv[] = {
         "camkes",
         (char *)(uintptr_t) thread_id,
         NULL,

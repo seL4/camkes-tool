@@ -10,8 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef _LIBSEL4CAMKES_TIMING_H_
-#define _LIBSEL4CAMKES_TIMING_H_
+#pragma once
 
 #include <autoconf.h>
 #include <sel4camkes/gen_config.h>
@@ -90,7 +89,5 @@
     }
 
 #define TIMESTAMP(point) /* nothing */
-
-#endif
 
 #endif

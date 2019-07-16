@@ -64,7 +64,8 @@ struct {
     {__NR_tkill, camkes_sys_tkill}
 };
 
-void camkes_install_syscalls(void) {
+void camkes_install_syscalls(void)
+{
     int i;
     camkes_install_io_syscalls();
     for (i = 0; i < ARRAY_SIZE(syscalls); i++) {

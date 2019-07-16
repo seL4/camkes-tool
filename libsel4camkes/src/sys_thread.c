@@ -21,7 +21,8 @@
 #include <sel4utils/arch/util.h>
 #include <utils/util.h>
 
-long camkes_sys_set_tid_address(va_list ap UNUSED) {
+long camkes_sys_set_tid_address(va_list ap UNUSED)
+{
     /* We ignore the input argument (an address to replace the current value of `clear_child_tid`,
      * but `set_tid_address` is documented as always succeeding, so we pretend we saved it.
      */

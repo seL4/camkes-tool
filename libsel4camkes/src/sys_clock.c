@@ -22,7 +22,7 @@ int clk_get_time(void) __attribute__((weak));
 long camkes_sys_clock_gettime(va_list ap)
 {
     clockid_t clk = va_arg(ap, clockid_t);
-    struct timespec *ts = va_arg(ap, struct timespec*);
+    struct timespec *ts = va_arg(ap, struct timespec *);
     uint32_t curtime;
 
     if (clk_get_time && clk == CLOCK_REALTIME && ts) {

@@ -9,8 +9,8 @@
  *
  * @TAG(DATA61_BSD)
  */
- 
-#pragma once 
+
+#pragma once
 
 #include <sel4/sel4.h>
 #include <stdint.h>

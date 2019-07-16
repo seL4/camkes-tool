@@ -22,14 +22,15 @@ __thread camkes_tls_t camkes_tls;
 
 #ifndef CONFIG_KERNEL_RT
 
-int camkes_declare_reply_cap(seL4_CPtr shadow_slot) {
+int camkes_declare_reply_cap(seL4_CPtr shadow_slot)
+{
     assert(shadow_slot != 0);
 
     camkes_tls_t *tls = camkes_get_tls();
     assert(tls != NULL);
 
     assert(!tls->reply_cap_in_tcb &&
-        "reply cap already in TCB when declaring a new pending one");
+           "reply cap already in TCB when declaring a new pending one");
 
     /* Note the reply cap's shadow slot for a later save. */
     tls->reply_cap_slot = shadow_slot;
@@ -38,7 +39,8 @@ int camkes_declare_reply_cap(seL4_CPtr shadow_slot) {
     return 0;
 }
 
-void camkes_protect_reply_cap(void) {
+void camkes_protect_reply_cap(void)
+{
     camkes_tls_t *tls = camkes_get_tls();
     assert(tls != NULL);
 
@@ -48,7 +50,7 @@ void camkes_protect_reply_cap(void) {
          * cap should have set this up.
          */
         assert(tls->reply_cap_slot != 0 &&
-            "invalid reply cap slot (corrupted TLS?)");
+               "invalid reply cap slot (corrupted TLS?)");
 
         if (tls->cnode_cap == 0) {
             /* We don't have a cap to our CNode! */
@@ -61,19 +63,20 @@ void camkes_protect_reply_cap(void) {
              * has no knowledge of how to respond to this failure.
              */
             tls->reply_cap_save_error = seL4_CNode_SaveCaller(tls->cnode_cap,
-                tls->reply_cap_slot, CONFIG_WORD_SIZE);
+                                                              tls->reply_cap_slot, CONFIG_WORD_SIZE);
         }
 
         tls->reply_cap_in_tcb = false;
     }
 }
 
-seL4_Error camkes_unprotect_reply_cap(void) {
+seL4_Error camkes_unprotect_reply_cap(void)
+{
     camkes_tls_t *tls = camkes_get_tls();
     assert(tls != NULL);
 
     assert(!tls->reply_cap_in_tcb && "attempt to unprotect reply cap which is "
-        "still in TCB");
+           "still in TCB");
 
 #ifndef NDEBUG
     /* It is not strictly necessary to blank the reply cap slot because it is

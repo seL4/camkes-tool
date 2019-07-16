@@ -17,7 +17,8 @@
 #include <sel4/sel4.h>
 #include <utils/util.h>
 
-long camkes_sys_pause(va_list ap UNUSED) {
+long camkes_sys_pause(va_list ap UNUSED)
+{
 
     /* Suspend ourselves. This will cap fault if a setup routine has not saved
      * our TCB cap in the TLS region.

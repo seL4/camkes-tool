@@ -32,9 +32,10 @@ static char domainname[sizeof dummy->domainname];
 static char domainname[sizeof dummy->__domainname];
 #endif
 
-long camkes_sys_uname(va_list ap) {
+long camkes_sys_uname(va_list ap)
+{
 
-    struct utsname *buf = va_arg(ap, struct utsname*);
+    struct utsname *buf = va_arg(ap, struct utsname *);
 
     /* Check buf is valid. */
     if (buf == NULL) {
@@ -122,9 +123,10 @@ long camkes_sys_uname(va_list ap) {
     return 0;
 }
 
-long camkes_sys_sethostname(va_list ap) {
+long camkes_sys_sethostname(va_list ap)
+{
 
-    const char *name = va_arg(ap, const char*);
+    const char *name = va_arg(ap, const char *);
     size_t len = va_arg(ap, size_t);
 
     /* Check name. */
@@ -145,9 +147,10 @@ long camkes_sys_sethostname(va_list ap) {
     return 0;
 }
 
-long camkes_sys_setdomainname(va_list ap) {
+long camkes_sys_setdomainname(va_list ap)
+{
 
-    const char *name = va_arg(ap, const char*);
+    const char *name = va_arg(ap, const char *);
     size_t len = va_arg(ap, size_t);
 
     /* Check name. */

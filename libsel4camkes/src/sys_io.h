@@ -10,8 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef __LIBSEL4MUSLCCAMKES_H__
-#define __LIBSEL4MUSLCCAMKES_H__
+#pragma once
 
 #include <utils/page.h>
 #include <camkes/dataport.h>
@@ -19,6 +18,4 @@
 #define FILE_TYPE_SOCKET  1
 
 /* CAmkES dataport for socket interface. */
-extern Buf* sock_data __attribute__((weak));
-
-#endif
+extern Buf *sock_data __attribute__((weak));

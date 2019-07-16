@@ -10,8 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef _ARCH_FAULT_H_
-#define _ARCH_FAULT_H_
+#pragma once
 
 #include <sel4/sel4.h>
 #include <stdio.h>
@@ -20,5 +19,3 @@
 #define SHOW(args...) printf(FAULT_PREFIX args)
 
 void show_unknown_syscall_fault(seL4_CPtr thread_id, const char *name);
-
-#endif

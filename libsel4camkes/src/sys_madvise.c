@@ -30,7 +30,8 @@
  * @param len Range size in bytes
  * @return true if the range is completely mapped
  */
-static PURE bool covered(const void *addr, size_t len) {
+static PURE bool covered(const void *addr, size_t len)
+{
 
     /* The range wraps memory. */
     if (UINTPTR_MAX - (uintptr_t)len < (uintptr_t)addr) {
@@ -70,7 +71,8 @@ static PURE bool covered(const void *addr, size_t len) {
     return false;
 }
 
-static long page_size(void) {
+static long page_size(void)
+{
     /* Retrieve the page size the first time we run this function. */
     static long pagesize;
     if (pagesize == 0) {
@@ -86,9 +88,10 @@ static long page_size(void) {
 /* There is no dynamic memory management in CAmkES, so `madvise` is no-op. As a nicety, we implement
  * `madvise` to validate its inputs to give callers a more rational environment.
  */
-long camkes_sys_madvise(va_list ap UNUSED) {
+long camkes_sys_madvise(va_list ap UNUSED)
+{
 
-    void *addr = va_arg(ap, void*);
+    void *addr = va_arg(ap, void *);
     size_t length = va_arg(ap, size_t);
     int advice = va_arg(ap, int);
 
@@ -124,11 +127,12 @@ long camkes_sys_madvise(va_list ap UNUSED) {
     return 0;
 }
 
-long camkes_sys_mincore(va_list ap) {
+long camkes_sys_mincore(va_list ap)
+{
 
-    void *addr = va_arg(ap, void*);
+    void *addr = va_arg(ap, void *);
     size_t length = va_arg(ap, size_t);
-    unsigned char *vec = va_arg(ap, unsigned char*);
+    unsigned char *vec = va_arg(ap, unsigned char *);
 
     /* Check addr is valid. */
     long pagesize = page_size();
@@ -181,7 +185,8 @@ long camkes_sys_mincore(va_list ap) {
  * @param len Size of region in bytes
  * @return 0 on success or an errno value.
  */
-static long mlock_internal(const void *addr, size_t len) {
+static long mlock_internal(const void *addr, size_t len)
+{
 
     /* Check for overflow. */
     if ((uintptr_t)addr + len < (uintptr_t)addr) {
@@ -205,33 +210,37 @@ static long mlock_internal(const void *addr, size_t len) {
     }
 }
 
-long camkes_sys_mlock(va_list ap) {
+long camkes_sys_mlock(va_list ap)
+{
 
-    const void *addr = va_arg(ap, const void*);
+    const void *addr = va_arg(ap, const void *);
     size_t len = va_arg(ap, size_t);
 
     return mlock_internal(addr, len);
 }
 
-long camkes_sys_munlock(va_list ap) {
+long camkes_sys_munlock(va_list ap)
+{
 
-    const void *addr = va_arg(ap, const void*);
+    const void *addr = va_arg(ap, const void *);
     size_t len = va_arg(ap, size_t);
 
     return mlock_internal(addr, len);
 }
 
-long camkes_sys_mlockall(va_list ap) {
+long camkes_sys_mlockall(va_list ap)
+{
 
     int flags = va_arg(ap, int);
 
-    if ((flags & ~(MCL_CURRENT|MCL_FUTURE)) != 0) {
+    if ((flags & ~(MCL_CURRENT | MCL_FUTURE)) != 0) {
         return -EINVAL;
     }
 
     return 0;
 }
 
-long camkes_sys_munlockall(va_list ap UNUSED) {
+long camkes_sys_munlockall(va_list ap UNUSED)
+{
     return 0;
 }

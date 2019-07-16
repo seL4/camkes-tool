@@ -43,8 +43,7 @@ static muslcsys_syscall_t original_sys_read = NULL;
 static muslcsys_syscall_t original_sys_write = NULL;
 
 int sock_close(int fd) __attribute__((weak));
-static long
-camkes_sys_close(va_list ap)
+static long camkes_sys_close(va_list ap)
 {
     va_list copy;
     va_copy(copy, ap);
@@ -52,7 +51,7 @@ camkes_sys_close(va_list ap)
     if (sock_close && valid_fd(fd)) {
         muslcsys_fd_t *fds =  get_fd_struct(fd);
         if (fds->filetype == FILE_TYPE_SOCKET) {
-            sock_close(*(int*)fds->data);
+            sock_close(*(int *)fds->data);
         }
     }
     long ret;
@@ -71,15 +70,15 @@ static long camkes_sys_write(va_list ap)
     va_list copy;
     va_copy(copy, ap);
     int fd = va_arg(ap, int);
-    void *buf = va_arg(ap, void*);
+    void *buf = va_arg(ap, void *);
     size_t count = va_arg(ap, size_t);
 
     if (sock_write && sock_data && valid_fd(fd)) {
         muslcsys_fd_t *fds = get_fd_struct(fd);
         if (fds->filetype == FILE_TYPE_SOCKET) {
-            int sockfd = *(int*)fds->data;
+            int sockfd = *(int *)fds->data;
             ssize_t size = count > PAGE_SIZE_4K ? PAGE_SIZE_4K : count;
-            memcpy((char*)sock_data, buf, size);
+            memcpy((char *)sock_data, buf, size);
             return sock_write(sockfd, size);
         }
     }
@@ -110,15 +109,15 @@ static long camkes_sys_read(va_list ap)
     va_list copy;
     va_copy(copy, ap);
     int fd = va_arg(ap, int);
-    void *buf = va_arg(ap, void*);
+    void *buf = va_arg(ap, void *);
     size_t count = va_arg(ap, size_t);
     if (sock_read && sock_data && valid_fd(fd)) {
         muslcsys_fd_t *fds = get_fd_struct(fd);
         if (fds->filetype == FILE_TYPE_SOCKET) {
-            int sockfd = *(int*)fds->data;
+            int sockfd = *(int *)fds->data;
             int size = count > PAGE_SIZE_4K ? PAGE_SIZE_4K : count;
             int ret = sock_read(sockfd, size);
-            memcpy(buf, (char*)sock_data, ret);
+            memcpy(buf, (char *)sock_data, ret);
             return ret;
         }
     }
@@ -141,7 +140,7 @@ static long UNUSED camkes_sys_fcntl64(va_list ap)
     int sockfd;
     muslcsys_fd_t *fdt = get_fd_struct(fd);
     if (fdt->filetype == FILE_TYPE_SOCKET && sock_fcntl) {
-        sockfd = *(int*)fdt->data;
+        sockfd = *(int *)fdt->data;
         long val = va_arg(ap, long);
         return sock_fcntl(sockfd, cmd, val);
     }

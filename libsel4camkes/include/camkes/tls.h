@@ -10,8 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef _CAMKES_TLS_H_
-#define _CAMKES_TLS_H_
+#pragma once
 
 /* Thread-local storage functionality for CAmkES. */
 
@@ -41,7 +40,8 @@ typedef struct camkes_tls_t {
 } camkes_tls_t;
 extern __thread camkes_tls_t camkes_tls;
 
-static inline camkes_tls_t *camkes_get_tls(void) {
+static inline camkes_tls_t *camkes_get_tls(void)
+{
     return &camkes_tls;
 }
 
@@ -89,6 +89,4 @@ void camkes_protect_reply_cap(void);
  * to be invoked.
  */
 seL4_Error camkes_unprotect_reply_cap(void);
-#endif
-
 #endif

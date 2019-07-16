@@ -10,8 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-#ifndef _CAMKES_ALLOCATOR_H_
-#define _CAMKES_ALLOCATOR_H_
+#pragma once
 
 #include <sel4/sel4.h>
 #include <stdlib.h>
@@ -21,7 +20,7 @@
  * Returns 0 on success.
  */
 int camkes_provide(seL4_ObjectType type, seL4_CPtr ptr, size_t size,
-    unsigned attributes);
+                   unsigned attributes);
 
 /* Allocate a seL4 object. Flags should be specified as a bitmask of the
  * attributes the caller requires of the object. Returns a pointer to a cap to
@@ -33,5 +32,3 @@ seL4_CPtr camkes_alloc(seL4_ObjectType type, size_t size, unsigned flags);
  * undefined if you pass in a pointer that was not allocated by this allocator.
  */
 void camkes_free(seL4_CPtr ptr);
-
-#endif

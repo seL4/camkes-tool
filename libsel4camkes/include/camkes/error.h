@@ -12,8 +12,7 @@
 
 /* Error handling API for CAmkES. */
 
-#ifndef _CAMKES_ERROR_H_
-#define _CAMKES_ERROR_H_
+#pragma once
 
 #include <autoconf.h>
 #include <sel4camkes/gen_config.h>
@@ -100,7 +99,7 @@ typedef struct {
     union {
         /* No union member for CE_NO_ERROR. */
 
-        struct /* CE_BUFFER_LENGTH_EXCEEDED */ {
+        struct { /* CE_BUFFER_LENGTH_EXCEEDED */
 
             /* The current byte offset into the buffer. */
             unsigned current_length;
@@ -111,7 +110,7 @@ typedef struct {
             unsigned target_length;
         };
 
-        struct /* CE_INVALID_METHOD_INDEX */ {
+        struct { /* CE_INVALID_METHOD_INDEX */
 
             /* The range of valid method indices. */
             uint64_t lower_bound;
@@ -121,7 +120,7 @@ typedef struct {
             uint64_t invalid_index;
         };
 
-        struct /* CE_MALFORMED_RPC_PAYLOAD */ {
+        struct { /* CE_MALFORMED_RPC_PAYLOAD */
 
             /* The (possibly invalid) length of the payload. */
             unsigned length;
@@ -132,7 +131,7 @@ typedef struct {
             unsigned current_index;
         };
 
-        struct /* CE_SYSCALL_FAILED */ {
+        struct { /* CE_SYSCALL_FAILED */
 
             /* The syscall that we ran. This value will be a member of
              * invocation_label or arch_invocation_label from libsel4.
@@ -143,7 +142,7 @@ typedef struct {
             int error;
         };
 
-        struct /* CE_ALLOCATION_FAILURE */ {
+        struct { /* CE_ALLOCATION_FAILURE */
 
             /* The number of bytes that was being allocated when the failure
              * occurred. This field may be zero if the amount was not relevant.
@@ -198,7 +197,7 @@ typedef enum {
  * occurred and the return value is the recovery action the glue code should
  * take.
  */
-typedef camkes_error_action_t (*camkes_error_handler_t)(camkes_error_t*);
+typedef camkes_error_action_t (*camkes_error_handler_t)(camkes_error_t *);
 
 /* Register a component-global error handler. More fine-grained registration
  * functions (one per-interface) are generated and prototyped in the generated
@@ -219,21 +218,21 @@ camkes_error_action_t camkes_error(camkes_error_t *e) COLD;
  * kernel.
  */
 #ifdef CONFIG_DEBUG_BUILD
-    #define halt() seL4_DebugHalt()
+#define halt() seL4_DebugHalt()
 #else
-    #define halt() do { } while (0)
+#define halt() do { } while (0)
 #endif
 
 #ifdef CONFIG_CAMKES_ERROR_HANDLER_CONFIGURABLE
 
-    /* Convenience macro for throwing an error from glue code.
-     *  handler - A camkes_error_handler_t to invoke.
-     *  edata - Error structure to throw to the error handler.
-     *  action - Action to take on return of CEA_DISCARD from the error
-     *    handler. This should be a GNU statement expression (aka compound
-     *    statement).
-     */
-    #define ERR(handler, edata, action) ({ \
+/* Convenience macro for throwing an error from glue code.
+ *  handler - A camkes_error_handler_t to invoke.
+ *  edata - Error structure to throw to the error handler.
+ *  action - Action to take on return of CEA_DISCARD from the error
+ *    handler. This should be a GNU statement expression (aka compound
+ *    statement).
+ */
+#define ERR(handler, edata, action) ({ \
             COLD_PATH(); \
             camkes_error_t _e = edata; \
             _e.filename = __FILE__; \
@@ -258,35 +257,33 @@ camkes_error_action_t camkes_error(camkes_error_t *e) COLD;
 
 #elif defined(CONFIG_CAMKES_ERROR_HANDLER_GUARD)
 
-    #define ERR(handler, edata, action) GUARD(false)
+#define ERR(handler, edata, action) GUARD(false)
 
 #elif defined(CONFIG_CAMKES_ERROR_HANDLER_ABORT)
 
-    #define ERR(handler, edata, action) abort()
+#define ERR(handler, edata, action) abort()
 
 #elif defined(CONFIG_CAMKES_ERROR_HANDLER_DISCARD)
 
-    #define ERR(handler, edata, action) action
+#define ERR(handler, edata, action) action
 
 #else
 
-    #error no error handling mode defined
+#error no error handling mode defined
 
 #endif
 
 #ifdef CONFIG_CAMKES_ERROR_HANDLER_GUARD
 
-    #define ERR_IF(cond, handler, edata, action) GUARD(!(cond))
+#define ERR_IF(cond, handler, edata, action) GUARD(!(cond))
 
 #else
 
-    /* Conditionally throw an error. */
-    #define ERR_IF(cond, handler, edata, action) ({ \
+/* Conditionally throw an error. */
+#define ERR_IF(cond, handler, edata, action) ({ \
             if (unlikely(cond)) { \
                 ERR(handler, edata, action); \
             } \
         })
-
-#endif
 
 #endif
