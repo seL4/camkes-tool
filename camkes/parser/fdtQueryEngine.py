@@ -428,10 +428,11 @@ class DtbMatchQuery(Query):
         query_results = []
         for entry in result:
             if not len(entry):
-                raise ParseError("DTB node query has no results.")
-            node = entry[0]
-            node_resolved = self.resolve_fdt_node(node)
-            query_results.append(node_resolved)
+                query_results.append({})
+            else:
+                node = entry[0]
+                node_resolved = self.resolve_fdt_node(node)
+                query_results.append(node_resolved)
         # place the results under the 'dtb' key
         resolved['query'] = query_results
         # inject the size of the dtb into into the dictionary

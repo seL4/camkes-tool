@@ -207,7 +207,13 @@ class TestDTBMatchQuery(CAmkESTest):
         self.assertEquals(node['dtb-size'], [self.dtbSize])
 
     def test_blank(self):
-        self.assertRaises(ParseError, self.dtbQuery.resolve, [{}])
+        self.assertRaises(ParseError, self.dtbQuery.resolve, [])
+
+    def test_blank_query(self):
+        node = self.dtbQuery.resolve([{}])
+        self.assertIn('query', node)
+        self.assertEquals(len(node['query']), 1)
+        self.assertEquals(node['query'][0], {})
 
     def test_properties_lvalue_index(self):
         node = self.dtbQuery.resolve([{'properties': {'reg[0]': 0x2020000}}])
