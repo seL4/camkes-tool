@@ -32,8 +32,7 @@ from camkes.runner.Renderer import Renderer
 from capdl.Allocator import RenderState
 from camkes.internal.exception import CAmkESError
 import camkes.internal.log as log
-from camkes.templates import Templates, PLATFORMS, TemplateError
-from camkes.ast import ASTError, Connection, Connector
+from camkes.templates import TemplateError
 from simpleeval import simple_eval
 
 import yaml
@@ -87,9 +86,8 @@ def parse_args(argv, out, err):
                         help='Prefix to use when generating Isabelle theory files.')
     parser.add_argument('--item', '-T', help='AST entity to produce code for.',
                         required=True, action='append', default=[])
-    parser.add_argument('--platform', '-p', help='Platform to produce code '
-                        'for. Pass \'help\' to see valid platforms.', default='seL4',
-                        choices=PLATFORMS)
+    parser.add_argument('--template', help='template to use to produce code.',
+                        required=True, action='append', default=[])
     parser.add_argument('--templates', '-t', help='Extra directories to '
                         'search for templates (before builtin templates).', action='append',
                         default=[])
@@ -205,16 +203,13 @@ def main(argv, out, err):
     if options.object_sizes:
         register_object_sizes(yaml.load(options.object_sizes, Loader=yaml.FullLoader))
 
-    # Ensure we were supplied equal items and outfiles
-    if len(options.outfile) != len(options.item):
+    # Ensure we were supplied equal items, outfiles and templates
+    if len(options.outfile) != len(options.item) != len(options.template):
         err.write('Different number of items and outfiles. Required one outfile location '
                   'per item requested.\n')
         return -1
 
-    # No duplicates in items or outfiles
-    if len(set(options.item)) != len(options.item):
-        err.write('Duplicate items requested through --item.\n')
-        return -1
+    # No duplicates in outfiles
     if len(set(options.outfile)) != len(options.outfile):
         err.write('Duplicate outfiles requrested through --outfile.\n')
         return -1
@@ -253,35 +248,11 @@ def main(argv, out, err):
                         log.warning('attribute %s.%s has type int but is set '
                                     'to a value that is not an integer' % (i.name,
                                                                            a.name))
-    templates = Templates(options.platform)
-    [templates.add_root(t) for t in options.templates]
+
     try:
-        r = Renderer(templates)
+        r = Renderer(options.templates)
     except jinja2.exceptions.TemplateSyntaxError as e:
         die('template syntax error: %s' % e)
-
-    # The user may have provided their own connector definitions (with
-    # associated) templates, in which case they won't be in the built-in lookup
-    # dictionary. Let's add them now. Note, definitions here that conflict with
-    # existing lookup entries will overwrite the existing entries. Note that
-    # the extra check that the connector has some templates is just an
-    # optimisation; the templates module handles connectors without templates
-    # just fine.
-    for c in (x for x in ast.items if isinstance(x, Connector) and
-              (x.from_template is not None or x.to_template is not None)):
-        try:
-            # Find a connection that uses this type.
-            connection = next(x for x in ast if isinstance(x, Connection) and
-                              x.type == c)
-            # Add the custom templates and update our collection of read
-            # inputs.
-            templates.add(c, connection)
-        except TemplateError as e:
-            die('while adding connector %s: %s' % (c.name, e))
-        except StopIteration:
-            # No connections use this type. There's no point adding it to the
-            # template lookup dictionary.
-            pass
 
     if options.load_object_state is not None:
         render_state = pickle.load(options.load_object_state)
@@ -310,18 +281,16 @@ def main(argv, out, err):
                 render_state.pds[key] = pd
                 render_state.addr_spaces[key] = addr_space
 
-    for (item, outfile) in zip(options.item, options.outfile):
+    for (item, outfile, template) in zip(options.item, options.outfile, options.template):
         key = item.split("/")
         if len(key) is 1:
             # We are rendering something that isn't a component or connection.
             i = assembly
             obj_key = None
-            template = templates.lookup(item)
         elif key[1] in ["source", "header", "c_environment_source", "cakeml_start_source", "cakeml_end_source", "camkesConstants", "linker", "debug", "simple", "rump_config"]:
             # We are rendering a component template
             i = [x for x in assembly.composition.instances if x.name == key[0]][0]
             obj_key = i.address_space
-            template = templates.lookup(item, i)
         elif key[1] in ["from", "to"]:
             # We are rendering a connection template
             c = [c for c in assembly.composition.connections if c.name == key[0]][0]
@@ -332,9 +301,8 @@ def main(argv, out, err):
             else:
                 die("Invalid connector end")
             obj_key = i.instance.address_space
-            template = templates.lookup("/".join(key[:-1]), c)
         else:
-            die("item: \"%s\" does not have the correct formatting to lookup a template." % item)
+            die("item: \"%s\" does not have the correct formatting to render." % item)
         try:
             g = r.render(i, assembly, template, render_state, obj_key,
                          outfile_name=outfile.name, options=options, my_pd=render_state.pds[obj_key] if obj_key else None)

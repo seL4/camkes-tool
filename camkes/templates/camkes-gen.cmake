@@ -39,6 +39,7 @@ set(CAMKES_C_FLAGS "-Wno-main")
 # camkes invocation
 set(item_list "")
 set(outfile_list "")
+set(template_list "")
 set(reflow_commands "")
 set(deps_list "")
 set(camkes_ver_opts "")
@@ -50,8 +51,8 @@ macro(ParentListAppend list)
 endmacro(ParentListAppend list)
 
 # Helper function for declaring a generated file
-function(CAmkESGen output item)
-    cmake_parse_arguments(PARSE_ARGV 2 CAMKES_GEN "SOURCE;C_STYLE;THY_STYLE" "SOURCES_VAR;VER_BASE_NAME" "DEPENDS")
+function(CAmkESGen output item template)
+    cmake_parse_arguments(PARSE_ARGV 3 CAMKES_GEN "SOURCE;C_STYLE;THY_STYLE" "SOURCES_VAR;VER_BASE_NAME" "DEPENDS")
     if (NOT "${CAMKES_GEN_UNPARSED_ARGUMENTS}" STREQUAL "")
         message(FATAL_ERROR "Unknown arguments to CAmkESGen: ${CAMKES_GEN_UNPARSED_ARGUMENTS}")
     endif()
@@ -68,6 +69,7 @@ function(CAmkESGen output item)
     # Append the item and outfile
     ParentListAppend(item_list "${item}")
     ParentListAppend(outfile_list "${output}")
+    ParentListAppend(template_list "${template}")
     ParentListAppend(deps_list "${CAMKES_GEN_DEPENDS}")
     # Pass along base name for verification templates
     if (NOT "${CAMKES_GEN_VER_BASE_NAME}" STREQUAL "")
@@ -115,6 +117,7 @@ function(CAmkESOutputGenCommand object_state_op object_state_file)
             ${CAMKES_TOOL}
                 "--item;$<JOIN:${item_list},;--item;>"
                 "--outfile;$<JOIN:${outfile_list},;--outfile;>"
+                "--template;$<JOIN:${template_list},;--template;>"
                 "--load-ast=${CMAKE_CURRENT_BINARY_DIR}/ast.pickle"
                 "--${object_state_op}=${object_state_file}"
                 "--object-sizes=$<TARGET_PROPERTY:object_sizes,FILE_PATH>"
@@ -144,6 +147,7 @@ function(CAmkESOutputGenCommand object_state_op object_state_file)
     set(item_list "" PARENT_SCOPE)
     set(deps_list "" PARENT_SCOPE)
     set(outfile_list "" PARENT_SCOPE)
+    set(template_list "" PARENT_SCOPE)
     set(camkes_ver_opts "" PARENT_SCOPE)
 endfunction(CAmkESOutputGenCommand)
 
@@ -194,52 +198,62 @@ endfunction(GeneratorValueOrDefault)
     AppendGenerator(includes "$<TARGET_PROPERTY:CAmkESComponent_/*? i.type.name ?*/,COMPONENT_INCLUDES>")
     set(generated_dir "${CMAKE_CURRENT_BINARY_DIR}//*? i.name ?*/")
     # Generated different entry points for the instance
-    CAmkESGen("${generated_dir}/camkes.c" /*? i.name ?*//source SOURCE C_STYLE)
+    CAmkESGen("${generated_dir}/camkes.c" /*? i.name ?*//source component.common.c SOURCE C_STYLE)
     # Generate camkes header
-    CAmkESGen("${generated_dir}/include/camkes.h" "/*? i.name ?*//header" C_STYLE)
-
+    CAmkESGen("${generated_dir}/include/camkes.h" "/*? i.name ?*//header" component.template.h C_STYLE)
     /*- if configuration[i.name].get('environment', 'c').lower() == 'c' -*/
-        CAmkESGen("${generated_dir}/camkes.environment.c" /*? i.name ?*//c_environment_source SOURCE C_STYLE)
+        CAmkESGen("${generated_dir}/camkes.environment.c" /*? i.name ?*//c_environment_source component.environment.c SOURCE C_STYLE)
     /*- elif configuration[i.name].get('environment').lower() == 'cakeml' -*/
         set(cakeml_sources "$<TARGET_PROPERTY:CAmkESComponent_/*? i.type.name ?*/,COMPONENT_CAKEML_SOURCES>")
-        CAmkESGen("${generated_dir}/camkesStartScript.sml" /*? i.name ?*//cakeml_start_source SOURCE SOURCES_VAR cakeml_sources)
-        CAmkESGen("${generated_dir}/camkesConstants.sml" /*? i.name ?*//camkesConstants SOURCE SOURCES_VAR cakeml_sources)
-        CAmkESGen("${generated_dir}/camkesEndScript.sml" /*? i.name ?*//cakeml_end_source SOURCE SOURCES_VAR cakeml_sources)
+        CAmkESGen("${generated_dir}/camkesStartScript.sml" /*? i.name ?*//cakeml_start_source component.environment.start.cakeml SOURCE SOURCES_VAR cakeml_sources)
+        CAmkESGen("${generated_dir}/camkesConstants.sml" /*? i.name ?*//camkesConstants camkesConstants.sml SOURCE SOURCES_VAR cakeml_sources)
+        CAmkESGen("${generated_dir}/camkesEndScript.sml" /*? i.name ?*//cakeml_end_source component.environment.end.cakeml SOURCE SOURCES_VAR cakeml_sources)
     /*- else -*/
         /*? raise(TemplateError('Unknown environment')) ?*/
     /*- endif -*/
 
     # Generate our linker script
     set(linker_file "${generated_dir}/linker.lds")
-    CAmkESGen("${linker_file}" /*? i.name ?*//linker)
+    CAmkESGen("${linker_file}" /*? i.name ?*//linker linker.lds)
 
     # Generate connectors for this instance
     /*- for c in connections -*/
         /*- for id, e in enumerate(c.from_ends) -*/
             set(unique_name /*? e.interface.name ?*/_/*? c.type.name ?*/_/*? id ?*/)
             /*- if e.instance.name == i.name -*/
-                CAmkESGen("${generated_dir}/${unique_name}.c" /*? c.name ?*//from/source//*? id ?*/ SOURCE C_STYLE)
+                set(connector_target CAmkESConnector_/*? c.type.name ?*/)
+                get_property(c_from_template TARGET ${connector_target} PROPERTY CONNECTOR_FROM)
+                CAmkESGen("${generated_dir}/${unique_name}.c" /*? c.name ?*//from/source//*? id ?*/ ${c_from_template} SOURCE C_STYLE)
             /*- endif -*/
         /*- endfor -*/
         /*- for id, e in enumerate(c.to_ends) -*/
             set(unique_name /*? e.interface.name ?*/_/*? c.type.name ?*/_/*? id ?*/)
             /*- if e.instance.name == i.name -*/
-                /*- if configuration[i.name].get('environment', 'c').lower() == 'cakeml' and lookup_template('%s/to/cakeml' % c.name,c) is not none -*/
-                    CAmkESGen("${generated_dir}/connectorScript.sml" /*? c.name ?*//to/cakeml//*? id ?*/ SOURCE SOURCES_VAR cakeml_sources)
+                set(connector_target CAmkESConnector_/*? c.type.name ?*/)
+
+                /*- if configuration[i.name].get('environment', 'c').lower() == 'cakeml' -*/
+                    get_property(cake_to_template TARGET ${connector_target} PROPERTY CONNECTOR_CAKEML_TO)
+                    if (NOT "${cake_to_template}" STREQUAL "")
+                        CAmkESGen("${generated_dir}/connectorScript.sml" /*? c.name ?*//to/cakeml//*? id ?*/ ${cake_to_template} SOURCE SOURCES_VAR cakeml_sources)
+                    else()
+                        get_property(c_to_template TARGET ${connector_target} PROPERTY CONNECTOR_TO)
+                        CAmkESGen("${generated_dir}/${unique_name}.c" /*? c.name ?*//to/source//*? id ?*/ ${c_to_template} SOURCE C_STYLE)
+                    endif()
                 /*- else -*/
-                    CAmkESGen("${generated_dir}/${unique_name}.c" /*? c.name ?*//to/source//*? id ?*/ SOURCE C_STYLE)
+                    get_property(c_to_template TARGET ${connector_target} PROPERTY CONNECTOR_TO)
+                    CAmkESGen("${generated_dir}/${unique_name}.c" /*? c.name ?*//to/source//*? id ?*/ ${c_to_template} SOURCE C_STYLE)
                 /*- endif -*/
             /*- endif -*/
         /*- endfor -*/
     /*- endfor -*/
     /*- if configuration[i.name].get('debug') -*/
-        CAmkESGen("${generated_dir}/camkes.debug.c" /*? i.name ?*//debug SOURCE C_STYLE)
+        CAmkESGen("${generated_dir}/camkes.debug.c" /*? i.name ?*//debug component.debug.c SOURCE C_STYLE)
     /*- endif -*/
     /*- if configuration[i.name].get('simple') -*/
-        CAmkESGen("${generated_dir}/camkes.simple.c" /*? i.name ?*//simple SOURCE C_STYLE)
+        CAmkESGen("${generated_dir}/camkes.simple.c" /*? i.name ?*//simple component.simple.c SOURCE C_STYLE)
     /*- endif -*/
     /*- if configuration[i.name].get('rump_config') -*/
-        CAmkESGen("${generated_dir}/camkes.rumprun.c" /*? i.name ?*//rumprun SOURCE C_STYLE)
+        CAmkESGen("${generated_dir}/camkes.rumprun.c" /*? i.name ?*//rumprun component.rumprun.c SOURCE C_STYLE)
     /*- endif -*/
 
     # Create a target for all our generated files
@@ -559,7 +573,7 @@ if (CAmkESCapDLVerification)
     set(CAMKES_VER_ROOT "${CMAKE_CURRENT_BINARY_DIR}/cdl-refine/ROOT")
 
     # ROOT file
-    CAmkESGen("${CAMKES_VER_ROOT}" "isabelle-root" THY_STYLE VER_BASE_NAME ${VER_BASE_NAME})
+    CAmkESGen("${CAMKES_VER_ROOT}" "isabelle-root" "root.thy" THY_STYLE VER_BASE_NAME ${VER_BASE_NAME})
     add_custom_target(isabelle_root DEPENDS "${CAMKES_VER_ROOT}")
 
     # Generate these theory files as part of overall build
@@ -585,12 +599,12 @@ if (CAmkESCapDLVerification)
     add_dependencies(isabelle_root camkes_cdl_thy)
 
     # ADL spec
-    CAmkESGen("${CAMKES_ADL_THY}" "arch-spec" THY_STYLE VER_BASE_NAME ${VER_BASE_NAME})
+    CAmkESGen("${CAMKES_ADL_THY}" "arch-spec" "arch-definitions.thy" THY_STYLE VER_BASE_NAME ${VER_BASE_NAME})
     add_custom_target(camkes_adl_thy DEPENDS "${CAMKES_ADL_THY}")
     add_dependencies(isabelle_root camkes_adl_thy)
 
     # CDL refinement proof
-    CAmkESGen("${CAMKES_CDL_REFINE_THY}" "cdl-refine" THY_STYLE VER_BASE_NAME ${VER_BASE_NAME}
+    CAmkESGen("${CAMKES_CDL_REFINE_THY}" "cdl-refine" "cdl-refine.thy" THY_STYLE VER_BASE_NAME ${VER_BASE_NAME}
               DEPENDS camkes_capdl_target)
     add_custom_target(camkes_cdl_refine_thy DEPENDS "${CAMKES_CDL_REFINE_THY}")
     add_dependencies(isabelle_root camkes_cdl_refine_thy)

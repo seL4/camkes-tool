@@ -784,8 +784,6 @@ class BinarySemaphore(ASTObject):
               x in ('Dataport', 'Event', 'Procedure'))
 @ast_property("from_multiple", bool)
 @ast_property("to_multiple", bool)
-@ast_property("from_template", lambda x: x is None or isinstance(x, six.string_types))
-@ast_property("to_template", lambda x: x is None or isinstance(x, six.string_types))
 @ast_property("from_threads", lambda x: isinstance(x, six.integer_types) and x >= 0)
 @ast_property("to_threads", lambda x: isinstance(x, six.integer_types) and x >= 0)
 @ast_property("from_hardware", bool)
@@ -794,7 +792,7 @@ class BinarySemaphore(ASTObject):
               all(isinstance_fallback(y, "Attribute") for y in value))
 class Connector(ASTObject):
     def __init__(self, name=None, from_type=None, to_type=None,
-                 from_template=None, to_template=None, from_threads=1, to_threads=1,
+                 from_threads=1, to_threads=1,
                  from_hardware=False, to_hardware=False, attributes=None, location=None):
         super(Connector, self).__init__(location)
         TRANSLATION = {
@@ -816,8 +814,6 @@ class Connector(ASTObject):
             self._to_type = None
         self.from_multiple = from_type in ('Events', 'Procedures', 'Dataports')
         self.to_multiple = to_type in ('Events', 'Procedures', 'Dataports')
-        self.from_template = from_template
-        self.to_template = to_template
         self.from_threads = from_threads
         self.to_threads = to_threads
         self.from_hardware = from_hardware

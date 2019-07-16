@@ -227,8 +227,6 @@ function(set_camkes_render_flags_from_config list)
     list(
         APPEND
             local_flags
-            --platform
-            seL4
             --architecture
             ${KernelSel4Arch}
             --default-priority
@@ -497,6 +495,8 @@ function(GenerateCAmkESRootserver)
         "${CMAKE_CURRENT_BINARY_DIR}/ast.pickle"
         --item
         camkes-gen.cmake
+        --template
+        camkes-gen.cmake
         --outfile
         "${gen_outfile}"
         ${CAMKES_FLAGS}
@@ -629,6 +629,30 @@ function(AppendCAmkESComponentTarget target_name)
     endif()
 endfunction(AppendCAmkESComponentTarget)
 
+# Internal helper function for setting camkes component properties
+function(DeclareCAmkESConnector name)
+    set(target_name CAmkESConnector_${name})
+    cmake_parse_arguments(
+        PARSE_ARGV
+        1
+        CAMKES_CONNECTOR
+        "" # Option arguments
+        "FROM;TO;CAKEML_TO" # Single arguments
+        "" # Multiple aguments
+    )
+    # Declare a target that we will set properties on
+    if(NOT (TARGET "${target_name}"))
+        add_custom_target("${target_name}")
+    endif()
+    set_property(TARGET "${target_name}" APPEND PROPERTY CONNECTOR_FROM ${CAMKES_CONNECTOR_FROM})
+    set_property(TARGET "${target_name}" APPEND PROPERTY CONNECTOR_TO ${CAMKES_CONNECTOR_TO})
+    set_property(
+        TARGET "${target_name}"
+        APPEND
+        PROPERTY CONNECTOR_CAKEML_TO ${CAMKES_CONNECTOR_CAKEML_TO}
+    )
+endfunction(DeclareCAmkESConnector)
+
 # This is called by CAmkES components to declare information needed for the camkes-gen.cmake to
 # actually build them. Can be called multiple times to append additional information.
 function(DeclareCAmkESComponent name)
@@ -695,3 +719,6 @@ function(CAmkESAddCPPInclude)
         set_property(GLOBAL APPEND PROPERTY CAMKES_ROOT_CPP_FLAGS "-I${arg}")
     endforeach()
 endfunction()
+
+# Declare all built-in templates
+include(${CMAKE_CURRENT_LIST_DIR}/camkes/templates/templates.cmake)

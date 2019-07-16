@@ -13,12 +13,12 @@
 import "camkes-hardware.idl4";
 
 connector seL4GDB {
-  from Procedure template "seL4GDB-from.template.c" ;
-  to Procedure template "seL4GDB-to.template.c" ;
+  from Procedure;
+  to Procedure;
 }
 connector seL4GDBMem {
-  from Procedure template "seL4GDBMem-from.template.c" ;
-  to Procedure template "seL4GDBMem-to.template.c" ;
+  from Procedure;
+  to Procedure;
 }
 
 

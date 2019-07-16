@@ -68,7 +68,6 @@ ID: '[a-zA-Z_]\w*'
             SIGNED: 'signed';
             STRUCT: 'struct';
             STRING: 'string';
-            TEMPLATE: 'template';
             THREAD: 'thread';
             THREADS: 'threads';
             TRUE1: 'True';
@@ -145,11 +144,7 @@ connector_ref: reference | connector_defn;
 connector_end_type: DATAPORT_TYPE | EVENT_TYPE | PROCEDURE_TYPE
                   | DATAPORTS_TYPE | EVENTS_TYPE | PROCEDURES_TYPE;
 @connector_properties:
-                     | template
-                     | threads
-                     | template threads
-                     | threads template;
-@template: TEMPLATE multi_string;
+                     | threads;
 @threads: WITH numeric_expr (THREAD | THREADS);
 
 import: IMPORT (multi_string | angle_string) ';';

@@ -20,7 +20,7 @@ from __future__ import absolute_import, division, print_function, \
 from camkes.internal.seven import cmp, filter, map, zip
 
 from .Context import new_context
-from camkes.templates import TemplateError, TEMPLATES
+from camkes.templates import TemplateError
 
 import jinja2
 import os
@@ -69,13 +69,11 @@ class Renderer(object):
     def __init__(self, templates):
         # This function constructs a Jinja environment for our templates.
 
-        self.templates = templates
-
         self.loaders = []
 
         # Source templates.
         self.loaders.extend(FileSystemLoaderWithLog(os.path.abspath(x)) for x in
-                            templates.get_roots())
+                            templates)
 
         self.env = jinja2.Environment(
             loader=jinja2.ChoiceLoader(self.loaders),
@@ -92,7 +90,7 @@ class Renderer(object):
     def render(self, me, assembly, template, render_state, state_key, outfile_name,
                **kwargs):
         context = new_context(me, assembly, render_state, state_key, outfile_name,
-                              self.templates, **kwargs)
+                              **kwargs)
 
         t = self.env.get_template(template)
         try:

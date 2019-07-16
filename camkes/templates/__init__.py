@@ -25,5 +25,4 @@ from __future__ import absolute_import, division, print_function, \
     unicode_literals
 
 from .exception import TemplateError
-from .Template import Templates, PLATFORMS, TEMPLATES
 from . import macros, sizeof_probe, arch_helpers

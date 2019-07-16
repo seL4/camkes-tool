@@ -54,7 +54,7 @@ from camkes.templates import macros, TemplateError
 
 
 def new_context(entity, assembly, render_state, state_key, outfile_name,
-                templates, **kwargs):
+                **kwargs):
     '''Create a new default context for rendering.'''
 
     obj_space = render_state.obj_space if render_state else None
@@ -262,9 +262,6 @@ def new_context(entity, assembly, render_state, state_key, outfile_name,
         # Expose an exception class templates can use to throw errors related
         # to invalid input specification.
         'TemplateError': TemplateError,
-
-        # Look up a template
-        'lookup_template': lambda path, entity: templates.lookup(path, entity),
 
         # Output filename (mainly needed by Isabelle templates)
         # Currently only supported for misc templates.

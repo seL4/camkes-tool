@@ -349,8 +349,7 @@ def _lift_connector_decl(location, *args):
     else:
         to_type = connector_defn.to_type
 
-    return Connector(id, from_type, to_type, connector_defn.from_template,
-                     connector_defn.to_template, connector_defn.from_threads,
+    return Connector(id, from_type, to_type, connector_defn.from_threads,
                      connector_defn.to_threads, connector_defn.from_hardware,
                      connector_defn.to_hardware, connector_defn.attributes,
                      location=location)
@@ -359,8 +358,6 @@ def _lift_connector_decl(location, *args):
 def _lift_connector_defn(location, *args):
 
     # Defaults
-    from_template = None
-    to_template = None
     from_threads = 1
     to_threads = 1
     from_hardware = False
@@ -390,12 +387,8 @@ def _lift_connector_defn(location, *args):
     # raw numbers. The motivation is to allow these two arguments to appear in
     # either order. See the grammar for more details.
 
-    while isinstance(args[0], numbers.Number) or args[0].startswith('"'):
-        if isinstance(args[0], numbers.Number):
-            from_threads, args = thread_count(args[0]), args[1:]
-        else:
-            assert args[0].startswith('"')
-            from_template, args = args[0][1:-1], args[1:]
+    if isinstance(args[0], numbers.Number):
+        from_threads, args = thread_count(args[0]), args[1:]
 
     if args[0] == 'hardware':
         to_hardware = True
@@ -403,15 +396,8 @@ def _lift_connector_defn(location, *args):
 
     to_type, args = args[0], args[1:]
 
-    while len(args) > 0:
-        if isinstance(args[0], numbers.Number):
-            to_threads, args = thread_count(args[0]), args[1:]
-        elif isinstance(args[0], six.string_types):
-            assert args[0].startswith('"'), 'unexpected child of ' \
-                'connector definition (bug in grammar?)'
-            to_template, args = args[0][1:-1], args[1:]
-        else:
-            break
+    if len(args) > 0 and isinstance(args[0], numbers.Number):
+        to_threads, args = thread_count(args[0]), args[1:]
 
     while len(args) > 0:
         assert isinstance(args[0], Attribute), 'unexpected child of ' \
@@ -420,7 +406,6 @@ def _lift_connector_defn(location, *args):
         attributes.append(attrib)
 
     return Connector(from_type=from_type, to_type=to_type,
-                     from_template=from_template, to_template=to_template,
                      from_threads=from_threads, to_threads=to_threads,
                      from_hardware=from_hardware, to_hardware=to_hardware,
                      attributes=attributes, location=location)
