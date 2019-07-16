@@ -98,7 +98,7 @@ static allocated_irq_t **find_matching_irq_entry_by_cptr(seL4_CPtr irq_cptr)
     return NULL;
 }
 
-static irq_id_t camkes_irq_register(void *cookie, ps_irq_t irq, irq_callback_t callback, void *callback_data)
+static irq_id_t camkes_irq_register(void *cookie, ps_irq_t irq, irq_callback_fn_t callback, void *callback_data)
 {
     if (!callback) {
         return -EINVAL;

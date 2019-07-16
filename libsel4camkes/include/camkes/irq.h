@@ -29,7 +29,7 @@ struct allocated_irq {
     seL4_CPtr irq_handler;
     ps_irq_t irq;
     bool is_allocated;
-    irq_callback_t callback_fn;
+    irq_callback_fn_t callback_fn;
     void *callback_data;
 };
 typedef struct allocated_irq allocated_irq_t;
