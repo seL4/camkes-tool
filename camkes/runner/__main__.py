@@ -223,33 +223,7 @@ def main(argv, out, err):
 
     log.set_verbosity(options.verbosity)
 
-    # Build a list of item/outfile pairs that we have yet to match and process
-    all_items = set(zip(options.item, options.outfile))
-    done_items = set([])
-
-    def done(s, file, item, r, read):
-        ret = 0
-        if s:
-            file.write(s)
-            file.close()
-
-        done_items.add((item, file))
-        if len(all_items - done_items) == 0:
-
-            read |= r.get_files_used()
-            # Write a Makefile dependency rule if requested.
-            if options.makefile_dependencies is not None:
-                options.makefile_dependencies.write('%s: \\\n  %s\n' %
-                                                    (os.path.abspath(options.outfile[0].name), ' \\\n  '.join(sorted(read))))
-
-            if options.save_object_state is not None:
-                # Write the render_state to the supplied outfile
-                pickle.dump(render_state, options.save_object_state)
-
-            sys.exit(ret)
-
     ast = pickle.load(options.load_ast)
-    read = set()
 
     # Locate the assembly.
     assembly = ast.assembly
@@ -278,10 +252,6 @@ def main(argv, out, err):
                         log.warning('attribute %s.%s has type int but is set '
                                     'to a value that is not an integer' % (i.name,
                                                                            a.name))
-    obj_space = ObjectAllocator()
-    obj_space.spec.arch = options.architecture
-    render_state = AllocatorState(obj_space=obj_space)
-
     templates = Templates(options.platform)
     [templates.add_root(t) for t in options.templates]
     try:
@@ -312,180 +282,76 @@ def main(argv, out, err):
             # template lookup dictionary.
             pass
 
-    def instantiate_misc_templates(options, render_state):
-        for (item, outfile) in (all_items - done_items):
-            try:
-                template = templates.lookup(item)
-                if template:
-                    g = r.render(
-                        assembly, assembly, template, render_state, None,
-                        outfile_name=outfile.name, options=options)
-                    done(g, outfile, item, r, read)
-            except TemplateError as inst:
-                die(rendering_error(item, inst))
-
-    if "camkes-gen.cmake" in options.item:
-        instantiate_misc_templates(options, render_state)
-
     if options.load_object_state is not None:
-        # There is an assumption that if load_object_state is set, we
-        # skip all of the component and connector logic below.
-        # FIXME: refactor to clarify control flow
         render_state = pickle.load(options.load_object_state)
-        instantiate_misc_templates(options, render_state)
 
-        # If a template wasn't instantiated, something went wrong, and we can't recover
-        raise CAmkESError("No template instantiated on capdl generation path")
+    else:
+        obj_space = ObjectAllocator()
+        obj_space.spec.arch = options.architecture
+        render_state = AllocatorState(obj_space=obj_space)
 
-    # We're now ready to instantiate the template the user requested, but there
-    # are a few wrinkles in the process. Namely,
-    #  1. Template instantiation needs to be done in a deterministic order. The
-    #     runner is invoked multiple times and template code needs to be
-    #     allocated identical cap slots in each run.
-    #  2. Components and connections need to be instantiated before any other
-    #     templates, regardless of whether they are the ones we are after. Some
-    #     other templates, such as the Makefile depend on the obj_space and
-    #     cspaces.
-    #  3. All actual code templates, up to the template that was requested,
-    #     need to be instantiated. This is related to (1) in that the cap slots
-    #     allocated are dependent on what allocations have been done prior to a
-    #     given allocation call.
+        for i in assembly.composition.instances:
+            # Don't generate any code for hardware components.
+            if i.type.hardware:
+                continue
 
-    # Instantiate the per-component source and header files.
-    for i in assembly.composition.instances:
-        # Don't generate any code for hardware components.
-        if i.type.hardware:
-            continue
+            key = i.address_space
 
-        if i.address_space not in render_state.cspaces:
-            cnode = render_state.obj_space.alloc(ObjectType.seL4_CapTableObject,
-                                                 name="%s_cnode" % i.address_space, label=i.address_space)
-            render_state.cspaces[i.address_space] = CSpaceAllocator(cnode)
-            pd = obj_space.alloc(lookup_architecture(options.architecture).vspace().object, name="%s_group_bin_pd" % i.address_space,
-                                 label=i.address_space)
-            addr_space = AddressSpaceAllocator(
-                re.sub(r'[^A-Za-z0-9]', '_', "%s_group_bin" % i.address_space), pd)
-            render_state.pds[i.address_space] = pd
-            render_state.addr_spaces[i.address_space] = addr_space
+            if key not in render_state.cspaces:
+                cnode = render_state.obj_space.alloc(ObjectType.seL4_CapTableObject,
+                                                     name="%s_cnode" % key, label=key)
+                render_state.cspaces[key] = CSpaceAllocator(cnode)
+                pd = obj_space.alloc(lookup_architecture(options.architecture).vspace().object, name="%s_group_bin_pd" % key,
+                                     label=key)
+                addr_space = AddressSpaceAllocator(
+                    re.sub(r'[^A-Za-z0-9]', '_', "%s_group_bin" % key), pd)
+                render_state.pds[key] = pd
+                render_state.addr_spaces[key] = addr_space
 
-        for t in ('%s/source' % i.name, '%s/header' % i.name,
-                  '%s/c_environment_source' % i.name,
-                  '%s/cakeml_start_source' % i.name,
-                  '%s/cakeml_end_source' % i.name,
-                  '%s/camkesConstants' % i.name,
-                  '%s/linker' % i.name):
-            try:
-                template = templates.lookup(t, i)
-                g = ''
-                if template:
-                    g = r.render(i, assembly, template, render_state, i.address_space,
-                                 outfile_name=None, options=options, my_pd=render_state.pds[i.address_space])
-                for (item, outfile) in (all_items - done_items):
-                    if item == t:
-                        if not template:
-                            log.warning('Warning: no template for %s' % item)
-                        done(g, outfile, item, r, read)
-                        break
-            except TemplateError as inst:
-                die(rendering_error(i.name, inst))
+    for (item, outfile) in zip(options.item, options.outfile):
+        key = item.split("/")
+        if len(key) is 1:
+            # We are rendering something that isn't a component or connection.
+            i = assembly
+            obj_key = None
+            template = templates.lookup(item)
+        elif key[1] in ["source", "header", "c_environment_source", "cakeml_start_source", "cakeml_end_source", "camkesConstants", "linker", "debug", "simple", "rump_config"]:
+            # We are rendering a component template
+            i = [x for x in assembly.composition.instances if x.name == key[0]][0]
+            obj_key = i.address_space
+            template = templates.lookup(item, i)
+        elif key[1] in ["from", "to"]:
+            # We are rendering a connection template
+            c = [c for c in assembly.composition.connections if c.name == key[0]][0]
+            if key[1] == "to":
+                i = c.to_ends[int(key[-1])]
+            elif key[1] == "from":
+                i = c.from_ends[int(key[-1])]
+            else:
+                die("Invalid connector end")
+            obj_key = i.instance.address_space
+            template = templates.lookup("/".join(key[:-1]), c)
+        else:
+            die("item: \"%s\" does not have the correct formatting to lookup a template." % item)
+        try:
+            g = r.render(i, assembly, template, render_state, obj_key,
+                         outfile_name=outfile.name, options=options, my_pd=render_state.pds[obj_key] if obj_key else None)
+            outfile.write(g)
+            outfile.close()
+        except TemplateError as inst:
+            die(rendering_error(i.name, inst))
 
-    # Instantiate the per-connection files.
-    for c in assembly.composition.connections:
+    read = r.get_files_used()
+    # Write a Makefile dependency rule if requested.
+    if options.makefile_dependencies is not None:
+        options.makefile_dependencies.write('%s: \\\n  %s\n' %
+                                            (options.outfile[0].name, ' \\\n  '.join(sorted(read))))
 
-        for t in (('%s/from/source' % c.name, c.from_ends),
-                  ('%s/from/header' % c.name, c.from_ends),
-                  ('%s/to/source' % c.name, c.to_ends),
-                  ('%s/to/header' % c.name, c.to_ends),
-                  ('%s/to/cakeml' % c.name, c.to_ends)):
+    if options.save_object_state is not None:
+        # Write the render_state to the supplied outfile
+        pickle.dump(render_state, options.save_object_state)
 
-            template = templates.lookup(t[0], c)
-
-            if template is not None:
-                for id, e in enumerate(t[1]):
-                    item = '%s/%d' % (t[0], id)
-                    g = ''
-                    try:
-                        g = r.render(e, assembly, template, render_state,
-                                     e.instance.address_space, outfile_name=None,
-                                     options=options, my_pd=render_state.pds[e.instance.address_space])
-                    except TemplateError as inst:
-                        die(rendering_error(item, inst))
-                    except jinja2.exceptions.TemplateNotFound:
-                        die('While rendering %s: missing template for %s' %
-                            (item, c.type.name))
-                    for (target, outfile) in (all_items - done_items):
-                        if target == item:
-                            if not template:
-                                log.warning('Warning: no template for %s' % item)
-                            done(g, outfile, item, r, read)
-                            break
-
-        # The following block handles instantiations of per-connection
-        # templates that are neither a 'source' or a 'header', as handled
-        # above. We assume that none of these need instantiation unless we are
-        # actually currently looking for them (== options.item). That is, we
-        # assume that following templates, like the CapDL spec, do not require
-        # these templates to be rendered prior to themselves.
-        # FIXME: This is a pretty ugly way of handling this. It would be nicer
-        # for the runner to have a more general notion of per-'thing' templates
-        # where the per-component templates, the per-connection template loop
-        # above, and this loop could all be done in a single unified control
-        # flow.
-        for (item, outfile) in (all_items - done_items):
-            for t in (('%s/from/' % c.name, c.from_ends),
-                      ('%s/to/' % c.name, c.to_ends)):
-
-                if not item.startswith(t[0]):
-                    # This is not the item we're looking for.
-                    continue
-
-                # If we've reached here then this is the exact item we're after.
-                template = templates.lookup(item, c)
-                if template is None:
-                    die('no registered template for %s' % item)
-
-                for e in t[1]:
-                    try:
-                        g = r.render(e, assembly, template, render_state,
-                                     e.instance.address_space, outfile_name=None,
-                                     options=options, my_pd=render_state.pds[e.instance.address_space])
-                        done(g, outfile, item, r, read)
-                    except TemplateError as inst:
-                        die(rendering_error(item, inst))
-
-    # Perform any per component special generation. This needs to happen last
-    # as these template needs to run after all other capabilities have been
-    # allocated
-    for i in assembly.composition.instances:
-        # Don't generate any code for hardware components.
-        if i.type.hardware:
-            continue
-        assert i.address_space in render_state.cspaces
-        SPECIAL_TEMPLATES = [('debug', 'debug'), ('simple', 'simple'), ('rump_config', 'rumprun')]
-        for special in [bl for bl in SPECIAL_TEMPLATES if assembly.configuration[i.name].get(bl[0])]:
-            for t in ('%s/%s' % (i.name, special[1]),):
-                try:
-                    template = templates.lookup(t, i)
-                    g = ''
-                    if template:
-                        g = r.render(i, assembly, template, render_state,
-                                     i.address_space, outfile_name=None,
-                                     options=options, my_pd=render_state.pds[i.address_space])
-                    for (item, outfile) in (all_items - done_items):
-                        if item == t:
-                            if not template:
-                                log.warning('Warning: no template for %s' % item)
-                            done(g, outfile, item, r, read)
-                except TemplateError as inst:
-                    die(rendering_error(i.name, inst))
-
-    # Check if there are any remaining items
-    not_done = all_items - done_items
-    if len(not_done) > 0:
-        for (item, outfile) in not_done:
-            err.write('No valid element matching --item %s.\n' % item)
-        return -1
-    return 0
+    sys.exit(0)
 
 
 if __name__ == '__main__':
