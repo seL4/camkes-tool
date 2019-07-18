@@ -123,5 +123,5 @@ target_link_libraries(
     virtqueue
     sel4camkes_Config
     sel4runtime_Config
-    kernel_autoconf
+    sel4_autoconf
 )
