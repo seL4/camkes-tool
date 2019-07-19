@@ -185,6 +185,13 @@ where
             False
         /*- endif -*/
         ,
+        hardware =
+        /*- if c.hardware -*/
+            True
+        /*- else -*/
+            False
+        /*- endif -*/
+        ,
         requires =
         /*- for i in c.uses -*//*-
                 if c.interface_is_exported(i.name) -*/
