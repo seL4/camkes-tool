@@ -302,6 +302,10 @@ def ROUND_UP(x, y):
     return int(int(math.ceil(int(x) / float(y))) * y)
 
 
+def ROUND_DOWN(x, y):
+    return int(int(math.floor(int(x) / float(y))) * y)
+
+
 _sizes = {
     # The sizes of a few things we know statically.
     'Buf': 4096,
