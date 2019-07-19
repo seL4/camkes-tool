@@ -92,9 +92,33 @@ const char *get_instance_name(void) {
 
 /* DTB passthrough */
 
-/*- set dtb = configuration[me.name].get('dtb') -*/
-/*- if dtb -*/
-    /*- set dtb_size = dtb['dtb_size'][0] -*/
+
+/*# See if this component uses the DTB #*/
+/*- set dtb_dict = [] -*/
+/*- if configuration[me.name].get('dtb') -*/ /*# Account for the top level .camkes file case, i.e. app #*/
+    /*- do dtb_dict.append(configuration[me.name].get('dtb')) -*/
+/*- else -*/ /*# Account for the nested .camkes files, i.e. SerialServer/TimeServer #*/
+    /*# Check the interfaces and see if the flag is turned on,
+     *# this assumes that the interfaces that will turn on the flag
+     *# is connected with a variant of the DTB connectors
+     #*/
+    /*- if me.type.composition -*/
+        /*- for c in me.type.composition.connections -*/
+            /*- set interface_name = c.to_end.interface.name -*/
+            /*- set interface_config_key = '%s.%s' % (me.name, interface_name) -*/
+            /*- if configuration.get(interface_config_key) -*/
+                /*- if configuration[interface_config_key].get('dtb') -*/
+                    /*- do dtb_dict.append(configuration[interface_config_key].get('dtb')) -*/
+                    /*- break -*/
+                /*- endif -*/
+            /*- endif -*/
+        /*- endfor -*/
+    /*- endif -*/
+/*- endif -*/
+
+/*# Output flags to get the loader to copy the DTB over #*/
+/*- if len(dtb_dict) -*/
+    /*- set dtb_size = dtb_dict[0]['dtb_size'][0] -*/
     /*# Calculate the multiple of 4K pages that can fit the DTB, add an extra for the bootinfo header #*/
     /*- set rounded_size = macros.ROUND_UP(dtb_size, 4096) + 4096 -*/
     char dtb_symbol[/*? rounded_size ?*/]
