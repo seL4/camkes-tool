@@ -83,7 +83,7 @@
                 /*- set namespace.lock = lock -*/
                 /*- if lock -*/
                     /*- set namespace.lock_symbol = c_symbol() -*/
-                    /*- set namespace.lock_ep = alloc('userspace_buffer_ep', seL4_EndpointObject, write=True, read=True) -*/
+                    /*- set namespace.lock_ep = alloc('userspace_buffer_ep', seL4_EndpointObject, label=me.instance.name, write=True, read=True) -*/
                     static volatile int /*? namespace.lock_symbol ?*/ = 1;
                 /*- else -*/
                     /*- set namespace.lock = False -*/
