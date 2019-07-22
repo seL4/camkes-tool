@@ -403,13 +403,6 @@ def set_sc_properties(sc, options, configuration, prefix):
     maybe_set_property_from_configuration(configuration, prefix, sc, 'size_bits', 'size_bits')
 
 
-def to_isabelle_set(xs):
-    assert isinstance(xs, collections.Iterable)
-    if all(isinstance(x, six.string_types) for x in xs):
-        return '{%s}' % ', '.join('\'\'%s\'\'' % x for x in xs)
-    raise NotImplementedError
-
-
 def check_isabelle_outfile(thy_name, outfile_name):
     '''Our Isabelle templates need to refer to each other using a
        consistent naming scheme. This checks that the expected theory
