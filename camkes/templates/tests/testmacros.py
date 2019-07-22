@@ -33,7 +33,7 @@ sys.path.append(os.path.join(MY_DIR, '../../../../python-capdl'))
 sys.path.append(os.path.join(MY_DIR, '../../..'))
 
 from camkes.internal.tests.utils import CAmkESTest, which
-from camkes.templates.macros import sizeof, get_perm
+from camkes.templates.macros import NO_CHECK_UNUSED, sizeof, get_perm
 from camkes.templates import TemplateError
 
 def uname():
@@ -142,15 +142,10 @@ class TestMacros(CAmkESTest):
                     for m in call.finditer(source):
                         used.add(m.group(1))
 
-        # HACK: This exceptions list is a temporary hack for some macros that
-        # are used in a future iteration of the Isabelle label mapping theory.
-        # It should be removed when the label mapping theory is updated.
-        EXCEPTIONS = set(['capdl_sorter', 'to_isabelle_set', 'maybe_set_property_from_configuration', 'ROUND_DOWN'])
-
-        unused = macros - used - EXCEPTIONS
+        unused = macros - used - NO_CHECK_UNUSED
         if len(unused) > 0:
             [print("Unused macro: %s" % u) for u in unused]
-        self.assertLen(unused, 0)
+        self.assertSetEqual(unused, set())
 
 if __name__ == '__main__':
     unittest.main()
