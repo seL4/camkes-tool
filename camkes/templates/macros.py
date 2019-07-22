@@ -295,18 +295,22 @@ def dataport_type(type):
         return 'void'
     return show_type(type)
 
+
 # The following macros are for when you require generation-time constant
 # folding. These are not robust and for cases when a generation-time constant
 # is not required, you should simply emit the C equivalent and let the C
 # compiler handle it.
 
-
 def ROUND_UP(x, y):
-    return int(int(math.ceil(int(x) / float(y))) * y)
+    assert isinstance(x, six.integer_types)
+    assert isinstance(y, six.integer_types) and y > 0
+    return (x + y - 1) // y * y
 
 
 def ROUND_DOWN(x, y):
-    return int(int(math.floor(int(x) / float(y))) * y)
+    assert isinstance(x, six.integer_types)
+    assert isinstance(y, six.integer_types) and y > 0
+    return x // y * y
 
 # This macro is currently only used outside the repository
 NO_CHECK_UNUSED.add('ROUND_DOWN')
