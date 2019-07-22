@@ -31,9 +31,9 @@ test_apps = [
     #'alignment', # x86 only
     'attributes',
     'binary-semaphore',
-    #'cakeml_hello', # FIXME: OK modulo rebranded connector (seL4RPCNoType)
+    'cakeml_hello',
     'cakeml_regex',
-    #'cakeml_tipc', # FIXME: VirtQueue and TimeServer (hierarchical + hardware components)
+    #'cakeml_tipc', # depends on VirtQueue and TimeServer
     'cms-donate',
     'cs-donate',
     'cs-nodonate',
@@ -57,7 +57,7 @@ test_apps = [
     'multiassembly',
     'multiclient',
     #'multiplier', # camkes ADL model doesn't support int array
-    #'mutex', # vanity connector not supported
+    'mutex',
     'periodic',
     #'pit', # x86 only
     'reversestring',
@@ -66,8 +66,8 @@ test_apps = [
     #'rumprun_hello',    # x86 only
     #'rumprun_pthreads', # x86 only
     #'rumprun_rust',     # x86 only
-    #'serialserver', # FIXME: TimeServer (hierarchical + hardware components)
-    #'serialserver_loopback', # FIXME: probably similar to serialserver
+    #'serialserver', # depends on TimeServer
+    #'serialserver_loopback', # probably similar to serialserver
     'simple',
     #'simplesingleaddressspace', # grouped components not supported
     'socket',
@@ -81,9 +81,8 @@ test_apps = [
     'testdataportmux',
     #'testdataportmuxflat', # grouped components not supported
     'testdataportptrwrap',
-    #'testdataportrpc', # RPC over shared mem; the EP is used to lock memory, so this doesn't
-                        # meet our policy spec (which restricts to unidirectional IPC only)
-    #'testfaulthandlers', # ADL model doesn't allow empty procedures
+    'testdataportrpc',
+    'testfaulthandlers',
     #'testgrouping', # grouped components not supported
     #'testgroupingcontrol', # grouped components not supported
     #'testhardwareinterrupt', # hardware component not supported
@@ -97,7 +96,7 @@ test_apps = [
     #'teststringarrays', # camkes ADL model doesn't support array of string
     'testsyscalls',
     'testunderscorename',
-    #'timeserver, # hierarchical components not supported
+    #'timeserver', # hardware component not supported
     #'uart', # hardware component not supported
     #'vgatest', # x86 only
     ]
