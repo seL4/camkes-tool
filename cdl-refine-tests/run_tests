@@ -107,18 +107,11 @@ test_apps = [
 test_options = {
     # Having extra fault handler threads and EPs shouldn't matter,
     # because they are internal to components.
-    'CAmkESFaultHandlers': ['0', '1'],
-
-    # Release/debug mode only affects C code, so shouldn't matter.
-    'RELEASE': ['1', '0'],
-
-    # Our proofs should work with many small frames without taking
-    # too much time.
-    'CAmkESLargeFramePromotion': ['1', '0'],
+    'CAmkESFaultHandlers': ['1'],
 
     # This only gives each component access to its own TCB,
     # which shouldn't affect the integrity model.
-    'CAmkESProvideTCBCaps': ['0', '1'],
+    'CAmkESProvideTCBCaps': ['1'],
 }
 
 # Default app build options.
