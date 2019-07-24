@@ -32,7 +32,7 @@ test_apps = [
     'attributes',
     'binary-semaphore',
     'cakeml_hello',
-    'cakeml_regex',
+    #'cakeml_regex', # FIXME: requires setting -DCAKEMLDIR in init-build
     #'cakeml_tipc', # depends on VirtQueue and TimeServer
     'cms-donate',
     'cs-donate',
