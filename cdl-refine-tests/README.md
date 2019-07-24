@@ -19,10 +19,12 @@ Currently, the verification only supports apps that use the basic
 CAmkES features and connectors.
 We plan to extend verification support to more complex CAmkES
 assemblies in the future (eventually including a CAmkES VMM).
+Also note that only the AARCH32 platform is supported.
 
 When building a CAmkES app, enable proof generation with the
 `CAmkESCapDLVerification` option. The proof scripts will be
-generated in `projects/camkes` in your build directory.
+generated in `projects/camkes` in your build directory. This also
+requires `CAmkESCapDLStaticAlloc` to be enabled.
 
 # Tests
 The top-level test script is `./run_tests`.
@@ -32,7 +34,7 @@ The tests expect to run as part of a
 In the camkes-manifest repo, do
 
 ```
-repo sync -m l4v-default.xml
+repo sync -m l4v-master.xml
 ```
 
 This will clone the Isabelle theorem prover and the L4.verified
