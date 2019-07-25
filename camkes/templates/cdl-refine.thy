@@ -423,7 +423,9 @@ section \<open>CAmkES-capDL refinement proof\<close>
 lemmas /*? options.verification_base_name ?*/_label_over_ptr_range =
   label_over_ptr_range[
       (* FP_Eval only supports first-order matching, so instantiate P *)
-      where P = "\<lambda>l. (_, _, l) \<in> _" and label_spec = /*? options.verification_base_name ?*/_labelling,
+      where P = "\<lambda>l. generic_tag type tag ((_, _, l) \<in> _)"
+        and label_spec = /*? options.verification_base_name ?*/_labelling
+        for type tag,
       OF /*? options.verification_base_name ?*/_label.list_monotonic,
       (* expand labelling into tree lookup *)
       unfolded /*? options.verification_base_name ?*/_labelling_def, OF refl]
@@ -461,26 +463,28 @@ proof -
       apply blast
 
      (* ASIDs in objects *)
-     apply (simp only: /*? options.verification_base_name ?*/_labelling_def)
-     apply (tactic \<open>let
-              val rules = @{thms /*? options.verification_base_name ?*/_CDL.state_def cdl_state.simps
-                                 /*? options.verification_base_name ?*/_CDL.objects_to_lookup_list
-                                 graph_of_map_of__distinct_eval if_True
-                                 /*? options.verification_base_name ?*/_CDL.objects_keys_distinct};
-              val congs = @{thms obj_policy_eval_congs};
-              in SUBGOAL (fn _ => FP_Eval.eval_tac @{context} (FP_Eval.make_rules rules congs) 1)
-                         1 end\<close>)
-     (* this is a separate step for now, because graph_of_map_of__sorted_eval
-        won't work for objects list *)
-     apply (tactic \<open>let
-              val rules = @{thms obj_policy_eval_simps'};
-              val congs = @{thms obj_policy_eval_congs};
-              val conv = rpair FP_Eval.skel0
-                       #> FP_Eval.eval @{context} (FP_Eval.make_rules rules congs)
-                       #> tap (fn (_, c) => tracing ("fp_eval counters: " ^ @{make_string} c))
-                       #> fst #> fst;
-              in SUBGOAL (fn _ => Conv.gconv_rule conv 1 #> Seq.succeed) 1 end\<close>;
-            intro TrueI conjI /*? options.verification_base_name ?*/_policy_intros)
+     subgoal
+       apply (simp only: /*? options.verification_base_name ?*/_labelling_def)
+       apply (tactic \<open>let
+                val rules = @{thms /*? options.verification_base_name ?*/_CDL.state_def cdl_state.simps
+                                   /*? options.verification_base_name ?*/_CDL.objects_to_lookup_list
+                                   graph_of_map_of__distinct_eval if_True
+                                   /*? options.verification_base_name ?*/_CDL.objects_keys_distinct};
+                val congs = @{thms obj_policy_eval_congs};
+                in SUBGOAL (fn _ => FP_Eval.eval_tac @{context} (FP_Eval.make_rules rules congs) 1)
+                           1 end\<close>)
+       (* this is a separate step for now, because graph_of_map_of__sorted_eval
+          won't work for objects list *)
+       apply (tactic \<open>let
+                val rules = @{thms obj_policy_eval_simps'};
+                val congs = @{thms obj_policy_eval_congs};
+                val conv = rpair FP_Eval.skel0
+                         #> FP_Eval.eval @{context} (FP_Eval.make_rules rules congs)
+                         #> tap (fn (_, c) => tracing ("fp_eval counters: " ^ @{make_string} c))
+                         #> fst #> fst;
+                in SUBGOAL (fn _ => Conv.gconv_rule conv 1 #> Seq.succeed) 1 end\<close>;
+              intro TrueI conjI /*? options.verification_base_name ?*/_policy_intros[THEN generic_tagP_I])
+       done
 
     (* ASID pools *)
     apply (simp add: /*? options.verification_base_name ?*/_CDL.state_def /*? options.verification_base_name ?*/_CDL.asid_table_def graph_of_def)
@@ -536,7 +540,7 @@ proof -
                       #> tap (fn (_, c) => tracing ("fp_eval counters: " ^ @{make_string} c))
                       #> fst #> fst;
              in SUBGOAL (fn _ => Conv.gconv_rule conv 1 #> Seq.succeed) 1 end\<close>;
-           intro TrueI conjI /*? options.verification_base_name ?*/_policy_intros)
+           intro TrueI conjI /*? options.verification_base_name ?*/_policy_intros[THEN generic_tagP_I])
     done
 qed
 
@@ -611,7 +615,7 @@ proof -
                       #> tap (fn (_, c) => tracing ("fp_eval counters: " ^ @{make_string} c))
                       #> fst #> fst;
              in SUBGOAL (fn _ => Conv.gconv_rule conv 1 #> Seq.succeed) 1 end\<close>;
-           intro TrueI conjI /*? options.verification_base_name ?*/_policy_intros)
+           intro TrueI conjI /*? options.verification_base_name ?*/_policy_intros[THEN generic_tagP_I])
     done
 qed
 
