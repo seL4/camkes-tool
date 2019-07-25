@@ -116,6 +116,7 @@ connector seL4RPCCallNoType {
 connector seL4DirectCall {
     from Procedure;
     to Procedure;
+    attribute string isabelle_connector_spec = "seL4RPC"; /* builtin connector */
 }
 
 /**
@@ -240,6 +241,18 @@ connector seL4HardwareIOPort {
 connector seL4DTBHardware {
     from Event with 0 threads;
     to Events;
+
+    /* This connector by itself confers no access rights. Use other
+     * attributes to specify integrity policy for hardware. */
+    attribute string isabelle_connector_spec = "\<lparr>
+        connector_type = NativeConnector,
+        connector_interface = EventInterface,
+        connector_access = \<lparr>
+            access_from_to   = {},
+            access_to_from   = {},
+            access_from_conn = {},
+            access_to_conn   = {}
+        \<rparr> \<rparr>";
 }
 
 /* This connector is only capable of marshalling primitive values (no arrays,
