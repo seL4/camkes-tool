@@ -38,33 +38,33 @@ text \<open>
 
 section \<open>Expand policy rules\<close>
 
-definition /*? options.verification_base_name ?*/_policy
-  where
-  "/*? options.verification_base_name ?*/_policy \<equiv> policy_of /*? arch_spec_thy ?*/.assembly'"
-
 /*# FIXME: naming scheme duplicated from arch-definitions #*/
 /*- if hasattr(me, 'name') and me.name is not none -*/
-    /*- set assembly_name = me.name -*/
+    /*- set assembly_name = '%s.%s' % (arch_spec_thy, me.name) -*/
 /*- else -*/
-    /*- set assembly_name = 'assembly\'' -*/
+    /*- set assembly_name = '%s.assembly\'' % arch_spec_thy -*/
 /*- endif -*/
 /*- if hasattr(me.composition, 'name') and me.composition.name is not none -*/
-    /*- set composition_name = me.composition.name -*/
+    /*- set composition_name = '%s.%s' % (arch_spec_thy, me.composition.name) -*/
 /*- else -*/
-    /*- set composition_name = 'composition\'' -*/
+    /*- set composition_name = '%s.composition\'' % arch_spec_thy -*/
 /*- endif -*/
 
+definition /*? options.verification_base_name ?*/_policy
+  where
+  "/*? options.verification_base_name ?*/_policy \<equiv> policy_of /*? assembly_name ?*/"
+
 schematic_goal /*? options.verification_base_name ?*/_component_names:
-  "components (composition /*? arch_spec_thy ?*/.assembly') = ?comps"
-  apply (clarsimp simp: /*? arch_spec_thy ?*/./*? assembly_name ?*/_def
-                        /*? arch_spec_thy ?*/./*? composition_name ?*/_def)
+  "components (composition /*? assembly_name ?*/) = ?comps"
+  apply (clarsimp simp: /*? assembly_name ?*/_def
+                        /*? composition_name ?*/_def)
   apply (rule refl)
   done
 
 schematic_goal /*? options.verification_base_name ?*/_connections:
-  "connections (composition /*? arch_spec_thy ?*/.assembly') = ?spec"
-  apply (clarsimp simp: /*? arch_spec_thy ?*/./*? assembly_name ?*/_def
-                        /*? arch_spec_thy ?*/./*? composition_name ?*/_def
+  "connections (composition /*? assembly_name ?*/) = ?spec"
+  apply (clarsimp simp: /*? assembly_name ?*/_def
+                        /*? composition_name ?*/_def
 /*- for c in me.composition.instances -*/
                         /*? arch_spec_thy ?*/./*? isabelle_component(c.name) ?*/_def
 /*- endfor -*/
@@ -288,7 +288,7 @@ definition /*? options.verification_base_name ?*/_admissible_pas :: "label PAS \
   where
   "/*? options.verification_base_name ?*/_admissible_pas pas \<equiv>
      /*? options.verification_base_name ?*/_admissible_labelling (pasObjectAbs pas) \<and>
-     pasSubject pas \<in> fst ` set (components (composition /*? arch_spec_thy ?*/.assembly')) \<and>
+     pasSubject pas \<in> fst ` set (components (composition /*? assembly_name ?*/)) \<and>
      /*? options.verification_base_name ?*/_policy \<subseteq> pasPolicy pas"
 
 text \<open>Again, ensure that admissible policies exist.\<close>
@@ -300,7 +300,7 @@ lemma /*? options.verification_base_name ?*/_admissible_pas_exists:
   apply (rule_tac x = "undefined\<lparr>
                          pasObjectAbs := poa,
                          pasPolicy := /*? options.verification_base_name ?*/_policy,
-                         pasSubject := fst (hd (components (composition /*? arch_spec_thy ?*/.assembly')))
+                         pasSubject := fst (hd (components (composition /*? assembly_name ?*/)))
                          \<rparr>"
                   in exI)
 
@@ -340,7 +340,7 @@ text \<open>
 \<close>
 lemma /*? options.verification_base_name ?*/_policy_wellformed:
   "\<lbrakk> pasPolicy aag = /*? options.verification_base_name ?*/_policy;
-     pasSubject aag \<in> fst ` set (components (composition /*? arch_spec_thy ?*/.assembly'));
+     pasSubject aag \<in> fst ` set (components (composition /*? assembly_name ?*/));
      \<not> pasMaySendIrqs aag \<comment> \<open>ignore IRQs for now\<close>
    \<rbrakk> \<Longrightarrow> pas_wellformed aag"
   apply clarsimp
