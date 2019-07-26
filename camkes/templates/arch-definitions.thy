@@ -26,14 +26,10 @@ begin
  * We restrict the scope of all names to a locale with the same name
  * as our theory. This ensures that entity names from the CAmkES
  * assembly won't overlap with names we use elsewhere.
- *
- * Note that we need to use qualify\<dots>end_qualify instead of doing
- * everything in the locale directly, because code_simp doesn't work
- * for locale constants.
  *)
 
 locale /*? options.verification_base_name ?*/_Arch_Spec
-qualify /*? options.verification_base_name ?*/_Arch_Spec
+begin
 
 /*- macro camkes_type(type) -*/
     /*- if type == 'int' -*/
@@ -102,7 +98,7 @@ qualify /*? options.verification_base_name ?*/_Arch_Spec
 /*- for i in uniq(map(lambda('x: x.type'), me.composition.connections)) -*/
 definition
     /*? isabelle_connector(i.name) ?*/ :: connector
-where
+where[wellformed_CAMKES_simps]:
     "/*? isabelle_connector(i.name) ?*/ \<equiv> /*-
   if i.get_attribute('isabelle_connector_spec') -*//*? i.get_attribute('isabelle_connector_spec').default ?*//*-
   else -*/\<lparr>
@@ -130,7 +126,7 @@ lemma[wellformed_CAMKES_simps]: "wellformed_connector /*? isabelle_connector(i.n
 /*- for i in uniq(map(lambda('x: x.type'), flatMap(lambda('x: x.type.uses + x.type.provides'), me.composition.instances))) -*/
 definition
     /*? isabelle_procedure(i.name) ?*/ :: procedure
-where
+where[wellformed_CAMKES_simps]:
     "/*? isabelle_procedure(i.name) ?*/ \<equiv>
     /*- for m in i.methods -*/
         \<lparr> m_return_type =
@@ -159,18 +155,18 @@ where
     []"
 
 lemma wf_/*? isabelle_procedure(i.name) ?*/: "wellformed_procedure /*? isabelle_procedure(i.name) ?*/"
-  by code_simp
+  by (simp add: wellformed_CAMKES_simps)
 /*- endfor -*/
 
 (* Event interfaces *)
 /*- for index, i in enumerate(uniq(map(lambda('x: x.type'), flatMap(lambda('x: x.type.emits + x.type.consumes'), me.composition.instances)))) -*/
 definition
     /*? isabelle_event(i) ?*/ :: event
-where
+where[wellformed_CAMKES_simps]:
     "/*? isabelle_event(i) ?*/ \<equiv> /*? index ?*/"
 
 lemma wf_/*? isabelle_event(i) ?*/: "wellformed_event /*? isabelle_event(i) ?*/"
-  by code_simp
+  by (simp add: wellformed_CAMKES_simps)
 /*- endfor -*/
 
 (* Dataport interfaces *)
@@ -178,17 +174,17 @@ lemma wf_/*? isabelle_event(i) ?*/: "wellformed_event /*? isabelle_event(i) ?*/"
 /*- for i in uniq(map(lambda('x: x.type'), flatMap(lambda('x: x.type.dataports'), me.composition.instances))) -*/
 definition
     /*? isabelle_dataport(i) ?*/ :: dataport
-where
+where[wellformed_CAMKES_simps]:
     "/*? isabelle_dataport(i) ?*/ \<equiv> Some ''/*? i ?*/''"
 
 lemma wf_/*? isabelle_dataport(i) ?*/: "wellformed_dataport /*? isabelle_dataport(i) ?*/"
-  by code_simp
+  by (simp add: wellformed_CAMKES_simps)
 /*- endfor -*/
 
 /*- for c in uniq(map(lambda('x: x.type'), me.composition.instances)) -*/
 definition
     /*? isabelle_instance(c.name) ?*/ :: component
-where
+where[wellformed_CAMKES_simps]:
     "/*? isabelle_instance(c.name) ?*/ \<equiv> \<lparr>
         control =
         /*- if c.control -*/
@@ -257,23 +253,23 @@ where
     \<rparr>"
 
 lemma wf_/*? isabelle_instance(c.name) ?*/: "wellformed_component /*? isabelle_instance(c.name) ?*/"
-  by code_simp
+  by (simp add: wellformed_CAMKES_simps)
 /*- endfor -*/
 
 /*- for i in me.composition.instances -*/
 definition
     /*? isabelle_component(i.name) ?*/ :: component
-where
+where[wellformed_CAMKES_simps]:
     "/*? isabelle_component(i.name) ?*/ \<equiv> /*? isabelle_instance(i.type.name) ?*/"
 
 lemma wf_/*? isabelle_component(i.name) ?*/: "wellformed_component /*? isabelle_component(i.name) ?*/"
-  by code_simp
+  by (simp add: wellformed_CAMKES_simps)
 /*- endfor -*/
 
 /*- for c in me.composition.connections -*/
 definition
     /*? isabelle_connection(c.name) ?*/ :: connection
-where
+where[wellformed_CAMKES_simps]:
     "/*? isabelle_connection(c.name) ?*/ \<equiv> \<lparr>
         conn_type = /*? isabelle_connector(c.type.name) ?*/,
         conn_from =
@@ -289,12 +285,12 @@ where
     \<rparr>"
 
 lemma wf_/*? isabelle_connection(c.name) ?*/: "wellformed_connection /*? isabelle_connection(c.name) ?*/"
-  by code_simp
+  by (simp add: wellformed_CAMKES_simps)
 /*- endfor -*/
 
 definition
     /*? composition ?*/ :: composition
-where
+where[wellformed_CAMKES_simps]:
     "/*? composition ?*/ \<equiv> \<lparr>
         components =
         /*- for c in me.composition.instances -*/
@@ -309,11 +305,11 @@ where
     \<rparr>"
 
 lemma wf_/*? composition ?*/: "wellformed_composition /*? composition ?*/"
-  by code_simp
+  by (simp add: wellformed_CAMKES_simps)
 
 definition
     /*? configuration ?*/ :: "configuration option"
-where
+where[wellformed_CAMKES_simps]:
     "/*? configuration ?*/ \<equiv>
     /*- if me.configuration -*/
         Some (
@@ -329,7 +325,7 @@ where
 lemma wf_/*? configuration ?*/:
 /*- if me.configuration -*/
     "wellformed_configuration (the /*? configuration ?*/)"
-    by code_simp
+    by (simp add: wellformed_CAMKES_simps)
 /*- else -*/
     (* No configuration *)/*# If there is no configuration it is trivially wellformed. #*/
     "True"
@@ -338,15 +334,15 @@ lemma wf_/*? configuration ?*/:
 
 definition
     /*? assembly ?*/ :: assembly
-where
+where[wellformed_CAMKES_simps]:
     "/*? assembly ?*/ \<equiv> \<lparr>
         composition = /*? composition ?*/,
         configuration = /*? configuration ?*/
     \<rparr>"
 
 lemma wf_/*? assembly ?*/: "wellformed_assembly /*? assembly ?*/"
-  by code_simp
+  by (simp add: wellformed_CAMKES_simps)
 
-end_qualify
+end
 
 end
