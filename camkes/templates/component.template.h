@@ -23,6 +23,7 @@
 /*- endfor -*/
 
 const char *get_instance_name(void);
+int get_instance_affinity(void);
 
 /* Attributes */
 
