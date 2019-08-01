@@ -204,7 +204,8 @@ where[wellformed_CAMKES_simps]:
         /*- for i in c.uses -*//*-
                 if c.interface_is_exported(i.name) -*/
             \<comment> \<open>Exported interface/*- endif -*/
-            (''/*? i.name ?*/'', /*? isabelle_procedure(i.type.name) ?*/) #/*-
+            (''/*? i.name ?*/'', (/*? 'InterfaceOptional' if hasattr(i, 'optional') and i.optional else 'InterfaceRequired'
+                                  ?*/, /*? isabelle_procedure(i.type.name) ?*/)) #/*-
                 if c.interface_is_exported(i.name) -*/
             \<close>/*- endif -*/
         /*- endfor -*/
@@ -240,7 +241,8 @@ where[wellformed_CAMKES_simps]:
         /*- for i in c.consumes -*//*-
                 if c.interface_is_exported(i) -*/
             \<comment> \<open>Exported interface/*- endif -*/
-            (''/*? i ?*/'', /*? isabelle_event(i.type) ?*/) #/*-
+            (''/*? i ?*/'', (/*? 'InterfaceOptional' if hasattr(i, 'optional') and i.optional else 'InterfaceRequired'
+                             ?*/, /*? isabelle_event(i.type) ?*/)) #/*-
                 if c.interface_is_exported(i) -*/
             \<close>/*- endif -*/
         /*- endfor -*/
