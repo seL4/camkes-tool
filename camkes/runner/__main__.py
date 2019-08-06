@@ -345,7 +345,6 @@ def main(argv, out, err):
             else:
                 die(rendering_error(i.parent.name, inst))
 
-
     read = r.get_files_used()
     # Write a Makefile dependency rule if requested.
     if options.makefile_dependencies is not None:

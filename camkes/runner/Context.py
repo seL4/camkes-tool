@@ -216,56 +216,56 @@ def new_context(entity, assembly, render_state, state_key, outfile_name,
                 'isabelle_dataport':
                     lambda name: macros.isabelle_ADL_ident('dataport')(
                     # hack to fix up names for sized buffer types e.g. 'Buf(4096)' -> 'Buf_4096'
-                                     re.sub(r'\((.*)\)', r'_\1', name)),
+            re.sub(r'\((.*)\)', r'_\1', name)),
 
-                'isabelle_capdl_identifier': macros.isabelle_ident,
+        'isabelle_capdl_identifier': macros.isabelle_ident,
 
-                # This function abstracts away the differences between the RT kernel's
-                # seL4_Recv and the master kernel's seL4_Recv. Namely, the RT kernel's
-                # seL4_Recv takes an extra reply object cap.
-                #
-                # seL4_Recv is distinct from seL4_Wait, in that a seL4_Recv() call
-                # expects to potentially get a reply cap from the sender.
-                'generate_seL4_Recv': generate_seL4_Recv,
+        # This function abstracts away the differences between the RT kernel's
+        # seL4_Recv and the master kernel's seL4_Recv. Namely, the RT kernel's
+        # seL4_Recv takes an extra reply object cap.
+        #
+        # seL4_Recv is distinct from seL4_Wait, in that a seL4_Recv() call
+        # expects to potentially get a reply cap from the sender.
+        'generate_seL4_Recv': generate_seL4_Recv,
 
-                # This function is similar to generate_seL4_Recv, in that it also
-                # abstracts away the differences between the RT and master kernels.
-                # This function specifically abstracts away the differences between
-                # seL4_SignalRecv (on master) and seL4_NBSendRecv (on RT).
-                'generate_seL4_SignalRecv': generate_seL4_SignalRecv,
+        # This function is similar to generate_seL4_Recv, in that it also
+        # abstracts away the differences between the RT and master kernels.
+        # This function specifically abstracts away the differences between
+        # seL4_SignalRecv (on master) and seL4_NBSendRecv (on RT).
+        'generate_seL4_SignalRecv': generate_seL4_SignalRecv,
 
-                # This function is similar to generate_seL4_Recv as well, but it
-                # abstracts away the differences between seL4_ReplyRecv between the
-                # RT and master branches.
-                'generate_seL4_ReplyRecv': generate_seL4_ReplyRecv,
+        # This function is similar to generate_seL4_Recv as well, but it
+        # abstracts away the differences between seL4_ReplyRecv between the
+        # RT and master branches.
+        'generate_seL4_ReplyRecv': generate_seL4_ReplyRecv,
 
-                # Give template authors access to AST types just in case. Templates
-                # should never be constructing objects of these types, but they may
-                # need to do `isinstance` testing.
-                'camkes': collections.namedtuple('camkes', ['ast'])(AST),
+        # Give template authors access to AST types just in case. Templates
+        # should never be constructing objects of these types, but they may
+        # need to do `isinstance` testing.
+        'camkes': collections.namedtuple('camkes', ['ast'])(AST),
 
-                # Expose CapDL module for `isinstance` testing.
-                'capdl': capdl,
+        # Expose CapDL module for `isinstance` testing.
+        'capdl': capdl,
 
-                # Give the template authors a mechanism for writing C-style include
-                # guards. Use the following idiom to guard an include target:
-                #  /*- if 'template.filename' not in included' -*/
-                #  /*- do included.add('template.filename') -*/
-                #  ... my template ...
-                #  /*- endif -*/
-                'included': set(),
+        # Give the template authors a mechanism for writing C-style include
+        # guards. Use the following idiom to guard an include target:
+        #  /*- if 'template.filename' not in included' -*/
+        #  /*- do included.add('template.filename') -*/
+        #  ... my template ...
+        #  /*- endif -*/
+        'included': set(),
 
-                # Expose an exception class templates can use to throw errors related
-                # to invalid input specification.
-                'TemplateError': TemplateError,
+        # Expose an exception class templates can use to throw errors related
+        # to invalid input specification.
+        'TemplateError': TemplateError,
 
-                # Look up a template
-                'lookup_template': lambda path, entity: templates.lookup(path, entity),
+        # Look up a template
+        'lookup_template': lambda path, entity: templates.lookup(path, entity),
 
-                # Output filename (mainly needed by Isabelle templates)
-                # Currently only supported for misc templates.
-                'outfile_name': outfile_name,
-                }.items()) + list(kwargs.items()))
+        # Output filename (mainly needed by Isabelle templates)
+        # Currently only supported for misc templates.
+        'outfile_name': outfile_name,
+    }.items()) + list(kwargs.items()))
 
 
 # For all three of these functions below, for the 'badge_var_name' variable,
