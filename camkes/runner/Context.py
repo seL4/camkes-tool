@@ -57,9 +57,9 @@ def new_context(entity, assembly, render_state, state_key, outfile_name,
                 templates, **kwargs):
     '''Create a new default context for rendering.'''
 
-    obj_space = render_state.obj_space
-    cap_space = render_state.cspaces[state_key] if state_key else None
-    addr_space = render_state.addr_spaces[state_key] if state_key else None
+    obj_space = render_state.obj_space if render_state else None
+    cap_space = render_state.cspaces[state_key] if state_key and render_state else None
+    addr_space = render_state.addr_spaces[state_key] if state_key and render_state else None
     return dict(list(__builtins__.items()) + ObjectType.__members__.items() + ObjectRights.__members__.items() + list({
         # Kernel object allocator
         'alloc_obj': (

@@ -284,7 +284,8 @@ def main(argv, out, err):
 
     if options.load_object_state is not None:
         render_state = pickle.load(options.load_object_state)
-
+    elif options.save_object_state is None:
+        render_state = None
     else:
         obj_space = ObjectAllocator()
         obj_space.spec.arch = options.architecture
