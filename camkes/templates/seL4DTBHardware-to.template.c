@@ -54,7 +54,8 @@
 /*- set reg_set = pop('reg_set') -*/
 /*- set cached = configuration[configuration_name].get('hardware_cached', False) -*/
 
-/*- set index = 0 -*/
+/*? breakpoint() ?*/
+
 /*- for (paddr, size) in reg_set -*/
 
         /*# Get the next multiple of 4K that can fit the register #*/
@@ -62,9 +63,7 @@
         /*- set page_size = macros.get_page_size(size, options.architecture) -*/
         /*- set page_size_bits = int(math.log(page_size, 2)) -*/
 
-        /*- set index = index + 1 -*/
-
-        /*- set dataport_symbol_name = "from_%d_%s_data" % (index, me.interface.name) -*/
+        /*- set dataport_symbol_name = "from_%d_%s_data" % (loop.index0, me.interface.name) -*/
         struct {
             char content[ROUND_UP_UNSAFE(/*? size ?*/,
                 PAGE_SIZE_4K)];
@@ -74,7 +73,7 @@
                 VISIBLE
                 USED;
 
-        /*- set reg_interface_name = '%s_%d' % (me.interface.name, index) -*/
+        /*- set reg_interface_name = '%s_%d' % (me.interface.name, loop.index0) -*/
 
         /*? register_shared_variable('%s_data' % reg_interface_name, dataport_symbol_name, size, frame_size=page_size, perm='RW', paddr=paddr, cached=cached) ?*/
 
