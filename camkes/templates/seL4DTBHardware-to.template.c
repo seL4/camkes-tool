@@ -54,8 +54,6 @@
 /*- set reg_set = pop('reg_set') -*/
 /*- set cached = configuration[configuration_name].get('hardware_cached', False) -*/
 
-/*? breakpoint() ?*/
-
 /*- for (paddr, size) in reg_set -*/
 
         /*# Get the next multiple of 4K that can fit the register #*/
