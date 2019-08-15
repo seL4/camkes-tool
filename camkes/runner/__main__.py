@@ -339,7 +339,11 @@ def main(argv, out, err):
             outfile.write(g)
             outfile.close()
         except TemplateError as inst:
-            die(rendering_error(i.name, inst))
+            if hasattr(i, 'name'):
+                die(rendering_error(i.name, inst))
+            else:
+                die(rendering_error(i.parent.name, inst))
+
 
     read = r.get_files_used()
     # Write a Makefile dependency rule if requested.
