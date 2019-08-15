@@ -331,13 +331,23 @@ lemmas /*? options.verification_base_name ?*/_policy_cases_DeleteDerived =
   /*? options.verification_base_name ?*/_policy_gen_cases_[where auth = "DeleteDerived", simplified]
 lemmas /*? options.verification_base_name ?*/_policy_cases_DeleteDerived2 =
 /*- for c in me.composition.instances -*/
-  /*? options.verification_base_name ?*/_policy_cases_DeleteDerived[where subj = "''/*? c.name ?*/''", simplified]
+  /*? options.verification_base_name ?*/_policy_cases_DeleteDerived[
+        where subj = "''/*? c.name ?*/''", simplified simp_thms list.distinct list.inject char.inject]
 /*- endfor -*/
 
 text \<open>
   Ensure that our base access policy is wellformed.
   This lets us extend it to other wellformed policies.
 \<close>
+
+(* Expand a policy rule of the form
+ *   "(a, auth, b) \<in> policy \<Longrightarrow> (a = ''a'' \<and> b = ''b'' \<or> ...)"
+ * and simplify string label comparisons *)
+method unfold_policy uses expand =
+  (drule expand;
+   elim conjE disjE;
+   (simp only: simp_thms list.distinct list.inject char.inject cong: disj_cong)?)
+
 lemma /*? options.verification_base_name ?*/_policy_wellformed:
   "\<lbrakk> pasPolicy aag = /*? options.verification_base_name ?*/_policy;
      pasSubject aag \<in> fst ` set (components (composition /*? assembly_name ?*/));
@@ -356,13 +366,13 @@ lemma /*? options.verification_base_name ?*/_policy_wellformed:
               done
            (* All subjects have self Control *)
            subgoal
-             apply (drule /*? options.verification_base_name ?*/_policy_gen_cases_[THEN iffD1])
-             apply (fast intro: /*? options.verification_base_name ?*/_policy_intros)
+             apply (unfold_policy expand: /*? options.verification_base_name ?*/_policy_gen_cases_[THEN iffD1];
+                    (intro /*? options.verification_base_name ?*/_policy_intros)?)
              done
           (* Grant confinement *)
           subgoal
-            apply (fastforce dest: /*? options.verification_base_name ?*/_policy_cases_Grant[THEN iffD1]
-                             intro: /*? options.verification_base_name ?*/_policy_intros)
+            apply (unfold_policy expand: /*? options.verification_base_name ?*/_policy_cases_Grant[THEN iffD1];
+                   (intro /*? options.verification_base_name ?*/_policy_intros)?)
             done
          (* Control confinement *)
          subgoal
@@ -376,42 +386,50 @@ lemma /*? options.verification_base_name ?*/_policy_wellformed:
           done
        (* Components are not Receive targets *)
        subgoal
-         apply (fastforce dest: /*? options.verification_base_name ?*/_policy_cases_Receive[THEN iffD1]
-                                /*? options.verification_base_name ?*/_policy_cases_Control[THEN iffD1]
-                         intro: /*? options.verification_base_name ?*/_policy_intros)
+         apply (unfold_policy expand: /*? options.verification_base_name ?*/_policy_cases_Receive[THEN iffD1];
+                unfold_policy expand: /*? options.verification_base_name ?*/_policy_cases_Control[THEN iffD1];
+                (intro /*? options.verification_base_name ?*/_policy_intros)?)
          done
       (* Components are not Call targets *)
       subgoal
-        apply (fastforce dest: /*? options.verification_base_name ?*/_policy_cases_Call[THEN iffD1]
-                               /*? options.verification_base_name ?*/_policy_cases_Control[THEN iffD1]
-                         intro: /*? options.verification_base_name ?*/_policy_intros)
+        apply (unfold_policy expand: /*? options.verification_base_name ?*/_policy_cases_Call[THEN iffD1];
+               unfold_policy expand: /*? options.verification_base_name ?*/_policy_cases_Control[THEN iffD1];
+               (intro /*? options.verification_base_name ?*/_policy_intros)?)
         done
      (* Call implies SyncSend *)
      subgoal
-       apply (fastforce dest: /*? options.verification_base_name ?*/_policy_cases_Call[THEN iffD1]
-                        intro: /*? options.verification_base_name ?*/_policy_intros)
+       apply (unfold_policy expand: /*? options.verification_base_name ?*/_policy_cases_Call[THEN iffD1];
+              (intro /*? options.verification_base_name ?*/_policy_intros)?)
        done
     (* Reply implies DeleteDerived *)
     subgoal
-      apply (fastforce dest: /*? options.verification_base_name ?*/_policy_cases_Reply[THEN iffD1]
-                       intro: /*? options.verification_base_name ?*/_policy_intros)
+      apply (unfold_policy expand: /*? options.verification_base_name ?*/_policy_cases_Reply[THEN iffD1];
+             (intro /*? options.verification_base_name ?*/_policy_intros)?)
       done
    (* Call + Receive implies Reply *)
    subgoal
-     apply (fast dest: /*? options.verification_base_name ?*/_policy_cases_Call[THEN iffD1]
-                       /*? options.verification_base_name ?*/_policy_cases_Receive[THEN iffD1]
-                 intro: /*? options.verification_base_name ?*/_policy_intros)
+     apply (unfold_policy expand: /*? options.verification_base_name ?*/_policy_cases_Call[THEN iffD1];
+            unfold_policy expand: /*? options.verification_base_name ?*/_policy_cases_Receive[THEN iffD1];
+            (intro /*? options.verification_base_name ?*/_policy_intros)?)
      done
   (* DeleteDerived is transitive (see also VER-1030) *)
   subgoal
-    apply (drule /*? options.verification_base_name ?*/_policy_cases_DeleteDerived[THEN iffD1];
-           elim conjE disjE;
-           (simp only: simp_thms cong: disj_cong)?;
-           drule /*? options.verification_base_name ?*/_policy_cases_DeleteDerived2[THEN iffD1];
-           (simp only: simp_thms cong: disj_cong)?;
-           elim conjE disjE;
-           (simp only:)?;
-           (rule /*? options.verification_base_name ?*/_policy_intros)?)
+    apply (erule(4) complete_graph_is_transitive')
+    apply (subst let_weak_cong)
+     apply (simp only: /*? options.verification_base_name ?*/_policy_cases_DeleteDerived Collect_case_prod_dnf)
+    apply (simp only: Let_def finite_set_simps prod.sel
+                      image_insert image_empty
+                      (* performance note: insert_commute sorts labels in the simplifier,
+                         then insert_absorb2 removes duplicates *)
+                      insert_commute insert_absorb2)
+    apply (simp; intro conjI /*? options.verification_base_name ?*/_policy_intros)
+
+    (* slow version, O(#labels ^ 4) cases*)
+    (*
+    apply (unfold_policy expand: /*? options.verification_base_name ?*/_policy_cases_DeleteDerived[THEN iffD1];
+           unfold_policy expand: /*? options.verification_base_name ?*/_policy_cases_DeleteDerived2[THEN iffD1];
+           (intro /*? options.verification_base_name ?*/_policy_intros)?)
+    *)
     done
   done
 
