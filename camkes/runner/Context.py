@@ -220,6 +220,10 @@ def new_context(entity, assembly, render_state, state_key, outfile_name,
 
         'isabelle_capdl_identifier': macros.isabelle_ident,
 
+        # Add extra policy edges to help the cdl-refine verification.
+        'add_policy_extra': lambda x, auth, y: render_state.policy_extra.add((x, auth, y)),
+        'get_policy_extra': lambda: set(render_state.policy_extra),
+
         # This function abstracts away the differences between the RT kernel's
         # seL4_Recv and the master kernel's seL4_Recv. Namely, the RT kernel's
         # seL4_Recv takes an extra reply object cap.

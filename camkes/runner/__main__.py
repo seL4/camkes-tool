@@ -27,8 +27,9 @@ import jinja2
 import functools
 import argparse
 from capdl import ObjectType, ObjectAllocator, CSpaceAllocator, \
-    lookup_architecture, AddressSpaceAllocator, AllocatorState
+    lookup_architecture, AddressSpaceAllocator
 from camkes.runner.Renderer import Renderer
+from capdl.Allocator import RenderState
 from camkes.internal.exception import CAmkESError
 import camkes.internal.log as log
 from camkes.templates import Templates, PLATFORMS, TemplateError
@@ -289,7 +290,7 @@ def main(argv, out, err):
     else:
         obj_space = ObjectAllocator()
         obj_space.spec.arch = options.architecture
-        render_state = AllocatorState(obj_space=obj_space)
+        render_state = RenderState(obj_space=obj_space)
 
         for i in assembly.composition.instances:
             # Don't generate any code for hardware components.

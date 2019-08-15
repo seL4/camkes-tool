@@ -346,7 +346,8 @@ definition
 where[wellformed_CAMKES_simps]:
     "/*? assembly ?*/ \<equiv> \<lparr>
         composition = /*? composition ?*/,
-        configuration = /*? configuration ?*/
+        configuration = /*? configuration ?*/,
+        policy_extra = {/*? ', '.join(map(lambda("x: \"(''%s'', %s, ''%s'')\" % x"), sorted(get_policy_extra()))) ?*/}
     \<rparr>"
 
 lemma wf_/*? assembly ?*/: "wellformed_assembly /*? assembly ?*/"

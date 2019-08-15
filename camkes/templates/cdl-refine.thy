@@ -128,6 +128,29 @@ lemma /*? options.verification_base_name ?*/_group_label_lookups:
 /*- endfor -*/
   by (simp add: get_group_label_def /*? options.verification_base_name ?*/_groups)+
 
+/*- if get_policy_extra() -*/
+lemma /*? options.verification_base_name ?*/_policy_extra:
+  "(\<lambda>(subj, auth, obj). (get_group_label (composition /*? assembly_name ?*/) subj, auth,
+                         get_group_label (composition /*? assembly_name ?*/) obj)) `
+     policy_extra /*? assembly_name ?*/ =
+   {(subj, auth, obj).
+     /*- for i, (subj, auth, obj) in enumerate(get_policy_extra()) -*/
+     /*? '\\<or> ' if i else '  ' ?*/subj = ''/*? subj ?*/'' \<and> auth = /*? auth ?*/ \<and> obj = ''/*? obj ?*/''
+     /*- endfor -*/
+   }"
+  apply (rule_tac t="policy_extra /*? assembly_name ?*/" in subst)
+   apply (simp add: /*? assembly_name ?*/_def)
+  apply (simp add: /*? options.verification_base_name ?*/_group_label_lookups)
+  by fastforce
+/*- else -*/
+lemma /*? options.verification_base_name ?*/_policy_extra:
+  "(\<lambda>(subj, auth, obj). (get_group_label (composition /*? assembly_name ?*/) subj, auth,
+                         get_group_label (composition /*? assembly_name ?*/) obj)) `
+     policy_extra /*? assembly_name ?*/ =
+   {}"
+  by (simp add: /*? assembly_name ?*/_def)
+/*- endif -*/
+
 schematic_goal /*? options.verification_base_name ?*/_policy_def':
   "/*? options.verification_base_name ?*/_policy = ?PAS"
   (* FIXME: this should be more systematic *)
@@ -136,6 +159,7 @@ schematic_goal /*? options.verification_base_name ?*/_policy_def':
                   /*? options.verification_base_name ?*/_policy_def
                   /*? options.verification_base_name ?*/_component_names
                   /*? options.verification_base_name ?*/_connections
+                  /*? options.verification_base_name ?*/_policy_extra
                   /*? options.verification_base_name ?*/_group_label_lookups
                   Collect_Int_pred_eq Collect_union
             simp del: Collect_case_prod
