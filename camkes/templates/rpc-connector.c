@@ -91,7 +91,7 @@
             /*- endif -*/
         /*- endif -*/
     /*- elif namespace.language == 'cakeml' -*/
-        open camkesUtils;
+        open camkesUtilsLib;
         /*- set word_size = macros.get_word_size(options.architecture) -*/
         /*- if buffer is not none -*/
             /*? raise(TemplateError('CakeML connector only supports using the IPC buffer')) ?*/
