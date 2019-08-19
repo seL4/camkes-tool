@@ -66,8 +66,8 @@ test_apps = [
     #'rumprun_hello',    # x86 only
     #'rumprun_pthreads', # x86 only
     #'rumprun_rust',     # x86 only
-    #'serialserver', # sabre platform not supported
-    #'serialserver_loopback',
+    'serialserver',
+    'serialserver_loopback',
     'simple',
     'simplesingleaddressspace',
     'socket',
@@ -97,7 +97,7 @@ test_apps = [
     'testsyscalls',
     'testunderscorename',
     'timeserver',
-    #'uart', # sabre platform not supported
+    'uart',
     #'vgatest', # x86 only
     ]
 
@@ -123,6 +123,13 @@ standard_build_config = {
     'CAmkESCapDLStaticAlloc': '1',
 }
 # TODO: accept extra config on command line
+
+# PLATFORM adjustments.
+override_app_platform = {
+    'serialserver': 'exynos5410',
+    'serialserver_loopback': 'exynos5410',
+    'uart': 'kzm',
+}
 
 
 # Messages
@@ -289,10 +296,13 @@ def main():
             try:
                 try:
                     info('Build directory: %s' % build_dir)
+                    app_build_config = dict(standard_build_config)
+                    if app_name in override_app_platform:
+                        app_build_config['PLATFORM'] = override_app_platform[app_name]
                     build_cmdline = (
                         [init_build_tool,
                          '-DCAMKES_APP=%s' % app_name] +
-                        ['-D%s=%s' % opt for opt in sorted(standard_build_config.items())] +
+                        ['-D%s=%s' % opt for opt in sorted(app_build_config.items())] +
                         ['-D%s=%s' % opt for opt in sorted(this_build_config.items())]
                         )
                     run_cmd(build_cmdline, cwd=build_dir)
