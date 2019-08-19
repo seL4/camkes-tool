@@ -85,7 +85,7 @@ test_apps = [
     'testfaulthandlers',
     'testgrouping',
     'testgroupingcontrol',
-    #'testhardwareinterrupt', # OK, but fails Wellformed_CAMKES (no control component)
+    'testhardwareinterrupt',
     'testhwdataportlrgpages',
     'testnto1mmio',
     'testnto1overload',
