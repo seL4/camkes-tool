@@ -33,7 +33,7 @@ test_apps = [
     'binary-semaphore',
     'cakeml_hello',
     #'cakeml_regex', # FIXME: requires setting -DCAKEMLDIR in init-build
-    #'cakeml_tipc', # depends on VirtQueue and TimeServer
+    #'cakeml_tipc', # IRQs not supported
     'cms-donate',
     'cs-donate',
     'cs-nodonate',
@@ -41,7 +41,7 @@ test_apps = [
     #'debug-simple', # x86 only
     'dhcp',
     'dma-example',
-    #'epit', # hardware component not supported
+    #'epit', # IRQs not supported
     'event',
     'event-driven',
     'exchangestring',
@@ -66,10 +66,10 @@ test_apps = [
     #'rumprun_hello',    # x86 only
     #'rumprun_pthreads', # x86 only
     #'rumprun_rust',     # x86 only
-    #'serialserver', # depends on TimeServer
-    #'serialserver_loopback', # probably similar to serialserver
+    #'serialserver', # sabre platform not supported
+    #'serialserver_loopback',
     'simple',
-    #'simplesingleaddressspace', # grouped components not supported
+    'simplesingleaddressspace',
     'socket',
     'structs',
     'swapcounter',
@@ -79,25 +79,25 @@ test_apps = [
     'testcontrolname',
     'testdataportbifurcate',
     'testdataportmux',
-    #'testdataportmuxflat', # grouped components not supported
+    'testdataportmuxflat',
     'testdataportptrwrap',
     'testdataportrpc',
     'testfaulthandlers',
-    #'testgrouping', # grouped components not supported
-    #'testgroupingcontrol', # grouped components not supported
-    #'testhardwareinterrupt', # hardware component not supported
-    #'testhwdataportlrgpages', # hardware component not supported
-    #'testnto1mmio', # hardware component not supported
+    'testgrouping',
+    'testgroupingcontrol',
+    #'testhardwareinterrupt', # OK, but fails Wellformed_CAMKES (no control component)
+    'testhwdataportlrgpages',
+    'testnto1mmio',
     'testnto1overload',
     'testrefin',
     'testreplycapprotection',
     'testsel4notification',
-    #'testsingleaddressspaceheap', # grouped components not supported
+    'testsingleaddressspaceheap',
     #'teststringarrays', # camkes ADL model doesn't support array of string
     'testsyscalls',
     'testunderscorename',
-    #'timeserver', # hardware component not supported
-    #'uart', # hardware component not supported
+    #'timeserver', # IRQs not supported
+    #'uart', # sabre platform not supported
     #'vgatest', # x86 only
     ]
 
