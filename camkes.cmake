@@ -222,10 +222,12 @@ set(CAmkESCapDLVerification OFF CACHE BOOL "Generate CapDL refinement proofs
     This verifies that the system's capability distribution conforms to
     the expected integrity policy of the component assembly.")
 
-set(CAmkESCapDLStaticAlloc OFF CACHE BOOL
-    "Statically allocate all capDL objects. This requires the target
+set(
+    CAmkESCapDLStaticAlloc OFF
+    CACHE BOOL "Statically allocate all capDL objects. This requires the target
      platform to have a DTS file, and also requires a certain amount of
-     cooperation from kernel boot (currently available on ARM).")
+     cooperation from kernel boot (currently available on ARM)."
+)
 
 if((NOT CAmkESCapDLStaticAlloc) AND CAmkESCapDLVerification)
     message(FATAL_ERROR "CAmkESCapDLVerification requires CAmkESCapDLStaticAlloc to be enabled")
@@ -237,7 +239,9 @@ if(CAmkESCapDLStaticAlloc)
         message(FATAL_ERROR "CAmkESCapDLStaticAlloc requires CapDLLoaderStaticAlloc to be enabled")
     endif()
     if(NOT ElfloaderRootserversLast)
-        message(FATAL_ERROR "CAmkESCapDLStaticAlloc requires ElfloaderRootserversLast to be enabled")
+        message(
+            FATAL_ERROR "CAmkESCapDLStaticAlloc requires ElfloaderRootserversLast to be enabled"
+        )
     endif()
 endif()
 
@@ -279,7 +283,15 @@ set(
     ${PYTHON_CAPDL_PATH}/../cdl_utils/capdl_linker.py
 )
 set(CAPDL_LINKER_DEPENDENCIES "${PYTHON_CAPDL_PATH}/../cdl_utils/capdl_linker.py")
-set(CAPDL_UNTYPED_GEN ${CMAKE_COMMAND} -E env "PYTHONPATH=${PYTHON_CAPDL_PATH}" ${PYTHON} ${PYTHON_CAPDL_PATH}/../cdl_utils/untyped_gen.py)
+set(
+    CAPDL_UNTYPED_GEN
+    ${CMAKE_COMMAND}
+    -E
+    env
+    "PYTHONPATH=${PYTHON_CAPDL_PATH}"
+    ${PYTHON}
+    ${PYTHON_CAPDL_PATH}/../cdl_utils/untyped_gen.py
+)
 set(CAPDL_UNTYPED_GEN_DEPENDENCIES "${PYTHON_CAPDL_PATH}/../cdl_utils/untyped_gen.py")
 
 # Search for a FMT tool for reformatting generated CAmkES C files
