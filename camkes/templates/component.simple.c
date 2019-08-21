@@ -514,7 +514,7 @@ void camkes_make_simple(simple_t *simple) {
     simple->userimage_count = /*&simple_camkes_userimage_count*/NULL;
     simple->nth_userimage = /*&simple_camkes_nth_userimage*/NULL;
     simple->extended_bootinfo = &camkes_get_extended_bootinfo;
-#ifdef CONFIG_KERNEL_RT
+#ifdef CONFIG_KERNEL_MCS
     simple->sched_ctrl = &camkes_simple_sched_ctrl;
     simple->core_count = &camkes_simple_core_count;
 #endif

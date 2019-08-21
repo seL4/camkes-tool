@@ -120,7 +120,7 @@ int /*? me.interface.name ?*/_poll(void) {
 }
 
 void /*? me.interface.name ?*/_wait(void) {
-#ifndef CONFIG_KERNEL_RT
+#ifndef CONFIG_KERNEL_MCS
     camkes_protect_reply_cap();
 #endif
     if (unlikely(sync_sem_bare_wait(/*? handoff ?*/, &handoff_value) != 0)) {

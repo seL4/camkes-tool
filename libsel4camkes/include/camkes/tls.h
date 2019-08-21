@@ -45,7 +45,7 @@ static inline camkes_tls_t *camkes_get_tls(void)
     return &camkes_tls;
 }
 
-#ifndef CONFIG_KERNEL_RT
+#ifndef CONFIG_KERNEL_MCS
 /** Lazy reply cap save and restore functionality. **/
 
 /**

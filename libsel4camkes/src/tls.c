@@ -20,7 +20,7 @@
 
 __thread camkes_tls_t camkes_tls;
 
-#ifndef CONFIG_KERNEL_RT
+#ifndef CONFIG_KERNEL_MCS
 
 int camkes_declare_reply_cap(seL4_CPtr shadow_slot)
 {

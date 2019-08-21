@@ -203,7 +203,7 @@ static int semaphore_/*? s.name ?*/_init(void) {
 }
 
 int /*? s.name ?*/_wait(void) {
-#ifndef CONFIG_KERNEL_RT
+#ifndef CONFIG_KERNEL_MCS
     camkes_protect_reply_cap();
 #endif
     return sync_sem_wait(&/*? semaphore ?*/);

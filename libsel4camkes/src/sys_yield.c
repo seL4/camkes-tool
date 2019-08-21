@@ -21,7 +21,7 @@
 
 long camkes_sys_sched_yield(va_list ap UNUSED)
 {
-#ifdef CONFIG_KERNEL_RT
+#ifdef CONFIG_KERNEL_MCS
     return -ENOSYS;
 #else
     seL4_Yield();
