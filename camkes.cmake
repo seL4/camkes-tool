@@ -388,12 +388,14 @@ function(GenerateCAmkESRootserver)
     if(${CAmkESDTS})
         # Find the dts to use
         if("${dts_file}" STREQUAL "")
-            # no dts file set, try to find the default
-            FindDTS(dts_file ${KernelARMPlatform})
+            # use the kernel's generated DTB file
+            set(dtb_file ${KernelDTBPath})
         elseif(NOT EXISTS "${dts_file}")
             message(FATAL_ERROR "Could not find dts file ${dts_file}")
+        else()
+            # generate a DTB file from the path provided
+            GenDTB("${dts_file}" dtb_file)
         endif()
-        GenDTB("${dts_file}" dtb_file)
         list(APPEND CAMKES_PARSER_FLAGS "--dtb=${dtb_file}")
     endif()
 
