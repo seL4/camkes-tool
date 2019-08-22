@@ -33,7 +33,7 @@ test_apps = [
     'binary-semaphore',
     'cakeml_hello',
     #'cakeml_regex', # FIXME: requires setting -DCAKEMLDIR in init-build
-    #'cakeml_tipc', # IRQs not supported
+    #'cakeml_tipc', # global-endpoint merges notifications, breaking integrity
     'cms-donate',
     'cs-donate',
     'cs-nodonate',
@@ -41,7 +41,7 @@ test_apps = [
     #'debug-simple', # x86 only
     'dhcp',
     'dma-example',
-    #'epit', # IRQs not supported
+    'epit',
     'event',
     'event-driven',
     'exchangestring',
@@ -96,7 +96,7 @@ test_apps = [
     #'teststringarrays', # camkes ADL model doesn't support array of string
     'testsyscalls',
     'testunderscorename',
-    #'timeserver', # IRQs not supported
+    'timeserver',
     #'uart', # sabre platform not supported
     #'vgatest', # x86 only
     ]
