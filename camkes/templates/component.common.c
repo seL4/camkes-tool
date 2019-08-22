@@ -533,6 +533,7 @@ void camkes_tls_init(int thread_id) {
                 __sel4_ipc_buffer = (seL4_IPCBuffer *) /*? macros.ipc_buffer_address(t.ipc_symbol) ?*/;
                 /*- endif -*/
                 /*- if options.realtime and loop.first -*/
+                    /*- set sc_control = alloc("%s_sc" % t.name, seL4_SchedContextObject) -*/
                     camkes_get_tls()->sc_cap = /*? sc_control ?*/;
                 /*- endif -*/
                 camkes_get_tls()->tcb_cap = /*? tcb ?*/;
