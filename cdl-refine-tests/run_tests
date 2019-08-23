@@ -33,7 +33,7 @@ test_apps = [
     'binary-semaphore',
     'cakeml_hello',
     #'cakeml_regex', # FIXME: requires setting -DCAKEMLDIR in init-build
-    #'cakeml_tipc', # global-endpoint merges notifications, breaking integrity
+    'cakeml_tipc',
     'cms-donate',
     'cs-donate',
     'cs-nodonate',
