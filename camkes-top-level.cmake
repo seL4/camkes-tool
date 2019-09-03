@@ -35,5 +35,3 @@ include("${CMAKE_CURRENT_LIST_DIR}/projects/seL4_tools/cmake-tool/projects.cmake
 
 # Should be done adding targets, can now generate the root server and the global configuration
 GenerateCAmkESRootserver()
-
-include("${CMAKE_CURRENT_LIST_DIR}/projects/seL4_tools/cmake-tool/configuration.cmake")
