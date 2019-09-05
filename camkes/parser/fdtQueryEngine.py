@@ -387,6 +387,7 @@ class DtbMatchQuery(Query):
 
         address_cells_key = 'this-address-cells'
         size_cells_key = 'this-size-cells'
+        node_path_key = 'this-node-path'
 
         # convert the properties we retrieved to a dictionary
         # of property-name: values. If there is more than one
@@ -416,6 +417,19 @@ class DtbMatchQuery(Query):
             resolved[address_cells_key] = [2]
         if size_cells_key not in resolved:
             resolved[size_cells_key] = [1]
+        # Resolve the full path of the fdt node by walking backwards
+        # to the root of the device tree
+        curr_node = node
+        node_path = ""
+        while curr_node.parent:
+            if not node_path:
+                node_path = curr_node.get_name()
+            else:
+                node_path = curr_node.get_name() + "/" + node_path
+            last_node = curr_node
+            curr_node = curr_node.parent
+        node_path = '/' + node_path
+        resolved[node_path_key] = node_path
         return resolved
 
     def resolve(self, args):
