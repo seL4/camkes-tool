@@ -48,7 +48,7 @@
 /*- set dataport_symbol_name = "from_%d_%s_data" % (index, me.interface.name) -*/
 struct {
     char content[ROUND_UP_UNSAFE(/*? macros.dataport_size(me.interface.type) ?*/,
-        SIZE_BITS_TO_BYTES(/*? page_size_bits ?*/)];
+        SIZE_BITS_TO_BYTES(/*? page_size_bits ?*/))];
 } /*? dataport_symbol_name ?*/
         ALIGN(/*? page_size ?*/)
         SECTION("align_/*? page_size_bits ?*/bit")
