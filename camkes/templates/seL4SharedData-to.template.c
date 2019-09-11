@@ -38,7 +38,7 @@
 
 struct {
     char content[ROUND_UP_UNSAFE(/*? type_size ?*/,
-        PAGE_SIZE_4K)];
+        SIZE_BITS_TO_BYTES(/*? page_size_bits ?*/))];
 } /*? dataport_symbol_name ?*/
         ALIGN(/*? page_size ?*/)
         SECTION("align_/*? page_size_bits ?*/bit")

@@ -64,7 +64,7 @@
         /*- set dataport_symbol_name = "from_%d_%s_data" % (loop.index0, me.interface.name) -*/
         struct {
             char content[ROUND_UP_UNSAFE(/*? size ?*/,
-                PAGE_SIZE_4K)];
+                SIZE_BITS_TO_BYTES(/*? page_size_bits ?*/))];
         } /*? dataport_symbol_name ?*/
                 ALIGN(/*? page_size ?*/)
                 SECTION("align_/*? page_size_bits ?*/bit")
