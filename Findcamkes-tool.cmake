@@ -1,0 +1,45 @@
+#
+# Copyright 2019, Data61
+# Commonwealth Scientific and Industrial Research Organisation (CSIRO)
+# ABN 41 687 119 230.
+#
+# This software may be distributed and modified according to the terms of
+# the BSD 2-Clause license. Note that NO WARRANTY is provided.
+# See "LICENSE_BSD2.txt" for details.
+#
+# @TAG(DATA61_BSD)
+#
+
+set(CAMKES_TOOL_DIR "${CMAKE_CURRENT_LIST_DIR}" CACHE STRING "")
+mark_as_advanced(CAMKES_TOOL_DIR)
+
+macro(camkes_tool_import_libraries)
+    add_subdirectory(${CAMKES_TOOL_DIR} camkes-tool)
+endmacro()
+
+macro(camkes_tool_setup_camkes_build_environment)
+    find_package(seL4 REQUIRED)
+    find_package(elfloader-tool REQUIRED)
+    find_package(musllibc REQUIRED)
+    find_package(util_libs REQUIRED)
+    find_package(seL4_libs REQUIRED)
+    find_package(projects_libs REQUIRED)
+    find_package(capdl REQUIRED)
+
+    sel4_import_kernel()
+    elfloader_import_project()
+
+    include(${CAMKES_TOOL_DIR}/camkes.cmake)
+    # This sets up environment build flags and imports musllibc and runtime libraries.
+    musllibc_setup_build_environment_with_sel4runtime()
+    sel4_import_libsel4()
+    util_libs_import_libraries()
+    sel4_libs_import_libraries()
+    projects_libs_import_libraries()
+    camkes_tool_import_libraries()
+    capdl_import_project()
+
+endmacro()
+
+include(FindPackageHandleStandardArgs)
+FIND_PACKAGE_HANDLE_STANDARD_ARGS(camkes-tool DEFAULT_MSG CAMKES_TOOL_DIR)
