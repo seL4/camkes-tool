@@ -14,10 +14,6 @@ cmake_minimum_required(VERSION 3.8.2)
 
 # /*? macros.generated_file_notice() ?*/
 
-# Include the CapDL tools build helpers, we will need this later one when generating capDL targets
-RequireFile(CAPDL_LOADER_BUILD_HELPERS helpers.cmake PATHS ${CMAKE_SOURCE_DIR}/projects/capdl/capdl-loader-app)
-include("${CAPDL_LOADER_BUILD_HELPERS}")
-
 # Define names for tools we will use
 set(OBJCOPY ${CROSS_COMPILER_PREFIX}objcopy)
 

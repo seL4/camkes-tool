@@ -245,19 +245,9 @@ if(CAmkESCapDLStaticAlloc)
     endif()
 endif()
 
-# Save the path to to python-capdl whilst we know it (unless it was already specified)
-if(NOT PYTHON_CAPDL_PATH)
-    set(PYTHON_CAPDL_PATH "${CMAKE_SOURCE_DIR}/projects/capdl/python-capdl-tool")
-endif()
-
-# Require the CapDL tool
-RequireFile(
-    CAPDL_TOOL_HELPERS
-    capDL-tool.cmake
-    PATHS
-    "${CMAKE_SOURCE_DIR}/projects/capdl/capDL-tool"
-)
-include(${CAPDL_TOOL_HELPERS})
+# This also provides PYTHON_CAPDL_PATH
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/projects/capdl)
+find_package(capdl REQUIRED)
 CapDLToolInstall(install_capdl_tool CAPDL_TOOL_BINARY)
 
 RequireFile(TLS_LINKER_LDS tls.lds PATHS "${CMAKE_CURRENT_LIST_DIR}/libsel4camkes/src")
