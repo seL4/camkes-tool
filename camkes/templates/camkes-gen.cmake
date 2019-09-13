@@ -545,6 +545,7 @@ BuildCapDLApplication(
         ${capdl_elf_targets}
     OUTPUT "capdl-loader"
 )
+include(rootserver)
 DeclareRootserver("capdl-loader")
 
 # Generate Isabelle theory scripts if needed
