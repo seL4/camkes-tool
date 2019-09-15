@@ -25,6 +25,15 @@ macro(camkes_tool_setup_camkes_build_environment)
     find_package(seL4_libs REQUIRED)
     find_package(projects_libs REQUIRED)
     find_package(capdl REQUIRED)
+    # Other project settings needed for static allocation.
+    # This is done early on so that it works for projects loaded before
+    # options processing in camkes-tool (notably, elfloader-tool).
+    if (CAmkESCapDLStaticAlloc)
+        # Need to compile the capDL loader for static alloc
+        SetCapDLLoaderStaticAlloc()
+        # Need to place the capDL loader ELF at the end of memory
+        SetElfloaderRootserversLast()
+    endif()
 
     sel4_import_kernel()
     elfloader_import_project()
