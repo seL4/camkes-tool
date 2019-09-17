@@ -33,10 +33,17 @@
 
 void ffivirtqueue_device_init(char * c, unsigned long clen, char * a, unsigned long alen) {
     virtqueue_device_t * virtqueue;
+    virtqueue = (virtqueue_device_t *)malloc(sizeof(virtqueue_device_t));
+    if (!virtqueue) {
+        ZF_LOGE("%s: unable to alloc a new virtqueue device", __func__);
+        a[0] = FFI_FAILURE;
+        return;
+    }
+
     int32_t virtqueue_id;
     memcpy(&virtqueue_id, a + 1, sizeof(virtqueue_id));
 
-    int err = camkes_virtqueue_device_init(&virtqueue, virtqueue_id);
+    int err = camkes_virtqueue_device_init(virtqueue, virtqueue_id);
 
     if (err) {
         ZF_LOGE("%s: unable to create a new virtqueue device", __func__);
@@ -49,16 +56,22 @@ void ffivirtqueue_device_init(char * c, unsigned long clen, char * a, unsigned l
 
 void ffivirtqueue_driver_init(char * c, unsigned long clen, char * a, unsigned long alen) {
     virtqueue_driver_t * virtqueue;
+    virtqueue = (virtqueue_driver_t *)malloc(sizeof(virtqueue_driver_t));
+    if (!virtqueue) {
+        ZF_LOGE("%s: unable to alloc a new virtqueue driver", __func__);
+        a[0] = FFI_FAILURE;
+        return;
+    }
     int32_t virtqueue_id;
     memcpy(&virtqueue_id, a + 1, sizeof(virtqueue_id));
 
-    int err = camkes_virtqueue_driver_init(&virtqueue, virtqueue_id);
+    int err = camkes_virtqueue_driver_init(virtqueue, virtqueue_id);
 
     if (err) {
-        ZF_LOGE("%s: unable to create a new virtqueue device", __func__);
+        ZF_LOGE("%s: unable to create a new virtqueue driver", __func__);
         a[0] = FFI_FAILURE;
     } else {
-        memcpy(a + 1, &virtqueue, sizeof(virtqueue_device_t *));
+        memcpy(a + 1, &virtqueue, sizeof(virtqueue_driver_t *));
         a[0] = FFI_SUCCESS;
     }
 }
@@ -67,13 +80,7 @@ void ffivirtqueue_device_poll(char * c, unsigned long clen, char * a, unsigned l
     virtqueue_device_t * virtqueue;
     memcpy(&virtqueue, a + 1, sizeof(virtqueue));
 
-    int poll_res = virtqueue_device_poll(virtqueue);
-
-    if (poll_res == -1) {
-        ZF_LOGE("%s: device poll failed", __func__);
-        a[0] = FFI_FAILURE;
-        return;
-    }
+    int poll_res = VQ_DEV_POLL(virtqueue);
 
     memcpy(a + 1, &poll_res, sizeof(poll_res));
     a[0] = FFI_SUCCESS;
@@ -83,13 +90,7 @@ void ffivirtqueue_driver_poll(char * c, unsigned long clen, char * a, unsigned l
     virtqueue_driver_t * virtqueue;
     memcpy(&virtqueue, a + 1, sizeof(virtqueue));
 
-    int poll_res = virtqueue_driver_poll(virtqueue);
-
-    if (poll_res == -1) {
-        ZF_LOGE("%s: driver poll failed", __func__);
-        a[0] = FFI_FAILURE;
-        return;
-    }
+    int poll_res = VQ_DRV_POLL(virtqueue);
 
     memcpy(a + 1, &poll_res, sizeof(poll_res));
     a[0] = FFI_SUCCESS;
@@ -102,12 +103,19 @@ void ffivirtqueue_device_recv(char * c, unsigned long clen, char * a, unsigned l
     // 1. Dequeue available buffer from virtqueue
     volatile void * available_buff = NULL;
     size_t buf_size = 0;
-    int dequeue_res = virtqueue_device_dequeue(virtqueue,
-                                               &available_buff,
-                                               &buf_size);
+    vq_flags_t flag;
+    virtqueue_ring_object_t handle;
 
-    if (dequeue_res) {
+    if (!virtqueue_get_available_buf(virtqueue, &handle)) {
         ZF_LOGE("%s: device dequeue failed", __func__);
+        a[0] = FFI_FAILURE;
+        return;
+    }
+
+    int dequeue_res = camkes_virtqueue_device_gather_buffer(virtqueue, &handle,
+            &available_buff, &buf_size, &flag);
+    if (dequeue_res) {
+        ZF_LOGE("%s: device buffer gather failed", __func__);
         a[0] = FFI_FAILURE;
         return;
     }
@@ -117,9 +125,8 @@ void ffivirtqueue_device_recv(char * c, unsigned long clen, char * a, unsigned l
     memcpy(a + 1 + sizeof(buf_size), (void *) available_buff, buf_size);
 
     // 3. Enqueue the buffer on the used queue to let the other end know we've finished with it
-    int enqueue_res = virtqueue_device_enqueue(virtqueue, available_buff, buf_size);
-    if (enqueue_res) {
-        ZF_LOGE("%s: device enqueue failed", __func__);
+    if (!virtqueue_add_used_buf(virtqueue, &handle, 0)) {
+        ZF_LOGE("Unable to add used buffer");
         a[0] = FFI_FAILURE;
         return;
     }
@@ -129,51 +136,36 @@ void ffivirtqueue_device_recv(char * c, unsigned long clen, char * a, unsigned l
 void ffivirtqueue_device_signal(char * c, unsigned long clen, char * a, unsigned long alen) {
     virtqueue_device_t * virtqueue;
     memcpy(&virtqueue, a + 1, sizeof(virtqueue));
-
-    int signal_res = virtqueue_device_signal(virtqueue);
-
-    if (signal_res != 0) {
-        ZF_LOGE("%s: device signal failed", __func__);
-        a[0] = FFI_FAILURE;
-        return;
-    }
-
+    virtqueue->notify();
     a[0] = FFI_SUCCESS;
 }
 
 void ffivirtqueue_driver_signal(char * c, unsigned long clen, char * a, unsigned long alen) {
     virtqueue_driver_t * virtqueue;
     memcpy(&virtqueue, a + 1, sizeof(virtqueue));
-
-    int signal_res = virtqueue_driver_signal(virtqueue);
-
-    if (signal_res != 0) {
-        ZF_LOGE("%s: driver signal failed", __func__);
-        a[0] = FFI_FAILURE;
-        return;
-    }
-
+    virtqueue->notify();
     a[0] = FFI_SUCCESS;
 }
 
 void ffivirtqueue_driver_recv(char * c, unsigned long clen, char * a, unsigned long alen) {
     virtqueue_driver_t * virtqueue;
     memcpy(&virtqueue, a + 1, sizeof(virtqueue));
-
     // 1. Dequeue used buffer from virtqueue
     volatile void * used_buff = NULL;
     size_t buf_size = 0;
-    int dequeue_res = virtqueue_driver_dequeue(virtqueue,
-                                               &used_buff,
-                                               &buf_size);
-
-    if (dequeue_res) {
+    uint32_t wr_len = 0;
+    vq_flags_t flag;
+    virtqueue_ring_object_t handle;
+    if (!virtqueue_get_used_buf(virtqueue, &handle, &wr_len)) {
         ZF_LOGE("%s: driver dequeue failed", __func__);
         a[0] = FFI_FAILURE;
         return;
     }
+    while (!camkes_virtqueue_driver_gather_buffer(virtqueue, &handle, &used_buff, &buf_size, &flag)) {
+        /* Clean up and free the buffer we allocated */
+        camkes_virtqueue_buffer_free(virtqueue, used_buff);
+    }
 
-    camkes_virtqueue_buffer_free(virtqueue, used_buff);
     a[0] = FFI_SUCCESS;
 }
 
@@ -199,9 +191,7 @@ void ffivirtqueue_driver_send(char * c, unsigned long clen, char * a, unsigned l
 
     memcpy((void *) alloc_buffer, (void *) message, message_len);
 
-    err = virtqueue_driver_enqueue(virtqueue, alloc_buffer, message_len);
-    if (err != 0) {
-        ZF_LOGE("%s: client enqueue failed", __func__);
+    if (camkes_virtqueue_driver_send_buffer(virtqueue, alloc_buffer, message_len) != 0) {
         camkes_virtqueue_buffer_free(virtqueue, alloc_buffer);
         a[0] = FFI_FAILURE;
         return;
