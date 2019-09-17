@@ -31,8 +31,9 @@
 #define FFI_SUCCESS 0
 #define FFI_FAILURE 1
 
-void ffivirtqueue_device_init(char * c, unsigned long clen, char * a, unsigned long alen) {
-    virtqueue_device_t * virtqueue;
+void ffivirtqueue_device_init(char *c, unsigned long clen, char *a, unsigned long alen)
+{
+    virtqueue_device_t *virtqueue;
     virtqueue = (virtqueue_device_t *)malloc(sizeof(virtqueue_device_t));
     if (!virtqueue) {
         ZF_LOGE("%s: unable to alloc a new virtqueue device", __func__);
@@ -54,8 +55,9 @@ void ffivirtqueue_device_init(char * c, unsigned long clen, char * a, unsigned l
     }
 }
 
-void ffivirtqueue_driver_init(char * c, unsigned long clen, char * a, unsigned long alen) {
-    virtqueue_driver_t * virtqueue;
+void ffivirtqueue_driver_init(char *c, unsigned long clen, char *a, unsigned long alen)
+{
+    virtqueue_driver_t *virtqueue;
     virtqueue = (virtqueue_driver_t *)malloc(sizeof(virtqueue_driver_t));
     if (!virtqueue) {
         ZF_LOGE("%s: unable to alloc a new virtqueue driver", __func__);
@@ -76,8 +78,9 @@ void ffivirtqueue_driver_init(char * c, unsigned long clen, char * a, unsigned l
     }
 }
 
-void ffivirtqueue_device_poll(char * c, unsigned long clen, char * a, unsigned long alen) {
-    virtqueue_device_t * virtqueue;
+void ffivirtqueue_device_poll(char *c, unsigned long clen, char *a, unsigned long alen)
+{
+    virtqueue_device_t *virtqueue;
     memcpy(&virtqueue, a + 1, sizeof(virtqueue));
 
     int poll_res = VQ_DEV_POLL(virtqueue);
@@ -86,8 +89,9 @@ void ffivirtqueue_device_poll(char * c, unsigned long clen, char * a, unsigned l
     a[0] = FFI_SUCCESS;
 }
 
-void ffivirtqueue_driver_poll(char * c, unsigned long clen, char * a, unsigned long alen) {
-    virtqueue_driver_t * virtqueue;
+void ffivirtqueue_driver_poll(char *c, unsigned long clen, char *a, unsigned long alen)
+{
+    virtqueue_driver_t *virtqueue;
     memcpy(&virtqueue, a + 1, sizeof(virtqueue));
 
     int poll_res = VQ_DRV_POLL(virtqueue);
@@ -96,12 +100,13 @@ void ffivirtqueue_driver_poll(char * c, unsigned long clen, char * a, unsigned l
     a[0] = FFI_SUCCESS;
 }
 
-void ffivirtqueue_device_recv(char * c, unsigned long clen, char * a, unsigned long alen) {
-    virtqueue_device_t * virtqueue;
+void ffivirtqueue_device_recv(char *c, unsigned long clen, char *a, unsigned long alen)
+{
+    virtqueue_device_t *virtqueue;
     memcpy(&virtqueue, a + 1, sizeof(virtqueue));
 
     // 1. Dequeue available buffer from virtqueue
-    volatile void * available_buff = NULL;
+    volatile void *available_buff = NULL;
     size_t buf_size = 0;
     vq_flags_t flag;
     virtqueue_ring_object_t handle;
@@ -113,7 +118,7 @@ void ffivirtqueue_device_recv(char * c, unsigned long clen, char * a, unsigned l
     }
 
     int dequeue_res = camkes_virtqueue_device_gather_buffer(virtqueue, &handle,
-            &available_buff, &buf_size, &flag);
+                                                            &available_buff, &buf_size, &flag);
     if (dequeue_res) {
         ZF_LOGE("%s: device buffer gather failed", __func__);
         a[0] = FFI_FAILURE;
@@ -133,25 +138,28 @@ void ffivirtqueue_device_recv(char * c, unsigned long clen, char * a, unsigned l
     a[0] = FFI_SUCCESS;
 }
 
-void ffivirtqueue_device_signal(char * c, unsigned long clen, char * a, unsigned long alen) {
-    virtqueue_device_t * virtqueue;
+void ffivirtqueue_device_signal(char *c, unsigned long clen, char *a, unsigned long alen)
+{
+    virtqueue_device_t *virtqueue;
     memcpy(&virtqueue, a + 1, sizeof(virtqueue));
     virtqueue->notify();
     a[0] = FFI_SUCCESS;
 }
 
-void ffivirtqueue_driver_signal(char * c, unsigned long clen, char * a, unsigned long alen) {
-    virtqueue_driver_t * virtqueue;
+void ffivirtqueue_driver_signal(char *c, unsigned long clen, char *a, unsigned long alen)
+{
+    virtqueue_driver_t *virtqueue;
     memcpy(&virtqueue, a + 1, sizeof(virtqueue));
     virtqueue->notify();
     a[0] = FFI_SUCCESS;
 }
 
-void ffivirtqueue_driver_recv(char * c, unsigned long clen, char * a, unsigned long alen) {
-    virtqueue_driver_t * virtqueue;
+void ffivirtqueue_driver_recv(char *c, unsigned long clen, char *a, unsigned long alen)
+{
+    virtqueue_driver_t *virtqueue;
     memcpy(&virtqueue, a + 1, sizeof(virtqueue));
     // 1. Dequeue used buffer from virtqueue
-    volatile void * used_buff = NULL;
+    volatile void *used_buff = NULL;
     size_t buf_size = 0;
     uint32_t wr_len = 0;
     vq_flags_t flag;
@@ -169,8 +177,9 @@ void ffivirtqueue_driver_recv(char * c, unsigned long clen, char * a, unsigned l
     a[0] = FFI_SUCCESS;
 }
 
-void ffivirtqueue_driver_send(char * c, unsigned long clen, char * a, unsigned long alen) {
-    virtqueue_driver_t * virtqueue;
+void ffivirtqueue_driver_send(char *c, unsigned long clen, char *a, unsigned long alen)
+{
+    virtqueue_driver_t *virtqueue;
     int offset = 1;
     memcpy(&virtqueue, a + offset, sizeof(virtqueue));
     offset += sizeof(virtqueue);
@@ -179,9 +188,9 @@ void ffivirtqueue_driver_send(char * c, unsigned long clen, char * a, unsigned l
     memcpy(&message_len, a + offset, sizeof(size_t));
     offset += sizeof(size_t);
 
-    char * message = a + offset;
+    char *message = a + offset;
 
-    volatile void * alloc_buffer = NULL;
+    volatile void *alloc_buffer = NULL;
     int err = camkes_virtqueue_buffer_alloc(virtqueue, &alloc_buffer, message_len);
     if (err) {
         ZF_LOGE("%s: alloc for driver send failed", __func__);
