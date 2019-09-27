@@ -16,40 +16,42 @@
 #include <utils/util.h>
 #include <platsupport/io.h>
 
-#define BLOCK_SIZE 128
-#define IDX_TO_OFFSET(idx) (BLOCK_SIZE*(idx))
-#define OFFSET_TO_IDX(offset) ((offset)/BLOCK_SIZE)
+#include "virtqueue_common.h"
 
-struct vq_buf_alloc {
-    void *buffer;
-    unsigned len;
-    unsigned free_list_size;
-    unsigned *free_list;
-    unsigned head;
-};
+#define BLOCK_SIZE 128
+#define IDX_TO_OFFSET(block_size, idx) (block_size * idx)
+#define OFFSET_TO_IDX(block_size, offset) ((offset) / block_size)
 
 int camkes_virtqueue_buffer_alloc(virtqueue_driver_t *virtqueue, void **buf, size_t alloc_size)
 {
-    struct vq_buf_alloc *allocator;
+    if (!virtqueue) {
+        return -1;
+    }
 
-    if (alloc_size > BLOCK_SIZE) {
+    struct vq_buf_alloc *allocator = virtqueue->cookie;
+
+    if (alloc_size > allocator->block_size) {
         ZF_LOGE("Error: invalid alloc size");
         return -1;
     }
-    allocator = virtqueue->cookie;
     if (allocator->head == allocator->free_list_size) {
         ZF_LOGE("Error: ran out of memory");
         return -1;
     }
-    *buf = allocator->buffer + IDX_TO_OFFSET(allocator->head);
+    *buf = allocator->buffer + IDX_TO_OFFSET(allocator->block_size, allocator->head);
     allocator->head = allocator->free_list[allocator->head];
     return 0;
 }
 
 void camkes_virtqueue_buffer_free(virtqueue_driver_t *virtqueue, void *buffer)
 {
+    if (!virtqueue) {
+        ZF_LOGE("virtqueue is NULL");
+        return;
+    }
+
     struct vq_buf_alloc *allocator = virtqueue->cookie;
-    int idx = OFFSET_TO_IDX((uintptr_t)buffer - (uintptr_t)(allocator->buffer));
+    int idx = OFFSET_TO_IDX(allocator->block_size, (uintptr_t)buffer - (uintptr_t)(allocator->buffer));
 
     if (idx < 0 || idx >= allocator->free_list_size) {
         ZF_LOGE("Warning: invalid buffer");
@@ -95,39 +97,9 @@ int camkes_virtqueue_driver_init(virtqueue_driver_t *driver, unsigned int camkes
         ZF_LOGE("Failed to get channel");
         return -1;
     }
-    ps_malloc_ops_t malloc_ops;
-    ps_new_stdlib_malloc_ops(&malloc_ops);
 
-    void *avail_ring = (void *)channel->channel_buffer;
-    void *used_ring = avail_ring + sizeof(vq_vring_avail_t);
-    void *desc = used_ring + sizeof(vq_vring_used_t);
-    struct vq_buf_alloc *cookie; /* TODO */
-    if (ps_calloc(&malloc_ops, 1, sizeof(struct vq_buf_alloc), (void **)&cookie)) {
-        ZF_LOGE("Failed to allocate alloc structure");
-        return -1;
-    }
-    cookie->buffer = desc + sizeof(vq_vring_desc_t) * DESC_TABLE_SIZE;
-    cookie->len = channel->channel_buffer_size -
-                  (sizeof(vq_vring_avail_t) + sizeof(vq_vring_used_t) + sizeof(vq_vring_desc_t) * DESC_TABLE_SIZE);
-    cookie->free_list_size = cookie->len / BLOCK_SIZE;
-    if (ps_calloc(&malloc_ops, 1, cookie->free_list_size * sizeof(*cookie->free_list), (void **)(&cookie->free_list))) {
-        ZF_LOGE("Failed to allocate free_list");
-        ps_free(&malloc_ops, sizeof(struct vq_buf_alloc), cookie);
-        return -1;
-    }
-    unsigned i;
-    for (i = 0; i < cookie->free_list_size; i++) {
-        cookie->free_list[i] = i + 1;
-    }
-    cookie->head = 0;
-    virtqueue_init_driver(driver, avail_ring, used_ring, desc, channel->notify, cookie);
-
-    virtqueue_init_desc_table(desc);
-    virtqueue_init_avail_ring(avail_ring);
-    virtqueue_init_used_ring(used_ring);
-
-    return 0;
-
+    return camkes_virtqueue_driver_init_common(driver, channel->channel_buffer, channel->channel_buffer_size,
+                                               channel->notify, BLOCK_SIZE) ? -1 : 0;
 }
 
 int camkes_virtqueue_device_init(virtqueue_device_t *device, unsigned int camkes_virtqueue_id)
@@ -142,13 +114,7 @@ int camkes_virtqueue_device_init(virtqueue_device_t *device, unsigned int camkes
         return -1;
     }
 
-    void *avail_ring = (void *)channel->channel_buffer;
-    void *used_ring = avail_ring + sizeof(vq_vring_avail_t);
-    void *desc = used_ring + sizeof(vq_vring_used_t);
-    void *cookie = desc + sizeof(vq_vring_desc_t) * DESC_TABLE_SIZE;
-    virtqueue_init_device(device, avail_ring, used_ring, desc, channel->notify, cookie);
-
-    return 0;
+    return camkes_virtqueue_device_init_common(device, channel->channel_buffer, channel->notify) ? -1 : 0;
 }
 
 void *camkes_virtqueue_device_offset_to_buffer(virtqueue_device_t *virtqueue, uintptr_t offset)
