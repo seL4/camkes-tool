@@ -310,7 +310,7 @@ def main():
                     info('App build succeeded.')
 
                     # We expect the build system to generate theory files here
-                    app_thy_dir = os.path.join(build_dir, 'projects/camkes')
+                    app_thy_dir = build_dir
                 except (BaseException, Exception):
                     # failed, but not in proofs
                     incr_opt_counts(per_opt_error, app_name, this_build_config)
