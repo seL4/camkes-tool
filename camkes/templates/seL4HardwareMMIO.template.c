@@ -118,7 +118,7 @@ dataport_frame_t /*? me.interface.name ?*//*? loop.index0 ?*/ = {
     .paddr = /*? paddr + loop.index0 * page_size ?*/,
     .cap = /*? cap ?*/,
     .size = /*? page_size ?*/,
-    .vaddr = &(/*? dataport_symbol_name ?*/.content[/*? loop.index0 * page_size ?*/]),
+    .vaddr = (uintptr_t)&(/*? dataport_symbol_name ?*/.content[/*? loop.index0 * page_size ?*/]),
 };
 /*- endfor -*/
 
