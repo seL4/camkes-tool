@@ -54,16 +54,9 @@ struct {
         SECTION("align_/*? page_size_bits ?*/bit")
         VISIBLE
         USED;
-
-/*? register_shared_variable('%s_data' % me.parent.name, dataport_symbol_name, size, frame_size=page_size, perm='RW', paddr=paddr, cached=cached) ?*/
-
-/*# We need to copy all of the frame caps into our cspace for frame cache operations #*/
-/*- set frame_objs = get_shared_variable_backing_frames('%s_data' % me.parent.name, size) -*/
 /*- set frame_caps = [] -*/
-/*- for (i, frame) in enumerate(frame_objs) -*/
-    /*- set frame_cap = alloc_cap('%s_%d' % ('%s_data' % me.parent.name, i), frame) -*/
-    /*- do frame_caps.append(frame_cap) -*/
-/*- endfor -*/
+/*? register_shared_variable('%s_data' % me.parent.name, dataport_symbol_name, size, frame_size=page_size, perm='RW', paddr=paddr, cached=cached, with_mapping_caps=frame_caps) ?*/
+
 
 volatile /*? macros.dataport_type(me.interface.type) ?*/ * /*? me.interface.name ?*/ =
     (volatile /*? macros.dataport_type(me.interface.type) ?*/ *) & /*? dataport_symbol_name ?*/;
