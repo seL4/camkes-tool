@@ -100,10 +100,10 @@ def new_context(entity, assembly, render_state, state_key, outfile_name,
                 # address spaces and CSpaces are 1-to-1.
                 'register_shared_variable': None if cap_space is None else \
                 (lambda global_name, symbol, size, frame_size=None, paddr=None,
-                 perm='RWX', cached=None, label=entity.parent.label():
+                 perm='RWX', cached=None, label=entity.parent.label(), with_mapping_caps=None:
                  register_shared_variable(
-                     addr_space, obj_space, global_name, symbol, size,
-                     frame_size, paddr, perm, cached, label)),
+                     addr_space, obj_space, global_name, symbol, size, cap_space,
+                     frame_size, paddr, perm, cached, label, with_mapping_caps)),
 
                 'get_shared_variable_backing_frames': None if cap_space is None else \
                 (lambda global_name, size, frame_size=None, label=entity.parent.label():
@@ -459,8 +459,8 @@ def calc_frame_size(size, frame_size, arch):
     return frame_size
 
 
-def register_shared_variable(addr_space, obj_space, global_name, symbol, size,
-                             frame_size=None, paddr=None, perm='RWX', cached=None, label=None):
+def register_shared_variable(addr_space, obj_space, global_name, symbol, size, cap_space,
+                             frame_size=None, paddr=None, perm='RWX', cached=None, label=None, with_mapping_caps=None):
     '''
     Create a reservation for a shared memory region between multiple
     components.
@@ -471,6 +471,9 @@ def register_shared_variable(addr_space, obj_space, global_name, symbol, size,
                    mapping frames.
     size:          the size of the region. Needs to be a multiple of the
                    smallest page size.
+    cap_space:     the component's cspace. This is potentially used if the mapping caps
+                   need to be moved to the component. In this case, with_mapping_caps needs
+                   to be set when register_shared_variable is called.
     frame_size:    the size of frames to use to back the region. `size`
                    must be a multiple of `frame_size`. If `frame_size`
                    is not specified, the largest frame size that divides
@@ -482,6 +485,8 @@ def register_shared_variable(addr_space, obj_space, global_name, symbol, size,
                    caller's mapping
     label:         integrity label of the frame objects. In the default
                    `Context`, this defaults to the current entity name.
+    with_mapping_caps: An array to return mapping caps if the component needs the
+                   caps for the mapping to be moved into their own cspace.
     '''
     assert addr_space
     size = int(size)
@@ -504,7 +509,16 @@ def register_shared_variable(addr_space, obj_space, global_name, symbol, size,
     write = 'W' in perm
     grant = 'X' in perm
 
-    caps = [Cap(frame, read=read, write=write, grant=grant, cached=cached) for frame in frames]
+    if with_mapping_caps is not None:
+        # If we need the caps in our cspace, then we need to allocate them and call set_mapping_deferred on the cap
+        # set_mapping_deferred will result in the correct mapping info being set when the spec is being generated.
+        slots = [cap_space.alloc(frame, read=read, write=write, grant=grant,
+                                 cached=cached) for frame in frames]
+        caps = [cap_space.cnode[slot] for slot in slots]
+        [cap.set_mapping_deferred() for cap in caps]
+        with_mapping_caps.extend(slots)
+    else:
+        caps = [Cap(frame, read=read, write=write, grant=grant, cached=cached) for frame in frames]
     sizes = [frame_size] * num_frames
     addr_space.add_symbol_with_caps(symbol, sizes, caps)
     # Return code to:
