@@ -37,7 +37,7 @@
 /*- set page_size_bits = int(math.log(page_size, 2)) -*/
 
 struct {
-    char content[ROUND_UP_UNSAFE(/*? type_size ?*/,
+    char content[ROUND_UP_UNSAFE(MAX_UNSAFE(/*? type_size ?*/, /*? size ?*/),
         SIZE_BITS_TO_BYTES(/*? page_size_bits ?*/))];
 } /*? dataport_symbol_name ?*/
         ALIGN(/*? page_size ?*/)
