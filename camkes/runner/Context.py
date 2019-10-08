@@ -525,7 +525,7 @@ def register_shared_variable(addr_space, obj_space, global_name, symbol, size, c
     #  1. page-align the shared variable;
     #  2. make it visible in the final ELF; and
     #  3. Check that it is page-sized.
-    return 'extern typeof(%(sym)s) %(sym)s ALIGN(%(size)d) VISIBLE;\n'      \
+    return 'extern typeof(%(sym)s) %(sym)s ALIGN(%(frame_size)d) VISIBLE;\n'      \
            'static_assert(sizeof(%(sym)s) <= %(size)d,\n'                       \
            '  "typeof(%(sym)s) size greater than dataport size.");\n'                    \
            'static_assert(sizeof(%(sym)s) %% %(frame_size)d == 0,\n'              \
