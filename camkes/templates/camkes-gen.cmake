@@ -552,10 +552,10 @@ if (CAmkESCapDLVerification)
     string(MAKE_C_IDENTIFIER "${VER_BASE_NAME}" VER_BASE_NAME)
 
     # Generated theory names. These must be consistent with the templates.
-    set(CAMKES_CDL_THY "${CMAKE_CURRENT_BINARY_DIR}/${VER_BASE_NAME}_CDL.thy")
-    set(CAMKES_ADL_THY "${CMAKE_CURRENT_BINARY_DIR}/${VER_BASE_NAME}_Arch_Spec.thy")
-    set(CAMKES_CDL_REFINE_THY "${CMAKE_CURRENT_BINARY_DIR}/${VER_BASE_NAME}_CDL_Refine.thy")
-    set(CAMKES_VER_ROOT "${CMAKE_CURRENT_BINARY_DIR}/ROOT")
+    set(CAMKES_CDL_THY "${CMAKE_CURRENT_BINARY_DIR}/cdl-refine/${VER_BASE_NAME}_CDL.thy")
+    set(CAMKES_ADL_THY "${CMAKE_CURRENT_BINARY_DIR}/cdl-refine/${VER_BASE_NAME}_Arch_Spec.thy")
+    set(CAMKES_CDL_REFINE_THY "${CMAKE_CURRENT_BINARY_DIR}/cdl-refine/${VER_BASE_NAME}_CDL_Refine.thy")
+    set(CAMKES_VER_ROOT "${CMAKE_CURRENT_BINARY_DIR}/cdl-refine/ROOT")
 
     # ROOT file
     CAmkESGen("${CAMKES_VER_ROOT}" "isabelle-root" THY_STYLE VER_BASE_NAME ${VER_BASE_NAME})
