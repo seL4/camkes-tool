@@ -123,7 +123,7 @@ const char *get_instance_name(void) {
     /*- set rounded_size = macros.ROUND_UP(dtb_size, 4096) + 4096 -*/
     char dtb_symbol[/*? rounded_size ?*/]
     ALIGN(PAGE_SIZE_4K) SECTION("align_12bit");
-    /*- do register_fill_frame('dtb_symbol', 'CDL_FrameFill_BootInfo 0 CDL_FrameFill_BootInfo_FDT', rounded_size) -*/
+    /*- do register_fill_frame('dtb_symbol', 'CDL_FrameFill_BootInfo CDL_FrameFill_BootInfo_FDT', rounded_size) -*/
 /*- endif -*/
 
 /* DMA functionality. */

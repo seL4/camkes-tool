@@ -560,8 +560,13 @@ def register_fill_frame(addr_space, symbol, fill, size, obj_space, label):
     '''
     assert addr_space
     number_frames = size//4096
-    frames = [obj_space.alloc(ObjectType.seL4_FrameObject, name='%s_%s_%d_obj' % (symbol, label, i), label=label, fill='%s %d' % (fill, i * 4096), size=4096)
-              for i in range(number_frames)]
+    frames = []
+    for i in range(number_frames):
+        fill_str = ['%d %d %s %d' % (0, 4096 if (size - (i * 4096)) >=
+                                     4096 else (size - (i * 4096)), fill, i * 4096)]
+        name = '%s_%s_%d_obj' % (symbol, label, i)
+        frames.append(obj_space.alloc(ObjectType.seL4_FrameObject,
+                                      name=name, label=label, fill=fill_str, size=4096))
     caps = [Cap(frame, read=True, write=False, grant=False) for frame in frames]
     sizes = [4096] * number_frames
     addr_space.add_symbol_with_caps(symbol, sizes, caps)

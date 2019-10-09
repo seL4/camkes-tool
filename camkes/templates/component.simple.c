@@ -48,7 +48,7 @@
     struct {
         char content[PAGE_SIZE_4K];
     } /*? symbol ?*/ ALIGN(PAGE_SIZE_4K) SECTION("align_12bit");
-    /*- do register_fill_frame(symbol, 'CDL_FrameFill_BootInfo 0 %s' % name, 4096) -*/
+    /*- do register_fill_frame(symbol, 'CDL_FrameFill_BootInfo %s' % name, 4096) -*/
     /*- do extrabi_list.append((name, symbol)) -*/
 /*- endfor -*/
 
