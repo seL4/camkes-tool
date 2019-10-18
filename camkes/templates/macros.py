@@ -67,7 +67,7 @@ def next_page_multiple(size, arch):
     '''
     multiple = page_sizes(arch)[0]
     while size > multiple:
-        multiple *= 2
+        multiple += 4096
     return multiple
 
 
