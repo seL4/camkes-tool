@@ -312,6 +312,7 @@ def ROUND_DOWN(x, y):
     assert isinstance(y, six.integer_types) and y > 0
     return x // y * y
 
+
 # This macro is currently only used outside the repository
 NO_CHECK_UNUSED.add('ROUND_DOWN')
 
@@ -384,6 +385,7 @@ def maybe_set_property_from_configuration(configuration, prefix, obj, field_name
     else:
         setattr(obj, field_name, value)
 
+
 # This is just an internal helper
 NO_CHECK_UNUSED.add('maybe_set_property_from_configuration')
 
@@ -426,19 +428,23 @@ def check_isabelle_outfile(thy_name, outfile_name):
     assert thy_name == outfile_base
     return ''
 
+
 def isabelle_ident(n):
     '''Mangle the '.' in hierarchical object names.
        This should match the mangling performed by capDL-tool.'''
     assert re.match('^[a-zA-Z_](?:[a-zA-Z0-9_.]*[a-zA-Z0-9])?', n)
     return n.replace('.', '\'')
 
+
 # This macro is only used as a base to define other functions (see Context)
 NO_CHECK_UNUSED.add('isabelle_ident')
+
 
 def isabelle_ADL_ident(type):
     '''Add a prefix for each object type. This helps to avoid name
        collisions for definitions generated from `arch-definitions.thy`.'''
     return lambda n: '{}__{}'.format(type, isabelle_ident(n))
+
 
 # This macro is only used as a base to define other functions (see Context)
 NO_CHECK_UNUSED.add('isabelle_ADL_ident')
