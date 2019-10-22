@@ -28,7 +28,7 @@ struct vq_buf_alloc {
     unsigned head;
 };
 
-int camkes_virtqueue_buffer_alloc(virtqueue_driver_t *virtqueue, volatile void **buf, size_t alloc_size)
+int camkes_virtqueue_buffer_alloc(virtqueue_driver_t *virtqueue, void **buf, size_t alloc_size)
 {
     struct vq_buf_alloc *allocator;
 
@@ -46,7 +46,7 @@ int camkes_virtqueue_buffer_alloc(virtqueue_driver_t *virtqueue, volatile void *
     return 0;
 }
 
-void camkes_virtqueue_buffer_free(virtqueue_driver_t *virtqueue, volatile void *buffer)
+void camkes_virtqueue_buffer_free(virtqueue_driver_t *virtqueue, void *buffer)
 {
     struct vq_buf_alloc *allocator = virtqueue->cookie;
     int idx = OFFSET_TO_IDX((uintptr_t)buffer - (uintptr_t)(allocator->buffer));

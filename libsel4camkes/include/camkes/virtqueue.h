@@ -77,13 +77,13 @@ int camkes_virtqueue_device_init(virtqueue_device_t *device, unsigned int camkes
  * @param alloc_size Size of memory to allocate
  * @return Positive 0 on success, -1 on error
  */
-int camkes_virtqueue_buffer_alloc(virtqueue_driver_t *virtqueue, volatile void **buf, size_t alloc_size);
+int camkes_virtqueue_buffer_alloc(virtqueue_driver_t *virtqueue, void **buf, size_t alloc_size);
 
 /* Frees a virtqueue buffer that the given 'virtqueue_driver_t' is using
  * @param virtqueue_driver_t Pointer to the virtqueue object we are free a buffer for
  * @param buffer A pointer to the allocated region of memory we wish to free
  */
-void camkes_virtqueue_buffer_free(virtqueue_driver_t *virtqueue, volatile void *buffer);
+void camkes_virtqueue_buffer_free(virtqueue_driver_t *virtqueue, void *buffer);
 
 /* Convert an offset in shared memory to a pointer in the device vspace
  * @param virtqueue the device side virtqueue
