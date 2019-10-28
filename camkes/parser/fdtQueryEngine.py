@@ -36,6 +36,7 @@ class FdtQueryEngine:
     ALIAS_STRING = "aliases"
     PATH_STRING = "path"
     PROPERTIES_STRING = "properties"
+    CHOSEN_STRING = "chosen"
 
     def __init__(self, parsed_fdt):
         """
@@ -48,47 +49,59 @@ class FdtQueryEngine:
 
         self.parsed_fdt = parsed_fdt
 
-    def _match_node_by_alias(self, alias):
+    def _match_node_by_alias_or_chosen(self, name, is_alias):
         """
-        Looks up an alias node by looking inside of /aliases for a subnode with
-        the name passed in "alias".
-        @param alias        Name of an alias you want to look for.
-        @param include_consume_nodes
+        Looks up an alias or chosen node by looking inside of /aliases or /chosen for
+        a subnode with the name passed in "name".
+        @param name         Name of an alias you want to look for.
+        @param is_alias     Boolean indicating if we should look in the 'alias' node
         """
+        # @param include_consume_nodes
+
+        if is_alias:
+            node_string = self.ALIAS_STRING
+        else:
+            node_string = self.CHOSEN_STRING
+
         fdt_root = self.parsed_fdt.get_rootnode()
         try:
-            aliases_idx = fdt_root.index(self.ALIAS_STRING)
+            node_idx = fdt_root.index(node_string)
         except ValueError:
             # Rethrow with a human readable error message
-            raise DtbBindingNodeLookupError("Request to lookup alias \"%s\" in "
-                                            "a DTB with no /aliases node!"
-                                            % alias)
+            raise DtbBindingNodeLookupError("Request to lookup %s instance \"%s\" in "
+                                            "a DTB with no /%s node!"
+                                            % (node_string, name, node_string))
 
-        aliases = fdt_root.subdata[aliases_idx]
+        node = fdt_root.subdata[node_idx]
         try:
-            ret_idx = aliases.index(alias)
+            ret_idx = node.index(name)
         except ValueError:
-            raise DtbBindingNodeLookupError("DTB does not contain an alias "
+            raise DtbBindingNodeLookupError("DTB does not contain an %s instance "
                                             "named %s!"
-                                            % alias)
+                                            % (node_string, name))
 
-        prop = aliases.subdata[ret_idx]
-        # An alias property must be a path string to another node.
-        assert isinstance(prop, pyfdt.pyfdt.FdtPropertyStrings)
-        # An alias shouldn't be a multi-string
-        assert len(prop.strings) == 1
+        prop = node.subdata[ret_idx]
+        if not isinstance(prop, pyfdt.pyfdt.FdtPropertyStrings):
+            if is_alias:
+                raise DtbBindingNodeLookupError("Alias node should only contain strings!")
+            else:
+                raise DtbBindingNotImplementedError("Only support paths for chosen instances.")
+        if len(prop.strings) != 1:
+            raise DtbBindingNodeLookupError(
+                "The %s instance should only contain one string." % node_string)
+
         # From here we have the path to the node the user wanted. Look it up.
         ret = self._match_nodes_by_path(re.escape(prop.strings[0]))
         if not len(ret):
-            raise DtbBindingNodeLookupError("Alias %s maps to path %s, but "
+            raise DtbBindingNodeLookupError("%s instance %s maps to path %s, but "
                                             "that path resolves to nothing."
-                                            % (alias, prop.strings[0]))
+                                            % (node_string, name, prop.strings[0]))
 
         if len(ret) > 1:
-            raise DtbBindingNodeLookupError("Alias %s maps to path %s, but "
+            raise DtbBindingNodeLookupError("%s instance %s maps to path %s, but "
                                             "that path resolves to multiple "
                                             "results."
-                                            % (alias, prop.strings[0]))
+                                            % (node_string, name, prop.strings[0]))
         return ret
 
     def _match_nodes_by_path(self, qstring):
@@ -351,7 +364,21 @@ class FdtQueryEngine:
             """ An alias match, if found, is an unambiguous match. No need to
                 do any further searching.
             """
-            return self._match_node_by_alias(alias_value)
+            return self._match_node_by_alias_or_chosen(alias_value, True)
+
+        """ Otherwise, if there is a 'chosen' binding query, use that.
+            This should also resolve to a single result.
+        """
+        chosen_value = attr_dict.pop(self.CHOSEN_STRING, None)
+        if chosen_value:
+            # Like above, warn them if they supply other attributes to match.
+            if len(attr_dict):
+                logging.warn("Silently ignoring other attributes supplied in "
+                             "DTB binding since %s should be sufficient.\n"
+                             "Ignored attributes were: %s."
+                             % (self.ALIAS_STRING, str(attr_dict)))
+            # Again, it should be an unambiguous match. So we return.
+            return self._match_node_by_alias_or_chosen(chosen_value, False)
 
         """ If there is a path query which we can use to cut the search set down,
             get that out of the way first.
