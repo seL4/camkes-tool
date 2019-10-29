@@ -58,6 +58,7 @@ class TestDTBMatchQuery(CAmkESTest):
             'phandle': [0x2c],
             'this-address-cells': [0x1],
             'this-size-cells': [0x1],
+            'this-node-path': "/soc/aips-bus@2000000/usbphy@20c9000",
         }
         self.assertIn('query', node)
         self.assertIn('dtb-size', node)
@@ -79,6 +80,7 @@ class TestDTBMatchQuery(CAmkESTest):
             'status': ["disabled"],
             'this-address-cells': [0x1],
             'this-size-cells': [0x1],
+            'this-node-path': "/soc/aips-bus@2000000/spba-bus@2000000/ecspi@2018000",
         }
 
         self.assertIn('query', node)
@@ -97,6 +99,7 @@ class TestDTBMatchQuery(CAmkESTest):
             'clocks': [0x4, 0xac],
             'this-address-cells': [0x1],
             'this-size-cells': [0x1],
+            'this-node-path': "/tempmon",
         }
         self.assertIn('query', node)
         self.assertEquals(len(node['query']), 1)
@@ -116,6 +119,7 @@ class TestDTBMatchQuery(CAmkESTest):
             'pinctrl-0': [0x1a],
             'this-address-cells': [0x1],
             'this-size-cells': [0x1],
+            'this-node-path': "/soc/aips-bus@2000000/spba-bus@2000000/serial@2020000",
         }
         self.assertIn('query', node)
         self.assertEquals(len(node['query']), 1)
@@ -132,6 +136,7 @@ class TestDTBMatchQuery(CAmkESTest):
             'phandle': [0x78],
             'this-address-cells': [0x01],
             'this-size-cells': [0x00],
+            'this-node-path': "/soc/aips-bus@2100000/i2c@21a0000/sgtl5000@a",
         }
         self.assertIn('query', node)
         self.assertEquals(len(node['query']), 1)
@@ -150,6 +155,7 @@ class TestDTBMatchQuery(CAmkESTest):
                 'clocks': [0x4, 0xac],
                 'this-address-cells': [0x1],
                 'this-size-cells': [0x1],
+                'this-node-path': "/tempmon",
             },
             {
                 '#address-cells': [0x1],
@@ -164,7 +170,7 @@ class TestDTBMatchQuery(CAmkESTest):
                 'status': ["disabled"],
                 'this-address-cells': [0x1],
                 'this-size-cells': [0x1],
-
+                'this-node-path': "/soc/aips-bus@2000000/spba-bus@2000000/ecspi@2018000",
             }
         ]
         self.assertIn('query', node)
@@ -184,6 +190,7 @@ class TestDTBMatchQuery(CAmkESTest):
                 'phandle': [0x78],
                 'this-address-cells': [0x01],
                 'this-size-cells': [0x00],
+                'this-node-path': "/soc/aips-bus@2100000/i2c@21a0000/sgtl5000@a",
             },
             {
                 'dma-names': ['rx', 'tx'],
@@ -198,6 +205,7 @@ class TestDTBMatchQuery(CAmkESTest):
                 'reg': [33685504, 16384],
                 'this-address-cells': [0x1],
                 'this-size-cells': [0x1],
+                'this-node-path': "/soc/aips-bus@2000000/spba-bus@2000000/serial@2020000",
             }
         ]
         self.assertIn('query', node)
@@ -230,6 +238,7 @@ class TestDTBMatchQuery(CAmkESTest):
             'reg': [33685504, 16384],
             'this-address-cells': [0x1],
             'this-size-cells': [0x1],
+            'this-node-path': "/soc/aips-bus@2000000/spba-bus@2000000/serial@2020000",
         }
         self.assertIn('query', node)
         self.assertEquals(len(node['query']), 1)
@@ -250,6 +259,7 @@ class TestDTBMatchQuery(CAmkESTest):
             'reg': [34078720, 16384],
             'this-address-cells': [0x1],
             'this-size-cells': [0x1],
+            'this-node-path': "/soc/aips-bus@2000000/pwm@2080000",
         }
         self.assertIn('query', node)
         self.assertEquals(len(node['query']), 1)
@@ -264,6 +274,7 @@ class TestDTBMatchQuery(CAmkESTest):
             'interrupts': [0x00, 0x13, 0x04, 0x00, 0x14, 0x04],
             'this-address-cells': [0x02],
             'this-size-cells': [0x01],
+            'this-node-path': "/soc/aips-bus@2000000/snvs@20cc000/snvs-rtc-lp",
         }
         self.assertIn('query', node)
         self.assertEquals(len(node['query']), 1)
@@ -332,6 +343,7 @@ class TestDTBMatchQuery(CAmkESTest):
             'phandle': [0xf],
             'this-address-cells': [0x1],
             'this-size-cells': [0x1],
+            'this-node-path': "/soc/dma-apbh@110000",
         }
         self.assertEquals(query, expected)
         self.assertIn('dtb-size', node)
@@ -368,6 +380,7 @@ class TestDTBMatchQuery(CAmkESTest):
             'status': ["okay"],
             'this-address-cells': [0x1],
             'this-size-cells': [0x1],
+            'this-node-path': "/soc/pcie@1ffc000",
         }
         self.assertEquals(query, expected)
         self.assertIn('dtb-size', node)
@@ -398,6 +411,7 @@ class TestDTBMatchQuery(CAmkESTest):
             'status': ["disabled"],
             'this-address-cells': [0x1],
             'this-size-cells': [0x1],
+            'this-node-path': "/soc/gpmi-nand@112000",
         }
         self.assertEquals(query, expected)
         self.assertIn('dtb-size', node)
