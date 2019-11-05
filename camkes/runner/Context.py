@@ -100,7 +100,7 @@ def new_context(entity, assembly, render_state, state_key, outfile_name,
                 # address spaces and CSpaces are 1-to-1.
                 'register_shared_variable': None if cap_space is None else \
                 (lambda global_name, symbol, size, frame_size=None, paddr=None,
-                 perm='RWX', cached=None, label=entity.parent.label(), with_mapping_caps=None:
+                 perm='RWX', cached=True, label=entity.parent.label(), with_mapping_caps=None:
                  register_shared_variable(
                      addr_space, obj_space, global_name, symbol, size, cap_space,
                      frame_size, paddr, perm, cached, label, with_mapping_caps)),
@@ -460,7 +460,7 @@ def calc_frame_size(size, frame_size, arch):
 
 
 def register_shared_variable(addr_space, obj_space, global_name, symbol, size, cap_space,
-                             frame_size=None, paddr=None, perm='RWX', cached=None, label=None, with_mapping_caps=None):
+                             frame_size=None, paddr=None, perm='RWX', cached=True, label=None, with_mapping_caps=None):
     '''
     Create a reservation for a shared memory region between multiple
     components.
