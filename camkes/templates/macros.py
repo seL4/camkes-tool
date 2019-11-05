@@ -24,6 +24,7 @@ from camkes.templates import sizeof_probe, TemplateError
 from capdl import ASIDPool, CNode, Endpoint, Frame, IODevice, IOPageTable, \
     Notification, page_sizes, PageDirectory, PageTable, TCB, Untyped, \
     calculate_cnode_size, lookup_architecture
+from capdl.util import ctz
 import collections
 import math
 import os
@@ -78,6 +79,34 @@ next_page_multiple.__annotations__ = {'size': int, 'arch': str, 'return': int}
 def align_page_address(address, arch):
     page_size = page_sizes(arch)[0]
     return address & ~(page_size-1)
+
+
+def get_untypeds_from_range(start, size):
+    """
+    Returns a list of untypeds covering a range with the correct alignments.
+    """
+    def get_alignment_bits(addr):
+        return ctz(addr)
+
+    remaining = size
+    current = start
+    uts = []
+    while remaining > 0:
+        current_alignment = 2 ** get_alignment_bits(current)
+        ut_size = current_alignment
+        while ut_size > 0:
+            if ut_size <= remaining:
+                break
+            ut_size //= 2
+
+        uts.append((current, get_alignment_bits(ut_size)))
+        current += ut_size
+        remaining -= ut_size
+    return uts
+
+
+# This macro is currently only used outside the repository
+NO_CHECK_UNUSED.add('get_untypeds_from_range')
 
 
 def get_page_size(size, arch):
