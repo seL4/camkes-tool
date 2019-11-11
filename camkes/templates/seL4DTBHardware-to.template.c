@@ -220,7 +220,7 @@
 
                                                                               &irq);
                     } else {
-                        ZF_LOGE("No mechanism exists to handle this interrupt, this interrupt will be ignored");
+                        ZF_LOGE("No mechanism exists to handle interrupt number /*? irq_handler_pairs[i][0] ?*/, this interrupt will be ignored");
                     }
                 }
             /*- endfor -*/
