@@ -85,23 +85,34 @@ class FdtQueryEngine:
             if is_alias:
                 raise DtbBindingNodeLookupError("Alias node should only contain strings!")
             else:
-                raise DtbBindingNotImplementedError("Only support paths for chosen instances.")
+                raise DtbBindingNotImplementedError(
+                    "Only support paths or aliases for chosen instances.")
         if len(prop.strings) != 1:
             raise DtbBindingNodeLookupError(
                 "The %s instance should only contain one string." % node_string)
 
+        wanted_prop = prop.strings[0]
+        if not is_alias:
+            # Strip everything pass and including the ':' character if it exists,
+            # this is common in 'stdout-path'
+            wanted_prop = wanted_prop.split(':')[0]
+
+            if not wanted_prop.startswith('/'):
+                #  The property contains an alias and we can recurse
+                return self._match_node_by_alias_or_chosen(wanted_prop, True)
+
         # From here we have the path to the node the user wanted. Look it up.
-        ret = self._match_nodes_by_path(re.escape(prop.strings[0]))
+        ret = self._match_nodes_by_path(re.escape(wanted_prop))
         if not len(ret):
             raise DtbBindingNodeLookupError("%s instance %s maps to path %s, but "
                                             "that path resolves to nothing."
-                                            % (node_string, name, prop.strings[0]))
+                                            % (node_string, name, wanted_prop))
 
         if len(ret) > 1:
             raise DtbBindingNodeLookupError("%s instance %s maps to path %s, but "
                                             "that path resolves to multiple "
                                             "results."
-                                            % (node_string, name, prop.strings[0]))
+                                            % (node_string, name, wanted_prop))
         return ret
 
     def _match_nodes_by_path(self, qstring):
