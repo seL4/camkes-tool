@@ -14,6 +14,8 @@
 
 /* Thread-local storage functionality for CAmkES. */
 
+#include <sel4camkes/gen_config.h>
+
 #include <assert.h>
 #include <sel4/sel4.h>
 #include <stdalign.h>
