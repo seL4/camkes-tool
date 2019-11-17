@@ -179,6 +179,10 @@ int /*? me.interface.name ?*/_acknowledge(void) {
     return seL4_IRQHandler_Ack(/*? irq ?*/);
 }
 
+static int /*? me.interface.name ?*/_acknowledge_cb(UNUSED void* cookie) {
+    return seL4_IRQHandler_Ack(/*? irq ?*/);
+}
+
 int /*? me.interface.name ?*/__run(void) {
     while (true) {
         seL4_Wait(/*? ntfn ?*/, NULL);
@@ -189,7 +193,7 @@ int /*? me.interface.name ?*/__run(void) {
             /*? me.interface.name ?*/_handle();
         } else if (/*? irq_struct_name ?*/.is_allocated) {
             /*? irq_struct_name ?*/.callback_fn(/*? irq_struct_name ?*/.callback_data, 
-                                                /*? me.interface.name ?*/_acknowledge,
+                                                /*? me.interface.name ?*/_acknowledge_cb,
                                                 NULL);
         } else {
             ZF_LOGE("No mechanism exists to handle this interrupt, this interrupt will be ignored");
