@@ -196,7 +196,7 @@ int /*? me.interface.name ?*/__run(void) {
                                                 /*? me.interface.name ?*/_acknowledge_cb,
                                                 NULL);
         } else {
-            ZF_LOGE("No mechanism exists to handle this interrupt, this interrupt will be ignored");
+            ZF_LOGE("No mechanism exists to handle this interrupt, it will be ignored");
         }
     }
 
