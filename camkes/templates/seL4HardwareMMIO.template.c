@@ -96,15 +96,6 @@ void * /*? me.interface.name ?*/_translate_paddr(
     return NULL;
 }
 
-/*- set frame_caps_symbol = c_symbol('frame_caps') -*/
-
-/*# Allocate frame objects to back the hardware dataport #*/
-static const seL4_CPtr /*? frame_caps_symbol ?*/[] = {
-        /*- for cap in frame_caps -*/
-            /*? cap ?*/,
-        /*- endfor -*/
-};
-
 /*- for cap in frame_caps -*/
 __attribute__((used)) __attribute__((section("_dataport_frames")))
 dataport_frame_t /*? me.interface.name ?*//*? loop.index0 ?*/ = {
