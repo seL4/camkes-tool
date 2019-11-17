@@ -152,7 +152,7 @@ int camkes_virtqueue_device_scatter_copy_buffer(virtqueue_device_t *vq, virtqueu
  * @return 0 on success, -1 on fail
  */
 int camkes_virtqueue_driver_gather_buffer(virtqueue_driver_t *vq, virtqueue_ring_object_t *handle,
-                                          void **buffer, size_t *size, vq_flags_t *flag);
+                                          void **buffer, unsigned *size, vq_flags_t *flag);
 
 /* Performs one iteration on the scatterlist pointed by the given handle: returns the next buffer in the list.
  * @param vq the device side virtqueue
@@ -163,7 +163,7 @@ int camkes_virtqueue_driver_gather_buffer(virtqueue_driver_t *vq, virtqueue_ring
  * @return 0 on success, -1 on fail
  */
 int camkes_virtqueue_device_gather_buffer(virtqueue_device_t *vq, virtqueue_ring_object_t *handle,
-                                          void **buffer, size_t *size, vq_flags_t *flag);
+                                          void **buffer, unsigned *size, vq_flags_t *flag);
 
 /* Returns the number of registered virtqueue channels
  * @return Number of registered virtqueue channels

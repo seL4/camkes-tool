@@ -221,7 +221,7 @@ int camkes_virtqueue_driver_gather_copy_buffer(virtqueue_driver_t *vq, virtqueue
 {
     size_t copied = 0;
     void *used_buf;
-    size_t buf_size;
+    unsigned buf_size;
     vq_flags_t flag;
 
     while (camkes_virtqueue_driver_gather_buffer(vq, handle, &used_buf, &buf_size, &flag) == 0) {
@@ -243,7 +243,7 @@ int camkes_virtqueue_device_scatter_copy_buffer(virtqueue_device_t *vq, virtqueu
 
     while (sent < size) {
         void *avail_buf;
-        size_t buf_size;
+        unsigned buf_size;
         size_t to_copy;
         vq_flags_t flag;
 
@@ -266,7 +266,7 @@ int camkes_virtqueue_device_gather_copy_buffer(virtqueue_device_t *vq, virtqueue
 
     while (sent < size) {
         void *avail_buf;
-        size_t buf_size;
+        unsigned buf_size;
         size_t to_copy;
         vq_flags_t flag;
 
@@ -283,7 +283,7 @@ int camkes_virtqueue_device_gather_copy_buffer(virtqueue_device_t *vq, virtqueue
 }
 
 int camkes_virtqueue_driver_gather_buffer(virtqueue_driver_t *vq, virtqueue_ring_object_t *handle,
-                                          void **buffer, size_t *size, vq_flags_t *flag)
+                                          void **buffer, unsigned *size, vq_flags_t *flag)
 {
     uintptr_t buf_offset;
     if (!virtqueue_gather_used(vq, handle, (void **)&buf_offset, size, flag)) {
@@ -294,7 +294,7 @@ int camkes_virtqueue_driver_gather_buffer(virtqueue_driver_t *vq, virtqueue_ring
 }
 
 int camkes_virtqueue_device_gather_buffer(virtqueue_device_t *vq, virtqueue_ring_object_t *handle,
-                                          void **buffer, size_t *size, vq_flags_t *flag)
+                                          void **buffer, unsigned *size, vq_flags_t *flag)
 {
     uintptr_t buf_offset;
     if (!virtqueue_gather_available(vq, handle, (void **)&buf_offset, size, flag)) {
