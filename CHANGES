@@ -9,6 +9,14 @@ Upcoming release
 
 ## Changes
 
+
+## Upgrade Notes
+---
+camkes-3.8.0 2019-11-19
+Using seL4 version 11.0.0
+
+## Changes
+
 * Support for the new seL4 Endpoint GrantReply access right for CAmkES connector types.
   - This allows multi-sender/single-receiver connectors such as `seL4RPCCall` that don't also provide the ability for
     arbitrary capability transfer from sender to receiver. Previously the `seL4RPC` connector was used instead of
