@@ -97,7 +97,7 @@
                 .paddr = /*? paddr + loop.index0 * page_size ?*/,
                 .cap = /*? cap ?*/,
                 .size = /*? page_size ?*/,
-                .vaddr = &(/*? dataport_symbol_name ?*/.content[/*? loop.index0 * page_size ?*/]),
+                .vaddr = (uintptr_t)&(/*? dataport_symbol_name ?*/.content[/*? loop.index0 * page_size ?*/]),
             };
         /*- endfor -*/
 
