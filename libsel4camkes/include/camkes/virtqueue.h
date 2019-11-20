@@ -143,6 +143,18 @@ int camkes_virtqueue_driver_gather_copy_buffer(virtqueue_driver_t *vq, virtqueue
 int camkes_virtqueue_device_scatter_copy_buffer(virtqueue_device_t *vq, virtqueue_ring_object_t *handle,
                                                 void *buffer, size_t size);
 
+/* Takes a handle (obtained from a get_used_buffer invocation), iterates through all the buffers in
+ * the scatterlist and copies them into the buffer given as parameter. Then adds the object onto the
+ * used list.
+ * @param vq the device side virtqueue
+ * @param handle the iterator on the available ring object
+ * @param buffer a pointer to the buffer to copy from
+ * @param size the size of the buffer we're passing
+ * @return 0 on success, -1 on fail
+ */
+int camkes_virtqueue_device_gather_copy_buffer(virtqueue_device_t *vq, virtqueue_ring_object_t *handle,
+                                               void *buffer, size_t size);
+
 /* Performs one iteration on the scatterlist pointed by the given handle: returns the next buffer in the list.
  * @param vq the driver side virtqueue
  * @param handle the iterator on the used ring object
