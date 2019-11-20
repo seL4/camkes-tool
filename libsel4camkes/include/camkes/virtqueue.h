@@ -107,7 +107,7 @@ void *camkes_virtqueue_driver_offset_to_buffer(virtqueue_driver_t *virtqueue, ui
  * @param size the size of the buffer
  * @return 0 on success, -1 on fail
  */
-int camkes_virtqueue_driver_send_buffer(virtqueue_driver_t *vq, volatile void *buffer, size_t size);
+int camkes_virtqueue_driver_send_buffer(virtqueue_driver_t *vq, void *buffer, size_t size);
 
 /* Scatter and send one buffer (add to the available ring). Performs the pointer to offset conversion.
  * Doesn't notify the other side. Scatters the buffer into chunks of BLOCK_SIZE, so the buffer can have

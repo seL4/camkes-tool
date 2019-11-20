@@ -21,7 +21,7 @@
 #define OFFSET_TO_IDX(offset) ((offset)/BLOCK_SIZE)
 
 struct vq_buf_alloc {
-    volatile void *buffer;
+    void *buffer;
     unsigned len;
     unsigned free_list_size;
     unsigned *free_list;
@@ -98,9 +98,9 @@ int camkes_virtqueue_driver_init(virtqueue_driver_t *driver, unsigned int camkes
     ps_malloc_ops_t malloc_ops;
     ps_new_stdlib_malloc_ops(&malloc_ops);
 
-    volatile void *avail_ring = channel->channel_buffer;
-    volatile void *used_ring = avail_ring + sizeof(vq_vring_avail_t);
-    volatile void *desc = used_ring + sizeof(vq_vring_used_t);
+    void *avail_ring = (void *)channel->channel_buffer;
+    void *used_ring = avail_ring + sizeof(vq_vring_avail_t);
+    void *desc = used_ring + sizeof(vq_vring_used_t);
     struct vq_buf_alloc *cookie; /* TODO */
     if (ps_calloc(&malloc_ops, 1, sizeof(struct vq_buf_alloc), (void **)&cookie)) {
         ZF_LOGE("Failed to allocate alloc structure");
@@ -142,9 +142,9 @@ int camkes_virtqueue_device_init(virtqueue_device_t *device, unsigned int camkes
         return -1;
     }
 
-    volatile void *avail_ring = channel->channel_buffer;
-    volatile void *used_ring = avail_ring + sizeof(vq_vring_avail_t);
-    volatile void *desc = used_ring + sizeof(vq_vring_used_t);
+    void *avail_ring = (void *)channel->channel_buffer;
+    void *used_ring = avail_ring + sizeof(vq_vring_avail_t);
+    void *desc = used_ring + sizeof(vq_vring_used_t);
     void *cookie = desc + sizeof(vq_vring_desc_t) * DESC_TABLE_SIZE;
     virtqueue_init_device(device, avail_ring, used_ring, desc, channel->notify, cookie);
 
@@ -163,7 +163,7 @@ void *camkes_virtqueue_driver_offset_to_buffer(virtqueue_driver_t *virtqueue, ui
     return allocator->buffer + offset;
 }
 
-int camkes_virtqueue_driver_send_buffer(virtqueue_driver_t *vq, volatile void *buffer, size_t size)
+int camkes_virtqueue_driver_send_buffer(virtqueue_driver_t *vq, void *buffer, size_t size)
 {
     uintptr_t base_offset = (uintptr_t)(((struct vq_buf_alloc *)vq->cookie)->buffer);
     uintptr_t buf_offset = (uintptr_t)buffer - base_offset;

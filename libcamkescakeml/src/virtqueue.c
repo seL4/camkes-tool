@@ -106,7 +106,7 @@ void ffivirtqueue_device_recv(char *c, unsigned long clen, char *a, unsigned lon
     memcpy(&virtqueue, a + 1, sizeof(virtqueue));
 
     // 1. Dequeue available buffer from virtqueue
-    volatile void *available_buff = NULL;
+    void *available_buff = NULL;
     size_t buf_size = 0;
     vq_flags_t flag;
     virtqueue_ring_object_t handle;
@@ -127,7 +127,7 @@ void ffivirtqueue_device_recv(char *c, unsigned long clen, char *a, unsigned lon
 
     // 2. Copy to CakeML buffer
     memcpy(a + 1, &buf_size, sizeof(buf_size));
-    memcpy(a + 1 + sizeof(buf_size), (void *) available_buff, buf_size);
+    memcpy(a + 1 + sizeof(buf_size), available_buff, buf_size);
 
     // 3. Enqueue the buffer on the used queue to let the other end know we've finished with it
     if (!virtqueue_add_used_buf(virtqueue, &handle, 0)) {
@@ -159,7 +159,7 @@ void ffivirtqueue_driver_recv(char *c, unsigned long clen, char *a, unsigned lon
     virtqueue_driver_t *virtqueue;
     memcpy(&virtqueue, a + 1, sizeof(virtqueue));
     // 1. Dequeue used buffer from virtqueue
-    volatile void *used_buff = NULL;
+    void *used_buff = NULL;
     size_t buf_size = 0;
     uint32_t wr_len = 0;
     vq_flags_t flag;
@@ -190,7 +190,7 @@ void ffivirtqueue_driver_send(char *c, unsigned long clen, char *a, unsigned lon
 
     char *message = a + offset;
 
-    volatile void *alloc_buffer = NULL;
+    void *alloc_buffer = NULL;
     int err = camkes_virtqueue_buffer_alloc(virtqueue, &alloc_buffer, message_len);
     if (err) {
         ZF_LOGE("%s: alloc for driver send failed", __func__);
@@ -198,7 +198,7 @@ void ffivirtqueue_driver_send(char *c, unsigned long clen, char *a, unsigned lon
         return;
     }
 
-    memcpy((void *) alloc_buffer, (void *) message, message_len);
+    memcpy(alloc_buffer, (void *) message, message_len);
 
     if (camkes_virtqueue_driver_send_buffer(virtqueue, alloc_buffer, message_len) != 0) {
         camkes_virtqueue_buffer_free(virtqueue, alloc_buffer);
