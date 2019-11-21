@@ -310,21 +310,25 @@ static uint8_t simple_camkes_cnode_size(void *data) {
     /*- endif -*/
 }
 
-static seL4_CPtr simple_camkes_get_IOPort_cap(void *data, uint16_t start_port, uint16_t end_port) {
+static seL4_Error simple_camkes_get_IOPort_cap(void *data, uint16_t start_port, uint16_t end_port, seL4_Word root, seL4_Word dest, seL4_Word depth) {
     assert(start_port <= end_port);
+    seL4_CPtr cap = seL4_CapNull;
     /*- for cap, start, end in ioports -*/
         if (start_port >= /*? start ?*/ && end_port <= /*? end ?*/) {
-            return /*? cap ?*/;
+            cap = /*? cap ?*/;
         }
     /*- endfor -*/
-    ERR(camkes_error, ((camkes_error_t){
-            .type = CE_ALLOCATION_FAILURE,
-            .instance = "/*? me.name ?*/",
-            .description = "unable to find IO port cap",
-        }), ({
-            return 0;
-        }));
-    return 0;
+    if (cap == seL4_CapNull) {
+        ERR(camkes_error, ((camkes_error_t){
+                .type = CE_ALLOCATION_FAILURE,
+                .instance = "/*? me.name ?*/",
+                .description = "unable to find IO port cap",
+            }), ({
+                return seL4_FailedLookup;
+            }));
+        return seL4_FailedLookup;
+    }
+    return seL4_CNode_Copy(root, dest, depth, /*? self_cnode ?*/, cap, CONFIG_WORD_SIZE, seL4_AllRights);
 }
 
 #ifdef CONFIG_IOMMU
