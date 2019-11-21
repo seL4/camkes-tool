@@ -500,7 +500,7 @@ static int post_main(int thread_id);
 void USED NORETURN _camkes_start_c(int thread_id) {
     /*- set tcb_control = alloc("%s_tcb" % threads[0].name, seL4_TCBObject) -*/
     if (thread_id != /*? tcb_control ?*/) {
-        exit(post_main(thread_id));
+        post_main(thread_id);
     } else {
         sel4muslcsys_register_stdio_write_fn(write_buf);
         void *ipc_buf_ptr = (void *) /*? macros.ipc_buffer_address(threads[0].ipc_symbol) ?*/;
@@ -784,7 +784,9 @@ static int post_main(int thread_id) {
                     ZF_LOGF_IF(tls_regions[i] == NULL, "Failed to create tls");
                 }
             }
-            return component_control_main();
+            component_control_main();
+            sync_sem_bare_wait(/*? interface_init_ep ?*/, &interface_init_lock);
+            break;
 
         /*# Interface threads #*/
         /*- for t in threads[1:] -*/
@@ -818,21 +820,20 @@ static int post_main(int thread_id) {
                      *# thread to unbind its sc, and simultaneously start waiting for rpc calls. #*/
                     extern int /*? t.interface.name ?*/__run_passive(seL4_CPtr) WEAK;
                     if (/*? t.interface.name ?*/__run_passive) {
-                        return /*? t.interface.name ?*/__run_passive(/*? ntfn_passive_init ?*/);
+                        /*? t.interface.name ?*/__run_passive(/*? ntfn_passive_init ?*/);
                     } else {
                         /* Inform the main component thread that we're finished initialising */
                         seL4_Signal(/*? ntfn_passive_init ?*/);
 
-                        return 0;
                     }
                 /*- else -*/
                     extern int /*? t.interface.name ?*/__run(void) WEAK;
                     if (/*? t.interface.name ?*/__run) {
-                        return /*? t.interface.name ?*/__run();
+                        /*? t.interface.name ?*/__run();
                     }
                 /*- endif -*/
-
-                return 0;
+                sync_sem_bare_wait(/*? pre_init_ep ?*/, &pre_init_lock);
+                break;
             }
         /*- endif -*/
         /*- endfor -*/
@@ -852,7 +853,8 @@ int USED main(int argc UNUSED, char *argv[]) {
     assert(strcmp(argv[0], "camkes") == 0);
 
     int thread_id = (int)(uintptr_t)(argv[1]);
-    exit(post_main(thread_id));
+    post_main(thread_id);
+    UNREACHABLE();
     return 0;
 }
 
