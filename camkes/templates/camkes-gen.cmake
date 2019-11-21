@@ -12,6 +12,8 @@
 
 cmake_minimum_required(VERSION 3.8.2)
 
+include(debug)
+
 # /*? macros.generated_file_notice() ?*/
 
 # Define names for tools we will use
@@ -134,7 +136,7 @@ function(CAmkESOutputGenCommand object_state_op object_state_file)
             object_sizes
         VERBATIM
         DEPFILE "${depfile}"
-        USES_TERMINAL
+        ${USES_TERMINAL_DEBUG}
         COMMAND_EXPAND_LISTS
         COMMENT "Performing CAmkES generation for ${outfile_list_count} files"
     )
@@ -470,7 +472,7 @@ if(CAmkESCapDLStaticAlloc)
             ${platform_yaml}
             ${capdl_elfs}
         VERBATIM
-        USES_TERMINAL
+        ${USES_TERMINAL_DEBUG}
         COMMAND_EXPAND_LISTS
         COMMENT "Generating untyped list"
     )
@@ -516,7 +518,7 @@ add_custom_command(
         ${capdl_elfs}
         ${capdl_elf_targets}
     VERBATIM
-    USES_TERMINAL
+    ${USES_TERMINAL_DEBUG}
     COMMAND_EXPAND_LISTS
     COMMENT "Generating final \"${CAMKES_CDL_TARGET}\" file"
 )
