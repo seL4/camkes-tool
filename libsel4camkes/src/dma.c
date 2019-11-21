@@ -28,6 +28,9 @@
 #include <sel4/sel4.h>
 #include <vspace/page.h>
 
+/* Check consistency of bookkeeping structures */
+// #define DEBUG_DMA
+
 /* Force the _dma_frames  section to be created even if no modules are defined. */
 static USED SECTION("_dma_frames") struct {} dummy_dma_frame;
 /* Definitions so that we can find the exposed DMA frames */
@@ -214,6 +217,10 @@ static void check_consistency(void)
         }
     }
 }
+
+#ifndef DEBUG_DMA
+#define check_consistency()
+#endif
 
 #ifdef NDEBUG
 #define STATS(arg) do { } while (0)
