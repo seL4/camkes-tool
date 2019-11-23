@@ -763,6 +763,7 @@ int post_init_interface_sync() {
 }
 
 static int post_main(int thread_id) {
+    int ret = 0;
     switch (thread_id) {
 
         case 0:
@@ -784,9 +785,9 @@ static int post_main(int thread_id) {
                     ZF_LOGF_IF(tls_regions[i] == NULL, "Failed to create tls");
                 }
             }
-            component_control_main();
+            ret = component_control_main();
             sync_sem_bare_wait(/*? interface_init_ep ?*/, &interface_init_lock);
-            break;
+            return ret;
 
         /*# Interface threads #*/
         /*- for t in threads[1:] -*/
@@ -820,7 +821,7 @@ static int post_main(int thread_id) {
                      *# thread to unbind its sc, and simultaneously start waiting for rpc calls. #*/
                     extern int /*? t.interface.name ?*/__run_passive(seL4_CPtr) WEAK;
                     if (/*? t.interface.name ?*/__run_passive) {
-                        /*? t.interface.name ?*/__run_passive(/*? ntfn_passive_init ?*/);
+                        ret = /*? t.interface.name ?*/__run_passive(/*? ntfn_passive_init ?*/);
                     } else {
                         /* Inform the main component thread that we're finished initialising */
                         seL4_Signal(/*? ntfn_passive_init ?*/);
@@ -829,11 +830,11 @@ static int post_main(int thread_id) {
                 /*- else -*/
                     extern int /*? t.interface.name ?*/__run(void) WEAK;
                     if (/*? t.interface.name ?*/__run) {
-                        /*? t.interface.name ?*/__run();
+                        ret = /*? t.interface.name ?*/__run();
                     }
                 /*- endif -*/
                 sync_sem_bare_wait(/*? pre_init_ep ?*/, &pre_init_lock);
-                break;
+                return ret;
             }
         /*- endif -*/
         /*- endfor -*/
