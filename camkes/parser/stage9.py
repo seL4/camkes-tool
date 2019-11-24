@@ -18,14 +18,15 @@ Stage 9 parser. The following parser is designed to accept a stage 8 parser,
 whose output it consumes.
 Combine n-1 connections according to the following rule:
 1. If an interface is in multiple connections, and in each connection it is
-   on the same end (to or from), and in each connection it is the only interface
-   on its end, all the connections can be combined into a single connection.
+   on the same end (to or from), all the connections can be combined into a single connection.
 2. If an interface is in multiple connections and the condition in 1 does not
    hold, the spec is invalid.
 '''
 
 from __future__ import absolute_import, division, print_function, \
     unicode_literals
+from future.utils import iteritems
+from itertools import chain
 from camkes.internal.seven import cmp, filter, map, zip
 
 from camkes.ast.objects import Connection, ConnectionEnd
@@ -33,120 +34,50 @@ from camkes.ast.objects import Connection, ConnectionEnd
 from .base import Transformer
 from .exception import ParseError
 
-# A collection of connections that groups connections based only
-# the interfaces in them. Can be used to consolidate multiple
-# connections to a single interface into a single N-1 connection
-# to that interface.
-class ConnectionTracker:
-    def __init__(self):
-        # Dicts mapping connection ends  to sets of
-        # connection ends at the other end of the
-        # connection
-        self.to_candidates = {}
-        self.from_candidates = {}
 
-        # Dict mapping connection ends to sets of
-        # connections where the key is the only connection end
-        # on one of the sides of the connection
-        self.connections = {}
+# track a connection
+def add_connections(connections):
+    candidates = {}
+    for connection in connections:
+        for i in chain(connection.to_ends, connection.from_ends):
+            if i in candidates:
+                candidates[i].add(connection)
+            else:
+                candidates[i] = {connection}
+    return candidates
 
-        # Dict mapping connection ends to types
-        self.types = {}
 
-        # Set of connection ends
-        # that have appeared in sides of connections with multiple
-        # interfaces. If an interface in this set appears in the spec
-        # more than once then the spec is invalid.
-        self.ignored = set()
-
-    def repeated_interface_error(self, end):
-        raise ParseError("Multiple connections involving %s. "
-                "In at least one, %s isn't on the '1' side of an N-1 connection"
-                % (str(end), str(end)))
-
-    def _add_connection_ends(self, ends, other_ends,
-            candidates, other_candidates, connection):
-
-        assert len(ends) > 0
-
-        ignored_ends = self.ignored & ends
-        if ignored_ends:
-            # an interface has appeard multiple times
-            self.repeated_interface_error(ignored_ends.pop())
-
-        if len(ends) == 1:
-            end = ends.pop()
-
-            if str(end) in {str(k) for k in other_candidates.keys()}:
-                # interface appears on the other side of a connection
-                # somewhere else in the spec
-                raise ParseError("Interface %s appears on to and from side of connections." % str(end))
-
-            if end not in candidates:
-                candidates[end] = set()
-
-            already_connected = candidates[end] & other_ends
-            if already_connected:
-                already_connected_end = already_connected.pop()
-                # one of the interfaces on the other side of this connection
-                # is already connected to this interface
-                raise ParseError("Multiple connections between interfaces %s and %s."
-                        % (str(end), str(already_connected_end)))
-
-            candidates[end] |= other_ends
-
-            if end not in self.connections:
-                self.connections[end] = set()
-
-            self.connections[end].add(connection)
-
-            if end not in self.types:
-                self.types[end] = connection.type
-            elif self.types[end] != connection.type:
-                # we've already seen a connection to this interface, but it
-                # was of a different type
-                raise ParseError("Multiple connectors used in connections involving %s. (%s, %s)"
-                        % (str(end), self.types[end].name, connection.type.name))
-
+# yields tuples of the form  (conns_to_remove, conn_to_add) where conns_to_remove
+# is a set of connections to remove from the ast, and
+# conn_to_add is a single connection to replace them with
+def consolidate(candidates):
+    multi = []
+    for (_, i) in iteritems(candidates):
+        # Combine connection sets if any two sets share a connection
+        for j in multi:
+            if i & j:
+                j |= i
+                break
         else:
-            ignored_ends = ends & set(self.connections.keys())
-            if ignored_ends:
-                # an interface has appeard multiple times
-                self.repeated_interface_error(ignored_ends.pop())
+            multi.append(i)
 
-            self.ignored |= ends
+    # We have now combined all of the multi connection definitions
 
-    # track a connection
-    def add(self, connection):
-        self._add_connection_ends(set(connection.to_ends), set(connection.from_ends),
-                self.to_candidates, self.from_candidates, connection)
-        self._add_connection_ends(set(connection.from_ends), set(connection.to_ends),
-                self.from_candidates, self.to_candidates, connection)
+    for connections in multi:
+        if len(connections) is 1:
+            continue
+        name = ".".join(sorted([c.name for c in connections]))
+        to_ends = {end for c in connections for end in c.to_ends}
+        from_ends = {end for c in connections for end in c.from_ends}
+        connection_type = None
+        for c in connections:
+            if connection_type is not None:
+                assert c.type == connection_type, "Bad type"
+            else:
+                connection_type = c.type
+        new_connection = Connection(connection_type, name, list(from_ends), list(to_ends))
+        yield(connections, new_connection)
 
-    def _consolidate_direction(self, direction, candidates):
-        for end in sorted(candidates.keys(), key=str):
-            other_ends = candidates[end]
-            if len(self.connections[end]) > 1:
-                name = ".".join([c.name for c in self.connections[end]])
-                sorted_other_ends = sorted(other_ends, key=str)
-                if direction == 'from':
-                    from_ends = [end]
-                    to_ends = sorted_other_ends
-                else:
-                    from_ends = sorted_other_ends
-                    to_ends = [end]
-                new_connection = Connection(self.types[end], name, from_ends, to_ends)
-
-                yield (self.connections[end], new_connection)
-
-    # yields tuples of the form  (conns_to_remove, conn_to_add) where conns_to_remove
-    # is a set of connections to remove from the ast, and
-    # conn_to_add is a single connection to replace them with
-    def consolidate(self):
-        for c in self._consolidate_direction('to', self.to_candidates):
-            yield c
-        for c in self._consolidate_direction('from', self.from_candidates):
-            yield c
 
 class Parse9(Transformer):
     def precondition(self, ast_lifted, _):
@@ -157,12 +88,9 @@ class Parse9(Transformer):
 
     def transform(self, ast_lifted, read):
 
-        tracker = ConnectionTracker()
+        candidates = add_connections(ast_lifted.assembly.connections)
 
-        for connection in ast_lifted.assembly.connections:
-            tracker.add(connection)
-
-        for (conns_to_remove, conn_to_add) in tracker.consolidate():
+        for (conns_to_remove, conn_to_add) in consolidate(candidates):
             for c in conns_to_remove:
                 ast_lifted.assembly.connections.remove(c)
             ast_lifted.assembly.connections.append(conn_to_add)
