@@ -99,7 +99,7 @@ def postcondition(ast_lifted):
 
 def update_dict_keys(query_dict):
     key_regexp = re.compile(r'^\w+$')
-    for (key, value) in query_dict.items():
+    for (key, value) in list(query_dict.items()):
         del query_dict[key]
         if not key_regexp.match(key):
             key = re.sub('\W', '_', key)

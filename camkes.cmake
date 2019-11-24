@@ -308,7 +308,7 @@ set(CAMKES_TOOL_BUILTIN_DIR "${CAMKES_TOOL_DIR}/include/builtin")
 set(CAMKES_TOOL_ENVIRONMENT "PYTHONPATH=${CAMKES_TOOL_DIR}:${PYTHON_CAPDL_PATH}")
 
 # Save camkes tool commands
-set(CAMKES_PYTHON_COMMAND ${CMAKE_COMMAND} -E env "${CAMKES_TOOL_ENVIRONMENT}" ${PYTHON})
+set(CAMKES_PYTHON_COMMAND ${CMAKE_COMMAND} -E env "${CAMKES_TOOL_ENVIRONMENT}" ${PYTHON3})
 set(CAMKES_TOOL ${CAMKES_PYTHON_COMMAND} -m camkes.runner)
 set(CAMKES_PARSER_TOOL ${CAMKES_PYTHON_COMMAND} -m camkes.parser)
 set(
@@ -317,7 +317,7 @@ set(
     -E
     env
     "PYTHONPATH=${PYTHON_CAPDL_PATH}"
-    ${PYTHON}
+    ${PYTHON3}
     ${PYTHON_CAPDL_PATH}/../cdl_utils/capdl_linker.py
 )
 set(CAPDL_LINKER_DEPENDENCIES "${PYTHON_CAPDL_PATH}/../cdl_utils/capdl_linker.py")
@@ -327,7 +327,7 @@ set(
     -E
     env
     "PYTHONPATH=${PYTHON_CAPDL_PATH}"
-    ${PYTHON}
+    ${PYTHON3}
     ${PYTHON_CAPDL_PATH}/../cdl_utils/untyped_gen.py
 )
 set(CAPDL_UNTYPED_GEN_DEPENDENCIES "${PYTHON_CAPDL_PATH}/../cdl_utils/untyped_gen.py")
