@@ -52,8 +52,11 @@ endmacro()
 function(set_camkes_flags_from_config list)
 
     set_config_guard(
-        CAmkESVerbose OFF
-        CACHE BOOL "Enable verbose output from CAmkES. This is disabled by default as it
+        CAmkESVerbose
+        OFF
+        CACHE
+        BOOL
+        "Enable verbose output from CAmkES. This is disabled by default as it
         can result in a lot of output, but is useful for debugging CAmkES problems"
     )
 
@@ -67,14 +70,20 @@ function(set_camkes_parser_flags_from_config list)
     # These options are not declared with the config_* system because they only need to exist
     # in the build system, and not appear in a configuration library
     set_config_guard(
-        CAmkESCPP ON
-        CACHE BOOL "Run CPP on the input specification(s) before parsing them into an AST.
+        CAmkESCPP
+        ON
+        CACHE
+        BOOL
+        "Run CPP on the input specification(s) before parsing them into an AST.
         This can allow you to write parameterised specs in the case of more
         complex system"
     )
     set_config_guard(
-        CAmkESAllowForwardReferences OFF
-        CACHE BOOL "By default, you can only refer to objects in your specification which
+        CAmkESAllowForwardReferences
+        OFF
+        CACHE
+        BOOL
+        "By default, you can only refer to objects in your specification which
         have been defined before the point at which you reference them.
         Selecting this option allows you to also reference objects that are
         defined below the point at which the reference occurs. This option is
@@ -101,14 +110,20 @@ endfunction(set_camkes_parser_flags_from_config)
 function(set_camkes_render_flags_from_config list)
 
     set_config_guard(
-        CAmkESDefaultStackSize 16384
-        CACHE STRING "Stack size to allocate per-component, in bytes. Note that this value
+        CAmkESDefaultStackSize
+        16384
+        CACHE
+        STRING
+        "Stack size to allocate per-component, in bytes. Note that this value
         should be page-aligned. If not, it will be rounded up."
     )
 
     set_config_guard(
-        CAmkESProvideTCBCaps ON
-        CACHE BOOL "Hand out TCB caps to components. These caps are used by the component
+        CAmkESProvideTCBCaps
+        ON
+        CACHE
+        BOOL
+        "Hand out TCB caps to components. These caps are used by the component
         to exit cleanly by suspending. Disabling this option leaves components
         with an empty slot in place of their TCB cap. This means they will cap
         fault when attempting to exit. The advantage is that your resulting
@@ -117,8 +132,11 @@ function(set_camkes_render_flags_from_config list)
     )
 
     set_config_guard(
-        CAmkESDefaultPriority 254
-        CACHE STRING "Default priority for component threads if this is not overridden via an
+        CAmkESDefaultPriority
+        254
+        CACHE
+        STRING
+        "Default priority for component threads if this is not overridden via an
         attribute. Generally you want to set this as high as possible.
         Defaults to one less than the max priority to avoid interleaving with the CapDL intialiser."
     )
@@ -127,11 +145,12 @@ function(set_camkes_render_flags_from_config list)
     endif()
 
     set_config_guard(
-        CAmkESDefaultAffinity 0
+        CAmkESDefaultAffinity
+        0
         CACHE
-            STRING
-            # Default to 0 as this is the index assigned to the BSP (Boot Strap Processor) by seL4
-            "Default affinity for component threads if this is not overridden via an
+        STRING
+        # Default to 0 as this is the index assigned to the BSP (Boot Strap Processor) by seL4
+        "Default affinity for component threads if this is not overridden via an
         attribute. Think carefully when organizing your applications for
         multiprocessor operation"
     )
@@ -141,16 +160,21 @@ function(set_camkes_render_flags_from_config list)
     endif()
 
     set_config_guard(
-        CAmkESRPCLockElision ON
+        CAmkESRPCLockElision
+        ON
         CACHE
-            BOOL "Detect when it is safe to exclude locking operations in the seL4RPC connector and
+        BOOL
+        "Detect when it is safe to exclude locking operations in the seL4RPC connector and
         automatically do so. This is an optimisation that can improve the performance of
         this connector."
     )
 
     set_config_guard(
-        CAmkESSpecialiseSyscallStubs ON
-        CACHE BOOL "Detect when glue code overhead could be reduced with a custom syscall
+        CAmkESSpecialiseSyscallStubs
+        ON
+        CACHE
+        BOOL
+        "Detect when glue code overhead could be reduced with a custom syscall
         stub and generate and use this instead of the libsel4 stubs. This does
         not affect whether a given IPC will hit the fastpath, but it does
         reduce the userlevel overhead of these system calls. In ideal
@@ -159,8 +183,11 @@ function(set_camkes_render_flags_from_config list)
     )
 
     set_config_guard(
-        CAmkESLargeFramePromotion ON
-        CACHE BOOL "Some hardware platforms support multiple page sizes. In components with
+        CAmkESLargeFramePromotion
+        ON
+        CACHE
+        BOOL
+        "Some hardware platforms support multiple page sizes. In components with
         large virtual address spaces, it is possible to reduce memory usage
         (and consequent load time) by backing the component's address space with
         pages of these larger sizes. When this setting is enabled, small
@@ -171,8 +198,11 @@ function(set_camkes_render_flags_from_config list)
     )
 
     set_config_guard(
-        CAmkESDMALargeFramePromotion OFF
-        CACHE BOOL "For components with a configured DMA pool, the frames backing this
+        CAmkESDMALargeFramePromotion
+        OFF
+        CACHE
+        BOOL
+        "For components with a configured DMA pool, the frames backing this
         are not automatically promoted to large frames even if the pool is
         sufficiently large. Select this option to enable such promotion
         automatically. This is off by default because it requires support
@@ -181,8 +211,11 @@ function(set_camkes_render_flags_from_config list)
     )
 
     set_config_guard(
-        CAmkESFaultHandlers ON
-        CACHE BOOL "When a component references invalid virtual memory or an invalid
+        CAmkESFaultHandlers
+        ON
+        CACHE
+        BOOL
+        "When a component references invalid virtual memory or an invalid
         capability, the access generates a fault. With this option selected
         a handler is provided that decodes this fault for debugging
         purposes. You will want to disable this in a production system or in
@@ -220,10 +253,16 @@ function(set_camkes_render_flags_from_config list)
 
 endfunction(set_camkes_render_flags_from_config)
 
-set_config_guard(CAmkESDTS OFF CACHE BOOL "Support using a device tree (.dts) file, which camkes can query
+set_config_guard(
+    CAmkESDTS
+    OFF
+    CACHE
+    BOOL
+    "Support using a device tree (.dts) file, which camkes can query
     for device properties. A file path can be provided by as an argument
     to DeclareCAmkESRootserver as DTS_FILE_PATH, otherwise the a dts file
-    matching the platform will be found in seL4/tools.")
+    matching the platform will be found in seL4/tools."
+)
 
 set_config_guard(CAmkESCapDLVerification OFF CACHE BOOL "Generate CapDL refinement proofs
     Generate Isabelle definitions and proofs for CapDL refinement.
@@ -231,8 +270,11 @@ set_config_guard(CAmkESCapDLVerification OFF CACHE BOOL "Generate CapDL refineme
     the expected integrity policy of the component assembly.")
 
 set_config_guard(
-    CAmkESCapDLStaticAlloc OFF
-    CACHE BOOL "Statically allocate all capDL objects. This requires the target
+    CAmkESCapDLStaticAlloc
+    OFF
+    CACHE
+    BOOL
+    "Statically allocate all capDL objects. This requires the target
      platform to have a DTS file, and also requires a certain amount of
      cooperation from kernel boot (currently available on ARM)."
 )
@@ -321,7 +363,6 @@ if("${TPP_TOOL}" STREQUAL "TPP_TOOL-NOTFOUND")
     message(FATAL_ERROR "Failed to find tpp tool")
 endif()
 mark_as_advanced(TPP_TOOL)
-
 
 file(
     GLOB

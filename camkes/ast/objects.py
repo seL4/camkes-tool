@@ -691,6 +691,7 @@ class Component(MapLike):
         return (self.composition is not None and
                 any(interface == ex.destination.name for ex in self.composition.exports))
 
+
 class Interface(six.with_metaclass(abc.ABCMeta, ASTObject)):
 
     def __init__(self, location=None):
