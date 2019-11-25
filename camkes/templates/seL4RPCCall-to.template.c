@@ -42,7 +42,7 @@
   /*- if len(me.parent.from_ends) != 1 or len(me.parent.to_ends) != 1 -*/
     /*? raise(TemplateError('invalid use of userspace buffer to back RPC connection that is not 1-to-1', me.parent)) ?*/
   /*- endif -*/
-  /*- set c = filter(lambda('x: x.name == \'%s\'' % buffer), composition.connections) -*/
+  /*- set c = list(filter(lambda('x: x.name == \'%s\'' % buffer), composition.connections)) -*/
   /*- if len(c) == 0 -*/
     /*? raise(TemplateError('invalid setting to non-existent connection for userspace buffer to back RPC connection', me.parent)) ?*/
   /*- endif -*/
