@@ -197,7 +197,7 @@ def new_context(entity, assembly, render_state, state_key, outfile_name,
                 # Return a list of distinct elements. Normally you would just do this
                 # as list(set(xs)), but this turns out to be non-deterministic in the
                 # template environment for some reason.
-                'uniq': lambda xs: reduce(lambda ys, z: ys if z in ys else (ys + [z]), xs, []),
+                'uniq': lambda xs: functools.reduce(lambda ys, z: ys if z in ys else (ys + [z]), xs, []),
 
                 # Functional helpers.
                 'flatMap': lambda f, xs: list(itertools.chain.from_iterable(map(f, xs))),
