@@ -399,5 +399,31 @@ assembly {
         with self.assertRaises(ASTError):
             self.parser.parse_string(spec)
 
+    def test_both_sides(self):
+        with six.assertRaisesRegex(self, ASTError, r'.*duplicate use of interface f.p1 \(deprecated form of N-way connections\?\)'):
+            self.parser.parse_string('''
+            connector C {
+                from Dataports;
+                to Dataports;
+            }
+            component Foo {
+                dataport Buf p1;
+                dataport Buf p2;
+            }
+            component Baz {
+                dataport Buf p1;
+                dataport Buf p2;
+            }
+            assembly {
+                composition {
+                    component Foo f;
+                    component Baz b;
+                    connection C c1(from b.p1, to f.p1);
+                    connection C c2(from f.p1, to b.p2);
+                }
+            }
+            ''')
+
+
 if __name__ == '__main__':
     unittest.main()

@@ -72,6 +72,10 @@ def consolidate(candidates):
         connection_type = None
         for c in connections:
             if connection_type is not None:
+                if c.type != connection_type:
+                    raise ParseError("Multiple connectors used in connections involving %s. (%s, %s)"
+                                     % (c.name, connection_type, c.type))
+
                 assert c.type == connection_type, "Bad type"
             else:
                 connection_type = c.type
