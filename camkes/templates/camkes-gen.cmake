@@ -246,6 +246,13 @@ endfunction(GeneratorValueOrDefault)
             /*- endif -*/
         /*- endfor -*/
     /*- endfor -*/
+    get_target_property(template_sources CAmkESComponent_/*? i.type.name ?*/ COMPONENT_TEMPLATE_SOURCES)
+    if (NOT "${template_sources}" STREQUAL "template_sources-NOTFOUND")
+        foreach(template_file IN LISTS template_sources)
+            get_filename_component(filename ${template_file} NAME)
+            CAmkESGen("${generated_dir}/${filename}" component//*? i.name ?*/ ${template_file} SOURCE C_STYLE)
+        endforeach()
+    endif()
     /*- if configuration[i.name].get('debug') -*/
         CAmkESGen("${generated_dir}/camkes.debug.c" component//*? i.name ?*/ component.debug.c SOURCE C_STYLE)
     /*- endif -*/

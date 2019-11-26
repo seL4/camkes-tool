@@ -552,7 +552,7 @@ function(AppendCAmkESComponentTarget target_name)
         CAMKES_COMPONENT
         "" # Option arguments
         "CAKEML_HEAP_SIZE;CAKEML_STACK_SIZE;LINKER_LANGUAGE" # Single arguments
-        "SOURCES;CAKEML_SOURCES;CAKEML_DEPENDS;CAKEML_INCLUDES;INCLUDES;C_FLAGS;LD_FLAGS;LIBS" # Multiple aguments
+        "SOURCES;CAKEML_SOURCES;CAKEML_DEPENDS;CAKEML_INCLUDES;INCLUDES;C_FLAGS;LD_FLAGS;LIBS;TEMPLATE_SOURCES" # Multiple aguments
     )
     # Declare a target that we will set properties on
     if(NOT (TARGET "${target_name}"))
@@ -581,6 +581,7 @@ function(AppendCAmkESComponentTarget target_name)
     endforeach()
     set_property(TARGET "${target_name}" APPEND PROPERTY COMPONENT_INCLUDES "${includes}")
     set_property(TARGET "${target_name}" APPEND PROPERTY COMPONENT_SOURCES "${sources}")
+    set_property(TARGET "${target_name}" APPEND PROPERTY COMPONENT_TEMPLATE_SOURCES "${CAMKES_COMPONENT_TEMPLATE_SOURCES}")
     set_property(
         TARGET "${target_name}"
         APPEND
