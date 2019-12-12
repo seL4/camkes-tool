@@ -92,9 +92,9 @@ int camkes_msgqueue_receiver_init(int msgqueue_id, camkes_msgqueue_receiver_t *r
     return 0;
 }
 
-static volatile void *msgqueue_alloc_buffer(camkes_msgqueue_sender_t *sender)
+static void *msgqueue_alloc_buffer(camkes_msgqueue_sender_t *sender)
 {
-    volatile void *ret_buffer = NULL;
+    void *ret_buffer = NULL;
     virtqueue_ring_object_t handle = {0};
     unsigned len = 0;
     UNUSED size_t size = 0;
@@ -134,7 +134,7 @@ int camkes_msgqueue_send(camkes_msgqueue_sender_t *sender, void *message, size_t
     }
 
     /* Grab a buffer from the channel */
-    volatile void *msgqueue_buf = msgqueue_alloc_buffer(sender);
+    void *msgqueue_buf = msgqueue_alloc_buffer(sender);
     if (!msgqueue_buf) {
         return ENOMEM;
     }
