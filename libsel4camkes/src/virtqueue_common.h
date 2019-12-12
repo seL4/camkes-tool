@@ -26,7 +26,7 @@ struct vq_buf_alloc {
 
 struct vq_buf_alloc *init_vq_allocator(void *mem_pool, unsigned len, size_t block_size);
 
-int camkes_virtqueue_driver_init_common(virtqueue_driver_t *driver, void *buffer, size_t buffer_size,
+int camkes_virtqueue_driver_init_common(virtqueue_driver_t *driver, volatile void *buffer, size_t buffer_size,
                                         void (*notify)(void), size_t block_size);
 
-int camkes_virtqueue_device_init_common(virtqueue_device_t *device, void *buffer, void (*notify)(void));
+int camkes_virtqueue_device_init_common(virtqueue_device_t *device, volatile void *buffer, void (*notify)(void));
