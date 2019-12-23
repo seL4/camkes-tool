@@ -51,39 +51,58 @@
     /*- do stash('reg_set', reg_set) -*/
 /*- endmacro -*/
 
-/*- macro parse_dtb_node_interrupts(node, max_num_interrupts) -*/
-    /*# This section assumes that the `interrupts` binding's format follow those of the #*/
-    /*# ARM GIC (not v3), i.e. cell 1 = SPI, cell 2 = interrupt number and cell 3 the flag. #*/
+/*- macro parse_dtb_node_interrupts(node, max_num_interrupts, architecture) -*/
     /*- set interrupts = node.get('interrupts') -*/
-    /*- set is_extended_interrupts = False -*/
-    /*- if interrupts is none -*/
-        /*- set interrupts = node.get('interrupts_extended') -*/
-        /*- set is_extended_interrupts = True -*/
-    /*- endif -*/
     /*- set irq_set = [] -*/
-    /*- if interrupts is not none -*/
-        /*- if is_extended_interrupts -*/
-            /*- set num_interrupts = len(interrupts) // 4 -*/
-        /*- else -*/
-            /*- set num_interrupts = len(interrupts) // 3 -*/
+    /*- if 'riscv' in architecture -*/
+    /*# This section assumes that the `interrupts` binding's format follows those of the #*/
+    /*# SiFive PLIC, i.e cell 1 = Interrupt 1, cell 2 = Interrupt 2, cell N = Interrupt N #*/
+    /*# number per cell #*/
+        /*- if interrupts is not none -*/
+            /*- set num_interrupts=len(interrupts) -*/
+            /*- if max_num_interrupts != -1 and num_interrupts > max_num_interrupts -*/
+                /*? raise(TemplateError('Device %s has more than %d interrupts, this is more than we can support.') % (me.interface.name, max_num_interrupts)) ?*/
+            /*- endif -*/
+            /*- for i in range(0, num_interrupts) -*/
+                /*- set _irq = interrupts[i] -*/
+                /*- do irq_set.append(_irq) -*/
+            /*- endfor -*/
         /*- endif -*/
-        /*- if max_num_interrupts != -1 and num_interrupts > max_num_interrupts -*/
-            /*? raise(TemplateError('Device %s has more than %d interrupts, this is more than we can support.') % (me.interface.name, max_num_interrupts)) ?*/
+        /*- do stash('irq_set', irq_set) -*/
+    /*- elif 'aarch' in architecture or 'arm' in architecture -*/
+        /*# This section assumes that the `interrupts` binding's format follow those of the #*/
+        /*# ARM GIC (not v3), i.e. cell 1 = SPI, cell 2 = interrupt number and cell 3 the flag. #*/
+        /*- set is_extended_interrupts = False -*/
+        /*- if interrupts is none -*/
+            /*- set interrupts = node.get('interrupts_extended') -*/
+            /*- set is_extended_interrupts = True -*/
         /*- endif -*/
-
-        /*- for i in range(0, num_interrupts) -*/
+        /*- if interrupts is not none -*/
             /*- if is_extended_interrupts -*/
-                /*- set _irq = interrupts[i * 3 + 2] -*/
-                /*- set _irq_spi = interrupts[i * 3 + 1] -*/
+                /*- set num_interrupts = len(interrupts) // 4 -*/
             /*- else -*/
-                /*- set _irq = interrupts[i * 3 + 1] -*/
-                /*- set _irq_spi = interrupts[i * 3 + 0] -*/
+                /*- set num_interrupts = len(interrupts) // 3 -*/
             /*- endif -*/
-            /*- if (isinstance(_irq_spi, numbers.Integral)) and (_irq_spi == 0) -*/
-                /*- set _irq = _irq + 32 -*/
+            /*- if max_num_interrupts != -1 and num_interrupts > max_num_interrupts -*/
+                /*? raise(TemplateError('Device %s has more than %d interrupts, this is more than we can support.') % (me.interface.name, max_num_interrupts)) ?*/
             /*- endif -*/
-            /*- do irq_set.append(_irq) -*/
-        /*- endfor -*/
+
+            /*- for i in range(0, num_interrupts) -*/
+                /*- if is_extended_interrupts -*/
+                    /*- set _irq = interrupts[i * 3 + 2] -*/
+                    /*- set _irq_spi = interrupts[i * 3 + 1] -*/
+                /*- else -*/
+                    /*- set _irq = interrupts[i * 3 + 1] -*/
+                    /*- set _irq_spi = interrupts[i * 3 + 0] -*/
+                /*- endif -*/
+                /*- if (isinstance(_irq_spi, numbers.Integral)) and (_irq_spi == 0) -*/
+                    /*- set _irq = _irq + 32 -*/
+                /*- endif -*/
+                /*- do irq_set.append(_irq) -*/
+            /*- endfor -*/
+        /*- endif -*/
+        /*- do stash('irq_set', irq_set) -*/
+    /*- else -*/
+        /*? raise(TemplateError('Device %s has unknown architecture %s') % (me.interface.name, architecture)) ?*/
     /*- endif -*/
-    /*- do stash('irq_set', irq_set) -*/
 /*- endmacro -*/
