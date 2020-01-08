@@ -425,7 +425,7 @@ static void init(void) {
     /*- do _tcb.init.append(tcb) -*/
 
     /*- if options.realtime -*/
-        /*- if not t.interface or configuration[me.name].get("%s_passive" % t.interface.name, False) -*/
+        /*- if not t.interface or not configuration[me.name].get("%s_passive" % t.interface.name, False) -*/
             /*- set _sc = alloc_obj("%s_sc" % t.name, seL4_SchedContextObject) -*/
             /*- set sc = alloc_cap("%s_sc" % t.name, _sc) -*/
             /*- do _tcb.__setitem__('sc_slot', Cap(_sc)) -*/
@@ -533,8 +533,8 @@ void camkes_tls_init(int thread_id) {
                 __sel4_ipc_buffer = (seL4_IPCBuffer *) /*? macros.ipc_buffer_address(t.ipc_symbol) ?*/;
                 /*- endif -*/
                 /*- if options.realtime and loop.first -*/
-                    /*- set sc_control = alloc("%s_sc" % t.name, seL4_SchedContextObject) -*/
-                    camkes_get_tls()->sc_cap = /*? sc_control ?*/;
+                    /*- set sc_context = alloc("%s_sc" % t.name, seL4_SchedContextObject) -*/
+                    camkes_get_tls()->sc_cap = /*? sc_context ?*/;
                 /*- endif -*/
                 camkes_get_tls()->tcb_cap = /*? tcb ?*/;
                 camkes_get_tls()->thread_index = /*? index ?*/ + 1;
@@ -815,7 +815,7 @@ static int post_main(int thread_id) {
                 /* Wait for the `post_init` to complete. */
                 sync_sem_bare_wait(/*? post_init_ep ?*/, &post_init_lock);
 
-                /*- set prefix = '%d_%s_%d_%04d' % (len(me.name), t.interface.name, len(t.interface.name), t.intra_index) -*/
+                /*- set prefix = '%s_%s_%04d' % (me.name, t.interface.name, t.intra_index) -*/
                 /*- if options.realtime and prefix in passive_tcbs -*/
 
                     /*# If this is a passive interface, the __run_passive function must SignalRecv to tell the control
