@@ -27,7 +27,6 @@ foreach(
     seL4NotificationQueue
     seL4RPC
     seL4RPCCall
-    seL4RPCSimple
     seL4SharedData
     seL4DTBHardware
 )

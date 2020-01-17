@@ -257,12 +257,3 @@ connector seL4DTBHardware {
         \<rparr> \<rparr>";
 }
 
-/* This connector is only capable of marshalling primitive values (no arrays,
- * strings, user-defined types, ...), but is designed to use variable
- * assignment rather than memcpys so as to be easier to verify.
- */
-connector seL4RPCSimple {
-    from Procedure with 0 threads;
-    to Procedure;
-    attribute string isabelle_connector_spec = "seL4RPC"; /* builtin connector */
-}
