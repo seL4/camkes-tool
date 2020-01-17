@@ -35,7 +35,7 @@
 
 /*- set connector = namespace() -*/
 
-/*- set int_types = ['uint8_t', 'uint16_t', 'uint32_t', 'uint64_t', 'unsigned int', 'unsigned char'] -*/
+/*- set int_types = ['uint8_t', 'uint16_t', 'uint32_t', 'uint64_t'] -*/
 
 /*- macro cakeml_unmarshal(val, type, buf, offset) -*/
     /*- if type in int_types -*/
