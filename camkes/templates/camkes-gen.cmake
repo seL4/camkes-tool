@@ -173,6 +173,8 @@ function(GeneratorValueOrDefault output default maybe_value)
     set(${output} "${new_output}" PARENT_SCOPE)
 endfunction(GeneratorValueOrDefault)
 
+CAmkESGen("${CMAKE_CURRENT_BINARY_DIR}/graph.dot" assembly/ graph.dot)
+
 # A target for each binary that we need to build
 /*- for i in instances if not i.type.hardware -*/
     # Variable for collecting generated files

@@ -1,5 +1,5 @@
 /*#
- *# Copyright 2017, Data61
+ *# Copyright 2020, Data61
  *# Commonwealth Scientific and Industrial Research Organisation (CSIRO)
  *# ABN 41 687 119 230.
  *#
@@ -12,36 +12,36 @@
 
 digraph {
 /*- for i in composition.instances -*/
-    /*? i.name ?*/ [label="/*? i.name ?*/::/*? i.type.name ?*/", shape=box,style=rounded];
+    "/*? i.name ?*/" [label="/*? i.name ?*/::/*? i.type.name ?*/", shape=box,style=rounded];
 /*- endfor -*/
 
 /*- for c in composition.connections -*/
-    /*- if c.type.name in ('seL4RPC', 'seL4RPCCall') -*/
-        /*? c.name ?*/ [shape=circle];
+    /*- if c.type.from_type == 'Procedure' -*/
+        "/*? c.name ?*/" [shape=circle];
         /*- for f in c.from_ends -*/
-            /*? f.instance.name ?*/ -> /*? c.name ?*/;
+            "/*? f.instance.name ?*/" -> "/*? c.name ?*/";
         /*- endfor -*/
         /*- for t in c.to_ends -*/
-            /*? c.name ?*/ -> /*? t.instance.name ?*/;
+            "/*? c.name ?*/" -> "/*? t.instance.name ?*/";
         /*- endfor -*/
-    /*- elif c.type.name == 'seL4Notification' -*/
-        /*? c.name ?*/ [shape=diamond];
+    /*- elif c.type.from_type == 'Event' -*/
+        "/*? c.name ?*/" [shape=diamond];
         /*- for f in c.from_ends -*/
-            /*? f.instance.name ?*/ -> /*? c.name ?*/;
+            "/*? f.instance.name ?*/" -> "/*? c.name ?*/";
         /*- endfor -*/
         /*- for t in c.to_ends -*/
-            /*? c.name ?*/ -> /*? t.instance.name ?*/;
+            "/*? c.name ?*/" -> "/*? t.instance.name ?*/";
         /*- endfor -*/
-    /*- elif c.type.name == 'seL4SharedData' -*/
+    /*- elif c.type.from_type == 'Dataport' -*/
         /*- for f in c.from_ends -*/
             /*- for t in c.to_ends -*/
-                /*? f.instance.name ?*/ -> /*? t.instance.name ?*/ [label="/*? c.name ?*/",dir=both,arrowhead=obox,arrowtail=obox];
+                "/*? f.instance.name ?*/" -> "/*? t.instance.name ?*/" [label="/*? c.name ?*/",dir=both,arrowhead=obox,arrowtail=obox];
             /*- endfor -*/
         /*- endfor -*/
     /*- else -*/
         /*- for f in c.from_ends -*/
             /*- for t in c.to_ends -*/
-                /*? f.instance.name ?*/ -> /*? t.instance.name ?*/ [label="/*? c.name ?*/"];
+                "/*? f.instance.name ?*/" -> "/*? t.instance.name ?*/" [label="/*? c.name ?*/"];
             /*- endfor -*/
         /*- endfor -*/
     /*- endif -*/
