@@ -10,8 +10,6 @@
  * @TAG(DATA61_BSD)
  */
 
-/*- from 'helpers/tls.c' import make_tls_symbols -*/
-
 #include <assert.h>
 #include <camkes/tls.h>
 #include <sel4/sel4.h>
@@ -31,17 +29,10 @@ int /*? me.interface.name ?*/__run(void) {
     return 0;
 }
 
-/*- set threads = [1] + list(map(lambda('x: x + 2'), six.moves.range(len(me.instance.type.provides + me.instance.type.uses + me.instance.type.emits + me.instance.type.consumes + me.instance.type.dataports)))) -*/
-/*? make_tls_symbols('seL4_Word', 'badge', threads, False) ?*/
-
 int /*? me.interface.name ?*/_poll(void) {
-    seL4_Word *badge = get_badge();
-    /* Reset the badge as this may not be the first time this function is
-     * called.
-     */
-    *badge = 0;
-    seL4_Poll(/*? notification ?*/, badge);
-    return *badge == /*? badge_magic ?*/;
+    seL4_Word badge = 0;
+    seL4_Poll(/*? notification ?*/, &badge);
+    return badge == /*? badge_magic ?*/;
 }
 
 void /*? me.interface.name ?*/_wait(void) {
