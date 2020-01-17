@@ -20,7 +20,7 @@ from __future__ import absolute_import, division, print_function, \
 from camkes.internal.seven import cmp, filter, map, zip
 
 from camkes.ast import Composition, Instance, Parameter, Struct
-from camkes.templates import sizeof_probe, TemplateError
+from camkes.templates import TemplateError
 from capdl import ASIDPool, CNode, Endpoint, Frame, IODevice, IOPageTable, \
     Notification, page_sizes, PageDirectory, PageTable, TCB, Untyped, \
     calculate_cnode_size, lookup_architecture
@@ -367,25 +367,6 @@ def sizeof(arch, t):
         return sizeof(arch, t.type)
 
     size = _sizes.get(t)
-    if size is None:
-        # We don't know the size of this type, so we'll ask the C compiler.
-        toolprefix = os.environ.get('TOOLPREFIX', '')
-        compiler = '%sgcc' % toolprefix
-
-        extra_flags = []
-        # Account for the fact that we may be cross-compiling using our native
-        # compiler.
-        if arch == 'ia32' and platform.machine() == 'x86_64':
-            extra_flags.append('-m32')
-        elif arch == 'x86_64' and platform.machine() == 'i386':
-            extra_flags.append('-m64')
-
-        # Determine the size by invoking the c compiler
-        size = sizeof_probe.probe_sizeof(t, compiler, extra_flags)
-
-        # Cache the result for next time.
-        _sizes[t] = size
-
     assert size is not None
     return size
 

@@ -33,7 +33,7 @@ sys.path.append(os.path.join(MY_DIR, '../../../../python-capdl'))
 sys.path.append(os.path.join(MY_DIR, '../../..'))
 
 from camkes.internal.tests.utils import CAmkESTest, which
-from camkes.templates.macros import NO_CHECK_UNUSED, sizeof, get_perm
+from camkes.templates.macros import NO_CHECK_UNUSED, get_perm
 from camkes.templates import TemplateError
 
 def uname():
@@ -50,21 +50,6 @@ def uname():
     return machine
 
 class TestMacros(CAmkESTest):
-
-    @unittest.skipIf(which('g++') is None or uname() not in ('x86', 'x86_64'),
-        'x86[_64] g++ not available')
-    def test_sizeof_x86(self):
-        '''
-        Test that the size of standard types are what we expect when targeting
-        x86. This might seem obvious, but this test can fail on an x86_64 host
-        if `sizeof` does not take into account that we are actually targeting
-        x86 (32-bit).
-        '''
-        os.environ['TOOLPREFIX'] = ''
-
-        sz = sizeof('ia32', 'long')
-
-        self.assertEqual(sz, 4)
 
     def test_get_perm(self):
         conf = {}
