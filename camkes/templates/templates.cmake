@@ -25,7 +25,6 @@ foreach(
     seL4NotificationBind
     seL4NotificationNative
     seL4NotificationQueue
-    seL4RPC
     seL4RPCCall
     seL4SharedData
     seL4DTBHardware

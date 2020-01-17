@@ -87,12 +87,6 @@ connector seL4RPCEvent {
  * RPC signal sending from the provider. The sending and waiting phase are
  * blocked.
  */
-connector seL4RPC {
-    from Procedure with 0 threads;
-    to Procedure;
-    attribute string isabelle_connector_spec = "seL4RPC"; /* builtin connector */
-}
-
 connector seL4RPCCall {
     from Procedures with 0 threads;
     to Procedure;
