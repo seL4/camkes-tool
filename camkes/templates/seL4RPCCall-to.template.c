@@ -19,22 +19,11 @@
 /*? macros.show_includes(me.instance.type.includes) ?*/
 /*? macros.show_includes(me.interface.type.includes) ?*/
 
-/*# Determine if we trust our partner. If we trust them, we can be more liberal
- *# with error checking.
- #*/
-/*- set _trust_partner = [True] -*/
-/*- for f in me.parent.from_ends -*/
-  /*- if configuration[f.instance.name].get('trusted') != '"true"' -*/
-    /*- do _trust_partner.__setitem__(0, False) -*/
-  /*- endif -*/
-/*- endfor -*/
-/*- set trust_partner = _trust_partner[0] -*/
-
 /*- set connector = namespace() -*/
 
 /*- set buffer = configuration[me.parent.name].get('buffer') -*/
 /*- if buffer is none -*/
-  /*? establish_recv_rpc(connector, trust_partner, me.interface.name) ?*/
+  /*? establish_recv_rpc(connector, me.interface.name) ?*/
 /*- else -*/
   /*- if not isinstance(buffer, six.string_types) -*/
     /*? raise(TemplateError('invalid non-string setting for userspace buffer to back RPC connection', me.parent)) ?*/
@@ -53,7 +42,7 @@
     /*? raise(TemplateError('invalid use of non-dataport to back RPC connection', me.parent)) ?*/
   /*- endif -*/
   extern /*? macros.dataport_type(c[0].to_end.interface.type) ?*/ * /*? c[0].to_end.interface.name ?*/;
-  /*? establish_recv_rpc(connector, trust_partner, me.interface.name, buffer=('((void*)%s)' % c[0].to_end.interface.name, macros.dataport_size(c[0].to_end.interface.type))) ?*/
+  /*? establish_recv_rpc(connector, me.interface.name, buffer=('((void*)%s)' % c[0].to_end.interface.name, macros.dataport_size(c[0].to_end.interface.type))) ?*/
 /*- endif -*/
 
 /*- include 'rpc-connector-common-to.c' -*/

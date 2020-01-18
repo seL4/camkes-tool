@@ -174,11 +174,10 @@
   #  recv_buffer_size_fixed: If fixed a received message has an 'unknown' size as the entire buffer is always transfered
   #  badges: List of the badge assigned to each incoming edge of the connector
   #*/
-/*- macro establish_from_rpc(namespace, trust, buffer=none) -*/
+/*- macro establish_from_rpc(namespace, buffer=none) -*/
     /*- set namespace.language = 'c' -*/
     /*# Establish the buffer for message contents #*/
     /*? _establish_buffer(namespace, buffer, False) ?*/
-    /*- set namespace.trust_partner = trust -*/
 
     /*# Ensure the endpoint is allocated #*/
     /*- set ep_obj = alloc_obj('ep', seL4_EndpointObject) -*/
@@ -195,14 +194,13 @@
 /*# Establish the recv side of this connector for doing RPC.
   # Has the same requirements as establish_from_rpc and produces the same namespace items
   #*/
-/*- macro establish_recv_rpc(namespace, trust, interface_name, buffer=none, language='c') -*/
+/*- macro establish_recv_rpc(namespace, interface_name, buffer=none, language='c') -*/
     /*- set namespace.language = language -*/
     /*- if namespace.language == 'cakeml' -*/
         /*? _begin_cakeml_module(namespace) ?*/
     /*- endif -*/
     /*# Establish the buffer for message contents #*/
     /*? _establish_buffer(namespace, buffer, True) ?*/
-    /*- set namespace.trust_partner = trust -*/
 
     /*# Ensure the endpoint is allocated #*/
     /*- set ep_obj = alloc_obj('ep', seL4_EndpointObject) -*/

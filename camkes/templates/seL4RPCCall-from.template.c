@@ -17,16 +17,11 @@
 /*? macros.show_includes(me.instance.type.includes) ?*/
 /*? macros.show_includes(me.interface.type.includes) ?*/
 
-/*# Determine if we trust our partner. If we trust them, we can be more liberal
- *# with error checking.
- #*/
-/*- set trust_partner = configuration[me.parent.to_instance.name].get('trusted') == '"true"' -*/
-
 /*- set connector = namespace() -*/
 
 /*- set buffer = configuration[me.parent.name].get('buffer') -*/
 /*- if buffer is none -*/
-  /*? establish_from_rpc(connector, trust_partner) ?*/
+  /*? establish_from_rpc(connector) ?*/
 /*- else -*/
   /*- if not isinstance(buffer, six.string_types) -*/
     /*? raise(TemplateError('invalid non-string setting for userspace buffer to back RPC connection', me.parent)) ?*/
@@ -52,7 +47,7 @@
   /*- else -*/
     /*- set lock = False -*/
   /*- endif -*/
-  /*? establish_from_rpc(connector, trust_partner, buffer=('((void*)%s)' % c[0].from_end.interface.name, macros.dataport_size(c[0].from_end.interface.type), lock)) ?*/
+  /*? establish_from_rpc(connector, buffer=('((void*)%s)' % c[0].from_end.interface.name, macros.dataport_size(c[0].from_end.interface.type), lock)) ?*/
 /*- endif -*/
 
 /*- include 'rpc-connector-common-from.c' -*/

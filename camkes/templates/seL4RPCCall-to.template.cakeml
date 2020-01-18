@@ -14,17 +14,6 @@
 
 /*- from 'rpc-connector.c' import establish_recv_rpc, recv_first_rpc, complete_recv, begin_recv, begin_reply, complete_reply, reply_recv with context -*/
 
-/*# Determine if we trust our partner. If we trust them, we can be more liberal
- *# with error checking.
- #*/
-/*- set _trust_partner = [True] -*/
-/*- for f in me.parent.from_ends -*/
-  /*- if configuration[f.instance.name].get('trusted') != '"true"' -*/
-    /*- do _trust_partner.__setitem__(0, False) -*/
-  /*- endif -*/
-/*- endfor -*/
-/*- set trust_partner = _trust_partner[0] -*/
-
 /*# Construct a dict from interface types to list of from ends indicies #*/
 /*- set type_dict = {} -*/
 /*- for f in me.parent.from_ends -*/
@@ -108,7 +97,7 @@ val _ = translation_extends "component";
 
 /*- set buffer = configuration[me.parent.name].get('buffer') -*/
 /*- if buffer is none -*/
-    /*? establish_recv_rpc(connector, trust_partner, me.interface.name, language='cakeml') ?*/
+    /*? establish_recv_rpc(connector, me.interface.name, language='cakeml') ?*/
 /*- else -*/
     /*? raise(TemplateError('CakeML connector does not support custom buffers')) ?*/
 /*- endif -*/
