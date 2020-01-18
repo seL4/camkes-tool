@@ -10,7 +10,7 @@
  * @TAG(DATA61_BSD)
  */
 
-/*- from 'rpc-connector.c' import establish_from_rpc, begin_send, perform_call, release_recv, maybe_perform_optimized_empty_call with context -*/
+/*- from 'rpc-connector.c' import establish_from_rpc, begin_send, perform_call, release_recv with context -*/
 
 #include <camkes/dataport.h>
 

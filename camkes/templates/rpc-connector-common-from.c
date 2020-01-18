@@ -78,10 +78,6 @@ int /*? me.interface.name ?*/__run(void) {
 /*? marshal.show_input_parameter_list(m.parameters, ['in', 'refin', 'out', 'inout']) ?*/
 ) {
 
-    /*- if len(me.parent.from_ends) == 1 and len(me.parent.to_ends) == 1 and len(me.parent.to_end.instance.type.provides + me.parent.to_end.instance.type.uses + me.parent.to_end.instance.type.consumes + me.parent.to_end.instance.type.mutexes + me.parent.to_end.instance.type.semaphores) <= 1 and options.fspecialise_syscall_stubs and methods_len == 1 and m.return_type is none and len(m.parameters) == 0 -*/
-        /*? maybe_perform_optimized_empty_call(connector) ?*/
-    /*- endif -*/
-
     /*? begin_send(connector) ?*/
 
     /*- set ret_val = c_symbol('return') -*/

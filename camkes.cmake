@@ -170,19 +170,6 @@ function(set_camkes_render_flags_from_config list)
     )
 
     set_config_guard(
-        CAmkESSpecialiseSyscallStubs
-        ON
-        CACHE
-        BOOL
-        "Detect when glue code overhead could be reduced with a custom syscall
-        stub and generate and use this instead of the libsel4 stubs. This does
-        not affect whether a given IPC will hit the fastpath, but it does
-        reduce the userlevel overhead of these system calls. In ideal
-        conditions this will give you RPC as fast as native seL4 IPC. This only
-        has an effect on ARM."
-    )
-
-    set_config_guard(
         CAmkESLargeFramePromotion
         ON
         CACHE
@@ -240,7 +227,6 @@ function(set_camkes_render_flags_from_config list)
         local_flags
         "KernelIsMCS;--realtime"
         "CAmkESRPCLockElision;--frpc-lock-elision;--fno-rpc-lock-elision"
-        "CAmkESSpecialiseSyscallStubs;--fspecialise-syscall-stubs;--fno-specialise-syscall-stubs"
         "CAmkESProvideTCBCaps;--fprovide-tcb-caps;--fno-provide-tcb-caps"
         "CAmkESLargeFramePromotion;--largeframe"
         "CAmkESDMALargeFramePromotion;--largeframe-dma"

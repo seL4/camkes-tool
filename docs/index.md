@@ -1110,17 +1110,6 @@ sense in the context of another platform.
   CAmkES will detect these scenarios and operate on the reply cap in place to
   avoid extra syscalls.
 
-**--fspecialise-syscall-stubs**
-**--fno-specialise-syscall-stubs**
-
-> In a system involving many small procedural interfaces which are individually
-  providing so-called microservices, the overhead of seL4's syscall entry stubs
-  becomes perceptible. In pathological cases they can even become a performance
-  bottleneck. With this option enabled, CAmkES detects these small interfaces
-  and emits a custom assembly syscall entry stub. Due to the extra knowledge of
-  the execution environment that CAmkES has, these stubs can actually induce
-  even lower overhead than optimal generalised stubs.
-
 The following options are all related to verification of templates outputs.
 
 **--fprovide-tcb-caps**

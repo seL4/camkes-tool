@@ -97,12 +97,6 @@ def parse_args(argv, out, err):
     parser.add_argument('--fno-rpc-lock-elision', action='store_false',
                         dest='frpc_lock_elision', help='Disable lock elision optimisation in '
                         'seL4RPC connector.')
-    parser.add_argument('--fspecialise-syscall-stubs', action='store_true',
-                        default=True, help='Generate inline syscall stubs to reduce overhead '
-                        'where possible.')
-    parser.add_argument('--fno-specialise-syscall-stubs', action='store_false',
-                        dest='fspecialise_syscall_stubs', help='Always use the libsel4 syscall '
-                        'stubs.')
     parser.add_argument('--fprovide-tcb-caps', action='store_true',
                         default=True, help='Hand out TCB caps to components, allowing them to '
                         'exit cleanly.')

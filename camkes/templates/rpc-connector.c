@@ -403,47 +403,6 @@
     /*- endif -*/
 /*- endmacro -*/
 
-/*- macro maybe_perform_optimized_empty_call(namespace) -*/
-    #ifdef ARCH_ARM
-    #ifndef __SWINUM
-        #define __SWINUM(x) ((x) & 0x00ffffff)
-    #endif
-        /* We don't need to send or return any information because this
-         * is the only method in this interface and it has no parameters or
-         * return value. We can use an optimised syscall stub and take an
-         * early exit.
-         *
-         * To explain where this stub deviates from the standard Call stub:
-         *  - No asm clobbers because we're not receiving any arguments in
-         *    the reply (that would usually clobber r2-r5);
-         *  - Message info as an input only because we know the return info
-         *    will be identical, so the compiler can avoid reloading it if
-         *    we need the value after the syscall; and
-         *  - Setup r7 and r1 first because they are preserved across the
-         *    syscall and this helps the compiler emit a backwards branch
-         *    to create a tight loop if we're calling this interface
-         *    repeatedly.
-         */
-        /*- set scno = c_symbol() -*/
-        register seL4_Word /*? scno ?*/ asm("r7") = seL4_SysCall;
-        /*- set tag = c_symbol() -*/
-        register seL4_MessageInfo_t /*? tag ?*/ asm("r1") = seL4_MessageInfo_new(0, 0, 0, 0);
-        /*- set dest = c_symbol() -*/
-        register seL4_Word /*? dest ?*/ asm("r0") = /*? namespace.ep ?*/;
-        asm volatile("swi %[swinum]"
-            /*- if namespace.trust_partner -*/
-                :"+r"(/*? dest ?*/)
-                :[swinum]"i"(__SWINUM(seL4_SysCall)), "r"(/*? scno ?*/), "r"(/*? tag ?*/)
-            /*- else -*/
-                :"+r"(/*? dest ?*/), "+r"(/*? tag ?*/)
-                :[swinum]"i"(__SWINUM(seL4_SysCall)), "r"(/*? scno ?*/)
-                :"r2", "r3", "r4", "r5", "memory"
-            /*- endif -*/
-        );
-        return;
-    #endif
-/*- endmacro -*/
-
 /*# Releases the recv buffer #*/
 /*- macro release_recv(namespace) -*/
     /*- if namespace.lock -*/
