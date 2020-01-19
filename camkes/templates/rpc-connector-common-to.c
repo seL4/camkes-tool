@@ -11,7 +11,6 @@
  */
 
 /*- import 'helpers/error.c' as error with context -*/
-/*- import 'helpers/array_check.c' as array_check with context -*/
 /*- import 'helpers/marshal.c' as marshal with context -*/
 /*- from 'helpers/tls.c' import make_tls_symbols -*/
 
@@ -97,8 +96,6 @@
     /*- do call_tls_var_list.append(call_tls_var) -*/
 /*- endfor -*/
 
-/*? array_check.make_array_typedef_check_symbols(me.interface.type) ?*/
-
 /*- set passive = options.realtime and configuration[me.instance.name].get("%s_passive" % me.interface.name, False) -*/
 
 /*# Passive interface "run" functions must be passed a ntfn cap as part of the passive thread init protocol.
@@ -112,9 +109,6 @@ int
     /*? me.interface.name ?*/__run(void)
 /*- endif -*/
 {
-
-    /*# Check any typedefs we have been given are not arrays. #*/
-    /*? array_check.perform_array_typedef_check(me.interface.type) ?*/
 
     /*- set size = c_symbol('size') -*/
     unsigned /*? size ?*/ UNUSED;

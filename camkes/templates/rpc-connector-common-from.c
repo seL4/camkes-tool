@@ -11,7 +11,6 @@
  */
 
 /*- import 'helpers/error.c' as error with context -*/
-/*- import 'helpers/array_check.c' as array_check with context -*/
 /*- from 'helpers/tls.c' import make_tls_symbols -*/
 /*- import 'helpers/marshal.c' as marshal with context -*/
 
@@ -39,19 +38,6 @@
 /* Interface-specific error handling */
 /*- set error_handler = '%s_error_handler' % me.interface.name -*/
 /*? error.make_error_handler(interface, error_handler) ?*/
-
-/*? array_check.make_array_typedef_check_symbols(me.interface.type) ?*/
-
-int /*? me.interface.name ?*/__run(void) {
-    /* This function is never actually executed, but we still emit it for the
-     * purpose of type checking RPC parameters.
-     */
-    UNREACHABLE();
-
-    /*# Check any typedefs we have been given are not arrays. #*/
-    /*? array_check.perform_array_typedef_check(me.interface.type) ?*/
-    return 0;
-}
 
 /*- for i, m in enumerate(me.interface.type.methods) -*/
 
