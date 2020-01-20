@@ -10,10 +10,10 @@
  * @TAG(DATA61_BSD)
  */
 
-/*- macro show_input_parameter(p) -*/
+/*- macro show_input_parameter(p, namespace_prefix='') -*/
     /*- if p.direction == 'in' -*/
         /*- if p.array -*/
-            size_t /*? p.name ?*/_sz,
+            size_t /*? namespace_prefix ?*//*? p.name ?*/_sz,
             /*- if p.type == 'string' -*/
                 char **
             /*- else -*/
@@ -24,13 +24,13 @@
         /*- else -*/
             /*? macros.show_type(p.type) ?*/
         /*- endif -*/
-        /*? p.name ?*/
+        /*? namespace_prefix ?*//*? p.name ?*/
     /*- else -*/
         /*- if p.array -*/
             /*- if p.direction == 'refin' -*/
                 const
             /*- endif -*/
-            size_t * /*? p.name ?*/_sz,
+            size_t * /*? namespace_prefix ?*//*? p.name ?*/_sz,
             /*- if p.type == 'string' -*/
                 char ***
             /*- else -*/
@@ -44,32 +44,32 @@
             /*- endif -*/
             /*? macros.show_type(p.type) ?*/ *
         /*- endif -*/
-        /*? p.name ?*/
+        /*? namespace_prefix ?*//*? p.name ?*/
     /*- endif -*/
 /*- endmacro -*/
 
-/*- macro show_input_parameter_list(parameters, valid_directions) -*/
+/*- macro show_input_parameter_list(parameters, valid_directions, namespace_prefix='') -*/
     /*- for p in parameters -*/
         /*? assert(p.direction in valid_directions) ?*/
-        /*? show_input_parameter(p) ?*/
+        /*? show_input_parameter(p, namespace_prefix) ?*/
         /*- if not loop.last -*/
             ,
         /*- endif -*/
     /*- endfor -*/
 /*- endmacro -*/
 
-/*- macro show_output_parameter(p) -*/
+/*- macro show_output_parameter(p, namespace_prefix='') -*/
     /*- if p.array -*/
-        size_t * /*? p.name ?*/_sz,
-        /*? macros.show_type(p.type) ?*/ ** /*? p.name ?*/
+        size_t * /*? namespace_prefix ?*//*? p.name ?*/_sz,
+        /*? macros.show_type(p.type) ?*/ ** /*? namespace_prefix ?*//*? p.name ?*/
     /*- else -*/
-        /*? macros.show_type(p.type) ?*/ * /*? p.name ?*/
+        /*? macros.show_type(p.type) ?*/ * /*? namespace_prefix ?*//*? p.name ?*/
     /*- endif -*/
 /*- endmacro -*/
 
-/*- macro show_output_parameter_list(parameters) -*/
+/*- macro show_output_parameter_list(parameters, namespace_prefix='') -*/
     /*- for p in parameters -*/
-        /*? show_output_parameter(p) ?*/
+        /*? show_output_parameter(p, namespace_prefix) ?*/
         /*- if not loop.last -*/
             ,
         /*- endif -*/
@@ -180,7 +180,7 @@
   # function: Name of function to invoke
   # input_parameters: All input parameters to this method
   #*/
-/*- macro call_marshal_input(function, input_parameters) -*/
+/*- macro call_marshal_input(function, input_parameters, namespace_prefix='') -*/
     /*# Validate our arguments are the correct types #*/
     /*? assert(isinstance(function, six.string_types)) ?*/
     /*? assert(isinstance(input_parameters, (list, tuple))) ?*/
@@ -188,9 +188,9 @@
     /*? function ?*/(
     /*- for p in input_parameters -*/
         /*- if p.array -*/
-            /*? p.name ?*/_sz,
+            /*? namespace_prefix ?*//*? p.name ?*/_sz,
         /*- endif -*/
-        /*? p.name ?*/
+        /*? namespace_prefix ?*//*? p.name ?*/
         /*- if not loop.last -*/
             ,
         /*- endif -*/
@@ -323,7 +323,7 @@ cleanup_0:
   # return_type: Return type of this interface
   # ret_ptr: Pointer for the return value
   #*/
-/*- macro call_unmarshal_output(function, size, output_parameters, return_type, ret_ptr) -*/
+/*- macro call_unmarshal_output(function, size, output_parameters, return_type, ret_ptr, namespace_prefix='') -*/
     /*# Validate the types of our arguments #*/
     /*? assert(isinstance(function, six.string_types)) ?*/
     /*? assert(isinstance(size, six.string_types)) ?*/
@@ -343,9 +343,9 @@ cleanup_0:
     /*- endif -*/
     /*- for p in output_parameters -*/
     /*- if p.array -*/
-        /*? p.name ?*/_sz,
+        /*? namespace_prefix ?*//*? p.name ?*/_sz,
     /*- endif -*/
-    /*? p.name ?*/
+    /*? namespace_prefix ?*//*? p.name ?*/
     /*- if not loop.last -*/
         ,
     /*- endif -*/
@@ -437,7 +437,7 @@ cleanup_0:
   # size: Name of a variable storing the byte length of the message
   # input_parameters: All input parameters to this method
   #*/
-/*- macro call_unmarshal_input(function, size, input_parameters) -*/
+/*- macro call_unmarshal_input(function, size, input_parameters, namespace_prefix='') -*/
     /*# Validate our arguments are the expected type #*/
     /*? assert(isinstance(function, six.string_types)) ?*/
     /*? assert(isinstance(size, six.string_types)) ?*/
@@ -450,9 +450,9 @@ cleanup_0:
     /*- endif -*/
     /*- for p in input_parameters -*/
         /*- if p.array -*/
-            /*? p.name ?*/_sz_ptr,
+            /*? namespace_prefix ?*//*? p.name ?*/_sz_ptr,
         /*- endif -*/
-        /*? p.name ?*/_ptr
+        /*? namespace_prefix ?*//*? p.name ?*/_ptr
         /*- if not loop.last -*/
             ,
         /*- endif -*/
@@ -539,7 +539,7 @@ cleanup_0:
   # return_type: Return type of this interface
   # ret_ptr: Pointer for the return value
   #*/
-/*- macro call_marshal_output(function, output_parameters, return_type, ret_ptr) -*/
+/*- macro call_marshal_output(function, output_parameters, return_type, ret_ptr, namespace_prefix='') -*/
     /*# Validate our arguments are the correct type #*/
     /*? assert(isinstance(function, six.string_types)) ?*/
     /*? assert(isinstance(output_parameters, (list, tuple))) ?*/
@@ -555,9 +555,9 @@ cleanup_0:
     /*- endif -*/
     /*- for p in output_parameters -*/
         /*- if p.array -*/
-            /*? p.name ?*/_sz_ptr,
+            /*? namespace_prefix ?*//*? p.name ?*/_sz_ptr,
         /*- endif -*/
-        /*? p.name ?*/_ptr
+        /*? namespace_prefix ?*//*? p.name ?*/_ptr
         /*- if not loop.last -*/
             ,
         /*- endif -*/
