@@ -12,7 +12,6 @@
 
 /*- import 'helpers/error.c' as error with context -*/
 /*- import 'helpers/marshal.c' as marshal with context -*/
-/*- from 'helpers/tls.c' import make_tls_symbols -*/
 
 /*? assert(isinstance(connector, namespace)) ?*/
 
@@ -34,12 +33,6 @@
 
 /*- set instance = me.instance.name -*/
 /*- set interface = me.interface.name -*/
-/*# Count how many threads are in this component. This is because we want to create some
-  # thread local variables, but we don't have a way to map our general thread ID to an
-  # index into threads that specifically are spawned for this connector. I.e. a component
-  # may have 8 threads in total, and 2 threads running this connector, but without knowing
-  # what IDs those 2 threads will have we simply assume it might be any of the 8 #*/
-/*- set threads = list(six.moves.range(1, 2 + len(me.instance.type.provides) + len(me.instance.type.uses) + len(me.instance.type.emits) + len(me.instance.type.consumes))) -*/
 
 /* Interface-specific error handling */
 /*- set error_handler = '%s_error_handler' % me.interface.name -*/
@@ -52,8 +45,6 @@
     /*- do cur_list.append(loop.index0) -*/
     /*- do type_dict.update({f.interface.type: cur_list}) -*/
 /*- endfor -*/
-
-/*- set call_tls_var_list = [] -*/
 
 /*- for j, from_type in enumerate(type_dict.keys()) -*/
     /*- set methods_len = len(from_type.methods) -*/
@@ -77,23 +68,7 @@
         /*- set output_parameters = list(filter(lambda('x: x.direction in [\'out\', \'inout\']'), m.parameters)) -*/
         /*? marshal.make_marshal_output_symbols(instance, interface, m.name, '%s_marshal_outputs' % m.name, connector.send_buffer, connector.send_buffer_size, output_parameters, m.return_type, error_handler) ?*/
 
-        /*- if m.return_type is not none -*/
-            /*? make_tls_symbols(macros.show_type(m.return_type), '%s_ret_to' % m.name, threads, False) ?*/
-        /*- endif -*/
-        /*- for p in m.parameters -*/
-            /*- if p.array -*/
-                /*? make_tls_symbols('size_t', '%s_%s_sz_to' % (m.name, p.name), threads, False) ?*/
-                /*? make_tls_symbols('%s*' % macros.show_type(p.type), '%s_%s_to' % (m.name, p.name), threads, False) ?*/
-            /*- else -*/
-                /*? make_tls_symbols(macros.show_type(p.type), '%s_%s_to' % (m.name, p.name), threads, False) ?*/
-            /*- endif -*/
-        /*- endfor -*/
-
     /*- endfor -*/
-    /*- set call_tls_var = c_symbol('call_tls_var_to') -*/
-    /*- set type = macros.type_to_fit_integer(methods_len) -*/
-    /*? make_tls_symbols(type, call_tls_var, threads, False) ?*/
-    /*- do call_tls_var_list.append(call_tls_var) -*/
 /*- endfor -*/
 
 /*- set passive = options.realtime and configuration[me.instance.name].get("%s_passive" % me.interface.name, False) -*/
@@ -124,7 +99,6 @@ int
         /*- endif -*/
         /*- for from_index, from_type in enumerate(type_dict.keys()) -*/
             /*- set methods_len = len(from_type.methods) -*/
-            /*- set call_tls_var = call_tls_var_list[from_index] -*/
             /*- if len(type_dict.keys()) > 1 -*/
                 /*- for from_index in type_dict.get(from_type) -*/
                     case /*? connector.badges[from_index] ?*/: {
@@ -135,12 +109,12 @@ int
             /*- set call_ptr = c_symbol('call_ptr') -*/
             /*- if methods_len <= 1 -*/
                 unsigned /*? call ?*/ UNUSED;
-                unsigned * /*? call_ptr ?*/ = TLS_PTR(/*? call_tls_var ?*/, /*? call ?*/);
+                unsigned * /*? call_ptr ?*/ = &/*? call ?*/;
                 * /*? call_ptr ?*/ = 0;
             /*- else -*/
                 /*- set type = macros.type_to_fit_integer(methods_len) -*/
                 /*? type ?*/ /*? call ?*/ UNUSED;
-                /*? type ?*/ * /*? call_ptr ?*/ = TLS_PTR(/*? call_tls_var ?*/, /*? call ?*/);
+                /*? type ?*/ * /*? call_ptr ?*/ = &/*? call ?*/;
             /*- endif -*/
             /*- if methods_len > 1 -*/
                 ERR_IF(sizeof(* /*? call_ptr ?*/) > /*? size ?*/, /*? error_handler ?*/, ((camkes_error_t){
@@ -166,21 +140,21 @@ int
                         /*- for p in m.parameters -*/
 
                             /*- if p.array -*/
-                                size_t /*? p.name ?*/_sz UNUSED;
-                                size_t * /*? p.name ?*/_sz_ptr = TLS_PTR(/*? m.name ?*/_/*? p.name ?*/_sz_to, /*? p.name ?*/_sz);
+                                size_t /*? p.name ?*/_sz;
+                                size_t * /*? p.name ?*/_sz_ptr = &/*? p.name ?*/_sz;
                                 /*- if p.type == 'string' -*/
-                                    char ** /*? p.name ?*/ UNUSED = NULL;
-                                    char *** /*? p.name ?*/_ptr = TLS_PTR(/*? m.name ?*/_/*? p.name ?*/_to, /*? p.name ?*/);
+                                    char ** /*? p.name ?*/ = NULL;
+                                    char *** /*? p.name ?*/_ptr = &/*? p.name ?*/;
                                 /*- else -*/
-                                    /*? macros.show_type(p.type) ?*/ * /*? p.name ?*/ UNUSED = NULL;
-                                    /*? macros.show_type(p.type) ?*/ ** /*? p.name ?*/_ptr = TLS_PTR(/*? m.name ?*/_/*? p.name ?*/_to, /*? p.name ?*/);
+                                    /*? macros.show_type(p.type) ?*/ * /*? p.name ?*/ = NULL;
+                                    /*? macros.show_type(p.type) ?*/ ** /*? p.name ?*/_ptr = &/*? p.name ?*/;
                                 /*- endif -*/
                             /*- elif p.type == 'string' -*/
-                                char * /*? p.name ?*/ UNUSED = NULL;
-                                char ** /*? p.name ?*/_ptr = TLS_PTR(/*? m.name ?*/_/*? p.name ?*/_to, /*? p.name ?*/);
+                                char * /*? p.name ?*/ = NULL;
+                                char ** /*? p.name ?*/_ptr = &/*? p.name ?*/;
                             /*- else -*/
-                                /*? macros.show_type(p.type) ?*/ /*? p.name ?*/ UNUSED;
-                                /*? macros.show_type(p.type) ?*/ * /*? p.name ?*/_ptr = TLS_PTR(/*? m.name ?*/_/*? p.name ?*/_to, /*? p.name ?*/);
+                                /*? macros.show_type(p.type) ?*/ /*? p.name ?*/;
+                                /*? macros.show_type(p.type) ?*/ * /*? p.name ?*/_ptr = &/*? p.name ?*/;
                             /*- endif -*/
                         /*- endfor -*/
 
@@ -202,11 +176,11 @@ int
                         /*- set ret_sz_ptr = c_symbol('ret_sz_ptr') -*/
                         /*- if m.return_type is not none -*/
                             /*- if m.return_type == 'string' -*/
-                                char * /*? ret ?*/ UNUSED;
-                                char ** /*? ret_ptr ?*/ = TLS_PTR(/*? m.name ?*/_ret_to, /*? ret ?*/);
+                                char * /*? ret ?*/;
+                                char ** /*? ret_ptr ?*/ = &/*? ret ?*/;
                             /*- else -*/
-                                /*? macros.show_type(m.return_type) ?*/ /*? ret ?*/ UNUSED;
-                                /*? macros.show_type(m.return_type) ?*/ * /*? ret_ptr ?*/ = TLS_PTR(/*? m.name ?*/_ret_to, /*? ret ?*/);
+                                /*? macros.show_type(m.return_type) ?*/ /*? ret ?*/;
+                                /*? macros.show_type(m.return_type) ?*/ * /*? ret_ptr ?*/ = &/*? ret ?*/;
                             /*- endif -*/
                             * /*? ret_ptr ?*/ =
                         /*- endif -*/

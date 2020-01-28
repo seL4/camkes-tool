@@ -11,7 +11,6 @@
  */
 
 /*- import 'helpers/error.c' as error with context -*/
-/*- from 'helpers/tls.c' import make_tls_symbols -*/
 /*- import 'helpers/marshal.c' as marshal with context -*/
 
 /*? assert(isinstance(connector, namespace)) ?*/
@@ -33,7 +32,6 @@
 /*- set methods_len = len(me.interface.type.methods) -*/
 /*- set instance = me.instance.name -*/
 /*- set interface = me.interface.name -*/
-/*- set threads = list(six.moves.range(1, 2 + len(me.instance.type.provides) + len(me.instance.type.uses) + len(me.instance.type.emits) + len(me.instance.type.consumes))) -*/
 
 /* Interface-specific error handling */
 /*- set error_handler = '%s_error_handler' % me.interface.name -*/
@@ -42,18 +40,10 @@
 /*- for i, m in enumerate(me.interface.type.methods) -*/
 
 /*- set input_parameters = list(filter(lambda('x: x.direction in [\'refin\', \'in\', \'inout\']'), m.parameters)) -*/
-/*? marshal.make_marshal_input_symbols(instance, interface, m.name, '%s_marshal_inputs' % m.name, connector.send_buffer, connector.send_buffer_size, i, methods_len, input_parameters, error_handler, threads) ?*/
+/*? marshal.make_marshal_input_symbols(instance, interface, m.name, '%s_marshal_inputs' % m.name, connector.send_buffer, connector.send_buffer_size, i, methods_len, input_parameters, error_handler) ?*/
 
 /*- set output_parameters = list(filter(lambda('x: x.direction in [\'out\', \'inout\']'), m.parameters)) -*/
 /*? marshal.make_unmarshal_output_symbols(instance, interface, m.name, '%s_unmarshal_outputs' % m.name, connector.recv_buffer, i, output_parameters, m.return_type, error_handler, connector.recv_buffer_size_fixed) ?*/
-
-/*- set ret_tls_var = c_symbol('ret_tls_var_from') -*/
-/*- if m.return_type is not none -*/
-  /*# We will need to take the address of a value representing this return
-   *# value at some point. Construct a TLS variable.
-   #*/
-  /*? make_tls_symbols(macros.show_type(m.return_type), ret_tls_var, threads, False) ?*/
-/*- endif -*/
 
 /*- if m.return_type is not none -*/
     /*? macros.show_type(m.return_type) ?*/
@@ -69,8 +59,8 @@
     /*- set ret_val = c_symbol('return') -*/
     /*- set ret_ptr = c_symbol('return_ptr') -*/
     /*- if m.return_type is not none -*/
-      /*? macros.show_type(m.return_type) ?*/ /*? ret_val ?*/ UNUSED;
-      /*? macros.show_type(m.return_type) ?*/ * /*? ret_ptr ?*/ = TLS_PTR(/*? ret_tls_var ?*/, /*? ret_val ?*/);
+      /*? macros.show_type(m.return_type) ?*/ /*? ret_val ?*/;
+      /*? macros.show_type(m.return_type) ?*/ * /*? ret_ptr ?*/ = &/*? ret_val ?*/;
     /*- endif -*/
 
     /* Marshal all the parameters */

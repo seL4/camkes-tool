@@ -10,8 +10,6 @@
  * @TAG(DATA61_BSD)
  */
 
-/*- from 'helpers/tls.c' import make_tls_symbols -*/
-
 /*- macro show_input_parameter(p) -*/
     /*- if p.direction == 'in' -*/
         /*- if p.array -*/
@@ -102,9 +100,8 @@
   #     methods_len: Total number of methods in this interface
   #     input_parameters: All input parameters to this method
   #     error_handler: Handler to invoke on error
-  #     threads: List of threads in the interface
   #*/
-/*- macro make_marshal_input_symbols(instance, interface, name, function, buffer, size, method_index, methods_len, input_parameters, error_handler, threads) -*/
+/*- macro make_marshal_input_symbols(instance, interface, name, function, buffer, size, method_index, methods_len, input_parameters, error_handler) -*/
     /*# Validate that our arguments are the correct type #*/
     /*? assert(isinstance(instance, six.string_types)) ?*/
     /*? assert(isinstance(interface, six.string_types)) ?*/
@@ -116,19 +113,6 @@
     /*? assert(isinstance(methods_len, six.integer_types)) ?*/
     /*? assert(isinstance(input_parameters, (list, tuple))) ?*/
     /*? assert(isinstance(error_handler, six.string_types)) ?*/
-    /*? assert(isinstance(threads, list)) ?*/
-
-    /*- set name_backup = name -*/
-    /*- for p in input_parameters -*/
-        /*- if p.direction == 'in' -*/
-            /*- if p.array -*/
-                /*? make_tls_symbols('size_t', '%s_%s_sz_from' % (name_backup, p.name), threads, False) ?*/
-            /*- elif p.type != 'string' -*/
-                /*? make_tls_symbols(macros.show_type(p.type), '%s_%s_from' % (name_backup, p.name), threads, False) ?*/
-            /*- endif -*/
-        /*- endif -*/
-    /*- endfor -*/
-    /*- set name = name_backup -*/
 
     /*- for p in input_parameters -*/
         /*? assert(p.direction in ['in', 'refin', 'inout']) ?*/
@@ -150,7 +134,7 @@
         /*- set ptr_arr = c_symbol('ptr_arr') -*/
         /*- if p.direction == 'in' -*/
             /*- if p.array -*/
-                size_t * /*? ptr_sz ?*/ = TLS_PTR(/*? name ?*/_/*? p.name ?*/_sz_from, /*? p.name ?*/_sz);
+                size_t * /*? ptr_sz ?*/ = &/*? p.name ?*/_sz;
                 * /*? ptr_sz ?*/ = /*? p.name ?*/_sz;
                 /*- if p.type == 'string' -*/
                     char ** /*? ptr_arr ?*/ = /*? p.name ?*/;
@@ -160,7 +144,7 @@
             /*- elif p.type == 'string' -*/
                 const char * /*? ptr_str ?*/ = /*? p.name ?*/;
             /*- else -*/
-                /*? macros.show_type(p.type) ?*/ * /*? ptr ?*/ = TLS_PTR(/*? name ?*/_/*? p.name ?*/_from, /*? p.name ?*/);
+                /*? macros.show_type(p.type) ?*/ * /*? ptr ?*/ = &/*? p.name ?*/;
                 * /*? ptr ?*/ = /*? p.name ?*/;
             /*- endif -*/
         /*- else -*/
