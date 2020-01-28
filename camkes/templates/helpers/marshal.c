@@ -96,23 +96,20 @@
     /*? assert(isinstance(input_parameters, (list, tuple))) ?*/
 
     static unsigned /*? function ?*/(
-    /*? show_input_parameter_list(input_parameters, ['in', 'refin', 'inout']) ?*/
+    /*? show_input_parameter_list(input_parameters, ['in', 'refin', 'inout'], namespace_prefix="p_") ?*/
     /*- if len(input_parameters) == 0 -*/
         void
     /*- endif -*/
     ) {
 
-        /*- set offset = c_symbol('offset') -*/
-        unsigned /*? offset ?*/ = 0;
+        unsigned offset = 0;
 
-        /*- set base = c_symbol('buffer_base') -*/
-        void * /*? base ?*/ UNUSED = (void*)(/*? buffer ?*/);
+        void * base = (void*)(/*? buffer ?*/);
 
         /*- if methods_len > 1 -*/
             /* Marshal the method index. */
-            /*- set call = c_symbol('method_index') -*/
-            /*? macros.type_to_fit_integer(methods_len) ?*/ /*? call ?*/ = /*? method_index ?*/;
-            MARSHAL_PARAM(&/*? call ?*/, /*? base ?*/, /*? size ?*/, /*? offset ?*/, "/*? name ?*/", "method_index");
+            /*? macros.type_to_fit_integer(methods_len) ?*/ method_index = /*? method_index ?*/;
+            offset = MARSHAL_PARAM(&method_index, base, /*? size ?*/, offset, "/*? name ?*/", "method_index");
         /*- endif -*/
 
         /* Marshal the parameters. */
@@ -122,57 +119,57 @@
              * are taking the address of local variables. In future, we need to avoid
              * doing this for verification.
              */
-            /*- set ptr = c_symbol('ptr') -*/
-            /*- set ptr_sz = c_symbol('ptr_sz') -*/
-            /*- set ptr_str = c_symbol('ptr_str') -*/
-            /*- set ptr_arr = c_symbol('ptr_arr') -*/
+            /*- set ptr = "p_%s_ptr" % p.name -*/
+            /*- set ptr_sz = "p_%s_ptr_sz" % p.name -*/
+            /*- set ptr_str = "p_%s_ptr_str" % p.name -*/
+            /*- set ptr_arr = "p_%s_ptr_arr" % p.name -*/
             /*- if p.direction == 'in' -*/
                 /*- if p.array -*/
-                    size_t * /*? ptr_sz ?*/ = &/*? p.name ?*/_sz;
-                    * /*? ptr_sz ?*/ = /*? p.name ?*/_sz;
+                    size_t * /*? ptr_sz ?*/ = &p_/*? p.name ?*/_sz;
+                    * /*? ptr_sz ?*/ = p_/*? p.name ?*/_sz;
                     /*- if p.type == 'string' -*/
-                        char ** /*? ptr_arr ?*/ = /*? p.name ?*/;
+                        char ** /*? ptr_arr ?*/ = p_/*? p.name ?*/;
                     /*- else -*/
-                        const /*? macros.show_type(p.type) ?*/ * /*? ptr_arr ?*/ = /*? p.name ?*/;
+                        const /*? macros.show_type(p.type) ?*/ * /*? ptr_arr ?*/ = p_/*? p.name ?*/;
                     /*- endif -*/
                 /*- elif p.type == 'string' -*/
-                    const char * /*? ptr_str ?*/ = /*? p.name ?*/;
+                    const char * /*? ptr_str ?*/ = p_/*? p.name ?*/;
                 /*- else -*/
-                    /*? macros.show_type(p.type) ?*/ * /*? ptr ?*/ = &/*? p.name ?*/;
-                    * /*? ptr ?*/ = /*? p.name ?*/;
+                    /*? macros.show_type(p.type) ?*/ * /*? ptr ?*/ = &p_/*? p.name ?*/;
+                    * /*? ptr ?*/ = p_/*? p.name ?*/;
                 /*- endif -*/
             /*- else -*/
                 /*- if p.array -*/
-                    const size_t * /*? ptr_sz ?*/ = /*? p.name ?*/_sz;
+                    const size_t * /*? ptr_sz ?*/ = p_/*? p.name ?*/_sz;
                     /*- if p.type == 'string' -*/
-                        char ** /*? ptr_arr ?*/ = * /*? p.name ?*/;
+                        char ** /*? ptr_arr ?*/ = * p_/*? p.name ?*/;
                     /*- else -*/
-                        const /*? macros.show_type(p.type) ?*/ * /*? ptr_arr ?*/ = * /*? p.name ?*/;
+                        const /*? macros.show_type(p.type) ?*/ * /*? ptr_arr ?*/ = * p_/*? p.name ?*/;
                     /*- endif -*/
                 /*- elif p.type == 'string' -*/
-                    const char * /*? ptr_str ?*/ = * /*? p.name ?*/;
+                    const char * /*? ptr_str ?*/ = * p_/*? p.name ?*/;
                 /*- else -*/
-                    const /*? macros.show_type(p.type) ?*/ * /*? ptr ?*/ = /*? p.name ?*/;
+                    const /*? macros.show_type(p.type) ?*/ * /*? ptr ?*/ = p_/*? p.name ?*/;
                 /*- endif -*/
             /*- endif -*/
 
             /*- if p.array -*/
                 /*- if p.type == 'string' -*/
-                    /*? offset ?*/ = MARSHAL_STRING_ARRAY_PARAM(/*? ptr_arr ?*/, /*? ptr_sz ?*/, /*? base ?*/, /*? size ?*/, /*? offset ?*/, "/*? name ?*/", "/*? p.name ?*/")
+                    offset = MARSHAL_STRING_ARRAY_PARAM(/*? ptr_arr ?*/, /*? ptr_sz ?*/, base, /*? size ?*/, offset, "/*? name ?*/", "/*? p.name ?*/")
                 /*- else -*/
-                    /*? offset ?*/ = MARSHAL_ARRAY_PARAM(/*? ptr_arr ?*/, /*? ptr_sz ?*/, /*? base ?*/, /*? size ?*/, /*? offset ?*/, "/*? name ?*/", "/*? p.name ?*/")
+                    offset = MARSHAL_ARRAY_PARAM(/*? ptr_arr ?*/, /*? ptr_sz ?*/, base, /*? size ?*/, offset, "/*? name ?*/", "/*? p.name ?*/")
                 /*- endif -*/
             /*- elif p.type == 'string' -*/
-                /*? offset ?*/ = MARSHAL_STRING_PARAM(/*? ptr_str ?*/, /*? base ?*/, /*? size ?*/, /*? offset ?*/, "/*? name ?*/", "/*? p.name ?*/");
+                offset = MARSHAL_STRING_PARAM(/*? ptr_str ?*/, base, /*? size ?*/, offset, "/*? name ?*/", "/*? p.name ?*/");
             /*- else -*/
-                /*? offset ?*/ = MARSHAL_PARAM(/*? ptr ?*/, /*? base ?*/, /*? size ?*/, /*? offset ?*/, "/*? name ?*/", "/*? p.name ?*/");
+                offset = MARSHAL_PARAM(/*? ptr ?*/, base, /*? size ?*/, offset, "/*? name ?*/", "/*? p.name ?*/");
             /*- endif -*/
         /*- endfor -*/
 
-        assert(/*? offset ?*/ <= /*? size ?*/ &&
+        assert(offset <= /*? size ?*/ &&
             "uncaught buffer overflow while marshalling inputs for /*? name ?*/");
 
-        return /*? offset ?*/;
+        return offset;
     }
 /*- endmacro -*/
 
@@ -221,35 +218,31 @@
 
     static int
     /*? function ?*/(
-    /*- set size = c_symbol('size') -*/
-    unsigned /*? size ?*/
+    unsigned size
     /*- if return_type is not none or len(output_parameters) > 0 -*/
         ,
     /*- endif -*/
-    /*- set ret = c_symbol('return') -*/
     /*- if return_type is not none -*/
         /*? macros.show_type(return_type) ?*/ *
-        /*? ret ?*/
+        return_value
         /*- if len(output_parameters) > 0 -*/
             ,
         /*- endif -*/
     /*- endif -*/
 
-    /*? show_output_parameter_list(output_parameters) ?*/
+    /*? show_output_parameter_list(output_parameters, namespace_prefix="p_") ?*/
     ) {
 
-        /*- set offset = c_symbol('offset') -*/
-        unsigned /*? offset ?*/ UNUSED = 0;
+        unsigned offset = 0;
 
-        /*- set base = c_symbol('buffer_base') -*/
-        void * /*? base ?*/ UNUSED = (void*)(/*? buffer ?*/);
+        void * base = (void*)(/*? buffer ?*/);
 
         /*- if return_type is not none -*/
             /* Unmarshal the return value. */
             /*- if return_type == 'string' -*/
-                /*? offset ?*/ = UNMARSHAL_STRING_PARAM(/*? ret ?*/, /*? base ?*/, /*? size ?*/, /*? offset ?*/, "/*? name ?*/", "return value", ({return -1;}))
+                offset = UNMARSHAL_STRING_PARAM(return_value, base, size, offset, "/*? name ?*/", "return value", ({return -1;}))
             /*- else -*/
-                /*? offset ?*/ = UNMARSHAL_PARAM(/*? ret ?*/, /*? base ?*/, /*? size ?*/, /*? offset ?*/, "/*? name ?*/", "return value", ({return -1;}))
+                offset = UNMARSHAL_PARAM(return_value, base, size, offset, "/*? name ?*/", "return value", ({return -1;}))
             /*- endif -*/
         /*- endif -*/
 
@@ -259,35 +252,35 @@
             /*- if p.array -*/
                 /*- if p.direction == 'inout' -*/
                     /*- if p.type == 'string' -*/
-                        /* At this point /*? p.name ?*/_sz should still contain the old size */
-                        for (int i = 0; i < * /*? p.name ?*/_sz; i ++) {
-                            free((* /*? p.name ?*/)[i]);
+                        /* At this point p_/*? p.name ?*/_sz should still contain the old size */
+                        for (int i = 0; i < * p_/*? p.name ?*/_sz; i ++) {
+                            free((* p_/*? p.name ?*/)[i]);
                         }
                     /*- endif -*/
-                    free(* /*? p.name ?*/);
+                    free(* p_/*? p.name ?*/);
                 /*- endif -*/
             /*- elif p.type == 'string' -*/
                 /*- if p.direction == 'inout' -*/
-                    free(* /*? p.name ?*/);
+                    free(* p_/*? p.name ?*/);
                 /*- endif -*/
             /*- endif -*/
 
             /*- if p.array -*/
                 /*- if p.type == 'string' -*/
-                    /*? offset ?*/ = UNMARSHAL_STRING_ARRAY_PARAM(/*? p.name ?*/, /*? p.name ?*/_sz, /*? base ?*/, /*? size ?*/, /*? offset ?*/, "/*? name ?*/", "/*? p.name ?*/", ({goto cleanup_/*? index ?*/;}))
+                    offset = UNMARSHAL_STRING_ARRAY_PARAM(p_/*? p.name ?*/, p_/*? p.name ?*/_sz, base, size, offset, "/*? name ?*/", "/*? p.name ?*/", ({goto cleanup_/*? index ?*/;}))
                 /*- else -*/
-                    /*? offset ?*/ = UNMARSHAL_ARRAY_PARAM(/*? p.name ?*/, /*? p.name ?*/_sz, /*? base ?*/, /*? size ?*/, /*? offset ?*/, "/*? name ?*/", "/*? p.name ?*/", ({goto cleanup_/*? index ?*/;}))
+                    offset = UNMARSHAL_ARRAY_PARAM(p_/*? p.name ?*/, p_/*? p.name ?*/_sz, base, size, offset, "/*? name ?*/", "/*? p.name ?*/", ({goto cleanup_/*? index ?*/;}))
                 /*- endif -*/
             /*- elif p.type == 'string' -*/
-                /*? offset ?*/ = UNMARSHAL_STRING_PARAM(/*? p.name ?*/, /*? base ?*/, /*? size ?*/, /*? offset ?*/, "/*? name ?*/", "/*? p.name ?*/", ({goto cleanup_/*? index ?*/;}))
+                offset = UNMARSHAL_STRING_PARAM(p_/*? p.name ?*/, base, size, offset, "/*? name ?*/", "/*? p.name ?*/", ({goto cleanup_/*? index ?*/;}))
             /*- else -*/
-                /*? offset ?*/ = UNMARSHAL_PARAM(/*? p.name ?*/, /*? base ?*/, /*? size ?*/, /*? offset ?*/, "/*? name ?*/", "/*? p.name ?*/", ({goto cleanup_/*? index ?*/;}))
+                offset = UNMARSHAL_PARAM(p_/*? p.name ?*/, base, size, offset, "/*? name ?*/", "/*? p.name ?*/", ({goto cleanup_/*? index ?*/;}))
             /*- endif -*/
         /*- endfor -*/
 
         /*- if not allow_trailing_data -*/
         /* Error if there is still payload that hasn't been processed */
-        ERR_IF_MALFORMED_RPC_EXCESS_PAYLOAD(/*? size ?*/, /*? offset ?*/, "/*? name ?*/", ({
+        ERR_IF_MALFORMED_RPC_EXCESS_PAYLOAD(size, offset, "/*? name ?*/", ({
             goto cleanup_/*? len(output_parameters) ?*/;
         }));
     /*- endif -*/
@@ -298,18 +291,18 @@
 cleanup_/*? index + 1 ?*/:
         /*- if q.array -*/
             /*- if q.type == 'string' -*/
-                for (int i = 0; i < * /*? q.name ?*/_sz; i++) {
-                    free((* /*? q.name ?*/)[i]);
+                for (int i = 0; i < * p_/*? q.name ?*/_sz; i++) {
+                    free((* p_/*? q.name ?*/)[i]);
                 }
             /*- endif -*/
-            free(* /*? q.name ?*/);
+            free(* p_/*? q.name ?*/);
         /*- elif q.type == 'string' -*/
-            free(* /*? q.name ?*/);
+            free(* p_/*? q.name ?*/);
         /*- endif -*/
     /*- endfor -*/
 cleanup_0:
             /*-- if return_type == 'string' -*/
-                free(* /*? ret ?*/);
+                free(* return_value);
             /*-- endif -*/
             return -1;
     }
@@ -370,23 +363,20 @@ cleanup_0:
     /*? assert(isinstance(input_parameters, (list, tuple))) ?*/
 
     static int /*? function ?*/(
-    /*- set size = c_symbol('size') -*/
-    unsigned /*? size ?*/
+    unsigned size
     /*- if len(input_parameters) > 0 -*/
         ,
     /*- endif -*/
-    /*? show_output_parameter_list(input_parameters) ?*/
+    /*? show_output_parameter_list(input_parameters, namespace_prefix="p_") ?*/
     ) {
 
-        /*- set offset = c_symbol('offset') -*/
-        unsigned /*? offset ?*/ UNUSED = 0;
+        unsigned offset = 0;
 
-        /*- set base = c_symbol('buffer_base') -*/
-        void * /*? base ?*/ UNUSED = (void*)(/*? buffer ?*/);
+        void * base = (void*)(/*? buffer ?*/);
 
         /*- if methods_len > 1 -*/
             /* Step over the method index. */
-            /*? offset ?*/ += sizeof(/*? macros.type_to_fit_integer(methods_len) ?*/);
+            offset += sizeof(/*? macros.type_to_fit_integer(methods_len) ?*/);
         /*- endif -*/
 
         /* Unmarshal input parameters. */
@@ -394,19 +384,19 @@ cleanup_0:
             /*? assert(isinstance(p.type, six.string_types)) ?*/
             /*- if p.array -*/
                 /*- if p.type == 'string' -*/
-                    /*? offset ?*/ = UNMARSHAL_STRING_ARRAY_PARAM(/*? p.name ?*/, /*? p.name ?*/_sz, /*? base ?*/, /*? size ?*/, /*? offset ?*/, "/*? name ?*/", "/*? p.name ?*/", ({goto cleanup_/*? index ?*/;}))
+                    offset = UNMARSHAL_STRING_ARRAY_PARAM(p_/*? p.name ?*/, p_/*? p.name ?*/_sz, base, size, offset, "/*? name ?*/", "/*? p.name ?*/", ({goto cleanup_/*? index ?*/;}))
                 /*- else -*/
-                    /*? offset ?*/ = UNMARSHAL_ARRAY_PARAM(/*? p.name ?*/, /*? p.name ?*/_sz, /*? base ?*/, /*? size ?*/, /*? offset ?*/, "/*? name ?*/", "/*? p.name ?*/", ({goto cleanup_/*? index ?*/;}))
+                    offset = UNMARSHAL_ARRAY_PARAM(p_/*? p.name ?*/, p_/*? p.name ?*/_sz, base, size, offset, "/*? name ?*/", "/*? p.name ?*/", ({goto cleanup_/*? index ?*/;}))
                 /*- endif -*/
             /*- elif p.type == 'string' -*/
-                /*? offset ?*/ = UNMARSHAL_STRING_PARAM(/*? p.name ?*/, /*? base ?*/, /*? size ?*/, /*? offset ?*/, "/*? name ?*/", "/*? p.name ?*/", ({goto cleanup_/*? index ?*/;}))
+                offset = UNMARSHAL_STRING_PARAM(p_/*? p.name ?*/, base, size, offset, "/*? name ?*/", "/*? p.name ?*/", ({goto cleanup_/*? index ?*/;}))
             /*- else -*/
-                /*? offset ?*/ = UNMARSHAL_PARAM(/*? p.name ?*/, /*? base ?*/, /*? size ?*/, /*? offset ?*/, "/*? name ?*/", "/*? p.name ?*/", ({goto cleanup_/*? index ?*/;}))
+                offset = UNMARSHAL_PARAM(p_/*? p.name ?*/, base, size, offset, "/*? name ?*/", "/*? p.name ?*/", ({goto cleanup_/*? index ?*/;}))
             /*- endif -*/
         /*- endfor -*/
 
         /*- if not allow_trailing_data -*/
-            ERR_IF_MALFORMED_RPC_EXCESS_PAYLOAD(/*? size ?*/, /*? offset ?*/, "/*? name ?*/", ({
+            ERR_IF_MALFORMED_RPC_EXCESS_PAYLOAD(size, offset, "/*? name ?*/", ({
                 goto cleanup_/*? len(input_parameters) ?*/;
             }));
         /*- endif -*/
@@ -416,14 +406,13 @@ cleanup_0:
 cleanup_/*? index + 1 ?*/:
             /*-- if q.array -*/
                 /*-- if q.type == 'string' -*/
-                    /*-- set mcount = c_symbol() -*/
-                    for (int /*? mcount ?*/ = 0; /*? mcount ?*/ < * /*? q.name ?*/_sz; /*? mcount ?*/ ++) {
-                        free((* /*? q.name ?*/)[/*? mcount ?*/]);
+                    for (int i = 0; i < * p_/*? q.name ?*/_sz; i ++) {
+                        free((* p_/*? q.name ?*/)[i]);
                     }
                 /*-- endif -*/
-                free(* /*? q.name ?*/);
+                free(* p_/*? q.name ?*/);
             /*-- elif q.type == 'string' -*/
-                free(* /*? q.name ?*/);
+                free(* p_/*? q.name ?*/);
             /*-- endif -*/
         /*-- endfor -*/
 cleanup_0:
@@ -478,35 +467,32 @@ cleanup_0:
     /*? assert(return_type is none or isinstance(return_type, six.string_types)) ?*/
 
     static unsigned /*? function ?*/(
-    /*- set ret = c_symbol('return') -*/
     /*- if return_type is not none -*/
         /*- if return_type == 'string' -*/
-            char ** /*? ret ?*/
+            char ** return_var
         /*- else -*/
-            const /*? macros.show_type(return_type) ?*/ * /*? ret ?*/
+            const /*? macros.show_type(return_type) ?*/ * return_var
         /*- endif -*/
         /*- if len(output_parameters) > 0 -*/
             ,
         /*- endif -*/
     /*- endif -*/
-    /*? show_input_parameter_list(output_parameters, ['out', 'inout']) ?*/
+    /*? show_input_parameter_list(output_parameters, ['out', 'inout'], namespace_prefix="p_") ?*/
     /*- if return_type is none and len(output_parameters) == 0 -*/
         void
     /*- endif -*/
     ) {
 
-        /*- set offset = c_symbol('offset') -*/
-        unsigned /*? offset ?*/ = 0;
+        unsigned offset = 0;
 
-        /*- set base = c_symbol('buffer_base') -*/
-        void * /*? base ?*/ UNUSED = (void*)(/*? buffer ?*/);
+        void * base = (void*)(/*? buffer ?*/);
 
         /*- if return_type is not none -*/
             /* Marshal the return value. */
             /*- if return_type == 'string' -*/
-                /*? offset ?*/ = MARSHAL_STRING_PARAM(* /*? ret ?*/, /*? base ?*/, /*? size ?*/, /*? offset ?*/, "/*? name ?*/", "return value")
+                offset = MARSHAL_STRING_PARAM(* return_var, base, /*? size ?*/, offset, "/*? name ?*/", "return value")
             /*- else -*/
-                /*? offset ?*/ = MARSHAL_PARAM(/*? ret ?*/, /*? base ?*/, /*? size ?*/, /*? offset ?*/, "/*? name ?*/", "return value")
+                offset = MARSHAL_PARAM(return_var, base, /*? size ?*/, offset, "/*? name ?*/", "return value")
             /*- endif -*/
         /*- endif -*/
 
@@ -515,21 +501,21 @@ cleanup_0:
             /*? assert(isinstance(p.type, six.string_types)) ?*/
             /*- if p.array -*/
                 /*- if p.type == 'string' -*/
-                    /*? offset ?*/ = MARSHAL_STRING_ARRAY_PARAM((* /*? p.name ?*/), /*? p.name ?*/_sz, /*? base ?*/, /*? size ?*/, /*? offset ?*/, "/*? name ?*/", "/*? p.name ?*/")
+                    offset = MARSHAL_STRING_ARRAY_PARAM((* p_/*? p.name ?*/), p_/*? p.name ?*/_sz, base, /*? size ?*/, offset, "/*? name ?*/", "/*? p.name ?*/")
                 /*- else -*/
-                    /*? offset ?*/ = MARSHAL_ARRAY_PARAM((* /*? p.name ?*/), /*? p.name ?*/_sz, /*? base ?*/, /*? size ?*/, /*? offset ?*/, "/*? name ?*/", "/*? p.name ?*/")
+                    offset = MARSHAL_ARRAY_PARAM((* p_/*? p.name ?*/), p_/*? p.name ?*/_sz, base, /*? size ?*/, offset, "/*? name ?*/", "/*? p.name ?*/")
                 /*- endif -*/
             /*- elif p.type == 'string' -*/
-                /*? offset ?*/ = MARSHAL_STRING_PARAM(* /*? p.name ?*/, /*? base ?*/, /*? size ?*/, /*? offset ?*/, "/*? name ?*/", "/*? p.name ?*/")
+                offset = MARSHAL_STRING_PARAM(* p_/*? p.name ?*/, base, /*? size ?*/, offset, "/*? name ?*/", "/*? p.name ?*/")
             /*- else -*/
-                /*? offset ?*/ = MARSHAL_PARAM(/*? p.name ?*/, /*? base ?*/, /*? size ?*/, /*? offset ?*/, "/*? name ?*/", "/*? p.name ?*/")
+                offset = MARSHAL_PARAM(p_/*? p.name ?*/, base, /*? size ?*/, offset, "/*? name ?*/", "/*? p.name ?*/")
             /*- endif -*/
         /*- endfor -*/
 
-        assert(/*? offset ?*/ <= /*? size ?*/ &&
+        assert(offset <= /*? size ?*/ &&
             "uncaught buffer overflow while marshalling outputs for /*? name ?*/");
 
-        return /*? offset ?*/;
+        return offset;
     }
 /*- endmacro -*/
 
