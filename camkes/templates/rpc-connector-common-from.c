@@ -24,6 +24,7 @@
 #include <sync/sem-bare.h>
 #include <camkes/dataport.h>
 #include <camkes/error.h>
+#include <camkes/marshal_macros.h>
 #include <camkes/tls.h>
 
 /*? macros.show_includes(me.instance.type.includes) ?*/
@@ -36,6 +37,10 @@
 /* Interface-specific error handling */
 /*- set error_handler = '%s_error_handler' % me.interface.name -*/
 /*? error.make_error_handler(interface, error_handler) ?*/
+
+#define CAMKES_INTERFACE_NAME "/*? interface ?*/"
+#define CAMKES_INSTANCE_NAME "/*? instance ?*/"
+#define CAMKES_ERROR_HANDLER /*? error_handler ?*/
 
 /*- for i, m in enumerate(me.interface.type.methods) -*/
 

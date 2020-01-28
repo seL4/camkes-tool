@@ -76,19 +76,6 @@
     /*- endfor -*/
 /*- endmacro -*/
 
-/*- macro err_if_buffer_length_exceeded(instance, interface, size, cur_offset, desired, target_name, parent_name, error_handler) -*/
-    ERR_IF(/*? desired ?*/ > /*? size ?*/ - /*? cur_offset ?*/, /*? error_handler ?*/, ((camkes_error_t){
-        .type = CE_BUFFER_LENGTH_EXCEEDED,
-        .instance = "/*? instance ?*/",
-        .interface = "/*? interface ?*/",
-        .description = "buffer exceeded while marshalling /*? target_name ?*/ in /*? parent_name ?*/",
-        .current_length = /*? cur_offset ?*/,
-        .target_length = /*? cur_offset ?*/ + /*? desired ?*/,
-        }), ({
-            return UINT_MAX;
-    }));
-/*- endmacro -*/
-
 /*# Generates code for marshalling input parameters to an RPC invocation
   #     instance: Name of this component instance
   #     interface: Name of this interface
@@ -121,9 +108,8 @@
     /*- endif -*/
     ) {
 
-        /*- set length = c_symbol('length') -*/
-        /*- set offset = length -*/
-        unsigned /*? length ?*/ = 0;
+        /*- set offset = c_symbol('offset') -*/
+        unsigned /*? offset ?*/ = 0;
 
         /*- set base = c_symbol('buffer_base') -*/
         void * /*? base ?*/ UNUSED = (void*)(/*? buffer ?*/);
@@ -132,10 +118,7 @@
             /* Marshal the method index. */
             /*- set call = c_symbol('method_index') -*/
             /*? macros.type_to_fit_integer(methods_len) ?*/ /*? call ?*/ = /*? method_index ?*/;
-            /*- set target = 'sizeof(%s)' % call -*/
-            /*? err_if_buffer_length_exceeded(instance, interface, size, length, target, name, name, error_handler) ?*/
-            memcpy(/*? base ?*/, & /*? call ?*/, /*? target ?*/);
-            /*? length ?*/ += /*? target ?*/;
+            MARSHAL_PARAM(&/*? call ?*/, /*? base ?*/, /*? size ?*/, /*? offset ?*/, "/*? name ?*/", "method_index");
         /*- endif -*/
 
         /* Marshal the parameters. */
@@ -180,47 +163,22 @@
             /*- endif -*/
 
             /*- if p.array -*/
-                /*- set target = 'sizeof(* %s)' % ptr_sz -*/
-                /*? err_if_buffer_length_exceeded(instance, interface, size, offset, target, p.name, name, error_handler) ?*/
-                memcpy(/*? base ?*/ + /*? offset ?*/, /*? ptr_sz ?*/, /*? target ?*/);
-                /*? offset ?*/ += /*? target ?*/;
                 /*- if p.type == 'string' -*/
-                    /*- set lcount = c_symbol() -*/
-                    for (int /*? lcount ?*/ = 0; /*? lcount ?*/ < * /*? ptr_sz ?*/; /*? lcount ?*/ ++) {
-                        /*- set strlen = c_symbol('strlen') -*/
-                        size_t /*? strlen ?*/ = strnlen(/*? ptr_arr ?*/[/*? lcount ?*/], /*? size ?*/ - /*? offset ?*/);
-                        /*- set nulllen = '%s + 1' % strlen -*/
-                        /*? err_if_buffer_length_exceeded(instance, interface, size, offset, nulllen, p.name, name, error_handler) ?*/
-                        /* If we didn't trigger an error, we now know this strcpy is safe. */
-                        (void)strcpy(/*? base ?*/ + /*? offset ?*/, /*? ptr_arr ?*/[/*? lcount ?*/]);
-                        /*? offset ?*/ += /*? nulllen ?*/;
-                    }
+                    /*? offset ?*/ = MARSHAL_STRING_ARRAY_PARAM(/*? ptr_arr ?*/, /*? ptr_sz ?*/, /*? base ?*/, /*? size ?*/, /*? offset ?*/, "/*? name ?*/", "/*? p.name ?*/")
                 /*- else -*/
-                    /*- set target = 'sizeof(%s[0]) * (* %s)' % (ptr_arr, ptr_sz) -*/
-                    /*? err_if_buffer_length_exceeded(instance, interface, size, offset, target, p.name, name, error_handler) ?*/
-                    memcpy(/*? base ?*/ + /*? offset ?*/, /*? ptr_arr ?*/, /*? target ?*/);
-                    /*? offset ?*/ += /*? target ?*/;
+                    /*? offset ?*/ = MARSHAL_ARRAY_PARAM(/*? ptr_arr ?*/, /*? ptr_sz ?*/, /*? base ?*/, /*? size ?*/, /*? offset ?*/, "/*? name ?*/", "/*? p.name ?*/")
                 /*- endif -*/
             /*- elif p.type == 'string' -*/
-                /*- set strlen = c_symbol('strlen') -*/
-                size_t /*? strlen ?*/ = strnlen(/*? ptr_str ?*/, /*? size ?*/ - /*? offset ?*/);
-                /*- set nulllen = '%s + 1' % strlen -*/
-                /*? err_if_buffer_length_exceeded(instance, interface, size, offset, nulllen, p.name, name, error_handler) ?*/
-                /* If we didn't trigger an error, we now know this strcpy is safe. */
-                (void)strcpy(/*? base ?*/ + /*? offset ?*/, /*? ptr_str ?*/);
-                /*? offset ?*/ += /*? nulllen ?*/;
+                /*? offset ?*/ = MARSHAL_STRING_PARAM(/*? ptr_str ?*/, /*? base ?*/, /*? size ?*/, /*? offset ?*/, "/*? name ?*/", "/*? p.name ?*/");
             /*- else -*/
-                /*- set target = 'sizeof(* %s)' % ptr -*/
-                /*? err_if_buffer_length_exceeded(instance, interface, size, offset, target, p.name, name, error_handler) ?*/
-                memcpy(/*? base ?*/ + /*? offset ?*/, /*? ptr ?*/, /*? target ?*/);
-                /*? offset ?*/ += /*? target ?*/;
+                /*? offset ?*/ = MARSHAL_PARAM(/*? ptr ?*/, /*? base ?*/, /*? size ?*/, /*? offset ?*/, "/*? name ?*/", "/*? p.name ?*/");
             /*- endif -*/
         /*- endfor -*/
 
-        assert(/*? length ?*/ <= /*? size ?*/ &&
+        assert(/*? offset ?*/ <= /*? size ?*/ &&
             "uncaught buffer overflow while marshalling inputs for /*? name ?*/");
 
-        return /*? length ?*/;
+        return /*? offset ?*/;
     }
 /*- endmacro -*/
 
@@ -292,9 +250,8 @@
     /*? show_output_parameter_list(output_parameters) ?*/
     ) {
 
-        /*- set length = c_symbol('length') -*/
-        /*- set offset = length -*/
-        unsigned /*? length ?*/ UNUSED = 0;
+        /*- set offset = c_symbol('offset') -*/
+        unsigned /*? offset ?*/ UNUSED = 0;
 
         /*- set base = c_symbol('buffer_base') -*/
         void * /*? base ?*/ UNUSED = (void*)(/*? buffer ?*/);
@@ -302,42 +259,9 @@
         /*- if return_type is not none -*/
             /* Unmarshal the return value. */
             /*- if return_type == 'string' -*/
-                /*- set strlen = c_symbol('strlen') -*/
-                size_t /*? strlen ?*/ = strnlen(/*? base ?*/ + /*? offset ?*/, /*? size ?*/ - /*? offset ?*/);
-                ERR_IF(/*? strlen ?*/ >= /*? size ?*/ - /*? offset ?*/, /*? error_handler ?*/, ((camkes_error_t){
-                    .type = CE_MALFORMED_RPC_PAYLOAD,
-                    .instance = "/*? instance ?*/",
-                    .interface = "/*? interface ?*/",
-                    .description = "truncated message encountered while unmarshalling return value for /*? name ?*/",
-                    .length = /*? size ?*/,
-                    .current_index = /*? offset ?*/ + /*? strlen ?*/ + 1,
-                    }), ({
-                        return UINT_MAX;
-                }));
-                * /*? ret ?*/ = strdup(/*? base ?*/ + /*? offset ?*/);
-                ERR_IF(* /*? ret ?*/ == NULL, /*? error_handler ?*/, ((camkes_error_t){
-                    .type = CE_ALLOCATION_FAILURE,
-                    .instance = "/*? instance ?*/",
-                    .interface = "/*? interface ?*/",
-                    .description = "out of memory while unmarshalling return value for /*? name ?*/",
-                    .alloc_bytes = /*? strlen ?*/ + 1,
-                    }), ({
-                        return UINT_MAX;
-                }));
-                /*? offset ?*/ += /*? strlen ?*/ + 1;
+                /*? offset ?*/ = UNMARSHAL_STRING_PARAM(/*? ret ?*/, /*? base ?*/, /*? size ?*/, /*? offset ?*/, "/*? name ?*/", "return value", ({return -1;}))
             /*- else -*/
-                ERR_IF(/*? offset ?*/ + sizeof(* /*? ret ?*/) > /*? size ?*/, /*? error_handler ?*/, ((camkes_error_t){
-                    .type = CE_MALFORMED_RPC_PAYLOAD,
-                    .instance = "/*? instance ?*/",
-                    .interface = "/*? interface ?*/",
-                    .description = "truncated message encountered while unmarshalling return value for /*? name ?*/",
-                    .length = /*? size ?*/,
-                    .current_index = /*? offset ?*/ + sizeof(* /*? ret ?*/),
-                    }), ({
-                        return UINT_MAX;
-                }));
-                memcpy(/*? ret ?*/, /*? base ?*/ + /*? offset ?*/, sizeof(* /*? ret ?*/));
-                /*? offset ?*/ += sizeof(* /*? ret ?*/);
+                /*? offset ?*/ = UNMARSHAL_PARAM(/*? ret ?*/, /*? base ?*/, /*? size ?*/, /*? offset ?*/, "/*? name ?*/", "return value", ({return -1;}))
             /*- endif -*/
         /*- endif -*/
 
@@ -348,158 +272,35 @@
                 /*- if p.direction == 'inout' -*/
                     /*- if p.type == 'string' -*/
                         /* At this point /*? p.name ?*/_sz should still contain the old size */
-                        /*- set mcount = c_symbol() -*/
-                        for (int /*? mcount ?*/ = 0; /*? mcount ?*/ < * /*? p.name ?*/_sz; /*? mcount ?*/ ++) {
-                            free((* /*? p.name ?*/)[/*? mcount ?*/]);
+                        for (int i = 0; i < * /*? p.name ?*/_sz; i ++) {
+                            free((* /*? p.name ?*/)[i]);
                         }
                     /*- endif -*/
                     free(* /*? p.name ?*/);
                 /*- endif -*/
-
             /*- elif p.type == 'string' -*/
                 /*- if p.direction == 'inout' -*/
                     free(* /*? p.name ?*/);
                 /*- endif -*/
             /*- endif -*/
+
             /*- if p.array -*/
-                ERR_IF(/*? offset ?*/ + sizeof(* /*? p.name ?*/_sz) > /*? size ?*/, /*? error_handler ?*/, ((camkes_error_t){
-                    .type = CE_MALFORMED_RPC_PAYLOAD,
-                    .instance = "/*? instance ?*/",
-                    .interface = "/*? interface ?*/",
-                    .description = "truncated message encountered while unmarshalling /*? p.name ?*/ in /*? name ?*/",
-                    .length = /*? size ?*/,
-                    .current_index = /*? offset ?*/ + sizeof(* /*? p.name ?*/_sz),
-                    }), ({
-                        goto cleanup_/*? index ?*/;
-                }));
-                memcpy(/*? p.name ?*/_sz, /*? base ?*/ + /*? offset ?*/, sizeof(* /*? p.name ?*/_sz));
-                /*? offset ?*/ += sizeof(* /*? p.name ?*/_sz);
                 /*- if p.type == 'string' -*/
-                    * /*? p.name ?*/ = malloc(sizeof(char*) * (* /*? p.name ?*/_sz));
-                    ERR_IF(* /*? p.name ?*/ == NULL, /*? error_handler ?*/, ((camkes_error_t){
-                        .type = CE_ALLOCATION_FAILURE,
-                        .instance = "/*? instance ?*/",
-                        .interface = "/*? interface ?*/",
-                        .description = "out of memory while unmarshalling /*? p.name ?*/ in /*? name ?*/",
-                        .alloc_bytes = sizeof(char*) * (* /*? p.name ?*/_sz),
-                        }), ({
-                            goto cleanup_/*? index ?*/;
-                    }));
+                    /*? offset ?*/ = UNMARSHAL_STRING_ARRAY_PARAM(/*? p.name ?*/, /*? p.name ?*/_sz, /*? base ?*/, /*? size ?*/, /*? offset ?*/, "/*? name ?*/", "/*? p.name ?*/", ({goto cleanup_/*? index ?*/;}))
                 /*- else -*/
-                    * /*? p.name ?*/ = malloc(sizeof((* /*? p.name ?*/)[0]) * (* /*? p.name ?*/_sz));
-                    ERR_IF(* /*? p.name ?*/ == NULL, /*? error_handler ?*/, ((camkes_error_t){
-                        .type = CE_ALLOCATION_FAILURE,
-                        .instance = "/*? instance ?*/",
-                        .interface = "/*? interface ?*/",
-                        .description = "out of memory while unmarshalling /*? p.name ?*/ in /*? name ?*/",
-                        .alloc_bytes = sizeof((* /*? p.name ?*/)[0]) * (* /*? p.name ?*/_sz),
-                        }), ({
-                            goto cleanup_/*? index ?*/;
-                    }));
-                /*- endif -*/
-                /*- if p.type == 'string' -*/
-                    /*- set lcount = c_symbol() -*/
-                    for (int /*? lcount ?*/ = 0; /*? lcount ?*/ < * /*? p.name ?*/_sz; /*? lcount ?*/ ++) {
-                        /*- set strlen = c_symbol('strlen') -*/
-                        size_t /*? strlen ?*/ = strnlen(/*? base ?*/ + /*? offset ?*/, /*? size ?*/ - /*? offset ?*/);
-                        ERR_IF(/*? strlen ?*/ >= /*? size ?*/ - /*? offset ?*/, /*? error_handler ?*/, ((camkes_error_t){
-                            .type = CE_MALFORMED_RPC_PAYLOAD,
-                            .instance = "/*? instance ?*/",
-                            .interface = "/*? interface ?*/",
-                            .description = "truncated message encountered while unmarshalling /*? p.name ?*/ in /*? name ?*/",
-                            .length = /*? size ?*/,
-                            .current_index = /*? offset ?*/ + /*? strlen ?*/ + 1,
-                            }), ({
-                                /*- set mcount = c_symbol() -*/
-                                for (int /*? mcount ?*/ = 0; /*? mcount ?*/ < /*? lcount ?*/; /*? mcount ?*/ ++) {
-                                    free((* /*? p.name ?*/)[/*? mcount ?*/]);
-                                }
-                                free(* /*? p.name ?*/);
-                                goto cleanup_/*? index ?*/;
-                        }));
-                        /* If we didn't trigger an error, we now know this strdup is safe. */
-                        (* /*? p.name ?*/)[/*? lcount ?*/] = strdup(/*? base ?*/ + /*? offset ?*/);
-                        ERR_IF((* /*? p.name ?*/)[/*? lcount ?*/] == NULL, /*? error_handler ?*/, ((camkes_error_t){
-                            .type = CE_ALLOCATION_FAILURE,
-                            .instance = "/*? instance ?*/",
-                            .interface = "/*? interface ?*/",
-                            .description = "out of memory while unmarshalling /*? p.name ?*/ in /*? name ?*/",
-                            .alloc_bytes = /*? strlen ?*/ + 1,
-                            }), ({
-                                /*- set mcount = c_symbol() -*/
-                                for (int /*? mcount ?*/ = 0; /*? mcount ?*/ < /*? lcount ?*/; /*? mcount ?*/ ++) {
-                                    free((* /*? p.name ?*/)[/*? mcount ?*/]);
-                                }
-                                free(* /*? p.name ?*/);
-                                goto cleanup_/*? index ?*/;
-                        }));
-                        /*? offset ?*/ += /*? strlen ?*/ + 1;
-                    }
-                /*- else -*/
-                    ERR_IF(/*? offset ?*/ + sizeof((* /*? p.name ?*/)[0]) * (* /*? p.name ?*/_sz) > /*? size ?*/, /*? error_handler ?*/, ((camkes_error_t){
-                        .type = CE_MALFORMED_RPC_PAYLOAD,
-                        .instance = "/*? instance ?*/",
-                        .interface = "/*? interface ?*/",
-                        .description = "truncated message encountered while unmarshalling /*? p.name ?*/ in /*? name ?*/",
-                        .length = /*? size ?*/,
-                        .current_index = /*? offset ?*/ + sizeof((* /*? p.name ?*/)[0]) * (* /*? p.name ?*/_sz),
-                        }), ({
-                            free(* /*? p.name ?*/);
-                            goto cleanup_/*? index ?*/;
-                    }));
-                    memcpy((* /*? p.name ?*/), /*? base ?*/ + /*? offset ?*/, sizeof((* /*? p.name ?*/)[0]) * (* /*? p.name ?*/_sz));
-                    /*? offset ?*/ += sizeof((* /*? p.name ?*/)[0]) * (* /*? p.name ?*/_sz);
+                    /*? offset ?*/ = UNMARSHAL_ARRAY_PARAM(/*? p.name ?*/, /*? p.name ?*/_sz, /*? base ?*/, /*? size ?*/, /*? offset ?*/, "/*? name ?*/", "/*? p.name ?*/", ({goto cleanup_/*? index ?*/;}))
                 /*- endif -*/
             /*- elif p.type == 'string' -*/
-                /*- set strlen = c_symbol('strlen') -*/
-                size_t /*? strlen ?*/ = strnlen(/*? base ?*/ + /*? offset ?*/, /*? size ?*/ - /*? offset ?*/);
-                ERR_IF(/*? strlen ?*/ >= /*? size ?*/ - /*? offset ?*/, /*? error_handler ?*/, ((camkes_error_t){
-                    .type = CE_MALFORMED_RPC_PAYLOAD,
-                    .instance = "/*? instance ?*/",
-                    .interface = "/*? interface ?*/",
-                    .description = "truncated message encountered while unmarshalling /*? p.name ?*/ in /*? name ?*/",
-                    .length = /*? size ?*/,
-                    .current_index = /*? offset ?*/ + /*? strlen ?*/ + 1,
-                    }), ({
-                        goto cleanup_/*? index ?*/;
-                }));
-                * /*? p.name ?*/ = strdup(/*? base ?*/ + /*? offset ?*/);
-                ERR_IF(* /*? p.name ?*/ == NULL, /*? error_handler ?*/, ((camkes_error_t){
-                    .type = CE_ALLOCATION_FAILURE,
-                    .instance = "/*? instance ?*/",
-                    .interface = "/*? interface ?*/",
-                    .description = "out of memory while unmarshalling /*? p.name ?*/ in /*? name ?*/",
-                    .alloc_bytes = /*? strlen ?*/ + 1,
-                    }), ({
-                        goto cleanup_/*? index ?*/;
-                }));
-                /*? offset ?*/ += /*? strlen ?*/ + 1;
+                /*? offset ?*/ = UNMARSHAL_STRING_PARAM(/*? p.name ?*/, /*? base ?*/, /*? size ?*/, /*? offset ?*/, "/*? name ?*/", "/*? p.name ?*/", ({goto cleanup_/*? index ?*/;}))
             /*- else -*/
-                ERR_IF(/*? offset ?*/ + sizeof(* /*? p.name ?*/) > /*? size ?*/, /*? error_handler ?*/, ((camkes_error_t){
-                    .type = CE_MALFORMED_RPC_PAYLOAD,
-                    .instance = "/*? instance ?*/",
-                    .interface = "/*? interface ?*/",
-                    .description = "truncated message encountered while unmarshalling /*? p.name ?*/ in /*? name ?*/",
-                    .length = /*? size ?*/,
-                    .current_index = /*? offset ?*/ + sizeof(* /*? p.name ?*/),
-                    }), ({
-                        goto cleanup_/*? index ?*/;
-                }));
-                memcpy(/*? p.name ?*/, /*? base ?*/ + /*? offset ?*/, sizeof(* /*? p.name ?*/));
-                /*? offset ?*/ += sizeof(* /*? p.name ?*/);
+                /*? offset ?*/ = UNMARSHAL_PARAM(/*? p.name ?*/, /*? base ?*/, /*? size ?*/, /*? offset ?*/, "/*? name ?*/", "/*? p.name ?*/", ({goto cleanup_/*? index ?*/;}))
             /*- endif -*/
         /*- endfor -*/
 
         /*- if not allow_trailing_data -*/
-        ERR_IF(ROUND_UP_UNSAFE(/*? length ?*/, sizeof(seL4_Word)) != /*? size ?*/, /*? error_handler ?*/, ((camkes_error_t){
-            .type = CE_MALFORMED_RPC_PAYLOAD,
-            .instance = "/*? instance ?*/",
-            .interface = "/*? interface ?*/",
-            .description = "excess trailing bytes after unmarshalling parameters for /*? name ?*/",
-            .length = /*? size ?*/,
-            .current_index = /*? length ?*/,
-            }), ({
-                goto cleanup_/*? len(output_parameters) ?*/;
+        /* Error if there is still payload that hasn't been processed */
+        ERR_IF_MALFORMED_RPC_EXCESS_PAYLOAD(/*? size ?*/, /*? offset ?*/, "/*? name ?*/", ({
+            goto cleanup_/*? len(output_parameters) ?*/;
         }));
     /*- endif -*/
 
@@ -594,160 +395,36 @@ cleanup_0:
     /*? show_output_parameter_list(input_parameters) ?*/
     ) {
 
-        /*- set length = c_symbol('length') -*/
-        /*- set offset = length -*/
-        unsigned /*? length ?*/ UNUSED = 0;
+        /*- set offset = c_symbol('offset') -*/
+        unsigned /*? offset ?*/ UNUSED = 0;
 
         /*- set base = c_symbol('buffer_base') -*/
         void * /*? base ?*/ UNUSED = (void*)(/*? buffer ?*/);
 
         /*- if methods_len > 1 -*/
             /* Step over the method index. */
-            /*? length ?*/ += sizeof(/*? macros.type_to_fit_integer(methods_len) ?*/);
+            /*? offset ?*/ += sizeof(/*? macros.type_to_fit_integer(methods_len) ?*/);
         /*- endif -*/
 
         /* Unmarshal input parameters. */
         /*- for index, p in enumerate(input_parameters) -*/
             /*? assert(isinstance(p.type, six.string_types)) ?*/
             /*- if p.array -*/
-                ERR_IF(/*? offset ?*/ + sizeof(* /*? p.name ?*/_sz) > /*? size ?*/, /*? error_handler ?*/, ((camkes_error_t){
-                    .type = CE_MALFORMED_RPC_PAYLOAD,
-                    .instance = "/*? instance ?*/",
-                    .interface = "/*? interface ?*/",
-                    .description = "truncated message encountered while unmarshalling /*? p.name ?*/ in /*? name ?*/",
-                    .length = /*? size ?*/,
-                    .current_index = /*? offset ?*/ + sizeof(* /*? p.name ?*/_sz),
-                    }), ({
-                        goto cleanup_/*? index ?*/;
-                }));
-                memcpy(/*? p.name ?*/_sz, /*? base ?*/ + /*? offset ?*/, sizeof(* /*? p.name ?*/_sz));
-                /*? offset ?*/ += sizeof(* /*? p.name ?*/_sz);
                 /*- if p.type == 'string' -*/
-                    * /*? p.name ?*/ = malloc(sizeof(char*) * (* /*? p.name ?*/_sz));
-                    ERR_IF(* /*? p.name ?*/ == NULL, /*? error_handler ?*/, ((camkes_error_t){
-                        .type = CE_ALLOCATION_FAILURE,
-                        .instance = "/*? instance ?*/",
-                        .interface = "/*? interface ?*/",
-                        .description = "out of memory while unmarshalling /*? p.name ?*/ in /*? name ?*/",
-                        .alloc_bytes = sizeof(char*) * (* /*? p.name ?*/_sz),
-                        }), ({
-                            goto cleanup_/*? index ?*/;
-                    }));
+                    /*? offset ?*/ = UNMARSHAL_STRING_ARRAY_PARAM(/*? p.name ?*/, /*? p.name ?*/_sz, /*? base ?*/, /*? size ?*/, /*? offset ?*/, "/*? name ?*/", "/*? p.name ?*/", ({goto cleanup_/*? index ?*/;}))
                 /*- else -*/
-                    * /*? p.name ?*/ = malloc(sizeof((* /*? p.name ?*/)[0]) * (* /*? p.name ?*/_sz));
-                    ERR_IF(* /*? p.name ?*/ == NULL, /*? error_handler ?*/, ((camkes_error_t){
-                        .type = CE_ALLOCATION_FAILURE,
-                        .instance = "/*? instance ?*/",
-                        .interface = "/*? interface ?*/",
-                        .description = "out of memory while unmarshalling /*? p.name ?*/ in /*? name ?*/",
-                        .alloc_bytes = sizeof((* /*? p.name ?*/)[0]) * (* /*? p.name ?*/_sz),
-                        }), ({
-                            goto cleanup_/*? index ?*/;
-                    }));
-                /*- endif -*/
-                /*- if p.type == 'string' -*/
-                    /*- set lcount = c_symbol() -*/
-                    for (int /*? lcount ?*/ = 0; /*? lcount ?*/ < * /*? p.name ?*/_sz; /*? lcount ?*/ ++) {
-                        /*- set strlen = c_symbol('strlen') -*/
-                        size_t /*? strlen ?*/ = strnlen(/*? base ?*/ + /*? offset ?*/, /*? size ?*/ - /*? offset ?*/);
-                        ERR_IF(/*? strlen ?*/ >= /*? size ?*/ - /*? offset ?*/, /*? error_handler ?*/, ((camkes_error_t){
-                            .type = CE_MALFORMED_RPC_PAYLOAD,
-                            .instance = "/*? instance ?*/",
-                            .interface = "/*? interface ?*/",
-                            .description = "truncated message encountered while unmarshalling /*? p.name ?*/ in /*? name ?*/",
-                            .length = /*? size ?*/,
-                            .current_index = /*? offset ?*/ + /*? strlen ?*/ + 1,
-                            }), ({
-                                /*- set mcount = c_symbol() -*/
-                                for (int /*? mcount ?*/ = 0; /*? mcount ?*/ < /*? lcount ?*/; /*? mcount ?*/ ++) {
-                                    free((* /*? p.name ?*/)[/*? mcount ?*/]);
-                                }
-                                free(* /*? p.name ?*/);
-                                goto cleanup_/*? index ?*/;
-                        }));
-                        /* If we didn't trigger an error, we now know this strdup is safe. */
-                        (* /*? p.name ?*/)[/*? lcount ?*/] = strdup(/*? base ?*/ + /*? offset ?*/);
-                        ERR_IF((* /*? p.name ?*/)[/*? lcount ?*/] == NULL, /*? error_handler ?*/, ((camkes_error_t){
-                            .type = CE_ALLOCATION_FAILURE,
-                            .instance = "/*? instance ?*/",
-                            .interface = "/*? interface ?*/",
-                            .description = "out of memory while unmarshalling /*? p.name ?*/ in /*? name ?*/",
-                            .alloc_bytes = /*? strlen ?*/ + 1,
-                            }), ({
-                                /*- set mcount = c_symbol() -*/
-                                for (int /*? mcount ?*/ = 0; /*? mcount ?*/ < /*? lcount ?*/; /*? mcount ?*/ ++) {
-                                    free((* /*? p.name ?*/)[/*? mcount ?*/]);
-                                }
-                                free(* /*? p.name ?*/);
-                                goto cleanup_/*? index ?*/;
-                        }));
-                        /*? offset ?*/ += /*? strlen ?*/ + 1;
-                    }
-                /*- else -*/
-                    ERR_IF(/*? offset ?*/ + sizeof((* /*? p.name ?*/)[0]) * (* /*? p.name ?*/_sz) > /*? size ?*/, /*? error_handler ?*/, ((camkes_error_t){
-                        .type = CE_MALFORMED_RPC_PAYLOAD,
-                        .instance = "/*? instance ?*/",
-                        .interface = "/*? interface ?*/",
-                        .description = "truncated message encountered while unmarshalling /*? p.name ?*/ in /*? name ?*/",
-                        .length = /*? size ?*/,
-                        .current_index = /*? offset ?*/ + sizeof((* /*? p.name ?*/)[0]) * (* /*? p.name ?*/_sz),
-                        }), ({
-                            free(* /*? p.name ?*/);
-                            goto cleanup_/*? index ?*/;
-                    }));
-                    memcpy(* /*? p.name ?*/, /*? base ?*/ + /*? offset ?*/, sizeof((* /*? p.name ?*/)[0]) * (* /*? p.name ?*/_sz));
-                    /*? offset ?*/ += sizeof((* /*? p.name ?*/)[0]) * (* /*? p.name ?*/_sz);
+                    /*? offset ?*/ = UNMARSHAL_ARRAY_PARAM(/*? p.name ?*/, /*? p.name ?*/_sz, /*? base ?*/, /*? size ?*/, /*? offset ?*/, "/*? name ?*/", "/*? p.name ?*/", ({goto cleanup_/*? index ?*/;}))
                 /*- endif -*/
             /*- elif p.type == 'string' -*/
-                /*- set strlen = c_symbol('strlen') -*/
-                size_t /*? strlen ?*/ = strnlen(/*? base ?*/ + /*? offset ?*/, /*? size ?*/ - /*? offset ?*/);
-                ERR_IF(/*? strlen ?*/ >= /*? size ?*/ - /*? offset ?*/, /*? error_handler ?*/, ((camkes_error_t){
-                    .type = CE_MALFORMED_RPC_PAYLOAD,
-                    .instance = "/*? instance ?*/",
-                    .interface = "/*? interface ?*/",
-                    .description = "truncated message encountered while unmarshalling /*? p.name ?*/ in /*? name ?*/",
-                    .length = /*? size ?*/,
-                    .current_index = /*? offset ?*/ + /*? strlen ?*/ + 1,
-                    }), ({
-                        goto cleanup_/*? index ?*/;
-                }));
-                * /*? p.name ?*/ = strdup(/*? base ?*/ + /*? offset ?*/);
-                ERR_IF(* /*? p.name ?*/ == NULL, /*? error_handler ?*/, ((camkes_error_t){
-                    .type = CE_ALLOCATION_FAILURE,
-                    .instance = "/*? instance ?*/",
-                    .interface = "/*? interface ?*/",
-                    .description = "out of memory while unmarshalling /*? p.name ?*/ in /*? name ?*/",
-                    .alloc_bytes = /*? strlen ?*/ + 1,
-                    }), ({
-                        goto cleanup_/*? index ?*/;
-                }));
-                /*? offset ?*/ += /*? strlen ?*/ + 1;
+                /*? offset ?*/ = UNMARSHAL_STRING_PARAM(/*? p.name ?*/, /*? base ?*/, /*? size ?*/, /*? offset ?*/, "/*? name ?*/", "/*? p.name ?*/", ({goto cleanup_/*? index ?*/;}))
             /*- else -*/
-                ERR_IF(/*? offset ?*/ + sizeof(* /*? p.name ?*/) > /*? size ?*/, /*? error_handler ?*/, ((camkes_error_t){
-                    .type = CE_MALFORMED_RPC_PAYLOAD,
-                    .instance = "/*? instance ?*/",
-                    .interface = "/*? interface ?*/",
-                    .description = "truncated message encountered while unmarshalling /*? p.name ?*/ in /*? name ?*/",
-                    .length = /*? size ?*/,
-                    .current_index = /*? offset ?*/ + sizeof(* /*? p.name ?*/),
-                    }), ({
-                        goto cleanup_/*? index ?*/;
-                }));
-                memcpy(/*? p.name ?*/, /*? base ?*/ + /*? offset ?*/, sizeof(* /*? p.name ?*/));
-                /*? offset ?*/ += sizeof(* /*? p.name ?*/);
+                /*? offset ?*/ = UNMARSHAL_PARAM(/*? p.name ?*/, /*? base ?*/, /*? size ?*/, /*? offset ?*/, "/*? name ?*/", "/*? p.name ?*/", ({goto cleanup_/*? index ?*/;}))
             /*- endif -*/
         /*- endfor -*/
 
         /*- if not allow_trailing_data -*/
-            ERR_IF(ROUND_UP_UNSAFE(/*? length ?*/, sizeof(seL4_Word)) != /*? size ?*/, /*? error_handler ?*/, ((camkes_error_t){
-                .type = CE_MALFORMED_RPC_PAYLOAD,
-                .instance = "/*? instance ?*/",
-                .interface = "/*? interface ?*/",
-                .description = "excess trailing bytes after unmarshalling parameters for /*? name ?*/",
-                .length = /*? size ?*/,
-                .current_index = /*? length ?*/,
-                }), ({
-                    goto cleanup_/*? len(input_parameters) ?*/;
+            ERR_IF_MALFORMED_RPC_EXCESS_PAYLOAD(/*? size ?*/, /*? offset ?*/, "/*? name ?*/", ({
+                goto cleanup_/*? len(input_parameters) ?*/;
             }));
         /*- endif -*/
 
@@ -841,9 +518,8 @@ cleanup_0:
     /*- endif -*/
     ) {
 
-        /*- set length = c_symbol('length') -*/
-        /*- set offset = length -*/
-        unsigned /*? length ?*/ = 0;
+        /*- set offset = c_symbol('offset') -*/
+        unsigned /*? offset ?*/ = 0;
 
         /*- set base = c_symbol('buffer_base') -*/
         void * /*? base ?*/ UNUSED = (void*)(/*? buffer ?*/);
@@ -851,18 +527,9 @@ cleanup_0:
         /*- if return_type is not none -*/
             /* Marshal the return value. */
             /*- if return_type == 'string' -*/
-                /*- set strlen = c_symbol('strlen') -*/
-                size_t /*? strlen ?*/ = strnlen(* /*? ret ?*/, /*? size ?*/ - /*? offset ?*/);
-                /*- set nulllen = '%s + 1' % strlen -*/
-                /*? err_if_buffer_length_exceeded(instance, interface, size, offset, nulllen, name, name, error_handler) ?*/
-                /* If we didn't trigger an error, we now know this strcpy is safe. */
-                (void)strcpy(/*? base ?*/ + /*? offset ?*/, (* /*? ret ?*/));
-                /*? offset ?*/ += /*? nulllen ?*/;
+                /*? offset ?*/ = MARSHAL_STRING_PARAM(* /*? ret ?*/, /*? base ?*/, /*? size ?*/, /*? offset ?*/, "/*? name ?*/", "return value")
             /*- else -*/
-                /*- set target = 'sizeof(* %s)' % ret -*/
-                /*? err_if_buffer_length_exceeded(instance, interface, size, offset, target, name, name, error_handler) ?*/
-                memcpy(/*? base ?*/ + /*? offset ?*/, /*? ret ?*/, /*? target ?*/);
-                /*? offset ?*/ += /*? target ?*/;
+                /*? offset ?*/ = MARSHAL_PARAM(/*? ret ?*/, /*? base ?*/, /*? size ?*/, /*? offset ?*/, "/*? name ?*/", "return value")
             /*- endif -*/
         /*- endif -*/
 
@@ -870,47 +537,22 @@ cleanup_0:
         /*- for p in output_parameters -*/
             /*? assert(isinstance(p.type, six.string_types)) ?*/
             /*- if p.array -*/
-                /*- set target = 'sizeof(* %s_sz)' % p.name -*/
-                /*? err_if_buffer_length_exceeded(instance, interface, size, offset, target, p.name, name, error_handler) ?*/
-                memcpy(/*? base ?*/ + /*? offset ?*/, /*? p.name ?*/_sz, /*? target ?*/);
-                /*? offset ?*/ += /*? target ?*/;
                 /*- if p.type == 'string' -*/
-                    /*- set lcount = c_symbol() -*/
-                    for (int /*? lcount ?*/ = 0; /*? lcount ?*/ < * /*? p.name ?*/_sz; /*? lcount ?*/ ++) {
-                        /*- set strlen = c_symbol('strlen') -*/
-                        size_t /*? strlen ?*/ = strnlen((* /*? p.name ?*/)[/*? lcount ?*/], /*? size ?*/ - /*? offset ?*/);
-                        /*- set nulllen = '%s + 1' % strlen -*/
-                        /*? err_if_buffer_length_exceeded(instance, interface, size, offset, nulllen, p.name, name, error_handler) ?*/
-                        /* If we didn't trigger an error, we now know this strcpy is safe. */
-                        (void)strcpy(/*? base ?*/ + /*? offset ?*/, (* /*? p.name ?*/)[/*? lcount ?*/]);
-                        /*? offset ?*/ += /*? nulllen ?*/;
-                    }
+                    /*? offset ?*/ = MARSHAL_STRING_ARRAY_PARAM((* /*? p.name ?*/), /*? p.name ?*/_sz, /*? base ?*/, /*? size ?*/, /*? offset ?*/, "/*? name ?*/", "/*? p.name ?*/")
                 /*- else -*/
-                    /*- set target = 'sizeof((* %s)[0]) * (* %s_sz)' % (p.name, p.name) -*/
-                    /*? err_if_buffer_length_exceeded(instance, interface, size, offset, target, p.name, name, error_handler) ?*/
-                    memcpy(/*? base ?*/ + /*? offset ?*/, * /*? p.name ?*/, /*? target ?*/);
-                    /*? offset ?*/ += /*? target ?*/;
+                    /*? offset ?*/ = MARSHAL_ARRAY_PARAM((* /*? p.name ?*/), /*? p.name ?*/_sz, /*? base ?*/, /*? size ?*/, /*? offset ?*/, "/*? name ?*/", "/*? p.name ?*/")
                 /*- endif -*/
             /*- elif p.type == 'string' -*/
-                /*- set strlen = c_symbol('strlen') -*/
-                size_t /*? strlen ?*/ = strnlen(* /*? p.name ?*/, /*? size ?*/ - /*? offset ?*/);
-                /*- set nulllen = '%s + 1' % strlen -*/
-                /*? err_if_buffer_length_exceeded(instance, interface, size, offset, nulllen, p.name, name, error_handler) ?*/
-                /* If we didn't trigger an error, we now know this strcpy is safe. */
-                (void)strcpy(/*? base ?*/ + /*? offset ?*/, * /*? p.name ?*/);
-                /*? offset ?*/ += /*? nulllen ?*/;
+                /*? offset ?*/ = MARSHAL_STRING_PARAM(* /*? p.name ?*/, /*? base ?*/, /*? size ?*/, /*? offset ?*/, "/*? name ?*/", "/*? p.name ?*/")
             /*- else -*/
-                /*- set target = 'sizeof(* %s)' % p.name -*/
-                /*? err_if_buffer_length_exceeded(instance, interface, size, offset, target, p.name, name, error_handler) ?*/
-                memcpy(/*? base ?*/ + /*? offset ?*/, /*? p.name ?*/, /*? target ?*/);
-                /*? offset ?*/ += /*? target ?*/;
+                /*? offset ?*/ = MARSHAL_PARAM(/*? p.name ?*/, /*? base ?*/, /*? size ?*/, /*? offset ?*/, "/*? name ?*/", "/*? p.name ?*/")
             /*- endif -*/
         /*- endfor -*/
 
-        assert(/*? length ?*/ <= /*? size ?*/ &&
+        assert(/*? offset ?*/ <= /*? size ?*/ &&
             "uncaught buffer overflow while marshalling outputs for /*? name ?*/");
 
-        return /*? length ?*/;
+        return /*? offset ?*/;
     }
 /*- endmacro -*/
 
