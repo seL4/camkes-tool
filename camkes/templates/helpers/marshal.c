@@ -345,6 +345,23 @@
         /*- for index, p in enumerate(output_parameters) -*/
             /*? assert(isinstance(p.type, six.string_types)) ?*/
             /*- if p.array -*/
+                /*- if p.direction == 'inout' -*/
+                    /*- if p.type == 'string' -*/
+                        /* At this point /*? p.name ?*/_sz should still contain the old size */
+                        /*- set mcount = c_symbol() -*/
+                        for (int /*? mcount ?*/ = 0; /*? mcount ?*/ < * /*? p.name ?*/_sz; /*? mcount ?*/ ++) {
+                            free((* /*? p.name ?*/)[/*? mcount ?*/]);
+                        }
+                    /*- endif -*/
+                    free(* /*? p.name ?*/);
+                /*- endif -*/
+
+            /*- elif p.type == 'string' -*/
+                /*- if p.direction == 'inout' -*/
+                    free(* /*? p.name ?*/);
+                /*- endif -*/
+            /*- endif -*/
+            /*- if p.array -*/
                 ERR_IF(/*? offset ?*/ + sizeof(* /*? p.name ?*/_sz) > /*? size ?*/, /*? error_handler ?*/, ((camkes_error_t){
                     .type = CE_MALFORMED_RPC_PAYLOAD,
                     .instance = "/*? instance ?*/",
@@ -357,15 +374,6 @@
                 }));
                 memcpy(/*? p.name ?*/_sz, /*? base ?*/ + /*? offset ?*/, sizeof(* /*? p.name ?*/_sz));
                 /*? offset ?*/ += sizeof(* /*? p.name ?*/_sz);
-                /*- if p.direction == 'inout' -*/
-                    /*- if p.type == 'string' -*/
-                        /*- set mcount = c_symbol() -*/
-                        for (int /*? mcount ?*/ = 0; /*? mcount ?*/ < * /*? p.name ?*/_sz; /*? mcount ?*/ ++) {
-                            free((* /*? p.name ?*/)[/*? mcount ?*/]);
-                        }
-                    /*- endif -*/
-                    free(* /*? p.name ?*/);
-                /*- endif -*/
                 /*- if p.type == 'string' -*/
                     * /*? p.name ?*/ = malloc(sizeof(char*) * (* /*? p.name ?*/_sz));
                     ERR_IF(* /*? p.name ?*/ == NULL, /*? error_handler ?*/, ((camkes_error_t){
@@ -443,9 +451,6 @@
                     /*? offset ?*/ += sizeof((* /*? p.name ?*/)[0]) * (* /*? p.name ?*/_sz);
                 /*- endif -*/
             /*- elif p.type == 'string' -*/
-                /*- if p.direction == 'inout' -*/
-                    free(* /*? p.name ?*/);
-                /*- endif -*/
                 /*- set strlen = c_symbol('strlen') -*/
                 size_t /*? strlen ?*/ = strnlen(/*? base ?*/ + /*? offset ?*/, /*? size ?*/ - /*? offset ?*/);
                 ERR_IF(/*? strlen ?*/ >= /*? size ?*/ - /*? offset ?*/, /*? error_handler ?*/, ((camkes_error_t){
