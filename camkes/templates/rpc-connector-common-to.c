@@ -68,10 +68,10 @@
             );
 
         /*- set input_parameters = list(filter(lambda('x: x.direction in [\'refin\', \'in\', \'inout\']'), m.parameters)) -*/
-        /*? marshal.make_unmarshal_input_symbols(instance, interface, m.name, '%s_unmarshal_inputs' % m.name, connector.recv_buffer, methods_len, input_parameters, error_handler, connector.recv_buffer_size_fixed) ?*/
+        /*? marshal.make_unmarshal_input_symbols(m.name, '%s_unmarshal_inputs' % m.name, connector.recv_buffer, methods_len, input_parameters, connector.recv_buffer_size_fixed) ?*/
 
         /*- set output_parameters = list(filter(lambda('x: x.direction in [\'out\', \'inout\']'), m.parameters)) -*/
-        /*? marshal.make_marshal_output_symbols(instance, interface, m.name, '%s_marshal_outputs' % m.name, connector.send_buffer, connector.send_buffer_size, output_parameters, m.return_type, error_handler) ?*/
+        /*? marshal.make_marshal_output_symbols(m.name, '%s_marshal_outputs' % m.name, connector.send_buffer, connector.send_buffer_size, output_parameters, m.return_type) ?*/
 
     /*- endfor -*/
 /*- endfor -*/

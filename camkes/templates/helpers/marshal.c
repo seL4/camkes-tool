@@ -77,8 +77,6 @@
 /*- endmacro -*/
 
 /*# Generates code for marshalling input parameters to an RPC invocation
-  #     instance: Name of this component instance
-  #     interface: Name of this interface
   #     name: Name of this method
   #     function: Name of function to create
   #     buffer: Buffer symbol (or expression) to marshal into
@@ -86,12 +84,9 @@
   #     method_index: Index of this method in the containing interface
   #     methods_len: Total number of methods in this interface
   #     input_parameters: All input parameters to this method
-  #     error_handler: Handler to invoke on error
   #*/
-/*- macro make_marshal_input_symbols(instance, interface, name, function, buffer, size, method_index, methods_len, input_parameters, error_handler) -*/
+/*- macro make_marshal_input_symbols(name, function, buffer, size, method_index, methods_len, input_parameters) -*/
     /*# Validate that our arguments are the correct type #*/
-    /*? assert(isinstance(instance, six.string_types)) ?*/
-    /*? assert(isinstance(interface, six.string_types)) ?*/
     /*? assert(isinstance(name, six.string_types)) ?*/
     /*? assert(isinstance(function, six.string_types)) ?*/
     /*? assert(isinstance(buffer, six.string_types)) ?*/
@@ -99,7 +94,6 @@
     /*? assert(isinstance(method_index, six.integer_types)) ?*/
     /*? assert(isinstance(methods_len, six.integer_types)) ?*/
     /*? assert(isinstance(input_parameters, (list, tuple))) ?*/
-    /*? assert(isinstance(error_handler, six.string_types)) ?*/
 
     static unsigned /*? function ?*/(
     /*? show_input_parameter_list(input_parameters, ['in', 'refin', 'inout']) ?*/
@@ -206,29 +200,23 @@
 
 
 /*# Generates code for marshalling out parameters to an RPC invocation
-  #     instance: Name of this component instance
-  #     interface: Name of this interface
   #     name: Name of this method
   #     function: Name of function to create
   #     buffer: Buffer symbol (or expression) to marshal into
   #     method_index: Index of this method in the containing interface
   #     output_parameters: All output parameters to this method
   #     return_type: Return type of this interface
-  #     error_handler: Handler to invoke on error
   #     allow_trailing_data: Whether to ignore checks for remaining bytes after a message
   #*/
 /*# Whether to ignore checks for remaining bytes after a message #*/
-/*- macro make_unmarshal_output_symbols(instance, interface, name, function, buffer, method_index, output_parameters, return_type, error_handler, allow_trailing_data) -*/
+/*- macro make_unmarshal_output_symbols(name, function, buffer, method_index, output_parameters, return_type, allow_trailing_data) -*/
     /*# Validate our argument types #*/
-    /*? assert(isinstance(instance, six.string_types)) ?*/
-    /*? assert(isinstance(interface, six.string_types)) ?*/
     /*? assert(isinstance(name, six.string_types)) ?*/
     /*? assert(isinstance(function, six.string_types)) ?*/
     /*? assert(isinstance(buffer, six.string_types)) ?*/
     /*? assert(isinstance(method_index, six.integer_types)) ?*/
     /*? assert(isinstance(output_parameters, (list, tuple))) ?*/
     /*? assert(return_type is none or isinstance(return_type, six.string_types)) ?*/
-    /*? assert(isinstance(error_handler, six.string_types)) ?*/
     /*? assert(isinstance(allow_trailing_data, bool)) ?*/
 
     static int
@@ -366,20 +354,15 @@ cleanup_0:
 /*- endmacro -*/
 
 /*# Generates code for marshalling out parameters to an RPC invocation
-  #     instance: Name of this component instance
-  #     interface: Name of this interface
   #     name: Name of this method
   #     function: Name of function to create
   #     buffer: Buffer symbol (or expression) to marshal into
   #     methods_len: Total number of methods in this interface
   #     input_parameters: All input parameters to this method
-  #     error_handler: Handler to invoke on error
   #     allow_trailing_data: Whether to ignore checks for remaining bytes after a message
   #*/
-/*- macro make_unmarshal_input_symbols(instance, interface, name, function, buffer, methods_len, input_parameters, error_handler, allow_trailing_data) -*/
+/*- macro make_unmarshal_input_symbols(name, function, buffer, methods_len, input_parameters, allow_trailing_data) -*/
     /*# Validate the types of our arguments #*/
-    /*? assert(isinstance(instance, six.string_types)) ?*/
-    /*? assert(isinstance(interface, six.string_types)) ?*/
     /*? assert(isinstance(name, six.string_types)) ?*/
     /*? assert(isinstance(function, six.string_types)) ?*/
     /*? assert(isinstance(buffer, six.string_types)) ?*/
@@ -478,27 +461,21 @@ cleanup_0:
 /*- endmacro -*/
 
 /*# Generates code for marshalling out parameters to an RPC invocation
-  #     instance: Name of this component instance
-  #     interface: Name of this interface
   #     name: Name of this method
   #     function: Name of function to create
   #     buffer: Buffer symbol (or expression) to marshal into
   #     size: Length of the buffer; possibly not generation-time constant
   #     output_parameters: All output parameters to this method
   #     return_type: Return type of this interface
-  #     error_handler: Handler to invoke on error
   #*/
-/*- macro make_marshal_output_symbols(instance, interface, name, function, buffer, size, output_parameters, return_type, error_handler) -*/
+/*- macro make_marshal_output_symbols(name, function, buffer, size, output_parameters, return_type) -*/
     /*# Validate our arguments are the correct type #*/
-    /*? assert(isinstance(instance, six.string_types)) ?*/
-    /*? assert(isinstance(interface, six.string_types)) ?*/
     /*? assert(isinstance(name, six.string_types)) ?*/
     /*? assert(isinstance(function, six.string_types)) ?*/
     /*? assert(isinstance(buffer, six.string_types)) ?*/
     /*? assert(isinstance(size, six.string_types)) ?*/
     /*? assert(isinstance(output_parameters, (list, tuple))) ?*/
     /*? assert(return_type is none or isinstance(return_type, six.string_types)) ?*/
-    /*? assert(isinstance(error_handler, six.string_types)) ?*/
 
     static unsigned /*? function ?*/(
     /*- set ret = c_symbol('return') -*/
