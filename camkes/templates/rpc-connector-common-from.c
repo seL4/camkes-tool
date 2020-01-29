@@ -45,10 +45,10 @@
 /*- for i, m in enumerate(me.interface.type.methods) -*/
 
 /*- set input_parameters = list(filter(lambda('x: x.direction in [\'refin\', \'in\', \'inout\']'), m.parameters)) -*/
-/*? marshal.make_marshal_input_symbols(m.name, '%s_marshal_inputs' % m.name, connector.send_buffer, connector.send_buffer_size, i, methods_len, input_parameters) ?*/
+/*? marshal.make_marshal_input_symbols(m.name, '%s_marshal_inputs' % m.name, i, methods_len, input_parameters) ?*/
 
 /*- set output_parameters = list(filter(lambda('x: x.direction in [\'out\', \'inout\']'), m.parameters)) -*/
-/*? marshal.make_unmarshal_output_symbols(m.name, '%s_unmarshal_outputs' % m.name, connector.recv_buffer, i, output_parameters, m.return_type, connector.recv_buffer_size_fixed) ?*/
+/*? marshal.make_unmarshal_output_symbols(m.name, '%s_unmarshal_outputs' % m.name, i, output_parameters, m.return_type, connector.recv_buffer_size_fixed) ?*/
 
 /*- if m.return_type is not none -*/
     /*? macros.show_type(m.return_type) ?*/
@@ -70,7 +70,7 @@
 
     /* Marshal all the parameters */
     /*- set length = c_symbol('length') -*/
-    unsigned /*? length ?*/ = /*? marshal.call_marshal_input('%s_marshal_inputs' % m.name, input_parameters) ?*/;
+    unsigned /*? length ?*/ = /*? marshal.call_marshal_input('%s_marshal_inputs' % m.name, connector.send_buffer, connector.send_buffer_size, input_parameters) ?*/;
     if (unlikely(/*? length ?*/ == UINT_MAX)) {
         /* Error in marshalling; bail out. */
         /*- if m.return_type is not none -*/
@@ -91,7 +91,7 @@
 
     /* Unmarshal the response */
     /*- set err = c_symbol('error') -*/
-    int /*? err ?*/ = /*? marshal.call_unmarshal_output('%s_unmarshal_outputs' % m.name, size, output_parameters, m.return_type, ret_ptr) ?*/;
+    int /*? err ?*/ = /*? marshal.call_unmarshal_output('%s_unmarshal_outputs' % m.name, connector.recv_buffer, size, output_parameters, m.return_type, ret_ptr) ?*/;
     if (unlikely(/*? err ?*/ != 0)) {
         /* Error in unmarshalling; bail out. */
         /*- if m.return_type is not none -*/

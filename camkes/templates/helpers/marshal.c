@@ -79,37 +79,31 @@
 /*# Generates code for marshalling input parameters to an RPC invocation
   #     name: Name of this method
   #     function: Name of function to create
-  #     buffer: Buffer symbol (or expression) to marshal into
-  #     size: Length of the buffer; possibly not generation-time constant
   #     method_index: Index of this method in the containing interface
   #     methods_len: Total number of methods in this interface
   #     input_parameters: All input parameters to this method
   #*/
-/*- macro make_marshal_input_symbols(name, function, buffer, size, method_index, methods_len, input_parameters) -*/
+/*- macro make_marshal_input_symbols(name, function, method_index, methods_len, input_parameters) -*/
     /*# Validate that our arguments are the correct type #*/
     /*? assert(isinstance(name, six.string_types)) ?*/
     /*? assert(isinstance(function, six.string_types)) ?*/
-    /*? assert(isinstance(buffer, six.string_types)) ?*/
-    /*? assert(isinstance(size, six.string_types)) ?*/
     /*? assert(isinstance(method_index, six.integer_types)) ?*/
     /*? assert(isinstance(methods_len, six.integer_types)) ?*/
     /*? assert(isinstance(input_parameters, (list, tuple))) ?*/
 
-    static unsigned /*? function ?*/(
-    /*? show_input_parameter_list(input_parameters, ['in', 'refin', 'inout'], namespace_prefix="p_") ?*/
-    /*- if len(input_parameters) == 0 -*/
-        void
-    /*- endif -*/
+    static unsigned /*? function ?*/(void * base, size_t size
+    /*-- if len(input_parameters) > 0 --*/
+        ,
+    /*-- endif -*/
+    /*?- show_input_parameter_list(input_parameters, ['in', 'refin', 'inout'], namespace_prefix="p_") -?*/
     ) {
 
         unsigned offset = 0;
 
-        void * base = (void*)(/*? buffer ?*/);
-
         /*- if methods_len > 1 -*/
             /* Marshal the method index. */
             /*? macros.type_to_fit_integer(methods_len) ?*/ method_index = /*? method_index ?*/;
-            offset = MARSHAL_PARAM(&method_index, base, /*? size ?*/, offset, "/*? name ?*/", "method_index");
+            offset = MARSHAL_PARAM(&method_index, base, size, offset, "/*? name ?*/", "method_index");
         /*- endif -*/
 
         /* Marshal the parameters. */
@@ -155,18 +149,18 @@
 
             /*- if p.array -*/
                 /*- if p.type == 'string' -*/
-                    offset = MARSHAL_STRING_ARRAY_PARAM(/*? ptr_arr ?*/, /*? ptr_sz ?*/, base, /*? size ?*/, offset, "/*? name ?*/", "/*? p.name ?*/")
+                    offset = MARSHAL_STRING_ARRAY_PARAM(/*? ptr_arr ?*/, /*? ptr_sz ?*/, base, size, offset, "/*? name ?*/", "/*? p.name ?*/")
                 /*- else -*/
-                    offset = MARSHAL_ARRAY_PARAM(/*? ptr_arr ?*/, /*? ptr_sz ?*/, base, /*? size ?*/, offset, "/*? name ?*/", "/*? p.name ?*/")
+                    offset = MARSHAL_ARRAY_PARAM(/*? ptr_arr ?*/, /*? ptr_sz ?*/, base, size, offset, "/*? name ?*/", "/*? p.name ?*/")
                 /*- endif -*/
             /*- elif p.type == 'string' -*/
-                offset = MARSHAL_STRING_PARAM(/*? ptr_str ?*/, base, /*? size ?*/, offset, "/*? name ?*/", "/*? p.name ?*/");
+                offset = MARSHAL_STRING_PARAM(/*? ptr_str ?*/, base, size, offset, "/*? name ?*/", "/*? p.name ?*/");
             /*- else -*/
-                offset = MARSHAL_PARAM(/*? ptr ?*/, base, /*? size ?*/, offset, "/*? name ?*/", "/*? p.name ?*/");
+                offset = MARSHAL_PARAM(/*? ptr ?*/, base, size, offset, "/*? name ?*/", "/*? p.name ?*/");
             /*- endif -*/
         /*- endfor -*/
 
-        assert(offset <= /*? size ?*/ &&
+        assert(offset <= size &&
             "uncaught buffer overflow while marshalling inputs for /*? name ?*/");
 
         return offset;
@@ -175,23 +169,22 @@
 
 /*# Emits a call to the C symbol that will marshal input parameters
   # function: Name of function to invoke
+  # buffer: Buffer symbol (or expression) to marshal into
+  # size: Length of the buffer; possibly not generation-time constant
   # input_parameters: All input parameters to this method
   #*/
-/*- macro call_marshal_input(function, input_parameters, namespace_prefix='') -*/
+/*- macro call_marshal_input(function, buffer, size, input_parameters, namespace_prefix='') -*/
     /*# Validate our arguments are the correct types #*/
     /*? assert(isinstance(function, six.string_types)) ?*/
+    /*? assert(isinstance(buffer, six.string_types)) ?*/
+    /*? assert(isinstance(size, six.string_types)) ?*/
     /*? assert(isinstance(input_parameters, (list, tuple))) ?*/
 
-    /*? function ?*/(
-    /*- for p in input_parameters -*/
-        /*- if p.array -*/
-            /*? namespace_prefix ?*//*? p.name ?*/_sz,
-        /*- endif -*/
-        /*? namespace_prefix ?*//*? p.name ?*/
-        /*- if not loop.last -*/
-            ,
-        /*- endif -*/
-    /*- endfor -*/
+    /*?- function ?*/(/*? buffer ?*/, /*? size ?*/
+    /*-- for p in input_parameters --*/,
+        /*- if p.array -*//*? namespace_prefix ?*//*? p.name ?*/_sz,/*- endif -*/
+        /*?- namespace_prefix ?*//*? p.name ?*/
+    /*-- endfor --*/
     )
 /*- endmacro -*/
 
@@ -199,43 +192,33 @@
 /*# Generates code for marshalling out parameters to an RPC invocation
   #     name: Name of this method
   #     function: Name of function to create
-  #     buffer: Buffer symbol (or expression) to marshal into
   #     method_index: Index of this method in the containing interface
   #     output_parameters: All output parameters to this method
   #     return_type: Return type of this interface
   #     allow_trailing_data: Whether to ignore checks for remaining bytes after a message
   #*/
 /*# Whether to ignore checks for remaining bytes after a message #*/
-/*- macro make_unmarshal_output_symbols(name, function, buffer, method_index, output_parameters, return_type, allow_trailing_data) -*/
+/*- macro make_unmarshal_output_symbols(name, function, method_index, output_parameters, return_type, allow_trailing_data) -*/
     /*# Validate our argument types #*/
     /*? assert(isinstance(name, six.string_types)) ?*/
     /*? assert(isinstance(function, six.string_types)) ?*/
-    /*? assert(isinstance(buffer, six.string_types)) ?*/
     /*? assert(isinstance(method_index, six.integer_types)) ?*/
     /*? assert(isinstance(output_parameters, (list, tuple))) ?*/
     /*? assert(return_type is none or isinstance(return_type, six.string_types)) ?*/
     /*? assert(isinstance(allow_trailing_data, bool)) ?*/
 
-    static int
-    /*? function ?*/(
-    unsigned size
-    /*- if return_type is not none or len(output_parameters) > 0 -*/
+    static int /*? function ?*/(void * base, unsigned size
+    /*-- if return_type is not none or len(output_parameters) > 0 --*/
         ,
-    /*- endif -*/
-    /*- if return_type is not none -*/
-        /*? macros.show_type(return_type) ?*/ *
-        return_value
-        /*- if len(output_parameters) > 0 -*/
-            ,
-        /*- endif -*/
-    /*- endif -*/
-
-    /*? show_output_parameter_list(output_parameters, namespace_prefix="p_") ?*/
+    /*-- endif -*/
+    /*-- if return_type is not none -*/
+        /*?- macros.show_type(return_type) ?*/ * return_value
+        /*-- if len(output_parameters) > 0 -*/,/*- endif -*/
+    /*-- endif -*/
+    /*?- show_output_parameter_list(output_parameters, namespace_prefix="p_") ?*/
     ) {
 
         unsigned offset = 0;
-
-        void * base = (void*)(/*? buffer ?*/);
 
         /*- if return_type is not none -*/
             /* Unmarshal the return value. */
@@ -311,68 +294,57 @@ cleanup_0:
 
 /*# Emits a call to the C symbol that will unmarshal output parameters
   # function: Name of function to invoke
+  # buffer: Buffer symbol (or expression) to marshal into
   # size: Name of a variable storing the byte length of the message
   # output_parameters: All output parameters to this method
   # return_type: Return type of this interface
   # ret_ptr: Pointer for the return value
   #*/
-/*- macro call_unmarshal_output(function, size, output_parameters, return_type, ret_ptr, namespace_prefix='') -*/
+/*- macro call_unmarshal_output(function, buffer, size, output_parameters, return_type, ret_ptr, namespace_prefix='') -*/
     /*# Validate the types of our arguments #*/
     /*? assert(isinstance(function, six.string_types)) ?*/
+    /*? assert(isinstance(buffer, six.string_types)) ?*/
     /*? assert(isinstance(size, six.string_types)) ?*/
     /*? assert(isinstance(output_parameters, (list, tuple))) ?*/
     /*? assert(return_type is none or isinstance(return_type, six.string_types)) ?*/
 
-    /*? function ?*/(
-    /*? size ?*/
-    /*- if return_type is not none or len(output_parameters) > 0 -*/
-        ,
-    /*- endif -*/
-    /*- if return_type is not none -*/
-        /*? ret_ptr ?*/
-        /*- if len(output_parameters) > 0 -*/
-            ,
-        /*- endif -*/
-    /*- endif -*/
-    /*- for p in output_parameters -*/
-    /*- if p.array -*/
-        /*? namespace_prefix ?*//*? p.name ?*/_sz,
-    /*- endif -*/
-    /*? namespace_prefix ?*//*? p.name ?*/
-    /*- if not loop.last -*/
-        ,
-    /*- endif -*/
-    /*- endfor -*/
+    /*?- function ?*/(/*? buffer ?*/,
+    /*?- size ?*/
+    /*-- if return_type is not none -*/,
+        /*?- ret_ptr ?*/
+    /*-- endif -*/
+    /*-- for p in output_parameters -*/,
+    /*-- if p.array -*/
+        /*?- namespace_prefix ?*//*? p.name ?*/_sz,
+    /*-- endif -*/
+    /*?- namespace_prefix ?*//*? p.name ?*/
+    /*-- endfor --*/
     )
+
 /*- endmacro -*/
 
 /*# Generates code for marshalling out parameters to an RPC invocation
   #     name: Name of this method
   #     function: Name of function to create
-  #     buffer: Buffer symbol (or expression) to marshal into
   #     methods_len: Total number of methods in this interface
   #     input_parameters: All input parameters to this method
   #     allow_trailing_data: Whether to ignore checks for remaining bytes after a message
   #*/
-/*- macro make_unmarshal_input_symbols(name, function, buffer, methods_len, input_parameters, allow_trailing_data) -*/
+/*- macro make_unmarshal_input_symbols(name, function, methods_len, input_parameters, allow_trailing_data) -*/
     /*# Validate the types of our arguments #*/
     /*? assert(isinstance(name, six.string_types)) ?*/
     /*? assert(isinstance(function, six.string_types)) ?*/
-    /*? assert(isinstance(buffer, six.string_types)) ?*/
     /*? assert(isinstance(methods_len, six.integer_types)) ?*/
     /*? assert(isinstance(input_parameters, (list, tuple))) ?*/
 
-    static int /*? function ?*/(
-    unsigned size
-    /*- if len(input_parameters) > 0 -*/
+    static int /*? function ?*/(void * base, unsigned size
+    /*-- if len(input_parameters) > 0 --*/
         ,
-    /*- endif -*/
-    /*? show_output_parameter_list(input_parameters, namespace_prefix="p_") ?*/
+    /*-- endif --*/
+    /*? show_output_parameter_list(input_parameters, namespace_prefix="p_") -?*/
     ) {
 
         unsigned offset = 0;
-
-        void * base = (void*)(/*? buffer ?*/);
 
         /*- if methods_len > 1 -*/
             /* Step over the method index. */
@@ -423,76 +395,62 @@ cleanup_0:
 
 /*# Emits a call to the C symbol that will unmarshal output parameters
   # function: Name of function to invoke
+  # buffer: Buffer symbol (or expression) to marshal into
   # size: Name of a variable storing the byte length of the message
   # input_parameters: All input parameters to this method
   #*/
-/*- macro call_unmarshal_input(function, size, input_parameters, namespace_prefix='') -*/
+/*- macro call_unmarshal_input(function, buffer, size, input_parameters, namespace_prefix='') -*/
     /*# Validate our arguments are the expected type #*/
     /*? assert(isinstance(function, six.string_types)) ?*/
+    /*? assert(isinstance(buffer, six.string_types)) ?*/
     /*? assert(isinstance(size, six.string_types)) ?*/
     /*? assert(isinstance(input_parameters, (list, tuple))) ?*/
 
-    /*? function ?*/(
-    /*? size ?*/
-    /*- if len(input_parameters) > 0 -*/
-        ,
-    /*- endif -*/
-    /*- for p in input_parameters -*/
-        /*- if p.array -*/
+    /*?- function ?*/(/*? buffer ?*/, /*? size ?*/
+    /*-- for p in input_parameters -*/,
+        /*-- if p.array --*/
             /*? namespace_prefix ?*//*? p.name ?*/_sz_ptr,
-        /*- endif -*/
+        /*-- endif --*/
         /*? namespace_prefix ?*//*? p.name ?*/_ptr
-        /*- if not loop.last -*/
-            ,
-        /*- endif -*/
-    /*- endfor -*/
+    /*-- endfor --*/
     )
 /*- endmacro -*/
 
 /*# Generates code for marshalling out parameters to an RPC invocation
   #     name: Name of this method
   #     function: Name of function to create
-  #     buffer: Buffer symbol (or expression) to marshal into
-  #     size: Length of the buffer; possibly not generation-time constant
   #     output_parameters: All output parameters to this method
   #     return_type: Return type of this interface
   #*/
-/*- macro make_marshal_output_symbols(name, function, buffer, size, output_parameters, return_type) -*/
+/*- macro make_marshal_output_symbols(name, function, output_parameters, return_type) -*/
     /*# Validate our arguments are the correct type #*/
     /*? assert(isinstance(name, six.string_types)) ?*/
     /*? assert(isinstance(function, six.string_types)) ?*/
-    /*? assert(isinstance(buffer, six.string_types)) ?*/
-    /*? assert(isinstance(size, six.string_types)) ?*/
     /*? assert(isinstance(output_parameters, (list, tuple))) ?*/
     /*? assert(return_type is none or isinstance(return_type, six.string_types)) ?*/
 
-    static unsigned /*? function ?*/(
-    /*- if return_type is not none -*/
-        /*- if return_type == 'string' -*/
+    static unsigned /*? function ?*/(void * base, unsigned size
+    /*-- if return_type is not none -*/,
+        /*-- if return_type == 'string' --*/
             char ** return_var
-        /*- else -*/
+        /*-- else --*/
             const /*? macros.show_type(return_type) ?*/ * return_var
-        /*- endif -*/
-        /*- if len(output_parameters) > 0 -*/
-            ,
-        /*- endif -*/
-    /*- endif -*/
-    /*? show_input_parameter_list(output_parameters, ['out', 'inout'], namespace_prefix="p_") ?*/
-    /*- if return_type is none and len(output_parameters) == 0 -*/
-        void
-    /*- endif -*/
+        /*-- endif -*/
+    /*-- endif -*/
+    /*-- if len(output_parameters) > 0 --*/
+        ,
+    /*-- endif -*/
+    /*?- show_input_parameter_list(output_parameters, ['out', 'inout'], namespace_prefix="p_") ?*/
     ) {
 
         unsigned offset = 0;
 
-        void * base = (void*)(/*? buffer ?*/);
-
         /*- if return_type is not none -*/
             /* Marshal the return value. */
             /*- if return_type == 'string' -*/
-                offset = MARSHAL_STRING_PARAM(* return_var, base, /*? size ?*/, offset, "/*? name ?*/", "return value")
+                offset = MARSHAL_STRING_PARAM(* return_var, base, size, offset, "/*? name ?*/", "return value")
             /*- else -*/
-                offset = MARSHAL_PARAM(return_var, base, /*? size ?*/, offset, "/*? name ?*/", "return value")
+                offset = MARSHAL_PARAM(return_var, base, size, offset, "/*? name ?*/", "return value")
             /*- endif -*/
         /*- endif -*/
 
@@ -501,18 +459,18 @@ cleanup_0:
             /*? assert(isinstance(p.type, six.string_types)) ?*/
             /*- if p.array -*/
                 /*- if p.type == 'string' -*/
-                    offset = MARSHAL_STRING_ARRAY_PARAM((* p_/*? p.name ?*/), p_/*? p.name ?*/_sz, base, /*? size ?*/, offset, "/*? name ?*/", "/*? p.name ?*/")
+                    offset = MARSHAL_STRING_ARRAY_PARAM((* p_/*? p.name ?*/), p_/*? p.name ?*/_sz, base, size, offset, "/*? name ?*/", "/*? p.name ?*/")
                 /*- else -*/
-                    offset = MARSHAL_ARRAY_PARAM((* p_/*? p.name ?*/), p_/*? p.name ?*/_sz, base, /*? size ?*/, offset, "/*? name ?*/", "/*? p.name ?*/")
+                    offset = MARSHAL_ARRAY_PARAM((* p_/*? p.name ?*/), p_/*? p.name ?*/_sz, base, size, offset, "/*? name ?*/", "/*? p.name ?*/")
                 /*- endif -*/
             /*- elif p.type == 'string' -*/
-                offset = MARSHAL_STRING_PARAM(* p_/*? p.name ?*/, base, /*? size ?*/, offset, "/*? name ?*/", "/*? p.name ?*/")
+                offset = MARSHAL_STRING_PARAM(* p_/*? p.name ?*/, base, size, offset, "/*? name ?*/", "/*? p.name ?*/")
             /*- else -*/
-                offset = MARSHAL_PARAM(p_/*? p.name ?*/, base, /*? size ?*/, offset, "/*? name ?*/", "/*? p.name ?*/")
+                offset = MARSHAL_PARAM(p_/*? p.name ?*/, base, size, offset, "/*? name ?*/", "/*? p.name ?*/")
             /*- endif -*/
         /*- endfor -*/
 
-        assert(offset <= /*? size ?*/ &&
+        assert(offset <= size &&
             "uncaught buffer overflow while marshalling outputs for /*? name ?*/");
 
         return offset;
@@ -521,32 +479,30 @@ cleanup_0:
 
 /*# Emits a call to the C symbol that will unmarshal output parameters
   # function: Name of function to invoke
+  # buffer: Buffer symbol (or expression) to marshal into
+  # size: Length of the buffer; possibly not generation-time constant
   # output_parameters: All output parameters to this method
   # return_type: Return type of this interface
   # ret_ptr: Pointer for the return value
   #*/
-/*- macro call_marshal_output(function, output_parameters, return_type, ret_ptr, namespace_prefix='') -*/
+/*- macro call_marshal_output(function, buffer, size, output_parameters, return_type, ret_ptr, namespace_prefix='') -*/
     /*# Validate our arguments are the correct type #*/
     /*? assert(isinstance(function, six.string_types)) ?*/
+    /*? assert(isinstance(buffer, six.string_types)) ?*/
+    /*? assert(isinstance(size, six.string_types)) ?*/
     /*? assert(isinstance(output_parameters, (list, tuple))) ?*/
     /*? assert(return_type is none or isinstance(return_type, six.string_types)) ?*/
 
-    /*? function ?*/(
-    /*- if return_type is not none -*/
-        /*? assert(isinstance(ret_ptr, six.string_types)) ?*/
-        /*? ret_ptr ?*/
-        /*- if len(output_parameters) > 0 -*/
-            ,
-        /*- endif -*/
-    /*- endif -*/
-    /*- for p in output_parameters -*/
-        /*- if p.array -*/
-            /*? namespace_prefix ?*//*? p.name ?*/_sz_ptr,
-        /*- endif -*/
-        /*? namespace_prefix ?*//*? p.name ?*/_ptr
-        /*- if not loop.last -*/
-            ,
-        /*- endif -*/
-    /*- endfor -*/
+    /*?- function ?*/(/*? buffer ?*/, /*? size ?*/
+    /*-- if return_type is not none -*/,
+        /*?- assert(isinstance(ret_ptr, six.string_types)) ?*/
+        /*?- ret_ptr ?*/
+    /*-- endif -*/
+    /*-- for p in output_parameters -*/,
+        /*-- if p.array -*/
+            /*?- namespace_prefix ?*//*? p.name ?*/_sz_ptr,
+        /*-- endif -*/
+        /*?- namespace_prefix ?*//*? p.name ?*/_ptr
+    /*-- endfor --*/
     )
 /*- endmacro -*/

@@ -68,10 +68,10 @@
             );
 
         /*- set input_parameters = list(filter(lambda('x: x.direction in [\'refin\', \'in\', \'inout\']'), m.parameters)) -*/
-        /*? marshal.make_unmarshal_input_symbols(m.name, '%s_unmarshal_inputs' % m.name, connector.recv_buffer, methods_len, input_parameters, connector.recv_buffer_size_fixed) ?*/
+        /*? marshal.make_unmarshal_input_symbols(m.name, '%s_unmarshal_inputs' % m.name, methods_len, input_parameters, connector.recv_buffer_size_fixed) ?*/
 
         /*- set output_parameters = list(filter(lambda('x: x.direction in [\'out\', \'inout\']'), m.parameters)) -*/
-        /*? marshal.make_marshal_output_symbols(m.name, '%s_marshal_outputs' % m.name, connector.send_buffer, connector.send_buffer_size, output_parameters, m.return_type) ?*/
+        /*? marshal.make_marshal_output_symbols(m.name, '%s_marshal_outputs' % m.name, output_parameters, m.return_type) ?*/
 
     /*- endfor -*/
 /*- endfor -*/
@@ -166,7 +166,7 @@ int
                         /* Unmarshal parameters */
                         /*- set input_parameters = list(filter(lambda('x: x.direction in [\'refin\', \'in\', \'inout\']'), m.parameters)) -*/
                         /*- set err = c_symbol('error') -*/
-                        int /*? err ?*/ = /*? marshal.call_unmarshal_input('%s_unmarshal_inputs' % m.name, size, input_parameters) ?*/;
+                        int /*? err ?*/ = /*? marshal.call_unmarshal_input('%s_unmarshal_inputs' % m.name, connector.recv_buffer, size, input_parameters) ?*/;
                         if (unlikely(/*? err ?*/ != 0)) {
                             /* Error in unmarshalling; return to event loop. */
                             /*? complete_recv(connector) ?*/
@@ -211,7 +211,7 @@ int
                         /* Marshal the response */
                         /*- set output_parameters = list(filter(lambda('x: x.direction in [\'out\', \'inout\']'), m.parameters)) -*/
                         /*- set length = c_symbol('length') -*/
-                        unsigned /*? length ?*/ = /*? marshal.call_marshal_output('%s_marshal_outputs' % m.name, output_parameters, m.return_type, ret_ptr) ?*/;
+                        unsigned /*? length ?*/ = /*? marshal.call_marshal_output('%s_marshal_outputs' % m.name, connector.send_buffer, connector.send_buffer_size, output_parameters, m.return_type, ret_ptr) ?*/;
 
                         /*# We no longer need anything we previously malloced #*/
                         /*- if m.return_type == 'string' -*/
