@@ -52,19 +52,16 @@
 /*- endfor -*/
 
 /*- for j, from_type in enumerate(type_dict.keys()) -*/
-    /*- set methods_len = len(from_type.methods) -*/
-    /*- for m in from_type.methods -*/
-        extern
-        /*- if m.return_type is not none -*/
-            /*? macros.show_type(m.return_type) ?*/
-        /*- else -*/
-            void
-        /*- endif -*/
-            /*? me.interface.name ?*/_/*? m.name ?*/(
-                /*? marshal.show_input_parameter_list(m.parameters, ['in', 'refin', 'out', 'inout']) ?*/
-                /*- if len(m.parameters) == 0 -*/
+    /*-- set methods_len = len(from_type.methods) -*/
+    /*-- for m in from_type.methods -*/
+        extern /*- if m.return_type is not none --*/
+            /*? macros.show_type(m.return_type) ?*/ /*- else --*/
+            void /*- endif --*/
+            /*?- me.interface.name ?*/_/*? m.name ?*/(
+                /*?- marshal.show_input_parameter_list(m.parameters, ['in', 'refin', 'out', 'inout']) ?*/
+                /*-- if len(m.parameters) == 0 -*/
                     void
-                /*- endif -*/
+                /*-- endif --*/
             );
 
         /*- set input_parameters = list(filter(lambda('x: x.direction in [\'refin\', \'in\', \'inout\']'), m.parameters)) -*/
@@ -81,12 +78,11 @@
 /*# Passive interface "run" functions must be passed a ntfn cap as part of the passive thread init protocol.
  *# As such if this is a passive interface, a different function prototype is needed for "run".
  #*/
-int
-/*- if passive -*/
-    /*? me.interface.name ?*/__run_passive(seL4_CPtr init_ntfn)
-/*- else -*/
-    /*? me.interface.name ?*/__run(void)
-/*- endif -*/
+int /*- if passive -*/
+    /*?- me.interface.name ?*/__run_passive(seL4_CPtr init_ntfn)
+/*-- else -*/
+    /*?- me.interface.name ?*/__run(void)
+/*-- endif -*/
 {
 
     unsigned size;
@@ -124,32 +120,32 @@ int
             /*- endif -*/
 
             switch (* call_ptr) {
-                /*- for i, m in enumerate(from_type.methods) -*/
+                /*-- for i, m in enumerate(from_type.methods) -*/
                     case /*? i ?*/: { /*? '%s%s%s%s%s' % ('/', '* ', m.name, ' *', '/') ?*/
-                        /*# Declare parameters. #*/
-                        /*- for p in m.parameters -*/
+                        /*#- Declare parameters. #*/
+                        /*-- for p in m.parameters -*/
 
-                            /*- if p.array -*/
+                            /*-- if p.array -*/
                                 size_t p_/*? p.name ?*/_sz;
                                 size_t * p_/*? p.name ?*/_sz_ptr = &p_/*? p.name ?*/_sz;
-                                /*- if p.type == 'string' -*/
+                                /*-- if p.type == 'string' -*/
                                     char ** p_/*? p.name ?*/ = NULL;
                                     char *** p_/*? p.name ?*/_ptr = &p_/*? p.name ?*/;
-                                /*- else -*/
+                                /*-- else -*/
                                     /*? macros.show_type(p.type) ?*/ * p_/*? p.name ?*/ = NULL;
                                     /*? macros.show_type(p.type) ?*/ ** p_/*? p.name ?*/_ptr = &p_/*? p.name ?*/;
-                                /*- endif -*/
-                            /*- elif p.type == 'string' -*/
+                                /*-- endif -*/
+                            /*-- elif p.type == 'string' -*/
                                 char * p_/*? p.name ?*/ = NULL;
                                 char ** p_/*? p.name ?*/_ptr = &p_/*? p.name ?*/;
-                            /*- else -*/
+                            /*-- else -*/
                                 /*? macros.show_type(p.type) ?*/ p_/*? p.name ?*/;
                                 /*? macros.show_type(p.type) ?*/ * p_/*? p.name ?*/_ptr = &p_/*? p.name ?*/;
-                            /*- endif -*/
-                        /*- endfor -*/
+                            /*-- endif -*/
+                        /*-- endfor -*/
 
                         /* Unmarshal parameters */
-                        /*- set input_parameters = list(filter(lambda('x: x.direction in [\'refin\', \'in\', \'inout\']'), m.parameters)) -*/
+                        /*-- set input_parameters = list(filter(lambda('x: x.direction in [\'refin\', \'in\', \'inout\']'), m.parameters)) -*/
                         int err = /*? marshal.call_unmarshal_input('%s_unmarshal_inputs' % m.name, connector.recv_buffer, "size", input_parameters, namespace_prefix='p_') ?*/;
                         if (unlikely(err != 0)) {
                             /* Error in unmarshalling; return to event loop. */
@@ -157,59 +153,55 @@ int
                             goto begin_recv;
                         }
                         /* Call the implementation */
-                        /*- set ret = "%s_ret" % (m.name) -*/
-                        /*- set ret_sz = "%s_ret_sz" % (m.name) -*/
-                        /*- set ret_ptr = "%s_ret_ptr" % (m.name) -*/
-                        /*- set ret_sz_ptr = "%s_ret_sz_ptr" % (m.name) -*/
-                        /*- if m.return_type is not none -*/
-                            /*- if m.return_type == 'string' -*/
+                        /*-- set ret = "%s_ret" % (m.name) -*/
+                        /*-- set ret_sz = "%s_ret_sz" % (m.name) -*/
+                        /*-- set ret_ptr = "%s_ret_ptr" % (m.name) -*/
+                        /*-- set ret_sz_ptr = "%s_ret_sz_ptr" % (m.name) -*/
+                        /*-- if m.return_type is not none -*/
+                            /*-- if m.return_type == 'string' -*/
                                 char * /*? ret ?*/;
                                 char ** /*? ret_ptr ?*/ = &/*? ret ?*/;
-                            /*- else -*/
+                            /*-- else -*/
                                 /*? macros.show_type(m.return_type) ?*/ /*? ret ?*/;
                                 /*? macros.show_type(m.return_type) ?*/ * /*? ret_ptr ?*/ = &/*? ret ?*/;
-                            /*- endif -*/
+                            /*-- endif --*/
                             * /*? ret_ptr ?*/ =
-                        /*- endif -*/
+                        /*-- endif --*/
                         /*? me.interface.name ?*/_/*? m.name ?*/(
-                            /*- for p in m.parameters -*/
-                                /*- if p.array -*/
-                                    /*- if p.direction == 'in' -*/
-                                        *
-                                    /*- endif -*/
+                            /*-- for p in m.parameters -*/
+                                /*-- if p.array -*/
+                                    /*-- if p.direction == 'in' -*/* /*- endif --*/
                                     p_/*? p.name ?*/_sz_ptr,
-                                /*- endif -*/
-                                /*- if p.direction =='in' -*/
-                                    *
-                                /*- endif -*/
+                                /*-- endif -*/
+                                /*-- if p.direction =='in' --*/* /*- endif --*/
                                 p_/*? p.name ?*/_ptr
-                                /*- if not loop.last -*/,/*- endif -*/
-                            /*- endfor -*/
+                                /*-- if not loop.last -*/,/*- endif --*/
+                            /*-- endfor --*/
                         );
 
                         /*? complete_recv(connector) ?*/
                         /*? begin_reply(connector) ?*/
 
                         /* Marshal the response */
-                        /*- set output_parameters = list(filter(lambda('x: x.direction in [\'out\', \'inout\']'), m.parameters)) -*/
+                        /*-- set output_parameters = list(filter(lambda('x: x.direction in [\'out\', \'inout\']'), m.parameters)) -*/
                         length = /*? marshal.call_marshal_output('%s_marshal_outputs' % m.name, connector.send_buffer, connector.send_buffer_size, output_parameters, m.return_type, ret_ptr, namespace_prefix='p_') ?*/;
 
-                        /*# We no longer need anything we previously malloced #*/
-                        /*- if m.return_type == 'string' -*/
+                        /*#- We no longer need anything we previously malloced #*/
+                        /*-- if m.return_type == 'string' -*/
                             free(* /*? ret_ptr ?*/);
-                        /*- endif -*/
-                        /*- for p in m.parameters -*/
-                            /*- if p.array -*/
-                                /*- if p.type == 'string' -*/
+                        /*-- endif -*/
+                        /*-- for p in m.parameters -*/
+                            /*-- if p.array -*/
+                                /*-- if p.type == 'string' -*/
                                     for (int mcount = 0; mcount < * p_/*? p.name ?*/_sz_ptr; mcount++) {
                                         free((* p_/*? p.name ?*/_ptr)[mcount]);
                                     }
-                                /*- endif -*/
+                                /*-- endif -*/
                                 free(* p_/*? p.name ?*/_ptr);
-                            /*- elif p.type == 'string' -*/
+                            /*-- elif p.type == 'string' -*/
                                 free(* p_/*? p.name ?*/_ptr);
-                            /*- endif -*/
-                        /*- endfor -*/
+                            /*-- endif -*/
+                        /*-- endfor -*/
 
                         /* Check if there was an error during marshalling. We do
                          * this after freeing internal parameter variables to avoid

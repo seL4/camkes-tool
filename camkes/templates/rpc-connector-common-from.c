@@ -50,19 +50,16 @@
 /*- set output_parameters = list(filter(lambda('x: x.direction in [\'out\', \'inout\']'), m.parameters)) -*/
 /*? marshal.make_unmarshal_output_symbols(m.name, '%s_unmarshal_outputs' % m.name, i, output_parameters, m.return_type, connector.recv_buffer_size_fixed) ?*/
 
-/*- if m.return_type is not none -*/
-    /*? macros.show_type(m.return_type) ?*/
-/*- else -*/
-    void
-/*- endif -*/
-/*? me.interface.name ?*/_/*? m.name ?*/(
-/*? marshal.show_input_parameter_list(m.parameters, ['in', 'refin', 'out', 'inout'], namespace_prefix='p_') ?*/
-) {
+/*- if m.return_type is not none --*/
+    /*? macros.show_type(m.return_type) ?*/ /*- else -*/
+    void /*- endif -*/
+/*?- me.interface.name ?*/_/*? m.name ?*/(/*? marshal.show_input_parameter_list(m.parameters, ['in', 'refin', 'out', 'inout'], namespace_prefix='p_') ?*/)
+{
 
     /*? begin_send(connector) ?*/
 
     unsigned size;
-    /*- if m.return_type is not none -*/
+    /*-- if m.return_type is not none -*/
       /*? macros.show_type(m.return_type) ?*/ return_val;
       /*? macros.show_type(m.return_type) ?*/ *return_ptr = &return_val;
     /*- endif -*/
@@ -71,16 +68,16 @@
     unsigned length = /*? marshal.call_marshal_input('%s_marshal_inputs' % m.name, connector.send_buffer, connector.send_buffer_size, input_parameters, namespace_prefix='p_') ?*/;
     if (unlikely(length == UINT_MAX)) {
         /* Error in marshalling; bail out. */
-        /*- if m.return_type is not none -*/
-            /*- if m.return_type == 'string' -*/
+        /*-- if m.return_type is not none -*/
+            /*-- if m.return_type == 'string' -*/
                 return NULL;
-            /*- else -*/
+            /*-- else -*/
                 memset(return_ptr, 0, sizeof(* return_ptr));
                 return * return_ptr;
             /*- endif -*/
-        /*- else -*/
+        /*-- else -*/
             return;
-        /*- endif -*/
+        /*-- endif -*/
     }
 
     /*? perform_call(connector, "size", "length", namespace_prefix='rpc_') ?*/
@@ -89,16 +86,16 @@
     int err = /*? marshal.call_unmarshal_output('%s_unmarshal_outputs' % m.name, connector.recv_buffer, "size", output_parameters, m.return_type, "return_ptr", namespace_prefix='p_') ?*/;
     if (unlikely(err != 0)) {
         /* Error in unmarshalling; bail out. */
-        /*- if m.return_type is not none -*/
-            /*- if m.return_type == 'string' -*/
+        /*-- if m.return_type is not none -*/
+            /*-- if m.return_type == 'string' -*/
                 return NULL;
-            /*- else -*/
+            /*-- else -*/
                 memset(return_ptr, 0, sizeof(* return_ptr));
                 return * return_ptr;
-            /*- endif -*/
-        /*- else -*/
+            /*-- endif -*/
+        /*-- else -*/
             return;
-        /*- endif -*/
+        /*-- endif -*/
     }
 
     /*? release_recv(connector) ?*/

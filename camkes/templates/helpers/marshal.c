@@ -12,19 +12,18 @@
 
 /*- macro show_input_parameter(p, namespace_prefix='') -*/
     /*- if p.direction == 'in' -*/
-        /*- if p.array -*/
+        /*-- if p.array --*/
             size_t /*? namespace_prefix ?*//*? p.name ?*/_sz,
             /*- if p.type == 'string' -*/
                 char **
             /*- else -*/
                 const /*? macros.show_type(p.type) ?*/ *
             /*- endif -*/
-        /*- elif p.type == 'string' -*/
+        /*-- elif p.type == 'string' --*/
             const char *
         /*- else -*/
-            /*? macros.show_type(p.type) ?*/
-        /*- endif -*/
-        /*? namespace_prefix ?*//*? p.name ?*/
+            /*?- macros.show_type(p.type) -?*/
+        /*- endif -*/ /*? namespace_prefix ?*//*? p.name -?*/
     /*- else -*/
         /*- if p.array -*/
             /*- if p.direction == 'refin' -*/
@@ -34,7 +33,7 @@
             /*- if p.type == 'string' -*/
                 char ***
             /*- else -*/
-                /*? macros.show_type(p.type) ?*/ **
+                /*?- macros.show_type(p.type) ?*/ **
             /*- endif -*/
         /*- elif p.type == 'string' -*/
             char **
@@ -42,38 +41,32 @@
             /*- if p.direction == 'refin' -*/
                 const
             /*- endif -*/
-            /*? macros.show_type(p.type) ?*/ *
+            /*?- macros.show_type(p.type) ?*/ *
         /*- endif -*/
         /*? namespace_prefix ?*//*? p.name ?*/
     /*- endif -*/
 /*- endmacro -*/
 
 /*- macro show_input_parameter_list(parameters, valid_directions, namespace_prefix='') -*/
-    /*- for p in parameters -*/
-        /*? assert(p.direction in valid_directions) ?*/
-        /*? show_input_parameter(p, namespace_prefix) ?*/
-        /*- if not loop.last -*/
-            ,
-        /*- endif -*/
-    /*- endfor -*/
+    /*-- for p in parameters --*/
+        /*?- assert(p.direction in valid_directions) -?*/
+        /*?- show_input_parameter(p, namespace_prefix) ?*//*- if not loop.last -*/,/*- endif -*/
+    /*-- endfor --*/
 /*- endmacro -*/
 
 /*- macro show_output_parameter(p, namespace_prefix='') -*/
     /*- if p.array -*/
         size_t * /*? namespace_prefix ?*//*? p.name ?*/_sz,
-        /*? macros.show_type(p.type) ?*/ ** /*? namespace_prefix ?*//*? p.name ?*/
+        /*?- macros.show_type(p.type) -?*/ ** /*?- namespace_prefix ?*//*? p.name -?*/
     /*- else -*/
-        /*? macros.show_type(p.type) ?*/ * /*? namespace_prefix ?*//*? p.name ?*/
+        /*?- macros.show_type(p.type) -?*/ * /*?- namespace_prefix ?*//*? p.name -?*/
     /*- endif -*/
 /*- endmacro -*/
 
 /*- macro show_output_parameter_list(parameters, namespace_prefix='') -*/
-    /*- for p in parameters -*/
-        /*? show_output_parameter(p, namespace_prefix) ?*/
-        /*- if not loop.last -*/
-            ,
-        /*- endif -*/
-    /*- endfor -*/
+    /*-- for p in parameters --*/
+        /*?- show_output_parameter(p, namespace_prefix) -?*//*-- if not loop.last --*/,/*-- endif --*/
+    /*-- endfor --*/
 /*- endmacro -*/
 
 /*# Generates code for marshalling input parameters to an RPC invocation
@@ -106,58 +99,60 @@
             offset = MARSHAL_PARAM(&method_index, base, size, offset, "/*? name ?*/", "method_index");
         /*- endif -*/
 
-        /* Marshal the parameters. */
         /*- for p in input_parameters -*/
-            /*? assert(isinstance(p.type, six.string_types)) ?*/
-            /* Construct parameter pointers. We do this here to consolidate where we
+            /*-- if loop.first -*/
+                /* Marshal the parameters. */
+            /*-- endif -*/
+            /*?- assert(isinstance(p.type, six.string_types)) ?*/
+
+            /*#- Construct parameter pointers. We do this here to consolidate where we
              * are taking the address of local variables. In future, we need to avoid
              * doing this for verification.
-             */
-            /*- set ptr = "p_%s_ptr" % p.name -*/
-            /*- set ptr_sz = "p_%s_ptr_sz" % p.name -*/
-            /*- set ptr_str = "p_%s_ptr_str" % p.name -*/
-            /*- set ptr_arr = "p_%s_ptr_arr" % p.name -*/
-            /*- if p.direction == 'in' -*/
-                /*- if p.array -*/
+             #*/
+            /*-- set ptr = "p_%s_ptr" % p.name -*/
+            /*-- set ptr_sz = "p_%s_ptr_sz" % p.name -*/
+            /*-- set ptr_str = "p_%s_ptr_str" % p.name -*/
+            /*-- set ptr_arr = "p_%s_ptr_arr" % p.name -*/
+            /*-- if p.direction == 'in' -*/
+                /*-- if p.array -*/
                     size_t * /*? ptr_sz ?*/ = &p_/*? p.name ?*/_sz;
                     * /*? ptr_sz ?*/ = p_/*? p.name ?*/_sz;
-                    /*- if p.type == 'string' -*/
+                    /*-- if p.type == 'string' -*/
                         char ** /*? ptr_arr ?*/ = p_/*? p.name ?*/;
-                    /*- else -*/
+                    /*-- else -*/
                         const /*? macros.show_type(p.type) ?*/ * /*? ptr_arr ?*/ = p_/*? p.name ?*/;
-                    /*- endif -*/
-                /*- elif p.type == 'string' -*/
+                    /*-- endif -*/
+                /*-- elif p.type == 'string' -*/
                     const char * /*? ptr_str ?*/ = p_/*? p.name ?*/;
-                /*- else -*/
+                /*-- else -*/
                     /*? macros.show_type(p.type) ?*/ * /*? ptr ?*/ = &p_/*? p.name ?*/;
-                    * /*? ptr ?*/ = p_/*? p.name ?*/;
-                /*- endif -*/
-            /*- else -*/
-                /*- if p.array -*/
+                /*-- endif -*/
+            /*-- else -*/
+                /*-- if p.array -*/
                     const size_t * /*? ptr_sz ?*/ = p_/*? p.name ?*/_sz;
-                    /*- if p.type == 'string' -*/
+                    /*-- if p.type == 'string' -*/
                         char ** /*? ptr_arr ?*/ = * p_/*? p.name ?*/;
-                    /*- else -*/
+                    /*-- else -*/
                         const /*? macros.show_type(p.type) ?*/ * /*? ptr_arr ?*/ = * p_/*? p.name ?*/;
-                    /*- endif -*/
-                /*- elif p.type == 'string' -*/
+                    /*-- endif -*/
+                /*-- elif p.type == 'string' -*/
                     const char * /*? ptr_str ?*/ = * p_/*? p.name ?*/;
-                /*- else -*/
+                /*-- else -*/
                     const /*? macros.show_type(p.type) ?*/ * /*? ptr ?*/ = p_/*? p.name ?*/;
-                /*- endif -*/
-            /*- endif -*/
+                /*-- endif -*/
+            /*-- endif -*/
 
-            /*- if p.array -*/
-                /*- if p.type == 'string' -*/
+            /*-- if p.array -*/
+                /*-- if p.type == 'string' -*/
                     offset = MARSHAL_STRING_ARRAY_PARAM(/*? ptr_arr ?*/, /*? ptr_sz ?*/, base, size, offset, "/*? name ?*/", "/*? p.name ?*/")
-                /*- else -*/
+                /*-- else -*/
                     offset = MARSHAL_ARRAY_PARAM(/*? ptr_arr ?*/, /*? ptr_sz ?*/, base, size, offset, "/*? name ?*/", "/*? p.name ?*/")
-                /*- endif -*/
-            /*- elif p.type == 'string' -*/
+                /*-- endif -*/
+            /*-- elif p.type == 'string' -*/
                 offset = MARSHAL_STRING_PARAM(/*? ptr_str ?*/, base, size, offset, "/*? name ?*/", "/*? p.name ?*/");
-            /*- else -*/
+            /*-- else -*/
                 offset = MARSHAL_PARAM(/*? ptr ?*/, base, size, offset, "/*? name ?*/", "/*? p.name ?*/");
-            /*- endif -*/
+            /*-- endif -*/
         /*- endfor -*/
 
         assert(offset <= size &&
@@ -174,11 +169,11 @@
   # input_parameters: All input parameters to this method
   #*/
 /*- macro call_marshal_input(function, buffer, size, input_parameters, namespace_prefix='') -*/
-    /*# Validate our arguments are the correct types #*/
-    /*? assert(isinstance(function, six.string_types)) ?*/
-    /*? assert(isinstance(buffer, six.string_types)) ?*/
-    /*? assert(isinstance(size, six.string_types)) ?*/
-    /*? assert(isinstance(input_parameters, (list, tuple))) ?*/
+    /*#- Validate our arguments are the correct types #*/
+    /*?- assert(isinstance(function, six.string_types)) ?*/
+    /*?- assert(isinstance(buffer, six.string_types)) ?*/
+    /*?- assert(isinstance(size, six.string_types)) ?*/
+    /*?- assert(isinstance(input_parameters, (list, tuple))) ?*/
 
     /*?- function ?*/(/*? buffer ?*/, /*? size ?*/
     /*-- for p in input_parameters --*/,
@@ -222,43 +217,45 @@
 
         /*- if return_type is not none -*/
             /* Unmarshal the return value. */
-            /*- if return_type == 'string' -*/
+            /*-- if return_type == 'string' -*/
                 offset = UNMARSHAL_STRING_PARAM(return_value, base, size, offset, "/*? name ?*/", "return value", ({return -1;}))
-            /*- else -*/
+            /*-- else -*/
                 offset = UNMARSHAL_PARAM(return_value, base, size, offset, "/*? name ?*/", "return value", ({return -1;}))
             /*- endif -*/
         /*- endif -*/
 
-        /* Unmarshal the parameters. */
-        /*- for index, p in enumerate(output_parameters) -*/
-            /*? assert(isinstance(p.type, six.string_types)) ?*/
-            /*- if p.array -*/
-                /*- if p.direction == 'inout' -*/
-                    /*- if p.type == 'string' -*/
+        /*-- for index, p in enumerate(output_parameters) -*/
+            /*-- if loop.first -*/
+                /* Unmarshal the parameters. */
+            /*-- endif -*/
+            /*?- assert(isinstance(p.type, six.string_types)) ?*/
+            /*-- if p.array -*/
+                /*-- if p.direction == 'inout' -*/
+                    /*-- if p.type == 'string' -*/
                         /* At this point p_/*? p.name ?*/_sz should still contain the old size */
                         for (int i = 0; i < * p_/*? p.name ?*/_sz; i ++) {
                             free((* p_/*? p.name ?*/)[i]);
                         }
-                    /*- endif -*/
+                    /*-- endif -*/
                     free(* p_/*? p.name ?*/);
-                /*- endif -*/
-            /*- elif p.type == 'string' -*/
-                /*- if p.direction == 'inout' -*/
+                /*-- endif -*/
+            /*-- elif p.type == 'string' -*/
+                /*-- if p.direction == 'inout' -*/
                     free(* p_/*? p.name ?*/);
-                /*- endif -*/
-            /*- endif -*/
+                /*-- endif -*/
+            /*-- endif -*/
 
-            /*- if p.array -*/
-                /*- if p.type == 'string' -*/
+            /*-- if p.array -*/
+                /*-- if p.type == 'string' -*/
                     offset = UNMARSHAL_STRING_ARRAY_PARAM(p_/*? p.name ?*/, p_/*? p.name ?*/_sz, base, size, offset, "/*? name ?*/", "/*? p.name ?*/", ({goto cleanup_/*? index ?*/;}))
-                /*- else -*/
+                /*-- else -*/
                     offset = UNMARSHAL_ARRAY_PARAM(p_/*? p.name ?*/, p_/*? p.name ?*/_sz, base, size, offset, "/*? name ?*/", "/*? p.name ?*/", ({goto cleanup_/*? index ?*/;}))
-                /*- endif -*/
-            /*- elif p.type == 'string' -*/
+                /*-- endif -*/
+            /*-- elif p.type == 'string' -*/
                 offset = UNMARSHAL_STRING_PARAM(p_/*? p.name ?*/, base, size, offset, "/*? name ?*/", "/*? p.name ?*/", ({goto cleanup_/*? index ?*/;}))
-            /*- else -*/
+            /*-- else -*/
                 offset = UNMARSHAL_PARAM(p_/*? p.name ?*/, base, size, offset, "/*? name ?*/", "/*? p.name ?*/", ({goto cleanup_/*? index ?*/;}))
-            /*- endif -*/
+            /*-- endif -*/
         /*- endfor -*/
 
         /*- if not allow_trailing_data -*/
@@ -301,12 +298,12 @@ cleanup_0:
   # ret_ptr: Pointer for the return value
   #*/
 /*- macro call_unmarshal_output(function, buffer, size, output_parameters, return_type, ret_ptr, namespace_prefix='') -*/
-    /*# Validate the types of our arguments #*/
-    /*? assert(isinstance(function, six.string_types)) ?*/
-    /*? assert(isinstance(buffer, six.string_types)) ?*/
-    /*? assert(isinstance(size, six.string_types)) ?*/
-    /*? assert(isinstance(output_parameters, (list, tuple))) ?*/
-    /*? assert(return_type is none or isinstance(return_type, six.string_types)) ?*/
+    /*#- Validate the types of our arguments #*/
+    /*?- assert(isinstance(function, six.string_types)) ?*/
+    /*?- assert(isinstance(buffer, six.string_types)) ?*/
+    /*?- assert(isinstance(size, six.string_types)) ?*/
+    /*?- assert(isinstance(output_parameters, (list, tuple))) ?*/
+    /*?- assert(return_type is none or isinstance(return_type, six.string_types)) ?*/
 
     /*?- function ?*/(/*? buffer ?*/,
     /*?- size ?*/
@@ -320,7 +317,6 @@ cleanup_0:
     /*?- namespace_prefix ?*//*? p.name ?*/
     /*-- endfor --*/
     )
-
 /*- endmacro -*/
 
 /*# Generates code for marshalling out parameters to an RPC invocation
@@ -351,21 +347,23 @@ cleanup_0:
             offset += sizeof(/*? macros.type_to_fit_integer(methods_len) ?*/);
         /*- endif -*/
 
-        /* Unmarshal input parameters. */
         /*- for index, p in enumerate(input_parameters) -*/
-            /*? assert(isinstance(p.type, six.string_types)) ?*/
-            /*- if p.array -*/
-                /*- if p.type == 'string' -*/
+            /*-- if loop.first -*/
+                /* Unmarshal input parameters. */
+            /*-- endif -*/
+            /*?- assert(isinstance(p.type, six.string_types)) ?*/
+             /*-- if p.array -*/
+                /*-- if p.type == 'string' -*/
                     offset = UNMARSHAL_STRING_ARRAY_PARAM(p_/*? p.name ?*/, p_/*? p.name ?*/_sz, base, size, offset, "/*? name ?*/", "/*? p.name ?*/", ({goto cleanup_/*? index ?*/;}))
-                /*- else -*/
+                /*-- else -*/
                     offset = UNMARSHAL_ARRAY_PARAM(p_/*? p.name ?*/, p_/*? p.name ?*/_sz, base, size, offset, "/*? name ?*/", "/*? p.name ?*/", ({goto cleanup_/*? index ?*/;}))
-                /*- endif -*/
-            /*- elif p.type == 'string' -*/
+                /*-- endif -*/
+            /*-- elif p.type == 'string' -*/
                 offset = UNMARSHAL_STRING_PARAM(p_/*? p.name ?*/, base, size, offset, "/*? name ?*/", "/*? p.name ?*/", ({goto cleanup_/*? index ?*/;}))
-            /*- else -*/
+            /*-- else -*/
                 offset = UNMARSHAL_PARAM(p_/*? p.name ?*/, base, size, offset, "/*? name ?*/", "/*? p.name ?*/", ({goto cleanup_/*? index ?*/;}))
-            /*- endif -*/
-        /*- endfor -*/
+            /*-- endif -*/
+        /*-- endfor -*/
 
         /*- if not allow_trailing_data -*/
             ERR_IF_MALFORMED_RPC_EXCESS_PAYLOAD(size, offset, "/*? name ?*/", ({
@@ -400,11 +398,11 @@ cleanup_0:
   # input_parameters: All input parameters to this method
   #*/
 /*- macro call_unmarshal_input(function, buffer, size, input_parameters, namespace_prefix='') -*/
-    /*# Validate our arguments are the expected type #*/
-    /*? assert(isinstance(function, six.string_types)) ?*/
-    /*? assert(isinstance(buffer, six.string_types)) ?*/
-    /*? assert(isinstance(size, six.string_types)) ?*/
-    /*? assert(isinstance(input_parameters, (list, tuple))) ?*/
+    /*#- Validate our arguments are the expected type #*/
+    /*?- assert(isinstance(function, six.string_types)) ?*/
+    /*?- assert(isinstance(buffer, six.string_types)) ?*/
+    /*?- assert(isinstance(size, six.string_types)) ?*/
+    /*?- assert(isinstance(input_parameters, (list, tuple))) ?*/
 
     /*?- function ?*/(/*? buffer ?*/, /*? size ?*/
     /*-- for p in input_parameters -*/,
@@ -454,20 +452,22 @@ cleanup_0:
             /*- endif -*/
         /*- endif -*/
 
-        /* Marshal output parameters. */
-        /*- for p in output_parameters -*/
-            /*? assert(isinstance(p.type, six.string_types)) ?*/
-            /*- if p.array -*/
-                /*- if p.type == 'string' -*/
+        /*-- for p in output_parameters -*/
+            /*-- if loop.first -*/
+                /* Marshal output parameters. */
+            /*-- endif -*/
+            /*?- assert(isinstance(p.type, six.string_types)) ?*/
+            /*-- if p.array -*/
+                /*-- if p.type == 'string' -*/
                     offset = MARSHAL_STRING_ARRAY_PARAM((* p_/*? p.name ?*/), p_/*? p.name ?*/_sz, base, size, offset, "/*? name ?*/", "/*? p.name ?*/")
-                /*- else -*/
+                /*-- else -*/
                     offset = MARSHAL_ARRAY_PARAM((* p_/*? p.name ?*/), p_/*? p.name ?*/_sz, base, size, offset, "/*? name ?*/", "/*? p.name ?*/")
-                /*- endif -*/
-            /*- elif p.type == 'string' -*/
+                /*-- endif -*/
+            /*-- elif p.type == 'string' -*/
                 offset = MARSHAL_STRING_PARAM(* p_/*? p.name ?*/, base, size, offset, "/*? name ?*/", "/*? p.name ?*/")
-            /*- else -*/
+            /*-- else -*/
                 offset = MARSHAL_PARAM(p_/*? p.name ?*/, base, size, offset, "/*? name ?*/", "/*? p.name ?*/")
-            /*- endif -*/
+            /*-- endif -*/
         /*- endfor -*/
 
         assert(offset <= size &&
@@ -486,12 +486,12 @@ cleanup_0:
   # ret_ptr: Pointer for the return value
   #*/
 /*- macro call_marshal_output(function, buffer, size, output_parameters, return_type, ret_ptr, namespace_prefix='') -*/
-    /*# Validate our arguments are the correct type #*/
-    /*? assert(isinstance(function, six.string_types)) ?*/
-    /*? assert(isinstance(buffer, six.string_types)) ?*/
-    /*? assert(isinstance(size, six.string_types)) ?*/
-    /*? assert(isinstance(output_parameters, (list, tuple))) ?*/
-    /*? assert(return_type is none or isinstance(return_type, six.string_types)) ?*/
+    /*#- Validate our arguments are the correct type #*/
+    /*?- assert(isinstance(function, six.string_types)) ?*/
+    /*?- assert(isinstance(buffer, six.string_types)) ?*/
+    /*?- assert(isinstance(size, six.string_types)) ?*/
+    /*?- assert(isinstance(output_parameters, (list, tuple))) ?*/
+    /*?- assert(return_type is none or isinstance(return_type, six.string_types)) ?*/
 
     /*?- function ?*/(/*? buffer ?*/, /*? size ?*/
     /*-- if return_type is not none -*/,

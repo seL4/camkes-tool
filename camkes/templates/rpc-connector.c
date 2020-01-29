@@ -125,16 +125,16 @@
 
 /*- macro _extract_size(namespace, info, size, recv) -*/
     /*? size ?*/ =
-        /*- if namespace.userspace_ipc -*/
-            /*- if recv -*/
+        /*-- if namespace.userspace_ipc -*/
+            /*-- if recv -*/
                 /*? namespace.recv_buffer_size ?*/
-            /*- else -*/
+            /*-- else -*/
                 /*? namespace.send_buffer_size ?*/
-            /*- endif -*/
-        /*- else -*/
+            /*-- endif -*/
+        /*-- else --*/
             seL4_MessageInfo_get_length(/*? info ?*/) * sizeof(seL4_Word);
             assert(/*? size ?*/ <= seL4_MsgMaxLength * sizeof(seL4_Word))
-        /*- endif -*/
+        /*-- endif --*/
         ;
 /*- endmacro -*/
 
@@ -276,23 +276,23 @@
 
 /*# Releases ownership of the recv buffer #*/
 /*- macro complete_recv(namespace) -*/
-    /*# nothing needs to be done for us #*/
+    /*#- nothing needs to be done for us -#*/
 /*- endmacro -*/
 
 /*# Takes ownership of the send buffer #*/
 /*- macro begin_reply(namespace) -*/
-    /*# nothing needs to be done for us #*/
+    /*#- nothing needs to be done for us -#*/
 /*- endmacro -*/
 
 /*# Releases ownership of the send buffer #*/
 /*- macro complete_reply(namespace) -*/
-    /*# nothing needs to be done for us #*/
+    /*#- nothing needs to be done for us -#*/
 /*- endmacro -*/
 
 /*# Recieves a message storing its length into the 'size' symbol and takes ownership
   # of the recv buffer #*/
 /*- macro begin_recv(namespace, size, might_block, namespace_prefix='') -*/
-    /*- set info = "%sinfo" % namespace_prefix -*/
+    /*-- set info = "%sinfo" % namespace_prefix -*/
     seL4_MessageInfo_t /*? info ?*/ = /*? generate_seL4_Recv(options, namespace.ep,
                                                              '&%s' % namespace.badge_symbol,
                                                              namespace.reply_cap_slot) ?*/;
@@ -304,18 +304,18 @@
   # does begin_recv. This implicitly does complete_reply #*/
 /*- macro reply_recv(namespace, length, size, might_block, namespace_prefix='') -*/
     /*- if namespace.language == 'c' -*/
-        /*- set info = "%sinfo" % namespace_prefix -*/
+        /*-- set info = "%sinfo" % namespace_prefix -*/
         seL4_MessageInfo_t /*? info ?*/ = seL4_MessageInfo_new(0, 0, 0, /* length */
-            /*- if namespace.userspace_ipc -*/
+            /*-- if namespace.userspace_ipc --*/
                 0
-            /*- else -*/
+            /*-- else --*/
                 ROUND_UP_UNSAFE(/*? length ?*/, sizeof(seL4_Word)) / sizeof(seL4_Word)
-            /*- endif -*/
+            /*-- endif --*/
         );
 
         /* Send the response */
-        /*- if not options.realtime and might_block -*/
-            /*- set tls = "%stls" % namespace_prefix -*/
+        /*-- if not options.realtime and might_block -*/
+            /*-- set tls = "%stls" % namespace_prefix -*/
             camkes_tls_t * /*? tls ?*/ UNUSED = camkes_get_tls();
             assert(/*? tls ?*/ != NULL);
             if (/*? tls ?*/->reply_cap_in_tcb) {
@@ -331,17 +331,17 @@
                                                     '&%s' % namespace.badge_symbol,
                                                     namespace.reply_cap_slot) ?*/;
             }
-        /*- elif options.realtime -*/
+        /*-- elif options.realtime -*/
             /*? info ?*/ = /*? generate_seL4_ReplyRecv(options, namespace.ep,
                                                     info,
                                                     '&%s' % namespace.badge_symbol,
                                                     namespace.reply_cap_slot) ?*/;
-        /*- else -*/
+        /*-- else -*/
             /*? info ?*/ = /*? generate_seL4_ReplyRecv(options, namespace.ep,
                                                     info,
                                                     '&%s' % namespace.badge_symbol,
                                                     namespace.reply_cap_slot) ?*/;
-        /*- endif -*/
+        /*-- endif -*/
         /*? _extract_size(namespace, info, size, True) ?*/
     /*- elif namespace.language == 'cakeml' -*/
         /*- if options.realtime -*/
@@ -382,23 +382,23 @@
   # takes ownership of the recv buffer #*/
 /*- macro perform_call(namespace, size, length, namespace_prefix='') -*/
     /* Call the endpoint */
-    /*- set info = "%sinfo" % namespace_prefix -*/
+    /*-- set info = "%sinfo" % namespace_prefix -*/
     seL4_MessageInfo_t /*? info ?*/ = seL4_MessageInfo_new(0, 0, 0,
-        /*- if namespace.userspace_ipc -*/
+        /*-- if namespace.userspace_ipc --*/
                 0
-        /*- else -*/
+        /*-- else --*/
                 ROUND_UP_UNSAFE(/*? length ?*/, sizeof(seL4_Word)) / sizeof(seL4_Word)
-        /*- endif -*/
+        /*-- endif --*/
         );
     /*? info ?*/ = seL4_Call(/*? namespace.ep ?*/, /*? info ?*/);
 
     /*? size ?*/ =
-    /*- if namespace.userspace_ipc -*/
+    /*-- if namespace.userspace_ipc -*/
         /*? namespace.recv_buffer_size ?*/;
-    /*- else -*/
+    /*-- else -*/
         seL4_MessageInfo_get_length(/*? info ?*/) * sizeof(seL4_Word);
         assert(/*? size ?*/ <= seL4_MsgMaxLength * sizeof(seL4_Word));
-    /*- endif -*/
+    /*-- endif -*/
 /*- endmacro -*/
 
 /*# Releases the recv buffer #*/
