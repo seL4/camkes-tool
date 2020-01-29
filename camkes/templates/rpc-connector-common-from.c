@@ -56,50 +56,45 @@
     void
 /*- endif -*/
 /*? me.interface.name ?*/_/*? m.name ?*/(
-/*? marshal.show_input_parameter_list(m.parameters, ['in', 'refin', 'out', 'inout']) ?*/
+/*? marshal.show_input_parameter_list(m.parameters, ['in', 'refin', 'out', 'inout'], namespace_prefix='p_') ?*/
 ) {
 
     /*? begin_send(connector) ?*/
 
-    /*- set ret_val = c_symbol('return') -*/
-    /*- set ret_ptr = c_symbol('return_ptr') -*/
+    unsigned size;
     /*- if m.return_type is not none -*/
-      /*? macros.show_type(m.return_type) ?*/ /*? ret_val ?*/;
-      /*? macros.show_type(m.return_type) ?*/ * /*? ret_ptr ?*/ = &/*? ret_val ?*/;
+      /*? macros.show_type(m.return_type) ?*/ return_val;
+      /*? macros.show_type(m.return_type) ?*/ *return_ptr = &return_val;
     /*- endif -*/
 
     /* Marshal all the parameters */
-    /*- set length = c_symbol('length') -*/
-    unsigned /*? length ?*/ = /*? marshal.call_marshal_input('%s_marshal_inputs' % m.name, connector.send_buffer, connector.send_buffer_size, input_parameters) ?*/;
-    if (unlikely(/*? length ?*/ == UINT_MAX)) {
+    unsigned length = /*? marshal.call_marshal_input('%s_marshal_inputs' % m.name, connector.send_buffer, connector.send_buffer_size, input_parameters, namespace_prefix='p_') ?*/;
+    if (unlikely(length == UINT_MAX)) {
         /* Error in marshalling; bail out. */
         /*- if m.return_type is not none -*/
             /*- if m.return_type == 'string' -*/
                 return NULL;
             /*- else -*/
-                memset(/*? ret_ptr ?*/, 0, sizeof(* /*? ret_ptr ?*/));
-                return * /*? ret_ptr ?*/;
+                memset(return_ptr, 0, sizeof(* return_ptr));
+                return * return_ptr;
             /*- endif -*/
         /*- else -*/
             return;
         /*- endif -*/
     }
 
-    /*- set size = c_symbol('size') -*/
-    unsigned /*? size ?*/;
-    /*? perform_call(connector, size, length) ?*/
+    /*? perform_call(connector, "size", "length", namespace_prefix='rpc_') ?*/
 
     /* Unmarshal the response */
-    /*- set err = c_symbol('error') -*/
-    int /*? err ?*/ = /*? marshal.call_unmarshal_output('%s_unmarshal_outputs' % m.name, connector.recv_buffer, size, output_parameters, m.return_type, ret_ptr) ?*/;
-    if (unlikely(/*? err ?*/ != 0)) {
+    int err = /*? marshal.call_unmarshal_output('%s_unmarshal_outputs' % m.name, connector.recv_buffer, "size", output_parameters, m.return_type, "return_ptr", namespace_prefix='p_') ?*/;
+    if (unlikely(err != 0)) {
         /* Error in unmarshalling; bail out. */
         /*- if m.return_type is not none -*/
             /*- if m.return_type == 'string' -*/
                 return NULL;
             /*- else -*/
-                memset(/*? ret_ptr ?*/, 0, sizeof(* /*? ret_ptr ?*/));
-                return * /*? ret_ptr ?*/;
+                memset(return_ptr, 0, sizeof(* return_ptr));
+                return * return_ptr;
             /*- endif -*/
         /*- else -*/
             return;
@@ -109,7 +104,7 @@
     /*? release_recv(connector) ?*/
 
     /*- if m.return_type is not none -*/
-        return * /*? ret_ptr ?*/;
+        return *return_ptr;
     /*- endif -*/
 }
 /*- endfor -*/
