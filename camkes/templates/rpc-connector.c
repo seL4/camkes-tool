@@ -240,7 +240,7 @@
   # may need to do something special to setup for the first RPC
   # Otherwise this is same as begin_recv
   #*/
-/*- macro recv_first_rpc(namespace, size, might_block, notify_cptr=none) -*/
+/*- macro recv_first_rpc(namespace, size, might_block, notify_cptr=none, namespace_prefix='') -*/
     /*- if not options.realtime and might_block -*/
         /*- if namespace.language == 'cakeml' -*/
             val _ = #(set_tls_cnode_cap) "" (Utils.int_to_bytes /*? namespace.cnode ?*/ 8);
@@ -249,7 +249,7 @@
         /*- endif -*/
     /*- endif -*/
     /*- if namespace.language == 'c' -*/
-        /*- set info = c_symbol('info') -*/
+        /*- set info = "%sinfo" % namespace_prefix -*/
         /*- if notify_cptr is not none -*/
             /* This interface has a passive thread, must let the control thread know before waiting */
             seL4_MessageInfo_t /*? info ?*/ = /*? generate_seL4_SignalRecv(options,
@@ -291,8 +291,8 @@
 
 /*# Recieves a message storing its length into the 'size' symbol and takes ownership
   # of the recv buffer #*/
-/*- macro begin_recv(namespace, size, might_block) -*/
-    /*- set info = c_symbol('info') -*/
+/*- macro begin_recv(namespace, size, might_block, namespace_prefix='') -*/
+    /*- set info = "%sinfo" % namespace_prefix -*/
     seL4_MessageInfo_t /*? info ?*/ = /*? generate_seL4_Recv(options, namespace.ep,
                                                              '&%s' % namespace.badge_symbol,
                                                              namespace.reply_cap_slot) ?*/;
@@ -302,9 +302,9 @@
 
 /*# Sends whatever message is in the send buffer with the given `length`, and then
   # does begin_recv. This implicitly does complete_reply #*/
-/*- macro reply_recv(namespace, length, size, might_block) -*/
+/*- macro reply_recv(namespace, length, size, might_block, namespace_prefix='') -*/
     /*- if namespace.language == 'c' -*/
-        /*- set info = c_symbol('info') -*/
+        /*- set info = "%sinfo" % namespace_prefix -*/
         seL4_MessageInfo_t /*? info ?*/ = seL4_MessageInfo_new(0, 0, 0, /* length */
             /*- if namespace.userspace_ipc -*/
                 0
@@ -315,7 +315,7 @@
 
         /* Send the response */
         /*- if not options.realtime and might_block -*/
-            /*- set tls = c_symbol() -*/
+            /*- set tls = "%stls" % namespace_prefix -*/
             camkes_tls_t * /*? tls ?*/ UNUSED = camkes_get_tls();
             assert(/*? tls ?*/ != NULL);
             if (/*? tls ?*/->reply_cap_in_tcb) {
@@ -380,9 +380,9 @@
 
 /*# Sends a message and receives a reply. Implicitly does complete_reply and
   # takes ownership of the recv buffer #*/
-/*- macro perform_call(namespace, size, length) -*/
+/*- macro perform_call(namespace, size, length, namespace_prefix='') -*/
     /* Call the endpoint */
-    /*- set info = c_symbol('info') -*/
+    /*- set info = "%sinfo" % namespace_prefix -*/
     seL4_MessageInfo_t /*? info ?*/ = seL4_MessageInfo_new(0, 0, 0,
         /*- if namespace.userspace_ipc -*/
                 0
