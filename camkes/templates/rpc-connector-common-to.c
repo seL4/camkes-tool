@@ -116,22 +116,11 @@ int
                 /*- set type = macros.type_to_fit_integer(methods_len) -*/
                 /*? type ?*/ call;
                 /*? type ?*/ * call_ptr = &call;
-            /*- endif -*/
-            /*- if methods_len > 1 -*/
-                ERR_IF(sizeof(* call_ptr) > size, /*? error_handler ?*/, ((camkes_error_t){
-                    .type = CE_MALFORMED_RPC_PAYLOAD,
-                    .instance = "/*? instance ?*/",
-                    .interface = "/*? interface ?*/",
-                    .description = "truncated message encountered while unmarshalling method index in /*? me.interface.name ?*/",
-                    .length = size,
-                    .current_index = sizeof(* call_ptr),
-                    }), ({
+                unsigned offset = 0;
+                UNMARSHAL_PARAM(call_ptr, /*? connector.recv_buffer ?*/, size , offset, "/*? me.interface.name ?*/", "method_index", ({
                         /*? complete_recv(connector) ?*/
-                        /*? begin_recv(connector, "size", me.might_block()) ?*/
-                        continue;
+                        goto begin_recv;
                 }));
-
-                memcpy(call_ptr, /*? connector.recv_buffer ?*/, sizeof(* call_ptr));
             /*- endif -*/
 
             switch (* call_ptr) {
@@ -164,11 +153,9 @@ int
                         int err = /*? marshal.call_unmarshal_input('%s_unmarshal_inputs' % m.name, connector.recv_buffer, "size", input_parameters, namespace_prefix='p_') ?*/;
                         if (unlikely(err != 0)) {
                             /* Error in unmarshalling; return to event loop. */
-                            /*? complete_recv(connector) ?*/
-                            /*? begin_recv(connector, "size", me.might_block()) ?*/
-                            continue;
+                            /*?- complete_recv(connector) ?*/
+                            goto begin_recv;
                         }
-
                         /* Call the implementation */
                         /*- set ret = "%s_ret" % (m.name) -*/
                         /*- set ret_sz = "%s_ret_sz" % (m.name) -*/
@@ -229,14 +216,11 @@ int
                          * leaking memory on errors.
                          */
                         if (unlikely(length == UINT_MAX)) {
-                            /*? complete_reply(connector) ?*/
-                            /*? begin_recv(connector, "size", me.might_block()) ?*/
-                            continue;
+                            /*?- complete_reply(connector) ?*/
+                            goto begin_recv;
                         }
 
-                        /*? reply_recv(connector, "length", "size", me.might_block()) ?*/
-
-                        break;
+                        goto reply_recv;
                     }
                 /*- endfor -*/
                 default: {
@@ -250,8 +234,7 @@ int
                         .invalid_index = * call_ptr,
                     }), ({
                         /*? complete_recv(connector) ?*/
-                        /*? begin_recv(connector, "size", me.might_block()) ?*/
-                        continue;
+                        goto begin_recv;
                     }));
                 }
             }
@@ -271,12 +254,25 @@ int
                     .current_index = /*? connector.badge_symbol ?*/,
                     }), ({
                         /*? complete_recv(connector) ?*/
-                        /*? begin_recv(connector, "size", me.might_block()) ?*/
-                        continue;
+                        goto begin_recv;
                     }));
                 break;
         }
         /*- endif -*/
+
+/* These labels are used to reduce the same code getting generated for each
+ * case statement.
+ */
+reply_recv: {
+    /*? reply_recv(connector, "length", "size", me.might_block()) ?*/
+    continue;
+}
+
+begin_recv: {
+    /*? begin_recv(connector, "size", me.might_block()) ?*/
+    continue;
+}
+
     }
 
     UNREACHABLE();
