@@ -144,9 +144,9 @@
 
             /*-- if p.array -*/
                 /*-- if p.type == 'string' -*/
-                    offset = MARSHAL_STRING_ARRAY_PARAM(/*? ptr_arr ?*/, /*? ptr_sz ?*/, base, size, offset, "/*? name ?*/", "/*? p.name ?*/")
+                    offset = MARSHAL_STRING_ARRAY_PARAM(/*? ptr_arr ?*/, /*? ptr_sz ?*/, base, size, offset, "/*? name ?*/", "/*? p.name ?*/");
                 /*-- else -*/
-                    offset = MARSHAL_ARRAY_PARAM(/*? ptr_arr ?*/, /*? ptr_sz ?*/, base, size, offset, "/*? name ?*/", "/*? p.name ?*/")
+                    offset = MARSHAL_ARRAY_PARAM(/*? ptr_arr ?*/, /*? ptr_sz ?*/, base, size, offset, "/*? name ?*/", "/*? p.name ?*/");
                 /*-- endif -*/
             /*-- elif p.type == 'string' -*/
                 offset = MARSHAL_STRING_PARAM(/*? ptr_str ?*/, base, size, offset, "/*? name ?*/", "/*? p.name ?*/");
@@ -218,9 +218,9 @@
         /*- if return_type is not none -*/
             /* Unmarshal the return value. */
             /*-- if return_type == 'string' -*/
-                offset = UNMARSHAL_STRING_PARAM(return_value, base, size, offset, "/*? name ?*/", "return value", ({return -1;}))
+                offset = UNMARSHAL_STRING_PARAM(return_value, base, size, offset, "/*? name ?*/", "return value", ({return -1;}));
             /*-- else -*/
-                offset = UNMARSHAL_PARAM(return_value, base, size, offset, "/*? name ?*/", "return value", ({return -1;}))
+                offset = UNMARSHAL_PARAM(return_value, base, size, offset, "/*? name ?*/", "return value", ({return -1;}));
             /*- endif -*/
         /*- endif -*/
 
@@ -247,14 +247,14 @@
 
             /*-- if p.array -*/
                 /*-- if p.type == 'string' -*/
-                    offset = UNMARSHAL_STRING_ARRAY_PARAM(p_/*? p.name ?*/, p_/*? p.name ?*/_sz, base, size, offset, "/*? name ?*/", "/*? p.name ?*/", ({goto cleanup_/*? index ?*/;}))
+                    offset = UNMARSHAL_STRING_ARRAY_PARAM(p_/*? p.name ?*/, p_/*? p.name ?*/_sz, base, size, offset, "/*? name ?*/", "/*? p.name ?*/", ({goto cleanup_/*? index ?*/;}));
                 /*-- else -*/
-                    offset = UNMARSHAL_ARRAY_PARAM(p_/*? p.name ?*/, p_/*? p.name ?*/_sz, base, size, offset, "/*? name ?*/", "/*? p.name ?*/", ({goto cleanup_/*? index ?*/;}))
+                    offset = UNMARSHAL_ARRAY_PARAM(p_/*? p.name ?*/, p_/*? p.name ?*/_sz, base, size, offset, "/*? name ?*/", "/*? p.name ?*/", ({goto cleanup_/*? index ?*/;}));
                 /*-- endif -*/
             /*-- elif p.type == 'string' -*/
-                offset = UNMARSHAL_STRING_PARAM(p_/*? p.name ?*/, base, size, offset, "/*? name ?*/", "/*? p.name ?*/", ({goto cleanup_/*? index ?*/;}))
+                offset = UNMARSHAL_STRING_PARAM(p_/*? p.name ?*/, base, size, offset, "/*? name ?*/", "/*? p.name ?*/", ({goto cleanup_/*? index ?*/;}));
             /*-- else -*/
-                offset = UNMARSHAL_PARAM(p_/*? p.name ?*/, base, size, offset, "/*? name ?*/", "/*? p.name ?*/", ({goto cleanup_/*? index ?*/;}))
+                offset = UNMARSHAL_PARAM(p_/*? p.name ?*/, base, size, offset, "/*? name ?*/", "/*? p.name ?*/", ({goto cleanup_/*? index ?*/;}));
             /*-- endif -*/
         /*- endfor -*/
 
@@ -354,14 +354,14 @@ cleanup_0:
             /*?- assert(isinstance(p.type, six.string_types)) ?*/
              /*-- if p.array -*/
                 /*-- if p.type == 'string' -*/
-                    offset = UNMARSHAL_STRING_ARRAY_PARAM(p_/*? p.name ?*/, p_/*? p.name ?*/_sz, base, size, offset, "/*? name ?*/", "/*? p.name ?*/", ({goto cleanup_/*? index ?*/;}))
+                    offset = UNMARSHAL_STRING_ARRAY_PARAM(p_/*? p.name ?*/, p_/*? p.name ?*/_sz, base, size, offset, "/*? name ?*/", "/*? p.name ?*/", ({goto cleanup_/*? index ?*/;}));
                 /*-- else -*/
-                    offset = UNMARSHAL_ARRAY_PARAM(p_/*? p.name ?*/, p_/*? p.name ?*/_sz, base, size, offset, "/*? name ?*/", "/*? p.name ?*/", ({goto cleanup_/*? index ?*/;}))
+                    offset = UNMARSHAL_ARRAY_PARAM(p_/*? p.name ?*/, p_/*? p.name ?*/_sz, base, size, offset, "/*? name ?*/", "/*? p.name ?*/", ({goto cleanup_/*? index ?*/;}));
                 /*-- endif -*/
             /*-- elif p.type == 'string' -*/
-                offset = UNMARSHAL_STRING_PARAM(p_/*? p.name ?*/, base, size, offset, "/*? name ?*/", "/*? p.name ?*/", ({goto cleanup_/*? index ?*/;}))
+                offset = UNMARSHAL_STRING_PARAM(p_/*? p.name ?*/, base, size, offset, "/*? name ?*/", "/*? p.name ?*/", ({goto cleanup_/*? index ?*/;}));
             /*-- else -*/
-                offset = UNMARSHAL_PARAM(p_/*? p.name ?*/, base, size, offset, "/*? name ?*/", "/*? p.name ?*/", ({goto cleanup_/*? index ?*/;}))
+                offset = UNMARSHAL_PARAM(p_/*? p.name ?*/, base, size, offset, "/*? name ?*/", "/*? p.name ?*/", ({goto cleanup_/*? index ?*/;}));
             /*-- endif -*/
         /*-- endfor -*/
 
@@ -446,9 +446,9 @@ cleanup_0:
         /*- if return_type is not none -*/
             /* Marshal the return value. */
             /*- if return_type == 'string' -*/
-                offset = MARSHAL_STRING_PARAM(* return_var, base, size, offset, "/*? name ?*/", "return value")
+                offset = MARSHAL_STRING_PARAM(* return_var, base, size, offset, "/*? name ?*/", "return value");
             /*- else -*/
-                offset = MARSHAL_PARAM(return_var, base, size, offset, "/*? name ?*/", "return value")
+                offset = MARSHAL_PARAM(return_var, base, size, offset, "/*? name ?*/", "return value");
             /*- endif -*/
         /*- endif -*/
 
@@ -459,14 +459,14 @@ cleanup_0:
             /*?- assert(isinstance(p.type, six.string_types)) ?*/
             /*-- if p.array -*/
                 /*-- if p.type == 'string' -*/
-                    offset = MARSHAL_STRING_ARRAY_PARAM((* p_/*? p.name ?*/), p_/*? p.name ?*/_sz, base, size, offset, "/*? name ?*/", "/*? p.name ?*/")
+                    offset = MARSHAL_STRING_ARRAY_PARAM((* p_/*? p.name ?*/), p_/*? p.name ?*/_sz, base, size, offset, "/*? name ?*/", "/*? p.name ?*/");
                 /*-- else -*/
-                    offset = MARSHAL_ARRAY_PARAM((* p_/*? p.name ?*/), p_/*? p.name ?*/_sz, base, size, offset, "/*? name ?*/", "/*? p.name ?*/")
+                    offset = MARSHAL_ARRAY_PARAM((* p_/*? p.name ?*/), p_/*? p.name ?*/_sz, base, size, offset, "/*? name ?*/", "/*? p.name ?*/");
                 /*-- endif -*/
             /*-- elif p.type == 'string' -*/
-                offset = MARSHAL_STRING_PARAM(* p_/*? p.name ?*/, base, size, offset, "/*? name ?*/", "/*? p.name ?*/")
+                offset = MARSHAL_STRING_PARAM(* p_/*? p.name ?*/, base, size, offset, "/*? name ?*/", "/*? p.name ?*/");
             /*-- else -*/
-                offset = MARSHAL_PARAM(p_/*? p.name ?*/, base, size, offset, "/*? name ?*/", "/*? p.name ?*/")
+                offset = MARSHAL_PARAM(p_/*? p.name ?*/, base, size, offset, "/*? name ?*/", "/*? p.name ?*/");
             /*-- endif -*/
         /*- endfor -*/
 
