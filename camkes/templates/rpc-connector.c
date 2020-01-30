@@ -33,7 +33,7 @@
 
 /*# *** Internal helpers *** #*/
 
-/*- macro _allocate_badges(namespace) -*/
+/*- macro allocate_badges(namespace) -*/
     /*# Find any badges that have been explicitly assigned for this connection. That
      *# is, any badge identifiers that are not valid for us to assign automatically
      *# to other ends.
@@ -183,7 +183,7 @@
     /*- set ep_obj = alloc_obj('ep', seL4_EndpointObject) -*/
     /*- set ep = alloc_cap('ep_%s' % me.interface.name, ep_obj, write=True, grantreply=True) -*/
 
-    /*? _allocate_badges(namespace) ?*/
+    /*? allocate_badges(namespace) ?*/
     /*# Badge our capability #*/
     /*- do cap_space.cnode[ep].set_badge(namespace.badges[me.parent.from_ends.index(me)]) -*/
 
@@ -206,7 +206,7 @@
     /*- set ep_obj = alloc_obj('ep', seL4_EndpointObject) -*/
     /*- set namespace.ep = alloc_cap('ep_%s' % me.interface.name, ep_obj, read=True) -*/
 
-    /*? _allocate_badges(namespace) ?*/
+    /*? allocate_badges(namespace) ?*/
 
     /*- if language == 'c' -*/
         /*? _make_get_sender_id_symbol(namespace, interface_name) ?*/
