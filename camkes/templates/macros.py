@@ -25,6 +25,7 @@ from capdl import ASIDPool, CNode, Endpoint, Frame, IODevice, IOPageTable, \
     Notification, page_sizes, PageDirectory, PageTable, TCB, Untyped, \
     calculate_cnode_size, lookup_architecture
 from capdl.util import ctz
+from capdl.Object import get_libsel4_constant
 import collections
 import math
 import os
@@ -514,3 +515,50 @@ def integrity_group_labels(composition, configuration):
         c: get_canonical_label(group)
         for c, group in group_labels.items()
     }
+
+
+NO_CHECK_UNUSED.add('global_endpoint_badges')
+
+
+def global_endpoint_badges(composition, end, configuration):
+    '''
+    Enumerate the badge value for a connection that uses the global-endpoint notification.
+
+    Given that this object exists across multiple connections, we enumerate all connections
+    in the composition to find all the connections that contain the component instance that
+    owns the notification. Then we assign badges based on a consistent order of all of the
+    selected connections. Badges are allocated by starting at 1 and then left shifting for
+    each increment but skipping any bits covered by ${instance}.global_endpoint_mask in the
+    configuration. Finally the badge value is bitwise or'd with ${instance}.global_endpoint_base.
+    This is to allow the component to reserve different badge values for usages outside of this
+    mechanism.
+    '''
+    def set_next_badge(next_badge, mask):
+        if (next_badge >= 2**get_libsel4_constant('seL4_Value_BadgeBits')):
+            raise Exception("Couldn't allocate notification badge for %s" % end)
+        next_badge = next_badge << 1
+        if not next_badge & mask:
+            next_badge = set_next_badge(next_badge, mask)
+        return next_badge
+
+    instance = end.instance
+    mask = configuration[instance.name].get(
+        "global_endpoint_mask", 2**get_libsel4_constant('seL4_Value_BadgeBits')-1)
+    base = configuration[instance.name].get("global_endpoint_base", 0)
+    next_badge = set_next_badge(1, mask)
+
+    for c in composition.connections:
+        if c.type.get_attribute("from_global_endpoint") and c.type.get_attribute("from_global_endpoint").default:
+            for i in c.from_ends:
+                if i.instance is instance:
+                    if end is i:
+                        return next_badge | base
+                    next_badge = set_next_badge(next_badge, mask)
+        if c.type.get_attribute("to_global_endpoint") and c.type.get_attribute("to_global_endpoint").default:
+            for i in c.to_ends:
+                if i.instance is instance:
+                    if end is i:
+                        return next_badge | base
+                    next_badge = set_next_badge(next_badge, mask)
+
+    raise Exception("Couldn't allocate notification badge for %s" % end)
