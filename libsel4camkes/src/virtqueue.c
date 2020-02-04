@@ -86,7 +86,8 @@ static camkes_virtqueue_channel_t *get_virtqueue_channel(virtqueue_role_t role, 
 }
 
 
-int camkes_virtqueue_driver_init(virtqueue_driver_t *driver, unsigned int camkes_virtqueue_id)
+int camkes_virtqueue_driver_init_with_recv(virtqueue_driver_t *driver, unsigned int camkes_virtqueue_id,
+                                           seL4_CPtr *recv_notification, seL4_CPtr *recv_badge)
 {
     if (driver == NULL) {
         return -1;
@@ -98,11 +99,19 @@ int camkes_virtqueue_driver_init(virtqueue_driver_t *driver, unsigned int camkes
         return -1;
     }
 
+    if (recv_notification != NULL) {
+        *recv_notification = channel->recv_notification;
+    }
+    if (recv_badge != NULL) {
+        *recv_badge = channel->recv_badge;
+    }
+
     return camkes_virtqueue_driver_init_common(driver, channel->channel_buffer, channel->channel_buffer_size,
                                                channel->notify, BLOCK_SIZE) ? -1 : 0;
 }
 
-int camkes_virtqueue_device_init(virtqueue_device_t *device, unsigned int camkes_virtqueue_id)
+int camkes_virtqueue_device_init_with_recv(virtqueue_device_t *device, unsigned int camkes_virtqueue_id,
+                                           seL4_CPtr *recv_notification, seL4_CPtr *recv_badge)
 {
     if (device == NULL) {
         return -1;
@@ -112,6 +121,13 @@ int camkes_virtqueue_device_init(virtqueue_device_t *device, unsigned int camkes
     if (channel == NULL) {
         ZF_LOGE("Failed to get channel");
         return -1;
+    }
+
+    if (recv_notification != NULL) {
+        *recv_notification = channel->recv_notification;
+    }
+    if (recv_badge != NULL) {
+        *recv_badge = channel->recv_badge;
     }
 
     return camkes_virtqueue_device_init_common(device, channel->channel_buffer, channel->notify) ? -1 : 0;

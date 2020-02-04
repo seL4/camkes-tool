@@ -62,17 +62,35 @@ extern int num_registered_virtqueue_channels;
  * @param virtqueue_driver_t Pointer to set with the allocated virtqueue_driver_t object
  * @param camkes_virtqueue_id The unique id of the registered virtqueue channel. This
  * indexes into the 'camkes_virtqueue_channels' array
+ * @param recv_notification Capability to notification object for receiving events on.
+ * @param recv_badge Badge value that received notifications will have.
+ *        If recv_notification or recv_badge are NULL then they won't be returned.
  * @return Positive 0 on success, -1 on error
  */
-int camkes_virtqueue_driver_init(virtqueue_driver_t *driver, unsigned int camkes_virtqueue_id);
+int camkes_virtqueue_driver_init_with_recv(virtqueue_driver_t *driver, unsigned int camkes_virtqueue_id,
+                                           seL4_CPtr *recv_notification, seL4_CPtr *recv_badge);
+
+static inline int camkes_virtqueue_driver_init(virtqueue_driver_t *driver, unsigned int camkes_virtqueue_id)
+{
+    return camkes_virtqueue_driver_init_with_recv(driver, camkes_virtqueue_id, NULL, NULL);
+}
 
 /* Initialise a virtqueue_device_t object from a registered virtqueue channel
  * @param virtqueue_device_t Pointer to set with the allocated virtqueue_device_t object
  * @param camkes_virtqueue_id The unique id of the registered virtqueue channel. This
  * indexes into the 'camkes_virtqueue_channels' array
+ * @param recv_notification Capability to notification object for receiving events on.
+ * @param recv_badge Badge value that received notifications will have.
+ *        If recv_notification or recv_badge are NULL then they won't be returned.
  * @return Positive 0 on success, -1 on error
  */
-int camkes_virtqueue_device_init(virtqueue_device_t *device, unsigned int camkes_virtqueue_id);
+int camkes_virtqueue_device_init_with_recv(virtqueue_device_t *device, unsigned int camkes_virtqueue_id,
+                                           seL4_CPtr *recv_notification, seL4_CPtr *recv_badge);
+
+static inline int camkes_virtqueue_device_init(virtqueue_device_t *device, unsigned int camkes_virtqueue_id)
+{
+    return camkes_virtqueue_device_init_with_recv(device, camkes_virtqueue_id, NULL, NULL);
+}
 
 /* Allocates a virtqueue buffer that the given 'virtqueue_driver_t' can use to communicate with
  * @param virtqueue_driver_t Pointer to the virtqueue_driver_t object we are allocating a buffer for
