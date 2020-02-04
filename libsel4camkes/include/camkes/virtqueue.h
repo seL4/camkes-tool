@@ -12,6 +12,7 @@
 
 #pragma once
 
+#include <sel4/sel4.h>
 #include <virtqueue.h>
 #include <stddef.h>
 #include <inttypes.h>
@@ -41,6 +42,8 @@ typedef struct virtqueue_channel {
     volatile void *channel_buffer;
     size_t channel_buffer_size;
     void (*notify)(void);
+    seL4_CPtr recv_notification;
+    seL4_Word recv_badge;
     virtqueue_role_t role;
     uint8_t buffer_allocated;
 } camkes_virtqueue_channel_t;

@@ -21,8 +21,10 @@
  * @param size Size of the virtqueue buffer shared memory region
  * @param buf A pointer to the shared memory region used to create a virtqueue
  * @param notify A function pointer that performs a signal on the virtqueue
+ * @param recv_notification Capability to notification that can receive events from other end
+ * @param recv_badge Badge value for events received on the notification
  * @param role The components role over the virtqueue channel (DEVICE or DRIVER)
  * @return Positive 0 on success, -1 on error
  */
 int camkes_virtqueue_channel_register(int virtqueue_id, size_t size, volatile void *buf, void (*notify)(void),
-                                      virtqueue_role_t role);
+                                      seL4_CPtr recv_notification, seL4_Word recv_badge, virtqueue_role_t role);
