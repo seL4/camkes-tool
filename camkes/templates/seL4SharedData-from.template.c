@@ -34,15 +34,9 @@
      /*? raise(TemplateError('Setting Buf(%d) does not meet minimum size requirements. %d must be at least %d and %d aligned' % (int(size), int(size), 4096, 4096))) ?*/
    /*- endif -*/
 /*- endif -*/
-/*- set page_size_bits = int(math.log(page_size, 2)) -*/
 
-struct {
-    char content[ROUND_UP_UNSAFE(MAX_UNSAFE(/*? type_size ?*/, /*? size ?*/),
-        SIZE_BITS_TO_BYTES(/*? page_size_bits ?*/))];
-} /*? dataport_symbol_name ?*/
-        ALIGN(/*? page_size ?*/)
-        SECTION("align_/*? page_size_bits ?*/bit")
-        USED;
+/*- set shmem_symbol_size = "MAX_UNSAFE(%s, %s)" % (type_size, size) -*/
+/*? macros.shared_buffer_symbol(sym=dataport_symbol_name, shmem_size=shmem_symbol_size, page_size=page_size) ?*/
 /*- set perm = macros.get_perm(configuration, me.instance.name, me.interface.name) -*/
 /*? register_shared_variable('%s_data' % me.parent.name, dataport_symbol_name, size, frame_size=page_size, perm=perm) ?*/
 

@@ -62,6 +62,19 @@ def ipc_buffer_address(sym):
     return '((seL4_Word)%s + PAGE_SIZE_4K);\n' % sym
 
 
+def shared_buffer_symbol(sym, shmem_size, page_size):
+    page_size_bits = int(math.log(page_size, 2))
+    return '''
+struct {
+    char content[ROUND_UP_UNSAFE(%(shmem_size)s, %(page_size)s)];
+} %(sym)s
+        ALIGN(%(page_size)s)
+        SECTION("align_%(page_size_bits)sbit")
+        __attribute__((externally_visible))
+        USED;
+''' % {"sym": sym, "shmem_size": shmem_size, "page_size": page_size, "page_size_bits": page_size_bits}
+
+
 def next_page_multiple(size, arch):
     '''
     Finds the smallest multiple of 4K that can comfortably be used to create
