@@ -26,7 +26,6 @@ foreach(
     seL4NotificationNative
     seL4NotificationQueue
     seL4RPCCall
-    seL4SharedData
     seL4DTBHardware
 )
     DeclareCAmkESConnector(
@@ -47,6 +46,7 @@ DeclareCAmkESConnector(
     seL4RPCCall-to.template.cakeml
 )
 DeclareCAmkESConnector(seL4RPCCall CAKEML_TO seL4RPCCall-to.template.cakeml)
+DeclareCAmkESConnector(seL4SharedData FROM seL4SharedData.template.c TO seL4SharedData.template.c)
 # Connectors with only FROM end interfaces
 foreach(connector IN ITEMS seL4HardwareMMIO seL4HardwareIOPort)
     DeclareCAmkESConnector(${connector} FROM ${connector}.template.c)
