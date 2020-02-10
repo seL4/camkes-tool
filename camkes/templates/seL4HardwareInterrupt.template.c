@@ -41,6 +41,32 @@
         /*- set _irq = _irq + 32 -*/
     /*- endif -*/
     /*- set irq = alloc('irq', seL4_IRQHandler, number=_irq, notification=my_cnode[ntfn]) -*/
+/*- elif type in ['arm'] -*/
+    /*- set attr = '%s_irq_trigger' % me.parent.from_interface.name -*/
+    /*- set trigger = configuration[me.parent.from_instance.name].get(attr, "level") -*/
+    /*- if trigger == "level" -*/
+        /*- set trigger = seL4_ARM_IRQ_LEVEL -*/
+        /*- set sel4_trigger_param = 0 -*/
+    /*- elif trigger == "edge" -*/
+        /*- set trigger = seL4_ARM_IRQ_EDGE -*/
+        /*- set sel4_trigger_param = 1 -*/
+    /*- else -*/
+        /*? raise(TemplateError('Setting %s.%s that should specify an IRQ trigger mode can only be "edge" or "level" but is set to: %s' % (me.parent.from_instance.name, attr, trigger))) ?*/
+    /*- endif -*/
+    /*- set attr = '%s_irq_number' % me.parent.from_interface.name -*/
+    /*- set _irq = configuration[me.parent.from_instance.name].get(attr) -*/
+    /*- if _irq is none -*/
+        /*? raise(TemplateError('Setting %s.%s that should specify an IRQ number is not defined' % (me.parent.from_instance.name, attr))) ?*/
+    /*- endif -*/
+    /*- if not isinstance(_irq, numbers.Integral) -*/
+        /*? raise(TemplateError('Setting %s.%s that should specify an IRQ number is not an integer' % (me.parent.from_instance.name, attr))) ?*/
+    /*- endif -*/
+    /*- set attr = '%s_irq_target' % me.parent.from_interface.name -*/
+    /*- set target = configuration[me.parent.from_instance.name].get(attr, 0) -*/
+    /*- if not isinstance(target, numbers.Integral) -*/
+        /*? raise(TemplateError('Setting %s.%s that should specify a target core is not an integer' % (me.parent.from_instance.name, attr))) ?*/
+    /*- endif -*/
+    /*- set irq = alloc('irq', seL4_IRQHandler, number=_irq, trigger=trigger, target=target, notification=my_cnode[ntfn]) -*/
 /*- elif type in ['ioapic','isa','pci'] -*/
     /*- if type == 'isa' -*/
         /*- set level = 0 -*/
@@ -151,6 +177,8 @@ static allocated_irq_t /*? irq_struct_name ?*/ = {
     .irq = { .type = PS_MSI, .msi = { .pci_bus = /*? pci_bus ?*/, .pci_dev = /*? pci_dev ?*/,
                                       .pci_func = /*? pci_func ?*/, .handle = /*? handler ?*/,
                                       .vector = /*? vector ?*/ }},
+/*- elif type == 'arm' -*/
+    .irq = { .type = PS_TRIGGER, .cpu = { .trigger = /*? trigger.value ?*/, .cpu_idx= /*? target ?*/, .number = /*? _irq ?*/ }},
 /*- endif -*/
     .is_allocated = false,
     .callback_fn = NULL,

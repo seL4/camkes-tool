@@ -36,7 +36,7 @@ import functools
 import numbers
 import \
     orderedset, os, pdb, re, six, sys, textwrap, math
-from capdl.Object import ObjectType, ObjectRights
+from capdl.Object import ObjectType, ObjectRights, ARMIRQMode
 from capdl.Allocator import Cap
 from capdl import page_sizes
 
@@ -61,7 +61,7 @@ def new_context(entity, assembly, render_state, state_key, outfile_name,
     cap_space = render_state.cspaces[state_key] if state_key and render_state else None
     addr_space = render_state.addr_spaces[state_key] if state_key and render_state else None
 
-    return dict(list(__builtins__.items()) + list(ObjectType.__members__.items()) + list(ObjectRights.__members__.items()) + list({
+    return dict(list(__builtins__.items()) + list(ObjectType.__members__.items()) + list(ObjectRights.__members__.items()) + list(ARMIRQMode.__members__.items()) + list({
         # Kernel object allocator
         'alloc_obj': (
             lambda name, type, label=entity.label(), **kwargs:
