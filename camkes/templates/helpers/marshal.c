@@ -172,7 +172,7 @@
     /*#- Validate our arguments are the correct types #*/
     /*?- assert(isinstance(function, six.string_types)) ?*/
     /*?- assert(isinstance(buffer, six.string_types)) ?*/
-    /*?- assert(isinstance(size, six.string_types)) ?*/
+    /*?- assert(isinstance(size, (six.string_types,six.integer_types))) ?*/
     /*?- assert(isinstance(input_parameters, (list, tuple))) ?*/
 
     /*?- function ?*/(/*? buffer ?*/, /*? size ?*/
@@ -301,7 +301,7 @@ cleanup_0:
     /*#- Validate the types of our arguments #*/
     /*?- assert(isinstance(function, six.string_types)) ?*/
     /*?- assert(isinstance(buffer, six.string_types)) ?*/
-    /*?- assert(isinstance(size, six.string_types)) ?*/
+    /*?- assert(isinstance(size, (six.string_types,six.integer_types))) ?*/
     /*?- assert(isinstance(output_parameters, (list, tuple))) ?*/
     /*?- assert(return_type is none or isinstance(return_type, six.string_types)) ?*/
 
@@ -401,7 +401,7 @@ cleanup_0:
     /*#- Validate our arguments are the expected type #*/
     /*?- assert(isinstance(function, six.string_types)) ?*/
     /*?- assert(isinstance(buffer, six.string_types)) ?*/
-    /*?- assert(isinstance(size, six.string_types)) ?*/
+    /*?- assert(isinstance(size, (six.string_types,six.integer_types))) ?*/
     /*?- assert(isinstance(input_parameters, (list, tuple))) ?*/
 
     /*?- function ?*/(/*? buffer ?*/, /*? size ?*/
@@ -489,7 +489,7 @@ cleanup_0:
     /*#- Validate our arguments are the correct type #*/
     /*?- assert(isinstance(function, six.string_types)) ?*/
     /*?- assert(isinstance(buffer, six.string_types)) ?*/
-    /*?- assert(isinstance(size, six.string_types)) ?*/
+    /*?- assert(isinstance(size, (six.string_types,six.integer_types))) ?*/
     /*?- assert(isinstance(output_parameters, (list, tuple))) ?*/
     /*?- assert(return_type is none or isinstance(return_type, six.string_types)) ?*/
 
