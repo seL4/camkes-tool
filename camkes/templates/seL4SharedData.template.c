@@ -18,7 +18,7 @@
 /*? macros.show_includes(me.instance.type.includes) ?*/
 
 /*- if me in me.parent.from_ends -*/
-  /*- set index = me.parent.from_ends.index(me) -*/\
+  /*- set index = me.parent.from_ends.index(me) -*/
   /*- set end = 'from' -*/
 /*- elif me in me.parent.to_ends -*/
   /*- set index = me.parent.to_ends.index(me) -*/
