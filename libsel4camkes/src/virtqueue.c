@@ -86,6 +86,16 @@ static camkes_virtqueue_channel_t *get_virtqueue_channel(virtqueue_role_t role, 
 }
 
 
+int camkes_virtqueue_get_id_from_name(const char *interface_name)
+{
+    for (int i = 0; i < MAX_CAMKES_VIRTQUEUE_ID; i++) {
+        if (strncmp(interface_name, camkes_virtqueue_channels[i].interface_name, 200) == 0) {
+            return i;
+        }
+    }
+    return -1;
+}
+
 int camkes_virtqueue_driver_init_with_recv(virtqueue_driver_t *driver, unsigned int camkes_virtqueue_id,
                                            seL4_CPtr *recv_notification, seL4_CPtr *recv_badge)
 {

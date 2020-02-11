@@ -46,6 +46,7 @@ typedef struct virtqueue_channel {
     seL4_Word recv_badge;
     virtqueue_role_t role;
     uint8_t buffer_allocated;
+    const char *interface_name;
 } camkes_virtqueue_channel_t;
 
 /*
@@ -57,6 +58,18 @@ extern camkes_virtqueue_channel_t camkes_virtqueue_channels[MAX_CAMKES_VIRTQUEUE
 
 /* The number of virtqueue channels registered to a component */
 extern int num_registered_virtqueue_channels;
+
+/**
+ * @brief      Convert a string name to a camkes virtqueue channel id.
+ *
+ * When a camkes virtqueue is registered, a numeric ID and a string name are provided
+ * to identify it with. This function translates from the string name to numerical ID.
+ *
+ * @param[in]  interface_name  The interface name
+ *
+ * @return     Returns a valid ID or -1 on error.
+ */
+int camkes_virtqueue_get_id_from_name(const char *interface_name);
 
 /* Initialise a virtqueue_driver_t object from a registered virtqueue channel
  * @param virtqueue_driver_t Pointer to set with the allocated virtqueue_driver_t object
