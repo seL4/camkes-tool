@@ -23,7 +23,7 @@
 /*- elif me in me.parent.to_ends -*/
   /*- set index = me.parent.to_ends.index(me) -*/
   /*- set end = 'to' -*/
-/*- endif
+/*- endif -*/
 
 /*- set dataport_symbol_name = "%s_%d_%s_data" % (end, index, me.interface.name) -*/
 /*- set type_size = macros.dataport_size(me.interface.type) -*/
