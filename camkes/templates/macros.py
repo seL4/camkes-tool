@@ -575,3 +575,41 @@ def global_endpoint_badges(composition, end, configuration):
                     next_badge = set_next_badge(next_badge, mask)
 
     raise Exception("Couldn't allocate notification badge for %s" % end)
+
+
+NO_CHECK_UNUSED.add('virtqueue_get_client_id')
+
+
+def virtqueue_get_client_id(composition, end, configuration):
+    '''
+    Enumerate the client ID value for a connection that uses the seL4VirtQueues connector.
+
+    Given that the ID namespace exists across multiple connections, we enumerate all connections
+    in the composition to find all the connections that contain the component instance.
+    Then we assign IDs based on a consistent order of all of the selected connections.
+    If an ID is already specified in the configuration then the remaining interfaces are assigned
+    IDs around it. IDs are allocated by starting at 0 and then skipping any already assigned IDs.
+    '''
+
+    instance = end.instance
+
+    base = configuration[instance.name].get("%s_id" % end.interface.name)
+
+    connections = []
+    ids = []
+    for c in composition.connections:
+        if c.type.name == "seL4VirtQueues":
+            for i in c.from_ends + c.to_ends:
+                if i.instance is instance:
+                    connections.append(i)
+                    ids.append(configuration[instance.name].get("%s_id" % i.interface.name))
+    current_id = 0
+    for index, c in enumerate(connections):
+        if ids[index] is None:
+            for _ in ids:
+                if current_id not in ids:
+                    ids[index] = current_id
+                    current_id += 1
+                    break
+                current_id += 1
+    return ids[connections.index(end)]
