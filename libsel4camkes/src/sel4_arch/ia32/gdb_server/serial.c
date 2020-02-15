@@ -343,19 +343,25 @@ static bool clear_iir(void)
     return false;
 }
 
-// Serial usage
-static void serial_putchar(int c)
+static void serial_output_via_fifo(uint8_t c)
 {
     // check how much fifo we've used and if we need to drain it
     if (fifo_used == fifo_depth) {
         wait_for_fifo();
     }
-    write_thr((uint8_t)c);
-    if (c == '\n') {
-        wait_for_fifo();
-        write_thr('\r');
-    }
+
+    write_thr(c);
     fifo_used++;
+}
+
+// Serial usage
+static void serial_putchar(int c)
+{
+    if (c == '\n') {
+        serial_output_via_fifo('\r');
+    }
+
+    serial_output_via_fifo((uint8_t)c);
 }
 
 
