@@ -18,6 +18,7 @@
 #include <camkes/dataport.h>
 #include <camkes/dma.h>
 #include <camkes/io.h>
+#include <camkes/interface_registration.h>
 #include <camkes/irq.h>
 #include <camkes/arch/io.h>
 #include <platsupport/io.h>
@@ -254,5 +255,6 @@ int camkes_io_ops(ps_io_ops_t *ops)
            camkes_dma_manager(&ops->dma_manager) ||
            camkes_ps_malloc_ops(&ops->malloc_ops) ||
            camkes_io_fdt(&ops->io_fdt) ||
-           camkes_irq_ops(&ops->irq_ops);
+           camkes_irq_ops(&ops->irq_ops) ||
+           camkes_interface_registration_ops(&ops->interface_ops, &ops->malloc_ops);
 }
