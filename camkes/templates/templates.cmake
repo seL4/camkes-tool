@@ -27,6 +27,7 @@ foreach(
     seL4NotificationQueue
     seL4RPCCall
     seL4DTBHardware
+    seL4InitHardware
 )
     DeclareCAmkESConnector(
         ${connector}

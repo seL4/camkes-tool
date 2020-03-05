@@ -251,3 +251,7 @@ connector seL4DTBHardware {
         \<rparr> \<rparr>";
 }
 
+connector seL4InitHardware {
+    from Event with 0 threads;
+    to Events with 0 threads;
+}
