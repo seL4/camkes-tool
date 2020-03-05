@@ -15,6 +15,7 @@
  */
 
 #include <assert.h>
+#include <libfdt.h>
 #include <camkes/dataport.h>
 #include <camkes/dma.h>
 #include <camkes/io.h>
@@ -22,6 +23,7 @@
 #include <camkes/irq.h>
 #include <camkes/arch/io.h>
 #include <platsupport/io.h>
+#include <platsupport/driver_module.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <utils/util.h>
@@ -31,6 +33,11 @@ static USED SECTION("_dataport_frames") struct {} dummy_dataport_frame;
 /* Definitions so that we can find the exposed dataport frames */
 extern dataport_frame_t __start__dataport_frames[];
 extern dataport_frame_t __stop__dataport_frames[];
+
+typedef struct camkes_defer_token {
+    char *device_path;
+    ps_driver_init_fn_t init_func;
+} camkes_defer_token_t;
 
 /* Basic linked-list implementation. */
 typedef struct ll_ {
@@ -289,6 +296,199 @@ int camkes_io_fdt(ps_io_fdt_t *io_fdt)
     return 0;
 }
 
+/* Force the _driver_modules section to be created even if no modules are defined. */
+static USED SECTION("_driver_modules") struct {} dummy_driver_module;
+/* Definitions so that we can find the list of driver modules that can be initialised */
+extern ps_driver_module_t *__start__driver_modules[];
+extern ps_driver_module_t *__stop__driver_modules[];
+
+static ll_t *driver_defer_list = NULL;
+
+static int defer_driver_init(ps_io_ops_t *ops, char *device_path, ps_driver_init_fn_t init_func)
+{
+    if (ops == NULL) {
+        ZF_LOGE("ops is NULL");
+        return -1;
+    }
+
+    if (device_path == NULL) {
+        ZF_LOGE("device path is NULL");
+        return -1;
+    }
+
+    if (init_func == NULL) {
+        ZF_LOGE("init_func is NULL");
+        return -1;
+    }
+
+    camkes_defer_token_t *defer_token = NULL;
+    int error = ps_calloc(&ops->malloc_ops, 1, sizeof(*defer_token), (void **) &defer_token);
+    if (error) {
+        ZF_LOGE("Failed to allocate memory for a bookkeeping structure for the driver defer list");
+        return -1;
+    }
+
+    defer_token->device_path = device_path;
+    defer_token->init_func = init_func;
+
+    error = ll_append(&ops->malloc_ops, &driver_defer_list, defer_token);
+    if (error) {
+        ZF_LOGE("Failed to add the driver init function to the defer list");
+    }
+
+    return 0;
+}
+
+static int find_compatible_driver_module(ps_io_ops_t *ops, int node_offset, char *device_path)
+{
+    if (ops == NULL) {
+        ZF_LOGF("ops is NULL");
+    }
+
+    char *dtb_blob = ps_io_fdt_get(&ops->io_fdt);
+    if (!dtb_blob) {
+        ZF_LOGF("No DTB supplied!");
+    }
+
+    /* Look through the list of hardware modules that are registered and
+     * pick the most suitable one by comparing the module's compatible
+     * strings against the device node's */
+    for (ps_driver_module_t **module = __start__driver_modules; module < __stop__driver_modules; module++) {
+        for (char **curr_str = (*module)->compatible_list; *curr_str != NULL; curr_str++) {
+            int match_ret = fdt_node_check_compatible(dtb_blob, node_offset, *curr_str);
+            if (match_ret == 0) {
+                /* Found a match! */
+                int ret = (*module)->init(ops, device_path);
+                if (ret == PS_DRIVER_INIT_DEFER) {
+                    ZF_LOGF_IF(defer_driver_init(ops, device_path, (*module)->init),
+                               "Failed to defer the initialisation of node %s", device_path);
+                    return 0;
+                } else if (ret < 0) {
+                    ZF_LOGE("Node pointed to by path %s failed to have a driver initialise properly, ignoring", device_path);
+                    return -1;
+                } else if (ret == PS_DRIVER_INIT_SUCCESS) {
+                    return 0;
+                } else {
+                    ZF_LOGE("Initialisation function for node pointed to by path %s returned an unexpected code", device_path);
+                    return -1;
+                }
+            } else if (match_ret < 0) {
+                ZF_LOGE("Node pointed to by path %s is malformed, ignoring", device_path);
+                return -1;
+            }
+            /* Ignore the no match case */
+        }
+    }
+
+    /* No suitable module was found for this device node */
+    ZF_LOGE("No suitable driver was found for path %s, ignoring", device_path);
+    return 0;
+}
+
+static int handle_defered_modules(ps_io_ops_t *ops)
+{
+    if (ops == NULL) {
+        ZF_LOGF("ops is NULL");
+    }
+
+    /* The set of modules that have deferred and that we need to work through */
+    ll_t *working_set = driver_defer_list;
+    /* The set of modules that have deferred again */
+    ll_t *deferred_set = NULL;
+    ll_t *deferred_tail = NULL;
+
+    while (working_set != NULL) {
+        ll_t *curr = working_set;
+        while (curr != NULL) {
+            camkes_defer_token_t *defer_token = curr->data;
+            int ret = defer_token->init_func(ops, defer_token->device_path);
+            if (ret == PS_DRIVER_INIT_DEFER) {
+                /* Throw this into deferred set and also remove it from the
+                 * working set */
+                if (deferred_tail != NULL) {
+                    deferred_tail->next = curr;
+                }
+                if (deferred_set == NULL) {
+                    deferred_set = curr;
+                }
+                deferred_tail = curr;
+                curr = curr->next;
+                deferred_tail->next = NULL;
+            } else {
+                /* Diagnostics */
+                if (ret < 0) {
+                    ZF_LOGE("Node pointed to by path %s failed to have a driver initialise properly, ignoring",
+                            defer_token->device_path);
+                } else if (ret != PS_DRIVER_INIT_SUCCESS) {
+                    ZF_LOGE("Initialisation function for node pointed to by path %s returned an unexpected code",
+                            defer_token->device_path);
+                }
+                /* Remove this from the working set and deallocate memory */
+                ll_t *temp = curr;
+                curr = curr->next;
+                ZF_LOGF_IF(ps_free(&ops->malloc_ops, sizeof(*defer_token), defer_token),
+                           "Failed to deallocate a camkes_defer_token_t instance");
+                ZF_LOGF_IF(ps_free(&ops->malloc_ops, sizeof(*temp), temp), "Failed to deallocate a ll_t node");
+            }
+        }
+        /* Swap the two sets and continue on */
+        working_set = deferred_set;
+        deferred_set = NULL;
+        deferred_tail = NULL;
+    }
+
+    return 0;
+}
+
+/* Force the _hardware_init section to be created even if no modules are defined. */
+static USED SECTION("_hardware_init") struct {} dummy_init_module;
+/* Definitions so that we can find the list of hardware modules that we need to initialise */
+extern char **__start__hardware_init[];
+extern char **__stop__hardware_init[];
+
+static int start_init_modules(ps_io_ops_t *ops)
+{
+    if (__start__hardware_init == __stop__hardware_init) {
+        /* Exit early if there are no modules to initialise */
+        return 0;
+    }
+
+    if (ops == NULL) {
+        ZF_LOGE("ops is NULL");
+        return -1;
+    }
+
+    char *dtb_blob = ps_io_fdt_get(&ops->io_fdt);
+    if (!dtb_blob) {
+        ZF_LOGE("No DTB supplied!");
+        return -1;
+    }
+
+    for (char ***curr_path = __start__hardware_init; curr_path < __stop__hardware_init; curr_path++) {
+        int node_offset = fdt_path_offset(dtb_blob, **curr_path);
+        if (node_offset < 0) {
+            ZF_LOGE("Path %s doesn't seem to be in the DTB, ignoring", **curr_path);
+            continue;
+        }
+
+        /* Quick sanity check to see if the node has a compatible property */
+        const void *dummy = fdt_getprop(dtb_blob, node_offset, "compatible", NULL);
+        if (dummy == NULL) {
+            ZF_LOGE("Node pointed to by path %s doesn't have a compatible string or is malformed, ignoring", **curr_path);
+            continue;
+        }
+
+        /* Currently most of the errors in this function as they aren't fatal */
+        find_compatible_driver_module(ops, node_offset, **curr_path);
+    }
+
+    /* Now take care of the deferred modules, again ignore most of the errors
+     * in this function as they aren't fatal */
+    handle_defered_modules(ops);
+
+    return 0;
+}
+
 int camkes_io_ops(ps_io_ops_t *ops)
 {
     if (ops == NULL) {
@@ -307,6 +507,14 @@ int camkes_io_ops(ps_io_ops_t *ops)
           camkes_io_fdt(&ops->io_fdt) ||
           camkes_irq_ops(&ops->irq_ops) ||
           camkes_interface_registration_ops(&ops->interface_registration_ops, &ops->malloc_ops);
+
+    if (!ret) {
+        /* Initialise any init modules if they exist */
+        ret = start_init_modules(ops);
+        if (ret) {
+            ZF_LOGE("Failed to initialise driver modules");
+        }
+    }
 
     return ret;
 }
