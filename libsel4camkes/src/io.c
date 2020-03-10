@@ -38,10 +38,16 @@ typedef struct ll_ {
     struct ll_ *next;
 } ll_t;
 
-static UNUSED int ll_prepend(ll_t **list, const void *data)
+#ifndef NDEBUG
+bool malloc_ops_initialised = false;
+static ps_malloc_ops_t io_mapper_malloc_ops = {0};
+#endif
+
+static UNUSED int ll_prepend(ps_malloc_ops_t *malloc_ops, ll_t **list, const void *data)
 {
-    ll_t *node = malloc(sizeof * node);
-    if (node == NULL) {
+    ll_t *node = NULL;
+    int error = ps_calloc(malloc_ops, 1, sizeof * node, (void **) &node);
+    if (error) {
         return -1;
     }
     node->data = (void *)data;
@@ -50,14 +56,33 @@ static UNUSED int ll_prepend(ll_t **list, const void *data)
     return 0;
 }
 
-static UNUSED int ll_remove(ll_t **list, const void *data)
+static UNUSED int ll_append(ps_malloc_ops_t *malloc_ops, ll_t **list, const void *data)
+{
+    ll_t *node = NULL;
+    int error = ps_calloc(malloc_ops, 1, sizeof * node, (void **) &node);
+    if (error) {
+        return -1;
+    }
+    node->data = (void *)data;
+    node->next = NULL;
+    if (*list == NULL) {
+        *list = node;
+        return 0;
+    }
+    ll_t *curr = NULL;
+    for (curr = *list; curr->next != NULL; curr = curr->next);
+    curr->next = node;
+    return 0;
+}
+
+static UNUSED int ll_remove(ps_malloc_ops_t *malloc_ops, ll_t **list, const void *data)
 {
     for (ll_t **l = list; *l != NULL; l = &(*l)->next) {
         if ((*l)->data == data) {
             /* found it */
             ll_t *temp = *l;
             *l = (*l)->next;
-            free(temp);
+            ps_free(malloc_ops, sizeof(*temp), temp);
             return 0;
         }
     }
@@ -65,6 +90,7 @@ static UNUSED int ll_remove(ll_t **list, const void *data)
 }
 
 typedef struct {
+    ps_malloc_ops_t *malloc_ops;
     ps_io_map_fn_t map;
     ll_t *mapped;
 } cookie_t;
@@ -85,7 +111,7 @@ static UNUSED void *io_map(void *cookie, uintptr_t paddr, size_t size,
         /* The IO map function gave us a successful result; track this pointer
          * to lookup during unmapping.
          */
-        if (ll_prepend(&c->mapped, p) != 0) {
+        if (ll_prepend(c->malloc_ops, &c->mapped, p) != 0) {
             LOG_ERROR("failed to track mapped IO pointer %p\n", p);
         }
     }
@@ -157,7 +183,7 @@ static void io_unmap(void *cookie UNUSED, void *vaddr UNUSED, size_t size UNUSED
 #ifndef NDEBUG
     cookie_t *c = cookie;
     /* Make sure we previously mapped the pointer the caller gave us. */
-    if (ll_remove(&c->mapped, vaddr) != 0) {
+    if (ll_remove(c->malloc_ops, &c->mapped, vaddr) != 0) {
         LOG_ERROR("unmapping an IO pointer that was not previously mapped: %p\n",
                   vaddr);
     }
@@ -171,13 +197,21 @@ int camkes_io_mapper(ps_io_mapper_t *mapper)
         return -1;
     }
 #ifdef NDEBUG
+    mapper->malloc_ops = NULL;
     mapper->cookie = NULL;
     mapper->io_map_fn = camkes_io_map;
 #else
-    cookie_t *c = malloc(sizeof(*c));
-    if (c == NULL) {
+    if (!malloc_ops_initialised) {
+        ZF_LOGF_IF(camkes_ps_malloc_ops(&io_mapper_malloc_ops),
+                   "Failed to get malloc_ops for DEBUG mode io mapper");
+        malloc_ops_initialised = true;
+    }
+    cookie_t *c = NULL;
+    int error = ps_calloc(&io_mapper_malloc_ops, 1, sizeof(*c), (void **) &c);
+    if (error) {
         return -1;
     }
+    c->malloc_ops = &io_mapper_malloc_ops;
     c->map = camkes_io_map;
     c->mapped = NULL;
     mapper->cookie = c;
@@ -215,7 +249,18 @@ int camkes_ps_malloc_ops(ps_malloc_ops_t *ops)
         return -1;
     }
 
-    return ps_new_stdlib_malloc_ops(ops);
+    int ret = ps_new_stdlib_malloc_ops(ops);
+    if (ret) {
+        return ret;
+    }
+
+#ifndef NDEBUG
+    /* This works as malloc_ops contains pointers */
+    malloc_ops_initialised = true;
+    io_mapper_malloc_ops = (ps_malloc_ops_t) * ops;
+#endif
+
+    return 0;
 }
 
 static char *camkes_io_fdt_get(void *cookie)
@@ -250,11 +295,18 @@ int camkes_io_ops(ps_io_ops_t *ops)
         ZF_LOGE("ops is NULL");
         return -1;
     }
-    return camkes_io_mapper(&ops->io_mapper) ||
-           camkes_io_port_ops(&ops->io_port_ops) ||
-           camkes_dma_manager(&ops->dma_manager) ||
-           camkes_ps_malloc_ops(&ops->malloc_ops) ||
-           camkes_io_fdt(&ops->io_fdt) ||
-           camkes_irq_ops(&ops->irq_ops) ||
-           camkes_interface_registration_ops(&ops->interface_ops, &ops->malloc_ops);
+
+    int ret = camkes_ps_malloc_ops(&ops->malloc_ops);
+    if (ret) {
+        return ret;
+    }
+
+    ret = camkes_io_mapper(&ops->io_mapper) ||
+          camkes_io_port_ops(&ops->io_port_ops) ||
+          camkes_dma_manager(&ops->dma_manager) ||
+          camkes_io_fdt(&ops->io_fdt) ||
+          camkes_irq_ops(&ops->irq_ops) ||
+          camkes_interface_registration_ops(&ops->interface_registration_ops, &ops->malloc_ops);
+
+    return ret;
 }
