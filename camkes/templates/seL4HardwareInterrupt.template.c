@@ -175,7 +175,7 @@ static allocated_irq_t /*? irq_struct_name ?*/ = {
                                             .vector = /*? vector ?*/ }},
 /*- elif type == 'msi' -*/
     .irq = { .type = PS_MSI, .msi = { .pci_bus = /*? pci_bus ?*/, .pci_dev = /*? pci_dev ?*/,
-                                      .pci_func = /*? pci_func ?*/, .handle = /*? handler ?*/,
+                                      .pci_func = /*? pci_fun ?*/, .handle = /*? handle ?*/,
                                       .vector = /*? vector ?*/ }},
 /*- elif type == 'arm' -*/
     .irq = { .type = PS_TRIGGER, .cpu = { .trigger = /*? trigger.value ?*/, .cpu_idx= /*? target ?*/, .number = /*? _irq ?*/ }},
