@@ -335,8 +335,11 @@ lemma /*? options.verification_base_name ?*/_admissible_labelling__tcbs_correct:
               cong: imp_cong)
   done
 
+(*
 text \<open>
-  Also check that all labels are inhabited.
+  Potential check that all labels are inhabited. It is currently allowed for connections
+  without any objects which would fail this check. However this check could be useful
+  as a sanity check.
 \<close>
 lemma /*? options.verification_base_name ?*/_admissible_labelling__all_labels_inhabited:
   "/*? options.verification_base_name ?*/_admissible_labelling label_of \<Longrightarrow>
@@ -355,6 +358,7 @@ lemma /*? options.verification_base_name ?*/_admissible_labelling__all_labels_in
                    /*? options.verification_base_name ?*/_labelling_def)
   apply (fastforce intro: /*? options.verification_base_name ?*/_label_lookups)
   done
+*)
 
 (* FIXME: more sanity checks *)
 
