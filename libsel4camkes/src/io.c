@@ -204,7 +204,6 @@ int camkes_io_mapper(ps_io_mapper_t *mapper)
         return -1;
     }
 #ifdef NDEBUG
-    mapper->malloc_ops = NULL;
     mapper->cookie = NULL;
     mapper->io_map_fn = camkes_io_map;
 #else
