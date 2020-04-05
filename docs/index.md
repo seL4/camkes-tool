@@ -1,4 +1,4 @@
-% CAmkES Manual
+# CAmkES Manual
 
 <!--
   Copyright 2017, Data61
@@ -2977,9 +2977,8 @@ special comments to run Python code:
 * `/*# a comment to be removed at instantiation #*/`
 
 In general, when writing code in a template, refer to the Jinja documentation
-syntax and functionality. Note that the default Jinja delimiters are `{%` and
-`%}` which have been modified to `/*` and `*/` to let syntax highlighting in C
-work more naturally.
+syntax and functionality. Note that the default Jinja delimiters have been modified
+to `/*` and `*/` to let syntax highlighting in C work more naturally.
 
 Within a given template you have a variable `me` that functions like native
 Python's `self`. It refers to the object of relevance to the current template.
