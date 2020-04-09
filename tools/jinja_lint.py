@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 #
 # Copyright 2017, Data61
 # Commonwealth Scientific and Industrial Research Organisation (CSIRO)
@@ -16,12 +15,9 @@
 the common errors of either mismatching /*- ... -*/ blocks or using /*? ... ?*/
 instead of /*- ... -*/.'''
 
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
+import abc, collections.abc, re, sys
 
-import abc, collections, re, six, sys
-
-class Tokeniser(six.with_metaclass(abc.ABCMeta, collections.Iterator)):
+class Tokeniser(collections.abc.Iterator, metaclass=abc.ABCMeta):
     '''
     Basic Jinja file tokeniser interface. Two implementations of this follow
     below.
@@ -59,7 +55,7 @@ class LowTokeniser(Tokeniser):
     friends.
     '''
     def __init__(self, filename):
-        super(LowTokeniser, self).__init__(filename)
+        super().__init__(filename)
         self.regex = re.compile(r'(?:(\n)|(/\*[-\?#]|[-\?#]\*/))',
             flags=re.MULTILINE)
 
@@ -69,13 +65,13 @@ class HighTokeniser(Tokeniser):
     friends).
     '''
     def __init__(self, filename):
-        super(HighTokeniser, self).__init__(filename)
+        super().__init__(filename)
         self.regex = re.compile(r'(?:(\n)|/\*-[-\+]?[\s]*([^\s(]+)(?:\([^)]*\))?\s(.*?)\s*[-\+]?-\*/)',
             flags=re.MULTILINE)
 
 def main():
     if len(sys.argv) < 2:
-        sys.stderr.write('Usage: %s template\n' % sys.argv[0])
+        sys.stderr.write(f'Usage: {sys.argv[0]} template\n')
         return -1
 
     # First try to find any low-level errors (mismatched /*. .*/). We do this
@@ -90,20 +86,20 @@ def main():
     for token, in t:
         if starter.match(token) is not None:
             if last is not None:
-                raise SyntaxError('%s:%d: opening %s while still inside '
-                    'preceding %s' % (sys.argv[1], t.line, token, last))
+                raise SyntaxError(f'{sys.argv[1]}:{t.line}: opening {token} '
+                  f'while still inside preceding {last}')
             last = token
         elif last is None:
-            raise SyntaxError('%s:%d: closing %s while not inside a Jinja '
-                'directive' % (sys.argv[1], t.line, token))
+            raise SyntaxError(f'{sys.argv[1]}:{t.line}: closing {token} while '
+              'not inside a Jinja directive')
         else:
             assert last in ('/*-', '/*#', '/*?'), 'unexpected last token ' \
-                '\'%s\' recorded (bug in linter?)' % last
-            assert token in ('-*/', '#*/', '?*/'), 'unexpected token \'%s\' ' \
-                'recognised (bug in linter?)' % token
+                f'\'{last}\' recorded (bug in linter?)'
+            assert token in ('-*/', '#*/', '?*/'), 'unexpected token ' \
+                f'\'{token}\' recognised (bug in linter?)'
             if last[2] != token[0]:
-                raise SyntaxError('%s:%d: closing %s while inside %s block' %
-                    (sys.argv[1], t.line, token, last))
+                raise SyntaxError(f'{sys.argv[1]}:{t.line}: closing {token} '
+                  f'while inside {last} block')
             last = None
 
     # Now try to find any high-level errors (mismatched valid Jinja
@@ -121,98 +117,97 @@ def main():
             stack.append(token)
         elif token == 'endif':
             if len(stack) == 0:
-                raise SyntaxError('%s:%d: endif while not inside a block' %
-                    (sys.argv[1], t.line))
+                raise SyntaxError(
+                  f'{sys.argv[1]}:{t.line}: endif while not inside a block')
             context = stack.pop()
             if context != 'if':
-                raise SyntaxError('%s:%d: endif while inside a %s block' %
-                    (sys.argv[1], t.line, context))
+                raise SyntaxError(f'{sys.argv[1]}:{t.line}: endif while inside '
+                  f'a {context} block')
             if content != '':
-                raise SyntaxError('%s:%d: trailing content \'%s\' in an endif '
-                    'statement' % (sys.argv[1], t.line, content))
+                raise SyntaxError(f'{sys.argv[1]}:{t.line}: trailing content '
+                  f'\'{content}\' in an endif statement')
         elif token == 'elif':
             if len(stack) == 0 or stack[-1] != 'if':
-                raise SyntaxError('%s:%d: %s while not inside an if block' %
-                    (sys.argv[1], t.line, token))
+                raise SyntaxError(f'{sys.argv[1]}:{t.line}: {token} while not '
+                  'inside an if block')
         elif token == 'else':
             if len(stack) == 0 or stack[-1] not in ['if', 'for']:
-                raise SyntaxError('%s:%d: %s while not inside an if or for block' %
-                    (sys.argv[1], t.line, token))
+                raise SyntaxError(f'{sys.argv[1]}:{t.line}: {token} while not '
+                  'inside an if or for block')
             if content != '':
-                raise SyntaxError('%s:%d: trailing content \'%s\' in an else '
-                    'statement' % (sys.argv[1], t.line, content))
+                raise SyntaxError(f'{sys.argv[1]}:{t.line}: trailing content '
+                  f'\'{content}\' in an else statement')
             if stack[-1] == 'for':
                 # This is not a guaranteed error, but more of a code smell. The
                 # semantics of this construct in Jinja mean it is almost always
                 # indicative of a mistake.
-                sys.stderr.write('%s:%d: warning: else inside for block; this '
-                    'has different semantics to Python\n' % (sys.argv[1],
-                    t.line))
+                sys.stderr.write(f'{sys.argv[1]}:{t.line}: warning: else '
+                  'inside for block; this has different semantics to Python\n')
         elif token == 'endfor':
             if len(stack) == 0:
-                raise SyntaxError('%s:%d: endfor while not inside a block' %
-                    (sys.argv[1], t.line))
+                raise SyntaxError(
+                  f'{sys.argv[1]}:{t.line}: endfor while not inside a block')
             context = stack.pop()
             if context != 'for':
-                raise SyntaxError('%s:%d: endfor while inside a %s block' %
-                    (sys.argv[1], t.line, context))
+                raise SyntaxError(f'{sys.argv[1]}:{t.line}: endfor while '
+                  f'inside a {context} block')
             if content != '':
-                raise SyntaxError('%s:%d: trailing content \'%s\' in an endfor '
-                    'statement' % (sys.argv[1], t.line, content))
+                raise SyntaxError(f'{sys.argv[1]}:{t.line}: trailing content '
+                  f'\'{content}\' in an endfor statement')
         elif token == 'endmacro':
             if len(stack) == 0:
-                raise SyntaxError('%s:%d: endmacro while not inside a block' %
-                    (sys.argv[1], t.line))
+                raise SyntaxError(f'{sys.argv[1]}:{t.line}: endmacro while not '
+                  'inside a block')
             context = stack.pop()
             if context != 'macro':
-                raise SyntaxError('%s:%d: endmacro while inside a %s block' %
-                    (sys.argv[1], t.line, context))
+                raise SyntaxError(f'{sys.argv[1]}:{t.line}: endmacro while '
+                  f'inside a {context} block')
             if content != '':
-                raise SyntaxError('%s:%d: trailing content \'%s\' in an endmacro '
-                    'statement' % (sys.argv[1], t.line, content))
+                raise SyntaxError(f'{sys.argv[1]}:{t.line}: trailing content '
+                  f'\'{content}\' in an endmacro statement')
         elif token == 'endcall':
             if len(stack) == 0:
-                raise SyntaxError('%s:%d: endcall while not inside a block' %
-                    (sys.argv[1], t.line))
+                raise SyntaxError(
+                  f'{sys.argv[1]}:{t.line}: endcall while not inside a block')
             context = stack.pop()
             if context != 'call':
-                raise SyntaxError('%s:%d: endcall while inside a %s block' %
-                    (sys.argv[1], t.line, context))
+                raise SyntaxError(f'{sys.argv[1]}:{t.line}: endcall while '
+                  f'inside a {context} block')
             if content != '':
-                raise SyntaxError('%s:%d: trailing content \'%s\' in an endcall '
-                    'statement' % (sys.argv[1], t.line, content))
+                raise SyntaxError(f'{sys.argv[1]}:{t.line}: trailing content '
+                  f'\'{content}\' in an endcall statement')
         elif token == 'break':
             if 'for' not in stack:
-                raise SyntaxError('%s:%d: break while not inside a for block' %
-                    (sys.argv[1], t.line))
+                raise SyntaxError(
+                  f'{sys.argv[1]}:{t.line}: break while not inside a for block')
             if content != '':
-                raise SyntaxError('%s:%d: trailing content \'%s\' in a break '
-                    'statement' % (sys.argv[1], t.line, content))
+                raise SyntaxError(f'{sys.argv[1]}:{t.line}: trailing content '
+                  f'\'{content}\' in a break statement')
         elif token == 'continue':
             if 'for' not in stack:
-                raise SyntaxError('%s:%d: continue while not inside a for block' %
-                    (sys.argv[1], t.line))
+                raise SyntaxError(f'{sys.argv[1]}:{t.line}: continue while not '
+                  'inside a for block')
             if content != '':
-                raise SyntaxError('%s:%d: trailing content \'%s\' in a continue '
-                    'statement' % (sys.argv[1], t.line, content))
+                raise SyntaxError(f'{sys.argv[1]}:{t.line}: trailing content '
+                  f'\'{content}\' in a continue statement')
         elif token == 'do':
             if DO_WORD_MATCH.match(content) is not None:
-                raise SyntaxError('%s:%d: seemingly incorrect expression '
-                    '\'%s\' in do statement' % (sys.argv[1], t.line, content))
+                raise SyntaxError(f'{sys.argv[1]}:{t.line}: seemingly '
+                  f'incorrect expression \'{content}\' in do statement')
         elif token == 'set':
             if SET_MATCH.match(content) is None:
-                raise SyntaxError('%s:%d: seemingly incorrect expression '
-                    '\'%s\' in set statement' % (sys.argv[1], t.line, content))
+                raise SyntaxError(f'{sys.argv[1]}:{t.line}: seemingly '
+                  f'incorrect expression \'{content}\' in set statement')
         elif token in ['import', 'include', 'from']:
             # Ignore; allowable anywhere.
             pass
         else:
-            raise SyntaxError('%s:%d: unknown directive %s' %
-                (sys.argv[1], t.line, token))
+            raise SyntaxError(
+              f'{sys.argv[1]}:{t.line}: unknown directive {token}')
 
     if len(stack) != 0:
-        raise SyntaxError('%s: open %s when reaching end of file' %
-            (sys.argv[1], stack[-1]))
+        raise SyntaxError(f'{sys.argv[1]}: open {stack[-1]} when reaching end '
+          'of file')
 
     return 0
 
@@ -220,5 +215,5 @@ if __name__ == '__main__':
     try:
         sys.exit(main())
     except SyntaxError as e:
-        sys.stderr.write('%s\n' % str(e))
+        sys.stderr.write(f'{e}\n')
         sys.exit(-1)
