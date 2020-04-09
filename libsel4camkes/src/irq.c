@@ -28,40 +28,59 @@ extern allocated_irq_t *__stop__allocated_irqs[];
 
 static bool check_irq_info_is_equal(ps_irq_t *a, ps_irq_t *b)
 {
-    if (a->type == b->type) {
-        switch (a->type) {
-        case PS_MSI:
-            if (CHECK_MEMBER_EQUAL(a, b, ioapic.ioapic) &&
-                CHECK_MEMBER_EQUAL(a, b, ioapic.pin) &&
-                CHECK_MEMBER_EQUAL(a, b, ioapic.level) &&
-                CHECK_MEMBER_EQUAL(a, b, ioapic.polarity) &&
-                CHECK_MEMBER_EQUAL(a, b, ioapic.vector)) {
-                return true;
+    if (a->type == PS_MSI || a->type == PS_IOAPIC) {
+
+        if (a->type == b->type) {
+            switch (a->type) {
+            case PS_MSI:
+                if (CHECK_MEMBER_EQUAL(a, b, ioapic.ioapic) &&
+                    CHECK_MEMBER_EQUAL(a, b, ioapic.pin) &&
+                    CHECK_MEMBER_EQUAL(a, b, ioapic.level) &&
+                    CHECK_MEMBER_EQUAL(a, b, ioapic.polarity) &&
+                    CHECK_MEMBER_EQUAL(a, b, ioapic.vector)) {
+                    return true;
+                }
+                return false;
+            case PS_IOAPIC:
+                if (CHECK_MEMBER_EQUAL(a, b, msi.pci_bus) &&
+                    CHECK_MEMBER_EQUAL(a, b, msi.pci_dev) &&
+                    CHECK_MEMBER_EQUAL(a, b, msi.pci_func) &&
+                    CHECK_MEMBER_EQUAL(a, b, msi.handle) &&
+                    CHECK_MEMBER_EQUAL(a, b, msi.vector)) {
+                    return true;
+                }
+                return false;
             }
-            return false;
-        case PS_IOAPIC:
-            if (CHECK_MEMBER_EQUAL(a, b, msi.pci_bus) &&
-                CHECK_MEMBER_EQUAL(a, b, msi.pci_dev) &&
-                CHECK_MEMBER_EQUAL(a, b, msi.pci_func) &&
-                CHECK_MEMBER_EQUAL(a, b, msi.handle) &&
-                CHECK_MEMBER_EQUAL(a, b, msi.vector)) {
-                return true;
-            }
-            return false;
-        case PS_INTERRUPT:
-            if (CHECK_MEMBER_EQUAL(a, b, irq.number)) {
-                return true;
-            }
-            return false;
-        case PS_TRIGGER:
-            if (CHECK_MEMBER_EQUAL(a, b, trigger.number) &&
-                CHECK_MEMBER_EQUAL(a, b, trigger.trigger)) {
-                return true;
-            }
-        /* No need for return false here, it'll fall through */
-        default:
-            return false;
         }
+        return false;
+    }
+
+    /* PS_INTERRUPT(number) == PS_PER_CPU(number, 0, 0)
+       PS_TRIGGER(number, trigger) == PS_PER_CPU(number, trigger, 0)
+     */
+    ps_irq_t a_normalized = {.cpu = {0}};
+    if (a->type == PS_INTERRUPT) {
+        a_normalized.cpu.number = a->irq.number;
+    } else if (a->type == PS_TRIGGER) {
+        a_normalized.cpu.number = a->trigger.number;
+        a_normalized.cpu.trigger = a->trigger.trigger;
+    } else if (a->type == PS_PER_CPU) {
+        a_normalized = *a;
+    } else {
+        return false;
+    }
+
+    if (b->type == PS_INTERRUPT) {
+        return a_normalized.cpu.number == b->irq.number;
+    } else if (b->type == PS_TRIGGER) {
+        return a_normalized.cpu.number == b->trigger.number &&
+               a_normalized.cpu.trigger == b->trigger.trigger;
+    } else if (b->type == PS_PER_CPU) {
+        return a_normalized.cpu.number == b->cpu.number &&
+               a_normalized.cpu.trigger == b->cpu.trigger &&
+               a_normalized.cpu.cpu_idx == b->cpu.cpu_idx;
+    } else {
+        return false;
     }
 
     return false;
