@@ -16,13 +16,14 @@ the common errors of either mismatching /*- ... -*/ blocks or using /*? ... ?*/
 instead of /*- ... -*/.'''
 
 import abc, collections.abc, re, sys
+from typing import Optional
 
 class Tokeniser(collections.abc.Iterator, metaclass=abc.ABCMeta):
     '''
     Basic Jinja file tokeniser interface. Two implementations of this follow
     below.
     '''
-    def __init__(self, filename):
+    def __init__(self, filename: str):
         with open(filename, 'rt') as f:
             self.data = f.read()
         self.regex = None
@@ -54,7 +55,7 @@ class LowTokeniser(Tokeniser):
     A tokeniser for recognising the matching Jinja special symbols ("/*-" and
     friends.
     '''
-    def __init__(self, filename):
+    def __init__(self, filename: str):
         super().__init__(filename)
         self.regex = re.compile(r'(?:(\n)|(/\*[-\?#]|[-\?#]\*/))',
             flags=re.MULTILINE)
@@ -64,12 +65,13 @@ class HighTokeniser(Tokeniser):
     A tokeniser for recognising Jinja directives ("/*- if .... -*/" and
     friends).
     '''
-    def __init__(self, filename):
+    def __init__(self, filename: str):
         super().__init__(filename)
         self.regex = re.compile(r'(?:(\n)|/\*-[-\+]?[\s]*([^\s(]+)(?:\([^)]*\))?\s(.*?)\s*[-\+]?-\*/)',
             flags=re.MULTILINE)
 
-def main():
+def main() -> int:
+
     if len(sys.argv) < 2:
         sys.stderr.write(f'Usage: {sys.argv[0]} template\n')
         return -1
@@ -80,7 +82,7 @@ def main():
 
     t = LowTokeniser(sys.argv[1])
 
-    last = None
+    last: Optional[str] = None
     starter = re.compile(r'/\*.$')
 
     for token, in t:
@@ -105,7 +107,7 @@ def main():
     # Now try to find any high-level errors (mismatched valid Jinja
     # directives).
 
-    stack = []
+    stack: [str] = []
 
     t = HighTokeniser(sys.argv[1])
 
