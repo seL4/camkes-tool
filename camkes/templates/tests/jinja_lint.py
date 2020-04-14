@@ -41,7 +41,9 @@ def _lint(self, path):
     '''
     Generic lint invoker that we'll curry below.
     '''
-    p = subprocess.Popen([self.lint, path], stdout=subprocess.PIPE,
+    p = subprocess.Popen([self.lint, '--block-start=/*-', '--block-end=-*/',
+        '--variable-start=/*?', '--variable-end=?*/', '--comment-start=/*#',
+        '--comment-end=#*/', path], stdout=subprocess.PIPE,
         stderr=subprocess.PIPE, universal_newlines=True)
     _, stderr = p.communicate()
     self.assertEqual(p.returncode, 0, stderr)

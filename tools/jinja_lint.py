@@ -12,210 +12,256 @@
 #
 
 '''This is a simple lint checker for Jinja templates. It is designed to catch
-the common errors of either mismatching /*- ... -*/ blocks or using /*? ... ?*/
-instead of /*- ... -*/.'''
+the common errors of either mismatching {% ... %} blocks or using {{ ... }}
+instead of {% ... %}.'''
 
-import abc, collections.abc, re, sys
-from typing import Optional
+import argparse, re, sys
+from typing import Generator, IO, Optional, Tuple
 
-class Tokeniser(collections.abc.Iterator, metaclass=abc.ABCMeta):
+# command line options that will be set from main()
+options = None
+
+def low_tokeniser(file: IO[str]) -> Generator[Tuple[int, str], None, None]:
     '''
-    Basic Jinja file tokeniser interface. Two implementations of this follow
-    below.
+    A tokeniser for recognising the matching Jinja special symbols.
     '''
-    def __init__(self, filename: str):
-        with open(filename, 'rt') as f:
-            self.data = f.read()
-        self.regex = None
-        self.index = 0
-        self.line = 1
+    for line_index, content in enumerate(file):
+        i = 0
+        while i < len(content):
+            for text in (options.block_start,
+                         options.block_end,
+                         options.variable_start,
+                         options.variable_end,
+                         options.comment_start,
+                         options.comment_end):
+                if content[i:i+len(text)] == text:
+                    yield line_index + 1, text
+                    i += len(text)
+                    break
+            else:
+                i += 1
 
-    def __iter__(self):
-        return self
+def high_tokeniser(file: IO[str]) -> Generator[Tuple[int, str, str], None, None]:
+    '''
+    A tokeniser for recognising Jinja directives.
+    '''
+    content = file.read()
+    lineno = 1
+    i = 0
+    while i < len(content):
 
-    def __next__(self):
-        assert self.regex is not None
-        while True:
-            token = self.regex.search(self.data, self.index)
-            if token is None:
-                raise StopIteration
-            self.index = token.end()
-            if token.group(1) == '\n':
-                self.line += 1
-                continue
-            text = token.groups()[1:]
+        # find the next start of a block
+        bs = content.find(options.block_start, i)
+        if bs == -1: # none found
             break
-        return text
 
-    def next(self):
-        return self.__next__()
+        # adjust the line counter to be accurate
+        lineno += content.count('\n', i, bs)
 
-class LowTokeniser(Tokeniser):
-    '''
-    A tokeniser for recognising the matching Jinja special symbols ("/*-" and
-    friends.
-    '''
-    def __init__(self, filename: str):
-        super().__init__(filename)
-        self.regex = re.compile(r'(?:(\n)|(/\*[-\?#]|[-\?#]\*/))',
-            flags=re.MULTILINE)
+        # determine the end of the start string
+        bs_end = bs + len(options.block_start)
 
-class HighTokeniser(Tokeniser):
-    '''
-    A tokeniser for recognising Jinja directives ("/*- if .... -*/" and
-    friends).
-    '''
-    def __init__(self, filename: str):
-        super().__init__(filename)
-        self.regex = re.compile(r'(?:(\n)|/\*-[-\+]?[\s]*([^\s(]+)(?:\([^)]*\))?\s(.*?)\s*[-\+]?-\*/)',
-            flags=re.MULTILINE)
+        # account for the optional white space control '+' or '-'
+        if len(content) > bs_end and content[bs_end] in ('-', '+'):
+            bs_end += 1
 
-def main() -> int:
+        # find the end of this block
+        be = content.find(options.block_end, bs_end)
+        if be == -1: # not found
+            break
 
-    if len(sys.argv) < 2:
-        sys.stderr.write(f'Usage: {sys.argv[0]} template\n')
-        return -1
+        # determine the end of the end string
+        be_end = be + len(options.block_end)
 
-    # First try to find any low-level errors (mismatched /*. .*/). We do this
+        # similarly, account for the optional white space control
+        if be > bs_end and content[be-1] in ('-', '+'):
+            be -= 1
+
+        # extract the directive of this block
+        m = re.match(r'\s*\w+', content[bs_end:be])
+        if m is not None: # we have a directive
+
+            directive = m.group(0).strip()
+            offset = len(m.group(0))
+            remainder = content[bs_end+offset:be]
+
+            yield lineno, directive, remainder.strip()
+
+        lineno += content.count('\n', bs, be_end)
+        i = be_end
+
+def main(args: [str]) -> int:
+
+    # parse command line arguments
+    global options
+    parser = argparse.ArgumentParser(description='Jinja linter')
+    parser.add_argument('--block-start', default='{%')
+    parser.add_argument('--block-end', default='%}')
+    parser.add_argument('--variable-start', default='{{')
+    parser.add_argument('--variable-end', default='}}')
+    parser.add_argument('--comment-start', default='{#')
+    parser.add_argument('--comment-end', default='#}')
+    parser.add_argument('file', type=argparse.FileType('rt'))
+    options = parser.parse_args(args[1:])
+
+    filename = options.file.name
+
+    # First try to find any low-level errors (mismatched {. .}). We do this
     # first because, if there are problems here, it will likely cause a high
     # level error that will be harder to trace back to the source.
 
-    t = LowTokeniser(sys.argv[1])
-
     last: Optional[str] = None
-    starter = re.compile(r'/\*.$')
 
-    for token, in t:
-        if starter.match(token) is not None:
+    def is_starter(text: str) -> bool:
+        return text in (options.block_start, options.variable_start,
+            options.comment_start)
+
+    def is_ender(text: str) -> bool:
+        return text in (options.block_end, options.variable_end,
+            options.comment_end)
+
+    def paired(start: str, end: str) -> bool:
+        if start == options.block_start and end == options.block_end:
+            return True
+        if start == options.variable_start and end == options.variable_end:
+            return True
+        if start == options.comment_start and end == options.comment_end:
+            return True
+        return False
+
+
+    for lineno, token in low_tokeniser(options.file):
+        if is_starter(token):
             if last is not None:
-                raise SyntaxError(f'{sys.argv[1]}:{t.line}: opening {token} '
+                raise SyntaxError(f'{filename}:{lineno}: opening {token} '
                   f'while still inside preceding {last}')
             last = token
         elif last is None:
-            raise SyntaxError(f'{sys.argv[1]}:{t.line}: closing {token} while '
+            raise SyntaxError(f'{filename}:{lineno}: closing {token} while '
               'not inside a Jinja directive')
         else:
-            assert last in ('/*-', '/*#', '/*?'), 'unexpected last token ' \
+            assert is_starter(last), 'unexpected last token ' \
                 f'\'{last}\' recorded (bug in linter?)'
-            assert token in ('-*/', '#*/', '?*/'), 'unexpected token ' \
+            assert is_ender(token), 'unexpected token ' \
                 f'\'{token}\' recognised (bug in linter?)'
-            if last[2] != token[0]:
-                raise SyntaxError(f'{sys.argv[1]}:{t.line}: closing {token} '
+            if not paired(last, token):
+                raise SyntaxError(f'{filename}:{lineno}: closing {token} '
                   f'while inside {last} block')
             last = None
+
+    # rewind the file pointer so we can reuse it in the next tokeniser
+    options.file.seek(0)
 
     # Now try to find any high-level errors (mismatched valid Jinja
     # directives).
 
     stack: [str] = []
 
-    t = HighTokeniser(sys.argv[1])
-
     DO_WORD_MATCH = re.compile(r'\w*$')
     SET_MATCH = re.compile(r'.*?\S\s*=\s*\S')
 
-    for token, content in t:
+    for lineno, token, content in high_tokeniser(options.file):
         if token in ['if', 'for', 'macro', 'call']:
             stack.append(token)
         elif token == 'endif':
             if len(stack) == 0:
                 raise SyntaxError(
-                  f'{sys.argv[1]}:{t.line}: endif while not inside a block')
+                  f'{filename}:{lineno}: endif while not inside a block')
             context = stack.pop()
             if context != 'if':
-                raise SyntaxError(f'{sys.argv[1]}:{t.line}: endif while inside '
+                raise SyntaxError(f'{filename}:{lineno}: endif while inside '
                   f'a {context} block')
             if content != '':
-                raise SyntaxError(f'{sys.argv[1]}:{t.line}: trailing content '
+                raise SyntaxError(f'{filename}:{lineno}: trailing content '
                   f'\'{content}\' in an endif statement')
         elif token == 'elif':
             if len(stack) == 0 or stack[-1] != 'if':
-                raise SyntaxError(f'{sys.argv[1]}:{t.line}: {token} while not '
+                raise SyntaxError(f'{filename}:{lineno}: {token} while not '
                   'inside an if block')
         elif token == 'else':
             if len(stack) == 0 or stack[-1] not in ['if', 'for']:
-                raise SyntaxError(f'{sys.argv[1]}:{t.line}: {token} while not '
+                raise SyntaxError(f'{filename}:{lineno}: {token} while not '
                   'inside an if or for block')
             if content != '':
-                raise SyntaxError(f'{sys.argv[1]}:{t.line}: trailing content '
+                raise SyntaxError(f'{filename}:{lineno}: trailing content '
                   f'\'{content}\' in an else statement')
             if stack[-1] == 'for':
                 # This is not a guaranteed error, but more of a code smell. The
                 # semantics of this construct in Jinja mean it is almost always
                 # indicative of a mistake.
-                sys.stderr.write(f'{sys.argv[1]}:{t.line}: warning: else '
+                sys.stderr.write(f'{filename}:{lineno}: warning: else '
                   'inside for block; this has different semantics to Python\n')
         elif token == 'endfor':
             if len(stack) == 0:
                 raise SyntaxError(
-                  f'{sys.argv[1]}:{t.line}: endfor while not inside a block')
+                  f'{filename}:{lineno}: endfor while not inside a block')
             context = stack.pop()
             if context != 'for':
-                raise SyntaxError(f'{sys.argv[1]}:{t.line}: endfor while '
+                raise SyntaxError(f'{filename}:{lineno}: endfor while '
                   f'inside a {context} block')
             if content != '':
-                raise SyntaxError(f'{sys.argv[1]}:{t.line}: trailing content '
+                raise SyntaxError(f'{filename}:{lineno}: trailing content '
                   f'\'{content}\' in an endfor statement')
         elif token == 'endmacro':
             if len(stack) == 0:
-                raise SyntaxError(f'{sys.argv[1]}:{t.line}: endmacro while not '
+                raise SyntaxError(f'{filename}:{lineno}: endmacro while not '
                   'inside a block')
             context = stack.pop()
             if context != 'macro':
-                raise SyntaxError(f'{sys.argv[1]}:{t.line}: endmacro while '
+                raise SyntaxError(f'{filename}:{lineno}: endmacro while '
                   f'inside a {context} block')
             if content != '':
-                raise SyntaxError(f'{sys.argv[1]}:{t.line}: trailing content '
+                raise SyntaxError(f'{filename}:{lineno}: trailing content '
                   f'\'{content}\' in an endmacro statement')
         elif token == 'endcall':
             if len(stack) == 0:
                 raise SyntaxError(
-                  f'{sys.argv[1]}:{t.line}: endcall while not inside a block')
+                  f'{filename}:{lineno}: endcall while not inside a block')
             context = stack.pop()
             if context != 'call':
-                raise SyntaxError(f'{sys.argv[1]}:{t.line}: endcall while '
+                raise SyntaxError(f'{filename}:{lineno}: endcall while '
                   f'inside a {context} block')
             if content != '':
-                raise SyntaxError(f'{sys.argv[1]}:{t.line}: trailing content '
+                raise SyntaxError(f'{filename}:{lineno}: trailing content '
                   f'\'{content}\' in an endcall statement')
         elif token == 'break':
             if 'for' not in stack:
                 raise SyntaxError(
-                  f'{sys.argv[1]}:{t.line}: break while not inside a for block')
+                  f'{filename}:{lineno}: break while not inside a for block')
             if content != '':
-                raise SyntaxError(f'{sys.argv[1]}:{t.line}: trailing content '
+                raise SyntaxError(f'{filename}:{lineno}: trailing content '
                   f'\'{content}\' in a break statement')
         elif token == 'continue':
             if 'for' not in stack:
-                raise SyntaxError(f'{sys.argv[1]}:{t.line}: continue while not '
+                raise SyntaxError(f'{filename}:{lineno}: continue while not '
                   'inside a for block')
             if content != '':
-                raise SyntaxError(f'{sys.argv[1]}:{t.line}: trailing content '
+                raise SyntaxError(f'{filename}:{lineno}: trailing content '
                   f'\'{content}\' in a continue statement')
         elif token == 'do':
             if DO_WORD_MATCH.match(content) is not None:
-                raise SyntaxError(f'{sys.argv[1]}:{t.line}: seemingly '
+                raise SyntaxError(f'{filename}:{lineno}: seemingly '
                   f'incorrect expression \'{content}\' in do statement')
         elif token == 'set':
             if SET_MATCH.match(content) is None:
-                raise SyntaxError(f'{sys.argv[1]}:{t.line}: seemingly '
+                raise SyntaxError(f'{filename}:{lineno}: seemingly '
                   f'incorrect expression \'{content}\' in set statement')
         elif token in ['import', 'include', 'from']:
             # Ignore; allowable anywhere.
             pass
         else:
             raise SyntaxError(
-              f'{sys.argv[1]}:{t.line}: unknown directive {token}')
+              f'{filename}:{lineno}: unknown directive {token}')
 
     if len(stack) != 0:
-        raise SyntaxError(f'{sys.argv[1]}: open {stack[-1]} when reaching end '
+        raise SyntaxError(f'{filename}: open {stack[-1]} when reaching end '
           'of file')
 
     return 0
 
 if __name__ == '__main__':
     try:
-        sys.exit(main())
+        sys.exit(main(sys.argv))
     except SyntaxError as e:
         sys.stderr.write(f'{e}\n')
         sys.exit(-1)
