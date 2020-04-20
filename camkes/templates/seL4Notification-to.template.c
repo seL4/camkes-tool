@@ -14,7 +14,7 @@
 
 /* The basic design of this connector is to wait for an incoming event on the
  * notification, `notification`, and then forward any events to the secondary
- * notiifaciton, `handoff`. We also preference any registered callback
+ * notification, `handoff`. We also preference any registered callback
  * over this forwarding. The callback registration checks to see if there is a
  * pending event and, if so, invokes the callback immediately to short circuit
  * the process of registering it, deregistering it and then invoking it. Note
