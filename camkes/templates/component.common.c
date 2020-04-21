@@ -317,8 +317,10 @@ static void init(void) {
     /* Initialise cap allocator. */
     /*- set tcb_pool = configuration[me.name].get('tcb_pool', 0) -*/
     /*- for i in six.moves.range(tcb_pool) -*/
-        /*- set tcb = alloc('tcb_pool_%d' % i, seL4_TCBObject) -*/
-        res = camkes_provide(seL4_TCBObject, /*? tcb ?*/, 0, seL4_CanRead|seL4_CanWrite);
+        /*- set _tcb = alloc_obj('tcb_pool_%d' % i, seL4_TCBObject) -*/
+        /*- set tcb = alloc_cap('tcb_pool_%d' % i, _tcb) -*/
+        /*- do _tcb.__setattr__('resume', false) -*/
+        res = camkes_provide(seL4_TCBObject, /*? tcb ?*/, 0, 0);
         ERR_IF(res != 0, camkes_error, ((camkes_error_t){
                 .type = CE_ALLOCATION_FAILURE,
                 .instance = "/*? me.name ?*/",
