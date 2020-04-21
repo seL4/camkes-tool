@@ -320,6 +320,9 @@ static void init(void) {
         /*- set _tcb = alloc_obj('tcb_pool_%d' % i, seL4_TCBObject) -*/
         /*- set tcb = alloc_cap('tcb_pool_%d' % i, _tcb) -*/
         /*- do _tcb.__setattr__('resume', false) -*/
+        /*- if "tcb_pool_domains" in configuration[me.name] -*/
+            /*- do _tcb.__setattr__('domain', configuration[me.name].get('tcb_pool_domains')[i]) -*/
+        /*- endif -*/
         res = camkes_provide(seL4_TCBObject, /*? tcb ?*/, 0, 0);
         ERR_IF(res != 0, camkes_error, ((camkes_error_t){
                 .type = CE_ALLOCATION_FAILURE,
