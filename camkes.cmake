@@ -624,7 +624,7 @@ function(DeclareCAmkESConnector name)
         1
         CAMKES_CONNECTOR
         "" # Option arguments
-        "FROM;TO;CAKEML_TO" # Single arguments
+        "FROM;TO;CAKEML_TO;FROM_HEADER;TO_HEADER" # Single arguments
         "" # Multiple aguments
     )
     # Declare a target that we will set properties on
@@ -633,6 +633,8 @@ function(DeclareCAmkESConnector name)
     endif()
     set_property(TARGET "${target_name}" APPEND PROPERTY CONNECTOR_FROM ${CAMKES_CONNECTOR_FROM})
     set_property(TARGET "${target_name}" APPEND PROPERTY CONNECTOR_TO ${CAMKES_CONNECTOR_TO})
+    set_property(TARGET "${target_name}" APPEND PROPERTY CONNECTOR_FROM_HEADER ${CAMKES_CONNECTOR_FROM_HEADER})
+    set_property(TARGET "${target_name}" APPEND PROPERTY CONNECTOR_TO_HEADER ${CAMKES_CONNECTOR_TO_HEADER})
     set_property(
         TARGET "${target_name}"
         APPEND

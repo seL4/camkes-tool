@@ -175,6 +175,8 @@ endfunction(GeneratorValueOrDefault)
 
 CAmkESGen("${CMAKE_CURRENT_BINARY_DIR}/graph.dot" assembly/ graph.dot)
 
+RequireFile(CONFIGURE_FILE_SCRIPT configure_file.cmake PATHS ${CMAKE_MODULE_PATH})
+
 # A target for each binary that we need to build
 /*- for i in instances if not i.type.hardware -*/
     # Variable for collecting generated files
@@ -202,7 +204,10 @@ CAmkESGen("${CMAKE_CURRENT_BINARY_DIR}/graph.dot" assembly/ graph.dot)
     # Generated different entry points for the instance
     CAmkESGen("${generated_dir}/camkes.c" component//*? i.name ?*/ component.common.c SOURCE C_STYLE)
     # Generate camkes header
-    CAmkESGen("${generated_dir}/include/camkes.h" component//*? i.name ?*/ component.template.h C_STYLE)
+
+    unset(CMAKE_INTERFACE_INCLUDES)
+    CAmkESGen("${generated_dir}/include/camkes.h.in" component//*? i.name ?*/ component.template.h)
+
     /*- if configuration[i.name].get('environment', 'c').lower() == 'c' -*/
         CAmkESGen("${generated_dir}/camkes.environment.c" component//*? i.name ?*/ component.environment.c SOURCE C_STYLE)
     /*- elif configuration[i.name].get('environment').lower() == 'cakeml' -*/
@@ -226,6 +231,12 @@ CAmkESGen("${CMAKE_CURRENT_BINARY_DIR}/graph.dot" assembly/ graph.dot)
                 set(connector_target CAmkESConnector_/*? c.type.name ?*/)
                 get_property(c_from_template TARGET ${connector_target} PROPERTY CONNECTOR_FROM)
                 CAmkESGen("${generated_dir}/${unique_name}.c" connector//*? c.name ?*//from//*? id ?*/ ${c_from_template} SOURCE C_STYLE)
+                get_property(c_from_template_header TARGET ${connector_target} PROPERTY CONNECTOR_FROM_HEADER)
+                if (NOT "${c_from_template_header}" STREQUAL "")
+                    CAmkESGen("${generated_dir}/include/${unique_name}.h" connector//*? c.name ?*//from//*? id ?*/ ${c_from_template_header} C_STYLE)
+                    set(CMAKE_INTERFACE_INCLUDES "${CMAKE_INTERFACE_INCLUDES}#include <${unique_name}.h>\n")
+                endif()
+
             /*- endif -*/
         /*- endfor -*/
         /*- for id, e in enumerate(c.to_ends) -*/
@@ -244,6 +255,12 @@ CAmkESGen("${CMAKE_CURRENT_BINARY_DIR}/graph.dot" assembly/ graph.dot)
                 /*- else -*/
                     get_property(c_to_template TARGET ${connector_target} PROPERTY CONNECTOR_TO)
                     CAmkESGen("${generated_dir}/${unique_name}.c" connector//*? c.name ?*//to//*? id ?*/ ${c_to_template} SOURCE C_STYLE)
+                    get_property(c_to_template_header TARGET ${connector_target} PROPERTY CONNECTOR_TO_HEADER)
+                    if (NOT "${c_to_template_header}" STREQUAL "")
+                        CAmkESGen("${generated_dir}/include/${unique_name}.h" connector//*? c.name ?*//to//*? id ?*/ ${c_to_template_header} C_STYLE)
+                        set(CMAKE_INTERFACE_INCLUDES "${CMAKE_INTERFACE_INCLUDES}#include <${unique_name}.h>\n")
+                    endif()
+
                 /*- endif -*/
             /*- endif -*/
         /*- endfor -*/
@@ -264,6 +281,15 @@ CAmkESGen("${CMAKE_CURRENT_BINARY_DIR}/graph.dot" assembly/ graph.dot)
     /*- if configuration[i.name].get('rump_config') -*/
         CAmkESGen("${generated_dir}/camkes.rumprun.c" component//*? i.name ?*/ component.rumprun.c SOURCE C_STYLE)
     /*- endif -*/
+
+    # Add interface header files to camkes.h
+    file(WRITE "${generated_dir}/include/camkes.h.cmd" "${CMAKE_COMMAND} -DCONFIGURE_INPUT_FILE=\"${generated_dir}/include/camkes.h.in\" \
+        -DCONFIGURE_OUTPUT_FILE=\"${generated_dir}/include/camkes.h\" -DCMAKE_INTERFACE_INCLUDES=\"${CMAKE_INTERFACE_INCLUDES}\" -P ${CONFIGURE_FILE_SCRIPT}")
+    add_custom_command(OUTPUT /*? i.name ?*//include/camkes.h
+        COMMAND sh "${generated_dir}/include/camkes.h.cmd"
+        DEPENDS "${generated_dir}/include/camkes.h.in" "${generated_dir}/include/camkes.h.cmd"
+        )
+    set_property(SOURCE /*? i.name ?*//camkes.c PROPERTY OBJECT_DEPENDS /*? i.name ?*//include/camkes.h)
 
     # Create a target for all our generated files
     set(gen_target /*? i.name ?*/_generated)
