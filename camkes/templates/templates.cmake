@@ -48,6 +48,7 @@ DeclareCAmkESConnector(
 )
 DeclareCAmkESConnector(seL4RPCCall CAKEML_TO seL4RPCCall-to.template.cakeml)
 DeclareCAmkESConnector(seL4SharedData FROM seL4SharedData.template.c TO seL4SharedData.template.c)
+DeclareCAmkESConnector(seL4DMASharedData FROM seL4DMASharedData.template.c TO seL4DMASharedData.template.c)
 # Connectors with only FROM end interfaces
 foreach(connector IN ITEMS seL4HardwareMMIO seL4HardwareIOPort)
     DeclareCAmkESConnector(${connector} FROM ${connector}.template.c)

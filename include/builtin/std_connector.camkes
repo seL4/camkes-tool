@@ -255,3 +255,26 @@ connector seL4InitHardware {
     from Event with 0 threads;
     to Events with 0 threads;
 }
+
+/**
+ * Dataport connector
+ *
+ * This connector defines a shared DMA pool between multiple components.
+ *
+ * Supported config options:
+ *
+ * Connector instance level:
+ * paddr: Specify a physical address for the Pool to start at. Default: Any
+ * size: Specify the size of the pool.  Default: 4096
+ * controller: Identify the interface instance that is allowed to make allocations.
+ *
+ * Interface instance level:
+ * %{interface_name}_cached: Cache attributes of the pool's mapping. Default: True
+ * %{interface_name}_access: Memory permissions of the pool's mapping. Default: RWXP (All)
+ *
+ */
+connector seL4DMASharedData {
+    from Dataports with 0 threads;
+    to Dataports with 0 threads;
+    attribute string isabelle_connector_spec = "seL4SharedData"; /* builtin connector */
+}
