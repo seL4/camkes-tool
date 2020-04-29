@@ -349,8 +349,6 @@ static void defrag(void)
 
 int camkes_dma_init(void *dma_pool, size_t dma_pool_sz, size_t page_size)
 {
-    /* We should not have already initialised our bookkeeping. */
-    assert(head == NULL);
 
     /* The caller should have passed us a valid DMA pool. */
     if (page_size != 0 && (page_size <= sizeof(region_t) ||

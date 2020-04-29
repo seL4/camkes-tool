@@ -19,7 +19,7 @@
 #include <sel4/sel4.h>
 #include <utils/attribute.h>
 
-/* Initialise the DMA allocator. This function must be called before using any
+/* Add memory to the dma allocator. This function must be called before using any
  * of the functions below. Pass in the pool to allocate from, the size of this
  * pool in bytes, the page size of the associated mappings and a function to
  * reverse mappings. Callers may pass 0 as the page_size to force the allocator
