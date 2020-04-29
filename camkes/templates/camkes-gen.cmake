@@ -272,6 +272,15 @@ RequireFile(CONFIGURE_FILE_SCRIPT configure_file.cmake PATHS ${CMAKE_MODULE_PATH
             CAmkESGen("${generated_dir}/${filename}" component//*? i.name ?*/ ${template_file} SOURCE C_STYLE)
         endforeach()
     endif()
+    get_target_property(template_headers CAmkESComponent_/*? i.type.name ?*/ COMPONENT_TEMPLATE_HEADERS)
+    if (NOT "${template_headers}" STREQUAL "template_headers-NOTFOUND")
+        foreach(template_file IN LISTS template_headers)
+            get_filename_component(filename ${template_file} NAME)
+            CAmkESGen("${generated_dir}/include/${filename}" component//*? i.name ?*/ ${template_file} C_STYLE)
+            set(CMAKE_INTERFACE_INCLUDES "${CMAKE_INTERFACE_INCLUDES}#include <${filename}>\n")
+        endforeach()
+    endif()
+
     /*- if configuration[i.name].get('debug') -*/
         CAmkESGen("${generated_dir}/camkes.debug.c" component//*? i.name ?*/ component.debug.c SOURCE C_STYLE)
     /*- endif -*/
