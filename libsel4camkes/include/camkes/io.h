@@ -59,3 +59,12 @@ struct ioport_region {
     char **interface_name;
 };
 typedef struct ioport_region ioport_region_t;
+
+/**
+ * Call registerd hardware modules initialization functions
+ *
+ * Some connectors register modules to be intialized by this call.
+ *
+ * Returns 0 on success
+ */
+int camkes_call_hardware_init_modules(ps_io_ops_t *ops);

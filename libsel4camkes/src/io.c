@@ -445,7 +445,7 @@ static USED SECTION("_hardware_init") struct {} dummy_init_module;
 extern char **__start__hardware_init[];
 extern char **__stop__hardware_init[];
 
-static int start_init_modules(ps_io_ops_t *ops)
+int camkes_call_hardware_init_modules(ps_io_ops_t *ops)
 {
     if (__start__hardware_init == __stop__hardware_init) {
         /* Exit early if there are no modules to initialise */
@@ -506,14 +506,6 @@ int camkes_io_ops(ps_io_ops_t *ops)
           camkes_io_fdt(&ops->io_fdt) ||
           camkes_irq_ops(&ops->irq_ops) ||
           camkes_interface_registration_ops(&ops->interface_registration_ops, &ops->malloc_ops);
-
-    if (!ret) {
-        /* Initialise any init modules if they exist */
-        ret = start_init_modules(ops);
-        if (ret) {
-            ZF_LOGE("Failed to initialise driver modules");
-        }
-    }
 
     return ret;
 }
