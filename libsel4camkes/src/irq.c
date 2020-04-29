@@ -185,3 +185,24 @@ int camkes_irq_ops(ps_irq_ops_t *irq_ops)
 
     return 0;
 }
+
+/* Force the _global_notification_irqs section to be created even if no modules are defined. */
+static USED SECTION("_global_notification_irqs") struct {} dummy_allocated_global_irq;
+/* Definitions so that we can find the exposed IRQ information */
+extern global_notification_irq_handler_t *__start__global_notification_irqs[];
+extern global_notification_irq_handler_t *__stop__global_notification_irqs[];
+
+int camkes_handle_global_endpoint_irq(seL4_Word badge)
+{
+    for (global_notification_irq_handler_t **irq_entry = __start__global_notification_irqs;
+         irq_entry < __stop__global_notification_irqs; irq_entry++) {
+        seL4_Word registered_badge = (*irq_entry)->badge;
+        if ((badge & registered_badge) == registered_badge) {
+            allocated_irq_t *registered_irq = (*irq_entry)->allocated_ref;
+            if (registered_irq->callback_fn) {
+                registered_irq->callback_fn(registered_irq->callback_data, (*irq_entry)->ack_fun, NULL);
+            }
+
+        }
+    }
+}

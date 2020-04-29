@@ -34,6 +34,14 @@ struct allocated_irq {
 };
 typedef struct allocated_irq allocated_irq_t;
 
+
+struct global_notification_irq_handler {
+    seL4_Word badge;
+    ps_irq_acknowledge_fn_t ack_fun;
+    allocated_irq_t *allocated_ref;
+};
+typedef struct global_notification_irq_handler global_notification_irq_handler_t;
+
 /*
  * NOTE: This implementation of the platsuport IRQ interface is not thread-safe.
  */
@@ -49,3 +57,14 @@ typedef struct allocated_irq allocated_irq_t;
  * @return 0 on success, otherwise an error code
  */
 int camkes_irq_ops(ps_irq_ops_t *irq_ops);
+
+
+/* Event handler function for processing notification received on global_endpoint connector
+ * notification object.
+ *
+ * @param badge Badge received from reading notification object. Badge is bitwise compared
+ *              against badge values registered by global_notification_irq_handler_t entry.
+ *
+ * @return 0 on success, otherwise an error code
+ */
+int camkes_handle_global_endpoint_irq(seL4_Word badge);
