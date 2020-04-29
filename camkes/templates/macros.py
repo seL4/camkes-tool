@@ -541,7 +541,7 @@ def global_endpoint_badges(composition, end, configuration):
     in the composition to find all the connections that contain the component instance that
     owns the notification. Then we assign badges based on a consistent order of all of the
     selected connections. Badges are allocated by starting at 1 and then left shifting for
-    each increment but skipping any bits covered by ${instance}.global_endpoint_mask in the
+    each increment but skipping any bits not covered by ${instance}.global_endpoint_mask in the
     configuration. Finally the badge value is bitwise or'd with ${instance}.global_endpoint_base.
     This is to allow the component to reserve different badge values for usages outside of this
     mechanism.
