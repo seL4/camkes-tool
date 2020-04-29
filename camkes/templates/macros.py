@@ -577,6 +577,64 @@ def global_endpoint_badges(composition, end, configuration):
     raise Exception("Couldn't allocate notification badge for %s" % end)
 
 
+NO_CHECK_UNUSED.add('global_rpc_endpoint_badges')
+
+
+def global_rpc_endpoint_badges(composition, end, configuration):
+    '''
+    Enumerate the badge value for a connection that uses the global-rpc-endpoint endpoint object.
+
+    Return a list of badges, one for each end on the other side of the connection from the
+    supplied end. This means that for a connection with 1 server and 3 clients, if the server
+    is using the global-rpc-endpoint, then this will allocate 3 badge values for the server.
+    Given that this object exists across multiple connections, we enumerate all connections
+    in the composition to find all the connections that contain the component instance that
+    owns the endpoint. Then we assign badges based on a consistent order of all of the
+    selected connections. Badges are allocated by starting at 1 and then incrementing but skipping
+    any bits not covered by ${instance}.global_rpc_endpoint_mask in the
+    configuration. Finally the badge value is bitwise or'd with ${instance}.global_rpc_endpoint_base.
+    This is to allow the component to reserve different badge values for usages outside of this
+    mechanism.
+    '''
+    def set_next_badge(next_badge, mask):
+        if (next_badge >= min(2**get_libsel4_constant('seL4_Value_BadgeBits'), mask)):
+            raise Exception("Couldn't allocate endpoint badge for %s" % end)
+        if not ((next_badge & mask) == next_badge):
+            # If the badge has some bits that the mask doesn't allow, add them on.
+            # This caluclation requires that only 1 bit is wrong at a time. The way
+            # that we increment badges should ensure this.
+            next_badge = set_next_badge((~mask & next_badge) + next_badge, mask)
+        return next_badge
+
+    instance = end.instance
+    base = configuration[instance.name].get("global_rpc_endpoint_base", 0)
+    mask = configuration[instance.name].get(
+        "global_rpc_endpoint_mask", 2**get_libsel4_constant('seL4_Value_BadgeBits')-2)
+    next_badge = set_next_badge(1, mask)
+    badges = []
+    for c in composition.connections:
+        if c.type.get_attribute("from_global_rpc_endpoint") and c.type.get_attribute("from_global_rpc_endpoint").default:
+            for i in c.from_ends:
+                if i.instance is instance:
+                    for i2 in c.to_ends:
+                        badges.append(next_badge | base)
+                        next_badge = set_next_badge(next_badge+1, mask)
+                    if end is i:
+                        return badges
+                    badges = []
+        if c.type.get_attribute("to_global_rpc_endpoint") and c.type.get_attribute("to_global_rpc_endpoint").default:
+            for i in c.to_ends:
+                if i.instance is instance:
+                    for i2 in c.from_ends:
+                        badges.append(next_badge | base)
+                        next_badge = set_next_badge(next_badge+1, mask)
+                    if end is i:
+                        return badges
+                    badges = []
+
+    raise Exception("Couldn't allocate notification badge for %s" % end)
+
+
 NO_CHECK_UNUSED.add('virtqueue_get_client_id')
 
 
