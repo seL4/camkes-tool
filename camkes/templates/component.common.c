@@ -264,7 +264,7 @@ static void CONSTRUCTOR(CAMKES_SYSCALL_CONSTRUCTOR_PRIORITY) init_install_syscal
 /* General CAmkES platform initialisation. Expects to be run in a
  * single-threaded, exclusive context. On failure it does not return.
  */
-static void init(void) {
+static void CONSTRUCTOR(CAMKES_SYSCALL_CONSTRUCTOR_PRIORITY+1) init(void) {
 #ifdef CONFIG_CAMKES_DEFAULT_HEAP_SIZE
     /* Assign the heap */
     morecore_area = heap;
@@ -782,7 +782,6 @@ static int post_main(int thread_id) {
 
         case /*? tcb_control ?*/ : /* Control thread */
             camkes_tls_init(thread_id);
-            init();
             for (int i = 0; i < /*? len(threads) - 1 ?*/; i++) {
                 if (sel4runtime_get_tls_size() < CONFIG_SEL4RUNTIME_STATIC_TLS) {
                     tls_regions[i] = static_tls_regions[i];
