@@ -634,7 +634,7 @@ function(DeclareCAmkESConnector name)
         CAMKES_CONNECTOR
         "" # Option arguments
         "FROM;TO;CAKEML_TO;FROM_HEADER;TO_HEADER" # Single arguments
-        "" # Multiple aguments
+        "FROM_LIBS;TO_LIBS" # Multiple aguments
     )
     # Declare a target that we will set properties on
     if(NOT (TARGET "${target_name}"))
@@ -650,7 +650,17 @@ function(DeclareCAmkESConnector name)
     set_property(
         TARGET "${target_name}"
         APPEND
+        PROPERTY CONNECTOR_FROM_LIBS ${CAMKES_CONNECTOR_FROM_LIBS}
+    )
+    set_property(
+        TARGET "${target_name}"
+        APPEND
         PROPERTY CONNECTOR_TO_HEADER ${CAMKES_CONNECTOR_TO_HEADER}
+    )
+    set_property(
+        TARGET "${target_name}"
+        APPEND
+        PROPERTY CONNECTOR_TO_LIBS ${CAMKES_CONNECTOR_TO_LIBS}
     )
     set_property(
         TARGET "${target_name}"

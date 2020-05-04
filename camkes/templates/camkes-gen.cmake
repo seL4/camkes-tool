@@ -239,6 +239,8 @@ RequireFile(CONFIGURE_FILE_SCRIPT configure_file.cmake PATHS ${CMAKE_MODULE_PATH
                     CAmkESGen("${generated_dir}/include/${unique_name}.h" connector//*? c.name ?*//from//*? id ?*/ ${c_from_template_header} C_STYLE)
                     set(CMAKE_INTERFACE_INCLUDES "${CMAKE_INTERFACE_INCLUDES}#include <${unique_name}.h>\n")
                 endif()
+                get_property(c_from_libs TARGET ${connector_target} PROPERTY CONNECTOR_FROM_LIBS)
+                list(APPEND extra_libs ${c_from_libs})
 
             /*- endif -*/
         /*- endfor -*/
@@ -265,6 +267,8 @@ RequireFile(CONFIGURE_FILE_SCRIPT configure_file.cmake PATHS ${CMAKE_MODULE_PATH
                     endif()
 
                 /*- endif -*/
+                get_property(c_to_libs TARGET ${connector_target} PROPERTY CONNECTOR_TO_LIBS)
+                list(APPEND extra_libs ${c_to_libs})
             /*- endif -*/
         /*- endfor -*/
     /*- endfor -*/
