@@ -565,6 +565,18 @@ def global_endpoint_badges(composition, end, configuration):
     next_badge = set_next_badge(0, mask)
 
     for c in composition.connections:
+        if c.type.name == "seL4DTBHardwareThreadless" and instance in [to_end.instance for to_end in c.to_ends]:
+            for to_end in c.to_ends:
+                if not configuration[str(to_end)].get("generate_interrupts", False):
+                    continue
+                dtb = configuration[str(to_end)].get("dtb").get('query')[0]
+                irqs = parse_dtb_node_interrupts(dtb, -1)
+                irq_badges = []
+                for i in irqs:
+                    irq_badges.append(next_badge | base)
+                    next_badge = set_next_badge(next_badge, mask)
+                if end is to_end:
+                    return irq_badges
         if c.type.get_attribute("from_global_endpoint") and c.type.get_attribute("from_global_endpoint").default:
             for i in c.from_ends:
                 if i.instance is instance:
