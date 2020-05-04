@@ -353,7 +353,7 @@ static int find_compatible_driver_module(ps_io_ops_t *ops, int node_offset, char
      * pick the most suitable one by comparing the module's compatible
      * strings against the device node's */
     for (ps_driver_module_t **module = __start__driver_modules; module < __stop__driver_modules; module++) {
-        for (char **curr_str = (*module)->compatible_list; *curr_str != NULL; curr_str++) {
+        for (const char **curr_str = (*module)->compatible_list; *curr_str != NULL; curr_str++) {
             int match_ret = fdt_node_check_compatible(dtb_blob, node_offset, *curr_str);
             if (match_ret == 0) {
                 /* Found a match! */
