@@ -188,6 +188,9 @@ RequireFile(CONFIGURE_FILE_SCRIPT configure_file.cmake PATHS ${CMAKE_MODULE_PATH
     if (NOT (TARGET ${instance_target}))
         add_custom_target(${instance_target})
     endif()
+    if (NOT (TARGET CAmkESComponent_/*? i.type.name ?*/))
+        add_custom_target(CAmkESComponent_/*? i.type.name ?*/)
+    endif()
     # Retrieve the static sources for the component
     set(static_sources "$<TARGET_PROPERTY:CAmkESComponent_/*? i.type.name ?*/,COMPONENT_SOURCES>")
     AppendGenerator(static_sources "$<TARGET_PROPERTY:${instance_target},COMPONENT_SOURCES>")
