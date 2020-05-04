@@ -287,6 +287,11 @@ RequireFile(CONFIGURE_FILE_SCRIPT configure_file.cmake PATHS ${CMAKE_MODULE_PATH
             set(CMAKE_INTERFACE_INCLUDES "${CMAKE_INTERFACE_INCLUDES}#include <${filename}>\n")
         endforeach()
     endif()
+    /*- if configuration[i.name].get('single_threaded') -*/
+        CAmkESGen("${generated_dir}/seL4SingleThreadedComponent.template.c" component//*? i.name ?*/ seL4SingleThreadedComponent.template.c SOURCE C_STYLE)
+        CAmkESGen("${generated_dir}/include/seL4SingleThreadedComponent.template.h" component//*? i.name ?*/ seL4SingleThreadedComponent.template.h SOURCE C_STYLE)
+        set(CMAKE_INTERFACE_INCLUDES "${CMAKE_INTERFACE_INCLUDES}#include <seL4SingleThreadedComponent.template.h>\n")
+    /*- endif -*/
 
     /*- if configuration[i.name].get('debug') -*/
         CAmkESGen("${generated_dir}/camkes.debug.c" component//*? i.name ?*/ component.debug.c SOURCE C_STYLE)
