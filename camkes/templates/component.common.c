@@ -515,9 +515,9 @@ void USED NORETURN _camkes_start_c(int thread_id) {
 }
 
 // a tls region for every thread except the control thread
-static void *tls_regions[/*? len(threads) - 1 ?*/] = {0};
+static void *tls_regions[/*? len(threads) - 1 ?*/];
 // static tls regions
-static char static_tls_regions[/*? len(threads) - 1 ?*/][CONFIG_SEL4RUNTIME_STATIC_TLS] = {0};
+static char static_tls_regions[/*? len(threads) - 1 ?*/][CONFIG_SEL4RUNTIME_STATIC_TLS];
 
 void camkes_tls_init(int thread_id) {
     switch (thread_id) {
