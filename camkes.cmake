@@ -567,8 +567,16 @@ function(AppendCAmkESComponentTarget target_name)
     endforeach()
     set_property(TARGET "${target_name}" APPEND PROPERTY COMPONENT_INCLUDES "${includes}")
     set_property(TARGET "${target_name}" APPEND PROPERTY COMPONENT_SOURCES "${sources}")
-    set_property(TARGET "${target_name}" APPEND PROPERTY COMPONENT_TEMPLATE_SOURCES "${CAMKES_COMPONENT_TEMPLATE_SOURCES}")
-    set_property(TARGET "${target_name}" APPEND PROPERTY COMPONENT_TEMPLATE_HEADERS "${CAMKES_COMPONENT_TEMPLATE_HEADERS}")
+    set_property(
+        TARGET "${target_name}"
+        APPEND
+        PROPERTY COMPONENT_TEMPLATE_SOURCES "${CAMKES_COMPONENT_TEMPLATE_SOURCES}"
+    )
+    set_property(
+        TARGET "${target_name}"
+        APPEND
+        PROPERTY COMPONENT_TEMPLATE_HEADERS "${CAMKES_COMPONENT_TEMPLATE_HEADERS}"
+    )
     set_property(
         TARGET "${target_name}"
         APPEND
@@ -634,8 +642,16 @@ function(DeclareCAmkESConnector name)
     endif()
     set_property(TARGET "${target_name}" APPEND PROPERTY CONNECTOR_FROM ${CAMKES_CONNECTOR_FROM})
     set_property(TARGET "${target_name}" APPEND PROPERTY CONNECTOR_TO ${CAMKES_CONNECTOR_TO})
-    set_property(TARGET "${target_name}" APPEND PROPERTY CONNECTOR_FROM_HEADER ${CAMKES_CONNECTOR_FROM_HEADER})
-    set_property(TARGET "${target_name}" APPEND PROPERTY CONNECTOR_TO_HEADER ${CAMKES_CONNECTOR_TO_HEADER})
+    set_property(
+        TARGET "${target_name}"
+        APPEND
+        PROPERTY CONNECTOR_FROM_HEADER ${CAMKES_CONNECTOR_FROM_HEADER}
+    )
+    set_property(
+        TARGET "${target_name}"
+        APPEND
+        PROPERTY CONNECTOR_TO_HEADER ${CAMKES_CONNECTOR_TO_HEADER}
+    )
     set_property(
         TARGET "${target_name}"
         APPEND
