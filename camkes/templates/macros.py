@@ -32,6 +32,7 @@ import os
 import platform
 import re
 import six
+import numbers
 
 from camkes.templates.arch_helpers import min_untyped_size, max_untyped_size
 
@@ -671,3 +672,34 @@ def virtqueue_get_client_id(composition, end, configuration):
                     break
                 current_id += 1
     return ids[connections.index(end)]
+
+
+NO_CHECK_UNUSED.add('parse_dtb_node_interrupts')
+
+
+def parse_dtb_node_interrupts(node, max_num_interrupts):
+    interrupts = node.get('interrupts')
+    is_extended_interrupts = False
+    if interrupts is None:
+        interrupts = node.get('interrupts_extended')
+        is_extended_interrupts = True
+    irq_set = []
+    if interrupts is not None:
+        if is_extended_interrupts:
+            num_interrupts = len(interrupts)//4
+        else:
+            num_interrupts = len(interrupts)//3
+        if max_num_interrupts != -1 and num_interrupts > max_num_interrupts:
+            raise TemplateError('Device has more than %d interrupts, this is more than we can support.') % (
+                max_num_interrupts)
+        for i in range(0, num_interrupts):
+            if is_extended_interrupts:
+                _irq = interrupts[i*3+2]
+                _irq_spi = interrupts[i*3+1]
+            else:
+                _irq = interrupts[i*3+1]
+                _irq_spi = interrupts[i*3+0]
+            if (isinstance(_irq_spi, numbers.Integral) and (_irq_spi == 0)):
+                _irq = _irq + 32
+            irq_set.append(_irq)
+    return irq_set
