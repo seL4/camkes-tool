@@ -446,31 +446,44 @@ int camkes_dma_init(void *dma_pool, size_t dma_pool_sz, size_t page_size)
     return 0;
 }
 
-uintptr_t camkes_dma_get_paddr(void *ptr)
+static dma_frame_t *get_frame_desc(void *ptr)
 {
     for (dma_frame_t **frame = __start__dma_frames;
          frame < __stop__dma_frames; frame++) {
         uintptr_t base = (uintptr_t)ptr & ~MASK(ffs((*frame)->size) - 1);
-        uintptr_t offset = (uintptr_t)ptr & MASK(ffs((*frame)->size) - 1);
         if (base == (*frame)->vaddr) {
-            seL4_ARCH_Page_GetAddress_t res = seL4_ARCH_Page_GetAddress((*frame)->cap);
-            ERR_IF(res.error != 0, camkes_error, ((camkes_error_t) {
-                .type = CE_SYSCALL_FAILED,
-                .instance = get_instance_name(),
-                .description = "failed to reverse virtual mapping to a DMA frame",
-                .syscall = ARCHPageGetAddress,
-                .error = res.error,
-            }), ({
-                return (uintptr_t)NULL;
-            }));
-            return res.paddr + offset;
+            return *frame;
         }
     }
-    return (uintptr_t)NULL;
+    return NULL;
+
+}
+
+uintptr_t camkes_dma_get_paddr(void *ptr)
+{
+    dma_frame_t *frame = get_frame_desc(ptr);
+    uintptr_t offset = (uintptr_t)ptr & MASK(ffs(frame->size) - 1);
+    if (frame) {
+        seL4_ARCH_Page_GetAddress_t res = seL4_ARCH_Page_GetAddress(frame->cap);
+        ERR_IF(res.error != 0, camkes_error, ((camkes_error_t) {
+            .type = CE_SYSCALL_FAILED,
+            .instance = get_instance_name(),
+            .description = "failed to reverse virtual mapping to a DMA frame",
+            .syscall = ARCHPageGetAddress,
+            .error = res.error,
+        }), ({
+            return (uintptr_t)NULL;
+        }));
+        return res.paddr + offset;
+
+    } else {
+        return (uintptr_t)NULL;
+    }
 }
 
 seL4_CPtr camkes_dma_get_cptr(void *ptr)
 {
+
     for (dma_frame_t **frame = __start__dma_frames;
          frame < __stop__dma_frames; frame++) {
         uintptr_t base = (uintptr_t)ptr & ~MASK(ffs((*frame)->size) - 1);
@@ -761,10 +774,45 @@ static void dma_unpin(void *cookie UNUSED, void *addr UNUSED, size_t size UNUSED
 {
 }
 
-/* Our whole pool is mapped uncached, so cache ops are irrelevant. */
 static void dma_cache_op(void *cookie UNUSED, void *addr UNUSED,
                          size_t size UNUSED, dma_cache_op_t op UNUSED)
 {
+    /* x86 DMA is usually cache coherent and doesn't need maintenance ops */
+#ifdef CONFIG_ARCH_ARM
+    dma_frame_t *frame = get_frame_desc(addr);
+    if (frame == NULL) {
+        ZF_LOGE("Could not perform cache op");
+        return;
+    }
+    seL4_CPtr frame_cap = frame->cap;
+    if (frame_cap == seL4_CapNull) {
+        ZF_LOGE("Could not perform cache op");
+        return;
+    }
+
+
+    size_t page_size_of_region = frame->size;
+    size_t frame_start_offset = (uintptr_t)addr % page_size_of_region;
+    if ((frame_start_offset + size) > frame->size) {
+        ZF_LOGE("Specified range is outside the bounds of the dataport");
+        return;
+    }
+
+    switch (op) {
+    case DMA_CACHE_OP_CLEAN:
+        seL4_ARM_Page_Clean_Data(frame_cap, frame_start_offset, frame_start_offset + size);
+        break;
+    case DMA_CACHE_OP_INVALIDATE:
+        seL4_ARM_Page_Invalidate_Data(frame_cap, frame_start_offset, frame_start_offset + size);
+        break;
+    case DMA_CACHE_OP_CLEAN_INVALIDATE:
+        seL4_ARM_Page_CleanInvalidate_Data(frame_cap, frame_start_offset, frame_start_offset + size);
+        break;
+    default:
+        ZF_LOGF("Invalid cache_op %d", op);
+        return;
+    }
+#endif
 }
 
 int camkes_dma_manager(ps_dma_man_t *man)
