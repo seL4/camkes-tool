@@ -550,16 +550,19 @@ def global_endpoint_badges(composition, end, configuration):
     def set_next_badge(next_badge, mask):
         if (next_badge >= 2**get_libsel4_constant('seL4_Value_BadgeBits')):
             raise Exception("Couldn't allocate notification badge for %s" % end)
-        next_badge = next_badge << 1
+        if next_badge == 0:
+            next_badge = 1
+        else:
+            next_badge = next_badge << 1
         if not next_badge & mask:
             next_badge = set_next_badge(next_badge, mask)
         return next_badge
 
     instance = end.instance
+    base = configuration[instance.name].get("global_endpoint_base", 1)
     mask = configuration[instance.name].get(
-        "global_endpoint_mask", 2**get_libsel4_constant('seL4_Value_BadgeBits')-1)
-    base = configuration[instance.name].get("global_endpoint_base", 0)
-    next_badge = set_next_badge(1, mask)
+        "global_endpoint_mask", (2**get_libsel4_constant('seL4_Value_BadgeBits')-1) & (~base))
+    next_badge = set_next_badge(0, mask)
 
     for c in composition.connections:
         if c.type.get_attribute("from_global_endpoint") and c.type.get_attribute("from_global_endpoint").default:
