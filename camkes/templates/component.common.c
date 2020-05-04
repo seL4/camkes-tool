@@ -134,6 +134,8 @@ const char *get_instance_name(void) {
  *# 'dma_pool' then they will get access to this variable at runtime.
  #*/
 /*- set dma_pool = macros.ROUND_UP(configuration[me.name].get('dma_pool', 0), macros.PAGE_SIZE) -*/
+/*- set dma_pool_cache = configuration[me.name].get('dma_pool_cached', False) -*/
+/*- set dma_pool_paddr = configuration[me.name].get('dma_pool_paddr', None) -*/
 /*- set page_size = [macros.PAGE_SIZE] -*/
 /*- if options.largeframe_dma -*/
   /*- for sz in reversed(macros.page_sizes(options.architecture)) -*/
@@ -144,7 +146,8 @@ const char *get_instance_name(void) {
   /*- endfor -*/
 /*- endif -*/
 
-static char dma_pool_symbol[/*? dma_pool ?*/]
+/*- set dma_symbol_name = "%s_dma_pool_symbol" % me.name.replace('.', '_') -*/
+char /*? dma_symbol_name ?*/[/*? dma_pool ?*/]
     /*- set page_size_bits = int(math.log(page_size[0], 2)) -*/
     SECTION("align_/*? page_size_bits ?*/bit")
     ALIGN(/*? page_size[0] ?*/);
@@ -152,18 +155,15 @@ static char dma_pool_symbol[/*? dma_pool ?*/]
 /*- set dma_frames = [] -*/
 /*- set num_dma_frames = int(macros.ROUND_UP(dma_pool, page_size[0]) // page_size[0]) -*/
 
-/*- for i in six.moves.range(num_dma_frames) -*/
-    /*- set frame = alloc("dma_frame_%04d" % i, seL4_FrameObject, size=page_size[0], read=True, write=True, cached=False) -*/
-    /*- do dma_frames.append(frame) -*/
-/*- endfor -*/
-/*- do register_dma_pool('dma_pool_symbol', page_size[0], dma_frames) -*/
+/*- set dma_frames = [] -*/
+/*? register_shared_variable('%s_data' % me.parent.name, dma_symbol_name , num_dma_frames*page_size[0], frame_size=page_size[0], perm='RW', cached=dma_pool_cache, with_mapping_caps=dma_frames, paddr=dma_pool_paddr) ?*/
 
 /*# Expose the frames backing the DMA pool #*/
 /*- for cap in dma_frames -*/
     static dma_frame_t /*? me.instance.name ?*/_dma_/*? loop.index0 ?*/ = {
         .cap = /*? cap ?*/,
         .size = /*? page_size[0] ?*/,
-        .vaddr = (uintptr_t) &dma_pool_symbol[/*? loop.index0 * page_size[0] ?*/],
+        .vaddr = (uintptr_t) &/*? dma_symbol_name ?*/[/*? loop.index0 * page_size[0] ?*/],
     };
     USED SECTION("_dma_frames")
     dma_frame_t * /*? me.instance.name ?*/_dma_/*? loop.index0 ?*/_ptr = &/*? me.instance.name ?*/_dma_/*? loop.index0 ?*/;
@@ -274,7 +274,7 @@ static void CONSTRUCTOR(CAMKES_SYSCALL_CONSTRUCTOR_PRIORITY+1) init(void) {
     /* The user has actually had no opportunity to install any error handlers at
      * this point, so any error triggered below will certainly be fatal.
      */
-    int res = camkes_dma_init(dma_pool_symbol, /*? dma_pool ?*/,
+    int res = camkes_dma_init(/*? dma_symbol_name ?*/, /*? dma_pool ?*/,
         /*? page_size[0] ?*/);
     ERR_IF(res != 0, camkes_error, ((camkes_error_t){
             .type = CE_ALLOCATION_FAILURE,
@@ -970,8 +970,8 @@ const struct camkes_vma camkes_vmas[] = {
         .name = ".bss",
     },
     {
-        .start = (void*)dma_pool_symbol,
-        .end = (void*)dma_pool_symbol + sizeof(dma_pool_symbol),
+        .start = (void*)/*? dma_symbol_name ?*/,
+        .end = (void*)/*? dma_symbol_name ?*/ + sizeof(/*? dma_symbol_name ?*/),
         .read = true,
         .write = true,
         .execute = false,
