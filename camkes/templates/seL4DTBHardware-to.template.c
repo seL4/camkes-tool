@@ -71,10 +71,10 @@
                 VISIBLE
                 USED;
 
-        /*- set reg_interface_name = '%s_%d' % (str(me), loop.index0) -*/
+        /*- set reg_interface_name = '%s_%d' % (me.interface.name, loop.index0) -*/
 
         /*- set frame_caps = [] -*/
-        /*? register_shared_variable('%s_data' % reg_interface_name, dataport_symbol_name, size, frame_size=page_size, perm='RW', paddr=paddr, cached=cached, with_mapping_caps=frame_caps) ?*/
+        /*? register_shared_variable('%s_%d_data' % (str(me), loop.index0), dataport_symbol_name, size, frame_size=page_size, perm='RW', paddr=paddr, cached=cached, with_mapping_caps=frame_caps) ?*/
 
         /*# Assign a name for this particular set of registers #*/
         volatile void * /*? reg_interface_name ?*/ =
