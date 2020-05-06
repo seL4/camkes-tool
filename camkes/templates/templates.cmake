@@ -53,6 +53,7 @@ DeclareCAmkESConnector(seL4DMASharedData FROM seL4DMASharedData.template.c TO se
 foreach(connector IN ITEMS seL4HardwareMMIO seL4HardwareIOPort)
     DeclareCAmkESConnector(${connector} FROM ${connector}.template.c)
 endforeach()
+DeclareCAmkESConnector(seL4DTBHW TO seL4DTBHardware-to.template.c)
 # Connectors with only TO end interfaces
 foreach(connector IN ITEMS seL4HardwareInterrupt seL4IOAPICHardwareInterrupt)
     DeclareCAmkESConnector(${connector} TO ${connector}.template.c)

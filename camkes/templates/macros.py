@@ -565,7 +565,7 @@ def global_endpoint_badges(composition, end, configuration):
     next_badge = set_next_badge(0, mask)
 
     for c in composition.connections:
-        if c.type.name == "seL4DTBHardwareThreadless" and instance in [to_end.instance for to_end in c.to_ends]:
+        if c.type.name in ["seL4DTBHardwareThreadless", "seL4DTBHWThreadless"] and instance in [to_end.instance for to_end in c.to_ends]:
             for to_end in c.to_ends:
                 if not configuration[str(to_end)].get("generate_interrupts", False):
                     continue
