@@ -39,6 +39,7 @@
         .cap = /*? cap ?*/,
         .size = /*? page_size ?*/,
         .vaddr = (uintptr_t) &/*? dataport_symbol_name ?*/.content[/*? loop.index0 * page_size ?*/],
+        .cached = /*?  int(cached) ?*/,
     };
     USED SECTION("_dma_frames")
     dma_frame_t * /*? me.interface.name ?*/_dma_/*? loop.index0 ?*/_ptr = &/*? me.interface.name ?*/_dma_/*? loop.index0 ?*/;

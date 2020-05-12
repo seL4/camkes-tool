@@ -498,7 +498,7 @@ seL4_CPtr camkes_dma_get_cptr(void *ptr)
 /* Allocate a DMA region. This is refactored out of camkes_dma_alloc simply so
  * we can more eloquently express reattempting allocations.
  */
-static void *alloc(size_t size, int align)
+static void *alloc(size_t size, int align, bool cached)
 {
 
     /* Our caller should have rounded 'size' up. */
@@ -519,7 +519,7 @@ static void *alloc(size_t size, int align)
     /* For each region in the free list... */
     for (region_t *prev = NULL, *p = head; p != NULL; prev = p, p = p->next) {
 
-        if (p->size >= size) {
+        if (p->size >= size ) {
             /* This region or a subinterval of it may satisfy this request. */
 
             /* Scan subintervals of 'size' bytes within this region from the
@@ -599,7 +599,7 @@ static void *alloc(size_t size, int align)
     return NULL;
 }
 
-void *camkes_dma_alloc(size_t size, int align)
+void *camkes_dma_alloc(size_t size, int align, bool cached)
 {
 
     STATS(({
@@ -658,7 +658,7 @@ void *camkes_dma_alloc(size_t size, int align)
         size = ROUND_UP(size, alignof(region_t));
     }
 
-    void *p = alloc(size, align);
+    void *p = alloc(size, align, cached);
 
     if (p == NULL && size > sizeof(region_t)) {
         /* We failed to allocate a matching region, but we may be able to
@@ -666,7 +666,7 @@ void *camkes_dma_alloc(size_t size, int align)
          * re-attempting.
          */
         defrag();
-        p = alloc(size, align);
+        p = alloc(size, align, cached);
 
         if (p != NULL) {
             STATS(stats.succeeded_allocations_on_defrag++);
@@ -753,7 +753,7 @@ static void *dma_alloc(void *cookie UNUSED, size_t size, int align, int cached,
      */
     (void)cached;
 
-    return camkes_dma_alloc(size, align);
+    return camkes_dma_alloc(size, align, cached);
 }
 
 static void dma_free(void *cookie UNUSED, void *addr, size_t size)
@@ -782,6 +782,9 @@ static void dma_cache_op(void *cookie UNUSED, void *addr UNUSED,
     dma_frame_t *frame = get_frame_desc(addr);
     if (frame == NULL) {
         ZF_LOGE("Could not perform cache op");
+        return;
+    }
+    if (frame->cached == 0) {
         return;
     }
     seL4_CPtr frame_cap = frame->cap;
@@ -832,7 +835,7 @@ int camkes_dma_manager(ps_dma_man_t *man)
 /* Legacy functions */
 void *camkes_dma_alloc_page(void)
 {
-    return camkes_dma_alloc(PAGE_SIZE_4K, PAGE_SIZE_4K);
+    return camkes_dma_alloc(PAGE_SIZE_4K, PAGE_SIZE_4K, false);
 }
 void camkes_dma_free_page(void *ptr)
 {

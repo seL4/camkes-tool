@@ -164,6 +164,7 @@ char /*? dma_symbol_name ?*/[/*? dma_pool ?*/]
         .cap = /*? cap ?*/,
         .size = /*? page_size[0] ?*/,
         .vaddr = (uintptr_t) &/*? dma_symbol_name ?*/[/*? loop.index0 * page_size[0] ?*/],
+        .cached = /*? int(dma_pool_cache) ?*/,
     };
     USED SECTION("_dma_frames")
     dma_frame_t * /*? me.instance.name ?*/_dma_/*? loop.index0 ?*/_ptr = &/*? me.instance.name ?*/_dma_/*? loop.index0 ?*/;

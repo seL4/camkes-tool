@@ -38,7 +38,7 @@ NONNULL(1) WARN_UNUSED_RESULT;
  *
  * @return Virtual address of allocation or NULL on failure
  */
-void *camkes_dma_alloc(size_t size, int align) ALLOC_SIZE(1) ALLOC_ALIGN(2)
+void *camkes_dma_alloc(size_t size, int align, bool cached) ALLOC_SIZE(1) ALLOC_ALIGN(2)
 MALLOC WARN_UNUSED_RESULT;
 
 /**
@@ -156,5 +156,6 @@ struct dma_frame {
     seL4_CPtr cap;
     size_t size;
     uintptr_t vaddr;
+    bool cached;
 };
 typedef struct dma_frame dma_frame_t;
