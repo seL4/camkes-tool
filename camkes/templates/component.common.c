@@ -156,7 +156,7 @@ char /*? dma_symbol_name ?*/[/*? dma_pool ?*/]
 /*- set num_dma_frames = int(macros.ROUND_UP(dma_pool, page_size[0]) // page_size[0]) -*/
 
 /*- set dma_frames = [] -*/
-/*? register_shared_variable('%s_dma' % me.name, dma_symbol_name , num_dma_frames*page_size[0], frame_size=page_size[0], perm='RW', cached=dma_pool_cache, with_mapping_caps=dma_frames, paddr=dma_pool_paddr) ?*/
+/*? register_shared_variable('%s_dma' % me.name, dma_symbol_name , num_dma_frames*page_size[0], frame_size=page_size[0], label=me.label(), perm='RW', cached=dma_pool_cache, with_mapping_caps=dma_frames, paddr=dma_pool_paddr) ?*/
 
 /*# Expose the frames backing the DMA pool #*/
 /*- for cap in dma_frames -*/
