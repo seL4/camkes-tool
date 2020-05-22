@@ -17,15 +17,15 @@
 /*# This template assumes that the connector will only be used inside the composition block of a component, i.e. intra-component and not inter-component #*/
 
 /*# Grab the list of DTB paths that from the configuration #*/
-/*- set configuration_name = '%s.%s' % (me.instance.name, me.interface.name) -*/
-/*- set paths_list = configuration[configuration_name].get('paths') -*/
+/*- set paths_list = configuration[me.instance.name].get('fdt_bind_driver_paths') -*/
 
 /*- if paths_list is none -*/
     /*# Raise a fault, alerting the user to supply the proper configuration #*/
     /*? raise(TemplateError('Missing paths list! Create an attribute "paths" for the interface with a list of devicetree paths for the devices that you wish to initialise.')) ?*/
 /*- endif -*/
 /*# Sanity check #*/
-/*- if not isinstance(paths_list, tuple) -*/
+
+/*- if not isinstance(paths_list, (tuple, list)) -*/
     /*? raise(TemplateError('Attribute %s.paths should be a list of devicetree paths!' % (me.interface.name))) ?*/
 /*- endif -*/
 
