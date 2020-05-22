@@ -26,6 +26,6 @@
  * @param role The components role over the virtqueue channel (DEVICE or DRIVER)
  * @return Positive 0 on success, -1 on error
  */
-int camkes_virtqueue_channel_register(int virtqueue_id, const char *interface_name, size_t size, volatile void *buf,
-                                      void (*notify)(void),
+int camkes_virtqueue_channel_register(int virtqueue_id, const char *interface_name, unsigned queue_len, size_t size,
+									  volatile void *buf, void (*notify)(void),
                                       seL4_CPtr recv_notification, seL4_Word recv_badge, virtqueue_role_t role);

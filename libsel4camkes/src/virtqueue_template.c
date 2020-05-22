@@ -16,8 +16,8 @@
 camkes_virtqueue_channel_t camkes_virtqueue_channels[MAX_CAMKES_VIRTQUEUE_ID + 1];
 int num_registered_virtqueue_channels = 0;
 
-int camkes_virtqueue_channel_register(int virtqueue_id, const char *interface_name, size_t size, volatile void *buf,
-                                      void (*notify)(void),
+int camkes_virtqueue_channel_register(int virtqueue_id, const char *interface_name, unsigned queue_len, size_t size,
+                                      volatile void *buf, void (*notify)(void),
                                       seL4_CPtr recv_notification, seL4_Word recv_badge, virtqueue_role_t role)
 {
     /* Check that the virtqueue_id is in range */
@@ -32,6 +32,7 @@ int camkes_virtqueue_channel_register(int virtqueue_id, const char *interface_na
     camkes_virtqueue_channel_t *vq_channel = &camkes_virtqueue_channels[virtqueue_id];
     vq_channel->channel_buffer = buf;
     vq_channel->channel_buffer_size = size;
+    vq_channel->queue_len = queue_len;
     vq_channel->notify = notify;
     vq_channel->recv_notification = recv_notification;
     vq_channel->recv_badge = recv_badge;
