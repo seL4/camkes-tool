@@ -194,6 +194,7 @@ extern global_notification_irq_handler_t *__stop__global_notification_irqs[];
 
 int camkes_handle_global_endpoint_irq(seL4_Word badge)
 {
+    int handlers_called = 0;
     for (global_notification_irq_handler_t **irq_entry = __start__global_notification_irqs;
          irq_entry < __stop__global_notification_irqs; irq_entry++) {
         seL4_Word registered_badge = (*irq_entry)->badge;
@@ -201,8 +202,10 @@ int camkes_handle_global_endpoint_irq(seL4_Word badge)
             allocated_irq_t *registered_irq = (*irq_entry)->allocated_ref;
             if (registered_irq->callback_fn) {
                 registered_irq->callback_fn(registered_irq->callback_data, (*irq_entry)->ack_fun, NULL);
+                handlers_called++;
             }
 
         }
     }
+    return handlers_called;
 }
