@@ -48,19 +48,20 @@ static inline int msgqueue_channel_check_common(int msgqueue_id, void *buffer, s
     return 0;
 }
 
-static inline void msgqueue_channel_init_common(int msgqueue_id, void *buffer, size_t buffer_size,
-                                                size_t message_size)
+static inline void msgqueue_channel_init_common(int msgqueue_id, void *buffer, unsigned queue_len,
+                                                size_t buffer_size, size_t message_size)
 {
     camkes_msgqueue_channels[msgqueue_id] = (camkes_msgqueue_channel_t) {
         0
     };
     camkes_msgqueue_channels[msgqueue_id].buffer = buffer;
+    camkes_msgqueue_channels[msgqueue_id].queue_len = queue_len;
     camkes_msgqueue_channels[msgqueue_id].buffer_size = buffer_size;
     camkes_msgqueue_channels[msgqueue_id].message_size = message_size;
 }
 
-int camkes_msgqueue_channel_register_sender(int msgqueue_id, void *buffer, size_t buffer_size,
-                                            size_t message_size, void (*notify)(void))
+int camkes_msgqueue_channel_register_sender(int msgqueue_id, void *buffer, unsigned queue_len,
+                                            size_t buffer_size, size_t message_size, void (*notify)(void))
 {
     int res = msgqueue_channel_check_common(msgqueue_id, buffer, buffer_size, message_size);
     if (res) {
@@ -72,7 +73,7 @@ int camkes_msgqueue_channel_register_sender(int msgqueue_id, void *buffer, size_
         return -EINVAL;
     }
 
-    msgqueue_channel_init_common(msgqueue_id, buffer, buffer_size, message_size);
+    msgqueue_channel_init_common(msgqueue_id, buffer, queue_len, buffer_size, message_size);
 
     camkes_msgqueue_channels[msgqueue_id].role = MSGQUEUE_SENDER;
     camkes_msgqueue_channels[msgqueue_id].sender_funcs.notify = notify;
@@ -80,8 +81,8 @@ int camkes_msgqueue_channel_register_sender(int msgqueue_id, void *buffer, size_
     return 0;
 }
 
-int camkes_msgqueue_channel_register_receiver(int msgqueue_id, void *buffer, size_t buffer_size,
-                                              size_t message_size, int (*poll)(void), void (*wait)(void))
+int camkes_msgqueue_channel_register_receiver(int msgqueue_id, void *buffer, unsigned queue_len,
+                                              size_t buffer_size, size_t message_size, int (*poll)(void), void (*wait)(void))
 {
     int res = msgqueue_channel_check_common(msgqueue_id, buffer, buffer_size, message_size);
     if (res) {
@@ -93,7 +94,7 @@ int camkes_msgqueue_channel_register_receiver(int msgqueue_id, void *buffer, siz
         return -EINVAL;
     }
 
-    msgqueue_channel_init_common(msgqueue_id, buffer, buffer_size, message_size);
+    msgqueue_channel_init_common(msgqueue_id, buffer, queue_len, buffer_size, message_size);
 
     camkes_msgqueue_channels[msgqueue_id].role = MSGQUEUE_RECEIVER;
     camkes_msgqueue_channels[msgqueue_id].receiver_funcs.poll = poll;
