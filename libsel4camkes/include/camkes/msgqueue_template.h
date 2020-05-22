@@ -23,6 +23,7 @@ typedef enum msgqueue_role {
 typedef struct camkes_msgqueue_channel {
     msgqueue_role_t role;
     void *buffer;
+    unsigned queue_len;
     size_t buffer_size;
     size_t message_size;
     union {
@@ -38,10 +39,10 @@ typedef struct camkes_msgqueue_channel {
     };
 } camkes_msgqueue_channel_t;
 
-int camkes_msgqueue_channel_register_sender(int msgqueue_id, void *buffer, size_t buffer_size,
+int camkes_msgqueue_channel_register_sender(int msgqueue_id, void *buffer, unsigned queue_len, size_t buffer_size,
                                             size_t message_size, void (*notify)(void));
 
-int camkes_msgqueue_channel_register_receiver(int msgqueue_id, void *buffer, size_t buffer_size,
+int camkes_msgqueue_channel_register_receiver(int msgqueue_id, void *buffer, unsigned queue_len, size_t buffer_size,
                                               size_t message_size, int (*poll)(void), void (*wait)(void));
 
 camkes_msgqueue_channel_t *camkes_msgqueue_channel_get(int msgqueue_id, msgqueue_role_t role);

@@ -55,8 +55,8 @@ struct vq_buf_alloc *init_vq_allocator(void *mem_pool, unsigned len, size_t bloc
     return allocator;
 }
 
-int camkes_virtqueue_driver_init_common(virtqueue_driver_t *driver, volatile void *buffer, size_t buffer_size,
-                                        void (*notify)(void), size_t block_size)
+int camkes_virtqueue_driver_init_common(virtqueue_driver_t *driver, volatile void *buffer, unsigned queue_len,
+                                        size_t buffer_size, void (*notify)(void), size_t block_size)
 {
     /* Don't check for notify, as it can be NULL in some situations */
     if (!driver || !buffer) {
@@ -64,27 +64,26 @@ int camkes_virtqueue_driver_init_common(virtqueue_driver_t *driver, volatile voi
     }
 
     void *avail_ring = (void *) buffer;
-    void *used_ring = avail_ring + sizeof(vq_vring_avail_t);
-    void *desc = used_ring + sizeof(vq_vring_used_t);
+    void *used_ring = avail_ring + sizeof(vq_vring_avail_t) + sizeof(uint16_t) * queue_len;
+    void *desc = used_ring + sizeof(vq_vring_used_t) + sizeof(struct vq_vring_used_elem) * queue_len;
 
-    void *usable_buffer_start = desc + sizeof(vq_vring_desc_t) * DESC_TABLE_SIZE;
+    void *usable_buffer_start = desc + sizeof(vq_vring_desc_t) * queue_len;
     unsigned usable_len = buffer_size - (sizeof(vq_vring_avail_t) + sizeof(vq_vring_used_t) +
-                                         sizeof(vq_vring_desc_t) * DESC_TABLE_SIZE);
+                                         sizeof(uint16_t) * queue_len + sizeof(struct vq_vring_used_elem) * queue_len +
+                                         sizeof(vq_vring_desc_t) * queue_len);
     struct vq_buf_alloc *allocator = init_vq_allocator(usable_buffer_start, usable_len, block_size);
     if (!allocator) {
         return ENOMEM;
     }
 
-    virtqueue_init_driver(driver, avail_ring, used_ring, desc, notify, allocator);
+    virtqueue_init_driver(driver, queue_len, avail_ring, used_ring, desc, notify, allocator);
 
-    virtqueue_init_desc_table(desc);
-    virtqueue_init_avail_ring(desc);
-    virtqueue_init_used_ring(desc);
 
     return 0;
 }
 
-int camkes_virtqueue_device_init_common(virtqueue_device_t *device, volatile void *buffer, void (*notify)(void))
+int camkes_virtqueue_device_init_common(virtqueue_device_t *device, volatile void *buffer, unsigned queue_len,
+                                        void (*notify)(void))
 {
     /* Don't check for notify, as it can be NULL in some situations */
     if (!device || !buffer) {
@@ -92,10 +91,10 @@ int camkes_virtqueue_device_init_common(virtqueue_device_t *device, volatile voi
     }
 
     void *avail_ring = (void *) buffer;
-    void *used_ring = avail_ring + sizeof(vq_vring_avail_t);
-    void *desc = used_ring + sizeof(vq_vring_used_t);
-    void *cookie = desc + sizeof(vq_vring_desc_t) * DESC_TABLE_SIZE;
-    virtqueue_init_device(device, avail_ring, used_ring, desc, notify, cookie);
+    void *used_ring = avail_ring + sizeof(vq_vring_avail_t) + sizeof(uint16_t) * queue_len;
+    void *desc = used_ring + sizeof(vq_vring_used_t) + sizeof(struct vq_vring_used_elem) * queue_len;
+    void *cookie = desc + sizeof(vq_vring_desc_t) * queue_len;
+    virtqueue_init_device(device, queue_len, avail_ring, used_ring, desc, notify, cookie);
 
     return 0;
 }

@@ -41,6 +41,7 @@ typedef enum virtqueue_role {
 typedef struct virtqueue_channel {
     volatile void *channel_buffer;
     size_t channel_buffer_size;
+    unsigned queue_len;
     void (*notify)(void);
     seL4_CPtr recv_notification;
     seL4_Word recv_badge;
