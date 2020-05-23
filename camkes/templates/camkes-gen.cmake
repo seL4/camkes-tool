@@ -130,7 +130,7 @@ function(CAmkESOutputGenCommand object_state_op object_state_file)
         ${reflow_commands}
         DEPENDS
             ${CMAKE_CURRENT_BINARY_DIR}/ast.pickle
-            # This pulls in miscellaneous dependencies 
+            # This pulls in miscellaneous dependencies
             # which is used by the camkes tool
             ${CAMKES_TOOL_DEPENDENCIES}
             # Any additional dependencies from the files
