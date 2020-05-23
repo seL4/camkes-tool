@@ -306,11 +306,11 @@ RequireFile(CONFIGURE_FILE_SCRIPT configure_file.cmake PATHS ${CMAKE_MODULE_PATH
     # Add interface header files to camkes.h
     file(WRITE "${generated_dir}/include/camkes.h.cmd" "${CMAKE_COMMAND} -DCONFIGURE_INPUT_FILE=\"${generated_dir}/include/camkes.h.in\" \
         -DCONFIGURE_OUTPUT_FILE=\"${generated_dir}/include/camkes.h\" -DCMAKE_INTERFACE_INCLUDES=\"${CMAKE_INTERFACE_INCLUDES}\" -P ${CONFIGURE_FILE_SCRIPT}")
-    add_custom_command(OUTPUT /*? i.name ?*//include/camkes.h
+    add_custom_command(OUTPUT ${generated_dir}/include/camkes.h
         COMMAND sh "${generated_dir}/include/camkes.h.cmd"
         DEPENDS "${generated_dir}/include/camkes.h.in" "${generated_dir}/include/camkes.h.cmd"
         )
-    set_property(SOURCE /*? i.name ?*//camkes.c PROPERTY OBJECT_DEPENDS /*? i.name ?*//include/camkes.h)
+    set_property(SOURCE /*? i.name ?*//camkes.c PROPERTY OBJECT_DEPENDS ${generated_dir}/include/camkes.h)
 
     # Create a target for all our generated files
     set(gen_target /*? i.name ?*/_generated)
