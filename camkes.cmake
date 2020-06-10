@@ -14,6 +14,7 @@ cmake_minimum_required(VERSION 3.7.2)
 
 include(${KERNEL_HELPERS_PATH})
 include(${PLATSUPPORT_HELPERS})
+include(dts)
 
 function(append_flags parent_list)
     math(EXPR limit "${ARGC} - 1")
