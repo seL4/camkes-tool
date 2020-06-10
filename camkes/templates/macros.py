@@ -709,12 +709,15 @@ def parse_dtb_node_interrupts(node, max_num_interrupts):
                 max_num_interrupts)
         for i in range(0, num_interrupts):
             if is_extended_interrupts:
+                _trigger = interrupts[i*3+3]
                 _irq = interrupts[i*3+2]
                 _irq_spi = interrupts[i*3+1]
             else:
+                _trigger = interrupts[i*3+2]
                 _irq = interrupts[i*3+1]
                 _irq_spi = interrupts[i*3+0]
             if (isinstance(_irq_spi, numbers.Integral) and (_irq_spi == 0)):
                 _irq = _irq + 32
-            irq_set.append(_irq)
+            _trigger = 1 if _trigger < 4 else 0
+            irq_set.append({'irq': _irq, 'trigger': _trigger})
     return irq_set

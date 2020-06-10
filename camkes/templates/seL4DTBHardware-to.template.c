@@ -126,7 +126,9 @@
     /*? dtb_macros.parse_dtb_node_interrupts(dtb, 28) ?*/
     /*- set irq_set = pop('irq_set') -*/
 
-    /*- for i, _irq in enumerate(irq_set) -*/
+    /*- for (i, irq_node) in enumerate(irq_set)  -*/
+
+        /*- set _irq = irq_node['irq'] -*/
 
         /*- set interrupt_ntfn = Cap(ntfn_obj, read=True, write=True, badge=pow(2, i)) -*/
 
