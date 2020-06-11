@@ -407,6 +407,7 @@ function(DeclareCAmkESRootserver adl)
     )
         get_absolute_list_source_or_binary(CAMKES_ROOT_DTS_FILE_PATH "${CAMKES_ROOT_DTS_FILE_PATH}")
     endif()
+    set_property(GLOBAL PROPERTY CAMKES_ROOT_DTB_FILE_PATH "${CAMKES_ROOT_DTB_FILE_PATH}")
     set_property(GLOBAL PROPERTY CAMKES_ROOT_DTS_FILE_PATH "${CAMKES_ROOT_DTS_FILE_PATH}")
 endfunction(DeclareCAmkESRootserver)
 
@@ -422,6 +423,7 @@ function(GenerateCAmkESRootserver)
     get_property(adl GLOBAL PROPERTY CAMKES_ROOT_ADL)
     get_property(CAMKES_ROOT_CPP_FLAGS GLOBAL PROPERTY CAMKES_ROOT_CPP_FLAGS)
     get_property(dts_file GLOBAL PROPERTY CAMKES_ROOT_DTS_FILE_PATH)
+    get_property(dtb_file GLOBAL PROPERTY CAMKES_ROOT_DTB_FILE_PATH)
     set(CAMKES_TOOL_DEPENDENCIES "")
     get_filename_component(CAMKES_CDL_TARGET "${adl}" NAME_WE)
     set(CAMKES_CDL_TARGET "${CMAKE_CURRENT_BINARY_DIR}/${CAMKES_CDL_TARGET}.cdl")
@@ -431,15 +433,17 @@ function(GenerateCAmkESRootserver)
     set(CAMKES_PARSER_FLAGS "--import-path=${CAMKES_TOOL_BUILTIN_DIR}")
 
     if(${CAmkESDTS})
-        # Find the dts to use
-        if("${dts_file}" STREQUAL "")
-            # use the kernel's generated DTB file
-            set(dtb_file ${KernelDTBPath})
-        elseif(NOT EXISTS "${dts_file}")
-            message(FATAL_ERROR "Could not find dts file ${dts_file}")
-        else()
-            # generate a DTB file from the path provided
-            GenDTB("${dts_file}" dtb_file)
+        if(NOT EXISTS "${dtb_file}")
+            # Find the dts to use
+            if("${dts_file}" STREQUAL "")
+                # use the kernel's generated DTB file
+                set(dtb_file ${KernelDTBPath})
+            elseif(NOT EXISTS "${dts_file}")
+                message(FATAL_ERROR "Could not find dts file ${dts_file}")
+            else()
+                # generate a DTB file from the path provided
+                GenDTB("${dts_file}" dtb_file)
+            endif()
         endif()
         list(APPEND CAMKES_PARSER_FLAGS "--dtb=${dtb_file}")
     endif()
