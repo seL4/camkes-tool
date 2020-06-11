@@ -13,6 +13,7 @@
 cmake_minimum_required(VERSION 3.7.2)
 
 include(${KERNEL_HELPERS_PATH})
+include(${PLATSUPPORT_HELPERS})
 
 function(append_flags parent_list)
     math(EXPR limit "${ARGC} - 1")
@@ -440,6 +441,16 @@ function(GenerateCAmkESRootserver)
             GenDTB("${dts_file}" dtb_file)
         endif()
         list(APPEND CAMKES_PARSER_FLAGS "--dtb=${dtb_file}")
+    endif()
+
+    # Grab the list of GPIO pins for the parser
+    if(NOT ${KernelARMPlatform} STREQUAL "")
+        get_device_list(gpio_list gpio ${KernelARMPlatform})
+    else()
+        get_device_list(gpio_list gpio ${KernelPlatform})
+    endif()
+    if(EXISTS ${gpio_list})
+        list(APPEND CAMKES_PARSER_FLAGS "--gpio-list=${gpio_list}")
     endif()
 
     set_camkes_flags_from_config(CAMKES_FLAGS)

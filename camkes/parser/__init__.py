@@ -18,3 +18,4 @@ from .parser import parse_file, parse_string, Parser
 from .query import parse_query_parser_args, print_query_parser_help
 from .query import Query
 from .fdtQueryEngine import DtbMatchQuery
+from .gpioQueryEngine import GPIOMatchQuery
