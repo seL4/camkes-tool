@@ -387,6 +387,10 @@ function(DeclareCAmkESRootserver adl)
         get_absolute_list_source_or_binary(include "${include}")
         list(APPEND CAMKES_ROOT_CPP_FLAGS "-I${include}")
     endforeach()
+    # this define can be used to detect if the CAmkES Tool is processing a file
+    # or the C compiler. This allows excluding C specific things from CAmkES in
+    # shared header files.
+    list(APPEND CAMKES_ROOT_CPP_FLAGS "-DCAMKES_TOOL_PROCESSING")
     get_absolute_list_source_or_binary(adl "${adl}")
     set_property(GLOBAL PROPERTY CAMKES_ROOT_ADL "${adl}")
     set_property(GLOBAL PROPERTY CAMKES_ROOT_CPP_FLAGS "${CAMKES_ROOT_CPP_FLAGS}" APPEND)
