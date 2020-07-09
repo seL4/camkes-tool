@@ -54,7 +54,7 @@
 /*- set reg_set = pop('reg_set') -*/
 /*- set cached = configuration[configuration_name].get('hardware_cached', False) -*/
 
-/*- for (paddr, size) in reg_set -*/
+/*- for paddr, size in reg_set -*/
 
         /*# Get the next multiple of 4K that can fit the register #*/
         /*- set size = macros.next_page_multiple(size, options.architecture) -*/
@@ -136,7 +136,7 @@
     /*? dtb_macros.parse_dtb_node_interrupts(dtb, 28) ?*/
     /*- set irq_set = pop('irq_set') -*/
 
-    /*- for (_irq, i) in zip(irq_set, range(0, len(irq_set)))  -*/
+    /*- for i, _irq in enumerate(irq_set) -*/
 
         /*- set interrupt_ntfn = alloc_cap('%s_ntfn_%d' % (me.interface.name, i), ntfn_obj, read=True, write=True, badge=pow(2, i)) -*/
 
@@ -183,7 +183,7 @@
         }
         assert(irq->type == PS_INTERRUPT);
         switch (irq->irq.number) {
-        /*- for (irq_num, handler) in irq_handler_pairs -*/
+        /*- for irq_num, handler in irq_handler_pairs -*/
             case /*? irq_num ?*/:
                 return seL4_IRQHandler_Ack(/*? handler ?*/);
         /*- endfor -*/
@@ -204,7 +204,7 @@
             seL4_Wait(/*? root_ntfn ?*/, &badge);
 
             /*# Generate the calls to the IRQ handling functions #*/
-            /*- for i in range(0, len(irq_set)) -*/
+            /*- for i in range(len(irq_set)) -*/
                 /*- set bit = pow(2, i) -*/
                 if (badge & /*? bit ?*/) {
                     void /*? me.interface.name ?*/_irq_handle(ps_irq_t *irq) WEAK;
