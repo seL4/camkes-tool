@@ -125,8 +125,6 @@
     /*- set ntfn_obj = alloc_obj('%s_ntfn' % me.interface.name, seL4_NotificationObject) -*/
     /*- set root_ntfn = alloc_cap('%s_root_ntfn' % me.interface.name, ntfn_obj, read=True, write=True) -*/
 
-    /*- set irq_ntfn_pairs = [] -*/
-
     /*- set irq_handler_pairs = [] -*/
 
     /*- set interrupt_struct_prefix = '%s_irq' % (me.interface.name) -*/
@@ -138,15 +136,12 @@
 
     /*- for i, _irq in enumerate(irq_set) -*/
 
-        /*- set interrupt_ntfn = alloc_cap('%s_ntfn_%d' % (me.interface.name, i), ntfn_obj, read=True, write=True, badge=pow(2, i)) -*/
+        /*- set interrupt_ntfn = Cap(ntfn_obj, read=True, write=True, badge=pow(2, i)) -*/
 
-        /*- set irq = alloc('%s_irq_%d' % (me.interface.name, i), seL4_IRQHandler, number=_irq) -*/
+        /*- set irq = alloc('%s_irq_%d' % (me.interface.name, i), seL4_IRQHandler, number=_irq, notification=interrupt_ntfn) -*/
 
         /*# Add the interrupt number to the IRQ num list for later #*/
         /*- do irq_handler_pairs.append((_irq, irq)) -*/
-
-        /*# Add the interrupt notification and IRQ handler to the list for later #*/
-        /*- do irq_ntfn_pairs.append((interrupt_ntfn, irq)) -*/
 
         /*- set interrupt_interface_name = '%s_%d' % (me.interface.name, i) -*/
 
@@ -162,18 +157,6 @@
         allocated_irq_t * /*? interrupt_struct_prefix ?*/_/*? i ?*/_ptr = &/*? interrupt_struct_prefix ?*/_/*? i ?*/;
 
     /*- endfor -*/
-
-    /*# Pair the IRQ handlers with their notification, this resolves the capdl loader issue #*/
-    /*# where the notifications are badged after being paired with their respective handlers #*/
-    void /*? me.interface.name ?*/__init(void) {
-        int error = 0;
-        /*- for (notification, handler) in irq_ntfn_pairs -*/
-            error = seL4_IRQHandler_SetNotification(/*? handler ?*/, /*? notification ?*/);
-            if (error) {
-                assert(!"Failed to pair IRQ handler with notification");
-            }
-        /*- endfor -*/
-    }
 
     /*# Generate IRQ acknowledgement code #*/
     int /*? me.interface.name ?*/_irq_acknowledge(ps_irq_t *irq) {
