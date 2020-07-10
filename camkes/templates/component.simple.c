@@ -453,7 +453,7 @@ static void camkes_make_arch_simple(arch_simple_t *simple) {
 
 static ssize_t camkes_get_extended_bootinfo(void *data, seL4_Word type, void *dest, ssize_t max_len) {
     seL4_BootInfoHeader *mapping = NULL;
-    /*- for (name, symbol) in extrabi_list -*/
+    /*- for name, symbol in extrabi_list -*/
     if (type == /*? name ?*/) {
         mapping = (seL4_BootInfoHeader*)&/*? symbol ?*/.content[0];
     }

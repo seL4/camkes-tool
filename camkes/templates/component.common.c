@@ -494,7 +494,7 @@ static void CONSTRUCTOR(CAMKES_SYSCALL_CONSTRUCTOR_PRIORITY+1) init(void) {
 
 const char * get_thread_name(int thread_id) {
     switch (thread_id) {
-        /*- for (id, name) in thread_names.items() -*/
+        /*- for id, name in thread_names.items() -*/
         case /*? id ?*/: return "/*?name?*/";
         /*- endfor -*/
     }
