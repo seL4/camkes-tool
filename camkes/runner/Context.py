@@ -71,26 +71,27 @@ def new_context(entity, assembly, render_state, state_key, outfile_name,
         if obj_space else None,
 
         # Cap allocator
-        'alloc_cap': (lambda name, obj, **kwargs:
-                      alloc_cap((entity.label(), cap_space), cap_space, name, obj, **kwargs)) \
-                if cap_space else None,
+        'alloc_cap': None if cap_space is None else \
+                (lambda name, obj, **kwargs: alloc_cap((entity.label(),
+                                                        cap_space), cap_space, name, obj, **kwargs)),
+
                 'Cap': Cap,
 
                 # The CNode root of your CSpace. Should only be necessary in cases
                 # where you need to allocate a cap to it.
-                'my_cnode': cap_space.cnode if cap_space is not None else None,
+                'my_cnode': None if cap_space is None else cap_space.cnode,
 
                 # Batched object and cap allocation for when you don't need a reference
                 # to the object. Probably best not to look directly at this one. When
                 # you see `set y = alloc('foo', bar, moo)` in template code, think:
                 #  set x = alloc_obj('foo_obj', bar)
                 #  set y = alloc_cap('foo_cap', x, moo)
-                'alloc': (lambda name, type, label=entity.label(), **kwargs:
-                          alloc_cap((entity.label(), cap_space), cap_space, name,
-                                    alloc_obj((entity.label(), obj_space), obj_space,
-                                              '%s_%s' % (entity.label(), name), type, label,
-                                              **kwargs),
-                                    **kwargs)) if cap_space else None,
+                'alloc': None if cap_space is None else \
+                (lambda name, type, label=entity.label(), **kwargs:
+                 alloc_cap((entity.label(), cap_space), cap_space, name,
+                           alloc_obj((entity.label(), obj_space), obj_space, '%s_%s' %
+                                     (entity.label(), name), type, label, **kwargs),
+                           **kwargs)),
 
                 # Functionality for templates to inform us that they've emitted a C
                 # variable that's intended to map to a shared variable. It is
