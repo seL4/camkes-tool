@@ -48,7 +48,8 @@ int camkes_msgqueue_sender_init(int msgqueue_id, camkes_msgqueue_sender_t *sende
         aligned_message_size = NEXT_POWER_OF_2(msgqueue_channel->message_size);
     }
 
-    int error = camkes_virtqueue_driver_init_common(&sender->sender_channel, msgqueue_channel->buffer, msgqueue_channel->queue_len,
+    int error = camkes_virtqueue_driver_init_common(&sender->sender_channel, msgqueue_channel->buffer,
+                                                    msgqueue_channel->queue_len,
                                                     msgqueue_channel->buffer_size, msgqueue_channel->sender_funcs.notify,
                                                     aligned_message_size);
     if (error) {
