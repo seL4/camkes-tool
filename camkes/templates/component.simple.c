@@ -466,7 +466,7 @@ static ssize_t camkes_get_extended_bootinfo(void *data, seL4_Word type, void *de
     return -1;
 }
 
-static UNUSED seL4_CPtr camkes_simple_sched_ctrl(void *data, seL4_Word core) {
+static UNUSED seL4_CPtr camkes_simple_sched_ctrl(void *data, int core) {
     /*- if options.realtime -*/
     /*- if 'sched_ctrl' in configuration[me.name].keys() -*/
     if (core == /*? configuration[me.name].get('sched_ctrl') ?*/) {

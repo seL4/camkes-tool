@@ -82,14 +82,6 @@
 
         /*- set id = composition.connections.index(me.parent) -*/
 
-        /*- set frame_caps_symbol = c_symbol('frame_caps') -*/
-
-        /*# Allocate frame objects to back the hardware dataport #*/
-        static const seL4_CPtr /*? frame_caps_symbol ?*/[] = {
-            /*- for cap in frame_caps -*/
-                /*? cap ?*/,
-            /*- endfor -*/
-        };
         __attribute__((used)) __attribute__((section("_dataport_frames")))
         dataport_frame_t /*? reg_interface_name ?*/_frames[] = {
 

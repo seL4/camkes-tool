@@ -122,7 +122,6 @@ static int camkes_arch_io_port_out16(ioport_region_t *region, uint16_t port, uin
 
 static int camkes_arch_io_port_out32(ioport_region_t *region, uint16_t port, uint32_t value)
 {
-    uint32_t val = (uint32_t) value;
     int reply = seL4_X86_IOPort_Out32(region->cap, port, value);
 
     int ret = syscall_error_handler(reply, X86IOPortOut32, region);

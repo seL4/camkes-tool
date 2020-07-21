@@ -63,6 +63,7 @@ static inline int init_io_port_ops(void)
 {
     assert(camkes_io_port_ops(&ops) == 0);
     ops_inited = true;
+    return 0;
 }
 
 uint8_t /*? me.interface.name ?*/_in8_offset(uint16_t offset)

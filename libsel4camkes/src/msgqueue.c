@@ -97,7 +97,7 @@ static void *msgqueue_alloc_buffer(camkes_msgqueue_sender_t *sender)
     void *ret_buffer = NULL;
     virtqueue_ring_object_t handle = {0};
     unsigned len = 0;
-    UNUSED size_t size = 0;
+    UNUSED unsigned size = 0;
     UNUSED vq_flags_t flag = {0};
     int error = 0;
 
@@ -206,7 +206,7 @@ int camkes_msgqueue_get(camkes_msgqueue_receiver_t *receiver, void *buffer, size
     }
 
     void *message = NULL;
-    size_t message_len = 0;
+    unsigned message_len = 0;
     UNUSED vq_flags_t flags = {0};
 
     int error = camkes_virtqueue_device_gather_buffer(&receiver->receiver_channel, &handle, &message, &message_len, &flags);

@@ -86,7 +86,7 @@ int /*- if passive -*/
 {
 
     unsigned size;
-    unsigned length;
+    unsigned length = 0;
     /*- if passive -*/
         /*? recv_first_rpc(connector, "size", me.might_block(), notify_cptr = "init_ntfn") ?*/
     /*- else -*/

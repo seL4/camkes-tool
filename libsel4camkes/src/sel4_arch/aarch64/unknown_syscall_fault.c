@@ -15,6 +15,7 @@
 #include <sel4/sel4.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <inttypes.h>
 
 void show_unknown_syscall_fault(seL4_CPtr thread_id, const char *name)
 {
@@ -33,7 +34,7 @@ void show_unknown_syscall_fault(seL4_CPtr thread_id, const char *name)
     uintptr_t lr = seL4_GetMR(10);
     uintptr_t spsr = seL4_GetMR(11);
     int syscall = seL4_GetMR(12);
-    SHOW("unknown syscall (%d) from %s (ID 0x%x), pc = %p\n"
+    SHOW("unknown syscall (%d) from %s (ID 0x%"PRIxPTR"), pc = %p\n"
          "     x0 = %p\n"
          "     x1 = %p\n"
          "     x2 = %p\n"

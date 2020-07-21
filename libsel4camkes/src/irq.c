@@ -50,6 +50,8 @@ static bool check_irq_info_is_equal(ps_irq_t *a, ps_irq_t *b)
                     return true;
                 }
                 return false;
+            default:
+                ZF_LOGF("Unreachable statement");
             }
         }
         return false;

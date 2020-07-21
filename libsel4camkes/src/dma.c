@@ -156,6 +156,8 @@ static void grow_node(region_t *node, size_t by)
     node->size += by;
 }
 
+#ifdef DEBUG_DMA
+
 /* Check certain assumptions hold on the free list. This function is intended
  * to be a no-op when NDEBUG is defined.
  */
@@ -217,8 +219,7 @@ static void check_consistency(void)
         }
     }
 }
-
-#ifndef DEBUG_DMA
+#else
 #define check_consistency()
 #endif
 
@@ -487,7 +488,6 @@ seL4_CPtr camkes_dma_get_cptr(void *ptr)
     for (dma_frame_t **frame = __start__dma_frames;
          frame < __stop__dma_frames; frame++) {
         uintptr_t base = (uintptr_t)ptr & ~MASK(ffs((*frame)->size) - 1);
-        uintptr_t offset = (uintptr_t)ptr & MASK(ffs((*frame)->size) - 1);
         if (base == (*frame)->vaddr) {
             return (*frame)->cap;
         }
