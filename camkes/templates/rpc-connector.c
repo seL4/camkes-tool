@@ -252,11 +252,12 @@
         /*- set info = "%sinfo" % namespace_prefix -*/
         /*- if notify_cptr is not none -*/
             /* This interface has a passive thread, must let the control thread know before waiting */
-            seL4_MessageInfo_t /*? info ?*/ = /*? generate_seL4_SignalRecv(options,
-                                                                        notify_cptr,
-                                                                        info, namespace.ep,
-                                                                        '&%s' % namespace.badge_symbol,
-                                                                        namespace.reply_cap_slot) ?*/;
+            seL4_MessageInfo_t /*? info ?*/ = {0};
+            /*? generate_seL4_SignalRecv(options,
+                                         notify_cptr,
+                                         info, namespace.ep,
+                                         '&%s' % namespace.badge_symbol,
+                                         namespace.reply_cap_slot) ?*/;
         /*- else -*/
             /* This interface has an active thread, just wait for an RPC */
             seL4_MessageInfo_t /*? info ?*/ = /*? generate_seL4_Recv(options, namespace.ep,
