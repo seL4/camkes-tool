@@ -32,7 +32,6 @@ import os
 import re
 import shutil
 import subprocess
-import tempfile
 
 
 class CPP(Parser):
@@ -44,47 +43,50 @@ class CPP(Parser):
     def __init__(self, cpp_bin='cpp', flags=None):
         self.cpp_bin = cpp_bin
         self.flags = flags or []
+        self.out_dir = os.path.join(os.getcwd(), 'camkes-tool')
+        if not os.path.isdir(self.out_dir):
+            os.mkdir(self.out_dir)
 
     def parse_file(self, filename):
-        with TemporaryDirectory() as d:
-            # Run cpp with -MD to generate dependencies because we want to
-            # track what files it read.
-            output = os.path.join(d.path, 'output.camkes')
-            deps = os.path.join(d.path, 'output.d')
-            p = subprocess.Popen([self.cpp_bin, '-MD', '-o',
-                                  output] + self.flags + [filename], stdout=subprocess.PIPE,
-                                 stderr=subprocess.PIPE, universal_newlines=True)
-            _, stderr = p.communicate()
-            if p.returncode != 0:
-                raise ParseError('CPP failed: %s' % stderr)
-            with codecs.open(output, 'r', 'utf-8') as f:
-                processed = f.read()
-            with codecs.open(deps, 'r', 'utf-8') as f:
-                read = set(parse_makefile_rule(f))
+        # Run cpp with -MD to generate dependencies because we want to
+        # track what files it read.
+        output_basename = os.path.join(self.out_dir, os.path.basename(filename))
+        output = output_basename + '.cpp'
+        deps = output_basename + '.d'
+        p = subprocess.Popen([self.cpp_bin, '-MD', '-MF', deps, '-o',
+                              output] + self.flags + [filename], stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE, universal_newlines=True)
+        _, stderr = p.communicate()
+        if p.returncode != 0:
+            raise ParseError('CPP failed: %s' % stderr)
+        with codecs.open(output, 'r', 'utf-8') as f:
+            processed = f.read()
+        with codecs.open(deps, 'r', 'utf-8') as f:
+            read = set(parse_makefile_rule(f))
         return processed, set([filename]) | read
 
     def parse_string(self, string):
-        with TemporaryDirectory() as d:
-            output = os.path.join(d.path, 'output.camkes')
-            deps = os.path.join(d.path, 'output.d')
-            p = subprocess.Popen([self.cpp_bin, '-MD', '-o',
-                                  output] + self.flags, stdin=subprocess.PIPE,
-                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                                 universal_newlines=True)
-            # hack around python2 and 3's awful unicode problems
-            try:
-                string = str(string)
-            except UnicodeEncodeError:
-                # str will fail on python2 as it is ascii only.
-                # however the below fails on python3. So here we are.
-                string = string.encode('utf-8')
-            _, stderr = p.communicate(string)
-            if p.returncode != 0:
-                raise ParseError('CPP failed: %s' % stderr)
-            with codecs.open(output, 'r', 'utf-8') as f:
-                processed = f.read()
-            with codecs.open(deps, 'r', 'utf-8') as f:
-                read = set(parse_makefile_rule(f))
+        output_basename = os.path.join(self.out_dir, os.path.basename(filename))
+        output = output_basename + '.cpp'
+        deps = output_basename + '.d'
+        p = subprocess.Popen([self.cpp_bin, '-MD', '-MF', deps, '-o',
+                              output] + self.flags, stdin=subprocess.PIPE,
+                             stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                             universal_newlines=True)
+        # hack around python2 and 3's awful unicode problems
+        try:
+            string = str(string)
+        except UnicodeEncodeError:
+            # str will fail on python2 as it is ascii only.
+            # however the below fails on python3. So here we are.
+            string = string.encode('utf-8')
+        _, stderr = p.communicate(string)
+        if p.returncode != 0:
+            raise ParseError('CPP failed: %s' % stderr)
+        with codecs.open(output, 'r', 'utf-8') as f:
+            processed = f.read()
+        with codecs.open(deps, 'r', 'utf-8') as f:
+            read = set(parse_makefile_rule(f))
         return processed, read
 
 
@@ -99,23 +101,6 @@ class Reader(Parser):
 
     def parse_string(self, string):
         return string, set()
-
-
-class TemporaryDirectory(object):
-    '''
-    A wrapper around mkdtemp() that cleans up after itself.
-    '''
-
-    def __init__(self):
-        self.path = None
-
-    def __enter__(self):
-        self.path = tempfile.mkdtemp()
-        return self
-
-    def __exit__(self, type, value, tb):
-        shutil.rmtree(self.path)
-        self.path = None
 
 
 def parse_makefile_rule(f):
