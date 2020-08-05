@@ -27,7 +27,13 @@ from camkes.internal.seven import cmp, filter, map, zip
 
 from .base import Parser
 from .exception import ParseError
-import codecs, os, re, shutil, subprocess, tempfile
+import codecs
+import os
+import re
+import shutil
+import subprocess
+import tempfile
+
 
 class CPP(Parser):
     '''
@@ -46,8 +52,8 @@ class CPP(Parser):
             output = os.path.join(d.path, 'output.camkes')
             deps = os.path.join(d.path, 'output.d')
             p = subprocess.Popen([self.cpp_bin, '-MD', '-o',
-                output] + self.flags + [filename], stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE, universal_newlines=True)
+                                  output] + self.flags + [filename], stdout=subprocess.PIPE,
+                                 stderr=subprocess.PIPE, universal_newlines=True)
             _, stderr = p.communicate()
             if p.returncode != 0:
                 raise ParseError('CPP failed: %s' % stderr)
@@ -62,9 +68,9 @@ class CPP(Parser):
             output = os.path.join(d.path, 'output.camkes')
             deps = os.path.join(d.path, 'output.d')
             p = subprocess.Popen([self.cpp_bin, '-MD', '-o',
-                output] + self.flags, stdin=subprocess.PIPE,
-                stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                universal_newlines=True)
+                                  output] + self.flags, stdin=subprocess.PIPE,
+                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                 universal_newlines=True)
             # hack around python2 and 3's awful unicode problems
             try:
                 string = str(string)
@@ -81,6 +87,7 @@ class CPP(Parser):
                 read = set(parse_makefile_rule(f))
         return processed, read
 
+
 class Reader(Parser):
     '''
     A basic "parser" that just opens and reads the contents of a file.
@@ -92,6 +99,7 @@ class Reader(Parser):
 
     def parse_string(self, string):
         return string, set()
+
 
 class TemporaryDirectory(object):
     '''
@@ -108,6 +116,7 @@ class TemporaryDirectory(object):
     def __exit__(self, type, value, tb):
         shutil.rmtree(self.path)
         self.path = None
+
 
 def parse_makefile_rule(f):
     '''
