@@ -254,6 +254,7 @@
             /* This interface has a passive thread, must let the control thread know before waiting */
             seL4_MessageInfo_t /*? info ?*/ = {0};
             /*? generate_seL4_SignalRecv(options,
+                                         info,
                                          notify_cptr,
                                          info, namespace.ep,
                                          '&%s' % namespace.badge_symbol,
