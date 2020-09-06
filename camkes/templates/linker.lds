@@ -14,6 +14,7 @@
 
 /*- set instances = composition.instances -*/
 /*- set grouped = [False] -*/
+/*- set rump = configuration[me.name].get('rump_config', False) -*/
 
 /*# For single address space components we need to collect constructors
  *# and destructors early in order to prevent them from being called
@@ -59,7 +60,7 @@ SECTIONS {
   /*- endfor -*/
 }
 INSERT AFTER .bss;
-/*- if not grouped[0] -*/
+/*- if not grouped[0] and not rump -*/
 SECTIONS {
     .tdata :
     {
