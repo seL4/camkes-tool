@@ -14,7 +14,6 @@
 #include <sel4runtime/start.h>
 #include <stdint.h>
 #include <camkes/init.h>
-#include <elf.h>
 
 extern unsigned int _tdata_start[];
 extern unsigned int _tdata_end[];
