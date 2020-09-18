@@ -44,6 +44,7 @@ macro(camkes_tool_setup_camkes_build_environment)
 
     include(${CAMKES_TOOL_DIR}/camkes.cmake)
     # This sets up environment build flags and imports musllibc and runtime libraries.
+    config_set(LibSel4MuslcSysConstructorPriority LIB_SEL4_MUSLC_SYS_CONSTRUCTOR_PRIORITY 201)
     musllibc_setup_build_environment_with_sel4runtime()
     if(CAmkESNoFPUByDefault)
         if(KernelArchX86)
