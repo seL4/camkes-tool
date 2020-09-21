@@ -64,7 +64,7 @@ def consolidate(candidates):
     # We have now combined all of the multi connection definitions
 
     for connections in multi:
-        if len(connections) is 1:
+        if len(connections) == 1:
             continue
         name = ".".join(sorted([c.name for c in connections]))
         to_ends = {end for c in connections for end in c.to_ends}
