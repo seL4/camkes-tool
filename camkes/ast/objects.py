@@ -47,16 +47,16 @@ def types_compatible(value, attribute):
         values = (value,)
     for value in values:
         if isinstance(type, six.string_types):
-            if (isinstance(value, six.integer_types) and type != 'int'):
-                return (False, "For \"%s\": required type is \"%s\", value is \"int\"" % (str(value), type))
+            if (isinstance(value, six.integer_types) and type != 'int':
+                return (False, "For \"%s\": required type is \"int\", but type is \"%s\"" % (str(value), type))
             if (isinstance(value, float) and type not in ('double', 'float')):
-                return (False, "For \"%s\": required type is \"%s\", value is \"float\"" % (str(value), type))
+                return (False, "For \"%s\": required type is \"float\", but type is \"%s\"" % (str(value), type))
             if (isinstance(value, six.string_types) and type != 'string'):
-                return (False, "For \"%s\": required type is \"%s\", value is \"string\"" % (str(value), type))
+                return (False, "For \"%s\": required type is \"string\", but type is \"%s\"" % (str(value), type))
             if (isinstance(value, list) and type != 'list'):
-                return (False, "For \"%s\": required type is \"%s\", value is \"list\"" % (str(value), type))
+                return (False, "For \"%s\": required type is \"list\", but type is \"%s\"" % (str(value), type))
             if ((isinstance(value, dict) and type != 'dict')):
-                return (False, "For \"%s\": required type is \"%s\", value is \"dict\"" % (str(value), type))
+                return (False, "For \"%s\": required type is \"dict\", but type is \"%s\"" % (str(value), type))
 
         elif isinstance(type, Struct):
             attr_names = {x.name for x in type.attributes}
