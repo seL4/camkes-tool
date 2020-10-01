@@ -55,6 +55,7 @@ ID: '[a-zA-Z_]\w*'
             INOUT: 'inout';
             INT: 'int';
             INTEGER: 'integer';
+            INT64_T: 'int64_t';
             MAYBE: 'maybe';
             MUTEX: 'mutex';
             OUT: 'out';
@@ -73,6 +74,7 @@ ID: '[a-zA-Z_]\w*'
             TRUE1: 'True';
             TRUE2: 'true';
             TO: 'to';
+            UINT64_T: 'uint64_t'; 
             UNSIGNED: 'unsigned';
             USES: 'uses';
             VOID: 'void';
@@ -159,9 +161,11 @@ direction: IN | INOUT | OUT | REFIN;
 @attribute_parameter: attribute_array_parameter | attribute_scalar_parameter;
 attribute_array_parameter: attribute_scalar_parameter '\[' '\]';
 attribute_scalar_parameter: type id;
-type: signed_int | unsigned_int | struct_type | char | signed_char | unsigned_char | STRING | struct_ref | ID;
+type: signed_int | unsigned_int | struct_type | char | signed_char | unsigned_char | STRING | struct_ref | uint64_t | int64_t | ID;
 signed_int: (SIGNED? (INT | INTEGER)) | SIGNED;
 unsigned_int: UNSIGNED (INT | INTEGER)?;
+uint64_t: UINT64_T;
+int64_t: INT64_T;
 char: CHAR;
 signed_char: SIGNED CHAR;
 unsigned_char: UNSIGNED CHAR;

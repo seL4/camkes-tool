@@ -47,7 +47,7 @@ def types_compatible(value, attribute):
         values = (value,)
     for value in values:
         if isinstance(type, six.string_types):
-            if (isinstance(value, six.integer_types) and type != 'int':
+            if (isinstance(value, six.integer_types) and type not in ('int', 'uint64_t', 'int64_t')):
                 return (False, "For \"%s\": required type is \"int\", but type is \"%s\"" % (str(value), type))
             if (isinstance(value, float) and type not in ('double', 'float')):
                 return (False, "For \"%s\": required type is \"float\", but type is \"%s\"" % (str(value), type))

@@ -501,6 +501,10 @@ def _lift_include(location, source):
     return Include(source.tail[0][1:-1], False, location)
 
 
+def _lift_int64_t(location, *_):
+    return 'int64_t'
+
+
 def _lift_hardware(location, *_):
     return 'hardware'
 
@@ -724,6 +728,10 @@ def _lift_unsigned_int(location, *_):
     return 'unsigned int'
 
 
+def _lift_uint64_t(location, *_):
+    return 'uint64_t'
+
+
 def _lift_uses(location, *args):
     if len(args) == 3:
         optional = True
@@ -802,6 +810,7 @@ LIFT = {
     'id': _collapse,
     'include': _lift_include,
     'instance_defn': _lift_instance_defn,
+    'int64_t': _lift_int64_t,
     'list': _lift_list,
     'logical_not': _lift_logical_not,
     'maybe': _collapse,
@@ -841,6 +850,7 @@ LIFT = {
     'unary_minus': _lift_unary_minus,
     'unsigned_char': _lift_unsigned_char,
     'unsigned_int': _lift_unsigned_int,
+    'uint64_t': _lift_uint64_t,
     'uses': _lift_uses,
     'query': _lift_query,
 }
