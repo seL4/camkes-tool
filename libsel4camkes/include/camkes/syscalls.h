@@ -13,9 +13,10 @@
 #pragma once
 
 #include <stdarg.h>
+#include <muslcsys/vsyscall.h>
 
 /* Constructor priority of our install syscall functions */
-#define CAMKES_SYSCALL_CONSTRUCTOR_PRIORITY 200
+#define CAMKES_SYSCALL_CONSTRUCTOR_PRIORITY MUSLCSYS_WITH_VSYSCALL_PRIORITY
 
 /* Define the syscall installation functions. camkes_install_syscalls
  * is the base one that will install some syscalls and call the rest
