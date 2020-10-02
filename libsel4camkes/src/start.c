@@ -35,39 +35,44 @@ void camkes_start_control(int thread_id, void *ipc_buffer_ptr)
         .p_memsz  = tbss_end - tdata_start,
         .p_align = sizeof(long),
     };
-    auxv_t auxv[] = {
-        {
-            .a_type = AT_PHENT,
-            .a_un.a_val = sizeof(Elf32_Phdr),
-        }, {
-            .a_type = AT_PHNUM,
-            .a_un.a_val = 1,
-        }, {
-            .a_type = AT_PHDR,
-            .a_un.a_ptr = &tls_header,
-        }, {
-            .a_type = AT_SYSINFO,
-            .a_un.a_ptr = &sel4_vsyscall,
-        }, {
-            .a_type = AT_SEL4_IPC_BUFFER_PTR,
-            .a_un.a_ptr = ipc_buffer_ptr,
-        }, {
-            // Null terminating entry
-            .a_type = AT_NULL,
-            .a_un.a_val = 0
+
+    struct {
+        char const *const argv[3];
+        char const *const envp[2];
+        auxv_t auxv[7];
+    } info = {
+        .argv = {
+            "camkes",
+            (char *)(uintptr_t) thread_id,
+            NULL,
+        },
+        .envp = {
+            "seL4=1",
+            NULL,
+        },
+        .auxv = {
+            {
+                .a_type = AT_PHENT,
+                .a_un.a_val = sizeof(Elf32_Phdr),
+            }, {
+                .a_type = AT_PHNUM,
+                .a_un.a_val = 1,
+            }, {
+                .a_type = AT_PHDR,
+                .a_un.a_ptr = &tls_header,
+            }, {
+                .a_type = AT_SYSINFO,
+                .a_un.a_ptr = &sel4_vsyscall,
+            }, {
+                .a_type = AT_SEL4_IPC_BUFFER_PTR,
+                .a_un.a_ptr = ipc_buffer_ptr,
+            }, {
+                // Null terminating entry
+                .a_type = AT_NULL,
+                .a_un.a_val = 0
+            },
         },
     };
 
-    char const *const envp[] = {
-        "seL4=1",
-        NULL,
-    };
-
-    char const *const argv[] = {
-        "camkes",
-        (char *)(uintptr_t) thread_id,
-        NULL,
-    };
-
-    __sel4runtime_start_main(main, ARRAY_LENGTH(argv) - 1, argv, envp, auxv);
+    __sel4runtime_start_main(main, ARRAY_LENGTH(info.argv) - 1, info.argv, info.envp, info.auxv);
 }
