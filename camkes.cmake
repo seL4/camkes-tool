@@ -553,6 +553,32 @@ function(GenerateCAmkESRootserver)
 endfunction(GenerateCAmkESRootserver)
 
 # Internal helper function for setting camkes component properties
+# The following common parameters are supported
+#
+#   SOURCES <src1> <src2> ...
+#   INCLUDES <inc1> <inc2> ...
+#   C_FLAGS <flag1> <flag2> ...
+#   LD_FLAGS <flag1> <flag2> ...
+#   LIBS <lib1> <lib1> ...
+#
+# For CakeML components, these parameters are supported
+#
+#   CAKEML_HEAP_SIZE <val>
+#       sets target propery COMPONENT_CAKEML_HEAP_SIZE
+#
+#   CAKEML_STACK_SIZE <val>
+#       sets target propery COMPONENT_CAKEML_STACK_SIZE
+#
+#   CAKEML_SOURCES <src1> <src2> ...
+#   CAKEML_DEPENDS <dep1> <dep2> ...
+#   CAKEML_INCLUDES<inc1> <inc2> ...
+#
+#   LINKER_LANGUAGE <lng>
+#       sets target propery COMPONENT_LINKER_LANGUAGE
+#
+#   TEMPLATE_SOURCES
+#   TEMPLATE_HEADERS
+#
 function(AppendCAmkESComponentTarget target_name)
     cmake_parse_arguments(
         PARSE_ARGV
