@@ -74,7 +74,7 @@ ID: '[a-zA-Z_]\w*'
             TRUE1: 'True';
             TRUE2: 'true';
             TO: 'to';
-            UINT64_T: 'uint64_t'; 
+            UINT64_T: 'uint64_t';
             UNSIGNED: 'unsigned';
             USES: 'uses';
             VOID: 'void';
