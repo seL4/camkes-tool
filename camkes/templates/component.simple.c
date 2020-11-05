@@ -522,7 +522,7 @@ void camkes_make_simple(simple_t *simple) {
     simple->sched_ctrl = &camkes_simple_sched_ctrl;
     simple->core_count = &camkes_simple_core_count;
 #endif
-#ifdef CONFIG_ARM_SMMU
+#ifdef CONFIG_TK1_SMMU
     simple->arch_simple.iospace_cap_count = simple_camkes_get_iospace_cap_count;
     simple->arch_simple.iospace_get_nth_cap = simple_camkes_get_iospace_nth_cap;
 #endif
