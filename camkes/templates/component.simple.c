@@ -352,7 +352,7 @@ static seL4_Error simple_camkes_get_iospace(void *data, uint16_t domainID, uint1
 }
 #endif
 
-#ifdef CONFIG_ARM_SMMU
+#ifdef CONFIG_TK1_SMMU
 static seL4_Error simple_camkes_get_iospace_cap_count(void *data, int *count) {
     if (count) {
         *count = /*? len(iospaces) ?*/;
