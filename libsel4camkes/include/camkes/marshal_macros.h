@@ -10,6 +10,8 @@
  * @TAG(DATA61_BSD)
  */
 
+#pragma once
+
 #include <camkes/error.h>
 
 #define ERR_IF_BUFFER_LENGTH_EXCEEDED(size, curr_offset, desired, method,      \
