@@ -31,10 +31,20 @@
 const char *get_instance_name(void);
 
 /* Attributes */
+
+// This macro allows using attributes as "rvalues" e.g. in the array size
+// declarations. Unfortunately, the C language (in contrast to C++) does not
+// support using "lvalues" in this case, even if declared as const.
+#define CAMKES_CONST_ATTR(attr) attr##_DEF
+
 /*- set myconf = configuration[me.name] -*/
 /*? macros.print_type_definitions(me.type.attributes, myconf) ?*/
 /*- for a in me.type.attributes -*/
     /*- set value = myconf.get(a.name) -*/
+    /*- if value is not none -*/
+        #define /*? a.name ?*/_DEF /*? macros.show_attribute_value(a, value) ?*/
+    /*- endif -*/
+
     extern const /*? macros.show_type(a.type) ?*/ /*? a.name ?*/ /*- if a.array -*/ [/*?len(value)?*/] /*- endif -*/;
 /*- endfor -*/
 

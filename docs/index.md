@@ -1696,6 +1696,45 @@ const char * a = "Hello, World!";
 const int b = 42;
 ```
 
+#### Attribute's conversion to literal
+
+Unfortunately, the `C` language (in contrast to C++) does not support using
+`lvalues` as literals (e.g. when declaring an array), even if declared as const,
+so we need to introduce a "mechanism" for converting CAmkES attributes to
+literals.
+
+The `CAMKES_CONST_ATTR` macro has been introduced for that purpose.
+
+Actually, the macro does not really convert arbitrary variables, but rather
+CAmkES declares a const variable and also adds a respective macro to the code,
+which is then used for that purpose.
+
+Usage example is presented below:
+
+```C
+/* main.camkes */
+assembly {
+    composition {
+        component FOO foo;
+    }
+    configuration {
+        foo.lenData  = 16;
+    }
+}
+
+/* Foo.c */
+const int foo[CAMKES_CONST_ATTR(lenData)] = { 0 };
+
+int run()
+{
+#if CAMKES_CONST_ATTR(lenData) < 0xF0
+    return 0;
+#else
+    return 1;
+#endif
+}
+```
+
 ### Hardware Components
 
 A hardware component represents an interface to hardware in the form of a component.
