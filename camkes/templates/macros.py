@@ -226,7 +226,7 @@ def show_attribute_value(t, value):
     if isinstance(value, (tuple, list)):
         is_array = True
         values = value
-        return_string += "{\n"
+        return_string += "{\\\n"
     else:
         values = (value,)
 
@@ -235,18 +235,18 @@ def show_attribute_value(t, value):
         if isinstance(value, six.string_types):  # For string literals
             return_string += "\"%s\"" % value
         elif isinstance(t.type, Struct):  # For struct attributes (This recursively calls this function)
-            return_string += "{\n"
+            return_string += "{\\\n"
             for attribute in t.type.attributes:
                 return_string += "." + str(attribute.name)  # + ("[]" if attribute.array else "")
                 return_string += " = " + \
-                    str(show_attribute_value(attribute, value[attribute.name])) + ",\n"
+                    str(show_attribute_value(attribute, value[attribute.name])) + ",\\\n"
             return_string += "}"
         else:  # For all other literal types
             return_string += "%s" % str(value)
 
         # Add comma if element is part of an array
         if i < (len(values)-1):
-            return_string += ",\n"
+            return_string += ",\\\n"
     if is_array:
         return_string += "}"
     return return_string
