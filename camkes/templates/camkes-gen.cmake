@@ -57,7 +57,6 @@ function(CAmkESGen output item template)
         message(FATAL_ERROR "Unknown arguments to CAmkESGen: ${CAMKES_GEN_UNPARSED_ARGUMENTS}")
     endif()
     # generate command
-    get_filename_component(out_dir "${output}" DIRECTORY)
     # Reflow generated files if requested
     if (CAMKES_GEN_C_STYLE AND (NOT ("${CAMKES_C_FMT_INVOCATION}" STREQUAL "")))
         ParentListAppend(reflow_commands COMMAND sh -c
