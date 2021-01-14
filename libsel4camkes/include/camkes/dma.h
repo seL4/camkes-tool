@@ -156,6 +156,7 @@ struct dma_frame {
     seL4_CPtr cap;
     size_t size;
     uintptr_t vaddr;
+    uintptr_t paddr;
     bool cached;
 };
 typedef struct dma_frame dma_frame_t;

@@ -348,6 +348,23 @@ static void defrag(void)
     check_consistency();
 }
 
+static dma_frame_t *get_frame_desc(void *ptr)
+{
+    for (dma_pool_t **pool = __start__dma_pools;
+         pool < __stop__dma_pools; pool++) {
+        if ((*pool)->start_vaddr <= (uintptr_t) ptr
+            && (uintptr_t) ptr <= (*pool)->end_vaddr) {
+            /* Calculate the frame number in the pool */
+            uintptr_t frame_base = (uintptr_t) ptr & ~MASK(ffs((*pool)->frame_size) - 1);
+            int frame_num = (frame_base - (*pool)->start_vaddr) / (*pool)->frame_size;
+            dma_frame_t *frame = (*pool)->dma_frames[frame_num];
+            return frame;
+        }
+    }
+
+    return NULL;
+}
+
 int camkes_dma_init(void *dma_pool, size_t dma_pool_sz, size_t page_size)
 {
 
@@ -388,6 +405,14 @@ int camkes_dma_init(void *dma_pool, size_t dma_pool_sz, size_t page_size)
          */
         for (void *base = dma_pool; base < dma_pool + dma_pool_sz;
              base += page_size) {
+            /* Grab the paddr of the frame and cache it, note that there can be
+             * DMA pools with no caps exposed */
+            dma_frame_t *frame = get_frame_desc(base);
+            if (frame) {
+                seL4_ARCH_Page_GetAddress_t res = seL4_ARCH_Page_GetAddress(frame->cap);
+                assert(res.error == 0);
+                frame->paddr = res.paddr;
+            }
             assert((uintptr_t)base % alignof(region_t) == 0 &&
                    "we misaligned the DMA pool base address during "
                    "initialisation");
@@ -465,6 +490,10 @@ uintptr_t camkes_dma_get_paddr(void *ptr)
     dma_frame_t *frame = get_frame_desc(ptr);
     uintptr_t offset = (uintptr_t)ptr & MASK(ffs(frame->size) - 1);
     if (frame) {
+        if (frame->paddr) {
+            /* Grab the cached copy */
+            return frame->paddr + offset;
+        }
         seL4_ARCH_Page_GetAddress_t res = seL4_ARCH_Page_GetAddress(frame->cap);
         ERR_IF(res.error != 0, camkes_error, ((camkes_error_t) {
             .type = CE_SYSCALL_FAILED,
@@ -475,6 +504,7 @@ uintptr_t camkes_dma_get_paddr(void *ptr)
         }), ({
             return (uintptr_t)NULL;
         }));
+        frame->paddr = res.paddr;
         return res.paddr + offset;
 
     } else {
