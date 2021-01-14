@@ -70,7 +70,7 @@ void * /*? me.interface.name ?*/_unwrap_ptr(dataport_ptr_t *p) {
 
 /*- if configuration[me.parent.name].get('controller') == str(me) -*/
 static void __attribute__((constructor)) dma_init(void) {
-    int res = camkes_dma_init(/*? dataport_symbol_name ?*/.content, /*? size ?*/, /*? page_size ?*/);
+    int res = camkes_dma_init(/*? dataport_symbol_name ?*/.content, /*? size ?*/, /*? page_size ?*/, /*? int(cached) ?*/);
     if (res) {
         ZF_LOGE("Invalid arguments given to camkes_dma_init in str(me)");
     }

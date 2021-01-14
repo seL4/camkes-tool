@@ -276,7 +276,7 @@ static void CONSTRUCTOR(CAMKES_SYSCALL_CONSTRUCTOR_PRIORITY+1) init(void) {
      * this point, so any error triggered below will certainly be fatal.
      */
     int res = camkes_dma_init(/*? dma_symbol_name ?*/, /*? dma_pool ?*/,
-        /*? page_size[0] ?*/);
+        /*? page_size[0] ?*/, /*? int(dma_pool_cache) ?*/);
     ERR_IF(res != 0, camkes_error, ((camkes_error_t){
             .type = CE_ALLOCATION_FAILURE,
             .instance = "/*? me.name ?*/",

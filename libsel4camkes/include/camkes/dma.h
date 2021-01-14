@@ -27,7 +27,7 @@
  *
  * This function is intended to be called by the CAmkES backend and not by a user.
  */
-int camkes_dma_init(void *dma_pool, size_t dma_pool_sz, size_t page_size)
+int camkes_dma_init(void *dma_pool, size_t dma_pool_sz, size_t page_size, bool cached)
 NONNULL(1) WARN_UNUSED_RESULT;
 
 /**

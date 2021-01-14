@@ -69,6 +69,9 @@ typedef struct {
      *  void *vaddr;
      */
 
+    /* Flag indicating whether or not this region is cached. */
+    bool cached;
+
     /* The size in bytes of this region. */
     size_t size;
 
@@ -285,6 +288,7 @@ static void defrag(void)
                   p_vend   = (uintptr_t)p + p->size, /* end virtual address */
                   p_pstart = extract_paddr(p),       /* start physical address */
                   p_pend   = p_pstart + p->size;     /* end physical address */
+        int p_cached = p->cached;
 
         /* For each region *before* this one... */
         for (region_t *qprev = NULL, *q = head; q != p; qprev = q, q = q->next) {
@@ -293,13 +297,14 @@ static void defrag(void)
                       q_vend   = (uintptr_t)q + q->size,
                       q_pstart = extract_paddr(q),
                       q_pend   = q_pstart + q->size;
+            int q_cached = q->cached;
 
             /* We could not have entered this loop if 'p' was the head of the
              * free list.
              */
             assert(pprev != NULL);
 
-            if (p_vstart == q_vend && p_pstart == q_pend) {
+            if (p_vstart == q_vend && p_pstart == q_pend && p_cached == q_cached) {
                 /* 'p' immediately follows the region 'q'. Coalesce 'p' into
                  * 'q'.
                  */
@@ -326,7 +331,7 @@ static void defrag(void)
                 break;
             }
 
-            if (p_vend == q_vstart && p_pend == q_pstart) {
+            if (p_vend == q_vstart && p_pend == q_pstart && p_cached == q_cached) {
                 /* 'p' immediately precedes the region 'q'. Coalesce 'q' into
                  * 'p'.
                  */
@@ -365,7 +370,50 @@ static dma_frame_t *get_frame_desc(void *ptr)
     return NULL;
 }
 
-int camkes_dma_init(void *dma_pool, size_t dma_pool_sz, size_t page_size)
+static void free_region(void *ptr, size_t size, bool cached)
+{
+    /* Although we've already checked the address, do another quick sanity check */
+    assert(ptr != NULL);
+
+    /* If the user allocated a region that was too small, we would have rounded
+     * up the size during allocation.
+     */
+    if (size < sizeof(region_t)) {
+        size = sizeof(region_t);
+    }
+
+    /* The 'size' of all allocated chunk should be aligned to the bookkeeping
+     * struct, so bump it to the actual size we have allocated.
+     */
+    if (size % __alignof__(region_t) != 0) {
+        size = ROUND_UP(size, __alignof__(region_t));
+    }
+
+    /* We should have never allocated memory that is insufficiently aligned to
+     * host bookkeeping data now that it has been returned to us.
+     */
+    assert((uintptr_t)ptr % alignof(region_t) == 0);
+
+    STATS(({
+        if (size >= stats.current_outstanding)
+        {
+            stats.current_outstanding = 0;
+        } else
+        {
+            stats.current_outstanding -= size;
+        }
+    }));
+
+    region_t *p = ptr;
+    p->paddr_upper = 0;
+    p->size = size;
+    p->cached = cached;
+    prepend_node(p);
+
+    check_consistency();
+}
+
+int camkes_dma_init(void *dma_pool, size_t dma_pool_sz, size_t page_size, bool cached)
 {
 
     /* The caller should have passed us a valid DMA pool. */
@@ -416,7 +464,7 @@ int camkes_dma_init(void *dma_pool, size_t dma_pool_sz, size_t page_size)
             assert((uintptr_t)base % alignof(region_t) == 0 &&
                    "we misaligned the DMA pool base address during "
                    "initialisation");
-            camkes_dma_free(base, page_size);
+            free_region(base, page_size, cached);
         }
     } else {
         /* The lazy caller didn't bother giving us a page size. Manually scan
@@ -456,7 +504,7 @@ int camkes_dma_init(void *dma_pool, size_t dma_pool_sz, size_t page_size)
                 assert((uintptr_t)base % alignof(region_t) == 0 &&
                        "we misaligned the DMA pool base address during "
                        "initialisation");
-                camkes_dma_free(base, limit - base);
+                free_region(base, page_size, cached);
             }
 
             /* Move to the next region. We always need to be considering a
@@ -549,7 +597,7 @@ static void *alloc(size_t size, int align, bool cached)
     /* For each region in the free list... */
     for (region_t *prev = NULL, *p = head; p != NULL; prev = p, p = p->next) {
 
-        if (p->size >= size) {
+        if (p->size >= size && p->cached == cached) {
             /* This region or a subinterval of it may satisfy this request. */
 
             /* Scan subintervals of 'size' bytes within this region from the
@@ -722,47 +770,24 @@ void *camkes_dma_alloc(size_t size, int align, bool cached)
 
 void camkes_dma_free(void *ptr, size_t size)
 {
+    bool cached = 0;
 
     /* Allow the user to free NULL. */
     if (ptr == NULL) {
         return;
     }
 
-    /* If the user allocated a region that was too small, we would have rounded
-     * up the size during allocation.
-     */
-    if (size < sizeof(region_t)) {
-        size = sizeof(region_t);
+    /* Check the underlying frame's bookkeeping to see if it's cached */
+    dma_frame_t *dma_frame = get_frame_desc(ptr);
+    if (dma_frame == NULL) {
+        /* User fed us an address that we don't keep track of, just ignore the error */
+        return;
     }
 
-    /* The 'size' of all allocated chunk should be aligned to the bookkeeping
-     * struct, so bump it to the actual size we have allocated.
-     */
-    if (size % __alignof__(region_t) != 0) {
-        size = ROUND_UP(size, __alignof__(region_t));
-    }
+    cached = dma_frame->cached;
 
-    /* We should have never allocated memory that is insufficiently aligned to
-     * host bookkeeping data now that it has been returned to us.
-     */
-    assert((uintptr_t)ptr % alignof(region_t) == 0);
-
-    STATS(({
-        if (size >= stats.current_outstanding)
-        {
-            stats.current_outstanding = 0;
-        } else
-        {
-            stats.current_outstanding -= size;
-        }
-    }));
-
-    region_t *p = ptr;
-    p->paddr_upper = 0;
-    p->size = size;
-    prepend_node(p);
-
-    check_consistency();
+    /* Call the common function to free the DMA memory */
+    free_region(ptr, size, cached);
 }
 
 /* The remaining functions are to comply with the ps_io_ops-related interface
@@ -773,16 +798,6 @@ void camkes_dma_free(void *ptr, size_t size)
 static void *dma_alloc(void *cookie UNUSED, size_t size, int align, int cached,
                        ps_mem_flags_t flags UNUSED)
 {
-
-    /* Ignore the cached argument and allocate an uncached page. The assumption
-     * here is that any caller that wants a cached page only wants it so as an
-     * optimisation. Their usage pattern is expected to be (1) write repeatedly
-     * to the page, (2) flush the page, (3) pass it to a device. In the case of
-     * an uncached frame we simply lose some performance in (1) and make (2) a
-     * no-op.
-     */
-    (void)cached;
-
     return camkes_dma_alloc(size, align, cached);
 }
 
