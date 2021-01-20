@@ -213,6 +213,11 @@ const char *get_instance_name(void);
     #define /*? d.name ?*/_release() COMPILER_MEMORY_RELEASE()
     #define /*? d.name ?*/_acquire() COMPILER_MEMORY_ACQUIRE()
 
+    #define /*? d.name ?*/_size /*? macros.dataport_size(d.type) ?*/
+
+    static inline size_t /*? d.name ?*/_get_size(void) {
+      return /*? macros.dataport_size(d.type) ?*/;
+    }
 /*- endfor -*/
 
 /*- for m in me.type.mutexes -*/

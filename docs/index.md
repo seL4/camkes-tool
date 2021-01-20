@@ -1343,6 +1343,14 @@ The following functions are available at runtime:
   emitted if necessary, depending on the affinities of component instances
   connected by the dataport.
 
+**`size_t`&nbsp;_`dataport`_`_get_size(void)`**
+
+> Returns the size for the specific dataport this function gets called for. In
+  addition to this function, every component that has a dataport will be
+  provided with a macro _`dataport`_`_size` that is defined to the size of the
+  invdividual dataport. This macro allows declaring fixed size arrays, as the
+  `C` language requires a constant-expression for this.
+
 **`void *camkes_dma_alloc(size_t size, int align)`** (`#include <camkes/dma.h>`)
 **`void camkes_dma_free(void *ptr, size_t size)`** (`#include <camkes/dma.h>`)
 
