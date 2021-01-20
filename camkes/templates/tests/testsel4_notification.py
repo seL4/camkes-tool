@@ -20,7 +20,7 @@ This file contains unit test cases related to the seL4Notification connector.
 from __future__ import absolute_import, division, print_function, \
     unicode_literals
 
-import os, re, shutil, six, subprocess, sys, unittest
+import os, re, shutil, six, subprocess, sys, unittest, functools
 from pycparser import c_ast, c_generator, c_parser
 
 ME = os.path.abspath(__file__)
@@ -125,7 +125,7 @@ def munge(filename):
     Tweak the seL4Notification-to.template.c source to suppress some external
     references and constructs pycparser can't handle.
     '''
-    stripped = reduce(lambda acc, x: re.sub(x[0], x[1], acc, flags=re.MULTILINE),
+    stripped = functools.reduce(lambda acc, x: re.sub(x[0], x[1], acc, flags=re.MULTILINE),
 
         # Turn template variable definitions into source variable definitions.
         ((r'/\*-\s*set\s+(notification|handoff|lock)\s*=.*?-\*/',

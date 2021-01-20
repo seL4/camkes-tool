@@ -940,7 +940,7 @@ class TestStage3(CAmkESTest):
         Test constant folding of a calculation that deliberately induces an
         `OverflowError`.
         '''
-        with self.assertRaises(ParseError):
+        with self.assertRaises(MemoryError):
             self.parser.parse_string(
                 'configuration { foo.bar = 1 << 2 ** 64; }')
 
