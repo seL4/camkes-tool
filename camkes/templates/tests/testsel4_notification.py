@@ -13,14 +13,22 @@
 # @TAG(DATA61_BSD)
 #
 
+from __future__ import absolute_import, division, print_function, \
+    unicode_literals
+from camkes.internal.tests.utils import CAmkESTest, spin_available
 '''
 This file contains unit test cases related to the seL4Notification connector.
 '''
 
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
 
-import os, re, shutil, six, subprocess, sys, unittest, functools
+import os
+import re
+import shutil
+import six
+import subprocess
+import sys
+import unittest
+import functools
 from pycparser import c_ast, c_generator, c_parser
 
 ME = os.path.abspath(__file__)
@@ -29,7 +37,6 @@ MY_DIR = os.path.dirname(ME)
 # Make CAmkES importable
 sys.path.append(os.path.join(os.path.dirname(ME), '../../..'))
 
-from camkes.internal.tests.utils import CAmkESTest, spin_available
 
 class TestSel4Notification(CAmkESTest):
     def test_locking_protocol(self):
@@ -78,10 +85,10 @@ class TestSel4Notification(CAmkESTest):
 
         pan_safety = os.path.join(tmp, 'pan-safety')
         subprocess.check_call(['gcc', '-o', pan_safety, '-O3', '-DREACH',
-            '-DSAFETY', 'pan.c'], cwd=tmp, universal_newlines=True)
+                               '-DSAFETY', 'pan.c'], cwd=tmp, universal_newlines=True)
 
         p = subprocess.Popen([pan_safety], stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE, universal_newlines=True)
+                             stderr=subprocess.PIPE, universal_newlines=True)
         stdout, stderr = p.communicate()
 
         if p.returncode != 0:
@@ -100,11 +107,11 @@ class TestSel4Notification(CAmkESTest):
 
         pan_liveness = os.path.join(tmp, 'pan-safety')
         subprocess.check_call(['gcc', '-o', pan_liveness, '-O3', '-DNP',
-            '-DNOREDUCE', 'pan.c'], cwd=tmp)
+                               '-DNOREDUCE', 'pan.c'], cwd=tmp)
 
         p = subprocess.Popen([pan_liveness, '-l', 'm100000'],
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-            universal_newlines=True)
+                             stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                             universal_newlines=True)
         stdout, stderr = p.communicate()
 
         if p.returncode != 0:
@@ -113,12 +120,14 @@ class TestSel4Notification(CAmkESTest):
         if stdout.find('errors: 0') < 0:
             self.fail('pan-liveness failed:\n%s' % stdout)
 
+
 # A brief prelude to the seL4Notification-to.template.c source to give it some types
 # it expects in the absence of the libsel4 headers.
 HEADER = '''
     typedef int seL4_CPtr;
     typedef unsigned long seL4_Word;
 '''
+
 
 def munge(filename):
     '''
@@ -127,35 +136,37 @@ def munge(filename):
     '''
     stripped = functools.reduce(lambda acc, x: re.sub(x[0], x[1], acc, flags=re.MULTILINE),
 
-        # Turn template variable definitions into source variable definitions.
-        ((r'/\*-\s*set\s+(notification|handoff|lock)\s*=.*?-\*/',
-            r'static seL4_CPtr \g<1>;'),
-        (r'/\*-\s*set\s+badge_magic\s*=.*?-\*/',
-            r'static seL4_Word badge_magic;'),
+                                # Turn template variable definitions into source variable definitions.
+                                ((r'/\*-\s*set\s+(notification|handoff|lock)\s*=.*?-\*/',
+                                  r'static seL4_CPtr \g<1>;'),
+                                 (r'/\*-\s*set\s+badge_magic\s*=.*?-\*/',
+                                    r'static seL4_Word badge_magic;'),
 
-        # Turn template variable reference into source variable references.
-        (r'/\*\?\s*(notification|handoff|lock|badge_magic)\s*\?\*/', r'\g<1>'),
+                                 # Turn template variable reference into source variable references.
+                                 (r'/\*\?\s*(notification|handoff|lock|badge_magic)\s*\?\*/', r'\g<1>'),
 
-        # Remove comments.
-        (r'/\*(.|\n)*?\*/', ''),
+                                 # Remove comments.
+                                 (r'/\*(.|\n)*?\*/', ''),
 
-        # Remove usage of the UNUSED macro.
-        (r'\sUNUSED\s', ' '),
+                                 # Remove usage of the UNUSED macro.
+                                 (r'\sUNUSED\s', ' '),
 
-        # Remove CPP directives.
-        (r'^#.*?$', ''),
+                                 # Remove CPP directives.
+                                 (r'^#.*?$', ''),
 
-        # Remove CAmkES error invocations.
-        (r'ERR\((.|\n)*?{(.|\n)*?}(.|\n)*?{(.|\n)*?}\)\);', '')),
+                                 # Remove CAmkES error invocations.
+                                 (r'ERR\((.|\n)*?{(.|\n)*?}(.|\n)*?{(.|\n)*?}\)\);', '')),
 
-        open(filename, 'rt').read())
+                                open(filename, 'rt').read())
     return '%s%s' % (HEADER, stripped)
+
 
 def parse(string):
     '''
     Parse C source code into a pycparser AST.
     '''
     return c_parser.CParser().parse(string)
+
 
 def lock_operations(statement):
     '''
@@ -179,6 +190,7 @@ def lock_operations(statement):
 
     return ops
 
+
 class LockProtocolError(Exception):
     '''
     An error indicating a failure to release a lock or too many lock releases
@@ -192,11 +204,12 @@ class LockProtocolError(Exception):
             content = six.cStringIO()
             for lineno, line in enumerate(source.split('\n')):
                 content.write('%s %s\n' %
-                    ('>' if lineno == int(node.coord.line) else ' ', line))
+                              ('>' if lineno == int(node.coord.line) else ' ', line))
             super(LockProtocolError, self).__init__('%s\n%s' %
-                (message, content.getvalue()))
+                                                    (message, content.getvalue()))
         else:
             super(LockProtocolError, self).__init__(message)
+
 
 def check_termination(source, name, statements, accumulated=None, locks=0):
     '''
@@ -226,11 +239,11 @@ def check_termination(source, name, statements, accumulated=None, locks=0):
             locks += lock_operations(statement.cond)
             if locks < 0:
                 raise LockProtocolError('lock release while no lock held in '
-                    '%s at line %s' % (name, statement.coord.line), source,
-                    statement)
+                                        '%s at line %s' % (name, statement.coord.line), source,
+                                        statement)
             check_termination(source, name, statement.stmt.block_items +
-                statements[index+1:], accumulated + statements[:index+1],
-                locks)
+                              statements[index+1:], accumulated + statements[:index+1],
+                              locks)
 
         elif isinstance(statement, c_ast.If):
             # For `if` statements, we assume any lock operations in the
@@ -245,18 +258,18 @@ def check_termination(source, name, statements, accumulated=None, locks=0):
 
             # If branch.
             check_termination(source, name, ([statement.iftrue] if
-                statement.iftrue is not None else []) + statements[index+1:],
-                accumulated + statements[:index+1], locks)
+                                             statement.iftrue is not None else []) + statements[index+1:],
+                              accumulated + statements[:index+1], locks)
 
             # Else branch.
             locks += lock_operations(statement.cond)
             if locks < 0:
                 raise LockProtocolError('lock release while no lock held in '
-                    '%s at else branch of line %s' % (name,
-                    statement.coord.line), source, statement)
+                                        '%s at else branch of line %s' % (name,
+                                                                          statement.coord.line), source, statement)
             check_termination(source, name, ([statement.iffalse] if
-                statement.iffalse is not None else []) + statements[index+1:],
-                accumulated + statements[:index+1], locks)
+                                             statement.iffalse is not None else []) + statements[index+1:],
+                              accumulated + statements[:index+1], locks)
 
             # Together, the recursive calls have handled the remainder of this
             # function, so no need to continue.
@@ -282,12 +295,12 @@ def check_termination(source, name, statements, accumulated=None, locks=0):
 
             if locks > 0:
                 raise LockProtocolError('%s locks potentially held when '
-                    'exiting %s at line %s' % (locks, name,
-                    statement.coord.line), source, statement)
+                                        'exiting %s at line %s' % (locks, name,
+                                                                   statement.coord.line), source, statement)
             elif locks < 0:
                 raise LockProtocolError('%s too many lock releases '
-                    'potentially executed before exiting %s at line %s' %
-                    (-locks, name, statement.coord.line), source, statement)
+                                        'potentially executed before exiting %s at line %s' %
+                                        (-locks, name, statement.coord.line), source, statement)
 
             # Otherwise, we're good.
 
@@ -296,8 +309,8 @@ def check_termination(source, name, statements, accumulated=None, locks=0):
         elif isinstance(statement, c_ast.Compound):
             # Statement block. Recurse into it.
             check_termination(source, name, (statement.block_items or []) +
-                statements[index+1:], accumulated + statements[:index+1],
-                locks)
+                              statements[index+1:], accumulated + statements[:index+1],
+                              locks)
             return
 
         else:
@@ -322,14 +335,15 @@ def check_termination(source, name, statements, accumulated=None, locks=0):
 
     if locks > 0:
         raise LockProtocolError('%s locks potentially held when exiting %s at '
-            '%s' % (locks, name, location), source, last)
+                                '%s' % (locks, name, location), source, last)
     elif locks < 0:
         raise LockProtocolError('%s too many lock releases potentially '
-            'executed before exiting %s at %s' % (-locks, name, location),
-            source, last)
+                                'executed before exiting %s at %s' % (-locks, name, location),
+                                source, last)
 
     # If we reached here, the function conformed to the protocol in an
     # execution that reached its end.
+
 
 if __name__ == '__main__':
     unittest.main()
