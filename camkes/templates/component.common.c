@@ -42,6 +42,14 @@
 
 /*? macros.show_includes(me.type.includes) ?*/
 
+/*- if 'pcpus' in configuration[me.name].keys() -*/
+    /*- for c in configuration[me.name].get('pcpus') -*/
+#if(/*? c ?*/  >= CONFIG_MAX_NUM_NODES)
+#error "Invalid CPU number /*? c ?*/ in PCPU list of /*? me.name ?*/"
+#endif
+    /*- endfor -*/
+/*- endif -*/
+
 static void (* _putchar)(int c);
 
 void set_putchar(void (*putchar)(int c)) {
@@ -72,6 +80,14 @@ write_buf(void *data, size_t count)
 const char *get_instance_name(void) {
     static const char name[] = "/*? me.name ?*/";
     return name;
+}
+
+int get_instance_size_pcpus_list(void) {
+/*- if 'pcpus' in configuration[me.name].keys() -*/
+    return /*? len(configuration[me.name].get('pcpus')) ?*/;
+/*- else -*/
+    return 0;
+/*- endif -*/
 }
 
 /*- set cnode_size = configuration[me.address_space].get('cnode_size_bits') -*/
