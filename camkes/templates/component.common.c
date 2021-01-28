@@ -42,6 +42,12 @@
 
 /*? macros.show_includes(me.type.includes) ?*/
 
+/*- if 'affinity' in configuration[me.name].keys() -*/
+#if(/*? configuration[me.name].get('affinity') ?*/ >= CONFIG_MAX_NUM_NODES)
+#error "Invalid Affinity Value of /*? configuration[me.name].get('affinity') ?*/"
+#endif
+/*- endif -*/
+
 static void (* _putchar)(int c);
 
 void set_putchar(void (*putchar)(int c)) {
