@@ -31,11 +31,11 @@
 /* Check consistency of bookkeeping structures */
 // #define DEBUG_DMA
 
-/* Force the _dma_frames  section to be created even if no modules are defined. */
-static USED SECTION("_dma_frames") struct {} dummy_dma_frame;
+/* Force the _dma_pools section to be created even if no modules are defined. */
+static USED SECTION("_dma_pools") struct {} dummy_dma_pool;
 /* Definitions so that we can find the exposed DMA frames */
-extern dma_frame_t *__start__dma_frames[];
-extern dma_frame_t *__stop__dma_frames[];
+extern dma_pool_t *__start__dma_pools[];
+extern dma_pool_t *__stop__dma_pools[];
 
 /* NOT THREAD SAFE. The code could be made thread safe relatively easily by
  * operating atomically on the free list.
@@ -520,19 +520,6 @@ int camkes_dma_init(void *dma_pool, size_t dma_pool_sz, size_t page_size, bool c
     return 0;
 }
 
-static dma_frame_t *get_frame_desc(void *ptr)
-{
-    for (dma_frame_t **frame = __start__dma_frames;
-         frame < __stop__dma_frames; frame++) {
-        uintptr_t base = (uintptr_t)ptr & ~MASK(ffs((*frame)->size) - 1);
-        if (base == (*frame)->vaddr) {
-            return *frame;
-        }
-    }
-    return NULL;
-
-}
-
 uintptr_t camkes_dma_get_paddr(void *ptr)
 {
     dma_frame_t *frame = get_frame_desc(ptr);
@@ -562,15 +549,12 @@ uintptr_t camkes_dma_get_paddr(void *ptr)
 
 seL4_CPtr camkes_dma_get_cptr(void *ptr)
 {
-
-    for (dma_frame_t **frame = __start__dma_frames;
-         frame < __stop__dma_frames; frame++) {
-        uintptr_t base = (uintptr_t)ptr & ~MASK(ffs((*frame)->size) - 1);
-        if (base == (*frame)->vaddr) {
-            return (*frame)->cap;
-        }
+    dma_frame_t *frame = get_frame_desc(ptr);
+    if (frame) {
+        return frame->cap;
+    } else {
+        return seL4_CapNull;
     }
-    return seL4_CapNull;
 }
 
 /* Allocate a DMA region. This is refactored out of camkes_dma_alloc simply so

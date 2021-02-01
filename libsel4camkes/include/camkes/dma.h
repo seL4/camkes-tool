@@ -160,3 +160,16 @@ struct dma_frame {
     bool cached;
 };
 typedef struct dma_frame dma_frame_t;
+
+struct dma_pool {
+    uintptr_t start_vaddr;
+    uintptr_t end_vaddr;
+    size_t frame_size;
+    size_t pool_size;
+    size_t num_frames;
+    /* This is an array of the dma_frame_t structs that represent the frames of
+     * a DMA pool, num_frames will determine how many entries are in the
+     * array */
+    dma_frame_t **dma_frames;
+};
+typedef struct dma_pool dma_pool_t;

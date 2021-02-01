@@ -41,9 +41,24 @@
         .vaddr = (uintptr_t) &/*? dataport_symbol_name ?*/.content[/*? loop.index0 * page_size ?*/],
         .cached = /*?  int(cached) ?*/,
     };
-    USED SECTION("_dma_frames")
-    dma_frame_t * /*? me.interface.name ?*/_dma_/*? loop.index0 ?*/_ptr = &/*? me.interface.name ?*/_dma_/*? loop.index0 ?*/;
 /*- endfor -*/
+
+static dma_frame_t */*? me.interface.name ?*/_dma_frames[] = {
+    /*- for cap in frame_caps -*/
+        &/*? me.interface ?*/_dma_/*? loop.index0 ?*/,
+    /*- endfor -*/
+};
+
+static dma_pool_t /*? me.interface.name ?*/_dma_pool = {
+    .start_vaddr = (uintptr_t) &/*? dataport_symbol_name ?*/.content[0],
+    .end_vaddr = (uintptr_t) &/*? dataport_symbol_name ?*/.content[0] + /*? size ?*/ - 1,
+    .frame_size = /*? page_size ?*/,
+    .pool_size = /*? size ?*/,
+    .num_frames = /*? len(frame_caps) ?*/,
+    .dma_frames = /*? me.interface.name ?*/_dma_frames,
+};
+USED SECTION("_dma_pools")
+dma_pool_t */*? me.interface.name ?*/_dma_pool_ptr = &/*? me.interface.name ?*/_dma_pool;
 
 static void *dataport_addr = (void *)&/*? dataport_symbol_name ?*/;
 
