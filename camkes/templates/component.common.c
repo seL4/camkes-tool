@@ -168,22 +168,24 @@ char /*? dma_symbol_name ?*/[/*? dma_pool ?*/]
     };
 /*- endfor -*/
 
-static dma_frame_t */*? me.instance.name ?*/_dma_frames[] = {
+/*- set sanitized_name = me.instance.name.replace('.', '_') -*/
+
+static dma_frame_t */*? sanitized_name ?*/_dma_frames[] = {
     /*- for cap in dma_frames -*/
-        &/*? me.instance.name ?*/_dma_/*? loop.index0 ?*/,
+        &/*? sanitized_name ?*/_dma_/*? loop.index0 ?*/,
     /*- endfor -*/
 };
 
-static dma_pool_t /*? me.instance.name ?*/_component_dma_pool = {
+static dma_pool_t /*? sanitized_name ?*/_component_dma_pool = {
     .start_vaddr = (uintptr_t) &/*? dma_symbol_name ?*/[0],
     .end_vaddr = (uintptr_t) &/*? dma_symbol_name ?*/[0] + /*? page_size[0] * num_dma_frames ?*/ - 1,
     .frame_size = /*? page_size[0] ?*/,
     .pool_size = /*? page_size[0] * num_dma_frames ?*/,
     .num_frames = /*? len(dma_frames) ?*/,
-    .dma_frames = /*? me.instance.name ?*/_dma_frames,
+    .dma_frames = /*? sanitized_name ?*/_dma_frames,
 };
 USED SECTION("_dma_pools")
-dma_pool_t */*? me.instance.name ?*/_dma_pool_ptr = &/*? me.instance.name ?*/_component_dma_pool;
+dma_pool_t */*? sanitized_name ?*/_dma_pool_ptr = &/*? sanitized_name ?*/_component_dma_pool;
 
 /* Mutex functionality. */
 /*- for m in me.type.mutexes -*/
