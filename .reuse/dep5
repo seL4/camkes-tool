@@ -1,0 +1,12 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: CAmkES Tool
+Upstream-Contact: seL4 Foundation <sel4@sel4.systems>
+Source: https://github.com/seL4/camkes-tool/
+
+Files: docs/imgs/*.png VERSION CHANGES camkes/visualCAmkES/Assests/VisualCAmkES.png
+Copyright: Data61, CSIRO (ABN 41 687 119 230)
+License: CC-BY-SA-4.0
+
+Files: camkes/parser/tests/test.dtb
+Copyright: Data61, CSIRO (ABN 41 687 119 230)
+License: BSD-2-Clause

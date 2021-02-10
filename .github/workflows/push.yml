@@ -12,12 +12,11 @@ on:
   pull_request:
 
 jobs:
-#  Removed until license tags are converted to SPDX:
-#  check:
-#    name: License Check
-#    runs-on: ubuntu-latest
-#    steps:
-#    - uses: seL4/ci-actions/license-check@master
+  check:
+    name: License Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: seL4/ci-actions/license-check@master
 
   links:
     name: Links
