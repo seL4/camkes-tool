@@ -102,6 +102,24 @@ static uintptr_t PURE try_extract_paddr(
     return paddr;
 }
 
+/* Getting the physical address of a region requires a system call. Since this
+ * information is requested quite often, we we try to minimize the number of
+ * calls and remember the physical address. For the new region carved out of an
+ * existing regions we can calculate its physical address from the cached value
+ * and don't need an explicit system call either. */
+static void calculate_paddr_for_new_region(
+    region_t *r,
+    region_t *p,
+    size_t offset)
+{
+    assert(p != NULL);
+    assert(r != NULL);
+    assert(offset <= p->size);
+    uintptr_t base_paddr = try_extract_paddr(p);
+    save_paddr(r, base_paddr ? base_paddr + offset : 0);
+}
+
+
 static uintptr_t extract_paddr(
     region_t *r)
 {
@@ -626,12 +644,7 @@ static void *try_alloc_from_free_region(
 
         /* Found something that satisfies the caller's requirements and
          * leaves us enough room to turn the cut off suffix into a new
-         * chunk.
-         */
-        uintptr_t base_paddr = try_extract_paddr(p);
-
-        /* There are four possible cases here... */
-
+         * chunk. There are four possible cases here... */
         if ((uintptr_t)p == q) {
             if (p->size == size) {
                 /* 1. We're giving them the whole chunk; we can just remove
@@ -643,38 +656,27 @@ static void *try_alloc_from_free_region(
                  * extract the end as a new node.
                  */
                 region_t *r = (region_t *)((uintptr_t)p + size);
-                if (base_paddr != 0) {
-                    /* PERF: The original chunk had a physical address. Save
-                     * the overhead of a future syscall by reusing this
-                     * information now.
-                     */
-                    save_paddr(r, base_paddr + size);
-                } else {
-                    r->paddr_upper = 0;
-                }
                 r->size = p->size - size;
+                calculate_paddr_for_new_region(r, p, size);
                 replace_node(prev, p, r);
             }
         } else if (0 == new_chunk_size) {
-            /* 3. We're giving them the end of the chunk. We need to shrink
-             * the existing node.
+            /* 3. We're giving them the end of the chunk. We need to shrink the
+             * existing node.
              */
             shrink_node(p, size);
         } else {
-            /* 4. We're giving them the middle of a chunk. We need to shrink
-             * the existing node and extract the end as a new node.
+            /* 4. We're giving them the middle of a chunk. We need to shrink the
+             * existing node and extract the end as a new node.
              */
-            size_t start_size = q - (uintptr_t)p;
-            region_t *end = (region_t *)(q + size);
-            if (base_paddr != 0) {
-                /* PERF: An optimisation as above. */
-                save_paddr(end, base_paddr + start_size + size);
-            } else {
-                end->paddr_upper = 0;
-            }
-            end->size = p->size - size - start_size;
-            prepend_node(end);
-            p->size = start_size;
+            size_t new_p_size = q - (uintptr_t)p;
+
+            region_t *r = (region_t *)(q + size);
+            size_t offset = new_p_size + size;
+            r->size = p->size - offset;
+            calculate_paddr_for_new_region(r, p, offset);
+            p->size = new_p_size;
+            prepend_node(r);
         }
 
         return (void *)q;
