@@ -581,15 +581,13 @@ seL4_CPtr camkes_dma_get_cptr(
     }
 }
 
-/* Allocate a DMA region. This is refactored out of camkes_dma_alloc simply so
- * we can more eloquently express reattempting allocations.
- */
-static void *alloc(
+/* Allocate a DMA region from a free region. */
+static void *try_alloc_from_free_region(
     size_t size,
     unsigned int align,
-    bool cached)
+    region_t *prev,
+    region_t *p)
 {
-
     /* Our caller should have rounded 'size' up. */
     assert(size >= sizeof(region_t));
 
@@ -605,82 +603,101 @@ static void *alloc(
      */
     assert(align >= alignof(region_t));
 
+    /* Each region starts with a metadata header of sizeof(region_t) bytes. We
+     * start scanning from the end, so we can leave this header in place if
+     * parts of the block can be used to fulfill the allocation request.
+     */
+    for (void *q = (void *)ROUND_DOWN((uintptr_t)p + p->size - size, align);
+         (q == (void *)p) || (q >= (void *)p + sizeof(region_t));
+         q -= align) {
+
+        /* Check if this is a suitable chunk, it must be big enough to satisfy
+         * the callers memory needs and leave enough room to turn the cut off
+         * suffix into a new chunk.
+         */
+        if ((q + size != (void *)p + p->size) &&
+            (q + size + sizeof(region_t) > (void *)p + p->size)) {
+            continue;
+        }
+
+        /* Found something that satisfies the caller's requirements and
+         * leaves us enough room to turn the cut off suffix into a new
+         * chunk.
+         */
+        uintptr_t base_paddr = try_extract_paddr(p);
+
+        /* There are four possible cases here... */
+
+        if (p == q) {
+            if (p->size == size) {
+                /* 1. We're giving them the whole chunk; we can just remove
+                 * this node.
+                 */
+                remove_node(prev, p);
+            } else {
+                /* 2. We're giving them the start of the chunk. We need to
+                 * extract the end as a new node.
+                 */
+                region_t *r = (void *)p + size;
+                if (base_paddr != 0) {
+                    /* PERF: The original chunk had a physical address. Save
+                     * the overhead of a future syscall by reusing this
+                     * information now.
+                     */
+                    save_paddr(r, base_paddr + size);
+                } else {
+                    r->paddr_upper = 0;
+                }
+                r->size = p->size - size;
+                replace_node(prev, p, r);
+            }
+        } else if (q + size == (void *)p + p->size) {
+            /* 3. We're giving them the end of the chunk. We need to shrink
+             * the existing node.
+             */
+            shrink_node(p, size);
+        } else {
+            /* 4. We're giving them the middle of a chunk. We need to shrink
+             * the existing node and extract the end as a new node.
+             */
+            size_t start_size = (uintptr_t)q - (uintptr_t)p;
+            region_t *end = q + size;
+            if (base_paddr != 0) {
+                /* PERF: An optimisation as above. */
+                save_paddr(end, base_paddr + start_size + size);
+            } else {
+                end->paddr_upper = 0;
+            }
+            end->size = p->size - size - start_size;
+            prepend_node(end);
+            p->size = start_size;
+        }
+
+        return q;
+    }
+
+    /* Region can't be used. */
+    return NULL;
+}
+
+/* Allocate a DMA region from a block in the list of free regions */
+static void *try_alloc_from_free_list(
+    size_t size,
+    unsigned int align,
+    bool cached)
+{
     /* For each region in the free list... */
     for (region_t *prev = NULL, *p = head; p != NULL; prev = p, p = p->next) {
 
-        if (p->size >= size && p->cached == cached) {
-            /* This region or a subinterval of it may satisfy this request. */
+        /* Check if region can satisfy the allocation request. */
+        if ((p->size < size) || (p->cached != cached)) {
+            continue;
+        }
 
-            /* Scan subintervals of 'size' bytes within this region from the
-             * end. We scan the region from the end as an optimisation because
-             * we can avoid relocating the region's metadata if we find a
-             * satisfying allocation that doesn't involve the initial
-             * sizeof(region_t) bytes.
-             */
-            for (void *q = (void *)ROUND_DOWN((uintptr_t)p + p->size - size, align);
-                 q == (void *)p || q >= (void *)p + sizeof(region_t);
-                 q -= align) {
-
-                if (q + size == (void *)p + p->size ||
-                    q + size + sizeof(region_t) <= (void *)p + p->size) {
-                    /* Found something that satisfies the caller's
-                     * requirements and leaves us enough room to turn the cut
-                     * off suffix into a new chunk.
-                     */
-
-                    uintptr_t base_paddr = try_extract_paddr(p);
-
-                    /* There are four possible cases here... */
-
-                    if (p == q) {
-                        if (p->size == size) {
-                            /* 1. We're giving them the whole chunk; we can
-                             * just remove this node.
-                             */
-                            remove_node(prev, p);
-                        } else {
-                            /* 2. We're giving them the start of the chunk. We
-                             * need to extract the end as a new node.
-                             */
-                            region_t *r = (void *)p + size;
-                            if (base_paddr != 0) {
-                                /* PERF: The original chunk had a physical
-                                 * address. Save the overhead of a future
-                                 * syscall by reusing this information now.
-                                 */
-                                save_paddr(r, base_paddr + size);
-                            } else {
-                                r->paddr_upper = 0;
-                            }
-                            r->size = p->size - size;
-                            replace_node(prev, p, r);
-                        }
-                    } else if (q + size == (void *)p + p->size) {
-                        /* 3. We're giving them the end of the chunk. We need
-                         * to shrink the existing node.
-                         */
-                        shrink_node(p, size);
-                    } else {
-                        /* 4. We're giving them the middle of a chunk. We need
-                         * to shrink the existing node and extract the end as a
-                         * new node.
-                         */
-                        size_t start_size = (uintptr_t)q - (uintptr_t)p;
-                        region_t *end = q + size;
-                        if (base_paddr != 0) {
-                            /* PERF: An optimisation as above. */
-                            save_paddr(end, base_paddr + start_size + size);
-                        } else {
-                            end->paddr_upper = 0;
-                        }
-                        end->size = p->size - size - start_size;
-                        prepend_node(end);
-                        p->size = start_size;
-                    }
-
-                    return q;
-                }
-            }
+        /* Try to allocate a DMA region within this region. */
+        void *q = try_alloc_from_free_region(size, align, prev, p);
+        if (NULL != q) {
+            return q;
         }
     }
 
@@ -752,17 +769,15 @@ void *camkes_dma_alloc(
         size = ROUND_UP(size, alignof(region_t));
     }
 
-    void *p = alloc(size, align, cached);
-
-    if (p == NULL && size > sizeof(region_t)) {
+    void *p = try_alloc_from_free_list(size, align, cached);
+    if ((p == NULL) && (size > sizeof(region_t))) {
         /* We failed to allocate a matching region, but we may be able to
          * satisfy this allocation by defragmenting the free list and
          * re-attempting.
          */
         ZF_LOGI("re-try allocation after defragmentation of free list");
         defrag();
-        p = alloc(size, align, cached);
-
+        p = try_alloc_from_free_list(size, align, cached);
         if (p != NULL) {
             STATS(stats.succeeded_allocations_on_defrag++);
         }
