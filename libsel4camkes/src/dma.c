@@ -586,7 +586,7 @@ seL4_CPtr camkes_dma_get_cptr(
  */
 static void *alloc(
     size_t size,
-    int align,
+    unsigned int align,
     bool cached)
 {
 
@@ -603,7 +603,7 @@ static void *alloc(
      * sufficient that any chunk we ourselves allocate, can later host
      * bookkeeping in its initial bytes when it is freed.
      */
-    assert(align >= (int)alignof(region_t));
+    assert(align >= alignof(region_t));
 
     /* For each region in the free list... */
     for (region_t *prev = NULL, *p = head; p != NULL; prev = p, p = p->next) {
@@ -690,7 +690,7 @@ static void *alloc(
 
 void *camkes_dma_alloc(
     size_t size,
-    int align,
+    unsigned int align,
     bool cached)
 {
 
@@ -726,7 +726,7 @@ void *camkes_dma_alloc(
         align = 1;
     }
 
-    if (align < (int)alignof(region_t)) {
+    if (align < alignof(region_t)) {
         /* Allocating something with a weaker alignment constraint than our
          * bookkeeping data may lead to us giving out a chunk of memory that is
          * not sufficiently aligned to host bookkeeping data when it is

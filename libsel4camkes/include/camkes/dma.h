@@ -38,7 +38,7 @@ NONNULL(1) WARN_UNUSED_RESULT;
  */
 void *camkes_dma_alloc(
     size_t size,
-    int align,
+    unsigned int align,
     bool cached)
 ALLOC_SIZE(1) ALLOC_ALIGN(2) MALLOC WARN_UNUSED_RESULT;
 
