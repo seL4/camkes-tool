@@ -490,76 +490,83 @@ function(GenerateCAmkESRootserver)
         list(APPEND CAMKES_RENDER_FLAGS --templates "${template}")
     endforeach()
 
-    set(ast_outfile "${CMAKE_CURRENT_BINARY_DIR}/ast.pickle")
-    set(gen_outfile "${CMAKE_CURRENT_BINARY_DIR}/camkes-gen.cmake")
-
-    set(
-        camkes_parse_command
+    set(CAMKES_AST_PICKLE "${CMAKE_CURRENT_BINARY_DIR}/ast.pickle")
+    set(CAMKES_AST_DEP_FILE "${CAMKES_AST_PICKLE}.d")
+    execute_process_with_stale_check(
+        "${CAMKES_AST_PICKLE}.cmd"
+        "${CAMKES_AST_DEP_FILE}"
+        "${CAMKES_AST_PICKLE}"
+        "${CAMKES_TOOL_FILES} ${PYTHON_CAPDL_FILES}"
+        COMMAND
         ${CAMKES_PARSER_TOOL}
-        --file
-        "${CAMKES_ADL_SOURCE}"
-        "--save-ast=${ast_outfile}"
         ${CAMKES_FLAGS}
         ${CAMKES_PARSER_FLAGS}
+        --makefile-dependencies
+        "${CAMKES_AST_DEP_FILE}"
+        --file
+        "${CAMKES_ADL_SOURCE}"
+        --save-ast
+        "${CAMKES_AST_PICKLE}"
+        WORKING_DIRECTORY
+        "${CMAKE_CURRENT_BINARY_DIR}"
+        INPUT_FILE
+        /dev/stdin
+        OUTPUT_FILE
+        /dev/stdout
+        ERROR_FILE
+        /dev/stderr
+        RESULT_VARIABLE
+        camkes_gen_error
     )
+    if(camkes_gen_error)
+        file(REMOVE ${CAMKES_AST_PICKLE})
+        message(FATAL_ERROR "Failed to generate ${CAMKES_AST_PICKLE}")
+    endif()
 
-    set(
-        camkes_render_command
+    set(CAMKES_CMAKE_FILE "${CMAKE_CURRENT_BINARY_DIR}/camkes-gen.cmake")
+    set(CAMKES_CMAKE_DEP_FILE "${CAMKES_CMAKE_FILE}.d")
+    execute_process_with_stale_check(
+        "${CAMKES_CMAKE_FILE}.cmd"
+        "${CAMKES_CMAKE_DEP_FILE}"
+        "${CAMKES_CMAKE_FILE}"
+        "${CAMKES_TOOL_FILES} ${PYTHON_CAPDL_FILES} ${CAMKES_AST_PICKLE}"
+        COMMAND
         ${CAMKES_TOOL}
+        ${CAMKES_FLAGS}
+        ${CAMKES_RENDER_FLAGS}
+        --makefile-dependencies
+        "${CAMKES_CMAKE_DEP_FILE}"
         --load-ast
-        "${CMAKE_CURRENT_BINARY_DIR}/ast.pickle"
+        "${CAMKES_AST_PICKLE}"
         --item
         assembly/
         --template
         camkes-gen.cmake
         --outfile
-        "${gen_outfile}"
-        ${CAMKES_FLAGS}
-        ${CAMKES_RENDER_FLAGS}
+        "${CAMKES_CMAKE_FILE}"
+        WORKING_DIRECTORY
+        "${CMAKE_CURRENT_BINARY_DIR}"
+        INPUT_FILE
+        /dev/stdin
+        OUTPUT_FILE
+        /dev/stdout
+        ERROR_FILE
+        /dev/stderr
+        RESULT_VARIABLE
+        camkes_gen_error
     )
-    set(commands camkes_parse_command camkes_render_command)
-    set(outfiles "${ast_outfile}" "${gen_outfile}")
-    file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/camkes_gen")
-    foreach(index RANGE 0 1)
-        set(deps_file "${CMAKE_CURRENT_BINARY_DIR}/camkes_gen/deps_${index}")
-        set(invoc_file "${CMAKE_CURRENT_BINARY_DIR}/camkes_gen/last_invocation${index}")
-        list(GET outfiles ${index} outfile)
-        list(GET commands ${index} command)
-        if(index EQUAL 1)
-            list(GET outfiles 0 last_outfile)
-        endif()
-        set(extra_dependencies ${last_outfile} ${CAMKES_TOOL_FILES} ${PYTHON_CAPDL_FILES})
-        execute_process_with_stale_check(
-            "${invoc_file}"
-            "${deps_file}"
-            "${outfile}"
-            "${extra_dependencies}"
-            COMMAND
-            ${${command}}
-            --makefile-dependencies
-            "${deps_file}"
-            WORKING_DIRECTORY
-            "${CMAKE_CURRENT_BINARY_DIR}"
-            INPUT_FILE
-            /dev/stdin
-            OUTPUT_FILE
-            /dev/stdout
-            ERROR_FILE
-            /dev/stderr
-            RESULT_VARIABLE
-            camkes_gen_error
-        )
-        if(camkes_gen_error)
-            file(REMOVE ${outfile})
-            message(FATAL_ERROR "Failed to generate ${outfile}")
-        endif()
-    endforeach()
+    if(camkes_gen_error)
+        file(REMOVE ${CAMKES_CMAKE_FILE})
+        message(FATAL_ERROR "Failed to generate ${CAMKES_CMAKE_FILE}")
+    endif()
+
     # We set a property to indicate that we have done execute_process (which
     # happens during the generation phase. This just allows us to do some
     # debugging and detect cases where options are changed *after* this point
     # that would have affected the execute_process
     set_property(GLOBAL PROPERTY CAMKES_GEN_DONE TRUE)
-    include("${gen_outfile}")
+    include("${CAMKES_CMAKE_FILE}")
+
 endfunction(GenerateCAmkESRootserver)
 
 # Internal helper function for setting camkes component properties
