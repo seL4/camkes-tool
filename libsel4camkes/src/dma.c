@@ -263,28 +263,28 @@ const camkes_dma_stats_t *camkes_dma_stats(void)
 #endif
 
 /* Defragment the free list. Can safely be called at any time. The complexity
- * of this function is at least O(n²).
+ * of this function is at least O(n^2).
  *
  * Over time the free list can evolve to contain separate chunks that are
  * actually contiguous, both physically and virtually. This fragmentation can
  * result in unnecessary allocation failures, so this function is provided to
  * coalesce such chunks. For example, the free list may end up like:
  *
- *  ┌─────────────┐   ┌─────────────┐   ┌─────────────┐
- *  │vaddr: 0x4000│   │vaddr: 0x7000│   │vaddr: 0x2000│
- *  │size : 0x1000│   │size : 0x2000│   │size : 0x2000│
- *  │next :       ┼──→│next :       ┼──→│next :   NULL│
- *  │paddr: 0x6000│   │paddr: 0x8000│   │paddr: 0x4000│
- *  └─────────────┘   └─────────────┘   └─────────────┘
+ *  +---------------+    +---------------+    +---------------+
+ *  | vaddr: 0x4000 |    | vaddr: 0x7000 |    | vaddr: 0x2000 |
+ *  | size : 0x1000 |    | size : 0x2000 |    | size : 0x2000 |
+ *  | next : -------|--->| next : -------|--->| next : NULL   |
+ *  | paddr: 0x6000 |    │ paddr: 0x8000 |    | paddr: 0x4000 |
+ *  +---------------+    +---------------+    +---------------+
  *
  * after defragmentation, the free list will look like:
  *
- *  ┌─────────────┐   ┌─────────────┐
- *  │vaddr: 0x2000│   │vaddr: 0x7000│
- *  │size : 0x3000│   │size : 0x2000│
- *  │next :       ┼──→│next :   NULL│
- *  │paddr: 0x4000│   │paddr: 0x8000│
- *  └─────────────┘   └─────────────┘
+ *  +---------------+    +---------------+
+ *  | vaddr: 0x2000 |    | vaddr: 0x7000 |
+ *  | size : 0x3000 |    | size : 0x2000 |
+ *  | next : -------|--->| next : NULL   |
+ *  | paddr: 0x4000 |    | paddr: 0x8000 |
+ *  +---------------+    +---------------+
  */
 static void defrag(void)
 {
