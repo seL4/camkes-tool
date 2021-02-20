@@ -21,7 +21,11 @@
  *
  * This function is intended to be called by the CAmkES backend and not by a user.
  */
-int camkes_dma_init(void *dma_pool, size_t dma_pool_sz, size_t page_size, bool cached)
+int camkes_dma_init(
+    void *dma_pool,
+    size_t dma_pool_sz,
+    size_t page_size,
+    bool cached)
 NONNULL(1) WARN_UNUSED_RESULT;
 
 /**
@@ -32,8 +36,11 @@ NONNULL(1) WARN_UNUSED_RESULT;
  *
  * @return Virtual address of allocation or NULL on failure
  */
-void *camkes_dma_alloc(size_t size, int align, bool cached) ALLOC_SIZE(1) ALLOC_ALIGN(2)
-MALLOC WARN_UNUSED_RESULT;
+void *camkes_dma_alloc(
+    size_t size,
+    int align,
+    bool cached)
+ALLOC_SIZE(1) ALLOC_ALIGN(2) MALLOC WARN_UNUSED_RESULT;
 
 /**
  * Free previously allocated DMA memory.
@@ -42,18 +49,22 @@ MALLOC WARN_UNUSED_RESULT;
  *    no-op)
  * @param size Size that was given in the allocation request
  */
-void camkes_dma_free(void *ptr, size_t size);
+void camkes_dma_free(
+    void *ptr,
+    size_t size);
 
 /* Return the physical address of a pointer into a DMA buffer. Returns NULL if
  * you pass a pointer into memory that is not part of a DMA buffer. Behaviour
  * is undefined if you pass a pointer into memory that is part of a DMA buffer,
  * but not one currently allocated to you by camkes_dma_alloc_page.
  */
-uintptr_t camkes_dma_get_paddr(void *ptr);
+uintptr_t camkes_dma_get_paddr(
+    void *ptr);
 
 /* Return the cap to a frame backing part of the DMA buffer. Returns seL4_CapNull
  * if passed a pointer into memory that is not part of a DMA buffer. */
-seL4_CPtr camkes_dma_get_cptr(void *ptr);
+seL4_CPtr camkes_dma_get_cptr(
+    void *ptr);
 
 /* Initialise a DMA manager for use with libplatsupport. This manager will be
  * backed by the (generated) CAmkES DMA pool. Returns 0 on success.
@@ -63,7 +74,9 @@ seL4_CPtr camkes_dma_get_cptr(void *ptr);
  * this function. Note that you can mix calls to alloc_page, free_page and the
  * manager initialised by this function with no adverse effects.
  */
-int camkes_dma_manager(ps_dma_man_t *man) NONNULL_ALL WARN_UNUSED_RESULT;
+int camkes_dma_manager(
+    ps_dma_man_t *man)
+NONNULL_ALL WARN_UNUSED_RESULT;
 
 /* Debug functionality for profiling DMA heap usage. This information is
  * returned from a call to `camkes_dma_stats`. Note that this functionality is
@@ -140,6 +153,7 @@ const camkes_dma_stats_t *camkes_dma_stats(void) RETURNS_NONNULL;
  */
 void *camkes_dma_alloc_page(void)
 DEPRECATED("use camkes_dma_alloc(PAGE_SIZE_4K, PAGE_SIZE_4K) instead");
+
 void camkes_dma_free_page(void *ptr)
 DEPRECATED("use camkes_dma_free(ptr, PAGE_SIZE_4K) instead");
 

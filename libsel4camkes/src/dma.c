@@ -82,12 +82,16 @@ uintptr_t paddr_upper:
 
 } region_t;
 
-static void save_paddr(region_t *r, uintptr_t paddr)
+static void save_paddr(
+    region_t *r,
+    uintptr_t paddr)
 {
     assert(r != NULL);
     r->paddr_upper = paddr >> PAGE_BITS_4K;
 }
-static uintptr_t PURE try_extract_paddr(region_t *r)
+
+static uintptr_t PURE try_extract_paddr(
+    region_t *r)
 {
     assert(r != NULL);
     uintptr_t paddr = r->paddr_upper;
@@ -97,7 +101,9 @@ static uintptr_t PURE try_extract_paddr(region_t *r)
     }
     return paddr;
 }
-static uintptr_t extract_paddr(region_t *r)
+
+static uintptr_t extract_paddr(
+    region_t *r)
 {
     uintptr_t paddr = try_extract_paddr(r);
     if (paddr == 0) {
@@ -114,13 +120,17 @@ static uintptr_t extract_paddr(region_t *r)
 }
 
 /* Various helpers for dealing with the above data structure layout. */
-static void prepend_node(region_t *node)
+static void prepend_node(
+    region_t *node)
 {
     assert(node != NULL);
     node->next = head;
     head = node;
 }
-static void remove_node(region_t *previous, region_t *node)
+
+static void remove_node(
+    region_t *previous,
+    region_t *node)
 {
     assert(node != NULL);
     if (previous == NULL) {
@@ -129,7 +139,11 @@ static void remove_node(region_t *previous, region_t *node)
         previous->next = node->next;
     }
 }
-static void replace_node(region_t *previous, region_t *old, region_t *new)
+
+static void replace_node(
+    region_t *previous,
+    region_t *old,
+    region_t *new)
 {
     assert(old != NULL);
     assert(new != NULL);
@@ -140,13 +154,19 @@ static void replace_node(region_t *previous, region_t *old, region_t *new)
         previous->next = new;
     }
 }
-static void shrink_node(region_t *node, size_t by)
+
+static void shrink_node(
+    region_t *node,
+    size_t by)
 {
     assert(node != NULL);
     assert(by > 0 && node->size > by);
     node->size -= by;
 }
-static void grow_node(region_t *node, size_t by)
+
+static void grow_node(
+    region_t *node,
+    size_t by)
 {
     assert(node != NULL);
     assert(by > 0);
@@ -347,7 +367,8 @@ static void defrag(void)
     check_consistency();
 }
 
-static dma_frame_t *get_frame_desc(void *ptr)
+static dma_frame_t *get_frame_desc(
+    void *ptr)
 {
     for (dma_pool_t **pool = __start__dma_pools;
          pool < __stop__dma_pools; pool++) {
@@ -364,7 +385,10 @@ static dma_frame_t *get_frame_desc(void *ptr)
     return NULL;
 }
 
-static void free_region(void *ptr, size_t size, bool cached)
+static void free_region(
+    void *ptr,
+    size_t size,
+    bool cached)
 {
     /* Although we've already checked the address, do another quick sanity check */
     assert(ptr != NULL);
@@ -407,7 +431,11 @@ static void free_region(void *ptr, size_t size, bool cached)
     check_consistency();
 }
 
-int camkes_dma_init(void *dma_pool, size_t dma_pool_sz, size_t page_size, bool cached)
+int camkes_dma_init(
+    void *dma_pool,
+    size_t dma_pool_sz,
+    size_t page_size,
+    bool cached)
 {
 
     /* The caller should have passed us a valid DMA pool. */
@@ -514,7 +542,8 @@ int camkes_dma_init(void *dma_pool, size_t dma_pool_sz, size_t page_size, bool c
     return 0;
 }
 
-uintptr_t camkes_dma_get_paddr(void *ptr)
+uintptr_t camkes_dma_get_paddr(
+    void *ptr)
 {
     dma_frame_t *frame = get_frame_desc(ptr);
     uintptr_t offset = (uintptr_t)ptr & MASK(ffs(frame->size) - 1);
@@ -541,7 +570,8 @@ uintptr_t camkes_dma_get_paddr(void *ptr)
     }
 }
 
-seL4_CPtr camkes_dma_get_cptr(void *ptr)
+seL4_CPtr camkes_dma_get_cptr(
+    void *ptr)
 {
     dma_frame_t *frame = get_frame_desc(ptr);
     if (frame) {
@@ -554,7 +584,10 @@ seL4_CPtr camkes_dma_get_cptr(void *ptr)
 /* Allocate a DMA region. This is refactored out of camkes_dma_alloc simply so
  * we can more eloquently express reattempting allocations.
  */
-static void *alloc(size_t size, int align, bool cached)
+static void *alloc(
+    size_t size,
+    int align,
+    bool cached)
 {
 
     /* Our caller should have rounded 'size' up. */
@@ -655,7 +688,10 @@ static void *alloc(size_t size, int align, bool cached)
     return NULL;
 }
 
-void *camkes_dma_alloc(size_t size, int align, bool cached)
+void *camkes_dma_alloc(
+    size_t size,
+    int align,
+    bool cached)
 {
 
     STATS(({
@@ -746,7 +782,9 @@ void *camkes_dma_alloc(size_t size, int align, bool cached)
     return p;
 }
 
-void camkes_dma_free(void *ptr, size_t size)
+void camkes_dma_free(
+    void *ptr,
+    size_t size)
 {
     bool cached = 0;
 
@@ -773,13 +811,20 @@ void camkes_dma_free(void *ptr, size_t size)
  * our case is somewhat constrained.
  */
 
-static void *dma_alloc(void *cookie UNUSED, size_t size, int align, int cached,
-                       ps_mem_flags_t flags UNUSED)
+static void *dma_alloc(
+    void *cookie UNUSED,
+    size_t size,
+    int align,
+    int cached,
+    ps_mem_flags_t flags UNUSED)
 {
     return camkes_dma_alloc(size, align, cached);
 }
 
-static void dma_free(void *cookie UNUSED, void *addr, size_t size)
+static void dma_free(
+    void *cookie UNUSED,
+    void *addr,
+    size_t size)
 {
     camkes_dma_free(addr, size);
 }
@@ -787,18 +832,28 @@ static void dma_free(void *cookie UNUSED, void *addr, size_t size)
 /* All CAmkES DMA pages are pinned for the duration of execution, so this is
  * effectively a no-op.
  */
-static uintptr_t dma_pin(void *cookie UNUSED, void *addr, size_t size UNUSED)
+static uintptr_t dma_pin(
+    void *cookie UNUSED,
+    void *addr,
+    size_t size UNUSED)
 {
     return camkes_dma_get_paddr(addr);
 }
 
 /* As above, all pages are pinned so this is also a no-op. */
-static void dma_unpin(void *cookie UNUSED, void *addr UNUSED, size_t size UNUSED)
+static void dma_unpin(
+    void *cookie UNUSED,
+    void *addr UNUSED,
+    size_t size UNUSED)
 {
+    /* empty */
 }
 
-static void dma_cache_op(void *cookie UNUSED, void *addr UNUSED,
-                         size_t size UNUSED, dma_cache_op_t op UNUSED)
+static void dma_cache_op(
+    void *cookie UNUSED,
+    void *addr UNUSED,
+    size_t size UNUSED,
+    dma_cache_op_t op UNUSED)
 {
     /* x86 DMA is usually cache coherent and doesn't need maintenance ops */
 #ifdef CONFIG_ARCH_ARM
@@ -847,7 +902,8 @@ static void dma_cache_op(void *cookie UNUSED, void *addr UNUSED,
 #endif
 }
 
-int camkes_dma_manager(ps_dma_man_t *man)
+int camkes_dma_manager(
+    ps_dma_man_t *man)
 {
     if (man == NULL) {
         ZF_LOGE("man is NULL");
@@ -861,12 +917,15 @@ int camkes_dma_manager(ps_dma_man_t *man)
     return 0;
 }
 
-/* Legacy functions */
+/* Legacy function */
 void *camkes_dma_alloc_page(void)
 {
     return camkes_dma_alloc(PAGE_SIZE_4K, PAGE_SIZE_4K, false);
 }
-void camkes_dma_free_page(void *ptr)
+
+/* Legacy function */
+void camkes_dma_free_page(
+    void *ptr)
 {
     return camkes_dma_free(ptr, PAGE_SIZE_4K);
 }
