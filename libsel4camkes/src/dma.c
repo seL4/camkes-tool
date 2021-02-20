@@ -717,6 +717,8 @@ void *camkes_dma_alloc(
 
     if (head == NULL) {
         /* Nothing in the free list. */
+        ZF_LOGE("DMA pool empty, can't alloc block of size %zu (align=%u, cached=%u)",
+                size, align, cached);
         STATS(stats.failed_allocations_out_of_memory++);
         return NULL;
     }
@@ -757,6 +759,7 @@ void *camkes_dma_alloc(
          * satisfy this allocation by defragmenting the free list and
          * re-attempting.
          */
+        ZF_LOGI("re-try allocation after defragmentation of free list");
         defrag();
         p = alloc(size, align, cached);
 
