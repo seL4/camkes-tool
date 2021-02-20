@@ -607,16 +607,16 @@ static void *try_alloc_from_free_region(
      * start scanning from the end, so we can leave this header in place if
      * parts of the block can be used to fulfill the allocation request.
      */
-    for (void *q = (void *)ROUND_DOWN((uintptr_t)p + p->size - size, align);
-         (q == (void *)p) || (q >= (void *)p + sizeof(region_t));
+    for (uintptr_t q = ROUND_DOWN((uintptr_t)p + p->size - size, align);
+         (q == (uintptr_t)p) || (q >= (uintptr_t)p + sizeof(region_t));
          q -= align) {
 
         /* Check if this is a suitable chunk, it must be big enough to satisfy
          * the callers memory needs and leave enough room to turn the cut off
          * suffix into a new chunk.
          */
-        if ((q + size != (void *)p + p->size) &&
-            (q + size + sizeof(region_t) > (void *)p + p->size)) {
+        if ((q + size != (uintptr_t)p + p->size) &&
+            (q + size + sizeof(region_t) > (uintptr_t)p + p->size)) {
             continue;
         }
 
@@ -628,7 +628,7 @@ static void *try_alloc_from_free_region(
 
         /* There are four possible cases here... */
 
-        if (p == q) {
+        if ((uintptr_t)p == q) {
             if (p->size == size) {
                 /* 1. We're giving them the whole chunk; we can just remove
                  * this node.
@@ -638,7 +638,7 @@ static void *try_alloc_from_free_region(
                 /* 2. We're giving them the start of the chunk. We need to
                  * extract the end as a new node.
                  */
-                region_t *r = (void *)p + size;
+                region_t *r = (region_t *)((uintptr_t)p + size);
                 if (base_paddr != 0) {
                     /* PERF: The original chunk had a physical address. Save
                      * the overhead of a future syscall by reusing this
@@ -651,7 +651,7 @@ static void *try_alloc_from_free_region(
                 r->size = p->size - size;
                 replace_node(prev, p, r);
             }
-        } else if (q + size == (void *)p + p->size) {
+        } else if (q + size == (uintptr_t)p + p->size) {
             /* 3. We're giving them the end of the chunk. We need to shrink
              * the existing node.
              */
@@ -660,8 +660,8 @@ static void *try_alloc_from_free_region(
             /* 4. We're giving them the middle of a chunk. We need to shrink
              * the existing node and extract the end as a new node.
              */
-            size_t start_size = (uintptr_t)q - (uintptr_t)p;
-            region_t *end = q + size;
+            size_t start_size = q - (uintptr_t)p;
+            region_t *end = (region_t *)(q + size);
             if (base_paddr != 0) {
                 /* PERF: An optimisation as above. */
                 save_paddr(end, base_paddr + start_size + size);
@@ -673,7 +673,7 @@ static void *try_alloc_from_free_region(
             p->size = start_size;
         }
 
-        return q;
+        return (void *)q;
     }
 
     /* Region can't be used. */
