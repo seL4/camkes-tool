@@ -37,9 +37,7 @@ class CPP(Parser):
     def __init__(self, cpp_bin='cpp', flags=None):
         self.cpp_bin = cpp_bin
         self.flags = flags or []
-        self.out_dir = os.path.join(os.getcwd(), 'camkes-tool')
-        if not os.path.isdir(self.out_dir):
-            os.mkdir(self.out_dir)
+        self.out_dir = os.getcwd()
 
     def parse_file(self, filename):
         # Run cpp with -MD to generate dependencies because we want to

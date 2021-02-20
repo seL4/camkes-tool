@@ -538,6 +538,8 @@ function(GenerateCAmkESRootserver)
             ${${command}}
             --makefile-dependencies
             "${deps_file}"
+            WORKING_DIRECTORY
+            "${CMAKE_CURRENT_BINARY_DIR}"
             INPUT_FILE
             /dev/stdin
             OUTPUT_FILE
