@@ -603,20 +603,24 @@ static void *try_alloc_from_free_region(
      */
     assert(align >= alignof(region_t));
 
+    uintptr_t p_end = (uintptr_t)p + p->size;
+
     /* Each region starts with a metadata header of sizeof(region_t) bytes. We
      * start scanning from the end, so we can leave this header in place if
      * parts of the block can be used to fulfill the allocation request.
      */
-    for (uintptr_t q = ROUND_DOWN((uintptr_t)p + p->size - size, align);
+    for (uintptr_t q = ROUND_DOWN(p_end - size, align);
          (q == (uintptr_t)p) || (q >= (uintptr_t)p + sizeof(region_t));
          q -= align) {
+
+        uintptr_t q_end = (uintptr_t)q + size;
 
         /* Check if this is a suitable chunk, it must be big enough to satisfy
          * the callers memory needs and leave enough room to turn the cut off
          * suffix into a new chunk.
          */
-        if ((q + size != (uintptr_t)p + p->size) &&
-            (q + size + sizeof(region_t) > (uintptr_t)p + p->size)) {
+        uintptr_t new_chunk_size = p_end - q_end;
+        if ((0 != new_chunk_size) && (new_chunk_size < sizeof(region_t))) {
             continue;
         }
 
@@ -651,7 +655,7 @@ static void *try_alloc_from_free_region(
                 r->size = p->size - size;
                 replace_node(prev, p, r);
             }
-        } else if (q + size == (uintptr_t)p + p->size) {
+        } else if (0 == new_chunk_size) {
             /* 3. We're giving them the end of the chunk. We need to shrink
              * the existing node.
              */
