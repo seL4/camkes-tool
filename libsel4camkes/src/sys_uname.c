@@ -1,5 +1,6 @@
 /*
  * Copyright 2017, Data61, CSIRO (ABN 41 687 119 230)
+ * Copyright 2020, HENSOLDT Cyber GmbH
  *
  * SPDX-License-Identifier: BSD-2-Clause
  */
@@ -90,6 +91,8 @@ long camkes_sys_uname(va_list ap)
         plat = "IMX6";
     } else if (config_set(CONFIG_PLAT_WANDQ)) {
         plat = "WANDQ";
+    } else if (config_set(CONFIG_PLAT_NITROGEN6SX)) {
+        plat = "NITROGEN6SX";
     } else if (config_set(CONFIG_PLAT_IMX7_SABRE)) {
         plat = "IMX7";
     } else if (config_set(CONFIG_PLAT_ZYNQ7000)) {
