@@ -181,8 +181,9 @@ RequireFile(CONFIGURE_FILE_SCRIPT configure_file.cmake PATHS ${CMAKE_MODULE_PATH
     list(APPEND static_sources "$<TARGET_PROPERTY:${instance_target},COMPONENT_SOURCES>")
     set(extra_c_flags "$<TARGET_PROPERTY:CAmkESComponent_/*? i.type.name ?*/,COMPONENT_C_FLAGS>")
     list(APPEND extra_c_flags "$<TARGET_PROPERTY:${instance_target},COMPONENT_C_FLAGS>")
-    set(extra_ld_flags "$<TARGET_PROPERTY:CAmkESComponent_/*? i.type.name ?*/,COMPONENT_LD_FLAGS>")
-    list(APPEND extra_ld_flags "$<TARGET_PROPERTY:${instance_target},COMPONENT_LD_FLAGS>")
+    get_property(extra_ld_flags TARGET "CAmkESComponent_/*? i.type.name ?*/" PROPERTY COMPONENT_LD_FLAGS)
+    get_property(component_extra_ld_flags TARGET "${instance_target}" PROPERTY COMPONENT_LD_FLAGS)
+    list(APPEND extra_ld_flags "${component_extra_ld_flags}")
     set(extra_libs "$<TARGET_PROPERTY:CAmkESComponent_/*? i.type.name ?*/,COMPONENT_LIBS>")
     list(APPEND extra_libs "$<TARGET_PROPERTY:${instance_target},COMPONENT_LIBS>")
     # Retrieve the static headers for the component. Ensure instance headers are placed first
@@ -347,7 +348,11 @@ RequireFile(CONFIGURE_FILE_SCRIPT configure_file.cmake PATHS ${CMAKE_MODULE_PATH
         " -static -nostdlib -u _camkes_start -e _camkes_start ")
     # Add extra flags specified by the user
     target_compile_options(${target} PRIVATE ${extra_c_flags} ${CAMKES_C_FLAGS})
-    set_property(TARGET ${TARGET} APPEND_STRING PROPERTY LINK_FLAGS ${extra_ld_flags})
+    message(STATUS "Found extra flags for ${target}: ${extra_c_flags}")
+    foreach(extra_ld_flag IN LISTS extra_ld_flags)
+        set_property(TARGET ${target} APPEND_STRING PROPERTY LINK_FLAGS ${extra_ld_flag})
+        message(STATUS "Found extra flag for ${target}: ${extra_ld_flag}")
+    endforeach()
     # Only incrementally link if this instance is going on to become part of a
     # group.
     # TODO: we care about being grouped elsewhere as well. generalize this
