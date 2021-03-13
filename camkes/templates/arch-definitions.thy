@@ -50,26 +50,25 @@ begin
 /*- macro param_type(param) -*/
     /*- if param.array -*/
         Array (SizedArray
-        /*- if type == 'int' -*/
+        /*- if param.type == 'int' -*/
             (Numerical Integer)
-        /*- elif type == 'unsigned int' -*/
+        /*- elif param.type == 'unsigned int' -*/
             (Numerical UnsignedInteger)
-        /*- elif type == 'real' -*/
+        /*- elif param.type == 'real' -*/
             (Numerical Real)
-        /*- elif type == 'char' -*/
+        /*- elif param.type == 'char' -*/
             (Textual char)
-        /*- elif type == 'character' -*/
+        /*- elif param.type == 'character' -*/
             (Textual Character)
-        /*- elif type == 'boolean' -*/
+        /*- elif param.type == 'boolean' -*/
             (Numerical Boolean)
         /*- else -*/
             /*? raise(TemplateError('unsupported type: array of %s' % param.type)) ?*/
         /*- endif -*/
+        )
     /*- else -*/
+        /*? camkes_type(param.type) ?*/
     /*- endif -*/
-    /*? 'Array (SizedArray (' if param.array else '' ?*/
-    /*? camkes_type(param.type) ?*/
-    /*? '))' if param.array else '' ?*/
 /*- endmacro -*/
 
 /*- if hasattr(me, 'name') and me.name is not none -*/
