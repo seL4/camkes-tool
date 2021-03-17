@@ -83,6 +83,7 @@ static const char *header = "#!/usr/bin/env python\n"
                             "#\n"
                             "# Copyright 2017, Data61, CSIRO (ABN 41 687 119 230)\n"
                             "#\n"
+                            // cut SPDX into two strings to avoid confusing the license check tool:
                             "# SPDX" "-License-Identifier: BSD-2-Clause\n"
                             "#\n"
                             "\n"
