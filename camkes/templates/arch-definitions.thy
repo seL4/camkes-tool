@@ -314,42 +314,84 @@ where[wellformed_CAMKES_simps]:
         []
     \<rparr>"
 
+(* In order to prove wf_/*? composition ?*/ for larger compositions we need
+ * some additional lemmas.
+ *)
+
+named_theorems rv_components
+named_theorems rv_connections
+
+(* used for solving goals which come from ex_one *)
+(* eval_cond_thms are used in conjunction with `simp only` to reduce the condition in the if statement *)
+method eval_filter uses eval_cond_thms =
+  unfold filter_def,
+  (subst list.rec, simp only: eval_cond_thms if_True if_False HOL.simp_thms)+,
+  simp
+
+/*- for c in me.composition.instances -*/
+lemma refs_valid_/*? isabelle_component(c.name) ?*/[rv_components]:
+  "refs_valid_procedures ''/*? c.name ?*/'' (requires /*? isabelle_component(c.name) ?*/) (connections /*? composition ?*/)"
+  unfolding /*? composition ?*/_def refs_valid_procedures_def /*? isabelle_component(c.name) ?*/_def /*? isabelle_instance(c.type.name) ?*/_def
+            wf_procedures wf_connections
+  (* this may take a while for large components *)
+  by (simp, (intro conjI)?; (unfold ex_one_def, eval_filter eval_cond_thms: list.inject char.inject prod.inject)?)
+/*- endfor -*/
+
+/*- for c in me.composition.connections -*/
+lemma refs_valid_/*? isabelle_connection(c.name) ?*/[rv_connections]:
+  "refs_valid_connection /*? isabelle_connection(c.name) ?*/ (components /*? composition ?*/)"
+  unfolding /*? composition ?*/_def refs_valid_connection_def /*? isabelle_connection(c.name) ?*/_def
+            wf_connections
+  (* this may take a while if you have many connectors *)
+  by (simp,
+      intro conjI,
+      simp add: wellformed_connector_def;
+      (subst ex_one_def, eval_filter eval_cond_thms: fst_conv list.inject char.inject)+,
+      simp add: wellformed_CAMKES_simps)
+/*- endfor -*/
+
 lemma wf_/*? composition ?*/: "wellformed_composition /*? composition ?*/"
-proof (unfold wellformed_composition_def, intro conjI)
-  show "\<exists>x\<in>set (components composition'). control (snd x)"
-    by (simp add: wellformed_CAMKES_simps)
-  show "refs_valid_composition composition'"
-    sorry /*# TODO: enumerate all examples here?   #*/
-          /*# custom induction or so? #*/
-  show "\<forall>(comp, group)\<in>set (group_labels composition').
-       comp \<in> fst ` set (components composition') \<union>
-          fst ` set (connections composition')"
+proof -
+  have "\<exists>x\<in>set (components /*? composition ?*/). control (snd x)"
+    unfolding /*? composition ?*/_def wf_components wf_instances by simp
+  moreover have "refs_valid_composition /*? composition ?*/"
   proof -
-    have "fst ` set (group_labels composition') = {
+    have "refs_valid_components (components /*? composition ?*/) (connections /*? composition ?*/)"
+      by (subst /*? composition ?*/_def, unfold refs_valid_components_def, simp, intro conjI; simp add: rv_components)
+    moreover have "refs_valid_connections (connections /*? composition ?*/) (components /*? composition ?*/)"
+      by (subst /*? composition ?*/_def, unfold refs_valid_connections_def, simp, intro conjI; simp add: rv_connections)
+    ultimately show ?thesis unfolding refs_valid_composition_def by simp
+  qed
+  moreover have "\<forall>(comp, group)\<in>set (group_labels /*? composition ?*/).
+       comp \<in> fst ` set (components /*? composition ?*/) \<union>
+          fst ` set (connections /*? composition ?*/)"
+  proof -
+    have "fst ` set (group_labels /*? composition ?*/) = {
     /*- for l in group_labels.items() | sort | map(attribute='0') --*/
     ''/*? l ?*/''/*- if not loop.last -*/, /*- endif -*/
     /*- endfor --*/
     }"
-      unfolding composition'_def by simp
-    then show ?thesis unfolding composition'_def by simp
+      unfolding /*? composition ?*/_def by simp
+    then show ?thesis unfolding /*? composition ?*/_def by simp
   qed
-  show "distinct
-     (map fst (components composition') @
-      map fst (connections composition'))"
+  moreover have "distinct
+     (map fst (components /*? composition ?*/) @
+      map fst (connections /*? composition ?*/))"
   proof -
-    let ?x = "map fst (components composition')"
-    let ?y = "map fst (connections composition')"
-    have "distinct ?x" unfolding composition'_def by auto
-    moreover have "distinct ?y" unfolding composition'_def by auto
-    moreover have "set ?x \<inter> set ?y = {}" unfolding composition'_def by fastforce
+    let ?x = "map fst (components /*? composition ?*/)"
+    let ?y = "map fst (connections /*? composition ?*/)"
+    have "distinct ?x" unfolding /*? composition ?*/_def by auto
+    moreover have "distinct ?y" unfolding /*? composition ?*/_def by auto
+    moreover have "set ?x \<inter> set ?y = {}" unfolding /*? composition ?*/_def by fastforce
     ultimately show ?thesis by simp
   qed
-  show "\<forall>x\<in>set (components composition').
+  moreover have "\<forall>x\<in>set (components /*? composition ?*/).
        wellformed_component (snd x)"
-    unfolding composition'_def using wf_components by simp
-  show "\<forall>x\<in>set (connections composition').
+    unfolding /*? composition ?*/_def using wf_components by simp
+  moreover have "\<forall>x\<in>set (connections /*? composition ?*/).
        wellformed_connection (snd x)"
-    unfolding composition'_def using wf_connections by simp
+    unfolding /*? composition ?*/_def using wf_connections by simp
+  ultimately show ?thesis unfolding wellformed_composition_def by simp
 qed
 
 definition
