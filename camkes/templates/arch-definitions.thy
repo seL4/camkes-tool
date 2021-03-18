@@ -117,11 +117,19 @@ lemma[wellformed_CAMKES_simps]: "wellformed_connector /*? isabelle_connector(i.n
   by (auto simp: wellformed_CAMKES_simps /*? isabelle_connector(i.name) ?*/_def)
 /*- endfor -*/
 
+(* Introduce shorthands for wf_XXX lemmas, which speed up the proving process. *)
+named_theorems wf_procedures
+named_theorems wf_events
+named_theorems wf_dataports
+named_theorems wf_instances
+named_theorems wf_components
+named_theorems wf_connections
+
 (* Procedure interfaces *)
 /*- for i in uniq(map(lambda('x: x.type'), flatMap(lambda('x: x.type.uses + x.type.provides'), me.composition.instances))) -*/
 definition
     /*? isabelle_procedure(i.name) ?*/ :: procedure
-where[wellformed_CAMKES_simps]:
+where[wellformed_CAMKES_simps, wf_procedures]:
     "/*? isabelle_procedure(i.name) ?*/ \<equiv>
     /*- for m in i.methods -*/
         \<lparr> m_return_type =
@@ -149,7 +157,7 @@ where[wellformed_CAMKES_simps]:
     /*- endfor -*/
     []"
 
-lemma wf_/*? isabelle_procedure(i.name) ?*/: "wellformed_procedure /*? isabelle_procedure(i.name) ?*/"
+lemma wf_/*? isabelle_procedure(i.name) ?*/[wf_procedures]: "wellformed_procedure /*? isabelle_procedure(i.name) ?*/"
   by (simp add: wellformed_CAMKES_simps)
 /*- endfor -*/
 
@@ -157,10 +165,10 @@ lemma wf_/*? isabelle_procedure(i.name) ?*/: "wellformed_procedure /*? isabelle_
 /*- for index, i in enumerate(uniq(map(lambda('x: x.type'), flatMap(lambda('x: x.type.emits + x.type.consumes'), me.composition.instances)))) -*/
 definition
     /*? isabelle_event(i) ?*/ :: event
-where[wellformed_CAMKES_simps]:
+where[wellformed_CAMKES_simps, wf_events]:
     "/*? isabelle_event(i) ?*/ \<equiv> /*? index ?*/"
 
-lemma wf_/*? isabelle_event(i) ?*/: "wellformed_event /*? isabelle_event(i) ?*/"
+lemma wf_/*? isabelle_event(i) ?*/[wf_events]: "wellformed_event /*? isabelle_event(i) ?*/"
   by (simp add: wellformed_CAMKES_simps)
 /*- endfor -*/
 
@@ -169,17 +177,17 @@ lemma wf_/*? isabelle_event(i) ?*/: "wellformed_event /*? isabelle_event(i) ?*/"
 /*- for i in uniq(map(lambda('x: x.type'), flatMap(lambda('x: x.type.dataports'), me.composition.instances))) -*/
 definition
     /*? isabelle_dataport(i) ?*/ :: dataport
-where[wellformed_CAMKES_simps]:
+where[wellformed_CAMKES_simps, wf_dataports]:
     "/*? isabelle_dataport(i) ?*/ \<equiv> Some ''/*? i ?*/''"
 
-lemma wf_/*? isabelle_dataport(i) ?*/: "wellformed_dataport /*? isabelle_dataport(i) ?*/"
+lemma wf_/*? isabelle_dataport(i) ?*/[wf_dataports]: "wellformed_dataport /*? isabelle_dataport(i) ?*/"
   by (simp add: wellformed_CAMKES_simps)
 /*- endfor -*/
 
 /*- for c in uniq(map(lambda('x: x.type'), me.composition.instances)) -*/
 definition
     /*? isabelle_instance(c.name) ?*/ :: component
-where[wellformed_CAMKES_simps]:
+where[wellformed_CAMKES_simps, wf_instances]:
     "/*? isabelle_instance(c.name) ?*/ \<equiv> \<lparr>
         control =
         /*- if c.control -*/
@@ -249,24 +257,24 @@ where[wellformed_CAMKES_simps]:
         []
     \<rparr>"
 
-lemma wf_/*? isabelle_instance(c.name) ?*/: "wellformed_component /*? isabelle_instance(c.name) ?*/"
+lemma wf_/*? isabelle_instance(c.name) ?*/[wf_instances]: "wellformed_component /*? isabelle_instance(c.name) ?*/"
   by (simp add: wellformed_CAMKES_simps)
 /*- endfor -*/
 
 /*- for i in me.composition.instances -*/
 definition
     /*? isabelle_component(i.name) ?*/ :: component
-where[wellformed_CAMKES_simps]:
+where[wellformed_CAMKES_simps, wf_components]:
     "/*? isabelle_component(i.name) ?*/ \<equiv> /*? isabelle_instance(i.type.name) ?*/"
 
-lemma wf_/*? isabelle_component(i.name) ?*/: "wellformed_component /*? isabelle_component(i.name) ?*/"
+lemma wf_/*? isabelle_component(i.name) ?*/[wf_components]: "wellformed_component /*? isabelle_component(i.name) ?*/"
   by (simp add: wellformed_CAMKES_simps)
 /*- endfor -*/
 
 /*- for c in me.composition.connections -*/
 definition
     /*? isabelle_connection(c.name) ?*/ :: connection
-where[wellformed_CAMKES_simps]:
+where[wellformed_CAMKES_simps, wf_connections]:
     "/*? isabelle_connection(c.name) ?*/ \<equiv> \<lparr>
         conn_type = /*? isabelle_connector(c.type.name) ?*/,
         conn_from =
@@ -281,7 +289,7 @@ where[wellformed_CAMKES_simps]:
           []
     \<rparr>"
 
-lemma wf_/*? isabelle_connection(c.name) ?*/: "wellformed_connection /*? isabelle_connection(c.name) ?*/"
+lemma wf_/*? isabelle_connection(c.name) ?*/[wf_connections]: "wellformed_connection /*? isabelle_connection(c.name) ?*/"
   by (simp add: wellformed_CAMKES_simps)
 /*- endfor -*/
 
@@ -307,7 +315,42 @@ where[wellformed_CAMKES_simps]:
     \<rparr>"
 
 lemma wf_/*? composition ?*/: "wellformed_composition /*? composition ?*/"
-  by (simp add: wellformed_CAMKES_simps)
+proof (unfold wellformed_composition_def, intro conjI)
+  show "\<exists>x\<in>set (components composition'). control (snd x)"
+    by (simp add: wellformed_CAMKES_simps)
+  show "refs_valid_composition composition'"
+    sorry /*# TODO: enumerate all examples here?   #*/
+          /*# custom induction or so? #*/
+  show "\<forall>(comp, group)\<in>set (group_labels composition').
+       comp \<in> fst ` set (components composition') \<union>
+          fst ` set (connections composition')"
+  proof -
+    have "fst ` set (group_labels composition') = {
+    /*- for l in group_labels.items() | sort | map(attribute='0') --*/
+    ''/*? l ?*/''/*- if not loop.last -*/, /*- endif -*/
+    /*- endfor --*/
+    }"
+      unfolding composition'_def by simp
+    then show ?thesis unfolding composition'_def by simp
+  qed
+  show "distinct
+     (map fst (components composition') @
+      map fst (connections composition'))"
+  proof -
+    let ?x = "map fst (components composition')"
+    let ?y = "map fst (connections composition')"
+    have "distinct ?x" unfolding composition'_def by auto
+    moreover have "distinct ?y" unfolding composition'_def by auto
+    moreover have "set ?x \<inter> set ?y = {}" unfolding composition'_def by fastforce
+    ultimately show ?thesis by simp
+  qed
+  show "\<forall>x\<in>set (components composition').
+       wellformed_component (snd x)"
+    unfolding composition'_def using wf_components by simp
+  show "\<forall>x\<in>set (connections composition').
+       wellformed_connection (snd x)"
+    unfolding composition'_def using wf_connections by simp
+qed
 
 definition
     /*? configuration ?*/ :: "configuration option"
@@ -344,7 +387,13 @@ where[wellformed_CAMKES_simps]:
     \<rparr>"
 
 lemma wf_/*? assembly ?*/: "wellformed_assembly /*? assembly ?*/"
-  by (simp add: wellformed_CAMKES_simps)
+proof (unfold wellformed_assembly_def, rule conjI)
+  show "wellformed_composition (composition assembly')"
+    by (simp add: wf_/*? composition ?*/ assembly'_def)
+  show "case configuration assembly' of None \<Rightarrow> True
+                                      | Some x \<Rightarrow> wellformed_configuration x"
+    by (simp add: /*? assembly ?*/_def option.case_eq_if wf_/*? configuration ?*/)
+qed
 
 end
 
