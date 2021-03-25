@@ -252,5 +252,3 @@ void set_putchar(void (*putchar)(int c));
   camkes_error_handler_t /*? i.name ?*/_register_error_handler(
     camkes_error_handler_t handler);
 /*- endfor -*/
-
-@CMAKE_INTERFACE_INCLUDES@
