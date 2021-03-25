@@ -181,8 +181,9 @@ RequireFile(CONFIGURE_FILE_SCRIPT configure_file.cmake PATHS ${CMAKE_MODULE_PATH
     list(APPEND static_sources "$<TARGET_PROPERTY:${instance_target},COMPONENT_SOURCES>")
     set(extra_c_flags "$<TARGET_PROPERTY:CAmkESComponent_/*? i.type.name ?*/,COMPONENT_C_FLAGS>")
     list(APPEND extra_c_flags "$<TARGET_PROPERTY:${instance_target},COMPONENT_C_FLAGS>")
-    set(extra_ld_flags "$<TARGET_PROPERTY:CAmkESComponent_/*? i.type.name ?*/,COMPONENT_LD_FLAGS>")
-    list(APPEND extra_ld_flags "$<TARGET_PROPERTY:${instance_target},COMPONENT_LD_FLAGS>")
+    get_property(extra_ld_flags TARGET "CAmkESComponent_/*? i.type.name ?*/" PROPERTY COMPONENT_LD_FLAGS)
+    get_property(component_extra_ld_flags TARGET "${instance_target}" PROPERTY COMPONENT_LD_FLAGS)
+    list(APPEND extra_ld_flags "${component_extra_ld_flags}")
     set(extra_libs "$<TARGET_PROPERTY:CAmkESComponent_/*? i.type.name ?*/,COMPONENT_LIBS>")
     list(APPEND extra_libs "$<TARGET_PROPERTY:${instance_target},COMPONENT_LIBS>")
     # Retrieve the static headers for the component. Ensure instance headers are placed first
@@ -193,8 +194,13 @@ RequireFile(CONFIGURE_FILE_SCRIPT configure_file.cmake PATHS ${CMAKE_MODULE_PATH
     CAmkESGen("${generated_dir}/camkes.c" component//*? i.name ?*/ component.common.c SOURCE C_STYLE)
     # Generate camkes header
 
-    unset(CMAKE_INTERFACE_INCLUDES)
-    CAmkESGen("${generated_dir}/include/camkes.h.in" component//*? i.name ?*/ component.template.h)
+    unset(CAMKES_INTERFACE_INCLUDES)
+    set(camkes_component_h "camkes-component-/*? i.name ?*/.h")
+    CAmkESGen(
+        "${generated_dir}/include/${camkes_component_h}"
+        component//*? i.name ?*/
+        component.template.h
+    )
 
     /*- if configuration[i.name].get('environment', 'c').lower() == 'c' -*/
         CAmkESGen("${generated_dir}/camkes.environment.c" component//*? i.name ?*/ component.environment.c SOURCE C_STYLE)
@@ -222,7 +228,7 @@ RequireFile(CONFIGURE_FILE_SCRIPT configure_file.cmake PATHS ${CMAKE_MODULE_PATH
                 get_property(c_from_template_header TARGET ${connector_target} PROPERTY CONNECTOR_FROM_HEADER)
                 if (NOT "${c_from_template_header}" STREQUAL "")
                     CAmkESGen("${generated_dir}/include/${unique_name}.h" connector//*? c.name ?*//from//*? id ?*/ ${c_from_template_header} C_STYLE)
-                    set(CMAKE_INTERFACE_INCLUDES "${CMAKE_INTERFACE_INCLUDES}#include <${unique_name}.h>\n")
+                    list(APPEND CAMKES_INTERFACE_INCLUDES "${unique_name}.h")
                 endif()
                 get_property(c_from_libs TARGET ${connector_target} PROPERTY CONNECTOR_FROM_LIBS)
                 list(APPEND extra_libs ${c_from_libs})
@@ -248,7 +254,7 @@ RequireFile(CONFIGURE_FILE_SCRIPT configure_file.cmake PATHS ${CMAKE_MODULE_PATH
                     get_property(c_to_template_header TARGET ${connector_target} PROPERTY CONNECTOR_TO_HEADER)
                     if (NOT "${c_to_template_header}" STREQUAL "")
                         CAmkESGen("${generated_dir}/include/${unique_name}.h" connector//*? c.name ?*//to//*? id ?*/ ${c_to_template_header} C_STYLE)
-                        set(CMAKE_INTERFACE_INCLUDES "${CMAKE_INTERFACE_INCLUDES}#include <${unique_name}.h>\n")
+                        list(APPEND CAMKES_INTERFACE_INCLUDES "${unique_name}.h")
                     endif()
 
                 /*- endif -*/
@@ -269,13 +275,13 @@ RequireFile(CONFIGURE_FILE_SCRIPT configure_file.cmake PATHS ${CMAKE_MODULE_PATH
         foreach(template_file IN LISTS template_headers)
             get_filename_component(filename ${template_file} NAME)
             CAmkESGen("${generated_dir}/include/${filename}" component//*? i.name ?*/ ${template_file} C_STYLE)
-            set(CMAKE_INTERFACE_INCLUDES "${CMAKE_INTERFACE_INCLUDES}#include <${filename}>\n")
+            list(APPEND CAMKES_INTERFACE_INCLUDES "${filename}")
         endforeach()
     endif()
     /*- if configuration[i.name].get('single_threaded') -*/
         CAmkESGen("${generated_dir}/seL4SingleThreadedComponent.template.c" component//*? i.name ?*/ seL4SingleThreadedComponent.template.c SOURCE C_STYLE)
         CAmkESGen("${generated_dir}/include/seL4SingleThreadedComponent.template.h" component//*? i.name ?*/ seL4SingleThreadedComponent.template.h SOURCE C_STYLE)
-        set(CMAKE_INTERFACE_INCLUDES "${CMAKE_INTERFACE_INCLUDES}#include <seL4SingleThreadedComponent.template.h>\n")
+        list(APPEND CAMKES_INTERFACE_INCLUDES "seL4SingleThreadedComponent.template.h")
     /*- endif -*/
 
     /*- if configuration[i.name].get('debug') -*/
@@ -288,14 +294,12 @@ RequireFile(CONFIGURE_FILE_SCRIPT configure_file.cmake PATHS ${CMAKE_MODULE_PATH
         CAmkESGen("${generated_dir}/camkes.rumprun.c" component//*? i.name ?*/ component.rumprun.c SOURCE C_STYLE)
     /*- endif -*/
 
-    # Add interface header files to camkes.h
-    file(WRITE "${generated_dir}/include/camkes.h.cmd" "${CMAKE_COMMAND} -DCONFIGURE_INPUT_FILE=\"${generated_dir}/include/camkes.h.in\" \
-        -DCONFIGURE_OUTPUT_FILE=\"${generated_dir}/include/camkes.h\" -DCMAKE_INTERFACE_INCLUDES=\"${CMAKE_INTERFACE_INCLUDES}\" -P ${CONFIGURE_FILE_SCRIPT}")
-    add_custom_command(OUTPUT ${generated_dir}/include/camkes.h
-        COMMAND sh "${generated_dir}/include/camkes.h.cmd"
-        DEPENDS "${generated_dir}/include/camkes.h.in" "${generated_dir}/include/camkes.h.cmd"
-        )
-    set_property(SOURCE /*? i.name ?*//camkes.c PROPERTY OBJECT_DEPENDS ${generated_dir}/include/camkes.h)
+    # Generate camkes.h, which includes all other headers in the correct order.
+    set(camkes_h_content "#pragma once\n\n#include \"${camkes_component_h}\"\n")
+    foreach(item IN LISTS CAMKES_INTERFACE_INCLUDES)
+        STRING(APPEND camkes_h_content "#include \"${item}\"\n")
+    endforeach()
+    file(WRITE "${generated_dir}/include/camkes.h" "${camkes_h_content}")
 
     # Create a target for all our generated files
     set(gen_target /*? i.name ?*/_generated)
@@ -347,7 +351,11 @@ RequireFile(CONFIGURE_FILE_SCRIPT configure_file.cmake PATHS ${CMAKE_MODULE_PATH
         " -static -nostdlib -u _camkes_start -e _camkes_start ")
     # Add extra flags specified by the user
     target_compile_options(${target} PRIVATE ${extra_c_flags} ${CAMKES_C_FLAGS})
-    set_property(TARGET ${TARGET} APPEND_STRING PROPERTY LINK_FLAGS ${extra_ld_flags})
+    message(STATUS "Found extra flags for ${target}: ${extra_c_flags}")
+    foreach(extra_ld_flag IN LISTS extra_ld_flags)
+        set_property(TARGET ${target} APPEND_STRING PROPERTY LINK_FLAGS ${extra_ld_flag})
+        message(STATUS "Found extra flag for ${target}: ${extra_ld_flag}")
+    endforeach()
     # Only incrementally link if this instance is going on to become part of a
     # group.
     # TODO: we care about being grouped elsewhere as well. generalize this

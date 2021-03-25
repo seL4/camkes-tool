@@ -45,12 +45,17 @@ class CPP(Parser):
         output_basename = os.path.join(self.out_dir, os.path.basename(filename))
         output = output_basename + '.cpp'
         deps = output_basename + '.d'
-        p = subprocess.Popen([self.cpp_bin, '-MD', '-MF', deps, '-o',
-                              output] + self.flags + [filename], stdout=subprocess.PIPE,
-                             stderr=subprocess.PIPE, universal_newlines=True)
+        cmd_array = [self.cpp_bin, '-MD', '-MF', deps, '-o', output] \
+            + self.flags + [filename]
+        p = subprocess.Popen(
+            cmd_array,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            universal_newlines=True)
         _, stderr = p.communicate()
         if p.returncode != 0:
-            raise ParseError('CPP failed: %s' % stderr)
+            raise ParseError('CPP command failed:\n  %s\nstderr:\n%s' %
+                             ('\n    '.join(cmd_array), stderr))
         with codecs.open(output, 'r', 'utf-8') as f:
             processed = f.read()
         with codecs.open(deps, 'r', 'utf-8') as f:
@@ -61,10 +66,14 @@ class CPP(Parser):
         output_basename = os.path.join(self.out_dir,  'output.camkes')
         output = output_basename + '.cpp'
         deps = output_basename + '.d'
-        p = subprocess.Popen([self.cpp_bin, '-MD', '-MF', deps, '-o',
-                              output] + self.flags, stdin=subprocess.PIPE,
-                             stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                             universal_newlines=True)
+        cmd_array = [self.cpp_bin, '-MD', '-MF', deps, '-o', output] \
+            + self.flags
+        p = subprocess.Popen(
+            cmd_array,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            universal_newlines=True)
         # hack around python2 and 3's awful unicode problems
         try:
             string = str(string)
@@ -74,7 +83,8 @@ class CPP(Parser):
             string = string.encode('utf-8')
         _, stderr = p.communicate(string)
         if p.returncode != 0:
-            raise ParseError('CPP failed: %s' % stderr)
+            raise ParseError('CPP command failed:\n  %s\nstderr:\n%s' %
+                             ('\n    '.join(cmd_array), stderr))
         with codecs.open(output, 'r', 'utf-8') as f:
             processed = f.read()
         with codecs.open(deps, 'r', 'utf-8') as f:

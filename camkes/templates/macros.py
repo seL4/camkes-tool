@@ -65,7 +65,7 @@ struct {
 } %(sym)s
         ALIGN(%(page_size)s)
         SECTION("align_%(page_size_bits)sbit")
-        __attribute__((externally_visible))
+        VISIBLE
         USED;
 ''' % {"sym": sym, "shmem_size": shmem_size, "page_size": page_size, "page_size_bits": page_size_bits}
 
