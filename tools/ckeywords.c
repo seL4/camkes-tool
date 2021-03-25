@@ -69,9 +69,9 @@
 #define ALIAS(string, target, category) KEYWORD_(string, category)
 
 static char *keywords[] = {
-/* Include Clang's definition of keywords.
- *  include/clang/Basic/TokenKinds.def
- */
+    /* Include Clang's definition of keywords.
+     *  include/clang/Basic/TokenKinds.def
+     */
 #include <TokenKinds.def>
 };
 
@@ -83,6 +83,7 @@ static const char *header = "#!/usr/bin/env python\n"
                             "#\n"
                             "# Copyright 2017, Data61, CSIRO (ABN 41 687 119 230)\n"
                             "#\n"
+                            // cut SPDX into two strings to avoid confusing the license check tool:
                             "# SPDX" "-License-Identifier: BSD-2-Clause\n"
                             "#\n"
                             "\n"
@@ -97,7 +98,8 @@ static const char *header = "#!/usr/bin/env python\n"
                             "C_KEYWORDS = frozenset([\n";
 static const char *footer = "])\n";
 
-int main(void) {
+int main(void)
+{
     bool newline = true;
     unsigned column = 0;
 
@@ -113,12 +115,14 @@ int main(void) {
     for (unsigned i = 0; i < sizeof(keywords) / sizeof(keywords[0]); i++) {
 
         /* This keyword was irrelevant in our current environment. */
-        if (keywords[i] == NULL)
+        if (keywords[i] == NULL) {
             continue;
+        }
 
         /* Keyword that can never collide with a CAmkES identifier. */
-        if (regexec(&regex, keywords[i], 0, NULL, 0) == REG_NOMATCH)
+        if (regexec(&regex, keywords[i], 0, NULL, 0) == REG_NOMATCH) {
             continue;
+        }
 
         unsigned len = strlen(keywords[i]);
         if (column + len + 4 > wrap_at) {
