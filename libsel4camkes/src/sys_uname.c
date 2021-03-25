@@ -73,7 +73,7 @@ long camkes_sys_uname(va_list ap)
 #elif defined(CONFIG_ARCH_RISCV)
     arch = "RISC-V";
     arch_ver = ", " STRINGIFY(CONFIG_SEL4_ARCH);
-    plat = STRINGIFY(CONFIG_RISCV_PLAT)
+    plat = STRINGIFY(CONFIG_RISCV_PLAT);
 
 #elif defined(CONFIG_ARCH_IA32) || defined(CONFIG_ARCH_X86_64)
     arch = STRINGIFY(CONFIG_SEL4_ARCH);
