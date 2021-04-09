@@ -284,15 +284,14 @@ const camkes_dma_stats_t *camkes_dma_stats(void)
  * of this function is at least O(n^2).
  *
  * Over time the free list can evolve to contain separate chunks that are
- * actually contiguous, both physically and virtually. This fragmentation can
- * result in unnecessary allocation failures, so this function is provided to
- * coalesce such chunks. For example, the free list may end up like:
+ * actually contiguous virtually. This fragmentation can result in unnecessary
+ * allocation failures, so this function is provided to coalesce such chunks.
+ * For example, the free list may end up like:
  *
  *  +---------------+    +---------------+    +---------------+
  *  | vaddr: 0x4000 |    | vaddr: 0x7000 |    | vaddr: 0x2000 |
  *  | size : 0x1000 |    | size : 0x2000 |    | size : 0x2000 |
  *  | next : -------|--->| next : -------|--->| next : NULL   |
- *  | paddr: 0x6000 |    │ paddr: 0x8000 |    | paddr: 0x4000 |
  *  +---------------+    +---------------+    +---------------+
  *
  * after defragmentation, the free list will look like:
@@ -301,7 +300,6 @@ const camkes_dma_stats_t *camkes_dma_stats(void)
  *  | vaddr: 0x2000 |    | vaddr: 0x7000 |
  *  | size : 0x3000 |    | size : 0x2000 |
  *  | next : -------|--->| next : NULL   |
- *  | paddr: 0x4000 |    | paddr: 0x8000 |
  *  +---------------+    +---------------+
  */
 static void defrag(void)
@@ -336,7 +334,7 @@ static void defrag(void)
              */
             assert(pprev != NULL);
 
-            if (p_vstart == q_vend && p_pstart == q_pend && p_cached == q_cached) {
+            if (p_vstart == q_vend && p_cached == q_cached) {
                 /* 'p' immediately follows the region 'q'. Coalesce 'p' into
                  * 'q'.
                  */
@@ -363,7 +361,7 @@ static void defrag(void)
                 break;
             }
 
-            if (p_vend == q_vstart && p_pend == q_pstart && p_cached == q_cached) {
+            if (p_vend == q_vstart && p_cached == q_cached) {
                 /* 'p' immediately precedes the region 'q'. Coalesce 'q' into
                  * 'p'.
                  */
