@@ -488,7 +488,8 @@ static void CONSTRUCTOR(CAMKES_SYSCALL_CONSTRUCTOR_PRIORITY+1) init(void) {
     /*- elif options.debug_fault_handlers and loop.last -*/
         /*- do thread_names.__setitem__(tcb, "fault_handler") -*/
         /*- do _tcb.__setattr__('prio', 255) -*/
-        /*- do _tcb.__setattr__('affinity', options.default_affinity) -*/
+        /*- set thread_affinity = configuration[me.name].get("affinity", options.default_affinity) -*/
+        /*- do _tcb.__setattr__('affinity', thread_affinity) -*/
         /*- do _tcb.__setattr__('max_prio', options.default_max_priority) -*/
 
     /*- else -*/
