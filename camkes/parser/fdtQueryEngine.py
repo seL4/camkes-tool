@@ -8,6 +8,7 @@
 #
 import argparse
 
+import functools
 import os
 import six
 import re
@@ -414,7 +415,140 @@ class DtbMatchQuery(Query):
         self.engine = None
 
     @staticmethod
-    def resolve_fdt_node(node):
+    def unpack(data, sizes):
+        result = []
+        while sizes:
+            sz = sizes.pop(0)
+            result.append(functools.reduce(lambda a, b: (a << 32) + b, [0] + data[0:sz]))
+            data = data[sz:]
+        return result, data
+
+    @classmethod
+    def unpacker(cls, data, sizes):
+        while data:
+            result, data = cls.unpack(data, sizes[:])
+            yield result
+
+    @classmethod
+    def pack(cls, x, size):
+        result = []
+        if size > 0:
+            result = cls.pack(x >> 32, size - 1)
+            result.append(x & ((1 << 32) - 1))
+        else:
+            if x != 0:
+                raise RuntimeError('value 0x%x does not fit into device tree' % (x))
+
+        return result
+
+    @staticmethod
+    def xlat_reg(addr, size, buses):
+        for bus in buses:
+            if not 'translations' in bus:
+                continue
+            for xlat in bus['translations']:
+                if addr < xlat['from_start'] or addr > xlat['from_start'] + xlat['size'] - 1:
+                    continue
+                if addr + size > xlat['from_start'] + xlat['size']:
+                    raise RuntimeError('Region 0x%x/0x%x does not fit into range 0x%x/0x%x'
+                                       % (addr, size, xlat['from_start'], xlat['size']))
+                addr = xlat['to_start'] + (addr - xlat['from_start'])
+                break
+        return addr
+
+    @classmethod
+    def xlat_regs(cls, cells, buses):
+        if not 'reg' in cells:
+            return
+
+        this_address_cells = buses[0]['this-address-cells']
+        this_size_cells = buses[0]['this-size-cells']
+
+        regs = cls.unpacker(cells['reg'], [this_address_cells, this_size_cells])
+        cells['reg'] = []
+
+        while True:
+            (addr, size) = next(regs, (None, None))
+            if addr == None:
+                break
+
+            addr = cls.xlat_reg(addr, size, buses)
+
+            cells['reg'].extend(cls.pack(addr, this_address_cells))
+            cells['reg'].extend(cls.pack(size, this_size_cells))
+
+    @classmethod
+    def resolve_translations(cls, buses):
+        # find out necessary address range translations
+        bus_iter = iter(buses)
+        this_bus = next(bus_iter, None)
+
+        while this_bus:
+            parent_bus = next(bus_iter, None)
+            if 'ranges' in this_bus:
+                if not parent_bus:
+                    raise RuntimeError('cannot have \'ranges\' without parent bus')
+
+                # deserialize the 32-bit words from device tree
+                ranges = cls.unpacker(this_bus['ranges'], [
+                    this_bus['this-address-cells'],
+                    parent_bus['this-address-cells'],
+                    this_bus['this-size-cells'],
+                ])
+
+                this_bus['translations'] = []
+                while True:
+                    (this_addr, parent_addr, this_size) = next(ranges, (None, None, None))
+                    if this_addr == None:
+                        break
+                    this_bus['translations'].append({
+                        'from_start': this_addr,
+                        'to_start': parent_addr,
+                        'size': this_size,
+                    })
+
+            this_bus = parent_bus
+
+        return buses
+
+    @staticmethod
+    def resolve_buses(node):
+        buses = []
+        parent = node.parent
+        while True:
+            bus = {}
+
+            for p in parent.walk() if parent else []:
+                key = p[0][1:]
+                if type(p[1]) is pyfdt.pyfdt.FdtProperty:
+                    values = []
+                else:
+                    values = list(p[1])
+
+                if key == '#address-cells':
+                    bus['this-address-cells'] = values[0]
+                elif key == '#size-cells':
+                    bus['this-size-cells'] = values[0]
+                elif key == 'ranges':
+                    bus['ranges'] = values
+
+            # if the parent does not have the #address-cells and
+            # #size-cells properties, default to 2 and 1 respectively
+            # as according to the Devicetree spec
+            if 'this-address-cells' not in bus:
+                bus['this-address-cells'] = 2
+            if 'this-size-cells' not in bus:
+                bus['this-size-cells'] = 1
+
+            buses.append(bus)
+            if not (parent and parent.parent):
+                break
+            parent = parent.parent
+
+        return buses
+
+    @classmethod
+    def resolve_fdt_node(cls, node):
         resolved = {}
 
         # convert the properties we retrieved to a dictionary
@@ -429,22 +563,18 @@ class DtbMatchQuery(Query):
                 resolved[key] = []
             else:
                 resolved[key] = list(values)
-        # retrieve the #address-cells and #size-cells property
-        # from the parent
-        for p in node.parent.walk():
-            key = p[0][1:]
-            values = p[1]
-            if key == '#address-cells':
-                resolved['this-address-cells'] = list(values)
-            elif key == '#size-cells':
-                resolved['this-size-cells'] = list(values)
-        # if the parent does have the #address-cells and
-        # #size-cells property, default to 2 and 1 respectively
-        # as according to the Devicetree spec
-        if 'this-address-cells' not in resolved:
-            resolved['this-address-cells'] = [2]
-        if 'this-size-cells' not in resolved:
-            resolved['this-size-cells'] = [1]
+
+        # retrieve the #address-cells, #size-cells and ranges properties
+        # from the parents
+        buses = cls.resolve_buses(node)
+
+        # compatibility with dtb-query-common.template.c
+        resolved['this-address-cells'] = [buses[0]['this-address-cells']]
+        resolved['this-size-cells'] = [buses[0]['this-size-cells']]
+
+        if 'reg' in resolved:
+            cls.xlat_regs(resolved, cls.resolve_translations(buses))
+
         # Resolve the full path of the fdt node by walking backwards
         # to the root of the device tree
         curr_node = node
