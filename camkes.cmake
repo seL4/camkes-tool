@@ -492,11 +492,12 @@ function(GenerateCAmkESRootserver)
 
     set(CAMKES_AST_PICKLE "${CMAKE_CURRENT_BINARY_DIR}/ast.pickle")
     set(CAMKES_AST_DEP_FILE "${CAMKES_AST_PICKLE}.d")
+    set(extra_dependencies ${CAMKES_TOOL_FILES} ${PYTHON_CAPDL_FILES})
     execute_process_with_stale_check(
         "${CAMKES_AST_PICKLE}.cmd"
         "${CAMKES_AST_DEP_FILE}"
         "${CAMKES_AST_PICKLE}"
-        "${CAMKES_TOOL_FILES} ${PYTHON_CAPDL_FILES}"
+        "${extra_dependencies}"
         COMMAND
         ${CAMKES_PARSER_TOOL}
         ${CAMKES_FLAGS}
@@ -525,11 +526,12 @@ function(GenerateCAmkESRootserver)
 
     set(CAMKES_CMAKE_FILE "${CMAKE_CURRENT_BINARY_DIR}/camkes-gen.cmake")
     set(CAMKES_CMAKE_DEP_FILE "${CAMKES_CMAKE_FILE}.d")
+    set(extra_dependencies ${CAMKES_AST_PICKLE} ${CAMKES_TOOL_FILES} ${PYTHON_CAPDL_FILES})
     execute_process_with_stale_check(
         "${CAMKES_CMAKE_FILE}.cmd"
         "${CAMKES_CMAKE_DEP_FILE}"
         "${CAMKES_CMAKE_FILE}"
-        "${CAMKES_TOOL_FILES} ${PYTHON_CAPDL_FILES} ${CAMKES_AST_PICKLE}"
+        "${extra_dependencies}"
         COMMAND
         ${CAMKES_TOOL}
         ${CAMKES_FLAGS}
