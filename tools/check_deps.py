@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
 # Copyright 2017, Data61, CSIRO (ABN 41 687 119 230)
@@ -51,7 +51,7 @@ class Pylint(Binary):
             return False
         with open(os.devnull, 'wt') as f:
             output = subprocess.check_output(['pylint', '--version'], stderr=f)
-        m = re.search(r'^pylint\s+(\d+\.\d+)', output, flags=re.MULTILINE)
+        m = re.search(r'^pylint\s+(\d+\.\d+)', output.decode('utf-8'), flags=re.MULTILINE)
         if m is None:
             raise CheckDepException('cannot determine version')
         version = float(m.group(1))
