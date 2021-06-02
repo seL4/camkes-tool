@@ -141,7 +141,7 @@ DEPENDENCIES = {
                      PythonModule('sqlite3', 'Python SQLite module'),
                      PythonModule('pyfdt', 'Python flattened device tree parser')),
     'seL4':(Binary('gcc', 'C compiler'),
-            PythonModule('tempita', 'Python templating module'),
+            PythonModule('jinja2', 'Python templating module'),
             Binary('xmllint', 'XML validator'),
             Binary('bash', 'shell'),
             Binary('make', 'GNU Make build tool'),
