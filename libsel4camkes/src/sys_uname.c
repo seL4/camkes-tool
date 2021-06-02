@@ -53,11 +53,9 @@ long camkes_sys_uname(va_list ap)
     /* Set hardware information. */
     char *arch;
     char *arch_ver;
-    char *plat;
 
 #if defined(CONFIG_ARCH_ARM)
     arch = "ARM";
-    plat = STRINGIFY(CONFIG_ARM_PLAT);
 #if defined(CONFIG_ARCH_ARM_V6)
     arch_ver = "v6";
 #elif defined(CONFIG_ARCH_ARM_V7A)
@@ -73,18 +71,17 @@ long camkes_sys_uname(va_list ap)
 #elif defined(CONFIG_ARCH_RISCV)
     arch = "RISC-V";
     arch_ver = ", " STRINGIFY(CONFIG_SEL4_ARCH);
-    plat = STRINGIFY(CONFIG_RISCV_PLAT);
 
 #elif defined(CONFIG_ARCH_IA32) || defined(CONFIG_ARCH_X86_64)
     arch = STRINGIFY(CONFIG_SEL4_ARCH);
     arch_ver = "";
-    plat = "pc99";
 
 #else
 #error "please define configuration"
 #endif
 
-    snprintf(buf->machine, sizeof buf->machine, "%s (%s%s)", plat, arch, arch_ver);
+    snprintf(buf->machine, sizeof buf->machine, "%s (%s%s)",
+             STRINGIFY(CONFIG_PLAT), arch, arch_ver);
 
     /* Set the domain name. */
 #if _GNU_SOURCE
