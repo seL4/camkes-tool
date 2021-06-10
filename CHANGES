@@ -273,8 +273,8 @@ issue is fixed.
 = Upgrade notes =
  * ADL files: ADL syntax changes in this release should not break any existing ADL files.
  * Templates:
- 	seL4HardwareMMIO template now has an option to map hardware memory as cached.  The default setting is uncached
-which is the same as the old behaviour.
+    - seL4HardwareMMIO template now has an option to map hardware memory as cached. The default setting is uncached
+      which is the same as the old behaviour.
 
 ---
 For previous releases see https://docs.sel4.systems/camkes_release/
