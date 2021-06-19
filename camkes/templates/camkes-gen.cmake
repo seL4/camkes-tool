@@ -351,10 +351,8 @@ RequireFile(CONFIGURE_FILE_SCRIPT configure_file.cmake PATHS ${CMAKE_MODULE_PATH
         " -static -nostdlib -u _camkes_start -e _camkes_start ")
     # Add extra flags specified by the user
     target_compile_options(${target} PRIVATE ${extra_c_flags} ${CAMKES_C_FLAGS})
-    message(STATUS "Found extra flags for ${target}: ${extra_c_flags}")
     foreach(extra_ld_flag IN LISTS extra_ld_flags)
         set_property(TARGET ${target} APPEND_STRING PROPERTY LINK_FLAGS ${extra_ld_flag})
-        message(STATUS "Found extra flag for ${target}: ${extra_ld_flag}")
     endforeach()
     # Only incrementally link if this instance is going on to become part of a
     # group.
