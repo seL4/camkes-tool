@@ -15,10 +15,20 @@ from __future__ import absolute_import, division, print_function, \
 
 # This script can only import parts of the Python standard library, or it
 # becomes useless as a dependency checker.
-import abc, argparse, importlib, os, re, shutil, subprocess, sys, tempfile
+import abc
+import argparse
+import importlib
+import os
+import re
+import shutil
+import subprocess
+import sys
+import tempfile
+
 
 class CheckDepException(Exception):
     pass
+
 
 class Package(object):
 
@@ -35,11 +45,13 @@ class Package(object):
     def exists(self):
         raise NotImplementedError
 
+
 class Binary(Package):
     def exists(self):
         with open(os.devnull, 'wt') as f:
             return subprocess.call(['which', self.name], stdout=f, stderr=f) \
                 == 0
+
 
 class Pylint(Binary):
     def __init__(self, name, description, min_version):
@@ -57,8 +69,9 @@ class Pylint(Binary):
         version = float(m.group(1))
         if version < self.min_version:
             raise CheckDepException('found version %0.1f but need at least '
-                'version %0.1f' % (version, self.min_version))
+                                    'version %0.1f' % (version, self.min_version))
         return True
+
 
 class PythonModule(Package):
     def exists(self):
@@ -67,6 +80,7 @@ class PythonModule(Package):
             return True
         except ImportError:
             return False
+
 
 class PythonModuleWith(PythonModule):
     def __init__(self, name, description, attr):
@@ -79,14 +93,16 @@ class PythonModuleWith(PythonModule):
         mod = importlib.import_module(self.name)
         if not hasattr(mod, self.attr):
             raise CheckDepException('module exists, but %s.%s not found '
-                '(upgrade required?)' % (self.name, self.attr))
+                                    '(upgrade required?)' % (self.name, self.attr))
         return True
+
 
 class CLibrary(Package):
     def exists(self):
         with open(os.devnull, 'wt') as f:
             return subprocess.call(['pkg-config', '--cflags', self.name],
-                stdout=f, stderr=f) == 0
+                                   stdout=f, stderr=f) == 0
+
 
 class Or(Package):
     def __init__(self, *packages):
@@ -96,6 +112,7 @@ class Or(Package):
 
     def exists(self):
         return any(p.exists() for p in self.packages)
+
 
 class CUnit(Package):
     def exists(self):
@@ -115,46 +132,50 @@ class CUnit(Package):
                     }''')
             with open(os.devnull, 'wt') as f:
                 subprocess.check_call(['gcc', 'main.c', '-lcunit'], cwd=tmp,
-                    stdout=f, stderr=f)
+                                      stdout=f, stderr=f)
             return True
         except subprocess.CalledProcessError:
             return False
         finally:
             shutil.rmtree(tmp)
 
+
 def green(string):
     return '\033[32;1m%s\033[0m' % string
+
 
 def red(string):
     return '\033[31;1m%s\033[0m' % string
 
+
 def yellow(string):
     return '\033[33m%s\033[0m' % string
 
+
 DEPENDENCIES = {
-    'CAmkES runner':(PythonModule('jinja2', 'Python templating module'),
-                     PythonModule('plyplus', 'Python parsing module'),
-                     PythonModule('ply', 'Python parsing module'),
-                     PythonModule('elftools', 'Python ELF parsing module'),
-                     PythonModule('orderedset', 'Python OrderedSet module (orderedset)'),
-                     PythonModuleWith('six', 'Python 2/3 compatibility layer', 'assertCountEqual'),
-                     PythonModule('sqlite3', 'Python SQLite module'),
-                     PythonModule('pyfdt', 'Python flattened device tree parser')),
-    'seL4':(Binary('gcc', 'C compiler'),
-            PythonModule('jinja2', 'Python templating module'),
-            Binary('xmllint', 'XML validator'),
-            Binary('bash', 'shell'),
-            Binary('make', 'GNU Make build tool'),
-            Binary('cpio', 'CPIO file system tool')),
-    'CapDL translator':(Binary('stack', 'Haskell version manager'),),
-    'CAmkES test suite':(Binary('expect', 'automation utility'),
-                         Pylint('pylint', 'Python linter', 1.4),
-                         Binary('qemu-system-arm', 'ARM emulator'),
-                         Binary('qemu-system-i386', 'IA32 emulator'),
-                         PythonModule('pycparser', 'Python C parsing module'),
-                         Binary('gcc', 'C compiler'),
-                         Binary('spin', 'model checker'),
-                         Binary('sha256sum', 'file hashing utility')),
+    'CAmkES runner': (PythonModule('jinja2', 'Python templating module'),
+                      PythonModule('plyplus', 'Python parsing module'),
+                      PythonModule('ply', 'Python parsing module'),
+                      PythonModule('elftools', 'Python ELF parsing module'),
+                      PythonModule('orderedset', 'Python OrderedSet module (orderedset)'),
+                      PythonModuleWith('six', 'Python 2/3 compatibility layer', 'assertCountEqual'),
+                      PythonModule('sqlite3', 'Python SQLite module'),
+                      PythonModule('pyfdt', 'Python flattened device tree parser')),
+    'seL4': (Binary('gcc', 'C compiler'),
+             PythonModule('jinja2', 'Python templating module'),
+             Binary('xmllint', 'XML validator'),
+             Binary('bash', 'shell'),
+             Binary('make', 'GNU Make build tool'),
+             Binary('cpio', 'CPIO file system tool')),
+    'CapDL translator': (Binary('stack', 'Haskell version manager'),),
+    'CAmkES test suite': (Binary('expect', 'automation utility'),
+                          Pylint('pylint', 'Python linter', 1.4),
+                          Binary('qemu-system-arm', 'ARM emulator'),
+                          Binary('qemu-system-i386', 'IA32 emulator'),
+                          PythonModule('pycparser', 'Python C parsing module'),
+                          Binary('gcc', 'C compiler'),
+                          Binary('spin', 'model checker'),
+                          Binary('sha256sum', 'file hashing utility')),
 }
 
 EXTRAS = frozenset((
@@ -205,11 +226,12 @@ EXTRAS = frozenset((
 
 ))
 
+
 def main(argv):
     parser = argparse.ArgumentParser(description='CAmkES dependency checker')
     parser.add_argument('--component', '-c', action='append',
-        choices=list(DEPENDENCIES.keys()), help='component whose dependecies '
-        'should be checked (default: all)')
+                        choices=list(DEPENDENCIES.keys()), help='component whose dependecies '
+                        'should be checked (default: all)')
     options = parser.parse_args(argv[1:])
 
     ret = 0
@@ -243,6 +265,7 @@ def main(argv):
             sys.stdout.write(yellow(' %s (%s): %s\n' % (p.name, p.description, note)))
 
     return ret
+
 
 if __name__ == '__main__':
     sys.exit(main(sys.argv))
