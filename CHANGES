@@ -12,6 +12,38 @@ Upcoming release
 
 ## Upgrade Notes
 ---
+camkes-3.10.0 2021-06-10
+Using seL4 version 12.1.0
+
+## Changes
+
+* Fixed new line generation in `show_attribute_value`.
+* Added const expression attributes to help convert CAmkES attributes to literals.
+* Fixed broken Python nosetests that weren't updated when moving to Python3 from Python2.
+* Added caching when querying DMA frame physical addresses to avoid unnecessary kernel context switch overheads.
+* Changed templates and libraries to be DMA cache-aware and to not ignore requests for cache-able memory
+  allocations.
+* Added a macro function for every dataport to query its size.
+* Changed DMA bookkeeping to keep track of pools of frames and not individual frames.
+* Added code to sanitize the names of nested components for the naming of a components' DMA pool.
+* Converted the repository to use SPDX license tags.
+* Fixed the passing of LD flags to the linker from CAmkES generation tools.
+* Added the failing C pre-processor command to an exception in the CAmkES parser tools for easier diagnosis.
+* Moved the CAmkES component interface header contents away from `camkes.h` and into separate header files that is
+  included by `camkes.h`.
+* Simplified the `sys_uname` library function.
+* Fix handling of array parameters for the CAmkES templates.
+* Sped up proofs for cdl-refine.
+* Fixed a CMake argument marshalling bug in the `execute_process_with_stale_check` function.
+
+### Upgrade Notes
+
+* DMA pools now require an option to be set explicitly to be made to be cache-able. In a `.camkes` CAmkES assembly
+  file, add the following `<component name>.dma_pool_cached = True;` in the 'configuration' block to make a component's
+  DMA pool to be cached. Additionally, use `camkes_dma_alloc` in libsel4camkes with the correct arguments to allocate
+  cached DMA memory from that pool.
+
+---
 camkes-3.9.0 2020-10-27
 Using seL4 version 12.0.0
 
@@ -131,7 +163,7 @@ Using seL4 version 11.0.0
 ---
 camkes-3.7.0 2018-11-12
 Using seL4 version 10.1.1
-  
+
 ## Changes
 
 
@@ -139,7 +171,7 @@ Using seL4 version 10.1.1
 ---
 camkes-3.6.0 2018-11-07
 Using seL4 version 10.1.0
-  
+
 ## Changes
 
 * AARCH64 is now supported.
@@ -232,17 +264,17 @@ Using seL4 version 8.0.0
     documentation: https://github.com/seL4/camkes-tool/blob/master/docs/index.md#cached-hardware-dataports
 
 = Known issues =
- * Hardware dataports that are large enough to use larger frame sizes are currently broken.  There is an issue with 
-large frame promotion and hardware dataports where the capDL loader is unable to map the promoted memory. This can be 
-demonstrated by running the testhwdataportlrgpages app on either arm_testhwdataportlrgpages_defconfig or 
-x86_testhwdataportlrgpages_defconfig configurations. If this functionality is required, hold off upgrading until this 
+ * Hardware dataports that are large enough to use larger frame sizes are currently broken.  There is an issue with
+large frame promotion and hardware dataports where the capDL loader is unable to map the promoted memory. This can be
+demonstrated by running the testhwdataportlrgpages app on either arm_testhwdataportlrgpages_defconfig or
+x86_testhwdataportlrgpages_defconfig configurations. If this functionality is required, hold off upgrading until this
 issue is fixed.
 
 = Upgrade notes =
  * ADL files: ADL syntax changes in this release should not break any existing ADL files.
- * Templates: 
- 	seL4HardwareMMIO template now has an option to map hardware memory as cached.  The default setting is uncached 
-which is the same as the old behaviour.
+ * Templates:
+    - seL4HardwareMMIO template now has an option to map hardware memory as cached. The default setting is uncached
+      which is the same as the old behaviour.
 
 ---
 For previous releases see https://docs.sel4.systems/camkes_release/
