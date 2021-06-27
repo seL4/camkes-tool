@@ -181,6 +181,8 @@ RequireFile(CONFIGURE_FILE_SCRIPT configure_file.cmake PATHS ${CMAKE_MODULE_PATH
     list(APPEND static_sources "$<TARGET_PROPERTY:${instance_target},COMPONENT_SOURCES>")
     set(extra_c_flags "$<TARGET_PROPERTY:CAmkESComponent_/*? i.type.name ?*/,COMPONENT_C_FLAGS>")
     list(APPEND extra_c_flags "$<TARGET_PROPERTY:${instance_target},COMPONENT_C_FLAGS>")
+    set(extra_cxx_flags "$<TARGET_PROPERTY:CAmkESComponent_/*? i.type.name ?*/,COMPONENT_CXX_FLAGS>")
+    list(APPEND extra_cxx_flags "$<TARGET_PROPERTY:${instance_target},COMPONENT_CXX_FLAGS>")
     get_property(extra_ld_flags TARGET "CAmkESComponent_/*? i.type.name ?*/" PROPERTY COMPONENT_LD_FLAGS)
     get_property(component_extra_ld_flags TARGET "${instance_target}" PROPERTY COMPONENT_LD_FLAGS)
     list(APPEND extra_ld_flags "${component_extra_ld_flags}")
@@ -350,7 +352,8 @@ RequireFile(CONFIGURE_FILE_SCRIPT configure_file.cmake PATHS ${CMAKE_MODULE_PATH
     set_property(TARGET ${target} APPEND_STRING PROPERTY LINK_FLAGS
         " -static -nostdlib -u _camkes_start -e _camkes_start ")
     # Add extra flags specified by the user
-    target_compile_options(${target} PRIVATE ${extra_c_flags} ${CAMKES_C_FLAGS})
+    target_compile_options(${target} PRIVATE $<$<COMPILE_LANGUAGE:C>:${extra_c_flags} ${CAMKES_C_FLAGS}>)
+    target_compile_options(${target} PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${extra_cxx_flags} ${CAMKES_CXX_FLAGS}>)
     foreach(extra_ld_flag IN LISTS extra_ld_flags)
         set_property(TARGET ${target} APPEND_STRING PROPERTY LINK_FLAGS ${extra_ld_flag})
     endforeach()
