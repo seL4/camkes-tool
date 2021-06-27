@@ -577,6 +577,7 @@ endfunction(GenerateCAmkESRootserver)
 #   SOURCES <src1> <src2> ...
 #   INCLUDES <inc1> <inc2> ...
 #   C_FLAGS <flag1> <flag2> ...
+#   CXX_FLAGS <flag1> <flag2> ...
 #   LD_FLAGS <flag1> <flag2> ...
 #   LIBS <lib1> <lib1> ...
 #
@@ -605,7 +606,7 @@ function(AppendCAmkESComponentTarget target_name)
         CAMKES_COMPONENT
         "" # Option arguments
         "CAKEML_HEAP_SIZE;CAKEML_STACK_SIZE;LINKER_LANGUAGE" # Single arguments
-        "SOURCES;CAKEML_SOURCES;CAKEML_DEPENDS;CAKEML_INCLUDES;INCLUDES;C_FLAGS;LD_FLAGS;LIBS;TEMPLATE_SOURCES;TEMPLATE_HEADERS" # Multiple aguments
+        "SOURCES;CAKEML_SOURCES;CAKEML_DEPENDS;CAKEML_INCLUDES;INCLUDES;C_FLAGS;CXX_FLAGS;LD_FLAGS;LIBS;TEMPLATE_SOURCES;TEMPLATE_HEADERS" # Multiple aguments
     )
     # Declare a target that we will set properties on
     if(NOT (TARGET "${target_name}"))
@@ -663,6 +664,11 @@ function(AppendCAmkESComponentTarget target_name)
         TARGET "${target_name}"
         APPEND
         PROPERTY COMPONENT_C_FLAGS "${CAMKES_COMPONENT_C_FLAGS}"
+    )
+    set_property(
+        TARGET "${target_name}"
+        APPEND
+        PROPERTY COMPONENT_CXX_FLAGS "${CAMKES_COMPONENT_CXX_FLAGS}"
     )
     set_property(
         TARGET "${target_name}"
