@@ -24,13 +24,13 @@ jobs:
     - run: |
         PATH=$PATH:$HOME/.local/bin camkes-cli new hello --template hello-world
     - run: |
-        expect -c "
-          set timeout 180
-          cd hello
-          spawn $HOME/.local/bin/camkes-cli run x86
-          expect {
-            \\\"Hello, World!\\\" { close }
-            default { exit 1 }
+        expect -c " \
+          set timeout 180 \
+          cd hello \
+          spawn $HOME/.local/bin/camkes-cli run x86 \
+          expect { \
+            \\\"Hello, World!\\\" { close } \
+            default { exit 1 } \
           }"
 
   existing:
