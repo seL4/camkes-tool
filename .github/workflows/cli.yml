@@ -16,11 +16,9 @@ jobs:
   new:
     name: New Project
     runs-on: ubuntu-latest
+    container: trustworthy-systems/camkes
     steps:
     - uses: actions/checkout@v2
-    - uses: actions/setup-python@v2
-      with:
-        python-version: '3.8'
     - run: pip3 install --user --upgrade camkes-cli
     - run: |
         PATH=$PATH:$HOME/.local/bin camkes-cli new hello --template hello_world
