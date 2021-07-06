@@ -1,0 +1,39 @@
+# Copyright 2021, Proofcraft Pty Ltd
+#
+# SPDX-License-Identifier: BSD-2-Clause
+
+# Test the (released) camkes-cli python package
+
+name: CLI
+
+on:
+  schedule:
+    - cron: '3 17 * * *'   # 17:03 UTC
+  workflow_dispatch:
+
+jobs:
+  new:
+    name: New Project
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/setup-python@v2
+      with:
+        python-version: '3.8'
+    - run: pip3 install --user --upgrade camkes-cli
+    - run: |
+        PATH=$PATH:$HOME/.local/bin camkes-cli new hello --template hello-world
+    - run: |
+        expect -c "
+          set timeout 180
+          cd hello
+          spawn $HOME/.local/bin/camkes-cli run x86
+          expect {
+            \\\"Hello, World!\\\" { close }
+            default { exit 1 }
+          }"
+
+  existing:
+    name: Existing Project
+    runs-on: ubuntu-latest
+    steps:
+    - run: echo later
