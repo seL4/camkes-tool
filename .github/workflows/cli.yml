@@ -16,7 +16,7 @@ jobs:
   new:
     name: New Project
     runs-on: ubuntu-latest
-    container: trustworthy-systems/camkes
+    container: trustworthysystems/camkes:latest
     steps:
     - uses: actions/checkout@v2
     - run: pip3 install --user --upgrade camkes-cli
