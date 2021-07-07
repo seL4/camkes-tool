@@ -1,0 +1,20 @@
+# Copyright 2021, Proofcraft Pty Ltd
+#
+# SPDX-License-Identifier: BSD-2-Clause
+
+# CAmkES unit tests
+
+name: Unit
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+  unit:
+    name: 'Unit Tests'
+    runs-on: ubuntu-latest
+    steps:
+    - uses: seL4/ci-actions/camkes-unit@master
