@@ -54,7 +54,7 @@
 
     unsigned size;
     /*-- if m.return_type is not none -*/
-      /*? macros.show_type(m.return_type) ?*/ return_val;
+      /*? macros.show_type(m.return_type) ?*/ return_val = { 0 };
       /*? macros.show_type(m.return_type) ?*/ *return_ptr = &return_val;
     /*- endif -*/
 
