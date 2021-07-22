@@ -1,0 +1,36 @@
+# Copyright 2021, Proofcraft Pty Ltd
+#
+# SPDX-License-Identifier: BSD-2-Clause
+
+# CAmkES unit tests
+
+name: CAmkES
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+  matrix:
+    name: 'Set Matrix'
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+    - id: set-matrix
+      uses: seL4/ci-actions/camkes-test@camkes-test
+      with:
+        matrix: "True"
+  test:
+    needs: matrix
+    name: Test
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.matrix.outputs.matrix) }}
+    steps:
+    - uses: seL4/ci-actions/camkes-test@master
+      with:
+        name: ${{ matrix.name }}
