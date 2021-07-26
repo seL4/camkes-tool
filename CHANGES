@@ -9,6 +9,7 @@ Upcoming release
 
 ## Changes
 
+* Added RISC-V in `is_64_bit_arch()`
 
 ## Upgrade Notes
 ---

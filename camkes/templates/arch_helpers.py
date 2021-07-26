@@ -10,7 +10,7 @@ Helpers for accessing architecture-specific information
 
 
 def is_64_bit_arch(arch):
-    return arch in ('x86_64', 'aarch64')
+    return arch in ('x86_64', 'aarch64', 'riscv64')
 
 
 def min_untyped_size(arch):
