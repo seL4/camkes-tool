@@ -13,6 +13,14 @@ def is_64_bit_arch(arch):
     return arch in ('x86_64', 'aarch64', 'riscv64')
 
 
+def is_arch_arm(arch):
+    return arch in ('aarch32', 'arm_hyp', 'aarch64')
+
+
+def is_arch_riscv(arch):
+    return arch in ('riscv32', 'riscv64')
+
+
 def min_untyped_size(arch):
     return 4
 

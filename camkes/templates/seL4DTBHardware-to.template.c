@@ -117,7 +117,7 @@
 
     /*# CAmkES has a maximum limit of 28 bits for badges, #*/
     /*# highly unlikely a device has greater than 28 #*/
-    /*? dtb_macros.parse_dtb_node_interrupts(dtb, 28) ?*/
+    /*? dtb_macros.parse_dtb_node_interrupts(dtb, 28, options.architecture) ?*/
     /*- set irq_set = pop('irq_set') -*/
 
     /*- for (i, irq_node) in enumerate(irq_set)  -*/
