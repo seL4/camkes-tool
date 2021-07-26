@@ -28,7 +28,8 @@ import re
 import six
 import numbers
 
-from camkes.templates.arch_helpers import min_untyped_size, max_untyped_size
+from camkes.templates.arch_helpers import min_untyped_size, max_untyped_size, \
+    is_arch_arm
 
 # Exclusions for the used macros test (see testmacros.py)
 NO_CHECK_UNUSED = set()
@@ -528,7 +529,7 @@ def integrity_group_labels(composition, configuration):
 NO_CHECK_UNUSED.add('global_endpoint_badges')
 
 
-def global_endpoint_badges(composition, end, configuration):
+def global_endpoint_badges(composition, end, configuration, arch):
     '''
     Enumerate the badge value for a connection that uses the global-endpoint notification.
 
@@ -564,7 +565,7 @@ def global_endpoint_badges(composition, end, configuration):
                 if not configuration[str(to_end)].get("generate_interrupts", False):
                     continue
                 dtb = configuration[str(to_end)].get("dtb").get('query')[0]
-                irqs = parse_dtb_node_interrupts(dtb, -1)
+                irqs = parse_dtb_node_interrupts(dtb, -1, arch)
                 irq_badges = []
                 for i in irqs:
                     irq_badges.append(next_badge | base)
@@ -686,32 +687,148 @@ def virtqueue_get_client_id(composition, end, configuration):
 NO_CHECK_UNUSED.add('parse_dtb_node_interrupts')
 
 
-def parse_dtb_node_interrupts(node, max_num_interrupts):
-    interrupts = node.get('interrupts')
+def parse_dtb_node_interrupts(node, max_num_interrupts, arch):
+
+    # Interrupts can be described in these formats:
+    #   1 value: < id ... >
+    #   2 values: < id flags ... >
+    #   3 values: < type id flags ...>
+    # The proper way to figure out how many value per interrupt are in used is
+    # checking the '#interrupt-cells#' property of the interrupt controller.
+    # Unfortunately, we don't have the full device tree available here and we
+    # lack a nice parser that can do this. So we make some best guesses.
+
     is_extended_interrupts = False
-    if interrupts is None:
+    interrupts = node.get('interrupts')
+    if (interrupts is None):
+        # For extended interrupts, the first element is a interrupt controller
+        # reference, the following elements are in one of the formats descibed
+        # above.
         interrupts = node.get('interrupts_extended')
+        if (interrupts is None):
+            # No interrupts found
+            return []
         is_extended_interrupts = True
+
     irq_set = []
-    if interrupts is not None:
-        if is_extended_interrupts:
-            num_interrupts = len(interrupts)//4
-        else:
-            num_interrupts = len(interrupts)//3
-        if max_num_interrupts != -1 and num_interrupts > max_num_interrupts:
-            raise TemplateError('Device has more than %d interrupts, this is more than we can support.') % (
-                max_num_interrupts)
-        for i in range(0, num_interrupts):
+
+    # Keep the behavior on ARM as it was before, so we don't break anything by
+    # accident. Basically we assume interrupts always have the 3-value-format.
+    if is_arch_arm(arch):
+        if interrupts is not None:
             if is_extended_interrupts:
-                _trigger = interrupts[i*3+3]
-                _irq = interrupts[i*3+2]
-                _irq_spi = interrupts[i*3+1]
+                # This looks broken, the algorithm below just skips the first
+                # field, but still assumes 3 values per interrupt. It will work
+                # if there is just one interrupt, which is usually the case.
+                num_interrupts = len(interrupts)//4
             else:
-                _trigger = interrupts[i*3+2]
-                _irq = interrupts[i*3+1]
-                _irq_spi = interrupts[i*3+0]
-            if (isinstance(_irq_spi, numbers.Integral) and (_irq_spi == 0)):
-                _irq = _irq + 32
-            _trigger = 1 if _trigger < 4 else 0
-            irq_set.append({'irq': _irq, 'trigger': _trigger})
+                num_interrupts = len(interrupts)//3
+            if max_num_interrupts != -1 and num_interrupts > max_num_interrupts:
+                raise TemplateError('Device has more than %d interrupts, this is more than we can support.') % (
+                    max_num_interrupts)
+            for i in range(0, num_interrupts):
+                if is_extended_interrupts:
+                    # Same as below, but ignores the first field in the list
+                    _trigger = interrupts[i*3+3]
+                    _irq = interrupts[i*3+2]
+                    _irq_spi = interrupts[i*3+1]
+                else:
+                    _trigger = interrupts[i*3+2]
+                    _irq = interrupts[i*3+1]
+                    _irq_spi = interrupts[i*3+0]
+                if (isinstance(_irq_spi, numbers.Integral) and (_irq_spi == 0)):
+                    _irq = _irq + 32
+                _trigger = 1 if _trigger < 4 else 0
+                irq_set.append({'irq': _irq, 'trigger': _trigger})
+        return irq_set
+
+    # For non-ARM architectures (currently that means RISC-V) try using a more
+    # generic parsing approach. Actually, the ARM parsing above could also use
+    # this, if we give it some more testing that there are no corner cases for
+    # existing platforms.
+    # The guessing strategy is, that if there are less than 3 values in the
+    # interrupt property, we assume that '#interrupt-cells' is 1, otherwise 3.
+    # That works, because most peripherals have just 1 interrupt, some can have
+    # 2 (e.g. separate for Rx/Tx). Obviously, guessing fails badly for there are
+    # more than 2 interrupts in the 1-value-format, but that would have failed
+    # before adding this hack also.
+
+    if is_extended_interrupts:
+        # Drop the first element with the interrupt controller reference.
+        if (len(interrupts) > 1):
+            interrupts = interrupts[1:]
+        else:
+            # Seems there are no interrupts.
+            return []
+
+    interrupt_cells = 1 if (len(interrupts) < 3) else 3
+
+    # Do a sanity check that the number of elements make sense.
+    if (0 != ((len(interrupts) % interrupt_cells))):
+        raise TemplateError(
+            'Found {} values, but expecting {} per interrupt'.format(
+                len(interrupts), interrupt_cells))
+
+    num_interrupts = len(interrupts) // interrupt_cells
+    if (max_num_interrupts != -1) and (num_interrupts > max_num_interrupts):
+        raise TemplateError(
+            'Peripheral has {} interrupts, max. {} are supported'.format(
+                num_interrupts, max_num_interrupts))
+
+    irq_set = []
+
+    for i in range(0, num_interrupts):
+
+        def parse_int(offs, name):
+            idx = (i * interrupt_cells) + offs
+            val = interrupts[idx]
+            if not isinstance(val, numbers.Integral):
+                raise TemplateError(
+                    'Error parsing interrupt {}/{} (cells={}, idx={}): '
+                    '{} "{}" is not a number'.format(
+                        i+1, num_interrupts, interrupt_cells, idx, name, val))
+            return val
+
+        offs_irq = 1 if (3 == interrupt_cells) \
+            else 0 if (1 == interrupt_cells) \
+            else None
+        assert (offs_irq is not None)
+        irq = parse_int(offs_irq, 'id')
+
+        offs_flags = 2 if (3 == interrupt_cells) else None
+        irq_flags = None if offs_flags is None \
+            else parse_int(offs_flags, 'trigger')
+
+        offs_spi = 0 if (3 == interrupt_cells) else None
+        irq_type = None if offs_spi is None \
+            else parse_int(offs_spi, 'type')
+
+        # Process the interrupt details.
+        #
+        # The 'flags' are defined as:
+        #   bit 0: low-to-high edge triggered
+        #   bit 1: high-to-low edge triggered
+        #   bit 2: active high level-sensitive
+        #   bit 3: active low level-sensitive
+        #   bits 8 - 15: for PPI interrupts this holds the PPI interrupt
+        #                core mask, each bit corresponds to each of the 8
+        #                possible core attached to the GIC,a '1' indicates
+        #                the interrupt is wired to that core.
+        # Assume edge triggered interrupt if no flags are present.
+        is_edge_triggered = ((irq_flags is None) or (0 != (irq_flags & 0x3)))
+
+        # The 'type' is only relevant on ARM, for all other architectures we
+        # ignore this value.
+        #   0: shared peripheral interrupt (SPI) where the actual interrupt
+        #      value is 'irq + 32'
+        #   1: private peripheral interrupt (PPI)
+        is_arm_spi = ((irq_type is not None) and is_arch_arm(arch) and
+                      (0 == irq_type))
+
+        # Add an interrupt descriptor to the list.
+        irq_set.append({
+            'irq':     (irq + 32) if is_arm_spi else irq,
+            'trigger': 1 if is_edge_triggered else 0
+        })
+
     return irq_set

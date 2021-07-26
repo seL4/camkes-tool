@@ -45,7 +45,7 @@
     /*- do stash('reg_set', reg_set) -*/
 /*- endmacro -*/
 
-/*- macro parse_dtb_node_interrupts(node, max_num_interrupts) -*/
-    /*- set irq_set = macros.parse_dtb_node_interrupts(node, max_num_interrupts) -*/
+/*- macro parse_dtb_node_interrupts(node, max_num_interrupts, arch) -*/
+    /*- set irq_set = macros.parse_dtb_node_interrupts(node, max_num_interrupts, arch) -*/
     /*- do stash('irq_set', irq_set) -*/
 /*- endmacro -*/
