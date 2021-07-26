@@ -95,7 +95,7 @@
 
         /* Flush data corresponding to the dataport-relative address range from the CPU cache */
         int /*? reg_interface_name ?*/_flush_cache(size_t start_offset UNUSED, size_t size UNUSED, dma_cache_op_t cache_op UNUSED) {
-            return camkes_dataport_flush_cache(start_offset, size, 
+            return camkes_dataport_flush_cache(start_offset, size,
                                                (uintptr_t) &/*? dataport_symbol_name ?*/.content,
                                                /*? size ?*/, cache_op);
         }
@@ -186,7 +186,7 @@
                     } else if (/*? me.interface.name ?*/_irq_handle) {
                         /*? me.interface.name ?*/_irq_handle(&irq);
                     } else if (/*? interrupt_struct_prefix ?*/_/*? i ?*/.is_allocated) {
-                        /*? interrupt_struct_prefix ?*/_/*? i ?*/.callback_fn(/*? interrupt_struct_prefix ?*/_/*? i ?*/.callback_data, 
+                        /*? interrupt_struct_prefix ?*/_/*? i ?*/.callback_fn(/*? interrupt_struct_prefix ?*/_/*? i ?*/.callback_data,
 
                                                                               /*? me.interface.name ?*/_irq_acknowledge_wrapper,
 
