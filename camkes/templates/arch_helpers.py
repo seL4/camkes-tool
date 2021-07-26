@@ -8,11 +8,14 @@
 Helpers for accessing architecture-specific information
 '''
 
+
 def is_64_bit_arch(arch):
     return arch in ('x86_64', 'aarch64')
 
+
 def min_untyped_size(arch):
     return 4
+
 
 def max_untyped_size(arch):
     if is_64_bit_arch(arch):
