@@ -13,24 +13,37 @@ on:
   pull_request:
 
 jobs:
-  matrix:
-    name: 'Set Matrix'
-    runs-on: ubuntu-latest
-    outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
-    steps:
-    - id: set-matrix
-      uses: seL4/ci-actions/camkes-test@camkes-test
-      with:
-        matrix: "True"
   test:
-    needs: matrix
     name: Test
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-      matrix: ${{ fromJson(needs.matrix.outputs.matrix) }}
+      matrix:
+        platform:
+            - ODROID_XU
+            - ODROID_XU4
+            - PC99
+            - TX1
+            - TX2
+            - IMX8MM_EVK
+            - IMX8MQ_EVK
+        include:
+          - platform: sim
+            name: sabre
+          - platform: sim
+            name: ia32
+          - platform: sim
+            name: x86_64
+          - platform: sim
+            name: cakeml_1
+          - platform: sim
+            name: cakeml_2
+          - platform: sim
+            name: spike64_1
+          - platform: sim
+            name: spike64_2
     steps:
     - uses: seL4/ci-actions/camkes-test@master
       with:
+        platform: ${{ matrix.platform }}
         name: ${{ matrix.name }}
