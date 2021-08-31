@@ -447,7 +447,7 @@ RequireFile(CONFIGURE_FILE_SCRIPT configure_file.cmake PATHS ${CMAKE_MODULE_PATH
             # architecture that requires `.eh_frame`.
             bash -c "${OBJCOPY} --remove-section .eh_frame --remove-section .eh_frame_hdr \
                 --remove-section .rel.eh_frame --remove-section .rela.eh_frame ${output} \
-                >/dev/null 2>/dev/null"
+                >/dev/null 2>/dev/null || true"
         VERBATIM
         DEPENDS ${input_target}
     )
