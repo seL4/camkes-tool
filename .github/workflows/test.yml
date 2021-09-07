@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: BSD-2-Clause
 
-# CAmkES unit tests
+# CAmkES regression tests
 
 name: CAmkES
 
@@ -14,7 +14,7 @@ on:
 
 jobs:
   test:
-    name: Test
+    name: Build + Simulate
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
