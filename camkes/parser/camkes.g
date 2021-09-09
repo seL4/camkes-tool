@@ -213,7 +213,7 @@ bitwise_not: '~' precedence0;
 number: '(0x[0-9a-fA-F]+|\d+(\.\d+)?)';
 multi_string: quoted_string+;
 quoted_string: '"[^"]*"'; // "
-angle_string: '<[^>]*>';
+angle_string: '<[^<>;,"{}]*>';
 list: '\[' (item (',' item)* ','?)? '\]';
 dict: '\{' (key ':' item (',' key ':' item)* ','?)? '\}';
 dict_lookup: ('\[' key '\]')+;
