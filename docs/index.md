@@ -325,13 +325,13 @@ echo and client, communicating over a single interface.
 To build this example, from the top-level directory run:
 
 ```bash
-mkdir build-kzm
-cd build-kzm
-../init-build.sh -DPLATFORM=kzm -DCROSS_COMPILER_PREFIX=arm-none-eabi- -DCAMKES_APP=simple -DSIMULATE=1
+mkdir build
+cd build
+../init-build.sh -DPLATFORM=sabre -DCAMKES_APP=simple -DSIMULATE=1
 ninja
 ```
 
-This produces an image images/simple-image-arm-imx31. To run this image in
+This produces an image images/capdl-loader-image-arm-imx6. To run this image in
 qemu:
 
 ```bash
@@ -515,7 +515,7 @@ DeclareCAmkESRootserver(helloworld.camkes)
 You're now ready to compile and run this application, by entering the `CAMKES_APP` value in the cmake configuration GUI:
 
 ```bash
-cd build-kzm
+cd build
 cmake . -DCAMKES_APP=helloworld # set `helloworld` as CAMKES_APP
 ninja
 ./simulate

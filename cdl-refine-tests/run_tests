@@ -124,7 +124,6 @@ override_app_platform = {
     'serialserver_interrupt': 'exynos5410',
     'serialserver_polling': 'exynos5410',
     'serialserver_loopback': 'exynos5410',
-    'uart': 'kzm',
 }
 
 
