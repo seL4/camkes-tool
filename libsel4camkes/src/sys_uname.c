@@ -56,9 +56,7 @@ long camkes_sys_uname(va_list ap)
 
 #if defined(CONFIG_ARCH_ARM)
     arch = "ARM";
-#if defined(CONFIG_ARCH_ARM_V6)
-    arch_ver = "v6";
-#elif defined(CONFIG_ARCH_ARM_V7A)
+#if defined(CONFIG_ARCH_ARM_V7A)
     arch_ver = "v7a";
 #elif defined(CONFIG_ARCH_ARM_V7VE)
     arch_ver = "v7a-ve";
