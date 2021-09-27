@@ -29,7 +29,6 @@ DEPS = [
     'pycparser',
     'pyfdt',
     'concurrencytest',
-    'simpleeval',
 
     # capDL deps
     'sortedcontainers',
@@ -38,7 +37,7 @@ DEPS = [
 
 setup(
     name='camkes-deps',
-    version='0.7.1',
+    version='0.7.2',
     description='Metapackage for downloading build dependencies for CAmkES',
     url='https://docs.sel4.systems/CAmkES/',
     license='BSD2',
