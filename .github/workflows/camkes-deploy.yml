@@ -75,7 +75,7 @@ jobs:
   hw-run:
     name: Hardware
     runs-on: ubuntu-latest
-    needs: [build] # , sim]
+    needs: [build, sim]
     strategy:
       matrix:
         platform:
