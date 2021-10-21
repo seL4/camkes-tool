@@ -2016,10 +2016,13 @@ callback was invoked.
 
 Each thread in a CAmkES system has a priority that determines how it is
 scheduled by seL4. These priorities default to a value given by the
-`--default-priority` command-line argument to the runner. In a given system, it
-it possible to adjust the priority of a specific thread with an attribute that
-has specific semantics. To adjust the priority of the control thread (the
-thread that calls `run`), use the `_priority` attribute:
+`--default-priority` command-line argument to the runner. The higher number,
+the higher thread's priority, that is, a thread with priority 100 will be
+executed before a thread with priority 90.
+
+In a given system, it it possible to adjust the priority of a specific thread
+with an attribute that has specific semantics. To adjust the priority of the
+control thread (the thread that calls `run`), use the `_priority` attribute:
 
 ```camkes
 assembly {
