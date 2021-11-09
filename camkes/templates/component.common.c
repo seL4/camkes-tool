@@ -84,6 +84,23 @@ int get_instance_affinity(void) {
     return /*? configuration[me.name].get('affinity', options.default_affinity) ?*/;
 }
 
+#ifdef CONFIG_ALLOW_SMC_CALLS
+/*# ARM SMC cap allocation #*/
+/*- if 'allow_smc' in configuration[me.name].keys() -*/
+    /*- if configuration[me.name].get('allow_smc') == true -*/
+        /*- set smc_cap = alloc(name='smc', type=seL4_ARMSMC) -*/
+    /*- else -*/
+        /*- set smc_cap = 0 -*/
+    /*- endif -*/
+/*- else -*/
+    /*- set smc_cap = 0 -*/
+/*- endif -*/
+
+seL4_CPtr camkes_get_smc_cap(){
+    return /*? smc_cap ?*/;
+}
+#endif
+
 /*- set cnode_size = configuration[me.address_space].get('cnode_size_bits') -*/
 /*- if cnode_size -*/
         /*- if isinstance(cnode_size, six.string_types) -*/
