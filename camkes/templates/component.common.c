@@ -85,19 +85,27 @@ int get_instance_affinity(void) {
 }
 
 #ifdef CONFIG_ALLOW_SMC_CALLS
+seL4_CPtr camkes_get_smc_cap(seL4_Word smc_call){
+    seL4_CPtr cap;
+    switch(smc_call) {
 /*# ARM SMC cap allocation #*/
 /*- if 'allow_smc' in configuration[me.name].keys() -*/
     /*- if configuration[me.name].get('allow_smc') == true -*/
-        /*- set smc_cap = alloc(name='smc', type=seL4_ARMSMC) -*/
-    /*- else -*/
-        /*- set smc_cap = 0 -*/
-    /*- endif -*/
-/*- else -*/
-    /*- set smc_cap = 0 -*/
-/*- endif -*/
+        /*- if 'allowed_smc_functions' in configuration[me.name].keys() -*/
+            /*- for func_id in configuration[me.name].allowed_smc_functions -*/
+                /*- set smc_cap = alloc(name='smc_%d' % func_id, type=seL4_ARMSMC, badge=func_id) -*/
 
-seL4_CPtr camkes_get_smc_cap(){
-    return /*? smc_cap ?*/;
+        case /*? func_id ?*/:
+            cap = /*? smc_cap ?*/;
+            break;
+            /*- endfor -*/
+        /*- endif -*/
+    /*- endif -*/
+/*- endif -*/
+        default:
+            cap = 0;
+    }
+    return cap;
 }
 #endif
 
