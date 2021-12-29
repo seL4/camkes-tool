@@ -16,7 +16,7 @@ from .traversal import TraversalAction
 import collections
 
 
-class LiftedAST(ASTObject, collections.Iterable):
+class LiftedAST(ASTObject, collections.abc.Iterable):
     child_fields = ('items',)
 
     no_hash = ASTObject.no_hash + ('_assembly',)
