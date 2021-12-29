@@ -229,7 +229,7 @@ class ASTObject(six.with_metaclass(abc.ABCMeta, object)):
         return None
 
 
-class MapLike(six.with_metaclass(abc.ABCMeta, ASTObject, collections.Mapping)):
+class MapLike(six.with_metaclass(abc.ABCMeta, ASTObject, collections.abc.Mapping)):
 
     no_hash = ASTObject.no_hash + ('_mapping',)
 

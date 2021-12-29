@@ -50,15 +50,15 @@ def camkes_hash(value):
         # for them before checking for Hashable as they
         # must be hashed differently.
         return hash_iterable(value)
-    elif isinstance(value, collections.Hashable):
+    elif isinstance(value, collections.abc.Hashable):
         # Some camkes ast objects have a Mapping interface,
         # but are also hashable, and should be hashed normally.
         # This case also catches general hashable types (e.g. int).
         return hash(value)
-    elif isinstance(value, collections.Mapping):
+    elif isinstance(value, collections.abc.Mapping):
         # Dicts and other Mappings that aren't hashable
         return hash_mapping(value)
-    elif isinstance(value, collections.Iterable):
+    elif isinstance(value, collections.abc.Iterable):
         # Lists and other iterables that aren't hashable
         return hash_iterable(value)
     else:

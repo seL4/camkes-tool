@@ -18,7 +18,7 @@ from camkes.internal.seven import cmp, filter, map, zip
 import collections
 
 
-class frozendict(collections.Mapping):
+class frozendict(collections.abc.Mapping):
     def __init__(self, dictionary=None):
         self._d = dictionary or {}
 
