@@ -59,7 +59,8 @@ class LiftedAST(ASTObject, collections.Iterable):
 
     def filter(self, function=None):
         if function is None:
-            function = lambda x: x is not None
+            def local_function(x): return x is not None
+            function = local_function
         self.items = [x for x in self.items if function(x)]
 
     def __iter__(self):
