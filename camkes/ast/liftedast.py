@@ -15,6 +15,7 @@ from .objects import Assembly
 from .traversal import TraversalAction
 import collections
 
+
 class LiftedAST(ASTObject, collections.Iterable):
     child_fields = ('items',)
 
@@ -30,12 +31,13 @@ class LiftedAST(ASTObject, collections.Iterable):
     @property
     def items(self):
         return self._items
+
     @items.setter
     def items(self, value):
         assert isinstance(value, (list, tuple))
         if self.frozen:
             raise TypeError('you cannot change the items in a frozen lifted '
-                'AST')
+                            'AST')
         self._items = value
 
     def freeze(self):
@@ -64,6 +66,7 @@ class LiftedAST(ASTObject, collections.Iterable):
         c = Collector()
         self.postorder(c)
         return iter(c.contents)
+
 
 class Collector(TraversalAction):
     def __init__(self):

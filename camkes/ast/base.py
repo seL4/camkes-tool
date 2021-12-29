@@ -14,7 +14,10 @@ from camkes.internal.hash import camkes_hash
 from .exception import ASTError
 from .location import SourceLocation
 from .traversal import NullContext, TraversalAction, TraversalContext
-import abc, collections, six
+import abc
+import collections
+import six
+
 
 class ASTObject(six.with_metaclass(abc.ABCMeta, object)):
 
@@ -34,6 +37,7 @@ class ASTObject(six.with_metaclass(abc.ABCMeta, object)):
     @property
     def frozen(self):
         return self._frozen
+
     @frozen.setter
     def frozen(self, value):
         assert isinstance(value, bool)
@@ -44,23 +48,25 @@ class ASTObject(six.with_metaclass(abc.ABCMeta, object)):
     @property
     def location(self):
         return self._location
+
     @location.setter
     def location(self, value):
         assert value is None or isinstance(value, SourceLocation)
         if self.frozen:
             raise TypeError('you cannot change the location of a frozen AST '
-                'object')
+                            'object')
         self._location = value
 
     @property
     def parent(self):
         return self._parent
+
     @parent.setter
     def parent(self, value):
         assert value is None or isinstance(value, ASTObject)
         if self.frozen:
             raise TypeError('you cannot change the parent of a frozen AST '
-                'object')
+                            'object')
         self._parent = value
 
     def freeze(self):
@@ -124,7 +130,7 @@ class ASTObject(six.with_metaclass(abc.ABCMeta, object)):
             elif getattr(self, f) != getattr(other, f):
                 if type(getattr(self, f)) != type(getattr(other, f)):
                     return cmp(str(type(getattr(self, f))),
-                        str(type(getattr(other, f))))
+                               str(type(getattr(other, f))))
                 elif isinstance(getattr(self, f), type):
                     assert isinstance(getattr(other, f), type), 'incorrect ' \
                         'control flow in __cmp__ (bug in AST base?)'
@@ -135,7 +141,7 @@ class ASTObject(six.with_metaclass(abc.ABCMeta, object)):
 
     def __hash__(self):
         return camkes_hash((k, v) for k, v in self.__dict__.items()
-                if k not in self.no_hash)
+                           if k not in self.no_hash)
 
     # When comparing `ASTObject`s, we always want to invoke
     # `ASTObject.__cmp__`, but unfortunately we inherit rich comparison methods
@@ -144,14 +150,19 @@ class ASTObject(six.with_metaclass(abc.ABCMeta, object)):
     # infinitely recurse.
     def __lt__(self, other):
         return self.__cmp__(other) < 0
+
     def __le__(self, other):
         return self.__cmp__(other) <= 0
+
     def __eq__(self, other):
         return self.__cmp__(other) == 0
+
     def __ne__(self, other):
         return self.__cmp__(other) != 0
+
     def __gt__(self, other):
         return self.__cmp__(other) > 0
+
     def __ge__(self, other):
         return self.__cmp__(other) >= 0
 
@@ -217,6 +228,7 @@ class ASTObject(six.with_metaclass(abc.ABCMeta, object)):
     def label(self):
         return None
 
+
 class MapLike(six.with_metaclass(abc.ABCMeta, ASTObject, collections.Mapping)):
 
     no_hash = ASTObject.no_hash + ('_mapping',)
@@ -230,13 +242,15 @@ class MapLike(six.with_metaclass(abc.ABCMeta, ASTObject, collections.Mapping)):
             return
         super(MapLike, self).freeze()
         self._mapping = {}
+
         def add(d, i):
             duplicate = d.get(i.name)
             if duplicate is not None:
                 raise ASTError('duplicate entity \'%s\' defined, '
-                    'collides with %s at %s:%s' % (i.name,
-                    type(duplicate).__name__, duplicate.filename,
-                    duplicate.lineno), i)
+                               'collides with %s at %s:%s' % (i.name,
+                                                              type(
+                                                                  duplicate).__name__, duplicate.filename,
+                                                              duplicate.lineno), i)
             d[i.name] = i
         for field in self.child_fields:
             assert hasattr(self, field)
@@ -251,9 +265,11 @@ class MapLike(six.with_metaclass(abc.ABCMeta, ASTObject, collections.Mapping)):
     def __getitem__(self, key):
         assert self.frozen, 'dict access on non-frozen object'
         return self._mapping[key]
+
     def __iter__(self):
         assert self.frozen, 'dict access on non-frozen object'
         return iter(self._mapping)
+
     def __len__(self):
         assert self.frozen, 'dict access on non-frozen object'
         return len(self._mapping)

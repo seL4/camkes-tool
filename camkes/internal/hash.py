@@ -17,12 +17,16 @@ hash strings.
 '''
 
 from camkes.internal.strhash import strhash
-import six, types, collections
+import six
+import types
+import collections
 
 INITIAL_HASH_VALUE = 0x345678
 
+
 def hash_extend(current, extra):
     return (current ^ extra) * 1000003
+
 
 def camkes_hash(value):
     '''
@@ -60,11 +64,13 @@ def camkes_hash(value):
     else:
         raise ValueError("Unexpected value: %s" % value)
 
+
 def hash_iterable(i):
     h = INITIAL_HASH_VALUE
     for v in i:
         h = hash_extend(h, camkes_hash(v))
     return h
+
 
 def hash_mapping(m):
     h = INITIAL_HASH_VALUE
