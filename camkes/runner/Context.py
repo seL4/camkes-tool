@@ -540,8 +540,9 @@ def get_shared_variable_backing_frames(obj_space, global_name, size, frame_size=
     frame_size = calc_frame_size(size, frame_size, obj_space.spec.arch)
     num_frames = size//frame_size
     digits = str(int(log10(num_frames + 1)) + 1)
+    namefmt = '%s_%0' + digits + 'd_obj'
     return [obj_space.alloc(ObjectType.seL4_FrameObject,
-                            name='%s_%0' + digits + 'd_obj' % (global_name, i),
+                            name=namefmt % (global_name, i),
                             size=frame_size,
                             label=label)
             for i in range(num_frames)]
