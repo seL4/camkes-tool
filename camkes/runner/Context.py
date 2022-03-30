@@ -557,7 +557,7 @@ def register_fill_frame(addr_space, symbol, fill, size, obj_space, label):
     assert addr_space
     number_frames = size//4096
     digits = str(int(log10(number_frames + 1)) + 1)
-    namefmt =  '%s_%s_%0' + digits + 'd_obj'
+    namefmt = '%s_%s_%0' + digits + 'd_obj'
     frames = []
     for i in range(number_frames):
         fill_str = ['%d %d %s %d' % (0, 4096 if (size - (i * 4096)) >=
