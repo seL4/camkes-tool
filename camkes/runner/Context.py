@@ -30,7 +30,7 @@ import functools
 import numbers
 from math import log10
 import \
-    orderedset, os, pdb, re, six, sys, textwrap, math
+    ordered_set, os, pdb, re, six, sys, textwrap, math
 from capdl.Object import ObjectType, ObjectRights, ARMIRQMode
 from capdl.Allocator import Cap
 from capdl import page_sizes
@@ -170,7 +170,7 @@ def new_context(entity, assembly, render_state, state_key, outfile_name,
                 'raise': _raise,
                 're': re,
                 'six': six,
-                'set': orderedset.OrderedSet,
+                'set': ordered_set.OrderedSet,
                 'textwrap': textwrap,
                 'copy': copy,
                 'zip': zip,

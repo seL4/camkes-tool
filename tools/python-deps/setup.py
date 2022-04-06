@@ -22,7 +22,7 @@ from setuptools import setup
 DEPS = [
     'aenum',
     'jinja2',
-    'orderedset',
+    'ordered_set',
     'plyplus',
     'pyelftools',
     'sel4-deps',
