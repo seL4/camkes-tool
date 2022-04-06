@@ -22,14 +22,13 @@ from setuptools import setup
 DEPS = [
     'aenum',
     'jinja2',
-    'ordered_set',
+    'ordered-set',
     'plyplus',
     'pyelftools',
     'sel4-deps',
     'pycparser',
     'pyfdt',
     'concurrencytest',
-
     # capDL deps
     'sortedcontainers',
     'hypothesis',
@@ -37,7 +36,7 @@ DEPS = [
 
 setup(
     name='camkes-deps',
-    version='0.7.2',
+    version='0.7.3',
     description='Metapackage for downloading build dependencies for CAmkES',
     url='https://docs.sel4.systems/CAmkES/',
     license='BSD2',
