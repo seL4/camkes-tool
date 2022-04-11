@@ -27,9 +27,9 @@ from setuptools import setup
 
 DEPS = [
     'aenum',
-    'jinja2',
+    'jinja2>=3.0.0',
     'ordered-set',
-    'orderedset', # For older source trees: remove in 0.7.3
+    'orderedset', # For older source trees: remove in 0.7.4
     'plyplus',
     'pyelftools',
     'sel4-deps',
@@ -43,7 +43,7 @@ DEPS = [
 
 setup(
     name='camkes-deps',
-    version='0.7.2',
+    version='0.7.3',
     description='Metapackage for downloading build dependencies for CAmkES',
     long_description = """
 The CAmkES tool has many python dependencies.  This package depends on them all
