@@ -29,7 +29,7 @@ DEPS = [
     'aenum',
     'jinja2>=3.0.0',
     'ordered-set',
-    'orderedset', # For older source trees: remove in 0.7.4
+    'orderedset',  # For older source trees: remove in 0.7.4
     'plyplus',
     'pyelftools',
     'sel4-deps',
@@ -45,14 +45,14 @@ setup(
     name='camkes-deps',
     version='0.7.3',
     description='Metapackage for downloading build dependencies for CAmkES',
-    long_description = """
+    long_description="""
 The CAmkES tool has many python dependencies.  This package depends on them all
 so that installing this package will pull in all the necessary packages.
 
-This package is maintained as part of https://github.com/seL4/camkes-tool.git, 
+This package is maintained as part of https://github.com/seL4/camkes-tool.git,
 in directory https://github.com/seL4/camkes-tool/tree/master/tools/python-deps
 """,
-    long_description_content_type = "text/markdown",
+    long_description_content_type="text/markdown",
     url='https://docs.sel4.systems/CAmkES/',
     license='BSD2',
     author='TrustworthySystems',
