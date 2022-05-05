@@ -417,10 +417,6 @@ class DtbMatchQuery(Query):
     def resolve_fdt_node(node):
         resolved = {}
 
-        address_cells_key = 'this-address-cells'
-        size_cells_key = 'this-size-cells'
-        node_path_key = 'this-node-path'
-
         # convert the properties we retrieved to a dictionary
         # of property-name: values. If there is more than one
         # value, use a list, otherwise the raw type.
@@ -439,16 +435,16 @@ class DtbMatchQuery(Query):
             key = p[0][1:]
             values = p[1]
             if key == '#address-cells':
-                resolved[address_cells_key] = list(values)
+                resolved['this-address-cells'] = list(values)
             elif key == '#size-cells':
-                resolved[size_cells_key] = list(values)
+                resolved['this-size-cells'] = list(values)
         # if the parent does have the #address-cells and
         # #size-cells property, default to 2 and 1 respectively
         # as according to the Devicetree spec
-        if address_cells_key not in resolved:
-            resolved[address_cells_key] = [2]
-        if size_cells_key not in resolved:
-            resolved[size_cells_key] = [1]
+        if 'this-address-cells' not in resolved:
+            resolved['this-address-cells'] = [2]
+        if 'this-size-cells' not in resolved:
+            resolved['this-size-cells'] = [1]
         # Resolve the full path of the fdt node by walking backwards
         # to the root of the device tree
         curr_node = node
@@ -461,7 +457,7 @@ class DtbMatchQuery(Query):
             last_node = curr_node
             curr_node = curr_node.parent
         node_path = '/' + node_path
-        resolved[node_path_key] = node_path
+        resolved['this-node-path'] = node_path
         return resolved
 
     def resolve(self, args):
