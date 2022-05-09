@@ -256,7 +256,7 @@ int /*? b.name ?*/_post(void) {
 #ifdef CONFIG_CAMKES_DEFAULT_HEAP_SIZE
 /*- set heap_size = configuration[me.name].get('heap_size', 'CONFIG_CAMKES_DEFAULT_HEAP_SIZE') -*/
 
-static char heap [/*? heap_size ?*/];
+static char ALIGN(PAGE_SIZE_4K) heap [/*? heap_size ?*/];
 extern char *morecore_area;
 extern size_t morecore_size;
 #else
