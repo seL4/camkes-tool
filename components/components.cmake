@@ -12,4 +12,4 @@ CAmkESMaybeAddImportPath(
     ${CMAKE_CURRENT_LIST_DIR}/arch/${KernelArch}
 )
 
-include(${CMAKE_CURRENT_LIST_DIR}/plat/${KernelPlatform}/CMakeLists.txt OPTIONAL)
+include(${CMAKE_CURRENT_LIST_DIR}/plat/${KernelPlatform}/plat/CMakeLists.txt OPTIONAL)
