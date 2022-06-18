@@ -767,7 +767,7 @@ endfunction(ExtendCAmkESComponentInstance)
 
 # Helper function for adding additional import paths. Largely it exists to
 # allow list files to give relative paths and have them automatically expanded
-# to absolute paths We add the import paths to a property, instead of a target,
+# to absolute paths. We add the import paths to a property, instead of a target,
 # since we need to use it in an `execute_process` above, which cannot take
 # generator expressions
 function(CAmkESAddImportPath)
