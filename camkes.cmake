@@ -407,7 +407,7 @@ function(DeclareCAmkESRootserver adl)
         ${CAmkESDTS}
         AND
             NOT
-            "${CAMKES_ROOT_DTS_FILE}"
+            "${CAMKES_ROOT_DTS_FILE_PATH}"
             STREQUAL
             ""
     )
