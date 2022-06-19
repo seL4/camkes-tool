@@ -380,7 +380,7 @@ function(DeclareCAmkESRootserver adl)
         1
         CAMKES_ROOT
         "" # Option arguments
-        "DTS_FILE_PATH" # Single arguments
+        "DTS_FILE_PATH;DTB_FILE_PATH" # Single arguments
         "CPP_FLAGS;CPP_INCLUDES" # Multiple arguments
     )
 
@@ -403,18 +403,19 @@ function(DeclareCAmkESRootserver adl)
     set_property(GLOBAL PROPERTY CAMKES_ROOT_ADL "${adl}")
     set_property(GLOBAL PROPERTY CAMKES_ROOT_CPP_FLAGS "${CAMKES_ROOT_CPP_FLAGS}" APPEND)
     set_property(GLOBAL PROPERTY CAMKES_ROOT_DECLARED TRUE)
-    if(
-        ${CAmkESDTS}
-        AND
-            NOT
-            "${CAMKES_ROOT_DTS_FILE_PATH}"
-            STREQUAL
-            ""
-    )
-        get_absolute_list_source_or_binary(CAMKES_ROOT_DTS_FILE_PATH "${CAMKES_ROOT_DTS_FILE_PATH}")
+
+    if(CAMKES_ROOT_DTB_FILE_PATH)
+        get_absolute_list_source_or_binary(CAMKES_ROOT_DTB_FILE_PATH "${CAMKES_ROOT_DTB_FILE_PATH}")
+        set_property(GLOBAL PROPERTY CAMKES_ROOT_DTB_FILE_PATH "${CAMKES_ROOT_DTB_FILE_PATH}")
     endif()
-    set_property(GLOBAL PROPERTY CAMKES_ROOT_DTB_FILE_PATH "${CAMKES_ROOT_DTB_FILE_PATH}")
-    set_property(GLOBAL PROPERTY CAMKES_ROOT_DTS_FILE_PATH "${CAMKES_ROOT_DTS_FILE_PATH}")
+    if(CAMKES_ROOT_DTS_FILE_PATH)
+        if(CAMKES_ROOT_DTB_FILE_PATH)
+            message(FATAL_ERROR "Either give a DTB or a DTS file")
+        endif()
+        get_absolute_list_source_or_binary(CAMKES_ROOT_DTS_FILE_PATH "${CAMKES_ROOT_DTS_FILE_PATH}")
+        set_property(GLOBAL PROPERTY CAMKES_ROOT_DTS_FILE_PATH "${CAMKES_ROOT_DTS_FILE_PATH}")
+    endif()
+
 endfunction(DeclareCAmkESRootserver)
 
 # Called to actually generate the definitions for the CAmkES rootserver. Due to
@@ -440,19 +441,25 @@ function(GenerateCAmkESRootserver)
     set(CAMKES_PARSER_FLAGS "--import-path=${CAMKES_TOOL_BUILTIN_DIR}")
 
     if(${CAmkESDTS})
-        if(NOT EXISTS "${dtb_file}")
-            # Find the dts to use
-            if("${dts_file}" STREQUAL "")
-                # use the kernel's generated DTB file
-                set(dtb_file ${KernelDTBPath})
-            elseif(NOT EXISTS "${dts_file}")
-                message(FATAL_ERROR "Could not find dts file ${dts_file}")
+        if(NOT dtb_file)
+            if(NOT dts_file)
+                # Use the kernel's generated DTB file. There might be none on
+                # architectures that don't use device trees.
+                set(dtb_file "${KernelDTBPath}")
             else()
-                # generate a DTB file from the path provided
+                if(NOT EXISTS "${dts_file}")
+                    message(FATAL_ERROR "Could not find dts file ${dts_file}")
+                endif()
+                set(dtb_file "${dts_file}.dtb")
                 GenDTB("${dts_file}" dtb_file)
             endif()
         endif()
-        list(APPEND CAMKES_PARSER_FLAGS "--dtb=${dtb_file}")
+        if(dtb_file)
+            if(NOT EXISTS "${dtb_file}")
+                message(FATAL_ERROR "missing dtb file ${dtb_file}")
+            endif()
+            list(APPEND CAMKES_PARSER_FLAGS "--dtb=${dtb_file}")
+        endif()
     endif()
 
     # Grab the list of GPIO pins for the parser
