@@ -4,13 +4,4 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
-component Serial {
-    hardware;
-    provides IOPort serial;
-    emits Irq4 serial_irq;
-    attribute string serial_attributes = "0x3f8:0x3ff";
-    attribute string serial_irq_irq_type = "isa";
-    attribute int serial_irq_irq_ioapic = 0;
-    attribute int serial_irq_irq_ioapic_pin = 4;
-    attribute int serial_irq_irq_vector = 4;
-}
+import <Serial.camkes>;

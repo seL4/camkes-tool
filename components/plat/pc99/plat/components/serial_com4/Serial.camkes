@@ -1,0 +1,16 @@
+/*
+ * Copyright 2022, UNSW (ABN 57 195 873 179)
+ *
+ * SPDX-License-Identifier: BSD-2-Clause
+ */
+
+component Serial {
+    hardware;
+    provides IOPort serial;
+    emits Irq4 serial_irq;
+    attribute string serial_attributes = "0x2e8:0x2ef";
+    attribute string serial_irq_irq_type = "isa";
+    attribute int serial_irq_irq_ioapic = 0;
+    attribute int serial_irq_irq_ioapic_pin = 3;
+    attribute int serial_irq_irq_vector = 3;
+}
