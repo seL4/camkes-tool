@@ -26,24 +26,19 @@ static bool check_irq_info_is_equal(ps_irq_t *a, ps_irq_t *b)
 
         if (a->type == b->type) {
             switch (a->type) {
-            case PS_MSI:
-                if (CHECK_MEMBER_EQUAL(a, b, ioapic.ioapic) &&
-                    CHECK_MEMBER_EQUAL(a, b, ioapic.pin) &&
-                    CHECK_MEMBER_EQUAL(a, b, ioapic.level) &&
-                    CHECK_MEMBER_EQUAL(a, b, ioapic.polarity) &&
-                    CHECK_MEMBER_EQUAL(a, b, ioapic.vector)) {
-                    return true;
-                }
-                return false;
             case PS_IOAPIC:
-                if (CHECK_MEMBER_EQUAL(a, b, msi.pci_bus) &&
-                    CHECK_MEMBER_EQUAL(a, b, msi.pci_dev) &&
-                    CHECK_MEMBER_EQUAL(a, b, msi.pci_func) &&
-                    CHECK_MEMBER_EQUAL(a, b, msi.handle) &&
-                    CHECK_MEMBER_EQUAL(a, b, msi.vector)) {
-                    return true;
-                }
-                return false;
+                return (CHECK_MEMBER_EQUAL(a, b, ioapic.ioapic) &&
+                        CHECK_MEMBER_EQUAL(a, b, ioapic.pin) &&
+                        CHECK_MEMBER_EQUAL(a, b, ioapic.level) &&
+                        CHECK_MEMBER_EQUAL(a, b, ioapic.polarity) &&
+                        CHECK_MEMBER_EQUAL(a, b, ioapic.vector));
+
+            case PS_MSI:
+                return (CHECK_MEMBER_EQUAL(a, b, msi.pci_bus) &&
+                        CHECK_MEMBER_EQUAL(a, b, msi.pci_dev) &&
+                        CHECK_MEMBER_EQUAL(a, b, msi.pci_func) &&
+                        CHECK_MEMBER_EQUAL(a, b, msi.handle) &&
+                        CHECK_MEMBER_EQUAL(a, b, msi.vector));
             default:
                 ZF_LOGF("Unreachable statement");
             }
