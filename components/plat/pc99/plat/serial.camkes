@@ -4,4 +4,4 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
-import <Serial.camkes>;
+import <SerialCom.camkes>;
