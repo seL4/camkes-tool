@@ -28,7 +28,6 @@ import inspect
 import itertools
 import functools
 import numbers
-from math import log10
 import \
     ordered_set, os, pdb, re, six, sys, textwrap, math
 from capdl.Object import ObjectType, ObjectRights, ARMIRQMode
@@ -486,12 +485,11 @@ def register_shared_variable(addr_space, obj_space, global_name, symbol, size, c
     size = int(size)
     frame_size = calc_frame_size(size, frame_size, obj_space.spec.arch)
     num_frames = size//frame_size
-    digits = str(int(log10(num_frames + 1)) + 1)
-    namefmt = '%s_%0' + digits + 'd_obj'
+    digits = len(str(num_frames - 1))  # 0 frames is a no-op below anyway
     # If these frames have been allocated already then the allocator will return them.
     # Therefore calls to register_shared_variable with the same global_name have to have the same size.
     frames = [obj_space.alloc(ObjectType.seL4_FrameObject,
-                              name=namefmt % (global_name, i),
+                              name=f'{global_name}_{i:0{digits}}_obj',
                               size=frame_size,
                               label=label)
               for i in range(num_frames)]
@@ -539,10 +537,9 @@ def get_shared_variable_backing_frames(obj_space, global_name, size, frame_size=
     size = int(size)
     frame_size = calc_frame_size(size, frame_size, obj_space.spec.arch)
     num_frames = size//frame_size
-    digits = str(int(log10(num_frames + 1)) + 1)
-    namefmt = '%s_%0' + digits + 'd_obj'
+    digits = len(str(num_frames - 1))  # 0 frames is a no-op below anyway
     return [obj_space.alloc(ObjectType.seL4_FrameObject,
-                            name=namefmt % (global_name, i),
+                            name=f'{global_name}_{i:0{digits}}_obj',
                             size=frame_size,
                             label=label)
             for i in range(num_frames)]
@@ -557,15 +554,14 @@ def register_fill_frame(addr_space, symbol, fill, size, obj_space, label):
     '''
     assert addr_space
     number_frames = size//4096
-    digits = str(int(log10(number_frames + 1)) + 1)
-    namefmt = '%s_%s_%0' + digits + 'd_obj'
+    digits = len(str(number_frames - 1))  # 0 frames is a no-op below anyway
     frames = []
     for i in range(number_frames):
         fill_str = ['%d %d %s %d' % (0, 4096 if (size - (i * 4096)) >=
                                      4096 else (size - (i * 4096)), fill, i * 4096)]
-        name = namefmt % (symbol, label, i)
         frames.append(obj_space.alloc(ObjectType.seL4_FrameObject,
-                                      name=name, label=label, fill=fill_str, size=4096))
+                                      name=f'{symbol}_{label}_{i:0{digits}}_obj',
+                                      label=label, fill=fill_str, size=4096))
     caps = [Cap(frame, read=True, write=False, grant=False) for frame in frames]
     sizes = [4096] * number_frames
     addr_space.add_symbol_with_caps(symbol, sizes, caps)
@@ -582,9 +578,10 @@ def register_stack_symbol(addr_space, symbol, size, obj_space, label):
     '''
     assert addr_space
     number_frames = size//4096
-    digits = str(int(log10(number_frames + 1)) + 1)
-    namefmt = 'stack_%s_%0' + digits + 'd_%s_obj'
-    frames = [obj_space.alloc(ObjectType.seL4_FrameObject, name=namefmt % (symbol, i, label), label=label, size=4096)
+    digits = len(str(number_frames - 1))  # 0 frames is a no-op below anyway
+    frames = [obj_space.alloc(ObjectType.seL4_FrameObject,
+                              name=f'stack_{symbol}_{i:0{digits}}_{label}_obj',
+                              label=label, size=4096)
               for i in range(number_frames)]
     # We create 2 additional mappings with None caps that are for the guard pages.
     sizes = [4096] * (number_frames + 2)
