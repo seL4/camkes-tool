@@ -42,7 +42,7 @@ macro(ParentListAppend list)
     set(local_list_value "${${list}}")
     list(APPEND local_list_value ${ARGN})
     set(${list} "${local_list_value}" PARENT_SCOPE)
-endmacro(ParentListAppend list)
+endmacro(ParentListAppend)
 
 # Helper function for declaring a generated file
 function(CAmkESGen output item template)
