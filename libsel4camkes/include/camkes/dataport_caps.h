@@ -18,6 +18,7 @@ typedef unsigned int (*dataport_get_num_frame_caps_fn)(void);
 typedef seL4_CPtr *(*dataport_get_frame_caps_fn)(void);
 typedef void (*dataport_free_frame_caps_fn)(seL4_CPtr *);
 typedef size_t (*dataport_get_size_fn)(void);
+typedef size_t (*dataport_get_frame_size_bits_fn)(void);
 typedef seL4_CapRights_t (*dataport_get_rights_fn)(void);
 
 typedef struct {
@@ -27,6 +28,7 @@ typedef struct {
     dataport_get_frame_caps_fn get_frame_caps;
     dataport_free_frame_caps_fn free_frame_caps;
     dataport_get_size_fn get_size;
+    dataport_get_frame_size_bits_fn get_frame_size_bits;
     dataport_get_rights_fn get_rights;
 } dataport_caps_handle_t;
 
@@ -58,6 +60,11 @@ static inline void dataport_free_frame_caps(dataport_caps_handle_t *d, seL4_CPtr
 static inline size_t dataport_get_size(dataport_caps_handle_t *d)
 {
     return d->get_size();
+}
+
+static inline size_t dataport_get_frame_size_bits(dataport_caps_handle_t *d)
+{
+    return d->get_frame_size_bits();
 }
 
 static inline seL4_CapRights_t dataport_get_rights(dataport_caps_handle_t *d)
