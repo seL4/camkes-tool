@@ -173,6 +173,9 @@ const char *get_instance_name(void);
             /*? raise(TemplateError('Missing DTB path for the %s seL4DTBHardware connection.' % config_name)) ?*/
         /*- endif -*/
         /*- set dtb = dtb_query[0] -*/
+        /*- if not 'reg' in dtb -*/
+            /*? raise(TemplateError('No reg attribute in DTB path for the %s seL4DTBHardware connection.' % (config_name))) ?*/
+        /*- endif -*/
         /*- set num_registers = len(dtb['reg']) // (dtb['this_address_cells'][0] + dtb['this_size_cells'][0]) -*/
         /*# Declare all the initialised buffers #*/
         /*- for i in range(0, num_registers) -*/
