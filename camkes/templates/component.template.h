@@ -196,7 +196,7 @@ const char *get_instance_name(void);
 /*- endfor -*/
 
 /*- for d in me.type.dataports -*/
-    extern /*? macros.dataport_type(d.type) ?*/ * /*? d.name ?*/
+    extern volatile /*? macros.dataport_type(d.type) ?*/ * /*? d.name ?*/
     /*- if d.optional -*/
         WEAK
     /*- endif -*/;
@@ -209,7 +209,7 @@ const char *get_instance_name(void);
 
     #define /*? d.name ?*/_size /*? macros.dataport_size(d.type) ?*/
 
-    static inline size_t /*? d.name ?*/_get_size(void) {
+    inline size_t /*? d.name ?*/_get_size(void) {
       return /*? macros.dataport_size(d.type) ?*/;
     }
 /*- endfor -*/
