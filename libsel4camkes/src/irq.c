@@ -82,7 +82,7 @@ static allocated_irq_t **find_matching_irq_entry_by_interrupt(ps_irq_t *irq)
     for (allocated_irq_t **irq_entry = __start__allocated_irqs;
          irq_entry < __stop__allocated_irqs; irq_entry++) {
         /* We use this function for 'register', so the IRQ entries have to be unallocated */
-        if ((*irq_entry)->is_allocated == false) {
+        if (!((*irq_entry)->is_allocated)) {
             ps_irq_t *irq_info = &((*irq_entry)->irq);
             if (check_irq_info_is_equal(irq_info, irq)) {
                 return irq_entry;
@@ -98,7 +98,7 @@ static allocated_irq_t **find_matching_irq_entry_by_cptr(seL4_CPtr irq_cptr)
     for (allocated_irq_t **irq_entry = __start__allocated_irqs;
          irq_entry < __stop__allocated_irqs; irq_entry++) {
         /* We use this function for 'unregister', so the IRQ entries have to be allocated */
-        if ((*irq_entry)->is_allocated == true) {
+        if ((*irq_entry)->is_allocated) {
             if ((*irq_entry)->irq_handler == irq_cptr) {
                 return irq_entry;
             }
