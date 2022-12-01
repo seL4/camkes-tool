@@ -55,7 +55,7 @@ void camkes_virtqueue_buffer_free(virtqueue_driver_t *virtqueue, void *buffer)
     allocator->head = idx;
 }
 
-static camkes_virtqueue_channel_t *get_virtqueue_channel(virtqueue_role_t role, unsigned int camkes_virtqueue_id)
+camkes_virtqueue_channel_t *get_virtqueue_channel(virtqueue_role_t role, unsigned int camkes_virtqueue_id)
 {
     /* Check that the virtqueue id is in a valid range */
     if (camkes_virtqueue_id > MAX_CAMKES_VIRTQUEUE_ID) {
@@ -110,7 +110,8 @@ int camkes_virtqueue_driver_init_with_recv(virtqueue_driver_t *driver, unsigned 
         *recv_badge = channel->recv_badge;
     }
 
-    return camkes_virtqueue_driver_init_common(driver, channel->channel_buffer, channel->queue_len, channel->channel_buffer_size,
+    return camkes_virtqueue_driver_init_common(driver, channel->channel_buffer, channel->queue_len,
+                                               channel->channel_buffer_size,
                                                channel->notify, BLOCK_SIZE) ? -1 : 0;
 }
 
@@ -134,7 +135,8 @@ int camkes_virtqueue_device_init_with_recv(virtqueue_device_t *device, unsigned 
         *recv_badge = channel->recv_badge;
     }
 
-    return camkes_virtqueue_device_init_common(device, channel->channel_buffer, channel->queue_len, channel->notify) ? -1 : 0;
+    return camkes_virtqueue_device_init_common(device, channel->channel_buffer, channel->queue_len,
+                                               channel->notify) ? -1 : 0;
 }
 
 void *camkes_virtqueue_device_offset_to_buffer(virtqueue_device_t *virtqueue, uintptr_t offset)

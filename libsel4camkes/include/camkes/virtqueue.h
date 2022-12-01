@@ -55,6 +55,17 @@ extern camkes_virtqueue_channel_t camkes_virtqueue_channels[MAX_CAMKES_VIRTQUEUE
 extern int num_registered_virtqueue_channels;
 
 /**
+ * Get the virtqueue channel associated with the CAmkES virtqueue ID. Only return if
+ * a valid virtqueue is found.
+ *
+ * @param role                  Role of the virtqueue, either device or driver.
+ * @param camkes_virtqueue_id   Unique ID of the virtqueue as specified in CAmkES.
+ *
+ * @return Returns a valid virtqueue channel or NULL if invalid.
+*/
+camkes_virtqueue_channel_t *get_virtqueue_channel(virtqueue_role_t role, unsigned int camkes_virtqueue_id);
+
+/**
  * @brief      Convert a string name to a camkes virtqueue channel id.
  *
  * When a camkes virtqueue is registered, a numeric ID and a string name are provided
