@@ -598,8 +598,6 @@ class DtbMatchQuery(Query):
 
     def resolve(self, args):
         result = self.engine.query(args)
-
-        resolved = {}
         if not len(result):
             raise ParseError("DTB query has no results.")
 
@@ -611,11 +609,11 @@ class DtbMatchQuery(Query):
                 node = entry[0]
                 node_resolved = self.resolve_fdt_node(node)
                 query_results.append(node_resolved)
-        # place the results under the 'dtb' key
-        resolved['query'] = query_results
-        # inject the size of the dtb into into the dictionary
-        resolved['dtb-size'] = [self.dtb_file_size]
-        return resolved
+
+        return {
+            'query': query_results,
+            'dtb-size': [self.dtb_file_size]
+        }
 
     @staticmethod
     def get_parser():
