@@ -599,7 +599,7 @@ class DtbMatchQuery(Query):
     def resolve(self, args):
         result = self.engine.query(args)
         if not len(result):
-            raise ParseError("DTB query has no results.")
+            raise ParseError(f'DTB query failed: {args}')
 
         query_results = []
         for entry in result:
