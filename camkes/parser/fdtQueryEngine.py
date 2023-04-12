@@ -10,6 +10,7 @@ import argparse
 
 import functools
 import os
+import copy
 import six
 import re
 import logging
@@ -405,7 +406,12 @@ class FdtQueryEngine:
 
     def query(self, attr):
         assert isinstance(attr, list)
-        return [self._match_attr_dict(attr_dict) for attr_dict in attr]
+
+        # Make a copy of each internal dict as _match_attr_dict mutates
+        # its arguments but we aren't allowed to mutate our arguments.
+        # Use deepcopy because the dict could contain more compound objects
+        # but can't contain recursive references.
+        return [self._match_attr_dict(copy.deepcopy(attr_dict)) for attr_dict in attr]
 
 
 class DtbMatchQuery(Query):
