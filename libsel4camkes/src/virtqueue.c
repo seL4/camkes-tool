@@ -225,48 +225,58 @@ int camkes_virtqueue_driver_gather_copy_buffer(virtqueue_driver_t *vq, virtqueue
 }
 
 int camkes_virtqueue_device_scatter_copy_buffer(virtqueue_device_t *vq, virtqueue_ring_object_t *handle,
-                                                void *buffer, size_t size)
+                                                void *buffer, size_t *size)
 {
     size_t sent = 0;
+    size_t size_buf_remaining = *size;
 
-    while (sent < size) {
+    while (size_buf_remaining > 0) {
         void *avail_buf;
-        unsigned buf_size;
-        size_t to_copy;
+        unsigned avail_buf_size;
         vq_flags_t flag;
 
-        if (camkes_virtqueue_device_gather_buffer(vq, handle, &avail_buf, &buf_size, &flag)) {
-            virtqueue_add_used_buf(vq, handle, sent);
-            return -1;
+        if (camkes_virtqueue_device_gather_buffer(vq, handle, &avail_buf, &avail_buf_size, &flag)) {
+            // No more data to copy
+            break;
         }
-        to_copy = size - sent < buf_size ? size - sent : buf_size;
+        size_t to_copy = size_buf_remaining < avail_buf_size ? size_buf_remaining : avail_buf_size;
         memcpy(avail_buf, buffer + sent, to_copy);
         sent += to_copy;
+        size_buf_remaining -= to_copy;
     }
+
+    // release the ring object
     virtqueue_add_used_buf(vq, handle, sent);
+
+    *size = sent;
     return 0;
 }
 
 int camkes_virtqueue_device_gather_copy_buffer(virtqueue_device_t *vq, virtqueue_ring_object_t *handle,
-                                               void *buffer, size_t size)
+                                               void *buffer, size_t *size)
 {
     size_t sent = 0;
+    size_t size_buf_remaining = *size;
 
-    while (sent < size) {
+    while (size_buf_remaining > 0) {
         void *avail_buf;
-        unsigned buf_size;
-        size_t to_copy;
+        unsigned avail_buf_size;
         vq_flags_t flag;
 
-        if (camkes_virtqueue_device_gather_buffer(vq, handle, &avail_buf, &buf_size, &flag)) {
-            virtqueue_add_used_buf(vq, handle, sent);
-            return -1;
+        if (camkes_virtqueue_device_gather_buffer(vq, handle, &avail_buf, &avail_buf_size, &flag)) {
+            // No more data to copy
+            break;
         }
-        to_copy = size - sent < buf_size ? size - sent : buf_size;
+        size_t to_copy = size_buf_remaining < avail_buf_size ? size_buf_remaining : avail_buf_size;
         memcpy(buffer + sent, avail_buf, to_copy);
         sent += to_copy;
+        size_buf_remaining -= to_copy;
     }
+
+    // release the ring object
     virtqueue_add_used_buf(vq, handle, sent);
+
+    *size = sent;
     return 0;
 }
 
