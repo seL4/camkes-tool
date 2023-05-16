@@ -188,7 +188,7 @@ int camkes_virtqueue_device_scatter_copy_buffer(virtqueue_device_t *vq, virtqueu
  * used list.
  * @param vq the device side virtqueue
  * @param handle the iterator on the available ring object
- * @param buffer a pointer to the buffer to copy from
+ * @param buffer a pointer to the buffer to copy to
  * @param size the size of the buffer we're passing
  * @return 0 on success, -1 on fail
  */
