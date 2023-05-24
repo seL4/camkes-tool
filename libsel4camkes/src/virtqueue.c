@@ -151,7 +151,7 @@ void *camkes_virtqueue_driver_offset_to_buffer(virtqueue_driver_t *virtqueue, ui
     return allocator->buffer + offset;
 }
 
-int camkes_virtqueue_driver_send_buffer(virtqueue_driver_t *vq, void *buffer, size_t size)
+int camkes_virtqueue_driver_send_buffer(virtqueue_driver_t *vq, void const *buffer, size_t size)
 {
     uintptr_t base_offset = (uintptr_t)(((struct vq_buf_alloc *)vq->cookie)->buffer);
     uintptr_t buf_offset = (uintptr_t)buffer - base_offset;
@@ -178,7 +178,7 @@ static int chain_vq_buf(virtqueue_driver_t *vq, virtqueue_ring_object_t *handle,
     return 0;
 }
 
-int camkes_virtqueue_driver_scatter_send_buffer(virtqueue_driver_t *vq, void *buffer, size_t size)
+int camkes_virtqueue_driver_scatter_send_buffer(virtqueue_driver_t *vq, void const *buffer, size_t size)
 {
     size_t sent = 0;
     virtqueue_ring_object_t handle;
