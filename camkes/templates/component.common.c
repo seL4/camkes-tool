@@ -89,19 +89,13 @@ seL4_CPtr camkes_get_smc_cap(seL4_Word smc_call){
     seL4_CPtr cap;
     switch(smc_call) {
 /*# ARM SMC cap allocation #*/
-/*- if 'allow_smc' in configuration[me.name].keys() -*/
-    /*- if configuration[me.name].get('allow_smc') == true -*/
-        /*- if 'allowed_smc_functions' in configuration[me.name].keys() -*/
-            /*- for func_id in configuration[me.name].allowed_smc_functions -*/
-                /*- set smc_cap = alloc(name='smc_%d' % func_id, type=seL4_ARMSMC, badge=func_id) -*/
+/*- for func_id in configuration[me.name].get('allowed_smc_functions', []) -*/
+    /*- set smc_cap = alloc(name='smc_%d' % func_id, type=seL4_ARMSMC, badge=func_id) -*/
 
         case /*? func_id ?*/:
             cap = /*? smc_cap ?*/;
             break;
-            /*- endfor -*/
-        /*- endif -*/
-    /*- endif -*/
-/*- endif -*/
+/*- endfor -*/
         default:
             cap = 0;
     }
