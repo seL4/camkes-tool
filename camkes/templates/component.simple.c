@@ -23,6 +23,7 @@
 #include <camkes/error.h>
 #include <camkes/tls.h>
 #include <vka/kobject_t.h>
+#include <utils/builtin.h>
 
 #include <simple/simple.h>
 
@@ -482,7 +483,7 @@ void camkes_make_simple(simple_t *simple) {
             /*# If there is no size specified in the configuration then we assume the cnode
                 will be as small as possible to hold all the capabilities that are currently
                 defined #*/
-            simple_data.cnodesizebits = CONFIG_WORD_SIZE - __builtin_clz(/*? holding_slot ?*/) + 1;
+            simple_data.cnodesizebits = CONFIG_WORD_SIZE - CLZL(/*? holding_slot ?*/) + 1;
         /*- endif -*/
         /*# Find untyped physical addresses. We only care if the untyped is at least a page size #*/
         /*- for u in untyped_obj_list -*/
