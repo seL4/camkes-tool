@@ -39,13 +39,13 @@ jobs:
     strategy:
       matrix:
         platform:
-            # - ODROID_XU
+            - ODROID_XU
             - ODROID_XU4
             - PC99
-            # - TX1
+            - TX1
             - TX2
             - IMX8MM_EVK
-            # - IMX8MQ_EVK
+            - IMX8MQ_EVK
     steps:
     - uses: seL4/ci-actions/camkes-test@master
       with:
@@ -79,13 +79,13 @@ jobs:
     strategy:
       matrix:
         platform:
-            # - ODROID_XU
+            - ODROID_XU
             - ODROID_XU4
             - PC99
-            # - TX1
+            - TX1
             - TX2
             - IMX8MM_EVK
-            # - IMX8MQ_EVK
+            - IMX8MQ_EVK
     # do not run concurrently with other workflows, but do run concurrently in the build matrix
     concurrency: camkes-hw-${{ strategy.job-index }}
     steps:
