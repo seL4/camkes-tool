@@ -77,8 +77,16 @@ sudo apt-get install graphviz
 pip install --user graphviz
 pip install --user pydotplus
 ```
-#### For macs
-For macs, to install graphviz (first step above), visit this website: http://www.ryandesign.com/graphviz/ , download the latest development (or stable as long as greater than version 16), and install the dmg. Pip will work on the mac.
+
+#### For Macs
+
+For Macs, to install graphviz (first step above), use [homebrew](https://brew.sh):
+
+```sh
+brew install graphviz
+```
+
+Pip will work on the mac.
 
 ### Installing other python dependencies
 
