@@ -6,20 +6,26 @@
 
 # VisualCAmkES
 
-For detailed information how to install and use visualCAmkES, read the wiki page: https://docs.sel4.systems/VisualCAmkES/
+For detailed information how to install and use visualCAmkES, read the docs page: <https://docs.sel4.systems/VisualCAmkES/>
 
-## Installing dependenices
-On top of the dependenices required for camkes-tool, visualCAmkES requires are few other installations such as Qt and Graphviz.
+## Installing dependencies
+
+On top of the dependencies required for camkes-tool, visualCAmkES requires are few other installations such as Qt and Graphviz.
 
 ### Install Qt
+
 #### Debian / Ubuntu / (Possibly other linux distros with different package managers)
-```
+
+```sh
 sudo apt-get install python-pyqt5
 sudo apt-get install python-pyqt5.qtsvg
 ```
+
 #### From source (for Macs and all linux distros, and possibly windows)
+
 ##### Installing Qt libraries
-```
+
+```sh
 git clone git://code.qt.io/qt/qt5.git
 cd qt5
 git checkout 5.5
@@ -36,7 +42,8 @@ make install
 ```
 
 ##### Installing sip
-```
+
+```sh
 curl -O http://liquidtelecom.dl.sourceforge.net/project/pyqt/sip/sip-4.17/sip-4.17.tar.gz
 tar -xvf sip-4.17.tar.gz
 cd sip-4.17
@@ -48,7 +55,8 @@ make install
 ```
 
 ##### Installing PyQt5
-```
+
+```sh
 curl -O http://liquidtelecom.dl.sourceforge.net/project/pyqt/PyQt5/PyQt-5.5.1/PyQt-gpl-5.5.1.tar.gz
 tar -xvf PyQt-gpl-5.5.1.tar.gz
 cd PyQt-gpl-5.5.1
@@ -61,22 +69,35 @@ make install
 ```
 
 ### Install Graphviz
-#### Debian / Ubuntu / (Possibly other linux distros with different package managers)
-```
+
+#### Graphviz on Debian / Ubuntu / (Possibly other linux distros with different package managers)
+
+```sh
 sudo apt-get install graphviz
 pip install --user graphviz
 pip install --user pydotplus
 ```
-#### For macs
-For macs, to install graphviz (first step above), visit this website: http://www.ryandesign.com/graphviz/ , download the latest development (or stable as long as greater than version 16), and install the dmg. Pip will work on the mac.
 
-### Installing other python dependies
+#### For Macs
+
+For Macs, to install graphviz (first step above), use [homebrew](https://brew.sh):
+
+```sh
+brew install graphviz
 ```
+
+Pip will work on the mac.
+
+### Installing other python dependencies
+
+```sh
 pip install --user ansi2html
 ```
 
 ## How to use
+
 Very simple:
-```
+
+```sh
 python [path/to/camkes-tool/camkes]/visualCAmkES
 ```
