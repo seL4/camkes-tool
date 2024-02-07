@@ -52,7 +52,7 @@ jobs:
         xml: ${{ needs.code.outputs.xml }}
         platform: ${{ matrix.platform }}
     - name: Upload images
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: images-${{ matrix.platform }}
         path: '*-images.tar.gz'
@@ -96,7 +96,7 @@ jobs:
           path: machine_queue
           token: ${{ secrets.PRIV_REPO_TOKEN }}
       - name: Download image
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: images-${{ matrix.platform }}
       - name: Run
