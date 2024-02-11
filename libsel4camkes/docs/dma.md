@@ -1,16 +1,16 @@
 <!--
      Copyright 2021, Data61, CSIRO (ABN 41 687 119 230)
 
-     SPDX-License-Identifier: BSD-2-Clause
+     SPDX-License-Identifier: CC-BY-SA-4.0
 -->
 
 # DMA
 
-libsel4camkes provides some functions for interacting with a DMA pool that
-CAmkES allocates and manages. These functions are essentially an implementation
-of the `ps_dma_man_t` interface in `ps_io_ops_t`. It is preferred that the DMA
-requests go through the `ps_dma_man_t` interfaces instead of using these
-functions.
+`libsel4camkes` provides functions for interacting with a DMA pool that is
+allocated and managed by CAmkES. These functions are essentially an
+implementation of the `ps_dma_man_t` interface in `ps_io_ops_t`. It is preferred
+that the DMA requests go through the `ps_dma_man_t` interfaces instead of using
+these functions.
 
 ## Usage
 
@@ -23,7 +23,7 @@ assembly {
     composition {
         component Foo bar;
     }
-    
+
     configuration {
         bar.dma_pool = 0x4000;
     }

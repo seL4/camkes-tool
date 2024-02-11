@@ -1,9 +1,9 @@
 <!--
      Copyright 2021, Data61, CSIRO (ABN 41 687 119 230)
 
-     SPDX-License-Identifier: BSD-2-Clause
+     SPDX-License-Identifier: CC-BY-SA-4.0
 -->
-  
+
 # `ps_io_ops_t`
 
 CAmkES provides an implementation of the `ps_io_ops_t` as part
@@ -24,12 +24,12 @@ used to perform these memory allocations.
 
 <https://github.com/seL4/camkes-tool/blob/master/libsel4camkes/src/io.c>
 
-The CAmkES `ps_io_mapper_t` interface for memory mapped I/O (MMIO) uses a
-record of all device memory mappings in the component's virtual address space
-to look up a virtual address for a corresponding physical address.  CAmkES
-hardware connector templates generate the MMIO mappings in the CapDL spec. They
+The CAmkES `ps_io_mapper_t` interface for memory mapped I/O (MMIO) uses a record
+of all device memory mappings in the component's virtual address space to look
+up a virtual address for a corresponding physical address.  CAmkES hardware
+connector templates generate the MMIO mappings in the CapDL spec. The templates
 are also expected to register the mappings in the special linker section
-`_dataport_frames`, describing an MMIO mapping region by its size, physical
+`_dataport_frames`, describing each MMIO mapping region by its size, physical
 address and mapping attributes. The CAmkES `ps_io_mapper_t` uses this
 information to return the mapping information to callers.
 
@@ -47,12 +47,12 @@ errors, but this is currently unsupported.
 The CAmkES `ps_dma_man_t` interface for Direct Memory Access (DMA) uses a
 statically defined pool of DMA memory from which the interface implementation
 allocates DMA regions. The mappings for this pool are created during system
-initialisation and the interface responds to alloc and pin requests by handing
+initialisation, and the interface responds to alloc and pin requests by handing
 out the virtual and physical addresses for these regions.
 
-Hardware memory management mechanisms (such as IOMMU or SMMU) are not currently
-supported, but this will be implemented by also mapping the static DMA pool
-memory into the hardware address spaces provided by the IOMMU implementation.
+IOMMU and SMMU are not currently supported. This could be implemented by also
+mapping the static DMA pool memory into the hardware address spaces provided by
+the IOMMU implementation.
 
 The cache operations provided by this interface are no-ops as the entire pool
 is mapped uncached.
@@ -74,7 +74,7 @@ section to match a requested register call with an existing interrupt
 notification. CAmkES then sets the provided callback handler to be invoked when
 an interrupt arrives on the notification. When an interrupt is received, the
 provided handler is invoked and given a function for performing the seL4
-interrupt acknowledgment as the interface ACK function.
+interrupt acknowledgment.
 
 ## `ps_io_port_ops_t`
 
@@ -83,10 +83,10 @@ interrupt acknowledgment as the interface ACK function.
 The `ps_io_port_ops_t` interface for architectural I/O operations is
 implemented for x86 IOPorts. Connectors that allocate CapDL IOPort capabilities
 are expected to register these capabilities in the `_ioport_regions` linker
-section. The CAmkES imlementation of the IOPort interface looks up these
+section. The CAmkES implementation of the IOPort interface looks up these
 capabilities for requested IOPorts and then performs the correct seL4 IOPort
 invocation. Errors are returned for any IOPorts that the component does not
-have access to. 
+have access to.
 
 A feature may be added in the future for delegating IOPort calls to a different
 CAmkES component. This is required to support sharing of devices across
@@ -99,11 +99,11 @@ through a separate API.
 <https://github.com/seL4/camkes-tool/blob/master/libsel4camkes/src/io.c>
 
 The CAmkES `ps_io_fdt_t` interface for providing access to a flattened device
-tree (FDT) uses node information made available in the component's address
-space during system initialisation.  CAmkES hardware connectors register a
-CapDL FDT fill-frame that causes the FDT (which is passed into CapDL loader by
-seL4 during startup) to be copied into the component's address space. The
-CAmkES `ps_io_fdt_t` interface returns a reference to this FDT.
+tree (FDT) uses node information made available in the component's address space
+during system initialisation.  CAmkES hardware connectors register a CapDL FDT
+content frame that causes the FDT (which is passed into CapDL loader by seL4
+during startup) to be copied into the component's address space. The CAmkES
+`ps_io_fdt_t` interface returns a reference to this FDT.
 
 ## `ps_interface_registration_ops_t`
 
@@ -115,4 +115,3 @@ removed while also allowing iteration over it.
 
 CAmkES populates the list for each component based on which other components it
 is connected to according the static system architecture.
-

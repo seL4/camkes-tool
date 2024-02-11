@@ -6,7 +6,7 @@
 
 # libsel4camkes
 
-This is a library that contain a collection of user-friendly abstractions to
+This is a library that contains a collection of user-friendly abstractions to
 the CAmkES runtime environment, as well some backend functions for the CAmkES
 environment to bootstrap and configure the runtime environment.
 
