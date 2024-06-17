@@ -65,7 +65,7 @@ def new_context(entity, assembly, render_state, state_key, outfile_name,
         if obj_space else None,
 
         # Cap allocator
-        'alloc_cap': None if cap_space is None else \
+        'alloc_cap': None if cap_space is None else
                 (lambda name, obj, **kwargs: alloc_cap((entity.label(),
                                                         cap_space), cap_space, name, obj, **kwargs)),
 
@@ -80,7 +80,7 @@ def new_context(entity, assembly, render_state, state_key, outfile_name,
                 # you see `set y = alloc('foo', bar, moo)` in template code, think:
                 #  set x = alloc_obj('foo_obj', bar)
                 #  set y = alloc_cap('foo_cap', x, moo)
-                'alloc': None if cap_space is None else \
+                'alloc': None if cap_space is None else
                 (lambda name, type, label=entity.label(), **kwargs:
                  alloc_cap((entity.label(), cap_space), cap_space, name,
                            alloc_obj((entity.label(), obj_space), obj_space, '%s_%s' %
@@ -94,14 +94,14 @@ def new_context(entity, assembly, render_state, state_key, outfile_name,
                 # same shared variable. The local name (lname) will later be used by us
                 # to locate the relevant ELF frame(s) to remap. Note that we assume
                 # address spaces and CSpaces are 1-to-1.
-                'register_shared_variable': None if cap_space is None else \
+                'register_shared_variable': None if cap_space is None else
                 (lambda global_name, symbol, size, frame_size=None, paddr=None,
                  perm='RWX', cached=True, label=entity.parent.label(), with_mapping_caps=None:
                  register_shared_variable(
                      addr_space, obj_space, global_name, symbol, size, cap_space,
                      frame_size, paddr, perm, cached, label, with_mapping_caps)),
 
-                'get_shared_variable_backing_frames': None if cap_space is None else \
+                'get_shared_variable_backing_frames': None if cap_space is None else
                 (lambda global_name, size, frame_size=None, label=entity.parent.label():
                  get_shared_variable_backing_frames(
                     obj_space, global_name, size, frame_size, label)),
