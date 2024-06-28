@@ -29,7 +29,7 @@ DEPS = [
     'aenum',
     'jinja2>=3.0.0',
     'ordered-set',
-    'orderedset',  # For older source trees: remove in 0.7.4
+    "orderedset;python_version<='3.10'", # For older source trees: remove in 0.7.4
     'plyplus',
     'pyelftools',
     'sel4-deps',
