@@ -25,6 +25,8 @@ jobs:
       - uses: seL4/ci-actions/link-check@master
         with:
           exclude: js/node_modules
+          # produces 403 for link checker:
+          exclude_urls: "http://jinja.pocoo.org/docs/"
 
   style:
     name: Style
