@@ -157,7 +157,7 @@ DEPENDENCIES = {
                       PythonModule('plyplus', 'Python parsing module'),
                       PythonModule('ply', 'Python parsing module'),
                       PythonModule('elftools', 'Python ELF parsing module'),
-                      PythonModule('ordered_set', 'Python OrderedSet module (orderedset)'),
+                      PythonModule('ordered_set', 'Python OrderedSet module (ordered-set)'),
                       PythonModuleWith('six', 'Python 2/3 compatibility layer', 'assertCountEqual'),
                       PythonModule('sqlite3', 'Python SQLite module'),
                       PythonModule('pyfdt', 'Python flattened device tree parser')),

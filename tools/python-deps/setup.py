@@ -10,7 +10,7 @@ Setup script for dependency metapackage.
 
 To add a python dependency, add it to the DEPS list below.
 
-To publish using these instructions, you need the virtualenv package 
+To publish using these instructions, you need the virtualenv package
 installed, and a properly set up ~/.pypirc file.
 
 To publish to pypitest:
@@ -29,7 +29,6 @@ DEPS = [
     'aenum',
     'jinja2>=3.0.0',
     'ordered-set',
-    'orderedset',  # For older source trees: remove in 0.7.4
     'plyplus',
     'pyelftools',
     'sel4-deps',
@@ -43,7 +42,7 @@ DEPS = [
 
 setup(
     name='camkes-deps',
-    version='0.7.3',
+    version='0.7.4',
     description='Metapackage for downloading build dependencies for CAmkES',
     long_description="""
 The CAmkES tool has many python dependencies.  This package depends on them all
@@ -58,4 +57,5 @@ in directory https://github.com/seL4/camkes-tool/tree/master/tools/python-deps
     author='TrustworthySystems',
     author_email='pypi@trustworthy.systems',
     install_requires=DEPS,
+    python_requires='>=3'
 )
