@@ -8,6 +8,15 @@
 
 ### Changes
 
+
+### Upgrade Notes
+---
+
+## camkes-3.11.0 2024-07-01
+Using seL4 version 13.0.0
+
+### Changes
+
 #### Added/Removed
 
 * Added support for SMC capabilities
