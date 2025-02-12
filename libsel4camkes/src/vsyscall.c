@@ -34,7 +34,11 @@ struct {
 #ifdef __NR_pause
     {__NR_pause, camkes_sys_pause},
 #endif
+#ifdef __NR_clock_gettime64
+    {__NR_clock_gettime64, camkes_sys_clock_gettime},
+#else
     {__NR_clock_gettime, camkes_sys_clock_gettime},
+#endif
 #ifdef __NR__newselect
     {__NR__newselect, camkes_sys__newselect},
 #endif
