@@ -61,6 +61,9 @@ void camkes_start_control(int thread_id, void *ipc_buffer_ptr)
                 .a_type = AT_SEL4_IPC_BUFFER_PTR,
                 .a_un.a_ptr = ipc_buffer_ptr,
             }, {
+                .a_type = AT_PAGESZ,
+                .a_un.a_val = 0x1000,
+            }, {
                 // Null terminating entry
                 .a_type = AT_NULL,
                 .a_un.a_val = 0
