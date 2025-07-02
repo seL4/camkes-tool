@@ -327,7 +327,7 @@ To build this example, from the top-level directory run:
 ```bash
 mkdir build
 cd build
-../init-build.sh -DPLATFORM=sabre -DCAMKES_APP=simple -DSIMULATE=1
+../init-build.sh -DPLATFORM=sabre -DCAMKES_APP=simple -DSIMULATION=1
 ninja
 ```
 
@@ -363,7 +363,7 @@ If you want to run this example on IA32, repeat the above procedure with a new b
 directory, replacing the configuration line with the following:
 
 ```bash
-../init-build.sh -DPLATFORM=ia32 -DCAMKES_APP=simple -DSIMULATE=1
+../init-build.sh -DPLATFORM=ia32 -DCAMKES_APP=simple -DSIMULATION=1
 ```
 
 #### Creating An Application
@@ -3294,7 +3294,7 @@ of use. The low-level parsers are:
   it. This "parser" is really just a more full featured version of the `open`
   call.
 * **Stage 1** Parses input using `plyplus`. Note that this is where the CAmkES
-  grammer (camkes/parser/camkes.g) comes into play.
+  grammar (camkes/parser/camkes.g) comes into play.
 * **Stage 2** Resolves `import` statements. This parser repeatedly calls back
   into the stage 1 parser to parse further sources. Note that from here on,
   `import` statements do not appear in the AST.
@@ -3309,7 +3309,7 @@ of use. The low-level parsers are:
   from the AST, assigning the same address space to their contained instances.
 * **Stage 6** Combines multiple assemblies. It is possible for more than one
   `assembly` block to be specified in a CAmkES input specification, in which
-  case the intended assembly is the concatentaion of all of them. This stage
+  case the intended assembly is the concatenation of all of them. This stage
   performs that concatenation.
 * **Stage 7** Flattens component hierarchies. Component instances that are
   nested inside other components are hoisted to the top-level assembly by this
