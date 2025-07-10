@@ -1116,7 +1116,7 @@ are described below and usage should be reasonably straightforward. To import
 any of these modules the top-level directory of this distribution should be in
 your `PYTHONPATH` environment variable. The available modules are:
 
-**[camkes.ast](#camkes.ast)**
+**[camkes.ast](#camkesast)**
 
 > Definitions of objects that can appear in the result of parsing a CAmkES
   specification. If you want to reference the types of objects in a resulting
@@ -1127,18 +1127,18 @@ your `PYTHONPATH` environment variable. The available modules are:
 > Functionality used by other CAmkES modules. You should not import this
   module.
 
-**[camkes.parser](#camkes.parser)**
+**[camkes.parser](#camkesparser)**
 
 > To parse an input specification in memory or to do post-processing
   manipulations on a specification-derived AST you will need to import this
-  module. The [runner](#runner) imports this module to perform its job.
+  module. The runner imports this module to perform its job.
 
 **camkes.runner**
 
 > This module is available, but does not export any symbols. You should never
   need to import it.
 
-**[camkes.templates](#camkes.templates)**
+**[camkes.templates](#camkestemplates)**
 
 > If you need to lookup builtin templates you will need to import this module.
   Note that this module does not contain any template _instantiation_ logic.
@@ -1165,7 +1165,7 @@ reference so that you still only end up with a single copy of the entity, but
 multiple pointers to it.
 
 If you are not using the default CAmkES parser, but are assembling your own
-from the [parser module](#camkes.parser), it is important to note that objects
+from the [parser module](#camkesparser), it is important to note that objects
 of the classes in the AST module are only created in the stage 3 parser. If you
 are inspecting the output of any low-level parser prior to stage 3, you will
 not see objects from camkes.ast.
@@ -3002,8 +3002,8 @@ examples of existing templates in camkes/templates/.
 
 The remainder of this section gives advice for people intending to implement
 their own templates or modify existing templates. If you are attempting to
-modify the template environment itself, you should instead refer to the
-[Template Environment](#template-environment) section.
+modify the template context itself, you should instead refer to the
+[Template Context](#template-context) section.
 
 ### Template Writing
 
@@ -3025,9 +3025,9 @@ to the component instance being instantiated. In certain general "top-level"
 templates, there is no particular "subject." In these templates, for example
 `camkes-gen.cmake`, `me` will be `None`.
 
-The template environment is a limited subset of Python. It is relatively easy
+The template context is a limited subset of Python. It is relatively easy
 to extend, and if you intend to do this you can see how in the
-[Template Environment](#template-environment) section. Some statements in
+[Template Context](#template-context) section. Some statements in
 Python could not be cleanly exposed and so have instead become functions. In
 particular, be aware of quirks in assertions, lambdas and exceptions. `assert`
 is available as a function. So instead of writing `assert foo == 1` you would
@@ -3270,7 +3270,7 @@ may help you when grepping and whatnot. They mean:
 
 * camkes/parser/*
 
-The previous section, [camkes.parser](#camkes.parser), describes the high-level
+The previous section, [camkes.parser](#camkesparser), describes the high-level
 interface to the CAmkES parser. This parser is assembled from a pipeline of
 lower-level parsers. These are each described as a "stage" in parsing. To
 understand them, it is necessary to understand a few variants of Abstract
@@ -3284,7 +3284,7 @@ following representations are described in order from least to most abstract:
   information about their original source data and the file they came from.
 * **Lifted AST** This is the most abstract programmatic representation of an
   input specification and the form developers will come to be most familiar
-  with. It is a tree of objects from [camkes.ast](#camkes.ast).
+  with. It is a tree of objects from [camkes.ast](#camkesast).
 
 The various low-level parsers are each responsible for a specific AST
 transformation, with the high-level parser stringing them all together for ease
@@ -3299,7 +3299,7 @@ of use. The low-level parsers are:
   into the stage 1 parser to parse further sources. Note that from here on,
   `import` statements do not appear in the AST.
 * **Stage 3** Lifts the `plyplus` AST into the objects of
-  [camkes.ast](#camkes.ast). This is generally the most intensive parse phase
+  [camkes.ast](#camkesast). This is generally the most intensive parse phase
   and inherently the most fragile as it encodes much of the semantics of the
   CAmkES input language.
 * **Stage 4** Resolves semantic references. From here on, no
