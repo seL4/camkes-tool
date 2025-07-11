@@ -69,6 +69,7 @@ of these terms are made explicit below.
   then the different attribute's default will override the original default.
 
 **Component**
+{: #component}
 
 > A _type_ of functional entity. It is important to stress this distinction.
   'Component' is used colloquially to refer to both types and instances, but in
