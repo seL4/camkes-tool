@@ -302,7 +302,9 @@ platform. It assumes a basic knowledge of C programming.
 
 ### Dependencies
 
-Please see [the docsite](https://docs.sel4.systems/HostDependencies) for information about dependencies.
+Please see [the
+docsite](https://docs.sel4.systems/projects/buildsystem/host-dependencies.html)
+for information about dependencies.
 
 To check you have the appropriate dependencies installed:
 
