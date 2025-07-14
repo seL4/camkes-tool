@@ -95,6 +95,7 @@ of these terms are made explicit below.
   assembly block.
 
 **Connection**
+{: #connection}
 
 > An instantiation of a connector. Connections connect two _instances_. Because
   the instantiation of a connector does not really specialise the connector in
@@ -193,6 +194,7 @@ of these terms are made explicit below.
 > The interface type that represents shared memory semantics.
 
 **Procedure**
+{: #procedure}
 
 > An interface with function call semantics. Procedures consist of a series of
   methods that can be invoked independently.
