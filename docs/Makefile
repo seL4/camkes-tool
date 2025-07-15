@@ -16,7 +16,7 @@ index.html: index.md
 	@echo " [PANDOC] $@"
 	${Q}pandoc -s --toc -o $@ $<
 
-camkes-manual.pdf: index.md imgs/echo.png
+camkes-manual.pdf: index.md imgs/echo.svg
 	@echo " [PANDOC] $@"
 	${Q}pandoc -s --toc -o $@ $<
 
