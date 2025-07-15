@@ -7,6 +7,10 @@ Files: docs/imgs/*.png VERSION CHANGES camkes/visualCAmkES/Assests/VisualCAmkES.
 Copyright: Data61, CSIRO (ABN 41 687 119 230)
 License: CC-BY-SA-4.0
 
+Files: docs/imgs/echo.svg
+Copyright: Proofcraft Pty Ltd 2025
+License: CC-BY-SA-4.0
+
 Files: camkes/parser/tests/test.dtb
 Copyright: Data61, CSIRO (ABN 41 687 119 230)
 License: BSD-2-Clause
