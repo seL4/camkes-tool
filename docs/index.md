@@ -325,7 +325,7 @@ working in the CAmkES project repository for this.
 There's an example application under apps/simple that involves two components,
 echo and client, communicating over a single interface.
 
-![Simple system](imgs/echo.png)
+![Simple system](imgs/echo.svg)
 
 To build this example, from the top-level directory run:
 
