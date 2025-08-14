@@ -43,6 +43,12 @@ int get_instance_affinity(void);
     extern const /*? macros.show_type(a.type) ?*/ /*? a.name ?*/ /*- if a.array -*/ [/*?len(value)?*/] /*- endif -*/;
 /*- endfor -*/
 
+/*- for u in me.type.provides -*/
+// These are only defined by RPC connectors at the moment.
+// Will lead to link-time error if used for other connections.
+seL4_Word /*? u.name ?*/_get_sender_id(void);
+/*- endfor -*/
+
 /*- for u in me.type.uses + me.type.provides -*/
     /*- for m in u.type.methods -*/
         /*- if m.return_type is not none -*/
