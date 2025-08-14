@@ -8,8 +8,8 @@
 CAmkESAddImportPath(${CMAKE_CURRENT_LIST_DIR})
 
 CAmkESMaybeAddImportPath(
-    ${CMAKE_CURRENT_LIST_DIR}/plat/${KernelPlatform} ${CMAKE_CURRENT_LIST_DIR}/mach/${KernelArmMach}
-    ${CMAKE_CURRENT_LIST_DIR}/arch/${KernelArch}
+    ${CMAKE_CURRENT_LIST_DIR}/plat/${KernelPlatform}
+    ${CMAKE_CURRENT_LIST_DIR}/mach/${KernelArmMach} ${CMAKE_CURRENT_LIST_DIR}/arch/${KernelArch}
 )
 
 include(${CMAKE_CURRENT_LIST_DIR}/plat/${KernelPlatform}/plat/CMakeLists.txt OPTIONAL)
