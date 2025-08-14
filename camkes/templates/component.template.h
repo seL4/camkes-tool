@@ -110,6 +110,10 @@ seL4_Word /*? u.name ?*/_get_sender_id(void);
 /*- endfor -*/
 
 /*- for c in me.type.consumes -*/
+    /*- if c.type == "Notification" -*/
+    seL4_CPtr /*? c.name ?*/_notification(void);
+    /*- endif -*/
+
     /*# HACK: Connection-specific check here to just be nice to the user and
      *# trigger a compile-time warning if they try to use functions that aren't
      *# implemented.
