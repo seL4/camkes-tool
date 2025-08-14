@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: BSD-2-Clause
 #
 
-cmake_minimum_required(VERSION 3.7.2)
+cmake_minimum_required(VERSION 3.16.0)
 
 # This is expected to be the root CMakeLists file for a CAmkES based project and symlinked
 # to the top level directory. Although it is also fine, and expected, that some systems

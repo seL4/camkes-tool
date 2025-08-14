@@ -507,7 +507,7 @@ Copy one of the `CMakeLists.txt` files from another application or create
 `apps/helloworld/CMakeLists.txt` from scratch:
 
 ```
-cmake_minimum_required(VERSION 3.7.2)
+cmake_minimum_required(VERSION 3.16.0)
 
 project(helloworld C)
 
@@ -860,7 +860,7 @@ assembly {
 Add the now familiar `apps/hellodataport/CMakeLists.txt`:
 
 ```cmake
-cmake_minimum_required(VERSION 3.7.2)
+cmake_minimum_required(VERSION 3.16.0)
 
 project(hellodataport C)
 
