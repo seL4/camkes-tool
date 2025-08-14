@@ -16,14 +16,7 @@ function(append_flags parent_list)
     foreach(i RANGE 1 ${limit})
         set(list "${ARGV${i}}")
         list(GET list 0 check)
-        string(
-            REGEX
-            REPLACE
-                " +"
-                ";"
-                check
-                "${check}"
-        )
+        string(REGEX REPLACE " +" ";" check "${check}")
         if(${check})
             list(GET list 1 when_true)
             list(APPEND local_flags "${when_true}")
@@ -35,7 +28,10 @@ function(append_flags parent_list)
             endif()
         endif()
     endforeach()
-    set(${parent_list} "${local_flags}" PARENT_SCOPE)
+    set(${parent_list}
+        "${local_flags}"
+        PARENT_SCOPE
+    )
 endfunction(append_flags)
 
 macro(set_config_guard)
@@ -48,17 +44,17 @@ endmacro()
 function(set_camkes_flags_from_config list)
 
     set_config_guard(
-        CAmkESVerbose
-        OFF
-        CACHE
-        BOOL
+        CAmkESVerbose OFF CACHE BOOL
         "Enable verbose output from CAmkES. This is disabled by default as it
         can result in a lot of output, but is useful for debugging CAmkES problems"
     )
 
     set(local_flags "${${list}}")
     append_flags(local_flags "CAmkESVerbose;--debug")
-    set(${list} "${local_flags}" PARENT_SCOPE)
+    set(${list}
+        "${local_flags}"
+        PARENT_SCOPE
+    )
 endfunction(set_camkes_flags_from_config)
 
 function(set_camkes_parser_flags_from_config list)
@@ -100,17 +96,17 @@ function(set_camkes_parser_flags_from_config list)
         mark_as_advanced(C_PREPROCESSOR)
         list(APPEND local_flags --cpp-bin "${C_PREPROCESSOR}")
     endif()
-    set(${list} "${local_flags}" PARENT_SCOPE)
+    set(${list}
+        "${local_flags}"
+        PARENT_SCOPE
+    )
 
 endfunction(set_camkes_parser_flags_from_config)
 
 function(set_camkes_render_flags_from_config list)
 
     set_config_guard(
-        CAmkESDefaultStackSize
-        16384
-        CACHE
-        STRING
+        CAmkESDefaultStackSize 16384 CACHE STRING
         "Stack size to allocate per-component, in bytes. Note that this value
         should be page-aligned. If not, it will be rounded up."
     )
@@ -212,15 +208,15 @@ function(set_camkes_render_flags_from_config list)
 
     list(
         APPEND
-            local_flags
-            --architecture
-            ${KernelSel4Arch}
-            --default-priority
-            ${CAmkESDefaultPriority}
-            --default-affinity
-            ${CAmkESDefaultAffinity}
-            --default-stack-size
-            ${CAmkESDefaultStackSize}
+        local_flags
+        --architecture
+        ${KernelSel4Arch}
+        --default-priority
+        ${CAmkESDefaultPriority}
+        --default-affinity
+        ${CAmkESDefaultAffinity}
+        --default-stack-size
+        ${CAmkESDefaultStackSize}
     )
     append_flags(
         local_flags
@@ -232,7 +228,10 @@ function(set_camkes_render_flags_from_config list)
         "CAmkESFaultHandlers;--debug-fault-handlers"
     )
 
-    set(${list} "${local_flags}" PARENT_SCOPE)
+    set(${list}
+        "${local_flags}"
+        PARENT_SCOPE
+    )
 
 endfunction(set_camkes_render_flags_from_config)
 
@@ -302,24 +301,12 @@ set(CAMKES_TOOL_ENVIRONMENT "PYTHONPATH=${CAMKES_TOOL_DIR}:${PYTHON_CAPDL_PATH}"
 set(CAMKES_PYTHON_COMMAND ${CMAKE_COMMAND} -E env "${CAMKES_TOOL_ENVIRONMENT}" ${PYTHON3})
 set(CAMKES_TOOL ${CAMKES_PYTHON_COMMAND} -m camkes.runner)
 set(CAMKES_PARSER_TOOL ${CAMKES_PYTHON_COMMAND} -m camkes.parser)
-set(
-    CAPDL_LINKER
-    ${CMAKE_COMMAND}
-    -E
-    env
-    "PYTHONPATH=${PYTHON_CAPDL_PATH}"
-    ${PYTHON3}
-    ${PYTHON_CAPDL_PATH}/../cdl_utils/capdl_linker.py
+set(CAPDL_LINKER ${CMAKE_COMMAND} -E env "PYTHONPATH=${PYTHON_CAPDL_PATH}" ${PYTHON3}
+                 ${PYTHON_CAPDL_PATH}/../cdl_utils/capdl_linker.py
 )
 set(CAPDL_LINKER_DEPENDENCIES "${PYTHON_CAPDL_PATH}/../cdl_utils/capdl_linker.py")
-set(
-    CAPDL_UNTYPED_GEN
-    ${CMAKE_COMMAND}
-    -E
-    env
-    "PYTHONPATH=${PYTHON_CAPDL_PATH}"
-    ${PYTHON3}
-    ${PYTHON_CAPDL_PATH}/../cdl_utils/untyped_gen.py
+set(CAPDL_UNTYPED_GEN ${CMAKE_COMMAND} -E env "PYTHONPATH=${PYTHON_CAPDL_PATH}" ${PYTHON3}
+                      ${PYTHON_CAPDL_PATH}/../cdl_utils/untyped_gen.py
 )
 set(CAPDL_UNTYPED_GEN_DEPENDENCIES "${PYTHON_CAPDL_PATH}/../cdl_utils/untyped_gen.py")
 
@@ -337,9 +324,8 @@ find_program(SPONGE_TOOL sponge)
 if("${SPONGE_TOOL}" STREQUAL "SPONGE_TOOL-NOTFOUND")
     set(CAMKES_SPONGE_INVOCATION "sh ${CMAKE_CURRENT_BINARY_DIR}/sponge_emul.sh")
     file(
-        WRITE
-            "${CMAKE_CURRENT_BINARY_DIR}/sponge_emul.sh"
-            "python -c 'import sys; data = sys.stdin.read(); f = open(sys.argv[1], \"w\"); f.write(data); f.close()' $@"
+        WRITE "${CMAKE_CURRENT_BINARY_DIR}/sponge_emul.sh"
+        "python -c 'import sys; data = sys.stdin.read(); f = open(sys.argv[1], \"w\"); f.write(data); f.close()' $@"
     )
 else()
     set(CAMKES_SPONGE_INVOCATION "${SPONGE_TOOL}")
@@ -355,13 +341,13 @@ mark_as_advanced(TPP_TOOL)
 
 file(
     GLOB
-        CAMKES_TOOL_FILES
-        ${CMAKE_CURRENT_LIST_DIR}/camkes/ast/*.py
-        ${CMAKE_CURRENT_LIST_DIR}/camkes/internal/*.py
-        ${CMAKE_CURRENT_LIST_DIR}/camkes/parser/*.py
-        ${CMAKE_CURRENT_LIST_DIR}/camkes/runner/*.py
-        ${CMAKE_CURRENT_LIST_DIR}/camkes/templates/Template.py
-        ${CMAKE_CURRENT_LIST_DIR}/camkes/templates/macros.py
+    CAMKES_TOOL_FILES
+    ${CMAKE_CURRENT_LIST_DIR}/camkes/ast/*.py
+    ${CMAKE_CURRENT_LIST_DIR}/camkes/internal/*.py
+    ${CMAKE_CURRENT_LIST_DIR}/camkes/parser/*.py
+    ${CMAKE_CURRENT_LIST_DIR}/camkes/runner/*.py
+    ${CMAKE_CURRENT_LIST_DIR}/camkes/templates/Template.py
+    ${CMAKE_CURRENT_LIST_DIR}/camkes/templates/macros.py
 )
 
 file(GLOB PYTHON_CAPDL_FILES ${PYTHON_CAPDL_PATH}/capdl/*.py)
@@ -369,17 +355,17 @@ file(GLOB PYTHON_CAPDL_FILES ${PYTHON_CAPDL_PATH}/capdl/*.py)
 # CAmkES defines its own heaps and for this to work muslcsys must not be
 # configured to use a static morecore. We make the morecore dynamic by setting
 # the size to 0
-set(LibSel4MuslcSysMorecoreBytes 0 CACHE STRING "" FORCE)
+set(LibSel4MuslcSysMorecoreBytes
+    0
+    CACHE STRING "" FORCE
+)
 
 # This is called from the context of a CAmkES application that has decided what
 # the 'root' application is. This function will effectively generate a rule for
 # building the final rootserver image
 function(DeclareCAmkESRootserver adl)
     cmake_parse_arguments(
-        PARSE_ARGV
-        1
-        CAMKES_ROOT
-        "" # Option arguments
+        PARSE_ARGV 1 CAMKES_ROOT "" # Option arguments
         "DTS_FILE_PATH;DTB_FILE_PATH" # Single arguments
         "CPP_FLAGS;CPP_INCLUDES" # Multiple arguments
     )
@@ -401,7 +387,11 @@ function(DeclareCAmkESRootserver adl)
     list(APPEND CAMKES_ROOT_CPP_FLAGS "-DCAMKES_TOOL_PROCESSING")
     get_absolute_list_source_or_binary(adl "${adl}")
     set_property(GLOBAL PROPERTY CAMKES_ROOT_ADL "${adl}")
-    set_property(GLOBAL PROPERTY CAMKES_ROOT_CPP_FLAGS "${CAMKES_ROOT_CPP_FLAGS}" APPEND)
+    set_property(
+        GLOBAL
+        PROPERTY CAMKES_ROOT_CPP_FLAGS "${CAMKES_ROOT_CPP_FLAGS}"
+        APPEND
+    )
     set_property(GLOBAL PROPERTY CAMKES_ROOT_DECLARED TRUE)
 
     if(CAMKES_ROOT_DTB_FILE_PATH)
@@ -640,8 +630,16 @@ function(AppendCAmkESComponentTarget target_name)
         get_absolute_list_source_or_binary(file "${file}")
         list(APPEND cakeml_includes "${file}")
     endforeach()
-    set_property(TARGET "${target_name}" APPEND PROPERTY COMPONENT_INCLUDES "${includes}")
-    set_property(TARGET "${target_name}" APPEND PROPERTY COMPONENT_SOURCES "${sources}")
+    set_property(
+        TARGET "${target_name}"
+        APPEND
+        PROPERTY COMPONENT_INCLUDES "${includes}"
+    )
+    set_property(
+        TARGET "${target_name}"
+        APPEND
+        PROPERTY COMPONENT_SOURCES "${sources}"
+    )
     set_property(
         TARGET "${target_name}"
         APPEND
@@ -682,18 +680,22 @@ function(AppendCAmkESComponentTarget target_name)
         APPEND
         PROPERTY COMPONENT_LD_FLAGS "${CAMKES_COMPONENT_LD_FLAGS}"
     )
-    set_property(TARGET "${target_name}" APPEND PROPERTY COMPONENT_LIBS "${CAMKES_COMPONENT_LIBS}")
+    set_property(
+        TARGET "${target_name}"
+        APPEND
+        PROPERTY COMPONENT_LIBS "${CAMKES_COMPONENT_LIBS}"
+    )
     # Overwrite any previous CakeML heap or stack size
     if(CAMKES_COMPONENT_CAKEML_HEAP_SIZE)
         set_property(
-            TARGET "${target_name}"
-            PROPERTY COMPONENT_CAKEML_HEAP_SIZE "${CAMKES_COMPONENT_CAKEML_HEAP_SIZE}"
+            TARGET "${target_name}" PROPERTY COMPONENT_CAKEML_HEAP_SIZE
+                                             "${CAMKES_COMPONENT_CAKEML_HEAP_SIZE}"
         )
     endif()
     if(CAMKES_COMPONENT_CAKEML_STACK_SIZE)
         set_property(
-            TARGET "${target_name}"
-            PROPERTY COMPONENT_CAKEML_STACK_SIZE "${CAMKES_COMPONENT_CAKEML_STACK_SIZE}"
+            TARGET "${target_name}" PROPERTY COMPONENT_CAKEML_STACK_SIZE
+                                             "${CAMKES_COMPONENT_CAKEML_STACK_SIZE}"
         )
     endif()
     if(CAMKES_COMPONENT_LINKER_LANGUAGE)
@@ -709,10 +711,7 @@ endfunction(AppendCAmkESComponentTarget)
 function(DeclareCAmkESConnector name)
     set(target_name CAmkESConnector_${name})
     cmake_parse_arguments(
-        PARSE_ARGV
-        1
-        CAMKES_CONNECTOR
-        "" # Option arguments
+        PARSE_ARGV 1 CAMKES_CONNECTOR "" # Option arguments
         "FROM;TO;CAKEML_TO;FROM_HEADER;TO_HEADER" # Single arguments
         "FROM_LIBS;TO_LIBS" # Multiple aguments
     )
@@ -720,8 +719,16 @@ function(DeclareCAmkESConnector name)
     if(NOT (TARGET "${target_name}"))
         add_custom_target("${target_name}")
     endif()
-    set_property(TARGET "${target_name}" APPEND PROPERTY CONNECTOR_FROM ${CAMKES_CONNECTOR_FROM})
-    set_property(TARGET "${target_name}" APPEND PROPERTY CONNECTOR_TO ${CAMKES_CONNECTOR_TO})
+    set_property(
+        TARGET "${target_name}"
+        APPEND
+        PROPERTY CONNECTOR_FROM ${CAMKES_CONNECTOR_FROM}
+    )
+    set_property(
+        TARGET "${target_name}"
+        APPEND
+        PROPERTY CONNECTOR_TO ${CAMKES_CONNECTOR_TO}
+    )
     set_property(
         TARGET "${target_name}"
         APPEND

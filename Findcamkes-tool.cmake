@@ -4,11 +4,15 @@
 # SPDX-License-Identifier: BSD-2-Clause
 #
 
-set(CAMKES_TOOL_DIR "${CMAKE_CURRENT_LIST_DIR}" CACHE STRING "")
+set(CAMKES_TOOL_DIR
+    "${CMAKE_CURRENT_LIST_DIR}"
+    CACHE STRING ""
+)
 mark_as_advanced(CAMKES_TOOL_DIR)
 
 option(CAmkESNoFPUByDefault "Set compilation flags to not use FPU. This is
-    currently only supported on x86 but other architectures may be added." OFF)
+    currently only supported on x86 but other architectures may be added." OFF
+)
 mark_as_advanced(CAmkESNoFPUByDefault)
 
 macro(camkes_tool_import_libraries)

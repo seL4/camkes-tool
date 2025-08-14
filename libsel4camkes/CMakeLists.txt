@@ -11,12 +11,8 @@ project(libsel4camkes C ASM)
 set(configure_string "")
 
 config_string(
-    CAmkESDefaultHeapSize
-    CAMKES_DEFAULT_HEAP_SIZE
-    "Heap size to allocate per-component, in bytes."
-    DEFAULT
-    1048576
-    UNQUOTE
+    CAmkESDefaultHeapSize CAMKES_DEFAULT_HEAP_SIZE "Heap size to allocate per-component, in bytes."
+    DEFAULT 1048576 UNQUOTE
 )
 
 config_choice(
@@ -91,14 +87,14 @@ endif()
 
 file(
     GLOB
-        deps
-        src/*.c
-        src/arch/${KernelArch}/*.c
-        src/sel4_arch/${adjusted_seL4_arch}/*.c
-        src/sel4_arch/${adjusted_seL4_arch}/gdb_server/*.c
-        src/arch/${KernelArch}/*.S
-        src/arch/${KernelArch}/*.c
-        src/sel4_arch/${adjusted_seL4_arch}/*.S
+    deps
+    src/*.c
+    src/arch/${KernelArch}/*.c
+    src/sel4_arch/${adjusted_seL4_arch}/*.c
+    src/sel4_arch/${adjusted_seL4_arch}/gdb_server/*.c
+    src/arch/${KernelArch}/*.S
+    src/arch/${KernelArch}/*.c
+    src/sel4_arch/${adjusted_seL4_arch}/*.S
 )
 
 list(SORT deps)
