@@ -209,7 +209,13 @@ class TestDTBMatchQuery(CAmkESTest):
         self.assertEquals(node['dtb-size'], [self.dtbSize])
 
     def test_blank(self):
-        self.assertRaises(ParseError, self.dtbQuery.resolve, [])
+        # For convenience reasons an empty query list is allowed and does not
+        # raise a ParseError. It returns an empty result list instead.
+        node = self.dtbQuery.resolve([])
+        self.assertIn('query', node)
+        self.assertEquals(len(node['query']), 0)
+        self.assertIn('dtb-size', node)
+        self.assertEquals(node['dtb-size'], [self.dtbSize])
 
     def test_blank_query(self):
         node = self.dtbQuery.resolve([{}])
