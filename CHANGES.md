@@ -9,7 +9,7 @@
 ### Changes
 
 * Add support for gcc-14, fixing new warnings in generated code.
-* Add support for more recent version of muslibc.
+* Add support for more recent version of musllibc.
 * Minor documentation improvements.
 
 ### Upgrade Notes
