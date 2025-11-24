@@ -8,6 +8,15 @@
 
 ### Changes
 
+
+### Upgrade Notes
+---
+
+## camkes-3.11.1 2025-11-25
+Using seL4 version 14.0.0
+
+### Changes
+
 * Add support for gcc-14, fixing new warnings in generated code.
 * Add support for more recent version of musllibc.
 * Minor documentation improvements.
