@@ -144,13 +144,30 @@ class Reference(ASTObject):
         raise ASTError('reference remaining in frozen AST tree', self)
 
 
+@ast_property("items", lambda i: isinstance(i, (list, tuple)) and
+              all(isinstance(item, (tuple, list)) and len(item) == 2 and
+                  all(isinstance(n, numbers.Number) for n in item) for item in i))
+class Schedule(ASTObject):
+
+    def __init__(self, items=None, location=None):
+        super(Schedule, self).__init__(location)
+        self.items = items or []
+
+    def freeze(self):
+        if self.frozen:
+            return
+        self.items = tuple(self.items)
+        super(Schedule, self).freeze()
+
+
 @ast_property("name", lambda x: x is None or isinstance(x, six.string_types))
 @ast_property("composition", lambda x: isinstance(x, Reference) or isinstance_fallback(x, "Composition"))
 @ast_property("configuration", lambda x: isinstance(x, Reference) or isinstance_fallback(x, "Configuration"))
+@ast_property("schedule", lambda x: x is None or isinstance_fallback(x, "Schedule"))
 class Assembly(ASTObject):
-    child_fields = ('composition', 'configuration')
+    child_fields = ('composition', 'configuration', 'schedule')
 
-    def __init__(self, name=None, composition=None, configuration=None, location=None):
+    def __init__(self, name=None, composition=None, configuration=None, schedule=None, location=None):
         super(Assembly, self).__init__(location)
         self.name = name
         if composition is not None:
@@ -158,11 +175,15 @@ class Assembly(ASTObject):
         if configuration is None:
             configuration = Configuration()
         self.configuration = configuration
+        if schedule is None:
+            schedule = Schedule()
+        self.schedule = schedule
         self.claim_children()
 
     def claim_children(self):
         self.adopt(self.composition)
         self.adopt(self.configuration)
+        self.adopt(self.schedule)
 
     def freeze(self):
         if self.frozen:

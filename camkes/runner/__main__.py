@@ -250,6 +250,9 @@ def main(argv, out, err):
         obj_space.spec.arch = options.architecture
         render_state = RenderState(obj_space=obj_space)
 
+        if assembly.schedule.items:
+            obj_space.spec.add_schedule(assembly.schedule.items)
+
         for i in assembly.composition.instances:
             # Don't generate any code for hardware components.
             if i.type.hardware:
