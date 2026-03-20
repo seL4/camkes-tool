@@ -59,6 +59,7 @@ ID: '[a-zA-Z_]\w*'
             PROVIDES: 'provides';
             REFIN: 'refin';
             SEMAPHORE: 'semaphore';
+            SCHEDULE: 'schedule';
             BINARY_SEMAPHORE: 'binary_semaphore';
             SIGNED: 'signed';
             STRUCT: 'struct';
@@ -78,14 +79,16 @@ ID: '[a-zA-Z_]\w*'
 id: ID | BUF;
 
 assembly_decl: ASSEMBLY id? assembly_defn;
-assembly_defn: '\{' composition_sing configuration_sing? '\}'
-             | '\{' configuration_sing composition_sing '\}';
+assembly_defn: '\{' (composition_sing | configuration_sing | schedule_defn)+ '\}';
 
 composition_sing: COMPOSITION reference ';'
                 | composition_decl;
 
 configuration_sing: CONFIGURATION reference ';'
                   | configuration_decl;
+
+schedule_defn: SCHEDULE '\{' '\[' schedule_item (',' schedule_item)+ ','? '\]' '\}';
+schedule_item: '\(' number ',' number '\)';
 
 attribute_decl: attribute_parameter ('=' item)? ;
 

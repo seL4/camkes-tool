@@ -14,7 +14,7 @@ from .exception import ASTError
 from .liftedast import LiftedAST
 from .location import SourceLocation
 from .objects import Assembly, Attribute, AttributeReference, Component, \
-    Composition, Configuration, Connection, ConnectionEnd, Connector, \
+    Composition, Configuration, Schedule, Connection, ConnectionEnd, Connector, \
     Consumes, Dataport, DictLookup, Emits, Export, Group, Include, Instance, Interface, \
     Method, Mutex, Parameter, Procedure, Provides, Reference, Semaphore, \
     BinarySemaphore, Setting, Uses, Struct, QueryObject
