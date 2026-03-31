@@ -23,7 +23,8 @@ from camkes.ast import Assembly, Attribute, AttributeReference, Component, \
     Composition, Configuration, Connection, ConnectionEnd, Connector, \
     Consumes, Dataport, DictLookup, Emits, Export, Group, Include, Instance, Interface, \
     LiftedAST, Method, Mutex, normalise_type, Parameter, Procedure, Provides, \
-    Reference, Semaphore, BinarySemaphore, QueryObject, Setting, SourceLocation, Uses, Struct
+    Reference, Schedule, Semaphore, BinarySemaphore, QueryObject, Setting, \
+    SourceLocation, Uses, Struct
 from .base import Parser
 from .exception import ParseError
 import numbers
@@ -161,7 +162,8 @@ def _lift_assembly_decl(location, *args):
         id = None
         assembly_defn = args[0]
     return Assembly(id, composition=assembly_defn.composition,
-                    configuration=assembly_defn.configuration, location=location)
+                    configuration=assembly_defn.configuration,
+                    schedule=assembly_defn.schedule, location=location)
 
 
 def _lift_assembly_defn(location, *args):
@@ -171,8 +173,11 @@ def _lift_assembly_defn(location, *args):
     configurations = [x for x in args if isinstance(x, Configuration)]
     assert len(configurations) <= 1
     configuration = configurations[0] if len(configurations) == 1 else None
+    schedules = [x for x in args if isinstance(x, Schedule)]
+    assert len(schedules) <= 1
+    schedule = schedules[0] if len(schedules) == 1 else None
     return Assembly(composition=composition, configuration=configuration,
-                    location=location)
+                    schedule=schedule, location=location)
 
 
 def _lift_attribute(location, attribute_param, default=None):
@@ -314,6 +319,16 @@ def _lift_configuration_sing(location, arg):
         return arg
     assert isinstance(arg, Reference)
     return Reference(arg.name, Configuration, location)
+
+
+def _lift_schedule_decl(location, *args):
+    schedule_defn = Schedule(items=list(args), location=location)
+    return schedule_defn
+
+
+def _lift_schedule_item(location, *args):
+    assert len(args) == 2
+    return (args[0], args[1])
 
 
 def _lift_connection_defn(location, connector_ref, id, *ends):
@@ -666,7 +681,7 @@ def _lift_method_scalar_parameter(location, *args):
 def _lift_attribute_scalar_parameter(location, *args):
     assert len(args) == 2
     type, name = args
-    assert(isinstance(type, (six.string_types, Reference, Struct)))
+    assert (isinstance(type, (six.string_types, Reference, Struct)))
     if isinstance(type, six.string_types):
         # do not allow `struct blah` in attributes
         if type.startswith("struct "):
@@ -747,10 +762,10 @@ def _lift_query(location, query_type, query_args, dict_lookup=None):
     if isinstance(query_args, dict):
         new_query_args = [query_args]
     else:
-        assert(isinstance(query_args, list) and
-               all(isinstance(x, dict) for x in query_args))
+        assert (isinstance(query_args, list) and
+                all(isinstance(x, dict) for x in query_args))
         new_query_args = query_args
-    assert(not dict_lookup or isinstance(dict_lookup, DictLookup))
+    assert (not dict_lookup or isinstance(dict_lookup, DictLookup))
     return QueryObject(query_type, new_query_args, dict_lookup, location)
 
 
@@ -780,6 +795,8 @@ LIFT = {
     'configuration_decl': _lift_configuration_decl,
     'configuration_defn': _lift_configuration_defn,
     'configuration_sing': _lift_configuration_sing,
+    'schedule_defn': _lift_schedule_decl,
+    'schedule_item': _lift_schedule_item,
     'connection_defn': _lift_connection_defn,
     'connection_end': _lift_connection_end,
     'connector_decl': _lift_connector_decl,
