@@ -2145,10 +2145,20 @@ virtual memory fault when threads underrun or overrun their stacks.
 
 In CAmkES, it is possible to specify the domain each thread belongs to, by setting attributes.
 Each interface of each component instance will have an associated thread, and
-there will be an additional thread per-component to perform initialisation and
+there will be an additional thread per component to perform initialisation and
 optionally act as the control thread. For interface threads, their domain can be
 specified by setting the attribute `<interface>_domain` of the instance. For
 control threads, the attribute `_domain` of the instance can be set.
+
+When scheduling domains are used, the kernel needs to be provided with a
+corresponding schedule to run. This can be specified in a separate `schedule`
+section in the assembly. A schedule is a list of pairs, where the first
+component of the pair is the domain and the second component is the duration.
+The duration is measured in ticks. The length of one tick depends on the kernel
+configuration. The default for non-MCS kernels is 1ms, the default for MCS
+kernels is the timer tick of the platform. When the end of the schedule or an
+end marker `(0, 0)` is reached, execution restarts at the beginning. See seL4
+[RFC-20] for more details on the domain schedule mechanism.
 
 ```camkes
 component Foo {
@@ -2172,8 +2182,14 @@ assembly {
     b.o_domain = 1; // domain of o interface of b
     ...
   }
+  schedule {
+    // run domain 0 for 2ms, domain 1 for 1ms, then repeat
+    [(0,2), (1, 1)]
+  }
 }
 ```
+
+[RFC-20]: https://sel4.github.io/rfcs/implemented/0200-domain-schedules.html
 
 ### Userspace RPC Transfer Buffers
 
