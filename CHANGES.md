@@ -8,6 +8,15 @@
 
 ### Changes
 
+
+### Upgrade Notes
+---
+
+## camkes-3.12.0 2026-03-31
+Using seL4 version 15.0.0
+
+### Changes
+
 * Add an optional schedule declaration to assemblies. Only one overall schedule
   declaration is allowed. This uses the new dynamic domain schedule API in seL4
   and capDL to declare the provided schedule in the capDL specification and
