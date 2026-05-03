@@ -101,6 +101,8 @@ void ffivirtqueue_device_recv(char *c, unsigned long clen, char *a, unsigned lon
 
     // 1. Dequeue available buffer from virtqueue
     void *available_buff = NULL;
+    // camkes_virtqueue_device_gather_buffer needs unsigned; memcpy needs size_t
+    unsigned buf_size_u = 0;
     size_t buf_size = 0;
     vq_flags_t flag;
     virtqueue_ring_object_t handle;
@@ -112,12 +114,13 @@ void ffivirtqueue_device_recv(char *c, unsigned long clen, char *a, unsigned lon
     }
 
     int dequeue_res = camkes_virtqueue_device_gather_buffer(virtqueue, &handle,
-                                                            &available_buff, &buf_size, &flag);
+                                                            &available_buff, &buf_size_u, &flag);
     if (dequeue_res) {
         ZF_LOGE("%s: device buffer gather failed", __func__);
         a[0] = FFI_FAILURE;
         return;
     }
+    buf_size = buf_size_u;
 
     // 2. Copy to CakeML buffer
     memcpy(a + 1, &buf_size, sizeof(buf_size));
@@ -154,7 +157,7 @@ void ffivirtqueue_driver_recv(char *c, unsigned long clen, char *a, unsigned lon
     memcpy(&virtqueue, a + 1, sizeof(virtqueue));
     // 1. Dequeue used buffer from virtqueue
     void *used_buff = NULL;
-    size_t buf_size = 0;
+    unsigned buf_size = 0;
     uint32_t wr_len = 0;
     vq_flags_t flag;
     virtqueue_ring_object_t handle;
