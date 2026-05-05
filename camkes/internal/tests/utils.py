@@ -10,7 +10,7 @@
 from __future__ import absolute_import, division, print_function, \
     unicode_literals
 
-import collections, os, shutil, subprocess, tempfile, unittest
+import collections.abc, os, shutil, subprocess, tempfile, unittest
 
 def which(command):
     with open(os.devnull, 'wt') as f:
@@ -124,5 +124,5 @@ class CAmkESTest(unittest.TestCase):
         I find this is a common operation I want to do in the CAmkES test suite
         but there seems to be no `unittest` builtin for it.
         '''
-        assert isinstance(container, collections.Iterable)
+        assert isinstance(container, collections.abc.Iterable)
         return self.assertEqual(len(container), *args)

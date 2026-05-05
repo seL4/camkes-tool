@@ -12,7 +12,7 @@ from __future__ import absolute_import, division, print_function, \
 from camkes.internal.seven import cmp, filter, map, zip
 
 from camkes.ast import LiftedAST
-import abc, collections, six
+import abc, collections, collections.abc, six
 
 class Parser(six.with_metaclass(abc.ABCMeta, object)):
 
@@ -50,17 +50,17 @@ class Transformer(six.with_metaclass(abc.ABCMeta, Parser)):
     @abc.abstractmethod
     def precondition(self, ast_lifted, read):
         assert isinstance(ast_lifted, LiftedAST)
-        assert isinstance(read, collections.Iterable)
+        assert isinstance(read, collections.abc.Iterable)
         raise NotImplementedError
 
     @abc.abstractmethod
     def postcondition(self, ast_lifted, read):
         assert isinstance(ast_lifted, LiftedAST)
-        assert isinstance(read, collections.Iterable)
+        assert isinstance(read, collections.abc.Iterable)
         raise NotImplementedError
 
     @abc.abstractmethod
     def transform(self, ast_lifted, read):
         assert isinstance(ast_lifted, LiftedAST)
-        assert isinstance(read, collections.Iterable)
+        assert isinstance(read, collections.abc.Iterable)
         raise NotImplementedError
