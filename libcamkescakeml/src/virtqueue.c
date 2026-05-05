@@ -101,7 +101,7 @@ void ffivirtqueue_device_recv(char *c, unsigned long clen, char *a, unsigned lon
 
     // 1. Dequeue available buffer from virtqueue
     void *available_buff = NULL;
-    // camkes_virtqueue_device_gather_buffer needs unsigned; memcpy needs size_t
+    // camkes_virtqueue_device_gather_buffer needs unsigned; CakeML FFI needs size_t
     unsigned buf_size_u = 0;
     size_t buf_size = 0;
     vq_flags_t flag;
