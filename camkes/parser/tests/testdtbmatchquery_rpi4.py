@@ -47,9 +47,9 @@ class TestDTBMatchQueryRanges(CAmkESTest):
         }
         self.assertIn('query', node)
         self.assertIn('dtb-size', node)
-        self.assertEquals(len(node['query']), 1)
-        self.assertEquals(node['query'][0], expected)
-        self.assertEquals(node['dtb-size'], [self.dtbSize])
+        self.assertEqual(len(node['query']), 1)
+        self.assertEqual(node['query'][0], expected)
+        self.assertEqual(node['dtb-size'], [self.dtbSize])
 
     def test_ranges_last_index(self):
         node = self.dtbQuery.resolve([{'path': '.*interrupt-controller.*'}])
@@ -68,9 +68,9 @@ class TestDTBMatchQueryRanges(CAmkESTest):
         }
         self.assertIn('query', node)
         self.assertIn('dtb-size', node)
-        self.assertEquals(len(node['query']), 1)
-        self.assertEquals(node['query'][0], expected)
-        self.assertEquals(node['dtb-size'], [self.dtbSize])
+        self.assertEqual(len(node['query']), 1)
+        self.assertEqual(node['query'][0], expected)
+        self.assertEqual(node['dtb-size'], [self.dtbSize])
 
 
 if __name__ == '__main__':

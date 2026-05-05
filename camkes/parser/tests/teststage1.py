@@ -447,7 +447,7 @@ class TestStage1(CAmkESTest):
         except ParseError as e:
             error = e
 
-        self.assertRegexpMatches(str(error), 'A:44:', 'alternate form of line '
+        self.assertRegex(str(error), 'A:44:', 'alternate form of line '
             'directive not supported')
 
     def test_multiple_error_message_line_numbers(self):
@@ -486,7 +486,7 @@ class TestStage1(CAmkESTest):
 
             # If the line number narrowing algorithm has correctly taken the
             # line directive into account, we should get the following prefix.
-            self.assertRegexpMatches(str(e), 'A:44:', 'line directive not '
+            self.assertRegex(str(e), 'A:44:', 'line directive not '
                 'accounted for')
 
     def test_list_dict_key(self):
