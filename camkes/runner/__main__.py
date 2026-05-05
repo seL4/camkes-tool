@@ -311,6 +311,7 @@ def main(argv, out, err):
     if options.save_object_state is not None:
         # Write the render_state to the supplied outfile
         pickle.dump(render_state, options.save_object_state)
+        options.save_object_state.close()
 
     sys.exit(0)
 
