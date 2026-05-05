@@ -42,16 +42,19 @@ template_dir = os.path.abspath(os.path.join(os.path.dirname(ME), '..'))
 tests_dir = os.path.dirname(ME)
 
 # Find all the templates.
-for root, _, filenames in os.walk(template_dir):
+for root, dirs, filenames in os.walk(template_dir):
 
     if root.startswith(tests_dir):
         # Don't analyse the test files.
         continue
 
+    # Don't descend into compiled-bytecode caches.
+    dirs[:] = [d for d in dirs if d != '__pycache__']
+
     # For each template, monkey patch a test for it onto the test class.
     for f in filenames:
-        if f.endswith('.swp') or f.endswith('.py'):
-            # Skip vim lock files.
+        if f.endswith('.swp') or f.endswith('.pyc'):
+            # Skip vim lock files and Python bytecode.
             continue
         name = 'test_%s' % regex.sub('_', f)
         path = os.path.join(root, f)
