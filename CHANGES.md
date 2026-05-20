@@ -1,3 +1,9 @@
+<!--
+     Copyright 2018, Data61, CSIRO (ABN 41 687 119 230)
+
+     SPDX-License-Identifier: CC-BY-SA-4.0
+-->
+
 # Version history for CAmkES
 
 <!-- This file should be word wrapped to 120 characters -->
