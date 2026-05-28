@@ -52,7 +52,7 @@ jobs:
         xml: ${{ needs.code.outputs.xml }}
         platform: ${{ matrix.platform }}
     - name: Upload images
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: images-${{ matrix.platform }}
         path: '*-images.tar.gz'
@@ -90,13 +90,13 @@ jobs:
     concurrency: camkes-hw-${{ strategy.job-index }}
     steps:
       - name: Get machine queue
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: seL4/machine_queue
           path: machine_queue
           token: ${{ secrets.PRIV_REPO_TOKEN }}
       - name: Download image
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: images-${{ matrix.platform }}
       - name: Run
