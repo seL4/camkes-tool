@@ -11,20 +11,24 @@
 Tests that look for incorrect Python idioms in the templates.
 '''
 
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
+from __future__ import absolute_import, division, print_function, unicode_literals
+from camkes.internal.tests.utils import CAmkESTest
 
-import os, re, subprocess, sys, unittest
+import os
+import re
+import subprocess
+import sys
+import unittest
 
 ME = os.path.abspath(__file__)
 
 # Make CAmkES importable
 sys.path.append(os.path.join(os.path.dirname(ME), '../../..'))
 
-from camkes.internal.tests.utils import CAmkESTest
 
 class TestBadIdioms(CAmkESTest):
     pass
+
 
 def _string_addition(self, path):
     '''
@@ -35,7 +39,8 @@ def _string_addition(self, path):
         for lineno, line in enumerate(f, 1):
             if regex.search(line) is not None:
                 self.fail('%s:%d: %s\nstring addition instead of format string?'
-                    % (path, lineno, line))
+                          % (path, lineno, line))
+
 
 regex = re.compile(r'[^\w]')
 template_dir = os.path.abspath(os.path.join(os.path.dirname(ME), '..'))

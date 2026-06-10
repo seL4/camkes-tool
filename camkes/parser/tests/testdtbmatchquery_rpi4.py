@@ -37,7 +37,7 @@ class TestDTBMatchQueryRanges(CAmkESTest):
 
         expected = {
             'compatible': ["brcm,bcm2711-cprman"],
-			'#clock-cells': [0x01],
+            '#clock-cells': [0x01],
             'clocks': [0x03, 0x04, 0x00, 0x04, 0x01, 0x04, 0x02, 0x05, 0x00, 0x05, 0x01, 0x05, 0x02],
             'reg': [0xfe101000, 0x2000],
             'this-address-cells': [0x01],

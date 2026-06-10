@@ -10,31 +10,46 @@
 from __future__ import absolute_import, division, print_function, \
     unicode_literals
 
-import collections.abc, os, shutil, subprocess, tempfile, unittest
+import collections.abc
+import os
+import shutil
+import subprocess
+import tempfile
+import unittest
+
 
 def which(command):
     with open(os.devnull, 'wt') as f:
         try:
             return subprocess.check_output(['which', command], stderr=f,
-                universal_newlines=True).strip()
+                                           universal_newlines=True).strip()
         except subprocess.CalledProcessError:
             return None
 
+
 _cpp_available = None
+
+
 def cpp_available():
     global _cpp_available
     if _cpp_available is None:
         _cpp_available = which('cpp')
     return _cpp_available
 
+
 _spin_available = None
+
+
 def spin_available():
     global _spin_available
     if _spin_available is None:
         _spin_available = which('spin')
     return _spin_available
 
+
 _plyplus_introspectible = None
+
+
 def plyplus_introspectible():
     '''
     Returns True if plyplus' internals look like we expect.
@@ -53,23 +68,29 @@ def plyplus_introspectible():
             _plyplus_introspectible = False
     return _plyplus_introspectible
 
+
 _c_compiler = None
+
+
 def c_compiler():
     '''
     Find a C compiler or return `None` if we don't have one.
     '''
     global _c_compiler
     if _c_compiler is None:
-        for cc in ('ccomp', # CompCert
-                   'gcc', # GCC
-                   'clang', # Clang
+        for cc in ('ccomp',  # CompCert
+                   'gcc',  # GCC
+                   'clang',  # Clang
                    ):
             _c_compiler = which(cc)
             if _c_compiler is not None:
                 break
     return _c_compiler
 
+
 _python_available = None
+
+
 def python_available():
     '''
     Test whether we can call out to the Python binary.
@@ -79,7 +100,10 @@ def python_available():
         _python_available = which('python')
     return _python_available
 
+
 _sha256sum_available = None
+
+
 def sha256sum_available():
     '''
     Test whether we can call out to sha256sum.
@@ -89,10 +113,12 @@ def sha256sum_available():
         _sha256sum_available = which('sha256sum')
     return _sha256sum_available
 
+
 class CAmkESTest(unittest.TestCase):
     '''
     A `unittest` test case with a few more bells and whistles.
     '''
+
     def setUp(self):
         self.tempdirs = []
         self.tempfiles = []
@@ -109,7 +135,7 @@ class CAmkESTest(unittest.TestCase):
 
     def execute(self, argv, cwd=os.getcwd(), env=os.environ):
         p = subprocess.Popen(argv, stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE, cwd=cwd, env=env, universal_newlines=True)
+                             stderr=subprocess.PIPE, cwd=cwd, env=env, universal_newlines=True)
         stdout, stderr = p.communicate()
         return p.returncode, stdout, stderr
 

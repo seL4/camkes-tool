@@ -12,7 +12,11 @@ from __future__ import absolute_import, division, print_function, \
 from camkes.internal.seven import cmp, filter, map, zip
 
 from camkes.ast import LiftedAST
-import abc, collections, collections.abc, six
+import abc
+import collections
+import collections.abc
+import six
+
 
 class Parser(six.with_metaclass(abc.ABCMeta, object)):
 
@@ -23,6 +27,7 @@ class Parser(six.with_metaclass(abc.ABCMeta, object)):
     @abc.abstractmethod
     def parse_string(self, content):
         raise NotImplementedError
+
 
 class Transformer(six.with_metaclass(abc.ABCMeta, Parser)):
 
