@@ -596,26 +596,25 @@ class DtbMatchQuery(Query):
         resolved['this-node-path'] = node_path
         return resolved
 
+    # An empty query is supported for convenience reasons, it produces an empty
+    # result. Any real query must find a match, otherwise an error is raised.
     def resolve(self, args):
-        result = self.engine.query(args)
-
-        resolved = {}
-        if not len(result):
-            raise ParseError("DTB query has no results.")
-
         query_results = []
-        for entry in result:
-            if not len(entry):
-                query_results.append({})
-            else:
-                node = entry[0]
-                node_resolved = self.resolve_fdt_node(node)
-                query_results.append(node_resolved)
-        # place the results under the 'dtb' key
-        resolved['query'] = query_results
-        # inject the size of the dtb into into the dictionary
-        resolved['dtb-size'] = [self.dtb_file_size]
-        return resolved
+        if (len(args) > 0):
+            result = self.engine.query(args)
+            if not len(result):
+                raise ParseError(f'DTB query failed: {args}')
+            for entry in result:
+                if not len(entry):
+                    query_results.append({})
+                else:
+                    node = entry[0]
+                    node_resolved = self.resolve_fdt_node(node)
+                    query_results.append(node_resolved)
+        return {
+            'query': query_results,
+            'dtb-size': [self.dtb_file_size]
+        }
 
     @staticmethod
     def get_parser():
