@@ -7,20 +7,21 @@
 #
 #
 
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
+from __future__ import absolute_import, division, print_function, unicode_literals
+from camkes.parser.exception import ParseError
+from camkes.parser.stage1 import Parse1
+from camkes.parser.stage0 import CPP, Reader
+from camkes.internal.tests.utils import CAmkESTest, cpp_available
 
-import os, sys, unittest
+import os
+import sys
+import unittest
 
 ME = os.path.abspath(__file__)
 
 # Make CAmkES importable
 sys.path.append(os.path.join(os.path.dirname(ME), '../../..'))
 
-from camkes.internal.tests.utils import CAmkESTest, cpp_available
-from camkes.parser.stage0 import CPP, Reader
-from camkes.parser.stage1 import Parse1
-from camkes.parser.exception import ParseError
 
 class TestStage1(CAmkESTest):
     def setUp(self):
@@ -59,7 +60,7 @@ class TestStage1(CAmkESTest):
             'configuration { hello.world = 1 + 4 - 2; }')
 
         self.assertEqual(source,
-            'configuration { hello.world = 1 + 4 - 2; }')
+                         'configuration { hello.world = 1 + 4 - 2; }')
         self.assertEqual(content.head, 'start')
         self.assertLen(content.tail, 1)
         self.assertEqual(content.tail[0].head, 'configuration_decl')
@@ -147,7 +148,7 @@ class TestStage1(CAmkESTest):
             'configuration { hello.world = 1 + 4 * 2; }')
 
         self.assertEqual(source,
-            'configuration { hello.world = 1 + 4 * 2; }')
+                         'configuration { hello.world = 1 + 4 * 2; }')
 
         self.assertEqual(content.head, 'start')
         self.assertLen(content.tail, 1)
@@ -359,7 +360,8 @@ class TestStage1(CAmkESTest):
         self.assertEqual(component_decl.min_line, 3)
 
     def test_lineno_multiline_comment2(self):
-        _, content, _ = self.parser.parse_string('/*I\'m\na\nmultiline\ncomment*/\ncomponent foo {}')
+        _, content, _ = self.parser.parse_string(
+            '/*I\'m\na\nmultiline\ncomment*/\ncomponent foo {}')
 
         self.assertEqual(content.head, 'start')
         self.assertLen(content.tail, 1)
@@ -448,7 +450,7 @@ class TestStage1(CAmkESTest):
             error = e
 
         self.assertRegex(str(error), 'A:44:', 'alternate form of line '
-            'directive not supported')
+                         'directive not supported')
 
     def test_multiple_error_message_line_numbers(self):
         '''
@@ -482,12 +484,12 @@ class TestStage1(CAmkESTest):
 
         except ParseError as e:
             self.assertGreaterEqual(len(e.args), 2, 'only a '
-                'single error triggered when multiple were expected')
+                                    'single error triggered when multiple were expected')
 
             # If the line number narrowing algorithm has correctly taken the
             # line directive into account, we should get the following prefix.
             self.assertRegex(str(e), 'A:44:', 'line directive not '
-                'accounted for')
+                             'accounted for')
 
     def test_list_dict_key(self):
         '''
@@ -535,6 +537,7 @@ class TestStage1(CAmkESTest):
 
         self.assertLen(quoted_string.tail, 1)
         self.assertEqual(quoted_string.tail[0], '"hello.h"')
+
 
 if __name__ == '__main__':
     unittest.main()

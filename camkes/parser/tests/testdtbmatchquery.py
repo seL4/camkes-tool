@@ -302,11 +302,11 @@ class TestDTBMatchQuery(CAmkESTest):
 
         self.assertIn('clocks', query)
         self.assertEqual(query['clocks'], [0x4, 0x21, 0x4, 0x22, 0x4, 0x27, 0x4, 0x28, 0x4, 0x29, 0x4, 0x2a, 0x4, 0x87,
-                                            0x4, 0x88])
+                                           0x4, 0x88])
 
         self.assertIn('clock-names', query)
         self.assertEqual(query['clock-names'], ["di0_pll", "di1_pll", "di0_sel", "di1_sel", "di2_sel", "di3_sel",
-                                                 "di0", "di1"])
+                                                "di0", "di1"])
 
         self.assertIn('this-address-cells', query)
         self.assertEqual(query['this-address-cells'], [0x1])
