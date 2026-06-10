@@ -26,6 +26,7 @@ import os
 import re
 import shutil
 import subprocess
+import tempfile
 
 
 class CPP(Parser):
@@ -37,59 +38,68 @@ class CPP(Parser):
     def __init__(self, cpp_bin='cpp', flags=None):
         self.cpp_bin = cpp_bin
         self.flags = flags or []
-        self.out_dir = os.getcwd()
 
     def parse_file(self, filename):
         # Run cpp with -MD to generate dependencies because we want to
-        # track what files it read.
-        output_basename = os.path.join(self.out_dir, os.path.basename(filename))
-        output = output_basename + '.cpp'
-        deps = output_basename + '.d'
-        cmd_array = [self.cpp_bin, '-MD', '-MF', deps, '-o', output] \
-            + self.flags + [filename]
-        p = subprocess.Popen(
-            cmd_array,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            universal_newlines=True)
-        _, stderr = p.communicate()
-        if p.returncode != 0:
-            raise ParseError('CPP command failed:\n  %s\nstderr:\n%s' %
-                             ('\n    '.join(cmd_array), stderr))
-        with codecs.open(output, 'r', 'utf-8') as f:
-            processed = f.read()
-        with codecs.open(deps, 'r', 'utf-8') as f:
-            read = set(parse_makefile_rule(f))
-        return processed, set([filename]) | read
+        # track what files it read. Write intermediate output to a new temp
+        # dir, so concurrent runs/tests do not overwrite each other.
+        tmp_dir = tempfile.mkdtemp()
+        try:
+            output_basename = os.path.join(tmp_dir, os.path.basename(filename))
+            output = output_basename + '.cpp'
+            deps = output_basename + '.d'
+            cmd_array = [self.cpp_bin, '-MD', '-MF', deps, '-o', output] \
+                + self.flags + [filename]
+            p = subprocess.Popen(
+                cmd_array,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                universal_newlines=True)
+            _, stderr = p.communicate()
+            if p.returncode != 0:
+                raise ParseError('CPP command failed:\n  %s\nstderr:\n%s' %
+                                 ('\n    '.join(cmd_array), stderr))
+            with codecs.open(output, 'r', 'utf-8') as f:
+                processed = f.read()
+            with codecs.open(deps, 'r', 'utf-8') as f:
+                read = set(parse_makefile_rule(f))
+            return processed, set([filename]) | read
+        finally:
+            shutil.rmtree(tmp_dir, ignore_errors=True)
 
     def parse_string(self, string):
-        output_basename = os.path.join(self.out_dir,  'output.camkes')
-        output = output_basename + '.cpp'
-        deps = output_basename + '.d'
-        cmd_array = [self.cpp_bin, '-MD', '-MF', deps, '-o', output] \
-            + self.flags
-        p = subprocess.Popen(
-            cmd_array,
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            universal_newlines=True)
-        # hack around python2 and 3's awful unicode problems
+        # Use new temp dir, so concurrent runs/tests do not overwrite each other.
+        tmp_dir = tempfile.mkdtemp()
         try:
-            string = str(string)
-        except UnicodeEncodeError:
-            # str will fail on python2 as it is ascii only.
-            # however the below fails on python3. So here we are.
-            string = string.encode('utf-8')
-        _, stderr = p.communicate(string)
-        if p.returncode != 0:
-            raise ParseError('CPP command failed:\n  %s\nstderr:\n%s' %
-                             ('\n    '.join(cmd_array), stderr))
-        with codecs.open(output, 'r', 'utf-8') as f:
-            processed = f.read()
-        with codecs.open(deps, 'r', 'utf-8') as f:
-            read = set(parse_makefile_rule(f))
-        return processed, read
+            output_basename = os.path.join(tmp_dir, 'output.camkes')
+            output = output_basename + '.cpp'
+            deps = output_basename + '.d'
+            cmd_array = [self.cpp_bin, '-MD', '-MF', deps, '-o', output] \
+                + self.flags
+            p = subprocess.Popen(
+                cmd_array,
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                universal_newlines=True)
+            # hack around python2 and 3's awful unicode problems
+            try:
+                string = str(string)
+            except UnicodeEncodeError:
+                # str will fail on python2 as it is ascii only.
+                # however the below fails on python3. So here we are.
+                string = string.encode('utf-8')
+            _, stderr = p.communicate(string)
+            if p.returncode != 0:
+                raise ParseError('CPP command failed:\n  %s\nstderr:\n%s' %
+                                 ('\n    '.join(cmd_array), stderr))
+            with codecs.open(output, 'r', 'utf-8') as f:
+                processed = f.read()
+            with codecs.open(deps, 'r', 'utf-8') as f:
+                read = set(parse_makefile_rule(f))
+            return processed, read
+        finally:
+            shutil.rmtree(tmp_dir, ignore_errors=True)
 
 
 class Reader(Parser):
