@@ -1,0 +1,10 @@
+/*
+ * Copyright 2024 Dornerworks
+ *
+ * SPDX-License-Identifier: BSD-2-Clause
+ */
+
+component VGADisplay {
+    hardware;
+    dataport Buf(4096) txt_buf;
+}
