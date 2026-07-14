@@ -25,6 +25,7 @@ from camkes.ast import Assembly, Attribute, AttributeReference, Component, \
     LiftedAST, Method, Mutex, normalise_type, Parameter, Procedure, Provides, \
     Reference, Schedule, Semaphore, BinarySemaphore, QueryObject, Setting, \
     SourceLocation, Uses, Struct
+from capdl import DomainDurationUnit
 from .base import Parser
 from .exception import ParseError
 import numbers
@@ -326,9 +327,24 @@ def _lift_schedule_decl(location, *args):
     return schedule_defn
 
 
+def _lift_schedule_unit(location, *args):
+    assert len(args) == 1
+
+    if args[0] == 'ticks':
+        return DomainDurationUnit.Ticks
+    elif args[0] == 'us':
+        return DomainDurationUnit.Us
+    else:
+        raise ParseError('illegal domains unit value \'%s\'' % args[0], location)
+
+
 def _lift_schedule_item(location, *args):
-    assert len(args) == 2
-    return (args[0], args[1])
+    assert len(args) in [2, 3]
+
+    if len(args) == 3:
+        return (args[0], args[1], args[2])
+    else:
+        return (args[0], args[1])
 
 
 def _lift_connection_defn(location, connector_ref, id, *ends):
@@ -797,6 +813,7 @@ LIFT = {
     'configuration_sing': _lift_configuration_sing,
     'schedule_defn': _lift_schedule_decl,
     'schedule_item': _lift_schedule_item,
+    'schedule_unit': _lift_schedule_unit,
     'connection_defn': _lift_connection_defn,
     'connection_end': _lift_connection_end,
     'connector_decl': _lift_connector_decl,
