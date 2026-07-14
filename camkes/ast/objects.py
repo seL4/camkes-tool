@@ -22,6 +22,7 @@ from .exception import ASTError
 from .location import SourceLocation
 from camkes.internal.frozendict import frozendict
 from camkes.internal.isinstancefallback import isinstance_fallback
+from capdl import DomainDurationUnit
 import abc
 import collections
 import itertools
@@ -145,8 +146,9 @@ class Reference(ASTObject):
 
 
 @ast_property("items", lambda i: isinstance(i, (list, tuple)) and
-              all(isinstance(item, (tuple, list)) and len(item) == 2 and
-                  all(isinstance(n, numbers.Number) for n in item) for item in i))
+              all(isinstance(item, (tuple, list)) and len(item) in [2, 3] and
+                  all(isinstance(n, numbers.Number) for n in item[:2]) and
+                  all(isinstance(n, DomainDurationUnit) for n in item[2:]) for item in i))
 class Schedule(ASTObject):
 
     def __init__(self, items=None, location=None):

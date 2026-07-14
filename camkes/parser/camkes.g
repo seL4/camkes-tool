@@ -64,6 +64,7 @@ ID: '[a-zA-Z_]\w*'
             SIGNED: 'signed';
             STRUCT: 'struct';
             STRING: 'string';
+            TICKS: 'ticks';
             THREAD: 'thread';
             THREADS: 'threads';
             TRUE1: 'True';
@@ -71,6 +72,7 @@ ID: '[a-zA-Z_]\w*'
             TO: 'to';
             UINT64_T: 'uint64_t';
             UNSIGNED: 'unsigned';
+            US: 'us';
             USES: 'uses';
             VOID: 'void';
             WITH: 'with';
@@ -88,7 +90,8 @@ configuration_sing: CONFIGURATION reference ';'
                   | configuration_decl;
 
 schedule_defn: SCHEDULE '\{' '\[' schedule_item (',' schedule_item)+ ','? '\]' '\}';
-schedule_item: '\(' number ',' number '\)';
+schedule_unit: TICKS | US;
+schedule_item: '\(' number ',' number schedule_unit? '\)';
 
 attribute_decl: attribute_parameter ('=' item)? ;
 
