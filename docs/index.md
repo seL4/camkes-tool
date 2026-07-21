@@ -2153,12 +2153,13 @@ control threads, the attribute `_domain` of the instance can be set.
 When scheduling domains are used, the kernel needs to be provided with a
 corresponding schedule to run. This can be specified in a separate `schedule`
 section in the assembly. A schedule is a list of pairs, where the first
-component of the pair is the domain and the second component is the duration.
-The duration is measured in ticks. The length of one tick depends on the kernel
-configuration. The default for non-MCS kernels is 1ms, the default for MCS
-kernels is the timer tick of the platform. When the end of the schedule or an
-end marker `(0, 0)` is reached, execution restarts at the beginning. See seL4
-[RFC-20] for more details on the domain schedule mechanism.
+component of the pair is the domain and the second component is the duration
+with an optional unit. The duration is measured in ticks or microseconds (us).
+If no unit is provided, the measure is ticks. The length of one tick depends on
+the kernel configuration. The default for non-MCS kernels is 2ms, the default
+for MCS kernels is the timer tick of the platform. When the end of the schedule
+or an end marker `(0, 0)` is reached, execution restarts at the beginning. See
+seL4 [RFC-20] for more details on the domain schedule mechanism.
 
 ```camkes
 component Foo {
@@ -2183,8 +2184,9 @@ assembly {
     ...
   }
   schedule {
-    // run domain 0 for 2ms, domain 1 for 1ms, then repeat
-    [(0,2), (1, 1)]
+    // run domain 0 for 2ms, domain 1 for 2ms (1 tick),
+    // domain 0 for 2 ticks (4 ms), then repeat
+    [(0, 2000 us), (1, 1 tick), (0, 2)]
   }
 }
 ```
