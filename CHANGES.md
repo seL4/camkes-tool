@@ -14,11 +14,18 @@
 
 ### Changes
 
+* Add support for GCC 14 and python >= 3.10
+* Add support for concurrent unit tests
+* Add support for units in the domain schedule (ticks or microseconds)
 
 ### Upgrade Notes
+
+* No special upgrade requirements.
+
 ---
 
 ## camkes-3.12.0 2026-03-31
+
 Using seL4 version 15.0.0
 
 ### Changes
