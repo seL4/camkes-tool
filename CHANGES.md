@@ -14,6 +14,16 @@
 
 ### Changes
 
+
+### Upgrade Notes
+---
+
+## 3.13.0 2026-07-22
+
+Using seL4 version 16.0.0
+
+### Changes
+
 * Add support for GCC 14 and python >= 3.10
 * Add support for concurrent unit tests
 * Add support for units in the domain schedule (ticks or microseconds)
