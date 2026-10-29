@@ -14,8 +14,23 @@
 
 ### Changes
 
+#### CAmkES Tool
+
+* No changes in the CAmkES tool itself
+
+#### CAmkES VMM
+
+* Fix a potential stack overflow in `virtio_block_emul`
+* Add BCM2711 platform support
+* Update for the additional register access traps in the new seL4 version:
+  ignore reads and writes to co-processor registers from Linux.
+* Remove platform support for Arndale `exynos5250` (see RFC-19)
+* Remove platform support for Odroid-X `exynos4` (see RFC-19)
 
 ### Upgrade Notes
+
+* No special upgrade requirements.
+
 ---
 
 ## camkes-3.13.0 2026-07-22
