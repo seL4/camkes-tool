@@ -14,6 +14,16 @@
 
 ### Changes
 
+
+### Upgrade Notes
+---
+
+## camkes-3.13.1 2026-10-30
+
+Using seL4 version 17.0.0
+
+### Changes
+
 #### CAmkES Tool
 
 * No changes in the CAmkES tool itself
