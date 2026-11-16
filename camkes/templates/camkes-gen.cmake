@@ -617,15 +617,95 @@ BuildCapDLApplication(
     /*- for g in groups -*/
         ELF "${CMAKE_CURRENT_BINARY_DIR}//*? "%s_group_bin" % g ?*/"
     /*- endfor -*/
+/*- for i in instances -*/
+    /*- if configuration[i.name].get('image_remap') -*/
+    REMAP "${CMAKE_CURRENT_BINARY_DIR}//*? i.name ?*/_remap_images.o"
+    /*- endif -*/
+/*- endfor -*/
     DEPENDS
         # Dependency on the C_SPEC and ELFs are added automatically, we just have to add the target
         # dependencies
         capdl_c_spec_target
         ${capdl_elf_targets}
+/*- for i in instances -*/
+    /*- if configuration[i.name].get('image_remap') -*/
+        /*? i.name ?*/_remap_images_target
+    /*- endif -*/
+/*- endfor -*/
     OUTPUT "capdl-loader"
 )
 include(rootserver)
 DeclareRootserver("capdl-loader")
+
+if(VmImageRemap)
+    file(GENERATE OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/capdl_image_remap.h" CONTENT
+"#ifndef VMREMAPIMAGE_H
+#define VMREMAPIMAGE_H
+
+/*- set remap_vms = [] -*/
+/*- for i in instances -*/
+    /*- if configuration[i.name].get('image_remap') -*/
+        /*- do remap_vms.append(i.name) -*/
+    /*- endif -*/
+/*- endfor -*/
+
+/*- for remap_vm in remap_vms -*/
+extern char _/*? remap_vm ?*/_remap_kernel[];
+extern char _/*? remap_vm ?*/_remap_kernel_region_end[];
+extern char _/*? remap_vm ?*/_remap_rootfs_region_end[];
+/*- endfor -*/
+
+typedef struct vm_remap_image_symbols {
+    char *start;
+    char *end;
+} vm_remap_image_symbols_t;
+
+vm_remap_image_symbols_t _vm_remap_image_symbols[] = {
+/*- for remap_vm in remap_vms -*/
+    {
+        _/*? remap_vm ?*/_remap_kernel,
+    /*- if configuration[remap_vm].get('image_remap_provide_rootfs') -*/
+        _/*? remap_vm ?*/_remap_rootfs_region_end,
+    /*- else -*/
+        _/*? remap_vm ?*/_remap_kernel_region_end,
+    /*- endif -*/
+    },
+/*- endfor -*/
+};
+
+static unsigned int get_vm_remap_cnode_slot_start(unsigned int idx)
+{
+    switch (idx) {
+/*- for i, remap_vm in enumerate(remap_vms) -*/
+        case /*? i ?*/:
+            return /*? configuration[remap_vm].get('image_remap_cnode_slot_start') ?*/;
+/*- endfor -*/
+        default:
+            return 0;
+    }
+}
+
+static const char* get_vm_cnode_name(unsigned int idx)
+{
+    switch (idx) {
+/*- for i, remap_vm in enumerate(remap_vms) -*/
+        case /*? i ?*/:
+            return \"/*? remap_vm ?*/_cnode\";
+/*- endfor -*/
+        default:
+            return NULL;
+    }
+}
+
+static unsigned int get_num_remap_vms(void)
+{
+    return /*? len(remap_vms) ?*/;
+}
+
+#endif /* VMREMAPIMAGE_H */"
+    )
+    target_include_directories(capdl-loader PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
+endif()
 
 # Generate Isabelle theory scripts if needed
 if (CAmkESCapDLVerification)
