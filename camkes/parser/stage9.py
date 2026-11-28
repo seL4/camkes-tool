@@ -74,7 +74,7 @@ def consolidate(candidates):
             else:
                 connection_type = c.type
         new_connection = Connection(connection_type, name, list(from_ends), list(to_ends))
-        yield(connections, new_connection)
+        yield (connections, new_connection)
 
 
 class Parse9(Transformer):
