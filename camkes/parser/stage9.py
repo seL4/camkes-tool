@@ -19,7 +19,6 @@ Combine n-1 connections according to the following rule:
 
 from __future__ import absolute_import, division, print_function, \
     unicode_literals
-from future.utils import iteritems
 from itertools import chain
 from camkes.internal.seven import cmp, filter, map, zip
 
@@ -46,7 +45,7 @@ def add_connections(connections):
 # conn_to_add is a single connection to replace them with
 def consolidate(candidates):
     multi = []
-    for (_, i) in iteritems(candidates):
+    for (_, i) in candidates.items():
         # Combine connection sets if any two sets share a connection
         for j in multi:
             if i & j:
@@ -74,7 +73,7 @@ def consolidate(candidates):
             else:
                 connection_type = c.type
         new_connection = Connection(connection_type, name, list(from_ends), list(to_ends))
-        yield(connections, new_connection)
+        yield (connections, new_connection)
 
 
 class Parse9(Transformer):
